@@ -1,0 +1,1 @@
+include ':app', ':test-shared', ':feature-user-impl', ':common', ':feature-splash', ':feature-user-api', ':core-db', ':core'

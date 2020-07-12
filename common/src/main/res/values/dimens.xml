@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <item name="text_line_spacing" format="float" type="dimen">1.2</item>
+
+    <dimen name="x1_2">4dp</dimen>
+    <dimen name="x1">8dp</dimen>
+    <dimen name="x2">16dp</dimen>
+    <dimen name="x2_5">20dp</dimen>
+    <dimen name="x3">24dp</dimen>
+
+</resources>
