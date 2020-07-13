@@ -1,0 +1,123 @@
+buildscript {
+    ext {
+        // App version
+        versionName = '1.0.0'
+        versionCode = 1
+
+        // SDK and tools
+        compileSdkVersion = 28
+        minSdkVersion = 21
+        targetSdkVersion = 28
+
+        kotlinVersion = '1.3.61'
+
+        supportVersion = '1.0.0'
+        constraintVersion = '1.1.3'
+
+        rxJavaVersion = '2.2.7'
+        rxAndroidVersion = '2.1.0'
+
+        daggerVersion = '2.25.2'
+        javaxInjectVersion = '1'
+
+        architectureComponentVersion = '2.0.0'
+
+        retrofitVersion = '2.4.0'
+        okhttpVersion = '3.8.0'
+        gsonVersion = '2.8.2'
+
+        zXingVersion = '3.5.0'
+
+        navControllerVersion = '2.0.0-rc02'
+
+        junitVersion = '4.12'
+        mockitoVersion = '2.23.0'
+        robolectricVersion = '4.1'
+
+        kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+
+        androidDep = "androidx.appcompat:appcompat:$supportVersion"
+        cardViewDep = "androidx.cardview:cardview:$supportVersion"
+        recyclerViewDep = "androidx.recyclerview:recyclerview:$supportVersion"
+        constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
+        materialDep = "com.google.android.material:material:$supportVersion"
+
+        rxJavaDep = "io.reactivex.rxjava2:rxjava:$rxJavaVersion"
+        rxAndroidDep = "io.reactivex.rxjava2:rxandroid:$rxAndroidVersion"
+
+        daggerDep = "com.google.dagger:dagger:$daggerVersion"
+        daggerKapt = "com.google.dagger:dagger-compiler:$daggerVersion"
+
+        lifecycleDep = "androidx.lifecycle:lifecycle-extensions:$architectureComponentVersion"
+        lifecycleKapt = "androidx.lifecycle:lifecycle-compiler:$architectureComponentVersion"
+
+        roomDep = "androidx.room:room-runtime:$architectureComponentVersion"
+        rxRoomDep = "androidx.room:room-rxjava2:$architectureComponentVersion"
+        roomKapt = "androidx.room:room-compiler:$architectureComponentVersion"
+
+        navigationFragmentDep = "androidx.navigation:navigation-fragment:$navControllerVersion"
+        navigationUiDep = "androidx.navigation:navigation-ui:$navControllerVersion"
+
+        retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
+        rxCallAdapterDep = "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
+        gsonConvertedDep = "com.squareup.retrofit2:converter-gson:$retrofitVersion"
+        gsonDep = "com.google.code.gson:gson:$gsonVersion"
+
+        jUnitDep = "junit:junit:$junitVersion"
+        mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"
+        robolectricDep = "org.robolectric:robolectric:$robolectricVersion"
+        robolectricMultidexDep = "org.robolectric:shadows-multidex:$robolectricVersion"
+        archCoreTestDep = "androidx.arch.core:core-testing:$architectureComponentVersion"
+        kotlin_version = '1.3.61'
+    }
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.6.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    }
+}
+
+configurations {
+    ktlint
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+dependencies {
+    ktlint 'com.github.shyiko:ktlint:0.31.0'
+}
+
+task ktlint(type: Exec, group: "verification") {
+    commandLine 'java', '-cp', configurations.ktlint.join(System.getProperty('path.separator')),
+            'com.github.shyiko.ktlint.Main', '--reporter=checkstyle', "$project.rootDir/**/src/main/**/*.kt"
+
+    File file = new File("$buildDir\\reports\\checkstyle\\", "kotlin-checkstyle-report.xml")
+
+    if (file.exists()) {
+        file.delete()
+    } else {
+        file.getParentFile().mkdirs()
+    }
+
+    file.createNewFile()
+
+    ignoreExitValue = true
+    doLast {
+        if (execResult.exitValue > 0) {
+            def reportPath = "$project.buildDir\\reports\\checkstyle\\kotlin-checkstyle-report.xml"
+            ant.fail("Checkstyle rule violations were found. See the report at: $reportPath")
+        }
+    }
+}

@@ -1,0 +1,55 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion rootProject.compileSdkVersion
+    defaultConfig {
+        applicationId "jp.co.soramitsu.fearless"
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+        versionCode rootProject.versionCode
+        versionName rootProject.versionName
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        debug {
+            versionNameSuffix '-debug'
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':core')
+    implementation project(':core-db')
+    implementation project(':common')
+    implementation project(':feature-splash')
+    implementation project(':feature-user-api')
+    implementation project(':feature-user-impl')
+
+    implementation kotlinDep
+
+    implementation androidDep
+    implementation constraintDep
+
+    implementation navigationFragmentDep
+    implementation navigationUiDep
+
+    implementation roomDep
+
+    implementation daggerDep
+    kapt daggerKapt
+
+    implementation lifecycleDep
+    kapt lifecycleKapt
+
+    implementation retrofitDep
+    implementation gsonConvertedDep
+    implementation rxCallAdapterDep
+}
