@@ -14,7 +14,7 @@ class DbHolder @Inject constructor(
         val dbDependencies = DaggerDbComponent_DbDependenciesComponent.builder()
             .commonApi(commonApi())
             .build()
-        return jp.co.soramitsu.core_db.di.DaggerDbComponent.builder()
+        return DaggerDbComponent.builder()
             .dbDependencies(dbDependencies)
             .build()
     }

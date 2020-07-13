@@ -113,10 +113,8 @@ task ktlint(type: Exec, group: "verification") {
 
     file.createNewFile()
 
-    standardOutput = new FileOutputStream(file)
     ignoreExitValue = true
     doLast {
-        standardOutput.close()
         if (execResult.exitValue > 0) {
             def reportPath = "$project.buildDir\\reports\\checkstyle\\kotlin-checkstyle-report.xml"
             ant.fail("Checkstyle rule violations were found. See the report at: $reportPath")
