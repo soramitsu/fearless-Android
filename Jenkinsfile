@@ -29,7 +29,7 @@ node('d3-build-agent') {
                             sh "./gradlew clean runModuleTests"
                         }
                         stage('Build and deploy') {
-                            sh "./gradlew clean assembleDevelopDebug"
+                            sh "./gradlew clean assembleDebug"
                         }
                     }
                 }
