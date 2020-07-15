@@ -80,15 +80,15 @@ buildscript {
     }
 }
 
-configurations {
-    ktlint
-}
-
 allprojects {
     repositories {
         google()
         jcenter()
     }
+}
+
+configurations {
+    ktlint
 }
 
 task clean(type: Delete) {
@@ -99,25 +99,9 @@ dependencies {
     ktlint 'com.github.shyiko:ktlint:0.31.0'
 }
 
-task ktlint(type: Exec, group: "verification") {
-    commandLine 'java', '-cp', configurations.ktlint.join(System.getProperty('path.separator')),
-            'com.github.shyiko.ktlint.Main', '--reporter=checkstyle', "$project.rootDir/**/src/main/**/*.kt"
-
-    File file = new File("$buildDir\\reports\\checkstyle\\", "kotlin-checkstyle-report.xml")
-
-    if (file.exists()) {
-        file.delete()
-    } else {
-        file.getParentFile().mkdirs()
-    }
-
-    file.createNewFile()
-
-    ignoreExitValue = true
-    doLast {
-        if (execResult.exitValue > 0) {
-            def reportPath = "$project.buildDir\\reports\\checkstyle\\kotlin-checkstyle-report.xml"
-            ant.fail("Checkstyle rule violations were found. See the report at: $reportPath")
-        }
-    }
+task ktlint(type: JavaExec, group: "verification") {
+    description = "Check Kotlin code style."
+    classpath = configurations.ktlint
+    main = "com.github.shyiko.ktlint.Main"
+    args "$project.rootDir/**/src/main/**/*.kt", "--reporter=plain", "--reporter=checkstyle,output=${buildDir}/reports/checkstyle/kotlin-checkstyle-report.xml"
 }
