@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--fonts-->
+    <attr name="fontSemiBold" format="reference" />
+    <attr name="fontBold" format="reference" />
+    <attr name="fontExtraBold" format="reference" />
+    <attr name="fontRegular" format="reference" />
+    <!--fonts-->
+
+    <!--text sizes-->
+    <attr name="textSizeH1" format="reference" />
+    <attr name="textSizeH2" format="reference" />
+    <attr name="textSizeH3" format="reference" />
+    <attr name="textSizeH4" format="reference" />
+    <attr name="textSizeH5" format="reference" />
+    <attr name="textSizeB0" format="reference" />
+    <attr name="textSizeB1" format="reference" />
+    <attr name="textSizeB2" format="reference" />
+    <attr name="textSizeB3" format="reference" />
+    <!--text sizes-->
+
+</resources>

@@ -13,7 +13,7 @@
         <activity
             android:name="jp.co.soramitsu.app.MainActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/Theme.Soramitsu.Fearless" />
 
     </application>
 

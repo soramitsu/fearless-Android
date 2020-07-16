@@ -30,6 +30,7 @@ dependencies {
     implementation androidDep
     implementation cardViewDep
     implementation recyclerViewDep
+    implementation materialDep
     implementation constraintDep
 
     implementation rxJavaDep
