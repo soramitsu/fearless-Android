@@ -10,6 +10,8 @@ import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.core_db.di.DbHolder
+import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
+import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureHolder
 import jp.co.soramitsu.splash.di.SplashFeatureApi
 import jp.co.soramitsu.splash.di.SplashFeatureHolder
 
@@ -31,4 +33,10 @@ interface ComponentHolderModule {
     @ClassKey(DbApi::class)
     @IntoMap
     fun provideDbFeature(dbHolder: DbHolder): FeatureApiHolder
+
+    @ApplicationScope
+    @Binds
+    @ClassKey(OnboardingFeatureApi::class)
+    @IntoMap
+    fun provideOnboardingFeature(onboardingFeatureHolder: OnboardingFeatureHolder): FeatureApiHolder
 }

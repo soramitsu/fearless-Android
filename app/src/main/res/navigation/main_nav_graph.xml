@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/main_nav_graph">
-    <!--  app:startDestination="@id/usersFragment"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_nav_graph"
+    app:startDestination="@id/welcomeFragment">
 
-      <fragment-->
-    <!--        android:id="@+id/usersFragment"-->
-    <!--        android:name="jp.co.soramitsu.users.presentation.list.UsersFragment"-->
-    <!--        android:label="fragment_users"-->
-    <!--        tools:layout="@layout/fragment_users" />-->
-
-    <!--    <fragment-->
-    <!--        android:id="@+id/userFragment"-->
-    <!--        android:name="jp.co.soramitsu.users.presentation.details.UserFragment"-->
-    <!--        android:label="fragment_user"-->
-    <!--        tools:layout="@layout/fragment_user" />-->
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment"
+        android:label="fragment_users"
+        tools:layout="@layout/fragment_welcome" />
 
 </navigation>

@@ -7,10 +7,11 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
+import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_onboarding_impl.domain.OnboardingInteractor
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeViewModel
 
-@Module
+@Module(includes = [ViewModelModule::class])
 class WelcomeModule {
 
     @Provides

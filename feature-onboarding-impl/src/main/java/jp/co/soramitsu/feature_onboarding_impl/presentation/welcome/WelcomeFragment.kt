@@ -13,7 +13,7 @@ import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureComponent
 class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_tutorial, container, false)
+        return inflater.inflate(R.layout.fragment_welcome, container, false)
     }
 
     override fun initViews() {

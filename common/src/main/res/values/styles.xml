@@ -49,4 +49,16 @@
 
     <!--Font styles-->
 
+    <!-- Buttons -->
+
+    <style name="Widget.Soramitsu.Button" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">?colorAccent</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:textSize">?attr/textSizeB1</item>
+        <item name="android:fontFamily">?attr/fontBold</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="background">@drawable/bg_button_colored</item>
+    </style>
+
 </resources>
