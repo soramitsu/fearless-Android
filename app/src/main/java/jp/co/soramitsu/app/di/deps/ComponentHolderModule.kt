@@ -10,10 +10,8 @@ import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.core_db.di.DbHolder
-import jp.co.soramitsu.feature_user_api.di.UserFeatureApi
 import jp.co.soramitsu.splash.di.SplashFeatureApi
 import jp.co.soramitsu.splash.di.SplashFeatureHolder
-import jp.co.soramitsu.users.di.UserFeatureHolder
 
 @Module
 interface ComponentHolderModule {
@@ -27,12 +25,6 @@ interface ComponentHolderModule {
     @ClassKey(SplashFeatureApi::class)
     @IntoMap
     fun provideSplashFeatureHolder(splashFeatureHolder: SplashFeatureHolder): FeatureApiHolder
-
-    @ApplicationScope
-    @Binds
-    @ClassKey(UserFeatureApi::class)
-    @IntoMap
-    fun provideUserFeatureHolder(userFeatureHolder: UserFeatureHolder): FeatureApiHolder
 
     @ApplicationScope
     @Binds

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -24,25 +24,29 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':core-db')
+    implementation project(':common')
+    implementation project(':feature-onboarding-api')
 
     implementation kotlinDep
 
     implementation androidDep
+    implementation materialDep
     implementation cardViewDep
-    implementation recyclerViewDep
     implementation constraintDep
 
     implementation rxJavaDep
+    implementation rxAndroidDep
 
     implementation daggerDep
     kapt daggerKapt
 
+    implementation roomDep
+    implementation rxRoomDep
+    kapt roomKapt
+
     implementation lifecycleDep
     kapt lifecycleKapt
-
-    implementation retrofitDep
-    implementation gsonConvertedDep
-    implementation rxCallAdapterDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep

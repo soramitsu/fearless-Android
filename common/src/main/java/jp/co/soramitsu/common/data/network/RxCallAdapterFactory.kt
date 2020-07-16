@@ -2,8 +2,8 @@ package jp.co.soramitsu.common.data.network
 
 import io.reactivex.Single
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.core.ResourceManager
-import jp.co.soramitsu.core.exceptions.BaseException
+import jp.co.soramitsu.common.base.BaseException
+import jp.co.soramitsu.common.resources.ResourceManager
 import retrofit2.Call
 import retrofit2.CallAdapter
 import retrofit2.HttpException

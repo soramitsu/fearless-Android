@@ -2,7 +2,6 @@ package jp.co.soramitsu.common.resources
 
 import android.content.Context
 import androidx.core.content.ContextCompat
-import jp.co.soramitsu.core.ResourceManager
 import javax.inject.Inject
 import javax.inject.Singleton
 

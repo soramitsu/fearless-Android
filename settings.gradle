@@ -1,1 +1,3 @@
-include ':app', ':test-shared', ':feature-user-impl', ':common', ':feature-splash', ':feature-user-api', ':core-db', ':core'
+include ':feature-onboarding-impl'
+include ':feature-onboarding-api'
+include ':app', ':test-shared', ':common', ':feature-splash', ':core-db'
