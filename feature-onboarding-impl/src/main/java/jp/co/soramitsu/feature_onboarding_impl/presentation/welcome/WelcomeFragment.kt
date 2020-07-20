@@ -24,14 +24,13 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
     }
 
     override fun initViews() {
-        configureTermsAndPrivacy1(getString(R.string.onboarding_terms_and_conditions_2), getString(R.string.onboarding_privacy_policy))
+        configureTermsAndPrivacy1(getString(R.string.onboarding_terms_and_conditions_1), getString(R.string.onboarding_terms_and_conditions_2),
+            getString(R.string.onboarding_privacy_policy))
         termsTv.movementMethod = LinkMovementMethod.getInstance()
         termsTv.highlightColor = Color.TRANSPARENT
     }
 
-    private fun configureTermsAndPrivacy1(terms: String, privacy: String) {
-        val sourceText = termsTv.text.toString()
-
+    private fun configureTermsAndPrivacy1(sourceText: String, terms: String, privacy: String) {
         val termsClickableSpan = object : ClickableSpan() {
             override fun updateDrawState(ds: TextPaint) {
                 super.updateDrawState(ds)
