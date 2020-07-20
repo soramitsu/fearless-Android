@@ -4,7 +4,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
-import android.text.SpannableStringBuilder
 import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
@@ -25,13 +24,15 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
     }
 
     override fun initViews() {
-        termsTv.text = configureTermsAndPrivacy()
+        configureTermsAndPrivacy1(getString(R.string.onboarding_terms_and_conditions_2), getString(R.string.onboarding_privacy_policy))
         termsTv.movementMethod = LinkMovementMethod.getInstance()
         termsTv.highlightColor = Color.TRANSPARENT
     }
 
-    private fun configureTermsAndPrivacy(): SpannableString {
-        val termsSpan = object : ClickableSpan() {
+    private fun configureTermsAndPrivacy1(terms: String, privacy: String) {
+        val sourceText = termsTv.text.toString()
+
+        val termsClickableSpan = object : ClickableSpan() {
             override fun updateDrawState(ds: TextPaint) {
                 super.updateDrawState(ds)
                 ds.isUnderlineText = false
@@ -41,15 +42,27 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
             }
         }
 
-        val termsContent = SpannableString("Terms and Conditions")
-        termsContent.setSpan(
-            termsSpan,
-            0,
-            termsContent.length,
+        val termsIndex = sourceText.indexOf(terms)
+
+        if (termsIndex == -1) {
+            return
+        }
+
+        val lastTermsIndex = termsIndex + terms.length
+
+        if (lastTermsIndex > sourceText.length) {
+            return
+        }
+
+        val spannable = SpannableString(sourceText)
+        spannable.setSpan(
+            termsClickableSpan,
+            termsIndex,
+            lastTermsIndex,
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
 
-        val privacySpan = object : ClickableSpan() {
+        val privacyClickableSpan = object : ClickableSpan() {
             override fun updateDrawState(ds: TextPaint) {
                 super.updateDrawState(ds)
                 ds.isUnderlineText = false
@@ -59,23 +72,26 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
             }
         }
 
-        val privacyContent = SpannableString("Privacy Policy")
-        privacyContent.setSpan(
-            privacySpan,
-            0,
-            privacyContent.length,
+        val privacyIndex = sourceText.indexOf(privacy)
+
+        if (privacyIndex == -1) {
+            return
+        }
+
+        val lastPrivacyIndex = privacyIndex + privacy.length
+
+        if (lastPrivacyIndex > sourceText.length) {
+            return
+        }
+
+        spannable.setSpan(
+            privacyClickableSpan,
+            privacyIndex,
+            lastPrivacyIndex,
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
 
-        val spannableBuilder = SpannableStringBuilder()
-        spannableBuilder.append("I have read and agreed with")
-        spannableBuilder.append("\n")
-        spannableBuilder.append(termsContent)
-        spannableBuilder.append(" ")
-        spannableBuilder.append("and")
-        spannableBuilder.append(" ")
-        spannableBuilder.append(privacyContent)
-        return SpannableString.valueOf(spannableBuilder)
+        termsTv.text = spannable
     }
 
     override fun inject() {
