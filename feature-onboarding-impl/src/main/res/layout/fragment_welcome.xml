@@ -22,10 +22,10 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="@dimen/x1"
+        android:layout_marginBottom="44dp"
         app:layout_constraintBottom_toTopOf="@id/termsTv"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/logoImg">
+        app:layout_constraintStart_toStartOf="parent">
 
         <jp.co.soramitsu.common.view.PrimaryButton
             android:id="@+id/createAccountBtn"
@@ -47,9 +47,15 @@
 
     <TextView
         android:id="@+id/termsTv"
+        style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
+        android:textColor="@color/white"
         android:layout_height="wrap_content"
         android:gravity="center"
+        android:textColorLink="@color/colorAccent"
+        android:layout_marginBottom="40dp"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
