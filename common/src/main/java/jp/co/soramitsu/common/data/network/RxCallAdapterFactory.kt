@@ -47,7 +47,7 @@ class RxCallAdapterFactory(
                     throwable.response().errorBody()?.close()
                     BaseException.httpError(errorCode, resourceManager.getString(R.string.common_error_general_message))
                 }
-                is IOException -> BaseException.networkError(resourceManager.getString(R.string.common_error_network), throwable)
+                is IOException -> BaseException.networkError(resourceManager.getString(R.string.connection_error_message), throwable)
                 else -> BaseException.unexpectedError(throwable)
             }
         }
