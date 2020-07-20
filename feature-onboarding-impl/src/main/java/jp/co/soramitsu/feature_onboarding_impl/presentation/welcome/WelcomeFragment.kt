@@ -86,6 +86,5 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
     }
 
     override fun subscribe(viewModel: WelcomeViewModel) {
-
     }
 }
