@@ -49,4 +49,18 @@
 
     <!--Font styles-->
 
+    <!-- Buttons -->
+
+    <style name="Widget.Fearless.Button.Primary" parent="Widget.AppCompat.Button">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textSize">?attr/textSizeB1</item>
+        <item name="android:fontFamily">?attr/fontBold</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:background">@drawable/bg_button_primary_selector</item>
+    </style>
+
+    <!-- Buttons -->
+
 </resources>

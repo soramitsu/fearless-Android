@@ -5,9 +5,9 @@ buildscript {
         versionCode = 1
 
         // SDK and tools
-        compileSdkVersion = 28
+        compileSdkVersion = 29
         minSdkVersion = 21
-        targetSdkVersion = 28
+        targetSdkVersion = 29
 
         kotlinVersion = '1.3.61'
 
@@ -20,7 +20,7 @@ buildscript {
         daggerVersion = '2.25.2'
         javaxInjectVersion = '1'
 
-        architectureComponentVersion = '2.0.0'
+        architectureComponentVersion = '2.2.0'
 
         retrofitVersion = '2.4.0'
         okhttpVersion = '3.8.0'

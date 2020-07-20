@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:opacity="opaque">
+
+    <item android:drawable="@drawable/drawable_background_image" />
 
     <item
-        android:drawable="@android:color/white"/>
+        android:gravity="center"
+        android:drawable="@drawable/drawable_fearless_logo" />
 
-    <!--<item>
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/ic_splash_logo"/>
-    </item>-->
+    <item
+        android:bottom="60dp"
+        android:gravity="center_horizontal|bottom"
+        android:drawable="@drawable/drawable_soramitsu_brand" />
 
 </layer-list>

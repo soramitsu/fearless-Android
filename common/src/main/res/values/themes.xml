@@ -3,6 +3,12 @@
 
     <style name="Theme.Soramitsu.Fearless" parent="Theme.MaterialComponents.Light.NoActionBar">
 
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@drawable/drawable_background_image</item>
+
         <!--text sizes-->
         <item name="textSizeH1">@dimen/text_size_h1</item>
         <item name="textSizeH2">@dimen/text_size_h2</item>

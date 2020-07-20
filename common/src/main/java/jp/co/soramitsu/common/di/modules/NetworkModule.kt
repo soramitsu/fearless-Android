@@ -5,7 +5,7 @@ import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.RxCallAdapterFactory
 import jp.co.soramitsu.common.di.scope.ApplicationScope
-import jp.co.soramitsu.core.ResourceManager
+import jp.co.soramitsu.common.resources.ResourceManager
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 

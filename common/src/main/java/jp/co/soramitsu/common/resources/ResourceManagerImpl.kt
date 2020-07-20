@@ -2,11 +2,10 @@ package jp.co.soramitsu.common.resources
 
 import android.content.Context
 import androidx.core.content.ContextCompat
-import jp.co.soramitsu.core.ResourceManager
+import jp.co.soramitsu.common.di.scope.ApplicationScope
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
+@ApplicationScope
 class ResourceManagerImpl @Inject constructor(
     private val context: Context
 ) : ResourceManager {
