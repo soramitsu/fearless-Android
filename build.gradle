@@ -11,7 +11,7 @@ buildscript {
 
         kotlinVersion = '1.3.61'
 
-        supportVersion = '1.0.0'
+        supportVersion = '1.1.0'
         constraintVersion = '1.1.3'
 
         rxJavaVersion = '2.2.7'
@@ -37,7 +37,7 @@ buildscript {
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
         androidDep = "androidx.appcompat:appcompat:$supportVersion"
-        cardViewDep = "androidx.cardview:cardview:$supportVersion"
+        cardViewDep = "androidx.cardview:cardview:1.0.0"
         recyclerViewDep = "androidx.recyclerview:recyclerview:$supportVersion"
         constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
         materialDep = "com.google.android.material:material:$supportVersion"
