@@ -82,6 +82,7 @@
         <item name="android:paddingTop">@dimen/x1_2</item>
         <item name="android:paddingBottom">@dimen/x1_2</item>
         <item name="android:textColor">@color/white</item>
+        <item name="android:textCursorDrawable">@null</item>
     </style>
 
     <!-- Input -->
