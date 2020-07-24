@@ -3,12 +3,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main_nav_graph"
-    app:startDestination="@id/welcomeFragment">
+    app:startDestination="@id/createAccountFragment">
 
     <fragment
         android:id="@+id/welcomeFragment"
         android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment"
         android:label="fragment_users"
         tools:layout="@layout/fragment_welcome" />
+
+    <fragment
+        android:id="@+id/createAccountFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment"
+        android:label="fragment_create_account"
+        tools:layout="@layout/fragment_create_account" />
 
 </navigation>

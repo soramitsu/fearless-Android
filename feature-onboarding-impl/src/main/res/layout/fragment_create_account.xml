@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <jp.co.soramitsu.common.base.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/x1"
+        android:paddingEnd="@dimen/x1"
+        app:titleText="Create Account" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Fearless.Input.Primary.External"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="@dimen/x1"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginBottom="@dimen/x1"
+        android:hint="Choose name">
+
+        <com.google.android.material.textfield.TextInputEditText
+            style="@style/Widget.Fearless.Input.Primary.Internal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:text="The name for this account and how it will appear under your addresses. With an on-chain identity, it can be made available to others."
+        android:textColor="@color/white" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginBottom="@dimen/x3"
+        android:text="Next"/>
+
+</LinearLayout>

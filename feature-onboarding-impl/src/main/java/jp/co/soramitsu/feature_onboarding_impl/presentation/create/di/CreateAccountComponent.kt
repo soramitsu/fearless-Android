@@ -1,0 +1,26 @@
+package jp.co.soramitsu.feature_onboarding_impl.presentation.create.di
+
+import androidx.fragment.app.Fragment
+import dagger.BindsInstance
+import dagger.Subcomponent
+import jp.co.soramitsu.common.di.scope.ScreenScope
+import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment
+
+@Subcomponent(
+    modules = [
+        CreateAccountModule::class
+    ]
+)
+@ScreenScope
+interface CreateAccountComponent {
+
+    @Subcomponent.Factory
+    interface Factory {
+
+        fun create(
+            @BindsInstance fragment: Fragment
+        ): CreateAccountComponent
+    }
+
+    fun inject(createAccountFragment: CreateAccountFragment)
+}
