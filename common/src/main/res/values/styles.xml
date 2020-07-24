@@ -70,8 +70,8 @@
         <item name="boxBackgroundMode">none</item>
         <item name="android:paddingTop">@dimen/x1</item>
         <item name="android:paddingBottom">@dimen/x1</item>
-        <item name="android:textColorHint">#cccccc</item>
-        <item name="hintTextColor">#cccccc</item>
+        <item name="android:textColorHint">@color/colorHint</item>
+        <item name="hintTextColor">@color/colorHint</item>
     </style>
 
     <style name="Widget.Fearless.Input.Primary.Internal" parent="Base.Widget.AppCompat.EditText">
