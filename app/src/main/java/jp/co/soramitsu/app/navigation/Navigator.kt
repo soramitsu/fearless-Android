@@ -29,4 +29,8 @@ class Navigator : SplashRouter, OnboardingRouter {
     override fun openCreateAccount() {
         navController?.navigate(R.id.createAccountFragment)
     }
+
+    override fun backToWelcomeScreen() {
+        navController?.popBackStack()
+    }
 }

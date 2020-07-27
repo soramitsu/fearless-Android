@@ -9,6 +9,7 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_onboarding_api.domain.OnboardingInteractor
+import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountViewModel
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeViewModel
 
@@ -18,8 +19,8 @@ class CreateAccountModule {
     @Provides
     @IntoMap
     @ViewModelKey(CreateAccountViewModel::class)
-    fun provideViewModel(interactor: OnboardingInteractor): ViewModel {
-        return CreateAccountViewModel(interactor)
+    fun provideViewModel(interactor: OnboardingInteractor, router: OnboardingRouter): ViewModel {
+        return CreateAccountViewModel(interactor, router)
     }
 
     @Provides
