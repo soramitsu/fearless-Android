@@ -1,3 +1,8 @@
 package jp.co.soramitsu.feature_onboarding_api.domain
 
-interface OnboardingInteractor
+import io.reactivex.Completable
+
+interface OnboardingInteractor {
+
+    fun saveAccountName(accountName: String): Completable
+}

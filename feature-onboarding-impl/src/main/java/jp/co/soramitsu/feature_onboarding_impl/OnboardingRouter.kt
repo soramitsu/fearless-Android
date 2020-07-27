@@ -5,4 +5,6 @@ interface OnboardingRouter {
     fun openCreateAccount()
 
     fun backToWelcomeScreen()
+
+    fun openMnemonicScreen()
 }

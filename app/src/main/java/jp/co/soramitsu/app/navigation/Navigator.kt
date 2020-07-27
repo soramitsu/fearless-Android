@@ -33,4 +33,7 @@ class Navigator : SplashRouter, OnboardingRouter {
     override fun backToWelcomeScreen() {
         navController?.popBackStack()
     }
+
+    override fun openMnemonicScreen() {
+    }
 }
