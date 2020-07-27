@@ -1,3 +1,5 @@
 include ':feature-onboarding-impl'
 include ':feature-onboarding-api'
 include ':app', ':test-shared', ':common', ':feature-splash', ':core-db'
+include ':feature-account-api'
+include ':feature-account-impl'

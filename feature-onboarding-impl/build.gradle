@@ -27,6 +27,7 @@ dependencies {
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-onboarding-api')
+    implementation project(':feature-account-api')
 
     implementation kotlinDep
 

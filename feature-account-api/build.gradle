@@ -1,0 +1,7 @@
+apply plugin: 'java-library'
+apply plugin: 'kotlin'
+
+dependencies {
+    implementation kotlinDep
+    implementation rxJavaDep
+}
