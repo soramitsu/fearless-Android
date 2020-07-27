@@ -1,9 +1,11 @@
 package jp.co.soramitsu.feature_onboarding_impl.di
 
+import dagger.BindsInstance
 import dagger.Component
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
+import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.create.di.CreateAccountComponent
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.di.WelcomeComponent
 
@@ -21,6 +23,15 @@ interface OnboardingFeatureComponent : OnboardingFeatureApi {
     fun welcomeComponentFactory(): WelcomeComponent.Factory
 
     fun createAccountComponentFactory(): CreateAccountComponent.Factory
+
+    @Component.Factory
+    interface Factory {
+
+        fun create(
+            @BindsInstance onboardingRouter: OnboardingRouter,
+            deps: OnboardingFeatureDependencies
+        ): OnboardingFeatureComponent
+    }
 
     @Component(
         dependencies = [
