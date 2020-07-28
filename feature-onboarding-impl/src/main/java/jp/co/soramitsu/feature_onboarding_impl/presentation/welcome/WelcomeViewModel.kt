@@ -12,4 +12,12 @@ class WelcomeViewModel(
     fun createAccountClicked() {
         router.openCreateAccount()
     }
+
+    fun termsClicked() {
+        router.openTermsScreen()
+    }
+
+    fun privacyClicked() {
+        router.openPrivacyScreen()
+    }
 }
