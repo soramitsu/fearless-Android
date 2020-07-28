@@ -1,28 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
-    android:background="@color/colorPrimary"
+    android:background="@android:color/black"
     android:gravity="center_vertical"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    tools:layout_height="48dp">
 
     <ImageView
         android:id="@+id/backImg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:padding="@dimen/x1"
-        android:src="@drawable/ic_arrow_back_24dp"
-        android:visibility="gone" />
+        android:src="@drawable/ic_arrow_back_24dp" />
 
     <TextView
         android:id="@+id/titleTv"
-        android:layout_width="0dp"
+        style="@style/TextAppearance.Soramitsu.Header3"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_gravity="center"
         android:ellipsize="end"
         android:maxLines="1"
         android:padding="@dimen/x1"
+        android:textColor="@color/white"
         tools:text="Title" />
 
-</LinearLayout>
+</FrameLayout>

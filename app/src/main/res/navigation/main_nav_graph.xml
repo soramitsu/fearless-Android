@@ -9,6 +9,25 @@
         android:id="@+id/welcomeFragment"
         android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment"
         android:label="fragment_users"
-        tools:layout="@layout/fragment_welcome" />
+        tools:layout="@layout/fragment_welcome">
+
+        <action
+            android:id="@+id/createAccountAction"
+            app:destination="@id/createAccountFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/createAccountFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment"
+        android:label="fragment_create_account"
+        tools:layout="@layout/fragment_create_account">
+
+
+    </fragment>
 
 </navigation>

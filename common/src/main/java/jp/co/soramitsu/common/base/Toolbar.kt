@@ -18,6 +18,20 @@ class Toolbar @JvmOverloads constructor(
 
     init {
         View.inflate(context, R.layout.tool_bar, this)
+        applyAttributes(attrs)
+    }
+
+    private fun applyAttributes(attrs: AttributeSet?) {
+        attrs?.let {
+            val typedArray = context.obtainStyledAttributes(attrs, R.styleable.Toolbar)
+            val title = typedArray.getString(R.styleable.Toolbar_titleText)
+
+            title?.let {
+                setTitle(it)
+            }
+
+            typedArray.recycle()
+        }
     }
 
     fun setTitle(title: String) {

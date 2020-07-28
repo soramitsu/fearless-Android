@@ -3,9 +3,11 @@ package jp.co.soramitsu.app.navigation
 import android.content.Context
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.MainActivity
+import jp.co.soramitsu.app.R
+import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.splash.SplashRouter
 
-class Navigator : SplashRouter {
+class Navigator : SplashRouter, OnboardingRouter {
 
     private var navController: NavController? = null
 
@@ -22,5 +24,16 @@ class Navigator : SplashRouter {
 
     override fun openMain(context: Context) {
         MainActivity.start(context)
+    }
+
+    override fun openCreateAccount() {
+        navController?.navigate(R.id.createAccountAction)
+    }
+
+    override fun backToWelcomeScreen() {
+        navController?.popBackStack()
+    }
+
+    override fun openMnemonicScreen() {
     }
 }
