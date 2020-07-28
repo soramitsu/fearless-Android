@@ -1,3 +1,8 @@
 package jp.co.soramitsu.feature_account_impl.di
 
-interface AccountFeatureDependencies
+import jp.co.soramitsu.common.data.network.AppLinksProvider
+
+interface AccountFeatureDependencies {
+
+    fun appLinksProvider(): AppLinksProvider
+}
