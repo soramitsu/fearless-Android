@@ -31,6 +31,8 @@ buildscript {
 
         navControllerVersion = '2.0.0-rc02'
 
+        novaCryptoVersion = '0.1.9'
+
         junitVersion = '4.12'
         mockitoVersion = '2.23.0'
         robolectricVersion = '4.1'
@@ -63,6 +65,8 @@ buildscript {
         rxCallAdapterDep = "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
         gsonConvertedDep = "com.squareup.retrofit2:converter-gson:$retrofitVersion"
         gsonDep = "com.google.code.gson:gson:$gsonVersion"
+
+        novaCryptoDep = "io.github.novacrypto:BIP39:$novaCryptoVersion"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"
