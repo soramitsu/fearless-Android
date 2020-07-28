@@ -4,5 +4,5 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 
 interface AccountFeatureApi {
 
-    fun accountRepository(): AccountRepository
+    fun provideAccountRepository(): AccountRepository
 }

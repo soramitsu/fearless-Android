@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.di
 
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImpl
@@ -14,9 +15,10 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideAccountRepository(
-        accountDatasource: AccountDatasource
+        accountDatasource: AccountDatasource,
+        appLinksProvider: AppLinksProvider
     ): AccountRepository {
-        return AccountRepositoryImpl(accountDatasource)
+        return AccountRepositoryImpl(accountDatasource, appLinksProvider)
     }
 
     @Provides

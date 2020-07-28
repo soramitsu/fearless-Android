@@ -41,6 +41,7 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
             }
 
             override fun onClick(widget: View) {
+                viewModel.termsClicked()
             }
         }
 
@@ -71,6 +72,7 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
             }
 
             override fun onClick(widget: View) {
+                viewModel.privacyClicked()
             }
         }
 

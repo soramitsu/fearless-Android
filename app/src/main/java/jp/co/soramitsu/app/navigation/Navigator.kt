@@ -34,6 +34,14 @@ class Navigator : SplashRouter, OnboardingRouter {
         navController?.popBackStack()
     }
 
+    override fun openTermsScreen() {
+        navController?.navigate(R.id.termsAction)
+    }
+
+    override fun openPrivacyScreen() {
+        navController?.navigate(R.id.privacyAction)
+    }
+
     override fun openMnemonicScreen() {
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_nav_graph"
     app:startDestination="@id/welcomeFragment">
 
@@ -19,6 +19,22 @@
             app:popEnterAnim="@anim/fragment_open_enter"
             app:popExitAnim="@anim/fragment_open_exit" />
 
+        <action
+            android:id="@+id/termsAction"
+            app:destination="@id/termsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit" />
+
+        <action
+            android:id="@+id/privacyAction"
+            app:destination="@id/privacyFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit" />
+
     </fragment>
 
     <fragment
@@ -27,6 +43,21 @@
         android:label="fragment_create_account"
         tools:layout="@layout/fragment_create_account">
 
+    </fragment>
+
+    <fragment
+        android:id="@+id/termsFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.terms.TermsFragment"
+        android:label="fragment_terms"
+        tools:layout="@layout/fragment_terms">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/privacyFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.privacy.PrivacyFragment"
+        android:label="fragment_privacy"
+        tools:layout="@layout/fragment_privacy">
 
     </fragment>
 

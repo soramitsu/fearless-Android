@@ -7,4 +7,8 @@ interface OnboardingRouter {
     fun backToWelcomeScreen()
 
     fun openMnemonicScreen()
+
+    fun openTermsScreen()
+
+    fun openPrivacyScreen()
 }
