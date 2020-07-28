@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_onboarding_api.domain.OnboardingInteractor
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountViewModel
-import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeViewModel
 
 @Module(includes = [ViewModelModule::class])
 class CreateAccountModule {

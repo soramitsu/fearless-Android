@@ -11,7 +11,7 @@ import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 class CreateAccountViewModel(
     private val interactor: OnboardingInteractor,
     private val router: OnboardingRouter
-): BaseViewModel() {
+) : BaseViewModel() {
 
     private val _nextButtonEnabledLiveData = MutableLiveData<Boolean>()
     val nextButtonEnabledLiveData: LiveData<Boolean> = _nextButtonEnabledLiveData

@@ -5,5 +5,4 @@ import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDa
 
 class AccountRepositoryImpl(
     private val accountDatasource: AccountDatasource
-): AccountRepository {
-}
+) : AccountRepository
