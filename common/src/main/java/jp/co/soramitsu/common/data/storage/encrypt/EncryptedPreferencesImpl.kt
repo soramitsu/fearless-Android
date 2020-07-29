@@ -11,9 +11,8 @@ class EncryptedPreferencesImpl(
         preferences.putString(field, encryptionUtil.encrypt(value))
     }
 
-    override fun getDecryptedString(field: String): String {
+    override fun getDecryptedString(field: String): String? {
         val encryptedString = preferences.getString(field)
-
-        return if (encryptedString == null) "" else encryptionUtil.decrypt(encryptedString)
+        return encryptedString?.let { encryptionUtil.decrypt(it) }
     }
 }
