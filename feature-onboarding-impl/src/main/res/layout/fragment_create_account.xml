@@ -31,8 +31,8 @@
             style="@style/Widget.Fearless.Input.Primary.Internal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxLength="64"
-            android:inputType="text"/>
+            android:inputType="text"
+            android:maxLength="64" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -40,9 +40,9 @@
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
         android:layout_marginStart="@dimen/x2"
         android:layout_marginEnd="@dimen/x2"
+        android:layout_weight="1"
         android:text="The name for this account and how it will appear under your addresses. With an on-chain identity, it can be made available to others."
         android:textColor="@color/white" />
 
@@ -55,6 +55,6 @@
         android:layout_marginEnd="@dimen/x2"
         android:layout_marginBottom="@dimen/x3"
         android:enabled="false"
-        android:text="Next"/>
+        android:text="Next" />
 
 </LinearLayout>
