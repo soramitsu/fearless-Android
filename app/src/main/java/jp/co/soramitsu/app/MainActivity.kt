@@ -2,6 +2,7 @@ package jp.co.soramitsu.app
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import jp.co.soramitsu.app.di.deps.findComponentDependencies
@@ -28,6 +29,19 @@ class MainActivity : BaseActivity<MainViewModel>() {
         MainComponent
             .init(this, findComponentDependencies())
             .inject(this)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        processJsonOpenIntent()
+    }
+
+    private fun processJsonOpenIntent() {
+        if (Intent.ACTION_VIEW == intent.action && intent.type != null) {
+            if ("application/json" == intent.type) {
+                // TODO: 7/31/20 process json with fearless util lib method
+            }
+        }
     }
 
     override fun layoutResource(): Int {
