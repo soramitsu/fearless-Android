@@ -39,7 +39,9 @@ class MainActivity : BaseActivity<MainViewModel>() {
     private fun processJsonOpenIntent() {
         if (Intent.ACTION_VIEW == intent.action && intent.type != null) {
             if ("application/json" == intent.type) {
-                // TODO: 7/31/20 process json with fearless util lib method
+                val file = this.contentResolver.openInputStream(intent.data!!)
+                val content = file?.reader(Charsets.UTF_8)?.readText()
+                // TODO: 7/31/20 call fearlessutillib method to decode json and generate keypair 
             }
         }
     }

@@ -22,7 +22,6 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/json" />
-                <data android:scheme="content" />
             </intent-filter>
         </activity>
     </application>
