@@ -41,7 +41,7 @@ class MainActivity : BaseActivity<MainViewModel>() {
             if ("application/json" == intent.type) {
                 val file = this.contentResolver.openInputStream(intent.data!!)
                 val content = file?.reader(Charsets.UTF_8)?.readText()
-                // TODO: 7/31/20 call fearlessutillib method to decode json and generate keypair 
+                viewModel.jsonFileOpened(content)
             }
         }
     }
