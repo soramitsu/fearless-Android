@@ -41,4 +41,16 @@ interface AccountDatasource {
     fun setMnemonicIsBackedUp(backedUp: Boolean)
 
     fun getMnemonicIsBackedUp(): Boolean
+
+    fun saveSeed(seed: ByteArray, address: String)
+
+    fun getSeed(address: String): ByteArray?
+
+    fun saveEntropy(entropy: ByteArray, address: String)
+
+    fun getEntropy(address: String): ByteArray?
+
+    fun saveDerivationPath(derivationPath: String, address: String)
+
+    fun getDerivationPath(address: String): String?
 }

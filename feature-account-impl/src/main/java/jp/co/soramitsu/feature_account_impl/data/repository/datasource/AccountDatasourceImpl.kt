@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
+import org.spongycastle.util.encoders.Hex
 
 class AccountDatasourceImpl(
     private val preferences: Preferences,
@@ -21,6 +22,9 @@ class AccountDatasourceImpl(
         private const val PREFS_CONNECTION_URL = "connection_url"
         private const val PREFS_NETWORK_TYPE = "network_type"
         private const val PREFS_MNEMONIC_IS_BACKED_UP = "mnemonic_backed_up"
+        private const val PREFS_SEED_MASK = "seed_%"
+        private const val PREFS_ENTROPY_MASK = "entropy_%"
+        private const val PREFS_DERIVATION_MASK = "entropy_%"
     }
 
     override fun saveAuthType(authType: AuthType) {
@@ -102,5 +106,39 @@ class AccountDatasourceImpl(
 
     override fun getMnemonicIsBackedUp(): Boolean {
         return preferences.getBoolean(PREFS_MNEMONIC_IS_BACKED_UP, false)
+    }
+
+    override fun saveSeed(seed: ByteArray, address: String) {
+        val seedKey = PREFS_SEED_MASK.format(address)
+        val seedStr = Hex.toHexString(seed)
+        encryptedPreferences.putEncryptedString(seedKey, seedStr)
+    }
+
+    override fun getSeed(address: String): ByteArray? {
+        val seedKey = PREFS_SEED_MASK.format(address)
+        val seedValue = encryptedPreferences.getDecryptedString(seedKey)
+        return seedValue?.let { Hex.decode(it) }
+    }
+
+    override fun saveEntropy(entropy: ByteArray, address: String) {
+        val entropyKey = PREFS_ENTROPY_MASK.format(address)
+        val entropyStr = Hex.toHexString(entropy)
+        encryptedPreferences.putEncryptedString(entropyKey, entropyStr)
+    }
+
+    override fun getEntropy(address: String): ByteArray? {
+        val entropyKey = PREFS_ENTROPY_MASK.format(address)
+        val entropyValue = encryptedPreferences.getDecryptedString(entropyKey)
+        return entropyValue?.let { Hex.decode(it) }
+    }
+
+    override fun saveDerivationPath(derivationPath: String, address: String) {
+        val derivationKey = PREFS_DERIVATION_MASK.format(address)
+        encryptedPreferences.putEncryptedString(derivationKey, derivationPath)
+    }
+
+    override fun getDerivationPath(address: String): String? {
+        val derivationKey = PREFS_DERIVATION_MASK.format(address)
+        return encryptedPreferences.getDecryptedString(derivationKey)
     }
 }
