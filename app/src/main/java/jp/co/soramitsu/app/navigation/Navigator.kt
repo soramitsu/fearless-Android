@@ -42,6 +42,6 @@ class Navigator : SplashRouter, OnboardingRouter {
         navController?.navigate(R.id.action_welcomeFragment_to_privacyFragment)
     }
 
-    override fun openMnemonicScreen() {
+    override fun openMnemonicScreen(accountName: String) {
     }
 }

@@ -8,4 +8,7 @@
     <string name="onboarding_terms_and_conditions_1">J\'ai lu et j\'accepte\nles Termes et Conditions et la politique de confidentialité</string>
     <string name="onboarding_terms_and_conditions_2">Conditions générales</string>
     <string name="onboarding_privacy_policy">Respect de la vie privée</string>
+    <string name="username_setup_choose_title">Choisissez le nom</string>
+    <string name="username_setup_hint">Le nom de ce compte et comment il apparaîtra sous vos adresses. Avec une identité en chaîne, il peut être mis à la disposition des autres.</string>
+    <string name="common_next">Suivant</string>
 </resources>

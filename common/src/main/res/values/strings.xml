@@ -8,4 +8,7 @@
     <string name="onboarding_terms_and_conditions_1">I have read and agreed to\nTerms and Conditions and Privacy Policy</string>
     <string name="onboarding_terms_and_conditions_2">Terms and Conditions</string>
     <string name="onboarding_privacy_policy">Privacy Policy</string>
+    <string name="username_setup_choose_title">Choose name</string>
+    <string name="username_setup_hint">The name for this account and how it will appear under your addresses. With an on-chain identity, it can be made available to others.</string>
+    <string name="common_next">Next</string>
 </resources>
