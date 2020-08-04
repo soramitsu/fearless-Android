@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 
 class AccountDatasourceImpl(
     private val preferences: Preferences,
@@ -13,6 +15,12 @@ class AccountDatasourceImpl(
         private const val PREFS_AUTH_TYPE = "auth_type"
         private const val PREFS_SELECTED_LANGUAGE = "selected_language"
         private const val PREFS_PIN_CODE = "pin_code"
+        private const val PREFS_SELECTED_ADDRESS = "selected_address"
+        private const val PREFS_ACCOUNT_NAME_MASK = "account_name_%s"
+        private const val PREFS_CRYPTO_TYPE_MASK = "crypto_type_%s"
+        private const val PREFS_CONNECTION_URL_MASK = "connection_url_%s"
+        private const val PREFS_NETWORK_TYPE_MASK = "network_type_%s"
+        private const val PREFS_MNEMONIC_IS_BACKED_UP = "mnemonic_backed_up"
     }
 
     override fun saveAuthType(authType: AuthType) {
@@ -42,5 +50,61 @@ class AccountDatasourceImpl(
 
     override fun getPinCode(): String? {
         return encryptedPreferences.getDecryptedString(PREFS_PIN_CODE)
+    }
+
+    override fun saveSelectedAddress(address: String) {
+        preferences.putString(PREFS_SELECTED_ADDRESS, address)
+    }
+
+    override fun getSelectedAddress(): String? {
+        return preferences.getString(PREFS_SELECTED_ADDRESS)
+    }
+
+    override fun saveAccountName(accountName: String, address: String) {
+        val accountNameKey = PREFS_ACCOUNT_NAME_MASK.format(address)
+        preferences.putString(accountNameKey, accountName)
+    }
+
+    override fun getAccountName(address: String): String? {
+        val accountNameKey = PREFS_ACCOUNT_NAME_MASK.format(address)
+        return preferences.getString(accountNameKey)
+    }
+
+    override fun saveCryptoType(cryptoType: CryptoType, address: String) {
+        val cryptoTypeKey = PREFS_CRYPTO_TYPE_MASK.format(address)
+        preferences.putString(cryptoTypeKey, cryptoType.toString())
+    }
+
+    override fun getCryptoType(address: String): CryptoType? {
+        val cryptoTypeKey = PREFS_CRYPTO_TYPE_MASK.format(address)
+        return preferences.getString(cryptoTypeKey)?.let { CryptoType.valueOf(it) }
+    }
+
+    override fun saveConnectionUrl(connectionUrl: String, address: String) {
+        val connectionUrlKey = PREFS_CONNECTION_URL_MASK.format(address)
+        preferences.putString(connectionUrlKey, connectionUrl)
+    }
+
+    override fun getConnectionUrl(address: String): String? {
+        val connectionUrlKey = PREFS_CONNECTION_URL_MASK.format(address)
+        return preferences.getString(connectionUrlKey)
+    }
+
+    override fun saveNetworkType(networkType: NetworkType, address: String) {
+        val networkTypeKey = PREFS_NETWORK_TYPE_MASK.format(address)
+        preferences.putString(networkTypeKey, networkType.toString())
+    }
+
+    override fun getNetworkType(address: String): NetworkType? {
+        val networkTypeKey = PREFS_NETWORK_TYPE_MASK.format(address)
+        return preferences.getString(networkTypeKey)?.let { NetworkType.valueOf(it) }
+    }
+
+    override fun setMnemonicIsBackedUp(backedUp: Boolean) {
+        preferences.putBoolean(PREFS_MNEMONIC_IS_BACKED_UP, backedUp)
+    }
+
+    override fun getMnemonicIsBackedUp(): Boolean {
+        return preferences.getBoolean(PREFS_MNEMONIC_IS_BACKED_UP, false)
     }
 }

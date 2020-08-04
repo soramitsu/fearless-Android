@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 
 interface AccountDatasource {
 
@@ -15,4 +17,28 @@ interface AccountDatasource {
     fun savePinCode(pinCode: String)
 
     fun getPinCode(): String?
+
+    fun saveSelectedAddress(address: String)
+
+    fun getSelectedAddress(): String?
+
+    fun saveAccountName(accountName: String, address: String)
+
+    fun getAccountName(address: String): String?
+
+    fun saveCryptoType(cryptoType: CryptoType, address: String)
+
+    fun getCryptoType(address: String): CryptoType?
+
+    fun saveConnectionUrl(connectionUrl: String, address: String)
+
+    fun getConnectionUrl(address: String): String?
+
+    fun saveNetworkType(networkType: NetworkType, address: String)
+
+    fun getNetworkType(address: String): NetworkType?
+
+    fun setMnemonicIsBackedUp(backedUp: Boolean)
+
+    fun getMnemonicIsBackedUp(): Boolean
 }
