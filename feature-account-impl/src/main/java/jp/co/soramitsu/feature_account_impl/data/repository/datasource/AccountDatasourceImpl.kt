@@ -18,8 +18,8 @@ class AccountDatasourceImpl(
         private const val PREFS_SELECTED_ADDRESS = "selected_address"
         private const val PREFS_ACCOUNT_NAME_MASK = "account_name_%s"
         private const val PREFS_CRYPTO_TYPE_MASK = "crypto_type_%s"
-        private const val PREFS_CONNECTION_URL_MASK = "connection_url_%s"
-        private const val PREFS_NETWORK_TYPE_MASK = "network_type_%s"
+        private const val PREFS_CONNECTION_URL = "connection_url"
+        private const val PREFS_NETWORK_TYPE = "network_type"
         private const val PREFS_MNEMONIC_IS_BACKED_UP = "mnemonic_backed_up"
     }
 
@@ -80,24 +80,20 @@ class AccountDatasourceImpl(
         return preferences.getString(cryptoTypeKey)?.let { CryptoType.valueOf(it) }
     }
 
-    override fun saveConnectionUrl(connectionUrl: String, address: String) {
-        val connectionUrlKey = PREFS_CONNECTION_URL_MASK.format(address)
-        preferences.putString(connectionUrlKey, connectionUrl)
+    override fun saveConnectionUrl(connectionUrl: String) {
+        preferences.putString(PREFS_CONNECTION_URL, connectionUrl)
     }
 
     override fun getConnectionUrl(address: String): String? {
-        val connectionUrlKey = PREFS_CONNECTION_URL_MASK.format(address)
-        return preferences.getString(connectionUrlKey)
+        return preferences.getString(PREFS_CONNECTION_URL)
     }
 
-    override fun saveNetworkType(networkType: NetworkType, address: String) {
-        val networkTypeKey = PREFS_NETWORK_TYPE_MASK.format(address)
-        preferences.putString(networkTypeKey, networkType.toString())
+    override fun saveNetworkType(networkType: NetworkType) {
+        preferences.putString(PREFS_NETWORK_TYPE, networkType.toString())
     }
 
     override fun getNetworkType(address: String): NetworkType? {
-        val networkTypeKey = PREFS_NETWORK_TYPE_MASK.format(address)
-        return preferences.getString(networkTypeKey)?.let { NetworkType.valueOf(it) }
+        return preferences.getString(PREFS_NETWORK_TYPE)?.let { NetworkType.valueOf(it) }
     }
 
     override fun setMnemonicIsBackedUp(backedUp: Boolean) {

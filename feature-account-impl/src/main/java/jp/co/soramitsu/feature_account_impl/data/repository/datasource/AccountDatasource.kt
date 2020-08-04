@@ -30,11 +30,11 @@ interface AccountDatasource {
 
     fun getCryptoType(address: String): CryptoType?
 
-    fun saveConnectionUrl(connectionUrl: String, address: String)
+    fun saveConnectionUrl(connectionUrl: String)
 
     fun getConnectionUrl(address: String): String?
 
-    fun saveNetworkType(networkType: NetworkType, address: String)
+    fun saveNetworkType(networkType: NetworkType)
 
     fun getNetworkType(address: String): NetworkType?
 
