@@ -8,4 +8,7 @@
     <string name="onboarding_terms_and_conditions_1">Я підтверджую, що прочитав і згоден з\nУмовами користування та Політикою конфіденційності</string>
     <string name="onboarding_terms_and_conditions_2">Умови користування</string>
     <string name="onboarding_privacy_policy">Політикою конфіденційності</string>
+    <string name="username_setup_choose_title">Виберіть ім\'я</string>
+    <string name="username_setup_hint">Назва цього облікового запису та спосіб відображення під вашими адресами. Завдяки ланцюговій ідентичності він може бути доступний для інших.</string>
+    <string name="common_next">Далі</string>
 </resources>
