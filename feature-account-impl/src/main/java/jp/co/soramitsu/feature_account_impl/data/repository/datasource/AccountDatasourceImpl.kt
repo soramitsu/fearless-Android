@@ -84,7 +84,7 @@ class AccountDatasourceImpl(
         preferences.putString(PREFS_CONNECTION_URL, connectionUrl)
     }
 
-    override fun getConnectionUrl(address: String): String? {
+    override fun getConnectionUrl(): String? {
         return preferences.getString(PREFS_CONNECTION_URL)
     }
 
@@ -92,7 +92,7 @@ class AccountDatasourceImpl(
         preferences.putString(PREFS_NETWORK_TYPE, networkType.toString())
     }
 
-    override fun getNetworkType(address: String): NetworkType? {
+    override fun getNetworkType(): NetworkType? {
         return preferences.getString(PREFS_NETWORK_TYPE)?.let { NetworkType.valueOf(it) }
     }
 

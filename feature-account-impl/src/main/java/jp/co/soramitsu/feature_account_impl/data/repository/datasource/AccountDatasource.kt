@@ -32,11 +32,11 @@ interface AccountDatasource {
 
     fun saveConnectionUrl(connectionUrl: String)
 
-    fun getConnectionUrl(address: String): String?
+    fun getConnectionUrl(): String?
 
     fun saveNetworkType(networkType: NetworkType)
 
-    fun getNetworkType(address: String): NetworkType?
+    fun getNetworkType(): NetworkType?
 
     fun setMnemonicIsBackedUp(backedUp: Boolean)
 
