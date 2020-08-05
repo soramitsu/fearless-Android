@@ -42,6 +42,10 @@ class Navigator : SplashRouter, OnboardingRouter {
         navController?.navigate(R.id.privacyAction)
     }
 
+    override fun openImportAccountScreen() {
+        navController?.navigate(R.id.importAction)
+    }
+
     override fun openMnemonicScreen() {
     }
 }

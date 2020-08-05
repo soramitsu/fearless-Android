@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <jp.co.soramitsu.common.base.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/x1"
+        android:paddingEnd="@dimen/x1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleText="Import account" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/accountNameInput"
+        style="@style/Widget.Fearless.Input.Primary.External"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginTop="@dimen/x2"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/x2"
+        android:paddingTop="@dimen/x1"
+        android:paddingEnd="@dimen/x2"
+        android:paddingBottom="@dimen/x1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+        <TextView
+            android:id="@+id/title"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Source type"
+            android:textColor="@color/colorHint"
+            app:layout_constraintEnd_toStartOf="@id/icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/text"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Mnemonic passphrase"
+            android:textColor="@color/white"
+            app:layout_constraintEnd_toStartOf="@id/icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/title" />
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_pin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/title"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/keyInput"
+        style="@style/Widget.Fearless.Input.Primary.External"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginTop="@dimen/x2"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/x2"
+        android:paddingTop="@dimen/x1"
+        android:paddingEnd="@dimen/x2"
+        android:paddingBottom="@dimen/x1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/accountNameInput" >
+
+        <TextView
+            android:id="@+id/keyInputTitle"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mnemonic passphrase"
+            android:textColor="@color/colorHint"
+            app:layout_constraintEnd_toStartOf="@id/icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/accountNameEt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:gravity="top"
+            android:inputType="text"
+            android:maxLength="64"
+            android:minHeight="160dp"
+            android:padding="0dp"
+            android:textColor="@color/white" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/advanced"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginTop="@dimen/x4"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/keyInput" >
+
+        <TextView
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Advanced"
+            android:layout_weight="1"
+            android:textColor="@color/white" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:src="@drawable/ic_plus" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorDivider"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginTop="@dimen/x2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/advanced" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/encryptionTypeInput"
+        style="@style/Widget.Fearless.Input.Primary.External"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginTop="@dimen/x2"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/x2"
+        android:paddingTop="@dimen/x1"
+        android:paddingEnd="@dimen/x2"
+        android:paddingBottom="@dimen/x1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/divider" >
+
+        <TextView
+            android:id="@+id/encryptionTypeTitle"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Source type"
+            android:textColor="@color/colorHint"
+            app:layout_constraintEnd_toStartOf="@id/encryptionTypeicon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/encryptionTypeText"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Mnemonic passphrase"
+            android:textColor="@color/white"
+            app:layout_constraintEnd_toStartOf="@id/encryptionTypeicon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/encryptionTypeTitle" />
+
+        <ImageView
+            android:id="@+id/encryptionTypeicon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_pin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/encryptionTypeTitle"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/derivationPathInput"
+        style="@style/Widget.Fearless.Input.Primary.External"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginTop="@dimen/x2"
+        android:hint="Choose name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/encryptionTypeInput" >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/derivationPathEt"
+            style="@style/Widget.Fearless.Input.Primary.Internal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLength="64" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/networkInput"
+        style="@style/Widget.Fearless.Input.Primary.External"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginTop="@dimen/x2"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/x2"
+        android:paddingTop="@dimen/x1"
+        android:paddingEnd="@dimen/x2"
+        android:paddingBottom="@dimen/x1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/derivationPathInput" >
+
+        <TextView
+            android:id="@+id/netowrkTitle"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Source type"
+            android:textColor="@color/colorHint"
+            app:layout_constraintEnd_toStartOf="@id/rightIcon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/networkText"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Mnemonic passphrase"
+            android:textColor="@color/white"
+            app:layout_constraintEnd_toStartOf="@id/rightIcon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/netowrkTitle" />
+
+        <ImageView
+            android:id="@+id/rightIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_pin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/netowrkTitle"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/nextBtn"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginBottom="@dimen/x3"
+        android:enabled="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="Next" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

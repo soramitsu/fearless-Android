@@ -5,5 +5,7 @@
     <color name="colorAccent">#FF009A</color>
     <color name="white">#fff</color>
     <color name="colorHint">#ccc</color>
-
+    <color name="colorDivider">#888888</color>
+    <color name="gray4">#181818</color>
+    <color name="gray3">#444444</color>
 </resources>

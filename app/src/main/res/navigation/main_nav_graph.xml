@@ -35,6 +35,14 @@
             app:popEnterAnim="@anim/fragment_open_enter"
             app:popExitAnim="@anim/fragment_open_exit" />
 
+        <action
+            android:id="@+id/importAction"
+            app:destination="@id/importAccountFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit" />
+
     </fragment>
 
     <fragment
@@ -58,6 +66,14 @@
         android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.privacy.PrivacyFragment"
         android:label="fragment_privacy"
         tools:layout="@layout/fragment_privacy">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/importAccountFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.ImportAccountFragment"
+        android:label="fragment_import"
+        tools:layout="@layout/fragment_import_account">
 
     </fragment>
 
