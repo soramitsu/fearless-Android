@@ -39,6 +39,8 @@ dependencies {
     implementation androidDep
     implementation constraintDep
 
+    implementation zXingEmbeddedDep
+
     implementation navigationFragmentDep
     implementation navigationUiDep
 

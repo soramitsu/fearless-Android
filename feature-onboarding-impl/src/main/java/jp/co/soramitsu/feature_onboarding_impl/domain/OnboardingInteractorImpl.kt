@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_onboarding_impl.domain
 
+import io.reactivex.Completable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
@@ -29,5 +30,17 @@ class OnboardingInteractorImpl(
 
     override fun getDefaultNodes(): Single<List<Node>> {
         return accountRepository.getDefaultNodes()
+    }
+
+    override fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable {
+        return accountRepository.importFromMnemonic(keyString, username, derivationPath, selectedEncryptionType, node)
+    }
+
+    override fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable {
+        return accountRepository.importFromSeed(keyString, username, derivationPath, selectedEncryptionType, node)
+    }
+
+    override fun importFromJson(json: String, password: String, node: Node): Completable {
+        return accountRepository.importFromJson(json, password, node)
     }
 }

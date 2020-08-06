@@ -43,7 +43,7 @@ class SourceTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             sourceTypeText.text = when(sourceType) {
                 SourceType.MNEMONIC_PASSPHRASE -> "Mnemonic passphrase"
                 SourceType.RAW_SEED -> "Raw seed"
-                SourceType.KEYSTORE -> "Keystore"
+                SourceType.KEYSTORE -> "Recovery JSON"
             }
 
             setOnClickListener {

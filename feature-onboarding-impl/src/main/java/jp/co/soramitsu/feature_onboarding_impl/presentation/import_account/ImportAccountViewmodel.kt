@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
@@ -19,8 +20,23 @@ class ImportAccountViewmodel(
     private val router: OnboardingRouter
 ) : BaseViewModel() {
 
+    private val _usernameVisibilityLiveData = MutableLiveData<Boolean>()
+    val usernameVisibilityLiveData: LiveData<Boolean> = _usernameVisibilityLiveData
+
+    private val _passwordVisibilityLiveData = MutableLiveData<Boolean>()
+    val passwordVisibilityLiveData: LiveData<Boolean> = _passwordVisibilityLiveData
+
+    private val _jsonInputVisibilityLiveData = MutableLiveData<Boolean>()
+    val jsonInputVisibilityLiveData: LiveData<Boolean> = _jsonInputVisibilityLiveData
+
     private val _advancedVisibilityLiveData = MutableLiveData<Boolean>()
     val advancedVisibilityLiveData: LiveData<Boolean> = _advancedVisibilityLiveData
+
+    private val _qrScanStartLiveData = MutableLiveData<Event<Unit>>()
+    val qrScanStartLiveData: LiveData<Event<Unit>> = _qrScanStartLiveData
+
+    private val _nextButtonEnabledLiveData = MutableLiveData<Boolean>()
+    val nextButtonEnabledLiveData: LiveData<Boolean> = _nextButtonEnabledLiveData
 
     private val _sourceTypeChooserDialogInitialData = MutableLiveData<SourceTypeChooserDialogData>()
     val sourceTypeChooserDialogInitialData: LiveData<SourceTypeChooserDialogData> = _sourceTypeChooserDialogInitialData
@@ -69,9 +85,24 @@ class ImportAccountViewmodel(
     fun sourceTypeChanged(it: SourceType) {
         selectedSourceType = it
         _selectedSourceTypeText.value =  when(selectedSourceType) {
-            SourceType.MNEMONIC_PASSPHRASE -> "Mnemonic passphrase"
-            SourceType.RAW_SEED -> "Raw seed"
-            SourceType.KEYSTORE -> "Keystore"
+            SourceType.MNEMONIC_PASSPHRASE -> {
+                _usernameVisibilityLiveData.value = true
+                _passwordVisibilityLiveData.value = false
+                _jsonInputVisibilityLiveData.value = false
+                "Mnemonic passphrase"
+            }
+            SourceType.RAW_SEED -> {
+                _usernameVisibilityLiveData.value = true
+                _passwordVisibilityLiveData.value = false
+                _jsonInputVisibilityLiveData.value = false
+                "Raw seed"
+            }
+            SourceType.KEYSTORE -> {
+                _usernameVisibilityLiveData.value = false
+                _passwordVisibilityLiveData.value = true
+                _jsonInputVisibilityLiveData.value = true
+                "Recovery JSON"
+            }
         }
 
         _advancedVisibilityLiveData.value = false
@@ -130,5 +161,23 @@ class ImportAccountViewmodel(
 
     private fun mapEncryptionTypesToEncryptionTypeDialogData(nodes: List<Node>): NetworkTypeChooserDialogData {
         return NetworkTypeChooserDialogData(selectedNode ?: nodes.first(), nodes)
+    }
+
+    fun qrScanClicked() {
+        _qrScanStartLiveData.value = Event(Unit)
+    }
+
+    fun nextBtnClicked(keyString: String, username: String, password: String, json: String, derivationPath: String) {
+        selectedNode?.let {  node ->
+            val disposable = when (selectedSourceType) {
+                SourceType.MNEMONIC_PASSPHRASE -> interactor.importFromMnemonic(keyString, username, derivationPath, selectedEncryptionType, node)
+                SourceType.RAW_SEED -> interactor.importFromSeed(keyString, username, derivationPath, selectedEncryptionType, node)
+                SourceType.KEYSTORE -> interactor.importFromJson(json, password, node)
+            }
+        }
+    }
+
+    fun inputChanges(input1: String, input2: String) {
+        _nextButtonEnabledLiveData.value = input1.isNotEmpty() && input2.isNotEmpty()
     }
 }
