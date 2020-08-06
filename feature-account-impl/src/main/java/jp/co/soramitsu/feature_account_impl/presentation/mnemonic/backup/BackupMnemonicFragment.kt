@@ -5,7 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 
 class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
 
@@ -27,10 +30,12 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     }
 
     override fun inject() {
-
+        FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
+            .backupMnemonicComponentFactory()
+            .create(this)
+            .inject(this)
     }
 
     override fun subscribe(viewModel: BackupMnemonicViewModel) {
-
     }
 }

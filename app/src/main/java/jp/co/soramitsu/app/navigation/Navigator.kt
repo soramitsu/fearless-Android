@@ -4,11 +4,12 @@ import android.content.Context
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.MainActivity
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.splash.SplashRouter
 
-class Navigator : SplashRouter, OnboardingRouter {
+class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
 
     private var navController: NavController? = null
 
