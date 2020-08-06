@@ -34,6 +34,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="right|center_vertical"
         android:padding="@dimen/x1"
-        android:visibility="gone"
+        android:visibility="visible"
         android:src="@drawable/ic_arrow_back_24dp" />
 </FrameLayout>

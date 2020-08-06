@@ -22,6 +22,7 @@
 
     <declare-styleable name="Toolbar">
         <attr name="titleText" format="string"/>
+        <attr name="rightIconImage" format="reference"/>
     </declare-styleable>
 
 </resources>

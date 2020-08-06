@@ -10,21 +10,11 @@
         android:id="@+id/chooserText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="0"
+        android:layout_weight="1"
         android:layout_gravity="center_vertical"
         android:layout_marginEnd="@dimen/x1_2"
         style="@style/TextAppearance.Soramitsu.Body0"
         android:textColor="@color/white"
-        android:text="@string/common_ok"/>
-
-    <TextView
-        android:id="@+id/chooserSecondText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_gravity="center_vertical"
-        style="@style/TextAppearance.Soramitsu.Body0"
-        android:textColor="@color/colorDivider"
         android:text="@string/common_ok"/>
 
     <ImageView

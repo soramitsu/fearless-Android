@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import kotlinx.android.synthetic.main.tool_bar.view.backImg
+import kotlinx.android.synthetic.main.tool_bar.view.rightIconImg
 import kotlinx.android.synthetic.main.tool_bar.view.titleTv
 
 class Toolbar @JvmOverloads constructor(
@@ -25,16 +26,19 @@ class Toolbar @JvmOverloads constructor(
         attrs?.let {
             val typedArray = context.obtainStyledAttributes(attrs, R.styleable.Toolbar)
             val title = typedArray.getString(R.styleable.Toolbar_titleText)
+            val rightImageId = typedArray.getResourceId(R.styleable.Toolbar_rightIconImage, 0)
 
             title?.let {
                 setTitle(it)
             }
 
+            setRightIconImage(rightImageId)
+
             typedArray.recycle()
         }
     }
 
-    fun setTitle(title: String) {
+    private fun setTitle(title: String) {
         titleTv.text = title
     }
 
@@ -48,5 +52,21 @@ class Toolbar @JvmOverloads constructor(
 
     fun setHomeButtonListener(listener: (View) -> Unit) {
         backImg.setOnClickListener(listener)
+    }
+
+    private fun setRightIconImage(imageResource: Int) {
+        rightIconImg.setImageResource(imageResource)
+    }
+
+    fun showRightButton() {
+        rightIconImg.makeVisible()
+    }
+
+    fun hideRightButton() {
+        rightIconImg.makeGone()
+    }
+
+    fun setRightIconButtonListener(listener: (View) -> Unit) {
+        rightIconImg.setOnClickListener(listener)
     }
 }

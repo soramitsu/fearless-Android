@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_onboarding_impl.domain
 import io.reactivex.Completable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.EncryptionType
+import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_onboarding_api.domain.OnboardingInteractor
 
 class OnboardingInteractorImpl(
@@ -19,5 +21,13 @@ class OnboardingInteractorImpl(
 
     override fun getPrivacyAddress(): Single<String> {
         return accountRepository.getPrivacyAddress()
+    }
+
+    override fun getSourceTypes(): Single<List<SourceType>> {
+        return accountRepository.getSourceTypes()
+    }
+
+    override fun getEncryptionTypes(): Single<List<EncryptionType>> {
+        return accountRepository.getEncryptionTypes()
     }
 }
