@@ -11,4 +11,6 @@
     <string name="username_setup_choose_title">名前を選択してください</string>
     <string name="username_setup_hint">このアカウントの名前と、アドレスの下での表示方法。チェーン上のIDを使用すると、他のユーザーが使用できるようになります。</string>
     <string name="common_next">次へ</string>
+    <string name="account_create_title">バックアップニーモニック</string>
+    <string name="account_create_details">紙に書き留めるなど、デジタル以外の方法でバックアップします。</string>
 </resources>

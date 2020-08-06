@@ -11,4 +11,6 @@
     <string name="username_setup_choose_title">Choisissez le nom</string>
     <string name="username_setup_hint">Le nom de ce compte et comment il apparaîtra sous vos adresses. Avec une identité en chaîne, il peut être mis à la disposition des autres.</string>
     <string name="common_next">Suivant</string>
+    <string name="account_create_title">Mnémonique de sauvegarde</string>
+    <string name="account_create_details">Utilisez un moyen non numérique de sauvegarder, comme l\'écrire sur papier.</string>
 </resources>

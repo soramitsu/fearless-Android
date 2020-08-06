@@ -11,4 +11,6 @@
     <string name="username_setup_choose_title">Выберите имя</string>
     <string name="username_setup_hint">Имя аккаунта и его отображение рядом с адресом. Используя хранение идентификационных данных в блокчейне, имя можно сделать доступных для остальных.</string>
     <string name="common_next">Киләһе</string>
+    <string name="account_create_title">Мнемоника</string>
+    <string name="account_create_details">Используйте нецифровой носитель для сохранения, например, выпишите слова на бумагу.</string>
 </resources>

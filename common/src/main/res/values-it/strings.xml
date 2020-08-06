@@ -11,4 +11,6 @@
     <string name="username_setup_choose_title">Scegli il nome</string>
     <string name="username_setup_hint">Il nome per questo account e come apparirà sotto i tuoi indirizzi. Con un\'identità su catena, può essere reso disponibile ad altri.</string>
     <string name="common_next">Il prossimo</string>
+    <string name="account_create_title">Backup mnemonico</string>
+    <string name="account_create_details">Utilizzare un modo non digitale per il backup, come scrivere su carta.</string>
 </resources>

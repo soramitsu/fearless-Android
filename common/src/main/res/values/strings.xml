@@ -11,4 +11,6 @@
     <string name="username_setup_choose_title">Choose name</string>
     <string name="username_setup_hint">The name for this account and how it will appear under your addresses. With an on-chain identity, it can be made available to others.</string>
     <string name="common_next">Next</string>
+    <string name="account_create_title">Backup mnemonic</string>
+    <string name="account_create_details">Use non digital way to backup, such as writing it down on paper.</string>
 </resources>
