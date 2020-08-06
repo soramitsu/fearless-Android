@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureComponent
 import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.EncryptionTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.NetworkTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.SourceTypeChooserBottomSheetDialog
 import kotlinx.android.synthetic.main.fragment_create_account.toolbar
 import kotlinx.android.synthetic.main.fragment_import_account.advanced
@@ -23,6 +24,7 @@ import kotlinx.android.synthetic.main.fragment_import_account.encryptionTypeInpu
 import kotlinx.android.synthetic.main.fragment_import_account.encryptionTypeText
 import kotlinx.android.synthetic.main.fragment_import_account.keyInputTitle
 import kotlinx.android.synthetic.main.fragment_import_account.networkInput
+import kotlinx.android.synthetic.main.fragment_import_account.networkText
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeText
 
@@ -41,6 +43,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
         advanced.setOnClickListener { viewModel.advancedButtonClicked() }
         sourceTypeInput.setOnClickListener { viewModel.sourceTypeInputClicked() }
         encryptionTypeInput.setOnClickListener { viewModel.encryptionTypeInputClicked() }
+        networkInput.setOnClickListener { viewModel.networkTypeInputClicked() }
     }
 
     override fun inject() {
@@ -89,9 +92,21 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
         })
 
         observe(viewModel.selectedEncryptionTypeText, Observer {
-            Log.e("TAGAA", it)
             encryptionTypeText.text = it
             derivationPathEt.setText("")
+        })
+
+        observe(viewModel.networkTypeChooserDialogInitialData, Observer {
+            NetworkTypeChooserBottomSheetDialog(
+                activity!!,
+                it
+            ) {
+                viewModel.networkTypeChanged(it)
+            }.show()
+        })
+
+        observe(viewModel.selectedNodeText, Observer {
+            networkText.text = it
         })
     }
 }

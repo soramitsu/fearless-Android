@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_onboarding_impl.domain
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_onboarding_api.domain.OnboardingInteractor
 
@@ -24,5 +25,9 @@ class OnboardingInteractorImpl(
 
     override fun getEncryptionTypes(): Single<List<CryptoType>> {
         return accountRepository.getEncryptionTypes()
+    }
+
+    override fun getDefaultNodes(): Single<List<Node>> {
+        return accountRepository.getDefaultNodes()
     }
 }
