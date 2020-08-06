@@ -25,10 +25,14 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
     }
 
     override fun initViews() {
-        configureTermsAndPrivacy1(getString(R.string.onboarding_terms_and_conditions_1), getString(R.string.onboarding_terms_and_conditions_2),
-            getString(R.string.onboarding_privacy_policy))
+        configureTermsAndPrivacy1(
+            getString(R.string.onboarding_terms_and_conditions_1),
+            getString(R.string.onboarding_terms_and_conditions_2),
+            getString(R.string.onboarding_privacy_policy)
+        )
         termsTv.movementMethod = LinkMovementMethod.getInstance()
         termsTv.highlightColor = Color.TRANSPARENT
+
 
         createAccountBtn.setOnClickListener { viewModel.createAccountClicked() }
     }

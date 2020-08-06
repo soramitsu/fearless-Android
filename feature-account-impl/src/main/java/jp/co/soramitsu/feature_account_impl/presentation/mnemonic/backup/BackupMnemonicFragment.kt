@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
 
 class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
 
@@ -27,6 +28,9 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     }
 
     override fun initViews() {
+        toolbar.setHomeButtonListener {
+            viewModel.homeButtonClicked()
+        }
     }
 
     override fun inject() {

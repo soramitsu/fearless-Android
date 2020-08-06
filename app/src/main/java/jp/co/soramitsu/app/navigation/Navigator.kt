@@ -48,4 +48,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         val bundle = BackupMnemonicFragment.getBundle(accountName)
         navController?.navigate(R.id.action_createAccountFragment_to_backupMnemonicFragment, bundle)
     }
+
+    override fun backToCreateAccountScreen() {
+        navController?.popBackStack()
+    }
 }

@@ -1,3 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation
 
-interface AccountRouter
+interface AccountRouter {
+
+    fun backToCreateAccountScreen()
+}

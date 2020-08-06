@@ -9,4 +9,7 @@ class BackupMnemonicViewModel(
     private val router: AccountRouter
 ) : BaseViewModel() {
 
+    fun homeButtonClicked() {
+        router.backToCreateAccountScreen()
+    }
 }
