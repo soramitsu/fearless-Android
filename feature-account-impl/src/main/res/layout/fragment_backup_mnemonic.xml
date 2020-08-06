@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <jp.co.soramitsu.common.base.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/x1"
+        android:paddingEnd="@dimen/x1"
+        app:titleText="Create Account" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/accountNameInput"
+        style="@style/Widget.Fearless.Input.Primary.External"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="@dimen/x1"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginBottom="@dimen/x1"
+        android:hint="@string/username_setup_choose_title">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/accountNameEt"
+            style="@style/Widget.Fearless.Input.Primary.Internal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLength="64" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_weight="1"
+        android:text="@string/username_setup_hint"
+        android:textColor="@color/white" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/nextBtn"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginBottom="@dimen/x3"
+        android:enabled="false"
+        android:text="@string/common_next" />
+
+</LinearLayout>

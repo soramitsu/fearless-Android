@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.MainActivity
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.splash.SplashRouter
 
@@ -43,5 +44,7 @@ class Navigator : SplashRouter, OnboardingRouter {
     }
 
     override fun openMnemonicScreen(accountName: String) {
+        val bundle = BackupMnemonicFragment.getBundle(accountName)
+        navController?.navigate(R.id.action_createAccountFragment_to_backupMnemonicFragment, bundle)
     }
 }

@@ -43,6 +43,16 @@
         android:label="fragment_create_account"
         tools:layout="@layout/fragment_create_account">
 
+        <action
+            android:id="@+id/action_createAccountFragment_to_backupMnemonicFragment"
+            app:destination="@id/backupMnemonicFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit">
+
+        </action>
+
     </fragment>
 
     <fragment
@@ -58,6 +68,14 @@
         android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.privacy.PrivacyFragment"
         android:label="fragment_privacy"
         tools:layout="@layout/fragment_privacy">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/backupMnemonicFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment"
+        android:label="fragment_backup_mnemonic"
+        tools:layout="@layout/fragment_backup_mnemonic">
 
     </fragment>
 
