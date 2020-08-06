@@ -6,7 +6,7 @@ interface OnboardingRouter {
 
     fun backToWelcomeScreen()
 
-    fun openMnemonicScreen()
+    fun openMnemonicScreen(accountName: String)
 
     fun openTermsScreen()
 

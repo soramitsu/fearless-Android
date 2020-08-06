@@ -10,13 +10,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.feature_account_api.domain.model.EncryptionType
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_onboarding_impl.R
 
 class EncryptionTypeListAdapter(
-    var selectedEncryptionType: EncryptionType,
-    private val itemClickListener: (EncryptionType) -> Unit
-) : ListAdapter<EncryptionType, EncryptionTypeViewHolder>(DiffCallback2) {
+    var selectedEncryptionType: CryptoType,
+    private val itemClickListener: (CryptoType) -> Unit
+) : ListAdapter<CryptoType, EncryptionTypeViewHolder>(DiffCallback2) {
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): EncryptionTypeViewHolder {
         return EncryptionTypeViewHolder(LayoutInflater.from(viewGroup.context).inflate(R.layout.item_chooser_list, viewGroup, false))
@@ -32,7 +32,7 @@ class EncryptionTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemVie
     private val encryptionTypeText: TextView = itemView.findViewById(R.id.chooserText)
     private val selectedPinIcon: ImageView = itemView.findViewById(R.id.rightIcon)
 
-    fun bind(encryptionType: EncryptionType, selectedEncryptionType: EncryptionType, itemClickListener: (EncryptionType) -> Unit) {
+    fun bind(encryptionType: CryptoType, selectedEncryptionType: CryptoType, itemClickListener: (CryptoType) -> Unit) {
         with(itemView) {
             if (encryptionType == selectedEncryptionType) {
                 selectedPinIcon.makeVisible()
@@ -41,9 +41,9 @@ class EncryptionTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemVie
             }
 
             encryptionTypeText.text = when (encryptionType) {
-                EncryptionType.SR25519 -> "Schnorrkel | sr25519 (recommended) "
-                EncryptionType.ED25519 -> "Edwards | ed25519 (alternative)"
-                EncryptionType.ECDSA -> "ECDSA | (BTC/ETH compatible)"
+                CryptoType.SR25519 -> "Schnorrkel | sr25519 (recommended) "
+                CryptoType.ED25519 -> "Edwards | ed25519 (alternative)"
+                CryptoType.ECDSA -> "ECDSA | (BTC/ETH compatible)"
             }
 
             setOnClickListener {
@@ -53,12 +53,12 @@ class EncryptionTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemVie
     }
 }
 
-object DiffCallback2 : DiffUtil.ItemCallback<EncryptionType>() {
-    override fun areItemsTheSame(oldItem: EncryptionType, newItem: EncryptionType): Boolean {
+object DiffCallback2 : DiffUtil.ItemCallback<CryptoType>() {
+    override fun areItemsTheSame(oldItem: CryptoType, newItem: CryptoType): Boolean {
         return oldItem == newItem
     }
 
-    override fun areContentsTheSame(oldItem: EncryptionType, newItem: EncryptionType): Boolean {
+    override fun areContentsTheSame(oldItem: CryptoType, newItem: CryptoType): Boolean {
         return oldItem == newItem
     }
 }

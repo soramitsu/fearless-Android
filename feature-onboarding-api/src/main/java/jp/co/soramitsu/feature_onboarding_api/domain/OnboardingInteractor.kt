@@ -1,13 +1,10 @@
 package jp.co.soramitsu.feature_onboarding_api.domain
 
-import io.reactivex.Completable
 import io.reactivex.Single
-import jp.co.soramitsu.feature_account_api.domain.model.EncryptionType
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 interface OnboardingInteractor {
-
-    fun saveAccountName(accountName: String): Completable
 
     fun getTermsAddress(): Single<String>
 
@@ -15,5 +12,5 @@ interface OnboardingInteractor {
 
     fun getSourceTypes(): Single<List<SourceType>>
 
-    fun getEncryptionTypes(): Single<List<EncryptionType>>
+    fun getEncryptionTypes(): Single<List<CryptoType>>
 }

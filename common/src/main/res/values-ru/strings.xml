@@ -8,4 +8,7 @@
     <string name="onboarding_terms_and_conditions_1">Я подтверждаю, что прочитал и согласен с\nУсловиями использования и Политикой конфиденциальности</string>
     <string name="onboarding_terms_and_conditions_2">Условиями использования</string>
     <string name="onboarding_privacy_policy">Политикой конфиденциальности</string>
+    <string name="username_setup_choose_title">Выберите имя</string>
+    <string name="username_setup_hint">Имя аккаунта и его отображение рядом с адресом. Используя хранение идентификационных данных в блокчейне, имя можно сделать доступных для остальных.</string>
+    <string name="common_next">Далее</string>
 </resources>

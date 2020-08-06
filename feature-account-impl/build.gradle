@@ -48,6 +48,8 @@ dependencies {
     implementation lifecycleDep
     kapt lifecycleKapt
 
+    implementation novaCryptoDep
+
     testImplementation jUnitDep
     testImplementation mockitoDep
 }

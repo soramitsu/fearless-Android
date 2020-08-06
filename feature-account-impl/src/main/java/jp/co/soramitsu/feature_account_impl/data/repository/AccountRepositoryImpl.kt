@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_account_impl.data.repository
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.EncryptionType
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDatasource
 
@@ -24,7 +24,7 @@ class AccountRepositoryImpl(
         return Single.just(listOf(SourceType.MNEMONIC_PASSPHRASE, SourceType.RAW_SEED, SourceType.KEYSTORE))
     }
 
-    override fun getEncryptionTypes(): Single<List<EncryptionType>> {
-        return Single.just(listOf(EncryptionType.SR25519, EncryptionType.ED25519, EncryptionType.ECDSA))
+    override fun getEncryptionTypes(): Single<List<CryptoType>> {
+        return Single.just(listOf(CryptoType.SR25519, CryptoType.ED25519, CryptoType.ECDSA))
     }
 }

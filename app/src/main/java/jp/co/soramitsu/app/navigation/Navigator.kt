@@ -27,7 +27,7 @@ class Navigator : SplashRouter, OnboardingRouter {
     }
 
     override fun openCreateAccount() {
-        navController?.navigate(R.id.createAccountAction)
+        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment)
     }
 
     override fun backToWelcomeScreen() {
@@ -35,17 +35,18 @@ class Navigator : SplashRouter, OnboardingRouter {
     }
 
     override fun openTermsScreen() {
-        navController?.navigate(R.id.termsAction)
+        navController?.navigate(R.id.action_welcomeFragment_to_termsFragment)
     }
 
     override fun openPrivacyScreen() {
-        navController?.navigate(R.id.privacyAction)
+        navController?.navigate(R.id.action_welcomeFragment_to_privacyFragment)
     }
 
     override fun openImportAccountScreen() {
         navController?.navigate(R.id.importAction)
     }
 
-    override fun openMnemonicScreen() {
+
+    override fun openMnemonicScreen(accountName: String) {
     }
 }

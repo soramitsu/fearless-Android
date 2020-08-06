@@ -8,4 +8,7 @@
     <string name="onboarding_terms_and_conditions_1">Мин шарттарҙы һәм хосусил сәйәсәтен уҡыным һәм уҡығаны менән риза</string>
     <string name="onboarding_terms_and_conditions_2">Ҡағиҙәләр һәм шарттар</string>
     <string name="onboarding_privacy_policy">Хосусил сәйәсәте</string>
+    <string name="username_setup_choose_title">Выберите имя</string>
+    <string name="username_setup_hint">Имя аккаунта и его отображение рядом с адресом. Используя хранение идентификационных данных в блокчейне, имя можно сделать доступных для остальных.</string>
+    <string name="common_next">Киләһе</string>
 </resources>

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
 import io.reactivex.Single
-import jp.co.soramitsu.feature_account_api.domain.model.EncryptionType
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 interface AccountRepository {
@@ -12,5 +12,5 @@ interface AccountRepository {
 
     fun getSourceTypes(): Single<List<SourceType>>
 
-    fun getEncryptionTypes(): Single<List<EncryptionType>>
+    fun getEncryptionTypes(): Single<List<CryptoType>>
 }

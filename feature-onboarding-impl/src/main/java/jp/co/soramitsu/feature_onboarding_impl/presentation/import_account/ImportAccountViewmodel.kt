@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.feature_account_api.domain.model.EncryptionType
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_onboarding_api.domain.OnboardingInteractor
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
@@ -33,7 +33,7 @@ class ImportAccountViewmodel(
     val selectedEncryptionTypeText: LiveData<String> = _selectedEncryptionTypeText
 
     private var selectedSourceType: SourceType = SourceType.MNEMONIC_PASSPHRASE
-    private var selectedEncryptionType: EncryptionType = EncryptionType.SR25519
+    private var selectedEncryptionType: CryptoType = CryptoType.SR25519
 
     fun homeButtonClicked() {
         router.backToWelcomeScreen()
@@ -82,13 +82,13 @@ class ImportAccountViewmodel(
         )
     }
 
-    fun encryptionTypeChanged(it: EncryptionType) {
+    fun encryptionTypeChanged(it: CryptoType) {
         selectedEncryptionType = it
 
         _selectedEncryptionTypeText.value =  when(selectedEncryptionType) {
-            EncryptionType.SR25519 -> "Schnorrkel | sr25519 (recommended) "
-            EncryptionType.ED25519 -> "Edwards | ed25519 (alternative)"
-            EncryptionType.ECDSA -> "ECDSA | (BTC/ETH compatible)"
+            CryptoType.SR25519 -> "Schnorrkel | sr25519 (recommended) "
+            CryptoType.ED25519 -> "Edwards | ed25519 (alternative)"
+            CryptoType.ECDSA -> "ECDSA | (BTC/ETH compatible)"
         }
     }
 
@@ -96,7 +96,7 @@ class ImportAccountViewmodel(
         return SourceTypeChooserDialogData(selectedSourceType, sourceTypes)
     }
 
-    private fun mapEncryptionTypesToEncryptionTypeDialogData(encryptionTypes: List<EncryptionType>): EncryptionTypeChooserDialogData {
+    private fun mapEncryptionTypesToEncryptionTypeDialogData(encryptionTypes: List<CryptoType>): EncryptionTypeChooserDialogData {
         return EncryptionTypeChooserDialogData(selectedEncryptionType, encryptionTypes)
     }
 }

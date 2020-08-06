@@ -12,28 +12,28 @@
         tools:layout="@layout/fragment_welcome">
 
         <action
-            android:id="@+id/createAccountAction"
+            android:id="@+id/action_welcomeFragment_to_createAccountFragment"
             app:destination="@id/createAccountFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_open_enter"
-            app:popExitAnim="@anim/fragment_open_exit" />
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
-            android:id="@+id/termsAction"
+            android:id="@+id/action_welcomeFragment_to_termsFragment"
             app:destination="@id/termsFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_open_enter"
-            app:popExitAnim="@anim/fragment_open_exit" />
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
-            android:id="@+id/privacyAction"
+            android:id="@+id/action_welcomeFragment_to_privacyFragment"
             app:destination="@id/privacyFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_open_enter"
-            app:popExitAnim="@anim/fragment_open_exit" />
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
             android:id="@+id/importAction"

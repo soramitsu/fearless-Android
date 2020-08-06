@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black"
+    android:background="@color/black"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
@@ -24,7 +24,7 @@
         android:layout_marginTop="@dimen/x1"
         android:layout_marginEnd="@dimen/x2"
         android:layout_marginBottom="@dimen/x1"
-        android:hint="Choose name">
+        android:hint="@string/username_setup_choose_title">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/accountNameEt"
@@ -43,7 +43,7 @@
         android:layout_marginStart="@dimen/x2"
         android:layout_marginEnd="@dimen/x2"
         android:layout_weight="1"
-        android:text="The name for this account and how it will appear under your addresses. With an on-chain identity, it can be made available to others."
+        android:text="@string/username_setup_hint"
         android:textColor="@color/white" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
@@ -55,6 +55,6 @@
         android:layout_marginEnd="@dimen/x2"
         android:layout_marginBottom="@dimen/x3"
         android:enabled="false"
-        android:text="Next" />
+        android:text="@string/common_next" />
 
 </LinearLayout>
