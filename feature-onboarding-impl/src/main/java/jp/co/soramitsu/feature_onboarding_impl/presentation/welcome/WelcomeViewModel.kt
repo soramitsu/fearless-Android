@@ -17,7 +17,6 @@ class WelcomeViewModel(
         router.openImportAccountScreen()
     }
 
-
     fun termsClicked() {
         router.openTermsScreen()
     }

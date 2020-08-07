@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -73,7 +72,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
         sourceTypeInput.setOnClickListener { viewModel.sourceTypeInputClicked() }
         encryptionTypeInput.setOnClickListener { viewModel.encryptionTypeInputClicked() }
         networkInput.setOnClickListener { viewModel.networkTypeInputClicked() }
-//        nextBtn.setOnClickListener { viewModel.nextBtnClicked() }
+        nextBtn.setOnClickListener {
+            viewModel.nextBtnClicked(keyEt.text.toString(), usernameEt.text.toString(), passwordEt.text.toString(), jsonFileEt.text.toString(), derivationPathEt.text.toString())
+        }
+
         jsonFileIcon.setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.type = "application/json"
@@ -231,6 +233,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
 
         observe(viewModel.nextButtonEnabledLiveData, Observer {
             nextBtn.isEnabled = it
+        })
+
+        observe(viewModel.selectedNodeIcon, Observer {
+            networkText.setCompoundDrawablesWithIntrinsicBounds(it, 0, 0, 0)
         })
     }
 

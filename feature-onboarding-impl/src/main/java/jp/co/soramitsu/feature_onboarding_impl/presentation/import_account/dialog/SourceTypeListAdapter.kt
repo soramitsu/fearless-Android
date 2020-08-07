@@ -40,7 +40,7 @@ class SourceTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                 selectedPinIcon.makeInvisible()
             }
 
-            sourceTypeText.text = when(sourceType) {
+            sourceTypeText.text = when (sourceType) {
                 SourceType.MNEMONIC_PASSPHRASE -> "Mnemonic passphrase"
                 SourceType.RAW_SEED -> "Raw seed"
                 SourceType.KEYSTORE -> "Recovery JSON"

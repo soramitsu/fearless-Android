@@ -46,7 +46,6 @@ class Navigator : SplashRouter, OnboardingRouter {
         navController?.navigate(R.id.importAction)
     }
 
-
     override fun openMnemonicScreen(accountName: String) {
     }
 }

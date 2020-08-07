@@ -7,10 +7,12 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_onboarding_api.domain.OnboardingInteractor
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
+import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.model.EncryptionTypeChooserDialogData
 import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.model.NetworkTypeChooserDialogData
 import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.model.SourceTypeChooserDialogData
@@ -56,9 +58,25 @@ class ImportAccountViewmodel(
     private val _selectedNodeText = MutableLiveData<String>()
     val selectedNodeText: LiveData<String> = _selectedNodeText
 
+    private val _selectedNodeIcon = MutableLiveData<Int>()
+    val selectedNodeIcon: LiveData<Int> = _selectedNodeIcon
+
     private var selectedNode: Node? = null
     private var selectedSourceType: SourceType = SourceType.MNEMONIC_PASSPHRASE
     private var selectedEncryptionType: CryptoType = CryptoType.SR25519
+
+    init {
+        disposables.add(
+            interactor.getDefaultNodes()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    networkTypeChanged(it.first())
+                }, {
+                    it.printStackTrace()
+                })
+        )
+    }
 
     fun homeButtonClicked() {
         router.backToWelcomeScreen()
@@ -84,7 +102,7 @@ class ImportAccountViewmodel(
 
     fun sourceTypeChanged(it: SourceType) {
         selectedSourceType = it
-        _selectedSourceTypeText.value =  when(selectedSourceType) {
+        _selectedSourceTypeText.value = when (selectedSourceType) {
             SourceType.MNEMONIC_PASSPHRASE -> {
                 _usernameVisibilityLiveData.value = true
                 _passwordVisibilityLiveData.value = false
@@ -125,7 +143,7 @@ class ImportAccountViewmodel(
     fun encryptionTypeChanged(it: CryptoType) {
         selectedEncryptionType = it
 
-        _selectedEncryptionTypeText.value =  when(selectedEncryptionType) {
+        _selectedEncryptionTypeText.value = when (selectedEncryptionType) {
             CryptoType.SR25519 -> "Schnorrkel | sr25519 (recommended) "
             CryptoType.ED25519 -> "Edwards | ed25519 (alternative)"
             CryptoType.ECDSA -> "ECDSA | (BTC/ETH compatible)"
@@ -148,7 +166,16 @@ class ImportAccountViewmodel(
 
     fun networkTypeChanged(it: Node) {
         selectedNode = it
+
+        val icon = when (it.networkType) {
+            NetworkType.POLKADOT -> R.drawable.ic_ksm
+            NetworkType.KUSAMA -> R.drawable.ic_ksm
+            NetworkType.WESTEND -> R.drawable.ic_westend
+            NetworkType.UNKNOWN -> R.drawable.ic_ksm
+        }
+
         _selectedNodeText.value = it.name
+        _selectedNodeIcon.value = icon
     }
 
     private fun mapSourceTypesToSourceTypeDialogData(sourceTypes: List<SourceType>): SourceTypeChooserDialogData {
@@ -168,12 +195,20 @@ class ImportAccountViewmodel(
     }
 
     fun nextBtnClicked(keyString: String, username: String, password: String, json: String, derivationPath: String) {
-        selectedNode?.let {  node ->
+        selectedNode?.let { node ->
             val disposable = when (selectedSourceType) {
                 SourceType.MNEMONIC_PASSPHRASE -> interactor.importFromMnemonic(keyString, username, derivationPath, selectedEncryptionType, node)
                 SourceType.RAW_SEED -> interactor.importFromSeed(keyString, username, derivationPath, selectedEncryptionType, node)
                 SourceType.KEYSTORE -> interactor.importFromJson(json, password, node)
             }
+
+            disposables.add(disposable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({}, {
+                    it.printStackTrace()
+                })
+            )
         }
     }
 

@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_onboarding_impl.R
@@ -44,7 +43,14 @@ class NodeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
             networkTypeText.text = node.name
 
+            val icon = when (node.networkType) {
+                NetworkType.POLKADOT -> R.drawable.ic_ksm
+                NetworkType.KUSAMA -> R.drawable.ic_ksm
+                NetworkType.WESTEND -> R.drawable.ic_westend
+                NetworkType.UNKNOWN -> R.drawable.ic_ksm
+            }
 
+            networkTypeText.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0)
 
             setOnClickListener {
                 itemClickListener(node)

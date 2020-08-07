@@ -8,7 +8,6 @@ import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.model.EncryptionTypeChooserDialogData
 import kotlinx.android.synthetic.main.choosed_bottom_dialog.list
 import kotlinx.android.synthetic.main.choosed_bottom_dialog.titleTv
-import java.math.BigInteger
 
 class EncryptionTypeChooserBottomSheetDialog(
     context: Activity,
