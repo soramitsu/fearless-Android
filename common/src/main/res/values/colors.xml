@@ -6,5 +6,6 @@
     <color name="white">#fff</color>
     <color name="colorHint">#ccc</color>
     <color name="black">#000</color>
+    <color name="colorGreyText">#888888</color>
 
 </resources>

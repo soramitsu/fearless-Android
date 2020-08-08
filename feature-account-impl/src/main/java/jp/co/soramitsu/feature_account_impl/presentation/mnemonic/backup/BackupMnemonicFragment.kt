@@ -4,11 +4,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.GridLayoutManager
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.mnemonic.MnemonicWordsAdapter
+import kotlinx.android.synthetic.main.fragment_backup_mnemonic.mnemonicRv
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
 
 class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
@@ -41,5 +45,12 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     }
 
     override fun subscribe(viewModel: BackupMnemonicViewModel) {
+        observe(viewModel.mnemonicLiveData, Observer {
+            if (mnemonicRv.adapter == null) {
+                mnemonicRv.layoutManager = GridLayoutManager(activity!!, 6, GridLayoutManager.HORIZONTAL, false)
+                mnemonicRv.adapter = MnemonicWordsAdapter()
+            }
+            (mnemonicRv.adapter as MnemonicWordsAdapter).submitList(it)
+        })
     }
 }
