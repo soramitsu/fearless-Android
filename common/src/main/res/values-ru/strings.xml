@@ -8,6 +8,7 @@
 Условиями использования и Политикой конфиденциальности</string>
     <string name="onboarding_terms_and_conditions_2">Условиями использования</string>
     <string name="onboarding_privacy_policy">Политикой конфиденциальности</string>
+    <string name="access_restore_phrase_error_message">Ваша мнемоника недействительна. Пожалуйста, попробуйте другую</string>
     <string name="recovery_passphrase">Мнемоника</string>
     <string name="onboarding_create_account">Создать аккаунт</string>
     <string name="username_setup_choose_title">Выберите имя</string>
@@ -23,10 +24,11 @@
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="ed25519_selection_title">Edwards</string>
     <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
     <string name="recovery_source_type">Тип источника</string>
     <string name="recovery_raw_seed">Сид</string>
     <string name="recovery_json">JSON для восстановления</string>
     <string name="common_password">Пароль</string>
     <string name="common_error_general_message">Мы уже решаем проблему. Пожалуйста, попробуйте позже.</string>
-    <string name="recover_json_hint">Вставьте json строку или загрузите из файла...</string>
+    <string name="recover_json_hint">Вставьте json строку или загрузите из файла файл ...</string>
 </resources>

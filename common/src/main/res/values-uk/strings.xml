@@ -8,6 +8,7 @@
 Умовами користування та Політикою конфіденційності</string>
     <string name="onboarding_terms_and_conditions_2">Умови користування</string>
     <string name="onboarding_privacy_policy">Політикою конфіденційності</string>
+    <string name="access_restore_phrase_error_message">Ваш мнемонічний недійсний. Будь ласка, спробуйте ще один.</string>
     <string name="recovery_passphrase">Мнемонічний</string>
     <string name="onboarding_create_account">Створити рахунок</string>
     <string name="username_setup_choose_title">Виберіть ім\'я</string>
@@ -23,6 +24,7 @@
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="ed25519_selection_title">Edwards</string>
     <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="common_undefined_error_message">Спробуйте ще раз з іншим вкладом. Якщо помилка з’явиться знову, зверніться до служби підтримки.</string>
     <string name="recovery_source_type">Тип джерела</string>
     <string name="recovery_raw_seed">Сире насіння</string>
     <string name="recovery_json">Відновлення JSON</string>

@@ -38,7 +38,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         AlertDialog.Builder(activity!!)
             .setTitle(R.string.common_error_general_title)
             .setMessage(errorMessage)
-            .setPositiveButton(R.string.common_ok) { _, _ -> }
+            .setPositiveButton(android.R.string.ok) { _, _ -> }
             .show()
     }
 

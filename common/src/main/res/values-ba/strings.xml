@@ -7,6 +7,7 @@
     <string name="onboarding_terms_and_conditions_1">Мин шарттарҙы һәм xосусил сәйәсәтен уҡыным һәм уҡығаны менән риза</string>
     <string name="onboarding_terms_and_conditions_2">шарттарҙы</string>
     <string name="onboarding_privacy_policy">Хосусил сәйәсәтен</string>
+    <string name="access_restore_phrase_error_message">Һеҙҙең мнемоника яраҡһыҙ. Зинһар, икенсене ҡулланып ҡарағыҙ.</string>
     <string name="recovery_passphrase">Мнемоника</string>
     <string name="onboarding_create_account">Создать аккаунт</string>
     <string name="username_setup_choose_title">Выберите имя</string>
@@ -22,6 +23,7 @@
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="ed25519_selection_title">Edwards</string>
     <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
     <string name="recovery_source_type">Сығанаҡ тип</string>
     <string name="recovery_raw_seed">Сей орлоҡ</string>
     <string name="recovery_json">JSON тергеҙеү</string>

@@ -8,6 +8,7 @@
  Términos y condiciones y Política de privacidad</string>
     <string name="onboarding_terms_and_conditions_2">Términos y Condiciones</string>
     <string name="onboarding_privacy_policy">Política de privacidad</string>
+    <string name="access_restore_phrase_error_message">Tu mnemotécnico no es válido. Por favor, prueba con otro.</string>
     <string name="recovery_passphrase">Mnemónica</string>
     <string name="onboarding_create_account">Crear una cuenta</string>
     <string name="username_setup_choose_title">Elegir nombre</string>
@@ -23,6 +24,7 @@
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="ed25519_selection_title">Edwards</string>
     <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="common_undefined_error_message">Por favor, intente nuevamente con otra entrada. Si el error vuelve a aparecer, comuníquese con el soporte.</string>
     <string name="recovery_source_type">Tipo de fuente</string>
     <string name="recovery_raw_seed">Semilla cruda</string>
     <string name="recovery_json">JSON de recuperación</string>

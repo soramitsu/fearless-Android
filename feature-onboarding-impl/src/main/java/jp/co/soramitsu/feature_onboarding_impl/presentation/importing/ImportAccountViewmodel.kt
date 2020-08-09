@@ -7,6 +7,7 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -74,6 +75,17 @@ class ImportAccountViewmodel(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     networkTypeChanged(mapNetworkTypeToNodeModel(it.first()))
+                }, {
+                    it.printStackTrace()
+                })
+        )
+
+        disposables.add(
+            interactor.getSourceTypes()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    sourceTypeChanged(it.first())
                 }, {
                     it.printStackTrace()
                 })
@@ -238,7 +250,11 @@ class ImportAccountViewmodel(
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({}, {
-                            it.printStackTrace()
+                            if (it is Bip39Exception) {
+                                onError(R.string.access_restore_phrase_error_message)
+                            } else {
+                                onError(R.string.common_undefined_error_message)
+                            }
                         })
                     )
                 }

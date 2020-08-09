@@ -153,6 +153,18 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <TextView
+                android:id="@+id/usernameHintTv"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="@dimen/x1"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:layout_weight="1"
+                android:text="@string/username_setup_hint"
+                android:textColor="@color/white" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/passwordInput"
                 style="@style/Widget.Fearless.Input.Primary.External"

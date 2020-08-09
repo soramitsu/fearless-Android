@@ -41,6 +41,7 @@ import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeText
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
 import kotlinx.android.synthetic.main.fragment_import_account.usernameEt
+import kotlinx.android.synthetic.main.fragment_import_account.usernameHintTv
 import kotlinx.android.synthetic.main.fragment_import_account.usernameInput
 
 class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
@@ -194,8 +195,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
         observe(viewModel.usernameVisibilityLiveData, Observer {
             if (it) {
                 usernameInput.makeVisible()
+                usernameHintTv.makeVisible()
             } else {
                 usernameInput.makeGone()
+                usernameHintTv.makeGone()
             }
         })
 

@@ -8,6 +8,7 @@
 les Termes et Conditions et la Politique de confidentialité</string>
     <string name="onboarding_terms_and_conditions_2">Termes et Conditions</string>
     <string name="onboarding_privacy_policy">Politique de confidentialité</string>
+    <string name="access_restore_phrase_error_message">Votre mnémonique n’est pas valide. S’ll vous plaît, essayez un autre.</string>
     <string name="recovery_passphrase">Mnémonique</string>
     <string name="onboarding_create_account">Créer un compte</string>
     <string name="username_setup_choose_title">Choisissez le nom</string>
@@ -23,6 +24,7 @@ les Termes et Conditions et la Politique de confidentialité</string>
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="ed25519_selection_title">Edwards</string>
     <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="common_undefined_error_message">Veuillez réessayer avec une autre entrée. Si l\'erreur réapparaît, veuillez contacter l\'assistance.</string>
     <string name="recovery_source_type">Type de Source</string>
     <string name="recovery_raw_seed">Graine crue</string>
     <string name="recovery_json">Récupération JSON</string>

@@ -7,6 +7,7 @@
     <string name="onboarding_terms_and_conditions_1">Ho letto e accetto i Termini e le condizioni sulla politica della privacy</string>
     <string name="onboarding_terms_and_conditions_2">Termini e le condizioni</string>
     <string name="onboarding_privacy_policy">politica della privacy</string>
+    <string name="access_restore_phrase_error_message">Il tuo mnemonico non è valido. Per favore, provane un altro.</string>
     <string name="recovery_passphrase">Mnemonico</string>
     <string name="onboarding_create_account">Creare un profilo</string>
     <string name="username_setup_choose_title">Scegli il nome</string>
@@ -22,6 +23,7 @@
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="ed25519_selection_title">Edwards</string>
     <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="common_undefined_error_message">Per favore, riprova con un altro input. Se l\'errore si ripresenta, contattare l\'assistenza.</string>
     <string name="recovery_source_type">Tipo di origine</string>
     <string name="recovery_raw_seed">Seme crudo</string>
     <string name="recovery_json">JSON di ripristino</string>

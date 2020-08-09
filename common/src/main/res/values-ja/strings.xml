@@ -7,6 +7,7 @@
     <string name="onboarding_terms_and_conditions_1">利用規約、個人情報保護方針に同意してサインアップする。</string>
     <string name="onboarding_terms_and_conditions_2">利用規約</string>
     <string name="onboarding_privacy_policy">個人情報保護方針</string>
+    <string name="access_restore_phrase_error_message">Your mnemonic is invalid. Please, try another one.</string>
     <string name="recovery_passphrase">ニモニック</string>
     <string name="onboarding_create_account">アカウントを作成する</string>
     <string name="username_setup_choose_title">名前を選択してください</string>
@@ -22,6 +23,7 @@
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="ed25519_selection_title">Edwards</string>
     <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="common_undefined_error_message">別の入力でもう一度お試しください。エラーが再度表示される場合は、サポートにお問い合わせください。</string>
     <string name="recovery_source_type">ソースの種類</string>
     <string name="recovery_raw_seed">生の種子</string>
     <string name="recovery_json">リカバリJSON</string>
