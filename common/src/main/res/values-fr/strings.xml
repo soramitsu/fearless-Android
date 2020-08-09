@@ -13,4 +13,9 @@
     <string name="common_next">Suivant</string>
     <string name="account_create_title">Mnémonique de sauvegarde</string>
     <string name="account_create_details">Utilisez un moyen non numérique de sauvegarder, comme l\'écrire sur papier.</string>
+    <string name="common_advanced">Avancée</string>
+    <string name="common_crypto_type">Type de crypto Keypair</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="common_secret_derivation_path">Chemin de dérivation secret</string>
+    <string name="common_choose_network">Choisissez un réseau</string>
 </resources>

@@ -13,4 +13,9 @@
     <string name="common_next">次へ</string>
     <string name="account_create_title">バックアップニーモニック</string>
     <string name="account_create_details">紙に書き留めるなど、デジタル以外の方法でバックアップします。</string>
+    <string name="common_advanced">高度な</string>
+    <string name="common_crypto_type">鍵ペアの暗号タイプ</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="common_secret_derivation_path">秘密の派生経路</string>
+    <string name="common_choose_network">ネットワークを選択</string>
 </resources>

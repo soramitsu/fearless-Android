@@ -13,4 +13,9 @@
     <string name="common_next">Далі</string>
     <string name="account_create_title">Мнемонічний</string>
     <string name="account_create_details">Використовуйте не цифровий спосіб резервного копіювання, наприклад запису на папері.</string>
+    <string name="common_advanced">Розширений</string>
+    <string name="common_crypto_type">Тип ключевой пары</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="common_secret_derivation_path">Таємний шлях виведення</string>
+    <string name="common_choose_network">Виберіть мережу</string>
 </resources>

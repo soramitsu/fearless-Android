@@ -13,4 +13,9 @@
     <string name="common_next">Далее</string>
     <string name="account_create_title">Мнемоника</string>
     <string name="account_create_details">Используйте нецифровой носитель для сохранения, например, выпишите слова на бумагу.</string>
+    <string name="common_advanced">Продвинутый</string>
+    <string name="common_crypto_type">Тип ключевой пары</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="common_secret_derivation_path">Последовательность для вывода секрета</string>
+    <string name="common_choose_network">Выберите сеть</string>
 </resources>

@@ -13,4 +13,9 @@
     <string name="common_next">Il prossimo</string>
     <string name="account_create_title">Backup mnemonico</string>
     <string name="account_create_details">Utilizzare un modo non digitale per il backup, come scrivere su carta.</string>
+    <string name="common_advanced">Avanzate</string>
+    <string name="common_crypto_type">Tipo di crittografia di coppia di chiavi</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="common_secret_derivation_path">Percorso di derivazione segreto</string>
+    <string name="common_choose_network">Scegli la rete</string>
 </resources>
