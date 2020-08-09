@@ -11,11 +11,12 @@ import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.mnemoni
 
 class BackupMnemonicViewModel(
     private val accountInteractor: AccountInteractor,
-    private val router: AccountRouter
+    private val router: AccountRouter,
+    private val accountName: String
 ) : BaseViewModel() {
 
-    private val _mnemonicLiveData = MutableLiveData<List<MnemonicWordModel>>()
-    val mnemonicLiveData: LiveData<List<MnemonicWordModel>> = _mnemonicLiveData
+    private val _mnemonicLiveData = MutableLiveData<Pair<Int, List<MnemonicWordModel>>>()
+    val mnemonicLiveData: LiveData<Pair<Int, List<MnemonicWordModel>>> = _mnemonicLiveData
 
     init {
         disposables.add(
@@ -31,8 +32,14 @@ class BackupMnemonicViewModel(
         )
     }
 
-    private fun mapMnemonicToMnemonicWords(mnemonic: List<String>): List<MnemonicWordModel> {
-        return mnemonic.mapIndexed { index: Int, word: String -> MnemonicWordModel((index + 1).toString(), word) }
+    private fun mapMnemonicToMnemonicWords(mnemonic: List<String>): Pair<Int, List<MnemonicWordModel>> {
+        val words = mnemonic.mapIndexed { index: Int, word: String -> MnemonicWordModel((index + 1).toString(), word) }
+        val columns = if (words.size % 2 == 0) {
+            words.size / 2
+        } else {
+            words.size / 2 + 1
+        }
+        return Pair(columns, words)
     }
 
     fun homeButtonClicked() {

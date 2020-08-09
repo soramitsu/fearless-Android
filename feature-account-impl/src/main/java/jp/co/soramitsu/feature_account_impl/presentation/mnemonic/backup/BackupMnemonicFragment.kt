@@ -8,6 +8,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -38,19 +39,21 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     }
 
     override fun inject() {
+        val accountName = arguments!!.getString(KEY_ACCOUNT_NAME, "")
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .backupMnemonicComponentFactory()
-            .create(this)
+            .create(this, accountName)
             .inject(this)
     }
 
     override fun subscribe(viewModel: BackupMnemonicViewModel) {
         observe(viewModel.mnemonicLiveData, Observer {
             if (mnemonicRv.adapter == null) {
-                mnemonicRv.layoutManager = GridLayoutManager(activity!!, 6, GridLayoutManager.HORIZONTAL, false)
+                mnemonicRv.layoutManager = GridLayoutManager(activity!!, it.first, GridLayoutManager.HORIZONTAL, false)
                 mnemonicRv.adapter = MnemonicWordsAdapter()
             }
-            (mnemonicRv.adapter as MnemonicWordsAdapter).submitList(it)
+            (mnemonicRv.adapter as MnemonicWordsAdapter).submitList(it.second)
+            mnemonicRv.makeVisible()
         })
     }
 }

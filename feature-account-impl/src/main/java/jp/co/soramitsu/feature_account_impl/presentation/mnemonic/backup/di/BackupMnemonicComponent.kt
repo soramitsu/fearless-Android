@@ -18,7 +18,8 @@ interface BackupMnemonicComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance fragment: Fragment
+            @BindsInstance fragment: Fragment,
+            @BindsInstance accountName: String
         ): BackupMnemonicComponent
     }
 

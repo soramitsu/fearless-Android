@@ -18,8 +18,8 @@ class BackupMnemonicModule {
     @Provides
     @IntoMap
     @ViewModelKey(BackupMnemonicViewModel::class)
-    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter): ViewModel {
-        return BackupMnemonicViewModel(interactor, router)
+    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, accountName: String): ViewModel {
+        return BackupMnemonicViewModel(interactor, router, accountName)
     }
 
     @Provides
