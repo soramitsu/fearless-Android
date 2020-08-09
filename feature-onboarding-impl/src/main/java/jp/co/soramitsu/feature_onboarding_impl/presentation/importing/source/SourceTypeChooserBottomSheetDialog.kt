@@ -1,30 +1,29 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog
+package jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source
 
 import android.app.Activity
 import android.view.LayoutInflater
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_onboarding_impl.R
-import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.model.SourceTypeChooserDialogData
+import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source.model.SourceTypeModel
 import kotlinx.android.synthetic.main.choosed_bottom_dialog.list
 import kotlinx.android.synthetic.main.choosed_bottom_dialog.titleTv
 
 class SourceTypeChooserBottomSheetDialog(
     context: Activity,
-    sourceTypeChooserDialogData: SourceTypeChooserDialogData,
+    sourceTypeModels: List<SourceTypeModel>,
     itemClickListener: (SourceType) -> Unit
 ) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
     init {
         setContentView(LayoutInflater.from(context).inflate(R.layout.choosed_bottom_dialog, null))
-        titleTv.text = "Source type"
+        titleTv.text = context.getString(R.string.recovery_source_type)
 
-        val adapter = SourceTypeListAdapter(
-            sourceTypeChooserDialogData.selectedSourceType
-        ) {
+        val adapter = SourceTypeListAdapter {
             itemClickListener(it)
             dismiss()
         }
-        adapter.submitList(sourceTypeChooserDialogData.sourceTypes)
+
+        adapter.submitList(sourceTypeModels)
         list.adapter = adapter
     }
 }

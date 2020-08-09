@@ -1,30 +1,27 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog
+package jp.co.soramitsu.feature_onboarding_impl.presentation.importing.network
 
 import android.app.Activity
 import android.view.LayoutInflater
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_onboarding_impl.R
-import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.model.NetworkTypeChooserDialogData
+import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.network.model.NodeModel
 import kotlinx.android.synthetic.main.choosed_bottom_dialog.list
 import kotlinx.android.synthetic.main.choosed_bottom_dialog.titleTv
 
 class NetworkTypeChooserBottomSheetDialog(
     context: Activity,
-    networkTypeChooserDialogData: NetworkTypeChooserDialogData,
-    itemClickListener: (Node) -> Unit
+    nodes: List<NodeModel>,
+    itemClickListener: (NodeModel) -> Unit
 ) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
     init {
         setContentView(LayoutInflater.from(context).inflate(R.layout.choosed_bottom_dialog, null))
-        titleTv.text = "Network type"
+        titleTv.text = context.getString(R.string.common_choose_network)
 
-        val adapter = NodeListAdapter(
-            networkTypeChooserDialogData.selectedNode
-        ) {
+        val adapter = NodeListAdapter {
             itemClickListener(it)
             dismiss()
         }
-        adapter.submitList(networkTypeChooserDialogData.nodes)
+        adapter.submitList(nodes)
         list.adapter = adapter
     }
 }

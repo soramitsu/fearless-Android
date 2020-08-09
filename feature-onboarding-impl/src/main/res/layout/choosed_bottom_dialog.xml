@@ -8,6 +8,7 @@
     android:focusableInTouchMode="true"
     app:cardCornerRadius="@dimen/x1"
     app:cardBackgroundColor="@color/gray4"
+    app:cardElevation="0dp"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
     <LinearLayout

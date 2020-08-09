@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.import_account
+package jp.co.soramitsu.feature_onboarding_impl.presentation.importing
 
 import android.Manifest
 import android.content.Intent
@@ -18,12 +18,12 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureComponent
-import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.EncryptionTypeChooserBottomSheetDialog
-import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.NetworkTypeChooserBottomSheetDialog
-import jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog.SourceTypeChooserBottomSheetDialog
-import kotlinx.android.synthetic.main.fragment_import_account.advanced
+import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.encryption.EncryptionTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.network.NetworkTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source.SourceTypeChooserBottomSheetDialog
+import kotlinx.android.synthetic.main.fragment_import_account.advancedTv
+import kotlinx.android.synthetic.main.fragment_import_account.advancedWrapper
 import kotlinx.android.synthetic.main.fragment_import_account.derivationPathEt
-import kotlinx.android.synthetic.main.fragment_import_account.derivationPathInput
 import kotlinx.android.synthetic.main.fragment_import_account.encryptionTypeInput
 import kotlinx.android.synthetic.main.fragment_import_account.encryptionTypeText
 import kotlinx.android.synthetic.main.fragment_import_account.jsonFileEt
@@ -63,12 +63,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
             setOrientationLocked(true)
         }
 
-        toolbar.showRightButton()
-        toolbar.setRightIconButtonListener { }
         toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
-        toolbar.setRightIconButtonListener { viewModel.qrScanClicked() }
+        toolbar.setRightIconClickListener { viewModel.qrScanClicked() }
 
-        advanced.setOnClickListener { viewModel.advancedButtonClicked() }
+        advancedTv.setOnClickListener { viewModel.advancedButtonClicked() }
         sourceTypeInput.setOnClickListener { viewModel.sourceTypeInputClicked() }
         encryptionTypeInput.setOnClickListener { viewModel.encryptionTypeInputClicked() }
         networkInput.setOnClickListener { viewModel.networkTypeInputClicked() }
@@ -141,15 +139,11 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
     override fun subscribe(viewModel: ImportAccountViewmodel) {
         observe(viewModel.advancedVisibilityLiveData, Observer {
             if (it) {
-                encryptionTypeInput.makeVisible()
-                derivationPathInput.makeVisible()
-                networkInput.makeVisible()
-                advanced.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_minus, 0)
+                advancedWrapper.makeVisible()
+                advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_minus, 0)
             } else {
-                encryptionTypeInput.makeGone()
-                derivationPathInput.makeGone()
-                networkInput.makeGone()
-                advanced.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_plus, 0)
+                advancedWrapper.makeGone()
+                advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_plus, 0)
             }
         })
 

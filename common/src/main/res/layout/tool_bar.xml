@@ -29,11 +29,12 @@
         tools:text="Title" />
 
     <ImageView
-        android:id="@+id/rightIconImg"
+        android:id="@+id/rightImg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="right|center_vertical"
+        android:layout_gravity="center_vertical|end"
         android:padding="@dimen/x1"
-        android:visibility="visible"
-        android:src="@drawable/ic_arrow_back_24dp" />
+        android:src="@drawable/ic_plus"
+        android:visibility="gone"
+        tools:visibility="visible" />
 </FrameLayout>

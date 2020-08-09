@@ -24,6 +24,6 @@
         android:id="@+id/rightIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_pin"/>
+        android:src="@drawable/ic_checkmark"/>
 </LinearLayout>
 

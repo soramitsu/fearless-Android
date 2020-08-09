@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog
+package jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source
 
 import android.view.LayoutInflater
 import android.view.View
@@ -12,18 +12,18 @@ import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_onboarding_impl.R
+import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source.model.SourceTypeModel
 
 class SourceTypeListAdapter(
-    var selectedSourceTypeItem: SourceType,
     private val itemClickListener: (SourceType) -> Unit
-) : ListAdapter<SourceType, SourceTypeViewHolder>(DiffCallback) {
+) : ListAdapter<SourceTypeModel, SourceTypeViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): SourceTypeViewHolder {
         return SourceTypeViewHolder(LayoutInflater.from(viewGroup.context).inflate(R.layout.item_chooser_list, viewGroup, false))
     }
 
     override fun onBindViewHolder(sourceTypeViewHolder: SourceTypeViewHolder, position: Int) {
-        sourceTypeViewHolder.bind(getItem(position), selectedSourceTypeItem, itemClickListener)
+        sourceTypeViewHolder.bind(getItem(position), itemClickListener)
     }
 }
 
@@ -32,33 +32,29 @@ class SourceTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val sourceTypeText: TextView = itemView.findViewById(R.id.chooserText)
     private val selectedPinIcon: ImageView = itemView.findViewById(R.id.rightIcon)
 
-    fun bind(sourceType: SourceType, selectedSourceType: SourceType, itemClickListener: (SourceType) -> Unit) {
+    fun bind(sourceTypeModel: SourceTypeModel, itemClickListener: (SourceType) -> Unit) {
         with(itemView) {
-            if (sourceType == selectedSourceType) {
+            if (sourceTypeModel.isSelected) {
                 selectedPinIcon.makeVisible()
             } else {
                 selectedPinIcon.makeInvisible()
             }
 
-            sourceTypeText.text = when (sourceType) {
-                SourceType.MNEMONIC_PASSPHRASE -> "Mnemonic passphrase"
-                SourceType.RAW_SEED -> "Raw seed"
-                SourceType.KEYSTORE -> "Recovery JSON"
-            }
+            sourceTypeText.text = sourceTypeModel.name
 
             setOnClickListener {
-                itemClickListener(sourceType)
+                itemClickListener(sourceTypeModel.sourceType)
             }
         }
     }
 }
 
-object DiffCallback : DiffUtil.ItemCallback<SourceType>() {
-    override fun areItemsTheSame(oldItem: SourceType, newItem: SourceType): Boolean {
+object DiffCallback : DiffUtil.ItemCallback<SourceTypeModel>() {
+    override fun areItemsTheSame(oldItem: SourceTypeModel, newItem: SourceTypeModel): Boolean {
         return oldItem == newItem
     }
 
-    override fun areContentsTheSame(oldItem: SourceType, newItem: SourceType): Boolean {
+    override fun areContentsTheSame(oldItem: SourceTypeModel, newItem: SourceTypeModel): Boolean {
         return oldItem == newItem
     }
 }

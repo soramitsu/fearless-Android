@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.import_account.dialog
+package jp.co.soramitsu.feature_onboarding_impl.presentation.importing.network
 
 import android.view.LayoutInflater
 import android.view.View
@@ -10,21 +10,19 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_onboarding_impl.R
+import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.network.model.NodeModel
 
 class NodeListAdapter(
-    var selectedEncryptionType: Node,
-    private val itemClickListener: (Node) -> Unit
-) : ListAdapter<Node, NodeViewHolder>(DiffCallback3) {
+    private val itemClickListener: (NodeModel) -> Unit
+) : ListAdapter<NodeModel, NodeViewHolder>(DiffCallback3) {
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): NodeViewHolder {
         return NodeViewHolder(LayoutInflater.from(viewGroup.context).inflate(R.layout.item_chooser_list, viewGroup, false))
     }
 
     override fun onBindViewHolder(nodeViewHolder: NodeViewHolder, position: Int) {
-        nodeViewHolder.bind(getItem(position), selectedEncryptionType, itemClickListener)
+        nodeViewHolder.bind(getItem(position), itemClickListener)
     }
 }
 
@@ -33,24 +31,16 @@ class NodeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val networkTypeText: TextView = itemView.findViewById(R.id.chooserText)
     private val selectedPinIcon: ImageView = itemView.findViewById(R.id.rightIcon)
 
-    fun bind(node: Node, selectedNode: Node, itemClickListener: (Node) -> Unit) {
+    fun bind(node: NodeModel, itemClickListener: (NodeModel) -> Unit) {
         with(itemView) {
-            if (node.link == selectedNode.link) {
+            if (node.isSelected) {
                 selectedPinIcon.makeVisible()
             } else {
                 selectedPinIcon.makeInvisible()
             }
 
             networkTypeText.text = node.name
-
-            val icon = when (node.networkType) {
-                NetworkType.POLKADOT -> R.drawable.ic_ksm
-                NetworkType.KUSAMA -> R.drawable.ic_ksm
-                NetworkType.WESTEND -> R.drawable.ic_westend
-                NetworkType.UNKNOWN -> R.drawable.ic_ksm
-            }
-
-            networkTypeText.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0)
+            networkTypeText.setCompoundDrawablesWithIntrinsicBounds(node.icon, 0, 0, 0)
 
             setOnClickListener {
                 itemClickListener(node)
@@ -59,12 +49,12 @@ class NodeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     }
 }
 
-object DiffCallback3 : DiffUtil.ItemCallback<Node>() {
-    override fun areItemsTheSame(oldItem: Node, newItem: Node): Boolean {
+object DiffCallback3 : DiffUtil.ItemCallback<NodeModel>() {
+    override fun areItemsTheSame(oldItem: NodeModel, newItem: NodeModel): Boolean {
         return oldItem == newItem
     }
 
-    override fun areContentsTheSame(oldItem: Node, newItem: Node): Boolean {
+    override fun areContentsTheSame(oldItem: NodeModel, newItem: NodeModel): Boolean {
         return oldItem == newItem
     }
 }
