@@ -115,6 +115,7 @@
                     android:hint="@string/recover_json_hint"
                     android:textColor="@color/white"
                     android:textColorHint="@color/colorHint"
+                    android:lines="1"
                     app:layout_constraintEnd_toStartOf="@id/jsonFileIcon"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/jsonFileInputTitle" />
@@ -175,7 +176,7 @@
 
             <LinearLayout
                 android:id="@+id/keyInput"
-                style="@style/Widget.Fearless.Input.Primary.External"
+                android:background="@drawable/bg_big_input_shape_selector"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/x2"
@@ -201,12 +202,11 @@
                 <EditText
                     android:id="@+id/keyEt"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="160dp"
                     android:background="@null"
                     android:gravity="top"
-                    android:inputType="text"
-                    android:maxLength="64"
-                    android:minHeight="160dp"
+                    android:inputType="textMultiLine|textVisiblePassword"
+                    android:minHeight="156dp"
                     android:padding="0dp"
                     android:textColor="@color/white" />
 
