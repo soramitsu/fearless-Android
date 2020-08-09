@@ -247,6 +247,7 @@
                 android:layout_marginStart="@dimen/x2"
                 android:layout_marginTop="@dimen/x2"
                 android:layout_marginEnd="@dimen/x2"
+                android:visibility="gone"
                 android:orientation="vertical">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
