@@ -18,4 +18,9 @@
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="common_secret_derivation_path">Последовательность для вывода секрета</string>
     <string name="common_choose_network">Выберите сеть</string>
+    <string name="sr25519_selection_subtitle">sr25519 (рекомендованный)</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ed25519_selection_subtitle">ed25519 (альтернативный)</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="ecdsa_selection_subtitle">(BTC/ETH совместимый)</string>
 </resources>

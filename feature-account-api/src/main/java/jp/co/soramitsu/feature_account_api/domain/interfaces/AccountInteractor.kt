@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
+import io.reactivex.Completable
 import io.reactivex.Single
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 
 interface AccountInteractor {
 
@@ -22,4 +24,8 @@ interface AccountInteractor {
             }
         }
     }
+
+    fun getEncryptionTypesWithSelected(): Single<Pair<List<CryptoType>, CryptoType>>
+
+    fun saveSelectedEncryptionType(encryptionType: CryptoType): Completable
 }

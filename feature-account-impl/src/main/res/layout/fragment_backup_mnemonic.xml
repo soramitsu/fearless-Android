@@ -75,7 +75,7 @@
                 tools:listitem="@layout/item_mnemonic_word"
                 tools:visibility="visible" />
 
-            <jp.co.soramitsu.feature_account_impl.presentation.view.AdvancedBlockView
+            <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/advancedBlockView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

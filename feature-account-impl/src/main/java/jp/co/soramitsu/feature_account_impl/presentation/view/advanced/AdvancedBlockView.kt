@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.view
+package jp.co.soramitsu.feature_account_impl.presentation.view.advanced
 
 import android.content.Context
 import android.util.AttributeSet
@@ -10,6 +10,9 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
+import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathEt
+import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeInput
+import kotlinx.android.synthetic.main.view_advanced_block.view.networkInput
 
 class AdvancedBlockView @JvmOverloads constructor(
     context: Context,
@@ -46,5 +49,17 @@ class AdvancedBlockView @JvmOverloads constructor(
 
     private fun hideAdvanced() {
         advancedView.makeGone()
+    }
+
+    fun setOnEncryptionTypeClickListener(clickListener: () -> Unit) {
+        encryptionTypeInput.setOnClickListener { clickListener() }
+    }
+
+    fun setOnNetworkClickListener(clickListener: () -> Unit) {
+        networkInput.setOnClickListener { clickListener() }
+    }
+
+    fun getDerivationPath(): String {
+        return derivationPathEt.text?.toString() ?: ""
     }
 }

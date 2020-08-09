@@ -18,4 +18,9 @@
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="common_secret_derivation_path">秘密の派生経路</string>
     <string name="common_choose_network">ネットワークを選択</string>
+    <string name="sr25519_selection_subtitle">sr25519（推奨）</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ed25519_selection_subtitle">ed25519（代替）</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="ecdsa_selection_subtitle">（BTC / ETH互換）</string>
 </resources>

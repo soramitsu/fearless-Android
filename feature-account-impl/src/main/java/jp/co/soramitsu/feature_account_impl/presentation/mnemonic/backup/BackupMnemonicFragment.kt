@@ -8,11 +8,14 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.mnemonic.MnemonicWordsAdapter
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
+import kotlinx.android.synthetic.main.fragment_backup_mnemonic.advancedBlockView
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.mnemonicRv
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
 
@@ -36,6 +39,10 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         toolbar.setHomeButtonListener {
             viewModel.homeButtonClicked()
         }
+
+        advancedBlockView.setOnEncryptionTypeClickListener {
+            viewModel.encryptionTypeInputClicked()
+        }
     }
 
     override fun inject() {
@@ -54,6 +61,12 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
             }
             (mnemonicRv.adapter as MnemonicWordsAdapter).submitList(it.second)
             mnemonicRv.makeVisible()
+        })
+
+        observe(viewModel.encryptionTypeChooserEvent, EventObserver {
+            EncryptionTypeChooserBottomSheetDialog(requireActivity(), it) {
+                viewModel.encryptionTypeChanged(it)
+            }.show()
         })
     }
 }

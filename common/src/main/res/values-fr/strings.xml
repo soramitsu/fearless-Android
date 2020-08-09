@@ -18,4 +18,9 @@
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="common_secret_derivation_path">Chemin de dérivation secret</string>
     <string name="common_choose_network">Choisissez un réseau</string>
+    <string name="sr25519_selection_subtitle">sr25519 (recommandé)</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ed25519_selection_subtitle">ed25519 (alternative)</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="ecdsa_selection_subtitle">(Compatible BTC / ETH)</string>
 </resources>
