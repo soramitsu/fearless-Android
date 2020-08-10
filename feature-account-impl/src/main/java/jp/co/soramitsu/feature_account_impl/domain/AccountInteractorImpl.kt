@@ -32,8 +32,13 @@ class AccountInteractorImpl(
         }
     }
 
-    override fun getSourceTypes(): Single<List<SourceType>> {
+    override fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>> {
         return accountRepository.getSourceTypes()
+            .flatMap {
+                Single.fromCallable {
+                    Pair(it, it.first())
+                }
+            }
     }
 
     override fun getEncryptionTypesWithSelected(): Single<Pair<List<CryptoType>, CryptoType>> {

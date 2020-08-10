@@ -11,7 +11,7 @@ interface AccountInteractor {
 
     fun getMnemonic(): Single<List<String>>
 
-    fun getSourceTypes(): Single<List<SourceType>>
+    fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>>
 
     fun getEncryptionTypesWithSelected(): Single<Pair<List<CryptoType>, CryptoType>>
 

@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.SourceTypeModel
 import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.sourceRv
@@ -14,7 +13,7 @@ import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.titleTv
 class SourceTypeChooserBottomSheetDialog(
     context: Activity,
     sourceTypeModels: List<SourceTypeModel>,
-    itemClickListener: (SourceType) -> Unit
+    itemClickListener: (SourceTypeModel) -> Unit
 ) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
 
     init {

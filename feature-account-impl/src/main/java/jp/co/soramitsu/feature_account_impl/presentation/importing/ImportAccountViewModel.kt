@@ -27,13 +27,13 @@ class ImportAccountViewModel(
     private val resourceManager: ResourceManager
 ) : BaseViewModel() {
 
-    private val _usernameVisibilityLiveData = MutableLiveData<Boolean>()
+    private val _usernameVisibilityLiveData = MediatorLiveData<Boolean>()
     val usernameVisibilityLiveData: LiveData<Boolean> = _usernameVisibilityLiveData
 
-    private val _passwordVisibilityLiveData = MutableLiveData<Boolean>()
+    private val _passwordVisibilityLiveData = MediatorLiveData<Boolean>()
     val passwordVisibilityLiveData: LiveData<Boolean> = _passwordVisibilityLiveData
 
-    private val _jsonInputVisibilityLiveData = MutableLiveData<Boolean>()
+    private val _jsonInputVisibilityLiveData = MediatorLiveData<Boolean>()
     val jsonInputVisibilityLiveData: LiveData<Boolean> = _jsonInputVisibilityLiveData
 
     private val _qrScanStartLiveData = MutableLiveData<Event<Unit>>()
@@ -41,6 +41,15 @@ class ImportAccountViewModel(
 
     private val _nextButtonEnabledLiveData = MutableLiveData<Boolean>()
     val nextButtonEnabledLiveData: LiveData<Boolean> = _nextButtonEnabledLiveData
+
+    private val _sourceTypesLiveData = MutableLiveData<List<SourceTypeModel>>()
+    val sourceTypesLiveData: LiveData<List<SourceTypeModel>> = _sourceTypesLiveData
+
+    private val _selectedSourceTypeLiveData = MediatorLiveData<SourceTypeModel>()
+    val selectedSourceTypeLiveData: LiveData<SourceTypeModel> = _selectedSourceTypeLiveData
+
+    private val _sourceTypeChooserDialogInitialData = MutableLiveData<Event<List<SourceTypeModel>>>()
+    val sourceTypeChooserDialogInitialData: LiveData<Event<List<SourceTypeModel>>> = _sourceTypeChooserDialogInitialData
 
     private val _encryptionTypesLiveData = MutableLiveData<List<CryptoTypeModel>>()
     val encryptionTypesLiveData: LiveData<List<CryptoTypeModel>> = _encryptionTypesLiveData
@@ -60,15 +69,12 @@ class ImportAccountViewModel(
     private val _selectedNetworkLiveData = MediatorLiveData<NetworkModel>()
     val selectedNetworkLiveData: LiveData<NetworkModel> = _selectedNetworkLiveData
 
-    private val _selectedSourceTypeText = MutableLiveData<String>()
-    val selectedSourceTypeText: LiveData<String> = _selectedSourceTypeText
-
-    private val _sourceTypeChooserDialogInitialData = MutableLiveData<List<SourceTypeModel>>()
-    val sourceTypeChooserDialogInitialData: LiveData<List<SourceTypeModel>> = _sourceTypeChooserDialogInitialData
-
-    private var selectedSourceTypeLiveData = MutableLiveData<SourceType>()
-
     init {
+        _selectedSourceTypeLiveData.addSource(sourceTypesLiveData) {
+            val selected = it.firstOrNull { it.isSelected } ?: it.first()
+            _selectedSourceTypeLiveData.value = selected
+        }
+
         _selectedEncryptionTypeLiveData.addSource(encryptionTypesLiveData) {
             val selected = it.firstOrNull { it.isSelected } ?: it.first()
             val encryptionName = getEncryptionTypeNameForCryptoType(selected.cryptoType)
@@ -80,6 +86,30 @@ class ImportAccountViewModel(
             _selectedNetworkLiveData.value = selected
         }
 
+        _usernameVisibilityLiveData.addSource(selectedSourceTypeLiveData) {
+            _usernameVisibilityLiveData.value = it.sourceType != SourceType.KEYSTORE
+        }
+
+        _passwordVisibilityLiveData.addSource(selectedSourceTypeLiveData) {
+            _passwordVisibilityLiveData.value = it.sourceType == SourceType.KEYSTORE
+        }
+
+        _jsonInputVisibilityLiveData.addSource(selectedSourceTypeLiveData) {
+            _jsonInputVisibilityLiveData.value = it.sourceType == SourceType.KEYSTORE
+        }
+
+        disposables.add(
+            interactor.getSourceTypesWithSelected()
+                .subscribeOn(Schedulers.io())
+                .map { mapSourceTypeToSourceTypeMode(it.first, it.second) }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    _sourceTypesLiveData.value = it
+                }, {
+                    it.printStackTrace()
+                })
+        )
+
         disposables.add(
             interactor.getEncryptionTypesWithSelected()
                 .subscribeOn(Schedulers.io())
@@ -87,17 +117,6 @@ class ImportAccountViewModel(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     _encryptionTypesLiveData.value = it
-                }, {
-                    it.printStackTrace()
-                })
-        )
-
-        disposables.add(
-            interactor.getSourceTypes()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    sourceTypeChanged(it.first())
                 }, {
                     it.printStackTrace()
                 })
@@ -114,6 +133,18 @@ class ImportAccountViewModel(
                     it.printStackTrace()
                 })
         )
+    }
+
+    private fun mapSourceTypeToSourceTypeMode(sources: List<SourceType>, selected: SourceType): List<SourceTypeModel> {
+        return sources.map {
+            val name = when (it) {
+                SourceType.MNEMONIC_PASSPHRASE -> resourceManager.getString(R.string.recovery_passphrase)
+                SourceType.RAW_SEED -> resourceManager.getString(R.string.recovery_raw_seed)
+                SourceType.KEYSTORE -> resourceManager.getString(R.string.recovery_json)
+            }
+
+            SourceTypeModel(name, it, selected == it)
+        }
     }
 
     private fun mapEncryptionTypeToEncryptionTypeModel(encryptionTypes: List<CryptoType>, selected: CryptoType): List<CryptoTypeModel> {
@@ -145,42 +176,13 @@ class ImportAccountViewModel(
     }
 
     fun sourceTypeInputClicked() {
-        disposables.add(
-            interactor.getSourceTypes()
-                .subscribeOn(Schedulers.io())
-                .map { it.map { mapSourceTypeToSourceTypeModel(it) } }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    _sourceTypeChooserDialogInitialData.value = it
-                }, {
-                    it.printStackTrace()
-                })
-        )
+        sourceTypesLiveData.value?.let {
+            _sourceTypeChooserDialogInitialData.value = Event(it)
+        }
     }
 
-    fun sourceTypeChanged(it: SourceType) {
-        selectedSourceTypeLiveData.value = it
-
-        when (it) {
-            SourceType.MNEMONIC_PASSPHRASE -> {
-                _usernameVisibilityLiveData.value = true
-                _passwordVisibilityLiveData.value = false
-                _jsonInputVisibilityLiveData.value = false
-                _selectedSourceTypeText.value = resourceManager.getString(R.string.recovery_passphrase)
-            }
-            SourceType.RAW_SEED -> {
-                _usernameVisibilityLiveData.value = true
-                _passwordVisibilityLiveData.value = false
-                _jsonInputVisibilityLiveData.value = false
-                _selectedSourceTypeText.value = resourceManager.getString(R.string.recovery_raw_seed)
-            }
-            SourceType.KEYSTORE -> {
-                _usernameVisibilityLiveData.value = false
-                _passwordVisibilityLiveData.value = true
-                _jsonInputVisibilityLiveData.value = true
-                _selectedSourceTypeText.value = resourceManager.getString(R.string.recovery_json)
-            }
-        }
+    fun sourceTypeChanged(it: SourceTypeModel) {
+        _selectedSourceTypeLiveData.value = it
     }
 
     fun encryptionTypeInputClicked() {
@@ -208,23 +210,13 @@ class ImportAccountViewModel(
         }
     }
 
-    private fun mapSourceTypeToSourceTypeModel(sourceType: SourceType): SourceTypeModel {
-        val name = when (sourceType) {
-            SourceType.MNEMONIC_PASSPHRASE -> resourceManager.getString(R.string.recovery_passphrase)
-            SourceType.RAW_SEED -> resourceManager.getString(R.string.recovery_raw_seed)
-            SourceType.KEYSTORE -> resourceManager.getString(R.string.recovery_json)
-        }
-
-        return SourceTypeModel(name, sourceType, sourceType == selectedSourceTypeLiveData.value)
-    }
-
     fun qrScanClicked() {
         _qrScanStartLiveData.value = Event(Unit)
     }
 
     fun nextBtnClicked(keyString: String, username: String, password: String, json: String, derivationPath: String) {
         selectedNetworkLiveData.value?.networkType?.let { networkType ->
-            selectedSourceTypeLiveData.value?.let { sourceType ->
+            selectedSourceTypeLiveData.value?.sourceType?.let { sourceType ->
                 selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
                     val importDisposable = when (sourceType) {
                         SourceType.MNEMONIC_PASSPHRASE -> interactor.importFromMnemonic(keyString, username, derivationPath, cryptoType, networkType)

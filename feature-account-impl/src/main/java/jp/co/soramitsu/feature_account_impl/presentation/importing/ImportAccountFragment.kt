@@ -139,15 +139,15 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun subscribe(viewModel: ImportAccountViewModel) {
-        observe(viewModel.sourceTypeChooserDialogInitialData, Observer {
+        observe(viewModel.sourceTypeChooserDialogInitialData, EventObserver {
             SourceTypeChooserBottomSheetDialog(requireActivity(), it) {
                 viewModel.sourceTypeChanged(it)
             }.show()
         })
 
-        observe(viewModel.selectedSourceTypeText, Observer {
-            sourceTypeText.text = it
-            keyInputTitle.text = it
+        observe(viewModel.selectedSourceTypeLiveData, Observer {
+            sourceTypeText.text = it.name
+            keyInputTitle.text = it.name
             keyEt.setText("")
             jsonFileEt.setText("")
             passwordEt.setText("")

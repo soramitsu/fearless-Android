@@ -8,14 +8,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.SourceTypeModel
 import kotlinx.android.synthetic.main.item_source.view.rightIcon
 import kotlinx.android.synthetic.main.item_source.view.sourceTv
 
 class SourceTypeListAdapter(
-    private val itemClickListener: (SourceType) -> Unit
+    private val itemClickListener: (SourceTypeModel) -> Unit
 ) : ListAdapter<SourceTypeModel, SourceTypeViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): SourceTypeViewHolder {
@@ -29,7 +28,7 @@ class SourceTypeListAdapter(
 
 class SourceTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    fun bind(sourceTypeModel: SourceTypeModel, itemClickListener: (SourceType) -> Unit) {
+    fun bind(sourceTypeModel: SourceTypeModel, itemClickListener: (SourceTypeModel) -> Unit) {
         with(itemView) {
             if (sourceTypeModel.isSelected) {
                 rightIcon.makeVisible()
@@ -40,7 +39,7 @@ class SourceTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             sourceTv.text = sourceTypeModel.name
 
             setOnClickListener {
-                itemClickListener(sourceTypeModel.sourceType)
+                itemClickListener(sourceTypeModel)
             }
         }
     }
