@@ -7,7 +7,7 @@
     android:focusableInTouchMode="true"
     android:orientation="vertical"
     android:paddingBottom="@dimen/x2"
-    android:paddingTop="@dimen/x1_4"
+    android:paddingTop="@dimen/x1_2"
     android:background="@drawable/bg_bottom_sheet_dialog_rounded"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 

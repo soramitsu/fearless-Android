@@ -104,8 +104,8 @@
 
     <style name="CustomShapeAppearanceBottomSheetDialog" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSizeTopRight">@dimen/x1</item>
-        <item name="cornerSizeTopLeft">@dimen/x1</item>
+        <item name="cornerSizeTopRight">@dimen/x2</item>
+        <item name="cornerSizeTopLeft">@dimen/x2</item>
         <item name="cornerSizeBottomRight">0dp</item>
         <item name="cornerSizeBottomLeft">0dp</item>
     </style>
