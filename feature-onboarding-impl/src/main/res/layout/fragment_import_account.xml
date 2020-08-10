@@ -34,12 +34,12 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/sourceTypeInput"
-                style="@style/Widget.Fearless.Input.Primary.External"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/x2"
                 android:layout_marginTop="@dimen/x2"
                 android:layout_marginEnd="@dimen/x2"
+                android:background="@drawable/bg_input_shape_selector"
                 android:orientation="vertical"
                 android:paddingStart="@dimen/x2"
                 android:paddingTop="@dimen/x1"
@@ -264,7 +264,7 @@
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/encryptionTypeInput"
-                    style="@style/Widget.Fearless.Input.Primary.External"
+                    android:background="@drawable/bg_input_shape_selector"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingStart="@dimen/x2"
@@ -325,7 +325,7 @@
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/networkInput"
-                    style="@style/Widget.Fearless.Input.Primary.External"
+                    android:background="@drawable/bg_input_shape_selector"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/x2"
