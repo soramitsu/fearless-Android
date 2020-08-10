@@ -34,7 +34,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|end"
         android:padding="@dimen/x1"
-        android:src="@drawable/ic_plus"
+        android:src="@drawable/ic_info_white_24"
         android:visibility="gone"
         tools:visibility="visible" />
+
 </FrameLayout>

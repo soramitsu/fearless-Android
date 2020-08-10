@@ -1,33 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="common_next">Il prossimo</string>
+    <string name="common_ok">Ok</string>
     <string name="common_error_general_title">Errore</string>
     <string name="connection_error_message">Controlla la connessione a Internet e riprova più tardi.</string>
+    <string name="common_error_general_message">We are working hard to fix the problem. Please, try again later.</string>
+    <string name="onboarding_create_account">Creare un profilo</string>
     <string name="onboarding_restore_account">Importa account</string>
     <string name="onboarding_terms_and_conditions_1">Ho letto e accetto i Termini e le condizioni sulla politica della privacy</string>
-    <string name="onboarding_terms_and_conditions_2">Termini e le condizioni</string>
-    <string name="onboarding_privacy_policy">politica della privacy</string>
-    <string name="access_restore_phrase_error_message">Il tuo mnemonico non è valido. Per favore, provane un altro.</string>
-    <string name="recovery_passphrase">Mnemonico</string>
-    <string name="onboarding_create_account">Creare un profilo</string>
+    <string name="onboarding_terms_and_conditions_2">Termini e condizioni</string>
+    <string name="onboarding_privacy_policy">Informativa sulla privacy</string>
     <string name="username_setup_choose_title">Scegli il nome</string>
     <string name="username_setup_hint">Il nome per questo account e come apparirà sotto i tuoi indirizzi. Con un\'identità su catena, può essere reso disponibile ad altri.</string>
+    <string name="common_next">Il prossimo</string>
     <string name="account_create_title">Backup mnemonico</string>
+    <string name="account_create_details">Utilizzare un modo non digitale per il backup, come scrivere su carta.</string>
     <string name="common_advanced">Avanzate</string>
     <string name="common_crypto_type">Tipo di crittografia di coppia di chiavi</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="common_secret_derivation_path">Percorso di derivazione segreto</string>
     <string name="common_choose_network">Scegli la rete</string>
     <string name="sr25519_selection_subtitle">sr25519 (consigliato)</string>
-    <string name="ed25519_selection_subtitle">ed25519 (alternativa)</string>
-    <string name="ecdsa_selection_subtitle">(Compatibile BTC / ETH)</string>
-    <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="ed25519_selection_title">Edwards</string>
+    <string name="ed25519_selection_subtitle">ed25519 (alternativa)</string>
     <string name="ecdsa_selection_title">ECDSA</string>
-    <string name="common_undefined_error_message">Per favore, riprova con un altro input. Se l\'errore si ripresenta, contattare l\'assistenza.</string>
-    <string name="recovery_source_type">Tipo di origine</string>
-    <string name="recovery_raw_seed">Seme crudo</string>
-    <string name="recovery_json">JSON di ripristino</string>
-    <string name="common_password">Parola d\'ordine</string>
-    <string name="common_error_general_message">Stiamo lavorando duramente per risolvere il problema. Per favore riprova più tardi.</string>
-    <string name="recover_json_hint">Incolla json o carica il file ...</string>
+    <string name="ecdsa_selection_subtitle">(Compatibile BTC / ETH)</string>
 </resources>

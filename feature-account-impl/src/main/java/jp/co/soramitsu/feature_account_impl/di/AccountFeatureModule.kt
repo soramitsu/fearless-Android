@@ -10,10 +10,12 @@ import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDatasource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDatasourceImpl
+import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
 
 @Module
 class AccountFeatureModule {
@@ -25,6 +27,14 @@ class AccountFeatureModule {
         appLinksProvider: AppLinksProvider
     ): AccountRepository {
         return AccountRepositoryImpl(accountDatasource, Bip39(), SS58Encoder(), JunctionDecoder(), KeypairFactory(), appLinksProvider)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideAccountInteractor(
+        accountRepository: AccountRepository
+    ): AccountInteractor {
+        return AccountInteractorImpl(accountRepository)
     }
 
     @Provides
