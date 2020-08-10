@@ -1,47 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/dialog_wrapper"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:focusableInTouchMode="true"
-    app:cardCornerRadius="@dimen/x1"
-    app:cardBackgroundColor="@color/gray4"
-    app:cardElevation="0dp"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/x2"
+    android:paddingTop="@dimen/x1_4"
+    android:background="@drawable/bg_bottom_sheet_dialog_rounded"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-    <LinearLayout
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="@dimen/x2"
+        android:src="@drawable/ic_bottom_sheet_pin" />
+
+    <TextView
+        android:id="@+id/titleTv"
+        style="@style/TextAppearance.Soramitsu.Header3"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:paddingTop="@dimen/x2"
-        android:paddingBottom="@dimen/x2">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/x2"
+        android:paddingStart="@dimen/x3"
+        android:paddingEnd="@dimen/x3"
+        android:text="Encryption type"
+        android:textColor="@color/white" />
 
-        <TextView
-            android:id="@+id/titleTv"
-            style="@style/TextAppearance.Soramitsu.Header3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/x2"
-            android:paddingStart="@dimen/x3"
-            android:paddingEnd="@dimen/x3"
-            android:textColor="@color/white"
-            android:text="Encryption type" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray3" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/gray3" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_chooser_list" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_chooser_list"
-            />
+</LinearLayout>
 
-    </LinearLayout>
-
-</androidx.cardview.widget.CardView>
