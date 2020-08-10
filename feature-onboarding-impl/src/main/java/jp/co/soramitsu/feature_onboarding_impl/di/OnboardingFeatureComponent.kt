@@ -8,7 +8,6 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.create.di.CreateAccountComponent
-import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.di.ImportAccountComponent
 import jp.co.soramitsu.feature_onboarding_impl.presentation.privacy.di.PrivacyComponent
 import jp.co.soramitsu.feature_onboarding_impl.presentation.terms.di.TermsComponent
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.di.WelcomeComponent
@@ -31,8 +30,6 @@ interface OnboardingFeatureComponent : OnboardingFeatureApi {
     fun termsComponentFactory(): TermsComponent.Factory
 
     fun privacyComponentFactory(): PrivacyComponent.Factory
-
-    fun importAccountComponentFactory(): ImportAccountComponent.Factory
 
     @Component.Factory
     interface Factory {

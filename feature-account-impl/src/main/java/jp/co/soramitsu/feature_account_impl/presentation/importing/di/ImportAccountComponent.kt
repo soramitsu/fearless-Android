@@ -1,10 +1,10 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.importing.di
+package jp.co.soramitsu.feature_account_impl.presentation.importing.di
 
 import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
-import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.ImportAccountFragment
+import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
 
 @Subcomponent(
     modules = [

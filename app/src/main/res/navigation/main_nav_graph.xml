@@ -81,7 +81,7 @@
 
     <fragment
         android:id="@+id/importAccountFragment"
-        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.importing.ImportAccountFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment"
         android:label="fragment_import"
         tools:layout="@layout/fragment_import_account">
 

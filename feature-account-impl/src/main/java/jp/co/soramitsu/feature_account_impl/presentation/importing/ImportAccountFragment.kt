@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.importing
+package jp.co.soramitsu.feature_account_impl.presentation.importing
 
 import android.Manifest
 import android.content.Intent
@@ -13,27 +13,22 @@ import com.google.zxing.integration.android.IntentIntegrator
 import com.tbruyelle.rxpermissions2.RxPermissions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
-import jp.co.soramitsu.feature_onboarding_impl.R
-import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureComponent
-import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.encryption.EncryptionTypeChooserBottomSheetDialog
-import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.network.NetworkTypeChooserBottomSheetDialog
-import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source.SourceTypeChooserBottomSheetDialog
-import kotlinx.android.synthetic.main.fragment_import_account.advancedTv
-import kotlinx.android.synthetic.main.fragment_import_account.advancedWrapper
-import kotlinx.android.synthetic.main.fragment_import_account.derivationPathEt
-import kotlinx.android.synthetic.main.fragment_import_account.encryptionTypeInput
-import kotlinx.android.synthetic.main.fragment_import_account.encryptionTypeText
+import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserBottomSheetDialog
+import kotlinx.android.synthetic.main.fragment_import_account.advancedBlockView
 import kotlinx.android.synthetic.main.fragment_import_account.jsonFileEt
 import kotlinx.android.synthetic.main.fragment_import_account.jsonFileIcon
 import kotlinx.android.synthetic.main.fragment_import_account.jsonFileInput
 import kotlinx.android.synthetic.main.fragment_import_account.keyEt
 import kotlinx.android.synthetic.main.fragment_import_account.keyInput
 import kotlinx.android.synthetic.main.fragment_import_account.keyInputTitle
-import kotlinx.android.synthetic.main.fragment_import_account.networkInput
-import kotlinx.android.synthetic.main.fragment_import_account.networkText
 import kotlinx.android.synthetic.main.fragment_import_account.nextBtn
 import kotlinx.android.synthetic.main.fragment_import_account.passwordEt
 import kotlinx.android.synthetic.main.fragment_import_account.passwordInput
@@ -44,7 +39,7 @@ import kotlinx.android.synthetic.main.fragment_import_account.usernameEt
 import kotlinx.android.synthetic.main.fragment_import_account.usernameHintTv
 import kotlinx.android.synthetic.main.fragment_import_account.usernameInput
 
-class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
+class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     companion object {
         private const val PICKFILE_RESULT_CODE = 101
@@ -67,12 +62,18 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
         toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
         toolbar.setRightIconClickListener { viewModel.qrScanClicked() }
 
-        advancedTv.setOnClickListener { viewModel.advancedButtonClicked() }
         sourceTypeInput.setOnClickListener { viewModel.sourceTypeInputClicked() }
-        encryptionTypeInput.setOnClickListener { viewModel.encryptionTypeInputClicked() }
-        networkInput.setOnClickListener { viewModel.networkTypeInputClicked() }
+
+        advancedBlockView.setOnEncryptionTypeClickListener {
+            viewModel.encryptionTypeInputClicked()
+        }
+
+        advancedBlockView.setOnNetworkClickListener {
+            viewModel.networkInputClicked()
+        }
+
         nextBtn.setOnClickListener {
-            viewModel.nextBtnClicked(keyEt.text.toString(), usernameEt.text.toString(), passwordEt.text.toString(), jsonFileEt.text.toString(), derivationPathEt.text.toString())
+            viewModel.nextBtnClicked(keyEt.text.toString(), usernameEt.text.toString(), passwordEt.text.toString(), jsonFileEt.text.toString(), advancedBlockView.getDerivationPath())
         }
 
         jsonFileIcon.setOnClickListener {
@@ -131,28 +132,15 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
     }
 
     override fun inject() {
-        FeatureUtils.getFeature<OnboardingFeatureComponent>(requireContext(), OnboardingFeatureApi::class.java)
+        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
             .importAccountComponentFactory()
             .create(this)
             .inject(this)
     }
 
-    override fun subscribe(viewModel: ImportAccountViewmodel) {
-        observe(viewModel.advancedVisibilityLiveData, Observer {
-            if (it) {
-                advancedWrapper.makeVisible()
-                advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_minus, 0)
-            } else {
-                advancedWrapper.makeGone()
-                advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_plus, 0)
-            }
-        })
-
+    override fun subscribe(viewModel: ImportAccountViewModel) {
         observe(viewModel.sourceTypeChooserDialogInitialData, Observer {
-            SourceTypeChooserBottomSheetDialog(
-                requireActivity(),
-                it
-            ) {
+            SourceTypeChooserBottomSheetDialog(requireActivity(), it) {
                 viewModel.sourceTypeChanged(it)
             }.show()
         })
@@ -165,31 +153,25 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
             passwordEt.setText("")
         })
 
-        observe(viewModel.encryptionTypeChooserDialogInitialData, Observer {
-            EncryptionTypeChooserBottomSheetDialog(
-                requireActivity(),
-                it
-            ) {
+        observe(viewModel.encryptionTypeChooserEvent, EventObserver {
+            EncryptionTypeChooserBottomSheetDialog(requireActivity(), it) {
                 viewModel.encryptionTypeChanged(it)
             }.show()
         })
 
-        observe(viewModel.selectedEncryptionTypeText, Observer {
-            encryptionTypeText.text = it
-            derivationPathEt.setText("")
+        observe(viewModel.selectedEncryptionTypeLiveData, Observer {
+            advancedBlockView.setEncryption(it.name)
         })
 
-        observe(viewModel.networkTypeChooserDialogInitialData, Observer {
-            NetworkTypeChooserBottomSheetDialog(
-                requireActivity(),
-                it
-            ) {
-                viewModel.networkTypeChanged(it)
+        observe(viewModel.networkChooserEvent, EventObserver {
+            NetworkChooserBottomSheetDialog(requireActivity(), it) {
+                viewModel.networkChanged(it)
             }.show()
         })
 
-        observe(viewModel.selectedNodeText, Observer {
-            networkText.text = it
+        observe(viewModel.selectedNetworkLiveData, Observer {
+            advancedBlockView.setNetworkIconResource(it.icon)
+            advancedBlockView.setNetworkName(it.name)
         })
 
         observe(viewModel.usernameVisibilityLiveData, Observer {
@@ -230,10 +212,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewmodel>() {
 
         observe(viewModel.nextButtonEnabledLiveData, Observer {
             nextBtn.isEnabled = it
-        })
-
-        observe(viewModel.selectedNodeIcon, Observer {
-            networkText.setCompoundDrawablesWithIntrinsicBounds(it, 0, 0, 0)
         })
     }
 

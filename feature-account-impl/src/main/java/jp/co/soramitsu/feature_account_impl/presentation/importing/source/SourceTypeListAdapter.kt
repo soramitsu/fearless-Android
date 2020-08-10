@@ -1,25 +1,25 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source
+package jp.co.soramitsu.feature_account_impl.presentation.importing.source
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
-import jp.co.soramitsu.feature_onboarding_impl.R
-import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source.model.SourceTypeModel
+import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.SourceTypeModel
+import kotlinx.android.synthetic.main.item_source.view.rightIcon
+import kotlinx.android.synthetic.main.item_source.view.sourceTv
 
 class SourceTypeListAdapter(
     private val itemClickListener: (SourceType) -> Unit
 ) : ListAdapter<SourceTypeModel, SourceTypeViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): SourceTypeViewHolder {
-        return SourceTypeViewHolder(LayoutInflater.from(viewGroup.context).inflate(R.layout.item_chooser_list, viewGroup, false))
+        return SourceTypeViewHolder(LayoutInflater.from(viewGroup.context).inflate(R.layout.item_source, viewGroup, false))
     }
 
     override fun onBindViewHolder(sourceTypeViewHolder: SourceTypeViewHolder, position: Int) {
@@ -29,18 +29,15 @@ class SourceTypeListAdapter(
 
 class SourceTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    private val sourceTypeText: TextView = itemView.findViewById(R.id.chooserText)
-    private val selectedPinIcon: ImageView = itemView.findViewById(R.id.rightIcon)
-
     fun bind(sourceTypeModel: SourceTypeModel, itemClickListener: (SourceType) -> Unit) {
         with(itemView) {
             if (sourceTypeModel.isSelected) {
-                selectedPinIcon.makeVisible()
+                rightIcon.makeVisible()
             } else {
-                selectedPinIcon.makeInvisible()
+                rightIcon.makeInvisible()
             }
 
-            sourceTypeText.text = sourceTypeModel.name
+            sourceTv.text = sourceTypeModel.name
 
             setOnClickListener {
                 itemClickListener(sourceTypeModel.sourceType)

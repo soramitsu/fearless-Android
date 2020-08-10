@@ -71,11 +71,6 @@ class BackupMnemonicViewModel(
             _selectedNetworkLiveData.value = selected
         }
 
-        getEncryptionTypesWithSelected()
-        getNetworksWithSelected()
-    }
-
-    private fun getEncryptionTypesWithSelected() {
         disposables.add(
             interactor.getEncryptionTypesWithSelected()
                 .subscribeOn(Schedulers.io())
@@ -87,9 +82,7 @@ class BackupMnemonicViewModel(
                     it.printStackTrace()
                 })
         )
-    }
 
-    private fun getNetworksWithSelected() {
         disposables.add(
             interactor.getNetworksWithSelected()
                 .subscribeOn(Schedulers.io())

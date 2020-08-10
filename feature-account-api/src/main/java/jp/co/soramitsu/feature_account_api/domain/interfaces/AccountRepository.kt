@@ -5,7 +5,6 @@ import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 interface AccountRepository {
@@ -26,9 +25,9 @@ interface AccountRepository {
 
     fun getSourceTypes(): Single<List<SourceType>>
 
-    fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable
+    fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
 
-    fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable
+    fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
 
-    fun importFromJson(json: String, password: String, node: Node): Completable
+    fun importFromJson(json: String, password: String, networkType: NetworkType): Completable
 }

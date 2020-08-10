@@ -24,7 +24,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation fileTree(dir: '../libs', include: ['*.jar', '*.aar'])
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-onboarding-api')
@@ -45,7 +44,6 @@ dependencies {
     implementation rxPermissionsDep
 
     implementation daggerDep
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt daggerKapt
 
     implementation roomDep

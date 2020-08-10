@@ -23,4 +23,12 @@
     <string name="ed25519_selection_subtitle">ed25519 (alternativa)</string>
     <string name="ecdsa_selection_title">ECDSA</string>
     <string name="ecdsa_selection_subtitle">(Compatible con BTC / ETH)</string>
+    <string name="recovery_source_type">Tipo de fuente</string>
+    <string name="recovery_passphrase">Mnemónica</string>
+    <string name="recovery_json">JSON de recuperación</string>
+    <string name="recover_json_hint">Pegar json o cargar archivo ...</string>
+    <string name="account_import_password_placeholder">Contraseña</string>
+    <string name="recovery_raw_seed">Semilla cruda</string>
+    <string name="access_restore_phrase_error_message">Tu mnemotécnico no es válido. Por favor, prueba con otro.</string>
+    <string name="common_undefined_error_message">Por favor, intente nuevamente con otra entrada. Si el error vuelve a aparecer, comuníquese con el soporte.</string>
 </resources>

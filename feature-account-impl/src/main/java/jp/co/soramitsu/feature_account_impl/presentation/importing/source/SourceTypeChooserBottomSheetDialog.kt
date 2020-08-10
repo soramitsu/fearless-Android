@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source
+package jp.co.soramitsu.feature_account_impl.presentation.importing.source
 
 import android.app.Activity
 import android.view.LayoutInflater
@@ -6,18 +6,19 @@ import android.view.View
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
-import jp.co.soramitsu.feature_onboarding_impl.R
-import jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source.model.SourceTypeModel
-import kotlinx.android.synthetic.main.choosed_bottom_dialog.list
-import kotlinx.android.synthetic.main.choosed_bottom_dialog.titleTv
+import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.SourceTypeModel
+import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.sourceRv
+import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.titleTv
 
 class SourceTypeChooserBottomSheetDialog(
     context: Activity,
     sourceTypeModels: List<SourceTypeModel>,
     itemClickListener: (SourceType) -> Unit
 ) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
+
     init {
-        setContentView(LayoutInflater.from(context).inflate(R.layout.choosed_bottom_dialog, null))
+        setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheet_source_chooser, null))
 
         behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onSlide(bottomSheet: View, slideOffset: Float) {}
@@ -37,6 +38,6 @@ class SourceTypeChooserBottomSheetDialog(
         }
 
         adapter.submitList(sourceTypeModels)
-        list.adapter = adapter
+        sourceRv.adapter = adapter
     }
 }

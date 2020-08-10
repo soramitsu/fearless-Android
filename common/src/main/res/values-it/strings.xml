@@ -23,4 +23,12 @@
     <string name="ed25519_selection_subtitle">ed25519 (alternativa)</string>
     <string name="ecdsa_selection_title">ECDSA</string>
     <string name="ecdsa_selection_subtitle">(Compatibile BTC / ETH)</string>
+    <string name="recovery_source_type">Tipo di origine</string>
+    <string name="recovery_passphrase">Mnemonico</string>
+    <string name="recovery_json">JSON di ripristino</string>
+    <string name="recover_json_hint">Incolla json o carica il file ...</string>
+    <string name="account_import_password_placeholder">Parola d\'ordine</string>
+    <string name="recovery_raw_seed">Seme crudo</string>
+    <string name="access_restore_phrase_error_message">Il tuo mnemonico non è valido. Per favore, provane un altro.</string>
+    <string name="common_undefined_error_message">Per favore, riprova con un altro input. Se l\'errore si ripresenta, contattare l\'assistenza.</string>
 </resources>

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.importing.source.model
+package jp.co.soramitsu.feature_account_impl.presentation.importing.source.model
 
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
