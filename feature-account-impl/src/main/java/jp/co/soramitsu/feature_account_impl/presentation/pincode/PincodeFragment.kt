@@ -19,7 +19,7 @@ import jp.co.soramitsu.feature_main_impl.R
 import jp.co.soramitsu.feature_main_impl.di.MainFeatureComponent
 import jp.co.soramitsu.feature_main_impl.presentation.MainActivity
 import jp.co.soramitsu.feature_main_impl.presentation.pincode.PinCodeViewModel
-import jp.co.soramitsu.feature_main_impl.presentation.pincode.fingerprint.FingerprintWrapper
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.BottomBarController
 import jp.co.soramitsu.sora_ui.pinview.DotsProgressView
 import kotlinx.android.synthetic.main.fragment_pincode.dotsProgressView

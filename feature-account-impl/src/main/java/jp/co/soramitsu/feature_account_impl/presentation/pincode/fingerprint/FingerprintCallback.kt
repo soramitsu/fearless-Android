@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_main_impl.presentation.pincode.fingerprint
+package jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint
 
 import androidx.biometric.BiometricConstants
 import androidx.biometric.BiometricPrompt

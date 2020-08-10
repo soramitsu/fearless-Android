@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_main_impl.presentation.pincode.di
+package jp.co.soramitsu.feature_account_impl.presentation.pincode.di
 
 import androidx.fragment.app.Fragment
 import dagger.BindsInstance

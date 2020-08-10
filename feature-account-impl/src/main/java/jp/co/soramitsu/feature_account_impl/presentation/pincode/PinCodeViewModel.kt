@@ -6,19 +6,20 @@ import androidx.lifecycle.MutableLiveData
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.setValueIfNew
 import java.util.concurrent.TimeUnit
 
 class PinCodeViewModel(
-    private val mainRouter: MainRouter,
-    private val progress: WithProgress,
     private val maxPinCodeLength: Int
-) : BaseViewModel(), WithProgress by progress {
+) : BaseViewModel() {
 
     companion object {
         private const val COMPLETE_PIN_CODE_DELAY: Long = 12
     }
 
-    private lateinit var action: PinCodeAction
+//    private lateinit var action: PinCodeAction
     private var tempCode = ""
 
     private val inputCodeLiveData = MutableLiveData<String>()
@@ -56,37 +57,7 @@ class PinCodeViewModel(
     }
 
     fun startAuth(pinCodeAction: PinCodeAction) {
-        action = pinCodeAction
-        when (action) {
-            PinCodeAction.CREATE_PIN_CODE -> {
-                toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
-                backButtonVisibilityLiveData.value = false
-            }
-            PinCodeAction.OPEN_PASSPHRASE -> {
-                toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
-                showFingerPrintEventLiveData.value = Event(Unit)
-                backButtonVisibilityLiveData.value = true
-            }
-            PinCodeAction.TIMEOUT_CHECK -> {
-                disposables.add(
-                    interactor.isCodeSet()
-                        .subscribe({
-                            if (it) {
-                                toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
-                                showFingerPrintEventLiveData.value = Event(Unit)
-                                backButtonVisibilityLiveData.value = false
-                            } else {
-                                toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
-                                backButtonVisibilityLiveData.value = false
-                                action = PinCodeAction.CREATE_PIN_CODE
-                            }
-                        }, {
-                            onError(it)
-                            action = PinCodeAction.CREATE_PIN_CODE
-                        })
-                )
-            }
-        }
+
     }
 
     fun pinCodeNumberClicked(pinCodeNumber: String) {

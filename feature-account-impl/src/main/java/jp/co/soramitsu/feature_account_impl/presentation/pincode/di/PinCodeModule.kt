@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_main_impl.presentation.pincode.di
+package jp.co.soramitsu.feature_account_impl.presentation.pincode.di
 
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -10,6 +10,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.delegate.WithProgressImpl
+import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.interfaces.WithProgress
 import jp.co.soramitsu.common.io.MainThreadExecutor
 import jp.co.soramitsu.common.resourses.ContextManager
@@ -20,8 +21,8 @@ import jp.co.soramitsu.feature_main_api.launcher.MainRouter
 import jp.co.soramitsu.feature_main_impl.R
 import jp.co.soramitsu.feature_main_impl.domain.PinCodeInteractor
 import jp.co.soramitsu.feature_main_impl.presentation.pincode.PinCodeViewModel
-import jp.co.soramitsu.feature_main_impl.presentation.pincode.fingerprint.FingerprintCallback
-import jp.co.soramitsu.feature_main_impl.presentation.pincode.fingerprint.FingerprintWrapper
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintCallback
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
 
 @Module(
     includes = [
