@@ -6,8 +6,8 @@
     <color name="white">#fff</color>
     <color name="colorHint">#ccc</color>
     <color name="black">#000</color>
-    <color name="colorGreyText">#888888</color>
     <color name="gray4">#181818</color>
     <color name="gray3">#444444</color>
+    <color name="colorGreyText">#888888</color>
 
 </resources>

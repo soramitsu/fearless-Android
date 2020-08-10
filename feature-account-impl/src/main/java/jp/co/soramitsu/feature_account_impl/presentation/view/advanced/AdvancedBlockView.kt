@@ -46,10 +46,12 @@ class AdvancedBlockView @JvmOverloads constructor(
 
     private fun showAdvanced() {
         advancedView.makeVisible()
+        advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_minus_24, 0)
     }
 
     private fun hideAdvanced() {
         advancedView.makeGone()
+        advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_plus_white_24, 0)
     }
 
     fun setOnEncryptionTypeClickListener(clickListener: () -> Unit) {

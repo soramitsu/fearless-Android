@@ -23,4 +23,12 @@
     <string name="ed25519_selection_subtitle">ed25519 (альтернативный)</string>
     <string name="ecdsa_selection_title">ECDSA</string>
     <string name="ecdsa_selection_subtitle">(BTC/ETH совместимый)</string>
+    <string name="recovery_source_type">Тип источника</string>
+    <string name="recovery_passphrase">Мнемоника</string>
+    <string name="recovery_json">JSON для восстановления</string>
+    <string name="recover_json_hint">Вставьте json строку или загрузите из файла файл ...</string>
+    <string name="account_import_password_placeholder">Пароль</string>
+    <string name="recovery_raw_seed">Сид</string>
+    <string name="access_restore_phrase_error_message">Ваша мнемоника недействительна. Пожалуйста, попробуйте другую</string>
+    <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
 </resources>

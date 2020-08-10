@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureComponent
 import kotlinx.android.synthetic.main.fragment_welcome.createAccountBtn
+import kotlinx.android.synthetic.main.fragment_welcome.importAccountBtn
 import kotlinx.android.synthetic.main.fragment_welcome.termsTv
 
 class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
@@ -34,6 +35,8 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
         termsTv.highlightColor = Color.TRANSPARENT
 
         createAccountBtn.setOnClickListener { viewModel.createAccountClicked() }
+
+        importAccountBtn.setOnClickListener { viewModel.importAccountClicked() }
     }
 
     private fun configureTermsAndPrivacy1(sourceText: String, terms: String, privacy: String) {

@@ -24,6 +24,7 @@
         android:id="@+id/scrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:overScrollMode="never"
         app:layout_constraintBottom_toTopOf="@id/nextBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -94,13 +95,13 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="@dimen/x3"
         android:layout_marginEnd="@dimen/x2"
         android:layout_marginBottom="@dimen/x3"
-        android:layout_marginTop="@dimen/x3"
         android:text="@string/common_next"
-        app:layout_constraintTop_toBottomOf="@id/scrollView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/scrollView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

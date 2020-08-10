@@ -7,6 +7,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
+import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
@@ -31,6 +32,15 @@ class AccountInteractorImpl(
         }
     }
 
+    override fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>> {
+        return accountRepository.getSourceTypes()
+            .flatMap {
+                Single.fromCallable {
+                    Pair(it, it.first())
+                }
+            }
+    }
+
     override fun getEncryptionTypesWithSelected(): Single<Pair<List<CryptoType>, CryptoType>> {
         return accountRepository.getEncryptionTypes()
             .flatMap { encryptionTypes ->
@@ -49,5 +59,17 @@ class AccountInteractorImpl(
 
     override fun createAccount(accountName: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
         return accountRepository.createAccount(accountName, encryptionType, derivationPath, networkType)
+    }
+
+    override fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable {
+        return accountRepository.importFromMnemonic(keyString, username, derivationPath, selectedEncryptionType, networkType)
+    }
+
+    override fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable {
+        return accountRepository.importFromSeed(keyString, username, derivationPath, selectedEncryptionType, networkType)
+    }
+
+    override fun importFromJson(json: String, password: String, node: NetworkType): Completable {
+        return accountRepository.importFromJson(json, password, node)
     }
 }

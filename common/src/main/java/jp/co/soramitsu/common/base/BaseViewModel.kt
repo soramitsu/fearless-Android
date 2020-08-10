@@ -23,4 +23,8 @@ open class BaseViewModel : ViewModel() {
         super.onCleared()
         if (!disposables.isDisposed) disposables.dispose()
     }
+
+    fun onError(messageResource: Int) {
+        _errorFromResourceLiveData.value = Event(messageResource)
+    }
 }

@@ -44,6 +44,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         navController?.navigate(R.id.action_welcomeFragment_to_privacyFragment)
     }
 
+    override fun openImportAccountScreen() {
+        navController?.navigate(R.id.importAction)
+    }
+
     override fun openMnemonicScreen(accountName: String) {
         val bundle = BackupMnemonicFragment.getBundle(accountName)
         navController?.navigate(R.id.action_createAccountFragment_to_backupMnemonicFragment, bundle)
