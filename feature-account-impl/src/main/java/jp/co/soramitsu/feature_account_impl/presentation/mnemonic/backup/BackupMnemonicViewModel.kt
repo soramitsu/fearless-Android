@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.mnemonic.model.MnemonicWordModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeSelectedModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 class BackupMnemonicViewModel(
@@ -34,8 +35,8 @@ class BackupMnemonicViewModel(
     private val _encryptionTypeChooserEvent = MutableLiveData<Event<List<CryptoTypeModel>>>()
     val encryptionTypeChooserEvent: LiveData<Event<List<CryptoTypeModel>>> = _encryptionTypeChooserEvent
 
-    private val _selectedEncryptionTypeLiveData = MediatorLiveData<String>()
-    val selectedEncryptionTypeLiveData: LiveData<String> = _selectedEncryptionTypeLiveData
+    private val _selectedEncryptionTypeLiveData = MediatorLiveData<CryptoTypeSelectedModel>()
+    val selectedEncryptionTypeLiveData: LiveData<CryptoTypeSelectedModel> = _selectedEncryptionTypeLiveData
 
     private val _networksLiveData = MutableLiveData<List<NetworkModel>>()
     val networksLiveData: LiveData<List<NetworkModel>> = _networksLiveData
@@ -43,8 +44,8 @@ class BackupMnemonicViewModel(
     private val _networkChooserEvent = MutableLiveData<Event<List<NetworkModel>>>()
     val networkChooserEvent: LiveData<Event<List<NetworkModel>>> = _networkChooserEvent
 
-    private val _selectedNetworkLiveData = MediatorLiveData<Pair<Int, String>>()
-    val selectedNetworkLiveData: LiveData<Pair<Int, String>> = _selectedNetworkLiveData
+    private val _selectedNetworkLiveData = MediatorLiveData<NetworkModel>()
+    val selectedNetworkLiveData: LiveData<NetworkModel> = _selectedNetworkLiveData
 
     init {
         disposables.add(
@@ -61,17 +62,13 @@ class BackupMnemonicViewModel(
 
         _selectedEncryptionTypeLiveData.addSource(encryptionTypesLiveData) {
             val selected = it.firstOrNull { it.isSelected } ?: it.first()
-            val encryptionName = when (selected.cryptoType) {
-                CryptoType.SR25519 -> "${resourceManager.getString(R.string.sr25519_selection_title)} | ${resourceManager.getString(R.string.sr25519_selection_subtitle)}"
-                CryptoType.ED25519 -> "${resourceManager.getString(R.string.ed25519_selection_title)} | ${resourceManager.getString(R.string.ed25519_selection_subtitle)}"
-                CryptoType.ECDSA -> "${resourceManager.getString(R.string.ecdsa_selection_title)} | ${resourceManager.getString(R.string.ecdsa_selection_subtitle)}"
-            }
-            _selectedEncryptionTypeLiveData.value = encryptionName
+            val encryptionName = getEncryptionTypeNameForCryptoType(selected.cryptoType)
+            _selectedEncryptionTypeLiveData.value = CryptoTypeSelectedModel(encryptionName, selected.cryptoType)
         }
 
         _selectedNetworkLiveData.addSource(networksLiveData) {
             val selected = it.firstOrNull { it.isSelected } ?: it.first()
-            _selectedNetworkLiveData.value = Pair(selected.icon, selected.name)
+            _selectedNetworkLiveData.value = selected
         }
 
         getEncryptionTypesWithSelected()
@@ -157,28 +154,36 @@ class BackupMnemonicViewModel(
     }
 
     fun encryptionTypeChanged(cryptoType: CryptoType) {
-        disposables.add(
-            interactor.saveSelectedEncryptionType(cryptoType)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    getEncryptionTypesWithSelected()
-                }, {
-                    it.printStackTrace()
-                })
-        )
+        val encryptionName = getEncryptionTypeNameForCryptoType(cryptoType)
+        _selectedEncryptionTypeLiveData.value = CryptoTypeSelectedModel(encryptionName, cryptoType)
+    }
+
+    private fun getEncryptionTypeNameForCryptoType(cryptoType: CryptoType): String {
+        return when (cryptoType) {
+            CryptoType.SR25519 -> "${resourceManager.getString(R.string.sr25519_selection_title)} | ${resourceManager.getString(R.string.sr25519_selection_subtitle)}"
+            CryptoType.ED25519 -> "${resourceManager.getString(R.string.ed25519_selection_title)} | ${resourceManager.getString(R.string.ed25519_selection_subtitle)}"
+            CryptoType.ECDSA -> "${resourceManager.getString(R.string.ecdsa_selection_title)} | ${resourceManager.getString(R.string.ecdsa_selection_subtitle)}"
+        }
     }
 
     fun networkChanged(networkModel: NetworkModel) {
-        disposables.add(
-            interactor.saveSelectedNetwork(networkModel.networkType)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    getNetworksWithSelected()
-                }, {
-                    it.printStackTrace()
-                })
-        )
+        _selectedNetworkLiveData.value = networkModel
+    }
+
+    fun nextClicked(derivationPath: String) {
+        selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
+            selectedNetworkLiveData.value?.networkType?.let { networkType ->
+                disposables.add(
+                    interactor.createAccount(accountName, cryptoType, derivationPath, networkType)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({
+                            // TODO: open next screen+
+                        }, {
+                            it.printStackTrace()
+                        })
+                )
+            }
+        }
     }
 }

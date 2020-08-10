@@ -20,10 +20,6 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun saveSelectedEncryptionType(encryptionType: CryptoType): Completable {
-        return accountRepository.saveSelectedEncryptionType(encryptionType)
-    }
-
     override fun getNetworksWithSelected(): Single<Pair<List<Network>, NetworkType>> {
         return accountRepository.getNetworks()
             .flatMap { networks ->
@@ -32,7 +28,7 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun saveSelectedNetwork(networkType: NetworkType): Completable {
-        return accountRepository.saveSelectedNetwork(networkType)
+    override fun createAccount(accountName: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
+        return accountRepository.createAccount(accountName, encryptionType, derivationPath, networkType)
     }
 }

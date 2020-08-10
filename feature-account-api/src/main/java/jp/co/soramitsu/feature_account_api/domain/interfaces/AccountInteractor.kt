@@ -29,9 +29,7 @@ interface AccountInteractor {
 
     fun getEncryptionTypesWithSelected(): Single<Pair<List<CryptoType>, CryptoType>>
 
-    fun saveSelectedEncryptionType(encryptionType: CryptoType): Completable
-
     fun getNetworksWithSelected(): Single<Pair<List<Network>, NetworkType>>
 
-    fun saveSelectedNetwork(networkType: NetworkType): Completable
+    fun createAccount(accountName: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable
 }

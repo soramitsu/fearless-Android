@@ -16,11 +16,9 @@ interface AccountRepository {
 
     fun getSelectedEncryptionType(): Single<CryptoType>
 
-    fun saveSelectedEncryptionType(encryptionType: CryptoType): Completable
-
     fun getNetworks(): Single<List<Network>>
 
     fun getSelectedNetwork(): Single<NetworkType>
 
-    fun saveSelectedNetwork(networkType: NetworkType): Completable
+    fun createAccount(accountName: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable
 }

@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryptio
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserBottomSheetDialog
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.advancedBlockView
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.mnemonicRv
+import kotlinx.android.synthetic.main.fragment_backup_mnemonic.nextBtn
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
 
 class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
@@ -47,6 +48,10 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
 
         advancedBlockView.setOnNetworkClickListener {
             viewModel.networkInputClicked()
+        }
+
+        nextBtn.setOnClickListener {
+            viewModel.nextClicked(advancedBlockView.getDerivationPath())
         }
     }
 
@@ -81,12 +86,12 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         })
 
         observe(viewModel.selectedEncryptionTypeLiveData, Observer {
-            advancedBlockView.setEncryption(it)
+            advancedBlockView.setEncryption(it.name)
         })
 
         observe(viewModel.selectedNetworkLiveData, Observer {
-            advancedBlockView.setNetworkIconResource(it.first)
-            advancedBlockView.setNetworkName(it.second)
+            advancedBlockView.setNetworkIconResource(it.icon)
+            advancedBlockView.setNetworkName(it.name)
         })
     }
 }

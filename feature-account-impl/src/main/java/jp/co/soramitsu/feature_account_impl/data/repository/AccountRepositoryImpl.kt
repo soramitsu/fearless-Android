@@ -49,15 +49,6 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun saveSelectedEncryptionType(encryptionType: CryptoType): Completable {
-        return getSelectedAddress()
-            .flatMapCompletable {
-                Completable.fromAction {
-                    accountDatasource.saveCryptoType(encryptionType, it)
-                }
-            }
-    }
-
     override fun getNetworks(): Single<List<Network>> {
         return Single.just(listOf(
             Network("Kusama", NetworkType.KUSAMA, "wss://kusama-rpc.polkadot.io"),
@@ -72,7 +63,21 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun saveSelectedNetwork(networkType: NetworkType): Completable {
+    override fun createAccount(accountName: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
+        return saveSelectedEncryptionType(encryptionType)
+            .andThen(saveSelectedNetwork(networkType))
+    }
+
+    private fun saveSelectedEncryptionType(encryptionType: CryptoType): Completable {
+        return getSelectedAddress()
+            .flatMapCompletable {
+                Completable.fromAction {
+                    accountDatasource.saveCryptoType(encryptionType, it)
+                }
+            }
+    }
+
+    private fun saveSelectedNetwork(networkType: NetworkType): Completable {
         return Completable.fromAction {
             accountDatasource.saveNetworkType(networkType)
         }
