@@ -6,4 +6,4 @@ data class CryptoTypeModel(
     val name: String,
     val cryptoType: CryptoType,
     val isSelected: Boolean
-) 
+)

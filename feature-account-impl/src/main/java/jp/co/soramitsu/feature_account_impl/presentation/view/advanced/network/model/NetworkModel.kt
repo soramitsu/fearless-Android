@@ -8,4 +8,4 @@ data class NetworkModel(
     val link: String,
     val networkType: NetworkType,
     val isSelected: Boolean
-) 
+)

@@ -28,4 +28,4 @@ class NetworkChooserBottomSheetDialog(
         networkRv.adapter = adapter
         networkRv.layoutManager = LinearLayoutManager(context)
     }
-} 
+}

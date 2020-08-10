@@ -41,7 +41,6 @@ class AdvancedBlockView @JvmOverloads constructor(
 
     private fun applyAttributes(attrs: AttributeSet?) {
         attrs?.let {
-
         }
     }
 

@@ -33,7 +33,6 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
         termsTv.movementMethod = LinkMovementMethod.getInstance()
         termsTv.highlightColor = Color.TRANSPARENT
 
-
         createAccountBtn.setOnClickListener { viewModel.createAccountClicked() }
     }
 
