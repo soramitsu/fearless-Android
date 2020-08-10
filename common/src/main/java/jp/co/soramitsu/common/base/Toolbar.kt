@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.base
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
@@ -8,6 +9,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import kotlinx.android.synthetic.main.tool_bar.view.backImg
+import kotlinx.android.synthetic.main.tool_bar.view.rightImg
 import kotlinx.android.synthetic.main.tool_bar.view.titleTv
 
 class Toolbar @JvmOverloads constructor(
@@ -24,11 +26,12 @@ class Toolbar @JvmOverloads constructor(
     private fun applyAttributes(attrs: AttributeSet?) {
         attrs?.let {
             val typedArray = context.obtainStyledAttributes(attrs, R.styleable.Toolbar)
-            val title = typedArray.getString(R.styleable.Toolbar_titleText)
 
-            title?.let {
-                setTitle(it)
-            }
+            val title = typedArray.getString(R.styleable.Toolbar_titleText)
+            title?.let { setTitle(it) }
+
+            val rightIcon = typedArray.getDrawable(R.styleable.Toolbar_iconRight)
+            rightIcon?.let { setRightIconDrawable(it) }
 
             typedArray.recycle()
         }
@@ -48,5 +51,14 @@ class Toolbar @JvmOverloads constructor(
 
     fun setHomeButtonListener(listener: (View) -> Unit) {
         backImg.setOnClickListener(listener)
+    }
+
+    fun setRightIconDrawable(assetIconDrawable: Drawable) {
+        rightImg.makeVisible()
+        rightImg.setImageDrawable(assetIconDrawable)
+    }
+
+    fun setRightIconClickListener(listener: (View) -> Unit) {
+        rightImg.setOnClickListener(listener)
     }
 }

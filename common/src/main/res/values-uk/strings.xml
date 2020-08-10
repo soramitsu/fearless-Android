@@ -11,4 +11,16 @@
     <string name="username_setup_choose_title">Виберіть ім\'я</string>
     <string name="username_setup_hint">Назва цього облікового запису та спосіб відображення під вашими адресами. Завдяки ланцюговій ідентичності він може бути доступний для інших.</string>
     <string name="common_next">Далі</string>
+    <string name="account_create_title">Мнемонічний</string>
+    <string name="account_create_details">Використовуйте не цифровий спосіб резервного копіювання, наприклад запису на папері.</string>
+    <string name="common_advanced">Розширений</string>
+    <string name="common_crypto_type">Тип ключевой пары</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="common_secret_derivation_path">Таємний шлях виведення</string>
+    <string name="common_choose_network">Виберіть мережу</string>
+    <string name="sr25519_selection_subtitle">sr25519 (рекомендується)</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ed25519_selection_subtitle">ed25519 (альтернатива)</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="ecdsa_selection_subtitle">(Сумісний з BTC / ETH)</string>
 </resources>

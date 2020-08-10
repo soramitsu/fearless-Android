@@ -11,4 +11,16 @@
     <string name="username_setup_choose_title">Elegir nombre</string>
     <string name="username_setup_hint">El nombre de esta cuenta y cómo aparecerá bajo sus direcciones. Con una identidad en cadena, puede estar disponible para otros.</string>
     <string name="common_next">Siguiente</string>
+    <string name="account_create_title">Copia de seguridad mnemónica</string>
+    <string name="account_create_details">Utilice una forma no digital de copia de seguridad, como escribirlo en papel.</string>
+    <string name="common_advanced">Avanzado</string>
+    <string name="common_crypto_type">Tipo de criptografía de par de claves</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="common_secret_derivation_path">Ruta de derivación secreta</string>
+    <string name="common_choose_network">Elige red</string>
+    <string name="sr25519_selection_subtitle">sr25519 (recomendado)</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ed25519_selection_subtitle">ed25519 (alternativa)</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="ecdsa_selection_subtitle">(Compatible con BTC / ETH)</string>
 </resources>
