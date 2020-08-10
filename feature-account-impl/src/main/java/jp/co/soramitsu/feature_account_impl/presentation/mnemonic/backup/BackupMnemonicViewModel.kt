@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -9,10 +10,13 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.Network
+import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.mnemonic.model.MnemonicWordModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 class BackupMnemonicViewModel(
     private val interactor: AccountInteractor,
@@ -30,6 +34,18 @@ class BackupMnemonicViewModel(
     private val _encryptionTypeChooserEvent = MutableLiveData<Event<List<CryptoTypeModel>>>()
     val encryptionTypeChooserEvent: LiveData<Event<List<CryptoTypeModel>>> = _encryptionTypeChooserEvent
 
+    private val _selectedEncryptionTypeLiveData = MediatorLiveData<String>()
+    val selectedEncryptionTypeLiveData: LiveData<String> = _selectedEncryptionTypeLiveData
+
+    private val _networksLiveData = MutableLiveData<List<NetworkModel>>()
+    val networksLiveData: LiveData<List<NetworkModel>> = _networksLiveData
+
+    private val _networkChooserEvent = MutableLiveData<Event<List<NetworkModel>>>()
+    val networkChooserEvent: LiveData<Event<List<NetworkModel>>> = _networkChooserEvent
+
+    private val _selectedNetworkLiveData = MediatorLiveData<Pair<Int, String>>()
+    val selectedNetworkLiveData: LiveData<Pair<Int, String>> = _selectedNetworkLiveData
+
     init {
         disposables.add(
             interactor.getMnemonic()
@@ -43,7 +59,23 @@ class BackupMnemonicViewModel(
                 })
         )
 
+        _selectedEncryptionTypeLiveData.addSource(encryptionTypesLiveData) {
+            val selected = it.firstOrNull { it.isSelected } ?: it.first()
+            val encryptionName = when (selected.cryptoType) {
+                CryptoType.SR25519 -> "${resourceManager.getString(R.string.sr25519_selection_title)} | ${resourceManager.getString(R.string.sr25519_selection_subtitle)}"
+                CryptoType.ED25519 -> "${resourceManager.getString(R.string.ed25519_selection_title)} | ${resourceManager.getString(R.string.ed25519_selection_subtitle)}"
+                CryptoType.ECDSA -> "${resourceManager.getString(R.string.ecdsa_selection_title)} | ${resourceManager.getString(R.string.ecdsa_selection_subtitle)}"
+            }
+            _selectedEncryptionTypeLiveData.value = encryptionName
+        }
+
+        _selectedNetworkLiveData.addSource(networksLiveData) {
+            val selected = it.firstOrNull { it.isSelected } ?: it.first()
+            _selectedNetworkLiveData.value = Pair(selected.icon, selected.name)
+        }
+
         getEncryptionTypesWithSelected()
+        getNetworksWithSelected()
     }
 
     private fun getEncryptionTypesWithSelected() {
@@ -54,6 +86,20 @@ class BackupMnemonicViewModel(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     _encryptionTypesLiveData.value = it
+                }, {
+                    it.printStackTrace()
+                })
+        )
+    }
+
+    private fun getNetworksWithSelected() {
+        disposables.add(
+            interactor.getNetworksWithSelected()
+                .subscribeOn(Schedulers.io())
+                .map { mapNetworkToNetworkModel(it.first, it.second) }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    _networksLiveData.value = it
                 }, {
                     it.printStackTrace()
                 })
@@ -75,8 +121,14 @@ class BackupMnemonicViewModel(
     }
 
     fun encryptionTypeInputClicked() {
-        _encryptionTypesLiveData.value?.let {
+        encryptionTypesLiveData.value?.let {
             _encryptionTypeChooserEvent.value = Event(it)
+        }
+    }
+
+    fun networkInputClicked() {
+        networksLiveData.value?.let {
+            _networkChooserEvent.value = Event(it)
         }
     }
 
@@ -92,6 +144,18 @@ class BackupMnemonicViewModel(
         }
     }
 
+    private fun mapNetworkToNetworkModel(networks: List<Network>, selected: NetworkType): List<NetworkModel> {
+        return networks.map {
+            val icon = when (it.networkType) {
+                NetworkType.POLKADOT -> R.drawable.ic_ksm_24
+                NetworkType.KUSAMA -> R.drawable.ic_ksm_24
+                NetworkType.WESTEND -> R.drawable.ic_westend_24
+            }
+            val isSelected = selected == it.networkType
+            NetworkModel(it.name, icon, it.link, it.networkType, isSelected)
+        }
+    }
+
     fun encryptionTypeChanged(cryptoType: CryptoType) {
         disposables.add(
             interactor.saveSelectedEncryptionType(cryptoType)
@@ -99,6 +163,19 @@ class BackupMnemonicViewModel(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     getEncryptionTypesWithSelected()
+                }, {
+                    it.printStackTrace()
+                })
+        )
+    }
+
+    fun networkChanged(networkModel: NetworkModel) {
+        disposables.add(
+            interactor.saveSelectedNetwork(networkModel.networkType)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    getNetworksWithSelected()
                 }, {
                     it.printStackTrace()
                 })

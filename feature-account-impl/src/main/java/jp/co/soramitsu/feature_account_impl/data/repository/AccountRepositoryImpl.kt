@@ -5,6 +5,8 @@ import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.Network
+import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDatasource
 
 class AccountRepositoryImpl(
@@ -54,5 +56,25 @@ class AccountRepositoryImpl(
                     accountDatasource.saveCryptoType(encryptionType, it)
                 }
             }
+    }
+
+    override fun getNetworks(): Single<List<Network>> {
+        return Single.just(listOf(
+            Network("Kusama", NetworkType.KUSAMA, "wss://kusama-rpc.polkadot.io"),
+            Network("Polkadot", NetworkType.POLKADOT, "wss://rpc.polkadot.io"),
+            Network("Westend", NetworkType.WESTEND, "wss://westend-rpc.polkadot.io")
+        ))
+    }
+
+    override fun getSelectedNetwork(): Single<NetworkType> {
+        return Single.fromCallable {
+            accountDatasource.getNetworkType() ?: NetworkType.KUSAMA
+        }
+    }
+
+    override fun saveSelectedNetwork(networkType: NetworkType): Completable {
+        return Completable.fromAction {
+            accountDatasource.saveNetworkType(networkType)
+        }
     }
 }

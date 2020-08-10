@@ -12,7 +12,9 @@ import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
 import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathEt
 import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeInput
+import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeText
 import kotlinx.android.synthetic.main.view_advanced_block.view.networkInput
+import kotlinx.android.synthetic.main.view_advanced_block.view.networkText
 
 class AdvancedBlockView @JvmOverloads constructor(
     context: Context,
@@ -61,5 +63,17 @@ class AdvancedBlockView @JvmOverloads constructor(
 
     fun getDerivationPath(): String {
         return derivationPathEt.text?.toString() ?: ""
+    }
+
+    fun setEncryption(encryption: String) {
+        encryptionTypeText.text = encryption
+    }
+
+    fun setNetworkName(network: String) {
+        networkText.text = network
+    }
+
+    fun setNetworkIconResource(icon: Int) {
+        networkText.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0)
     }
 }
