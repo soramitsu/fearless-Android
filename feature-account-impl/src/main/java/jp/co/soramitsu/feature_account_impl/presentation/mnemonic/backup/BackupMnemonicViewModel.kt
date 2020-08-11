@@ -47,10 +47,13 @@ class BackupMnemonicViewModel(
     private val _selectedNetworkLiveData = MediatorLiveData<NetworkModel>()
     val selectedNetworkLiveData: LiveData<NetworkModel> = _selectedNetworkLiveData
 
+    private var mnemonic: String = ""
+
     init {
         disposables.add(
             interactor.getMnemonic()
                 .subscribeOn(Schedulers.io())
+                .map { mnemonic = it.joinToString(" "); it }
                 .map { mapMnemonicToMnemonicWords(it) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
@@ -167,7 +170,7 @@ class BackupMnemonicViewModel(
         selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
             selectedNetworkLiveData.value?.networkType?.let { networkType ->
                 disposables.add(
-                    interactor.createAccount(accountName, cryptoType, derivationPath, networkType)
+                    interactor.createAccount(accountName, mnemonic, cryptoType, derivationPath, networkType)
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({

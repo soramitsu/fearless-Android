@@ -42,8 +42,8 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun createAccount(accountName: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
-        return accountRepository.createAccount(accountName, encryptionType, derivationPath, networkType)
+    override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
+        return accountRepository.createAccount(accountName, mnemonic, encryptionType, derivationPath, networkType)
     }
 
     override fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable {
