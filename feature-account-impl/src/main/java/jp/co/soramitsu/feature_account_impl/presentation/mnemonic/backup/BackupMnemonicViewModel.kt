@@ -53,7 +53,9 @@ class BackupMnemonicViewModel(
         disposables.add(
             interactor.getMnemonic()
                 .subscribeOn(Schedulers.io())
-                .map { mnemonic = it.joinToString(" "); it }
+                .doOnSuccess {
+                    mnemonic = it.joinToString(" ")
+                }
                 .map { mapMnemonicToMnemonicWords(it) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({

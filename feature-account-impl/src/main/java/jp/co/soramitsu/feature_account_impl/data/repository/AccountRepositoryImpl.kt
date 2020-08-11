@@ -158,6 +158,7 @@ class AccountRepositoryImpl(
         accountDatasource.saveAccountName(accountName, address)
         accountDatasource.saveDerivationPath(derivationPath, address)
         accountDatasource.saveSeed(seed, address)
+        accountDatasource.saveEntropy(entropy, address)
         accountDatasource.setMnemonicIsBackedUp(true)
     }
 }
