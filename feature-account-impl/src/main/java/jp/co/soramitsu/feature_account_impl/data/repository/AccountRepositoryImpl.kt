@@ -76,9 +76,10 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun createAccount(accountName: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
+    override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
         return saveSelectedEncryptionType(encryptionType)
             .andThen(saveSelectedNetwork(networkType))
+            .andThen { saveAccountData(accountName, mnemonic, derivationPath, encryptionType, networkType) }
     }
 
     override fun getSourceTypes(): Single<List<SourceType>> {
@@ -102,17 +103,7 @@ class AccountRepositoryImpl(
 
     override fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable {
         return Completable.fromAction {
-            val entropy = bip39.generateEntropy(keyString)
-            val password = junctionDecoder.getPassword(derivationPath)
-            val seed = bip39.generateSeed(entropy, password)
-            val keys = keypairFactory.generate(mapCryptoTypeToEncryption(selectedEncryptionType), seed, derivationPath)
-            val addressType = mapNetworkTypeToAddressType(networkType)
-            val address = sS58Encoder.encode(keys.publicKey, addressType)
-
-            accountDatasource.saveAccountName(username, address)
-            accountDatasource.saveDerivationPath(derivationPath, address)
-            accountDatasource.saveSeed(seed, address)
-            accountDatasource.setMnemonicIsBackedUp(true)
+            saveAccountData(username, keyString, derivationPath, selectedEncryptionType, networkType)
         }
     }
 
@@ -154,5 +145,20 @@ class AccountRepositoryImpl(
             val mnemonic = bip39.generateMnemonic(Words.TWELVE)
             mnemonic.split(" ")
         }
+    }
+
+    private fun saveAccountData(accountName: String, mnemonic: String, derivationPath: String, cryptoType: CryptoType, networkType: NetworkType) {
+        val entropy = bip39.generateEntropy(mnemonic)
+        val password = junctionDecoder.getPassword(derivationPath)
+        val seed = bip39.generateSeed(entropy, password)
+        val keys = keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
+        val addressType = mapNetworkTypeToAddressType(networkType)
+        val address = sS58Encoder.encode(keys.publicKey, addressType)
+
+        accountDatasource.saveAccountName(accountName, address)
+        accountDatasource.saveDerivationPath(derivationPath, address)
+        accountDatasource.saveSeed(seed, address)
+        accountDatasource.saveEntropy(entropy, address)
+        accountDatasource.setMnemonicIsBackedUp(true)
     }
 }

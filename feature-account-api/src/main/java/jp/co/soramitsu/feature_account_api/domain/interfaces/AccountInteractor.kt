@@ -17,7 +17,7 @@ interface AccountInteractor {
 
     fun getNetworksWithSelected(): Single<Pair<List<Network>, NetworkType>>
 
-    fun createAccount(accountName: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable
+    fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable
 
     fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
 
