@@ -91,6 +91,12 @@
 
     <!-- Dialog -->
 
+    <style name="Widget.Fearless.ProgressBar" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminate">true</item>
+        <item name="android:indeterminateDrawable">@anim/progress_rotate</item>
+        <item name="android:indeterminateDuration">1300</item>
+    </style>
+
     <style name="BottomSheetDialog" parent="Theme.MaterialComponents.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/bottomSheetStyleWrapper</item>
         <item name="android:windowIsFloating">false</item>

@@ -9,19 +9,12 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.api.FeatureUtils
-import jp.co.soramitsu.common.presentation.view.SoraProgressDialog
-import jp.co.soramitsu.common.util.Const
-import jp.co.soramitsu.common.util.EventObserver
-import jp.co.soramitsu.feature_main_api.di.MainFeatureApi
-import jp.co.soramitsu.feature_main_api.domain.model.PinCodeAction
-import jp.co.soramitsu.feature_main_impl.R
-import jp.co.soramitsu.feature_main_impl.di.MainFeatureComponent
-import jp.co.soramitsu.feature_main_impl.presentation.MainActivity
-import jp.co.soramitsu.feature_main_impl.presentation.pincode.PinCodeViewModel
+import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.view.FearlessProgressDialog
+import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.BottomBarController
-import jp.co.soramitsu.sora_ui.pinview.DotsProgressView
 import kotlinx.android.synthetic.main.fragment_pincode.dotsProgressView
 import kotlinx.android.synthetic.main.fragment_pincode.pinCodeTitleTv
 import kotlinx.android.synthetic.main.fragment_pincode.pinCodeView
@@ -31,14 +24,14 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
     @Inject lateinit var fingerprintWrapper: FingerprintWrapper
     private lateinit var fingerprintDialog: BottomSheetDialog
-    private lateinit var progressDialog: SoraProgressDialog
+    private lateinit var progressDialog: FearlessProgressDialog
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_pincode, container, false)
     }
 
     override fun inject() {
-        FeatureUtils.getFeature<MainFeatureComponent>(context!!, MainFeatureApi::class.java)
+        FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .pinCodeComponentBuilder()
             .withFragment(this)
             .withMaxPinCodeLength(DotsProgressView.MAX_PROGRESS)

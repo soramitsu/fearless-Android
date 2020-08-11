@@ -7,19 +7,27 @@ import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.interfaces.WithProgress
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.setValueIfNew
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.domain.model.PinCodeAction
+import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import java.util.concurrent.TimeUnit
 
 class PinCodeViewModel(
+    private val interactor: AccountInteractor,
+    private val router: AccountRouter,
+    private val progress: WithProgress,
     private val maxPinCodeLength: Int
-) : BaseViewModel() {
+) : BaseViewModel(), WithProgress by progress {
 
     companion object {
         private const val COMPLETE_PIN_CODE_DELAY: Long = 12
     }
 
-//    private lateinit var action: PinCodeAction
+    private lateinit var action: PinCodeAction
     private var tempCode = ""
 
     private val inputCodeLiveData = MutableLiveData<String>()
@@ -57,7 +65,37 @@ class PinCodeViewModel(
     }
 
     fun startAuth(pinCodeAction: PinCodeAction) {
-
+        action = pinCodeAction
+        when (action) {
+            PinCodeAction.CREATE_PIN_CODE -> {
+//                toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
+                backButtonVisibilityLiveData.value = false
+            }
+            PinCodeAction.OPEN_PASSPHRASE -> {
+//                toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
+                showFingerPrintEventLiveData.value = Event(Unit)
+                backButtonVisibilityLiveData.value = true
+            }
+            PinCodeAction.TIMEOUT_CHECK -> {
+                disposables.add(
+                    interactor.isCodeSet()
+                        .subscribe({
+                            if (it) {
+//                                toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
+                                showFingerPrintEventLiveData.value = Event(Unit)
+                                backButtonVisibilityLiveData.value = false
+                            } else {
+//                                toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
+                                backButtonVisibilityLiveData.value = false
+                                action = PinCodeAction.CREATE_PIN_CODE
+                            }
+                        }, {
+                            onError(it.localizedMessage)
+                            action = PinCodeAction.CREATE_PIN_CODE
+                        })
+                )
+            }
+        }
     }
 
     fun pinCodeNumberClicked(pinCodeNumber: String) {
@@ -93,7 +131,7 @@ class PinCodeViewModel(
                         if (tempCode.isEmpty()) {
                             tempCode = pin
                             inputCodeLiveData.value = ""
-                            toolbarTitleResLiveData.value = R.string.pincode_confirm_your_pin_code
+//                            toolbarTitleResLiveData.value = R.string.pincode_confirm_your_pin_code
                             backButtonVisibilityLiveData.value = true
                         } else {
                             pinCodeEnterComplete(pin)
@@ -102,7 +140,7 @@ class PinCodeViewModel(
                         checkPinCode(pin)
                     }
                 }, {
-                    logException(it)
+                    it.printStackTrace()
                 })
         )
     }
@@ -113,9 +151,9 @@ class PinCodeViewModel(
         } else {
             tempCode = ""
             inputCodeLiveData.value = ""
-            toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
+//            toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
             backButtonVisibilityLiveData.value = false
-            onError(R.string.pincode_repeat_error)
+//            onError(R.string.pincode_repeat_error)
         }
     }
 
@@ -124,7 +162,7 @@ class PinCodeViewModel(
             interactor.savePin(code)
                 .subscribe({
                     _ethServiceEvent.value = Event(Unit)
-                    mainRouter.popBackStack()
+//                    router.popBackStack()
                     _checkInviteLiveData.value = Event(Unit)
                 }, {
                     it.printStackTrace()
@@ -137,11 +175,11 @@ class PinCodeViewModel(
             interactor.checkPin(code)
                 .subscribe({
                     if (PinCodeAction.OPEN_PASSPHRASE == action) {
-                        mainRouter.popBackStack()
-                        mainRouter.showPassphrase()
+//                        mainRouter.popBackStack()
+//                        mainRouter.showPassphrase()
                     } else {
                         _ethServiceEvent.value = Event(Unit)
-                        mainRouter.showVerification()
+//                        mainRouter.showVerification()
                     }
                 }, {
                     it.printStackTrace()
@@ -159,13 +197,13 @@ class PinCodeViewModel(
                 tempCode = ""
                 inputCodeLiveData.value = ""
                 backButtonVisibilityLiveData.value = false
-                toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
+//                toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
             }
         } else {
             if (PinCodeAction.TIMEOUT_CHECK == action) {
                 _closeAppLiveData.value = Event(Unit)
             } else {
-                mainRouter.popBackStack()
+//                mainRouter.popBackStack()
             }
         }
     }
@@ -182,11 +220,11 @@ class PinCodeViewModel(
 
     fun onAuthenticationSucceeded() {
         if (PinCodeAction.OPEN_PASSPHRASE == action) {
-            mainRouter.popBackStack()
-            mainRouter.showPassphrase()
+//            mainRouter.popBackStack()
+//            mainRouter.showPassphrase()
         } else {
             _ethServiceEvent.value = Event(Unit)
-            mainRouter.showVerification()
+//            mainRouter.showVerification()
         }
     }
 

@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint
 
 import androidx.biometric.BiometricConstants
 import androidx.biometric.BiometricPrompt
-import jp.co.soramitsu.feature_main_impl.presentation.pincode.PinCodeViewModel
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeViewModel
 
 class FingerprintCallback(private val pinCodeViewModel: PinCodeViewModel) : BiometricPrompt.AuthenticationCallback() {
     override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {

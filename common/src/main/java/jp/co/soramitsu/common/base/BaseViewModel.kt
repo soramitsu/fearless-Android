@@ -27,4 +27,8 @@ open class BaseViewModel : ViewModel() {
     fun onError(messageResource: Int) {
         _errorFromResourceLiveData.value = Event(messageResource)
     }
+
+    fun onError(message: String) {
+        _errorLiveData.value = Event(message)
+    }
 }

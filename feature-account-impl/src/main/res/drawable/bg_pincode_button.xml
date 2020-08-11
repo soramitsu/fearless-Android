@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?android:attr/colorControlHighlight">
+    <item>
+        <shape android:shape="oval">
+            <corners android:radius="20dp" />
+            <solid android:color="?attr/uikit_pinCodeButtonBackground"/>
+        </shape>
+    </item>
+</ripple>

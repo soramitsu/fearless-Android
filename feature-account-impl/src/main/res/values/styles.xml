@@ -10,4 +10,18 @@
         <item name="behavior_peekHeight">600dp</item>
     </style>
 
+    <style name="Widget.Fearless.Button.PinCodeNumberButton" parent="Widget.AppCompat.Button">
+        <item name="android:textColor">?attr/pinCodeButtonTextColor</item>
+        <item name="android:textSize">?attr/pinCodeButtonTextSize</item>
+        <item name="android:background">@drawable/bg_pincode_button</item>
+        <item name="android:textAppearance">@style/TextAppearance.Soramitsu.Body2</item>
+        <item name="android:fontFamily">?attr/fontRegular</item>
+    </style>
+
+    <style name="Widget.Fearless.Button.PinCodeControlButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:background">@drawable/bg_pincode_button</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="android:elevation">2dp</item>
+    </style>
+
 </resources>
