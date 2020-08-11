@@ -11,4 +11,24 @@
     <string name="username_setup_choose_title">Выберите имя</string>
     <string name="username_setup_hint">Имя аккаунта и его отображение рядом с адресом. Используя хранение идентификационных данных в блокчейне, имя можно сделать доступных для остальных.</string>
     <string name="common_next">Киләһе</string>
+    <string name="account_create_title">Мнемоника</string>
+    <string name="account_create_details">Используйте нецифровой носитель для сохранения, например, выпишите слова на бумагу.</string>
+    <string name="common_advanced">Продвинутый</string>
+    <string name="common_crypto_type">Тип ключевой пары</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="common_secret_derivation_path">Последовательность для вывода секрета</string>
+    <string name="common_choose_network">Выберите сеть</string>
+    <string name="sr25519_selection_subtitle">sr25519 (рекомендованный)</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ed25519_selection_subtitle">ed25519 (альтернативный)</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="ecdsa_selection_subtitle">(BTC/ETH совместимый)</string>
+    <string name="recovery_source_type">Сығанаҡ тип</string>
+    <string name="recovery_passphrase">Мнемоника</string>
+    <string name="recovery_json">JSON тергеҙеү</string>
+    <string name="recover_json_hint">Json профилендә йәки загрузить файл...</string>
+    <string name="account_import_password_placeholder">Пароль</string>
+    <string name="recovery_raw_seed">Сей орлоҡ</string>
+    <string name="access_restore_phrase_error_message">Һеҙҙең мнемоника яраҡһыҙ. Зинһар, икенсене ҡулланып ҡарағыҙ.</string>
+    <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
 </resources>

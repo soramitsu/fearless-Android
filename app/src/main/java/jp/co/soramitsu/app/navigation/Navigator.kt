@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.MainActivity
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.splash.SplashRouter
 
-class Navigator : SplashRouter, OnboardingRouter {
+class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
 
     private var navController: NavController? = null
 
@@ -42,6 +44,16 @@ class Navigator : SplashRouter, OnboardingRouter {
         navController?.navigate(R.id.action_welcomeFragment_to_privacyFragment)
     }
 
+    override fun openImportAccountScreen() {
+        navController?.navigate(R.id.importAction)
+    }
+
     override fun openMnemonicScreen(accountName: String) {
+        val bundle = BackupMnemonicFragment.getBundle(accountName)
+        navController?.navigate(R.id.action_createAccountFragment_to_backupMnemonicFragment, bundle)
+    }
+
+    override fun backToCreateAccountScreen() {
+        navController?.popBackStack()
     }
 }

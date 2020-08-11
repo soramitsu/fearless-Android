@@ -22,9 +22,9 @@ class AccountDatasourceImpl(
         private const val PREFS_CONNECTION_URL = "connection_url"
         private const val PREFS_NETWORK_TYPE = "network_type"
         private const val PREFS_MNEMONIC_IS_BACKED_UP = "mnemonic_backed_up"
-        private const val PREFS_SEED_MASK = "seed_%"
-        private const val PREFS_ENTROPY_MASK = "entropy_%"
-        private const val PREFS_DERIVATION_MASK = "entropy_%"
+        private const val PREFS_SEED_MASK = "seed_%s"
+        private const val PREFS_ENTROPY_MASK = "entropy_%s"
+        private const val PREFS_DERIVATION_MASK = "derivation_%s"
     }
 
     override fun saveAuthType(authType: AuthType) {

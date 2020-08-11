@@ -4,6 +4,7 @@
     package="jp.co.soramitsu.app">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name="jp.co.soramitsu.app.App"
@@ -23,6 +24,12 @@
                 <data android:mimeType="application/json" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="fullSensor"
+            android:theme="@style/Theme.Soramitsu.Fearless"
+            tools:replace="android:theme,screenOrientation" />
     </application>
 
 </manifest>

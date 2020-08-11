@@ -13,6 +13,10 @@ class WelcomeViewModel(
         router.openCreateAccount()
     }
 
+    fun importAccountClicked() {
+        router.openImportAccountScreen()
+    }
+
     fun termsClicked() {
         router.openTermsScreen()
     }

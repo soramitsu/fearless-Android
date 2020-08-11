@@ -23,7 +23,8 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar', "*.aar"])
+    implementation fileTree(dir: '../libs', include: ['*.jar', '*.aar'])
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-account-api')
@@ -34,9 +35,14 @@ dependencies {
     implementation materialDep
     implementation cardViewDep
     implementation constraintDep
+    implementation ed25519Dep
 
     implementation rxJavaDep
     implementation rxAndroidDep
+
+    implementation zXingCoreDep
+    implementation zXingEmbeddedDep
+    implementation rxPermissionsDep
 
     implementation daggerDep
     kapt daggerKapt

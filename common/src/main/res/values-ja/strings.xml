@@ -11,4 +11,24 @@
     <string name="username_setup_choose_title">名前を選択してください</string>
     <string name="username_setup_hint">このアカウントの名前と、アドレスの下での表示方法。チェーン上のIDを使用すると、他のユーザーが使用できるようになります。</string>
     <string name="common_next">次へ</string>
+    <string name="account_create_title">バックアップニーモニック</string>
+    <string name="account_create_details">紙に書き留めるなど、デジタル以外の方法でバックアップします。</string>
+    <string name="common_advanced">高度な</string>
+    <string name="common_crypto_type">鍵ペアの暗号タイプ</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="common_secret_derivation_path">秘密の派生経路</string>
+    <string name="common_choose_network">ネットワークを選択</string>
+    <string name="sr25519_selection_subtitle">sr25519（推奨）</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ed25519_selection_subtitle">ed25519（代替）</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="ecdsa_selection_subtitle">（BTC / ETH互換）</string>
+    <string name="recovery_source_type">ソースの種類</string>
+    <string name="recovery_passphrase">ニモニック</string>
+    <string name="recovery_json">リカバリJSON</string>
+    <string name="recover_json_hint">JSONを貼り付けるかファイルをアップロード...</string>
+    <string name="account_import_password_placeholder">パスワード</string>
+    <string name="recovery_raw_seed">生の種子</string>
+    <string name="access_restore_phrase_error_message">Your mnemonic is invalid. Please, try another one.</string>
+    <string name="common_undefined_error_message">別の入力でもう一度お試しください。エラーが再度表示される場合は、サポートにお問い合わせください。</string>
 </resources>

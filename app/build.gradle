@@ -22,10 +22,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    android {
+        compileOptions {
+            sourceCompatibility 1.8
+            targetCompatibility 1.8
+        }
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: '../libs', include: ['*.aar'])
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-splash')
@@ -38,6 +46,10 @@ dependencies {
 
     implementation androidDep
     implementation constraintDep
+
+    implementation novaCryptoDep
+
+    implementation zXingEmbeddedDep
 
     implementation navigationFragmentDep
     implementation navigationUiDep

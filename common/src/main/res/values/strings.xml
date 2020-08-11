@@ -11,4 +11,24 @@
     <string name="username_setup_choose_title">Choose name</string>
     <string name="username_setup_hint">The name for this account and how it will appear under your addresses. With an on-chain identity, it can be made available to others.</string>
     <string name="common_next">Next</string>
+    <string name="account_create_title">Backup mnemonic</string>
+    <string name="account_create_details">Use non digital way to backup, such as writing it down on paper.</string>
+    <string name="common_advanced">Advanced</string>
+    <string name="common_crypto_type">Keypair crypto type</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="common_secret_derivation_path">Secret derivation path</string>
+    <string name="common_choose_network">Choose network</string>
+    <string name="sr25519_selection_subtitle">sr25519 (recommended)</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ed25519_selection_subtitle">ed25519 (alternative)</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="ecdsa_selection_subtitle">(BTC/ETH compatible)</string>
+    <string name="recovery_source_type">Source type</string>
+    <string name="recovery_passphrase">Mnemonic</string>
+    <string name="recovery_json">Recovery JSON</string>
+    <string name="recover_json_hint">Paste json or upload file...</string>
+    <string name="account_import_password_placeholder">Password</string>
+    <string name="recovery_raw_seed">Raw seed</string>
+    <string name="access_restore_phrase_error_message">Your mnemonic is invalid. Please, try another one.</string>
+    <string name="common_undefined_error_message">Please, try again with another input. If the error appears again, please, contact support.</string>
 </resources>

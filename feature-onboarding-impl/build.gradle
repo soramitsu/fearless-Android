@@ -39,6 +39,10 @@ dependencies {
     implementation rxJavaDep
     implementation rxAndroidDep
 
+    implementation zXingCoreDep
+    implementation zXingEmbeddedDep
+    implementation rxPermissionsDep
+
     implementation daggerDep
     kapt daggerKapt
 

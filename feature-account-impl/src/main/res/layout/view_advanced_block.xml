@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:background="@color/black"
+    tools:orientation="vertical"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <TextView
+        android:id="@+id/advancedTv"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:padding="@dimen/x2"
+        android:drawableEnd="@drawable/ic_plus_white_24"
+        android:gravity="center_vertical"
+        android:includeFontPadding="false"
+        android:orientation="horizontal"
+        android:text="@string/common_advanced"
+        android:textColor="@color/white" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:background="@color/colorGreyText" />
+
+    <LinearLayout
+        android:id="@+id/advancedView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/encryptionTypeInput"
+            style="@style/Widget.Fearless.Input.Primary.External"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="@dimen/x2"
+            android:paddingTop="@dimen/x1"
+            android:paddingEnd="@dimen/x2"
+            android:paddingBottom="@dimen/x1">
+
+            <TextView
+                android:id="@+id/encryptionTypeTitle"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/common_crypto_type"
+                android:textColor="@color/colorHint"
+                app:layout_constraintEnd_toStartOf="@id/encryptionTypeicon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/encryptionTypeText"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/sr25519_selection_title"
+                android:textColor="@color/white"
+                app:layout_constraintEnd_toStartOf="@id/encryptionTypeicon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/encryptionTypeTitle" />
+
+            <ImageView
+                android:id="@+id/encryptionTypeicon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_pin_white_24"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/encryptionTypeTitle"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/derivationPathInput"
+            style="@style/Widget.Fearless.Input.Primary.External"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/x2"
+            android:hint="@string/common_secret_derivation_path">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/derivationPathEt"
+                style="@style/Widget.Fearless.Input.Primary.Internal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLength="64" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/networkInput"
+            style="@style/Widget.Fearless.Input.Primary.External"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/x2"
+            android:paddingStart="@dimen/x2"
+            android:paddingTop="@dimen/x1"
+            android:paddingEnd="@dimen/x2"
+            android:paddingBottom="@dimen/x1">
+
+            <TextView
+                android:id="@+id/netowrkTitle"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/common_choose_network"
+                android:textColor="@color/colorHint"
+                app:layout_constraintEnd_toStartOf="@id/rightIcon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/networkText"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/ic_ksm_24"
+                android:drawablePadding="@dimen/x2"
+                android:gravity="center_vertical"
+                android:includeFontPadding="false"
+                android:text=""
+                android:textColor="@color/white"
+                app:layout_constraintEnd_toStartOf="@id/rightIcon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/netowrkTitle" />
+
+            <ImageView
+                android:id="@+id/rightIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_pin_white_24"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/netowrkTitle"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </LinearLayout>
+
+</merge>
