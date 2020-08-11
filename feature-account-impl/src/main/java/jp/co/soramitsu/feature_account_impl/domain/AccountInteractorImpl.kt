@@ -14,22 +14,7 @@ class AccountInteractorImpl(
 ) : AccountInteractor {
 
     override fun getMnemonic(): Single<List<String>> {
-        return Single.fromCallable {
-            mutableListOf<String>().apply {
-                add("song")
-                add("toss")
-                add("odor")
-                add("click")
-                add("blouse")
-                add("lesson")
-                add("runway")
-                add("popular")
-                add("owner")
-                add("caught")
-                add("wrist")
-                add("poverty")
-            }
-        }
+        return accountRepository.generateMnemonic()
     }
 
     override fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>> {

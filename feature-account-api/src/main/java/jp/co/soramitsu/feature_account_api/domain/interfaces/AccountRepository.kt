@@ -30,4 +30,6 @@ interface AccountRepository {
     fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
 
     fun importFromJson(json: String, password: String, networkType: NetworkType): Completable
+
+    fun generateMnemonic(): Single<List<String>>
 }
