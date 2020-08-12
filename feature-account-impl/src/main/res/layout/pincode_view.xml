@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:orientation="vertical"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn1"
+            style="@style/Widget.Fearless.Button.PinCodeNumberButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:text="1" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn2"
+            style="@style/Widget.Fearless.Button.PinCodeNumberButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:text="2" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn3"
+            style="@style/Widget.Fearless.Button.PinCodeNumberButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:text="3" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn4"
+            style="@style/Widget.Fearless.Button.PinCodeNumberButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:text="4" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn5"
+            style="@style/Widget.Fearless.Button.PinCodeNumberButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:text="5" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn6"
+            style="@style/Widget.Fearless.Button.PinCodeNumberButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:text="6" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn7"
+            style="@style/Widget.Fearless.Button.PinCodeNumberButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:text="7" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn8"
+            style="@style/Widget.Fearless.Button.PinCodeNumberButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:text="8" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn9"
+            style="@style/Widget.Fearless.Button.PinCodeNumberButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:text="9" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/fingerprintBtn"
+            style="@style/Widget.Fearless.Button.PinCodeControlButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:src="@drawable/ic_fingerprint"
+            android:visibility="invisible"
+            tools:visibility="visible" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn0"
+            style="@style/Widget.Fearless.Button.PinCodeNumberButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:text="0" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnDelete"
+            style="@style/Widget.Fearless.Button.PinCodeControlButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="@dimen/pin_code_view_spacing"
+            android:src="@drawable/ic_delete"
+            android:visibility="invisible"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+</merge>

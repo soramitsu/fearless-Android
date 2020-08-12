@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation.pincode.di
 
+import android.content.Context
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.Fragment
@@ -14,13 +15,9 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.interfaces.WithProgress
 import jp.co.soramitsu.common.io.MainThreadExecutor
-import jp.co.soramitsu.common.resourses.ContextManager
-import jp.co.soramitsu.common.resourses.ResourceManager
-import jp.co.soramitsu.core_di.holder.viewmodel.ViewModelKey
-import jp.co.soramitsu.core_di.holder.viewmodel.ViewModelModule
-import jp.co.soramitsu.feature_main_api.launcher.MainRouter
-import jp.co.soramitsu.feature_main_impl.R
-import jp.co.soramitsu.feature_main_impl.domain.PinCodeInteractor
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintCallback
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
@@ -40,8 +37,8 @@ class PinCodeModule {
     @Provides
     @IntoMap
     @ViewModelKey(PinCodeViewModel::class)
-    fun provideViewModel(interactor: PinCodeInteractor, mainRouter: MainRouter, progress: WithProgress, maxPinCodeLength: Int): ViewModel {
-        return PinCodeViewModel(interactor, mainRouter, progress, maxPinCodeLength)
+    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, progress: WithProgress, maxPinCodeLength: Int): ViewModel {
+        return PinCodeViewModel(interactor, router, progress, maxPinCodeLength)
     }
 
     @Provides
@@ -50,12 +47,12 @@ class PinCodeModule {
     }
 
     @Provides
-    fun provideFingerprintWrapper(fragment: Fragment, contextManager: ContextManager, resourceManager: ResourceManager, fingerprintListener: FingerprintCallback): FingerprintWrapper {
-        val biometricManager = BiometricManager.from(contextManager.getContext())
+    fun provideFingerprintWrapper(fragment: Fragment, context: Context, resourceManager: ResourceManager, fingerprintListener: FingerprintCallback): FingerprintWrapper {
+        val biometricManager = BiometricManager.from(context)
         val biometricPrompt = BiometricPrompt(fragment, MainThreadExecutor(), fingerprintListener)
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(resourceManager.getString(R.string.biometric_dialog_title))
-            .setNegativeButtonText(resourceManager.getString(R.string.common_cancel))
+            .setTitle("Title")
+            .setNegativeButtonText(resourceManager.getString(android.R.string.cancel))
             .build()
 
         return FingerprintWrapper(

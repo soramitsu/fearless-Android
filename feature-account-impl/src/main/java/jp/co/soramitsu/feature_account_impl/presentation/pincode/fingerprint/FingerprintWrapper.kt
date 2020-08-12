@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint
 
-import android.hardware.biometrics.BiometricManager
-import android.hardware.biometrics.BiometricPrompt
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 
 class FingerprintWrapper(
     private val biometricManager: BiometricManager,

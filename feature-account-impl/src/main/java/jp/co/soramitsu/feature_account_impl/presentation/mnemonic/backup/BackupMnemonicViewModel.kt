@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.domain.model.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.mnemonic.model.MnemonicWordModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
@@ -171,7 +172,7 @@ class BackupMnemonicViewModel(
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({
-                            // TODO: open next screen+
+                            router.showPincode(PinCodeAction.CREATE_PIN_CODE)
                         }, {
                             it.printStackTrace()
                         })

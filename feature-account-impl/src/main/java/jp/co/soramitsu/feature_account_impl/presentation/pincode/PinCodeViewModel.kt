@@ -32,7 +32,6 @@ class PinCodeViewModel(
 
     private val inputCodeLiveData = MutableLiveData<String>()
 
-    val backButtonVisibilityLiveData = MutableLiveData<Boolean>()
     val toolbarTitleResLiveData = MutableLiveData<Int>()
     val wrongPinCodeEventLiveData = MutableLiveData<Event<Unit>>()
     val showFingerPrintEventLiveData = MutableLiveData<Event<Unit>>()
@@ -45,12 +44,6 @@ class PinCodeViewModel(
 
     private val _closeAppLiveData = MutableLiveData<Event<Unit>>()
     val closeAppLiveData: LiveData<Event<Unit>> = _closeAppLiveData
-
-    private val _checkInviteLiveData = MutableLiveData<Event<Unit>>()
-    val checkInviteLiveData: LiveData<Event<Unit>> = _checkInviteLiveData
-
-    private val _ethServiceEvent = MutableLiveData<Event<Unit>>()
-    val ethServiceEvent: LiveData<Event<Unit>> = _ethServiceEvent
 
     init {
         pinCodeProgressLiveData.addSource(inputCodeLiveData) {
@@ -66,27 +59,20 @@ class PinCodeViewModel(
 
     fun startAuth(pinCodeAction: PinCodeAction) {
         action = pinCodeAction
+        toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
+
         when (action) {
-            PinCodeAction.CREATE_PIN_CODE -> {
-//                toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
-                backButtonVisibilityLiveData.value = false
-            }
             PinCodeAction.OPEN_PASSPHRASE -> {
-//                toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
                 showFingerPrintEventLiveData.value = Event(Unit)
-                backButtonVisibilityLiveData.value = true
             }
             PinCodeAction.TIMEOUT_CHECK -> {
                 disposables.add(
                     interactor.isCodeSet()
                         .subscribe({
+                            toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
                             if (it) {
-//                                toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
                                 showFingerPrintEventLiveData.value = Event(Unit)
-                                backButtonVisibilityLiveData.value = false
                             } else {
-//                                toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
-                                backButtonVisibilityLiveData.value = false
                                 action = PinCodeAction.CREATE_PIN_CODE
                             }
                         }, {
@@ -131,8 +117,7 @@ class PinCodeViewModel(
                         if (tempCode.isEmpty()) {
                             tempCode = pin
                             inputCodeLiveData.value = ""
-//                            toolbarTitleResLiveData.value = R.string.pincode_confirm_your_pin_code
-                            backButtonVisibilityLiveData.value = true
+                            toolbarTitleResLiveData.value = R.string.pincode_confirm_your_pin_code
                         } else {
                             pinCodeEnterComplete(pin)
                         }
@@ -151,9 +136,8 @@ class PinCodeViewModel(
         } else {
             tempCode = ""
             inputCodeLiveData.value = ""
-//            toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
-            backButtonVisibilityLiveData.value = false
-//            onError(R.string.pincode_repeat_error)
+            toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
+            onError(R.string.pincode_repeat_error)
         }
     }
 
@@ -161,9 +145,7 @@ class PinCodeViewModel(
         disposables.add(
             interactor.savePin(code)
                 .subscribe({
-                    _ethServiceEvent.value = Event(Unit)
-//                    router.popBackStack()
-                    _checkInviteLiveData.value = Event(Unit)
+                    // TODO: 8/12/20 succesffully registered
                 }, {
                     it.printStackTrace()
                 })
@@ -174,13 +156,7 @@ class PinCodeViewModel(
         disposables.add(
             interactor.checkPin(code)
                 .subscribe({
-                    if (PinCodeAction.OPEN_PASSPHRASE == action) {
-//                        mainRouter.popBackStack()
-//                        mainRouter.showPassphrase()
-                    } else {
-                        _ethServiceEvent.value = Event(Unit)
-//                        mainRouter.showVerification()
-                    }
+                    // TODO: 8/12/20 Successfull check
                 }, {
                     it.printStackTrace()
                     inputCodeLiveData.value = ""
@@ -196,14 +172,13 @@ class PinCodeViewModel(
             } else {
                 tempCode = ""
                 inputCodeLiveData.value = ""
-                backButtonVisibilityLiveData.value = false
-//                toolbarTitleResLiveData.value = R.string.pincode_set_your_pin_code
+                toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
             }
         } else {
             if (PinCodeAction.TIMEOUT_CHECK == action) {
                 _closeAppLiveData.value = Event(Unit)
             } else {
-//                mainRouter.popBackStack()
+                router.backToBackupMnemonicScreen()
             }
         }
     }
@@ -219,13 +194,7 @@ class PinCodeViewModel(
     }
 
     fun onAuthenticationSucceeded() {
-        if (PinCodeAction.OPEN_PASSPHRASE == action) {
-//            mainRouter.popBackStack()
-//            mainRouter.showPassphrase()
-        } else {
-            _ethServiceEvent.value = Event(Unit)
-//            mainRouter.showVerification()
-        }
+        // TODO: 8/12/20 fingerprint successfull auth
     }
 
     fun onAuthenticationFailed() {

@@ -37,6 +37,8 @@ dependencies {
     implementation constraintDep
     implementation ed25519Dep
 
+    implementation biometricDep
+
     implementation rxJavaDep
     implementation rxAndroidDep
 

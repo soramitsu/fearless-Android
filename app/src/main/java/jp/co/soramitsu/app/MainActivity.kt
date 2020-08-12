@@ -3,12 +3,15 @@ package jp.co.soramitsu.app
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.NavHostFragment
 import jp.co.soramitsu.app.di.deps.findComponentDependencies
 import jp.co.soramitsu.app.di.main.MainComponent
 import jp.co.soramitsu.app.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import javax.inject.Inject
 
 class MainActivity : BaseActivity<MainViewModel>() {
@@ -63,5 +66,21 @@ class MainActivity : BaseActivity<MainViewModel>() {
         navController?.let {
             navigator.detachNavController(it)
         }
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.isTracking && !event.isCanceled) {
+            if (navigator.currentDestinationIsPincode()) {
+                val navHostFragment = supportFragmentManager.fragments[0] as NavHostFragment?
+
+                if (navHostFragment != null) {
+                    (navHostFragment.childFragmentManager.fragments[navHostFragment.childFragmentManager.fragments.size - 1] as PincodeFragment)
+                        .onBackPressed()
+                }
+                return true
+            }
+            return super.onKeyUp(keyCode, event)
+        }
+        return super.onKeyUp(keyCode, event)
     }
 }

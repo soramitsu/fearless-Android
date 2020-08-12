@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.pincode.di
 import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
-import jp.co.soramitsu.core_di.holder.scope.ScreenScope
+import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 
 @Subcomponent(
@@ -14,17 +14,14 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 @ScreenScope
 interface PinCodeComponent {
 
-    @Subcomponent.Builder
-    interface Builder {
+    @Subcomponent.Factory
+    interface Factory {
 
-        @BindsInstance
-        fun withFragment(fragment: Fragment): Builder
-
-        @BindsInstance
-        fun withMaxPinCodeLength(maxPinCodeLength: Int): Builder
-
-        fun build(): PinCodeComponent
+        fun create(
+            @BindsInstance maxPinCodeLength: Int,
+            @BindsInstance fragment: Fragment
+        ): PinCodeComponent
     }
 
-    fun inject(pinCodeFragment: PincodeFragment)
+    fun inject(pincodeFragment: PincodeFragment)
 }

@@ -10,11 +10,15 @@ import androidx.lifecycle.Observer
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.view.FearlessProgressDialog
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.domain.model.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.view.DotsProgressView
+import kotlinx.android.synthetic.main.fragment_import_account.toolbar
 import kotlinx.android.synthetic.main.fragment_pincode.dotsProgressView
 import kotlinx.android.synthetic.main.fragment_pincode.pinCodeTitleTv
 import kotlinx.android.synthetic.main.fragment_pincode.pinCodeView
@@ -26,26 +30,34 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
     private lateinit var fingerprintDialog: BottomSheetDialog
     private lateinit var progressDialog: FearlessProgressDialog
 
+    companion object {
+        const val PINCODE_ACTION_KEY = "pincode_action"
+
+        fun getBundle(action: PinCodeAction): Bundle {
+            return Bundle().apply {
+                putSerializable(PINCODE_ACTION_KEY, action)
+            }
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_pincode, container, false)
     }
 
     override fun inject() {
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
-            .pinCodeComponentBuilder()
-            .withFragment(this)
-            .withMaxPinCodeLength(DotsProgressView.MAX_PROGRESS)
-            .build()
+            .pincodeMnemonicComponentFactory()
+            .create(DotsProgressView.MAX_PROGRESS, this)
             .inject(this)
     }
 
     override fun initViews() {
-        (activity as BottomBarController).hideBottomBar()
+        toolbar.setHomeButtonListener { viewModel.backPressed() }
 
-        progressDialog = SoraProgressDialog(activity!!)
+        progressDialog = FearlessProgressDialog(activity!!)
 
         fingerprintDialog = BottomSheetDialog(activity!!).apply {
-            setContentView(R.layout.fingerprint_bottom_dialog)
+            setContentView(R.layout.bottom_sheet_fingerprint_dialog)
             setCancelable(true)
             setOnCancelListener { fingerprintWrapper.cancel() }
             findViewById<TextView>(R.id.btnCancel)?.setOnClickListener { fingerprintWrapper.cancel() }
@@ -78,7 +90,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         })
 
         observe(viewModel.wrongPinCodeEventLiveData, EventObserver {
-            Toast.makeText(activity, getString(R.string.common_error_pincode_check_error), Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, getString(R.string.pincode_check_error), Toast.LENGTH_LONG).show()
         })
 
         observe(viewModel.fingerPrintDialogVisibilityLiveData, Observer {
@@ -102,18 +114,10 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         })
 
         observe(viewModel.closeAppLiveData, EventObserver {
-            (activity as MainActivity).closeApp()
+            requireActivity().finish()
         })
 
-        observe(viewModel.checkInviteLiveData, EventObserver {
-            (activity as MainActivity).checkInviteAction()
-        })
-
-        observe(viewModel.ethServiceEvent, EventObserver {
-            (activity as MainActivity).startEthService()
-        })
-
-        val action = arguments!!.getSerializable(Const.PIN_CODE_ACTION) as PinCodeAction
+        val action = arguments!!.getSerializable(PINCODE_ACTION_KEY) as PinCodeAction
         viewModel.startAuth(action)
     }
 

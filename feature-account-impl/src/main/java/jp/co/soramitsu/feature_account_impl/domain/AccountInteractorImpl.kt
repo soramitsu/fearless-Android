@@ -72,4 +72,16 @@ class AccountInteractorImpl(
     override fun importFromJson(json: String, password: String, node: NetworkType): Completable {
         return accountRepository.importFromJson(json, password, node)
     }
+
+    override fun isCodeSet(): Single<Boolean> {
+        return accountRepository.isCodeSet()
+    }
+
+    override fun savePin(code: String): Completable {
+        return accountRepository.savePinCode(code)
+    }
+
+    override fun checkPin(code: String): Completable {
+        return accountRepository.checkPinCode(code)
+    }
 }

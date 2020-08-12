@@ -6,19 +6,19 @@ import android.view.View
 import android.view.View.OnClickListener
 import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatButton
-import jp.co.soramitsu.sora_ui.R
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btn0
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btn1
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btn2
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btn3
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btn4
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btn5
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btn6
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btn7
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btn8
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btn9
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.btnDelete
-import kotlinx.android.synthetic.main.uikit_view_pin_code.view.fingerprintBtn
+import jp.co.soramitsu.feature_account_impl.R
+import kotlinx.android.synthetic.main.pincode_view.view.btn0
+import kotlinx.android.synthetic.main.pincode_view.view.btn1
+import kotlinx.android.synthetic.main.pincode_view.view.btn2
+import kotlinx.android.synthetic.main.pincode_view.view.btn3
+import kotlinx.android.synthetic.main.pincode_view.view.btn4
+import kotlinx.android.synthetic.main.pincode_view.view.btn5
+import kotlinx.android.synthetic.main.pincode_view.view.btn6
+import kotlinx.android.synthetic.main.pincode_view.view.btn7
+import kotlinx.android.synthetic.main.pincode_view.view.btn8
+import kotlinx.android.synthetic.main.pincode_view.view.btn9
+import kotlinx.android.synthetic.main.pincode_view.view.btnDelete
+import kotlinx.android.synthetic.main.pincode_view.view.fingerprintBtn
 
 class PinCodeView @JvmOverloads constructor(
     context: Context,
@@ -47,7 +47,7 @@ class PinCodeView @JvmOverloads constructor(
     }
 
     init {
-        View.inflate(context, R.layout.uikit_view_pin_code, this)
+        View.inflate(context, R.layout.pincode_view, this)
 
         btn1.setOnClickListener(pinCodeNumberClickListener)
         btn2.setOnClickListener(pinCodeNumberClickListener)

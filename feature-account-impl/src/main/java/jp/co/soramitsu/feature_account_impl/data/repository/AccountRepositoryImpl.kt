@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDatasource
 import org.spongycastle.util.encoders.Hex
+import java.lang.RuntimeException
 
 class AccountRepositoryImpl(
     private val accountDatasource: AccountDatasource,
@@ -146,5 +147,27 @@ class AccountRepositoryImpl(
 
     override fun importFromJson(json: String, password: String, networkType: NetworkType): Completable {
         return Completable.complete()
+    }
+
+    override fun isCodeSet(): Single<Boolean> {
+        return Single.fromCallable {
+            accountDatasource.getPinCode().isNullOrEmpty()
+        }
+    }
+
+    override fun savePinCode(code: String): Completable {
+        return Completable.fromCallable {
+            accountDatasource.savePinCode(code)
+        }
+    }
+
+    override fun checkPinCode(code: String): Completable {
+        return Completable.create { emitter ->
+            if (accountDatasource.getPinCode() == code) {
+                emitter.onComplete()
+            } else {
+                emitter.onError(RuntimeException())
+            }
+        }
     }
 }

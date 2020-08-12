@@ -6,7 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
-import jp.co.soramitsu.sora_ui.R
+import jp.co.soramitsu.feature_account_impl.R
 
 class DotsProgressView @JvmOverloads constructor(
     context: Context,
@@ -15,7 +15,7 @@ class DotsProgressView @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyle) {
 
     companion object {
-        const val MAX_PROGRESS = 4
+        const val MAX_PROGRESS = 6
     }
 
     private var circles: Array<View?>
@@ -26,11 +26,11 @@ class DotsProgressView @JvmOverloads constructor(
     private val completeListener: () -> Unit = {}
 
     init {
-        val itemSize = context.resources.getDimensionPixelSize(R.dimen.uikit_dot_progress_view_dot_size_default)
-        val itemMargin = context.resources.getDimensionPixelOffset(R.dimen.uikit_dot_progress_view_dot_margin_default)
+        val itemSize = context.resources.getDimensionPixelSize(R.dimen.dot_progress_view_dot_size_default)
+        val itemMargin = context.resources.getDimensionPixelOffset(R.dimen.dot_progress_view_dot_margin_default)
 
-        emptyDrawable = ContextCompat.getDrawable(context, R.drawable.uikit_pincode_indicator_empty)!!
-        filledDrawable = ContextCompat.getDrawable(context, R.drawable.uikit_pincode_indicator_filled)!!
+        emptyDrawable = ContextCompat.getDrawable(context, R.drawable.ic_pincode_indicator_empty)!!
+        filledDrawable = ContextCompat.getDrawable(context, R.drawable.ic_pincode_indicator_filled)!!
 
         circles = arrayOfNulls(MAX_PROGRESS)
 

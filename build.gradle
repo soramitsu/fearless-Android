@@ -18,6 +18,8 @@ buildscript {
         rxJavaVersion = '2.2.7'
         rxAndroidVersion = '2.1.0'
 
+        biometricVersion = '1.0.1'
+
         daggerVersion = '2.25.2'
         javaxInjectVersion = '1'
 
@@ -42,6 +44,8 @@ buildscript {
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
         rxPermssionVersion = '0.10.2'
+
+        biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 

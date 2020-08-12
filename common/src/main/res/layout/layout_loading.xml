@@ -12,6 +12,6 @@
         android:layout_height="wrap_content"
         android:indeterminate="true"
         android:layout_margin="@dimen/x2"
-        style="@style/Widget.Soramitsu.ProgressBar" />
+        style="@style/Widget.Fearless.ProgressBar" />
 
 </androidx.cardview.widget.CardView>

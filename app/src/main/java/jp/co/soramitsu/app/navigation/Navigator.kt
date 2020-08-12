@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.MainActivity
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.feature_account_impl.domain.model.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.splash.SplashRouter
 
@@ -24,6 +26,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         }
     }
 
+    fun currentDestinationIsPincode(): Boolean {
+        return navController?.currentDestination?.id == R.id.pincodeFragment
+    }
+
     override fun openMain(context: Context) {
         MainActivity.start(context)
     }
@@ -33,6 +39,15 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
     }
 
     override fun backToWelcomeScreen() {
+        navController?.popBackStack()
+    }
+
+    override fun showPincode(action: PinCodeAction) {
+        val bundle = PincodeFragment.getBundle(action)
+        navController?.navigate(R.id.action_backupMnemonicFragment_to_pincodeFragment, bundle)
+    }
+
+    override fun backToBackupMnemonicScreen() {
         navController?.popBackStack()
     }
 

@@ -30,4 +30,10 @@ interface AccountRepository {
     fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
 
     fun importFromJson(json: String, password: String, networkType: NetworkType): Completable
+
+    fun isCodeSet(): Single<Boolean>
+
+    fun savePinCode(code: String): Completable
+
+    fun checkPinCode(code: String): Completable
 }

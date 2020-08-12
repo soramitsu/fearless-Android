@@ -5,7 +5,7 @@
     <item>
         <shape android:shape="oval">
             <corners android:radius="20dp" />
-            <solid android:color="?attr/uikit_pinCodeButtonBackground"/>
+            <solid android:color="?attr/pinCodeButtonBackground"/>
         </shape>
     </item>
 </ripple>
