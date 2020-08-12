@@ -21,7 +21,7 @@ interface AccountRepository {
 
     fun getSelectedNetwork(): Single<NetworkType>
 
-    fun createAccount(accountName: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable
+    fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable
 
     fun getSourceTypes(): Single<List<SourceType>>
 
@@ -36,4 +36,6 @@ interface AccountRepository {
     fun savePinCode(code: String): Completable
 
     fun checkPinCode(code: String): Completable
+
+    fun generateMnemonic(): Single<List<String>>
 }

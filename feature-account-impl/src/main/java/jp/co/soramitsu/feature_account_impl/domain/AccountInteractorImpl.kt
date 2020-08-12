@@ -14,22 +14,7 @@ class AccountInteractorImpl(
 ) : AccountInteractor {
 
     override fun getMnemonic(): Single<List<String>> {
-        return Single.fromCallable {
-            mutableListOf<String>().apply {
-                add("song")
-                add("toss")
-                add("odor")
-                add("click")
-                add("blouse")
-                add("lesson")
-                add("runway")
-                add("popular")
-                add("owner")
-                add("caught")
-                add("wrist")
-                add("poverty")
-            }
-        }
+        return accountRepository.generateMnemonic()
     }
 
     override fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>> {
@@ -57,8 +42,8 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun createAccount(accountName: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
-        return accountRepository.createAccount(accountName, encryptionType, derivationPath, networkType)
+    override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
+        return accountRepository.createAccount(accountName, mnemonic, encryptionType, derivationPath, networkType)
     }
 
     override fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable {

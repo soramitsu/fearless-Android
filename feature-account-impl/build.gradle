@@ -35,7 +35,9 @@ dependencies {
     implementation materialDep
     implementation cardViewDep
     implementation constraintDep
+
     implementation ed25519Dep
+    implementation secureStringDep
 
     implementation biometricDep
 
