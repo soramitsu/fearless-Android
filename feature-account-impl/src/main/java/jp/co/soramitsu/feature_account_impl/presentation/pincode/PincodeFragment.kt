@@ -82,7 +82,8 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
         observe(viewModel.biometricSwitchDialogLiveData, EventObserver {
             AlertDialog.Builder(requireActivity())
-                .setTitle(R.string.pincode_fingerprint_switch_dialog_title)
+                .setTitle(android.R.string.dialog_alert_title)
+                .setMessage(R.string.pincode_fingerprint_switch_dialog_title)
                 .setPositiveButton(android.R.string.yes) { _, _ ->
                     viewModel.fingerprintSwithcDialogYesClicked()
                 }
