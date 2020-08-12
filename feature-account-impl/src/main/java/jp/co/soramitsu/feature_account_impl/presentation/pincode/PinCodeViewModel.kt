@@ -7,7 +7,6 @@ import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.interfaces.WithProgress
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.setValueIfNew
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -19,14 +18,14 @@ import java.util.concurrent.TimeUnit
 class PinCodeViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
-    private val progress: WithProgress,
     private val maxPinCodeLength: Int
-) : BaseViewModel(), WithProgress by progress {
+) : BaseViewModel() {
 
     companion object {
         private const val COMPLETE_PIN_CODE_DELAY: Long = 12
     }
 
+    private var fingerPrintAvailable = false
     private lateinit var action: PinCodeAction
     private var tempCode = ""
 
@@ -41,6 +40,9 @@ class PinCodeViewModel(
     val fingerPrintErrorLiveData = MutableLiveData<Event<String>>()
     val pinCodeProgressLiveData = MediatorLiveData<Int>()
     val deleteButtonVisibilityLiveData = MediatorLiveData<Boolean>()
+
+    private val _biometricSwitchDialogLiveData = MutableLiveData<Event<Unit>>()
+    val biometricSwitchDialogLiveData: LiveData<Event<Unit>> = _biometricSwitchDialogLiveData
 
     private val _closeAppLiveData = MutableLiveData<Event<Unit>>()
     val closeAppLiveData: LiveData<Event<Unit>> = _closeAppLiveData
@@ -61,26 +63,21 @@ class PinCodeViewModel(
         action = pinCodeAction
         toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
 
-        when (action) {
-            PinCodeAction.OPEN_PASSPHRASE -> {
-                showFingerPrintEventLiveData.value = Event(Unit)
-            }
-            PinCodeAction.TIMEOUT_CHECK -> {
-                disposables.add(
-                    interactor.isCodeSet()
-                        .subscribe({
-                            toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
-                            if (it) {
-                                showFingerPrintEventLiveData.value = Event(Unit)
-                            } else {
-                                action = PinCodeAction.CREATE_PIN_CODE
-                            }
-                        }, {
-                            onError(it.localizedMessage)
+        if (action == PinCodeAction.TIMEOUT_CHECK) {
+            disposables.add(
+                interactor.isCodeSet()
+                    .subscribe({
+                        toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
+                        if (it) {
+                            showFingerPrintEventLiveData.value = Event(Unit)
+                        } else {
                             action = PinCodeAction.CREATE_PIN_CODE
-                        })
-                )
-            }
+                        }
+                    }, {
+                        onError(it.localizedMessage)
+                        action = PinCodeAction.CREATE_PIN_CODE
+                    })
+            )
         }
     }
 
@@ -145,7 +142,11 @@ class PinCodeViewModel(
         disposables.add(
             interactor.savePin(code)
                 .subscribe({
-                    // TODO: 8/12/20 succesffully registered
+                    if (fingerPrintAvailable) {
+                        _biometricSwitchDialogLiveData.value = Event(Unit)
+                    } else {
+                        // TODO: 8/12/20 go to next registration screen
+                    }
                 }, {
                     it.printStackTrace()
                 })
@@ -154,13 +155,16 @@ class PinCodeViewModel(
 
     private fun checkPinCode(code: String) {
         disposables.add(
-            interactor.checkPin(code)
+            interactor.isPinCorrect(code)
                 .subscribe({
-                    // TODO: 8/12/20 Successfull check
+                    if (it) {
+                        // TODO: 8/12/20 successfull auth
+                    } else {
+                        inputCodeLiveData.value = ""
+                        wrongPinCodeEventLiveData.value = Event(Unit)
+                    }
                 }, {
                     it.printStackTrace()
-                    inputCodeLiveData.value = ""
-                    wrongPinCodeEventLiveData.value = Event(Unit)
                 })
         )
     }
@@ -199,5 +203,35 @@ class PinCodeViewModel(
 
     fun onAuthenticationFailed() {
         fingerPrintAutFailedLiveData.value = Event(Unit)
+    }
+
+    fun fingerprintScannerAvailable(authReady: Boolean) {
+        fingerPrintAvailable = authReady
+    }
+
+    fun fingerprintSwithcDialogYesClicked() {
+        disposables.add(
+            interactor.setBiometricOn()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    // TODO: 8/12/20 show next registration screen
+                }, {
+                    it.printStackTrace()
+                })
+        )
+    }
+
+    fun fingerprintSwithcDialogNoClicked() {
+        disposables.add(
+            interactor.setBiometricOff()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    // TODO: 8/12/20 show next registration screen
+                }, {
+                    it.printStackTrace()
+                })
+        )
     }
 }

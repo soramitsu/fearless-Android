@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation.pincode
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -63,6 +64,8 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
             findViewById<TextView>(R.id.btnCancel)?.setOnClickListener { fingerprintWrapper.cancel() }
         }
 
+        viewModel.fingerprintScannerAvailable(fingerprintWrapper.isAuthReady())
+
         with(pinCodeView) {
             pinCodeListener = { viewModel.pinCodeNumberClicked(it) }
             deleteClickListener = { viewModel.pinCodeDeleteClicked() }
@@ -71,14 +74,22 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
     }
 
     override fun subscribe(viewModel: PinCodeViewModel) {
-        observe(viewModel.getProgressVisibility(), Observer {
-            if (it) progressDialog.show() else progressDialog.dismiss()
-        })
-
         observe(viewModel.startFingerprintScannerEventLiveData, EventObserver {
             if (fingerprintWrapper.isAuthReady()) {
                 fingerprintWrapper.startAuth()
             }
+        })
+
+        observe(viewModel.biometricSwitchDialogLiveData, EventObserver {
+            AlertDialog.Builder(requireActivity())
+                .setTitle(R.string.pincode_fingerprint_switch_dialog_title)
+                .setPositiveButton(android.R.string.yes) { _, _ ->
+                    viewModel.fingerprintSwithcDialogYesClicked()
+                }
+                .setNegativeButton(android.R.string.no) { _, _ ->
+                    viewModel.fingerprintSwithcDialogNoClicked()
+                }
+                .show()
         })
 
         observe(viewModel.showFingerPrintEventLiveData, EventObserver {

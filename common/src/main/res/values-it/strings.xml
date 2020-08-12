@@ -38,4 +38,5 @@
     <string name="pincode_touch_fingerprint_scanner">Tocca lo scanner di impronte digitali</string>
     <string name="pincode_check_error">Il codice inserito è sbagliato</string>
     <string name="pincode_repeat_error">Errore di ripetizione del codice PIN</string>
+    <string name="pincode_fingerprint_switch_dialog_title">Usa la biometria per autorizzare</string>
 </resources>

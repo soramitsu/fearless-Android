@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.domain.model.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.SourceTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
@@ -228,7 +229,9 @@ class ImportAccountViewModel(
                         importDisposable
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe({}, {
+                            .subscribe({
+                                router.showPincode(PinCodeAction.CREATE_PIN_CODE)
+                            }, {
                                 if (it is Bip39Exception) {
                                     onError(R.string.access_restore_phrase_error_message)
                                 } else {

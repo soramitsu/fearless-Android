@@ -39,4 +39,5 @@
     <string name="pincode_touch_fingerprint_scanner">Коснитесь сканера отпечатков пальцев</string>
     <string name="pincode_check_error">Введен неверный код</string>
     <string name="pincode_repeat_error">Ошибка подтверждения PIN-кода</string>
+    <string name="pincode_fingerprint_switch_dialog_title">Использовать биометрию для авторизации</string>
 </resources>

@@ -39,4 +39,5 @@ les Termes et Conditions et la Politique de confidentialité</string>
     <string name="pincode_touch_fingerprint_scanner">Touchez le scanner d\'empreintes digitales</string>
     <string name="pincode_check_error">Le code saisi est incorrect</string>
     <string name="pincode_repeat_error">Erreur répétée du code PIN</string>
+    <string name="pincode_fingerprint_switch_dialog_title">Utilisez la biométrie pour autoriser</string>
 </resources>

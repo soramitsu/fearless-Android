@@ -10,10 +10,8 @@ import androidx.lifecycle.ViewModelProviders
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.common.delegate.WithProgressImpl
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
-import jp.co.soramitsu.common.interfaces.WithProgress
 import jp.co.soramitsu.common.io.MainThreadExecutor
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -30,15 +28,10 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.Fin
 class PinCodeModule {
 
     @Provides
-    fun provideProgress(): WithProgress {
-        return WithProgressImpl()
-    }
-
-    @Provides
     @IntoMap
     @ViewModelKey(PinCodeViewModel::class)
-    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, progress: WithProgress, maxPinCodeLength: Int): ViewModel {
-        return PinCodeViewModel(interactor, router, progress, maxPinCodeLength)
+    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, maxPinCodeLength: Int): ViewModel {
+        return PinCodeViewModel(interactor, router, maxPinCodeLength)
     }
 
     @Provides

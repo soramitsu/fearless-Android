@@ -17,7 +17,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDatasource
 import org.spongycastle.util.encoders.Hex
-import java.lang.RuntimeException
 
 class AccountRepositoryImpl(
     private val accountDatasource: AccountDatasource,
@@ -80,7 +79,7 @@ class AccountRepositoryImpl(
     override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
         return saveSelectedEncryptionType(encryptionType)
             .andThen(saveSelectedNetwork(networkType))
-            .andThen { saveAccountData(accountName, mnemonic, derivationPath, encryptionType, networkType) }
+            .doOnComplete { saveAccountData(accountName, mnemonic, derivationPath, encryptionType, networkType) }
     }
 
     override fun getSourceTypes(): Single<List<SourceType>> {
@@ -153,13 +152,9 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun checkPinCode(code: String): Completable {
-        return Completable.create { emitter ->
-            if (accountDatasource.getPinCode() == code) {
-                emitter.onComplete()
-            } else {
-                emitter.onError(RuntimeException())
-            }
+    override fun isPinCorrect(code: String): Single<Boolean> {
+        return Single.fromCallable {
+            accountDatasource.getPinCode() == code
         }
     }
 
@@ -167,6 +162,24 @@ class AccountRepositoryImpl(
         return Single.fromCallable {
             val mnemonic = bip39.generateMnemonic(Words.TWELVE)
             mnemonic.split(" ")
+        }
+    }
+
+    override fun isBiometricEnabled(): Single<Boolean> {
+        return Single.fromCallable {
+            accountDatasource.isBiometricEnabled()
+        }
+    }
+
+    override fun setBiometricOn(): Completable {
+        return Completable.fromAction {
+            accountDatasource.setBiometricEnabled(true)
+        }
+    }
+
+    override fun setBiometricOff(): Completable {
+        return Completable.fromAction {
+            accountDatasource.setBiometricEnabled(false)
         }
     }
 

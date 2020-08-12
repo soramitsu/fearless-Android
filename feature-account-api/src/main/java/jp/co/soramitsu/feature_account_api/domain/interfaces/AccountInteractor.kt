@@ -29,5 +29,11 @@ interface AccountInteractor {
 
     fun savePin(code: String): Completable
 
-    fun checkPin(code: String): Completable
+    fun isPinCorrect(code: String): Single<Boolean>
+
+    fun isBiometricEnabled(): Single<Boolean>
+
+    fun setBiometricOn(): Completable
+
+    fun setBiometricOff(): Completable
 }

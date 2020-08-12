@@ -39,4 +39,5 @@ Terms and Conditions and Privacy Policy</string>
     <string name="pincode_touch_fingerprint_scanner">Touch the fingerprint scanner</string>
     <string name="pincode_check_error">Entered code is wrong</string>
     <string name="pincode_repeat_error">Pin code repeat error</string>
+    <string name="pincode_fingerprint_switch_dialog_title">Use biometric to authorize</string>
 </resources>

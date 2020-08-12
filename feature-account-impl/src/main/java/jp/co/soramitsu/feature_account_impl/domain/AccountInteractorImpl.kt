@@ -66,7 +66,19 @@ class AccountInteractorImpl(
         return accountRepository.savePinCode(code)
     }
 
-    override fun checkPin(code: String): Completable {
-        return accountRepository.checkPinCode(code)
+    override fun isPinCorrect(code: String): Single<Boolean> {
+        return accountRepository.isPinCorrect(code)
+    }
+
+    override fun isBiometricEnabled(): Single<Boolean> {
+        return accountRepository.isBiometricEnabled()
+    }
+
+    override fun setBiometricOn(): Completable {
+        return accountRepository.setBiometricOn()
+    }
+
+    override fun setBiometricOff(): Completable {
+        return accountRepository.setBiometricOff()
     }
 }

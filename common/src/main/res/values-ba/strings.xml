@@ -38,4 +38,5 @@
     <string name="pincode_touch_fingerprint_scanner">Бармаҡ эҙҙәре сенсор сканерын тейегеҙ</string>
     <string name="pincode_check_error">Яңылыш код индерелгән</string>
     <string name="pincode_repeat_error">PIN-код ҡабатлау һатаһы</string>
+    <string name="pincode_fingerprint_switch_dialog_title">Авторизациялау өсөн файҙаланылған мәғлүмәт биометрический</string>
 </resources>

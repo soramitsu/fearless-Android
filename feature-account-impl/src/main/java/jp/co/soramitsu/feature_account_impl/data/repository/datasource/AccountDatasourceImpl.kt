@@ -25,6 +25,7 @@ class AccountDatasourceImpl(
         private const val PREFS_SEED_MASK = "seed_%s"
         private const val PREFS_ENTROPY_MASK = "entropy_%s"
         private const val PREFS_DERIVATION_MASK = "derivation_%s"
+        private const val PREFS_BIOMETRIC_ENABLED = "biometric_enabled"
     }
 
     override fun saveAuthType(authType: AuthType) {
@@ -140,5 +141,13 @@ class AccountDatasourceImpl(
     override fun getDerivationPath(address: String): String? {
         val derivationKey = PREFS_DERIVATION_MASK.format(address)
         return encryptedPreferences.getDecryptedString(derivationKey)
+    }
+
+    override fun isBiometricEnabled(): Boolean {
+        return preferences.getBoolean(PREFS_BIOMETRIC_ENABLED, false)
+    }
+
+    override fun setBiometricEnabled(isEnabled: Boolean) {
+        return preferences.putBoolean(PREFS_BIOMETRIC_ENABLED, isEnabled)
     }
 }

@@ -38,4 +38,5 @@
     <string name="pincode_touch_fingerprint_scanner">指紋スキャナーに触れます</string>
     <string name="pincode_check_error">入力したコードが間違っています</string>
     <string name="pincode_repeat_error">PINコードの繰り返しエラー</string>
+    <string name="pincode_fingerprint_switch_dialog_title">生体認証を使用して認証する</string>
 </resources>

@@ -44,7 +44,7 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
 
     override fun showPincode(action: PinCodeAction) {
         val bundle = PincodeFragment.getBundle(action)
-        navController?.navigate(R.id.action_backupMnemonicFragment_to_pincodeFragment, bundle)
+        navController?.navigate(R.id.pincodeFragment, bundle)
     }
 
     override fun backToBackupMnemonicScreen() {
