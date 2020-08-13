@@ -33,4 +33,6 @@
     <string name="common_undefined_error_message">Per favore, riprova con un altro input. Se l\'errore si ripresenta, contattare l\'assistenza.</string>
     <string name="common_info">Informazioni</string>
     <string name="account_creation_info">Mnemonic viene utilizzato per recuperare l\'accesso all\'account. Scrivilo, non saremo in grado di recuperare il tuo account senza di esso!</string>
+    <string name="common_no_screenshot_title">Non fare screenshot</string>
+    <string name="common_no_screenshot_message">Non prendere screenshot, che possono essere raccolti da malware di terze parti</string>
 </resources>

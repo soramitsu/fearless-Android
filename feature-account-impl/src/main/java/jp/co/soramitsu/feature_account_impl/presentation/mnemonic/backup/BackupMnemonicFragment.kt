@@ -100,11 +100,15 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         })
 
         observe(viewModel.showInfoEvent, EventObserver {
-            MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
-                .setTitle(R.string.common_info)
-                .setMessage(R.string.account_creation_info)
-                .setPositiveButton(R.string.common_ok) { dialog, _ -> dialog?.dismiss() }
-                .show()
+            showMnemonicInfoDialog()
         })
+    }
+
+    private fun showMnemonicInfoDialog() {
+        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
+            .setTitle(R.string.common_info)
+            .setMessage(R.string.account_creation_info)
+            .setPositiveButton(R.string.common_ok) { dialog, _ -> dialog?.dismiss() }
+            .show()
     }
 }
