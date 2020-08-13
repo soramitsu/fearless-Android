@@ -30,6 +30,8 @@
         <item name="fontRegular">@font/soramitsu_regular</item>
         <!--fonts-->
 
+        <item name="alertDialogTheme">@style/AlertDialogTheme</item>
+
     </style>
 
 </resources>

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
@@ -40,6 +41,10 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     override fun initViews() {
         toolbar.setHomeButtonListener {
             viewModel.homeButtonClicked()
+        }
+
+        toolbar.setRightIconClickListener {
+            viewModel.infoClicked()
         }
 
         advancedBlockView.setOnEncryptionTypeClickListener {
@@ -92,6 +97,14 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         observe(viewModel.selectedNetworkLiveData, Observer {
             advancedBlockView.setNetworkIconResource(it.icon)
             advancedBlockView.setNetworkName(it.name)
+        })
+
+        observe(viewModel.showInfoEvent, EventObserver {
+            MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
+                .setTitle(R.string.common_info)
+                .setMessage(R.string.account_creation_info)
+                .setPositiveButton(R.string.common_ok) { dialog, _ -> dialog?.dismiss() }
+                .show()
         })
     }
 }

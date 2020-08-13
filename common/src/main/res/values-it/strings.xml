@@ -31,4 +31,6 @@
     <string name="recovery_raw_seed">Seme crudo</string>
     <string name="access_restore_phrase_error_message">Il tuo mnemonico non è valido. Per favore, provane un altro.</string>
     <string name="common_undefined_error_message">Per favore, riprova con un altro input. Se l\'errore si ripresenta, contattare l\'assistenza.</string>
+    <string name="common_info">Informazioni</string>
+    <string name="account_creation_info">Mnemonic viene utilizzato per recuperare l\'accesso all\'account. Scrivilo, non saremo in grado di recuperare il tuo account senza di esso!</string>
 </resources>

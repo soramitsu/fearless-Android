@@ -31,4 +31,6 @@
     <string name="recovery_raw_seed">生の種子</string>
     <string name="access_restore_phrase_error_message">Your mnemonic is invalid. Please, try another one.</string>
     <string name="common_undefined_error_message">別の入力でもう一度お試しください。エラーが再度表示される場合は、サポートにお問い合わせください。</string>
+    <string name="common_info">情報</string>
+    <string name="account_creation_info">ニーモニックは、アカウントへのアクセスを回復するために使用されます。それを書き留めてください、それがなければあなたのアカウントを回復することはできません！</string>
 </resources>

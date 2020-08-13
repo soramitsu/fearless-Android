@@ -31,4 +31,6 @@
     <string name="recovery_raw_seed">Сире насіння</string>
     <string name="access_restore_phrase_error_message">Ваш мнемонічний недійсний. Будь ласка, спробуйте ще один.</string>
     <string name="common_undefined_error_message">Спробуйте ще раз з іншим вкладом. Якщо помилка з’явиться знову, зверніться до служби підтримки.</string>
+    <string name="common_info">Інформація</string>
+    <string name="account_creation_info">Mnemonic використовується для відновлення доступу до рахунку. Запишіть це, ми не зможемо відновити ваш рахунок без нього!</string>
 </resources>

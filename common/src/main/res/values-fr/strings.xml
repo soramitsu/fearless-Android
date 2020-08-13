@@ -31,4 +31,6 @@
     <string name="recovery_raw_seed">Graine crue</string>
     <string name="access_restore_phrase_error_message">Votre mnémonique n’est pas valide. S’ll vous plaît, essayez un autre.</string>
     <string name="common_undefined_error_message">Veuillez réessayer avec une autre entrée. Si l\'erreur réapparaît, veuillez contacter l\'assistance.</string>
+    <string name="common_info">Info</string>
+    <string name="account_creation_info">Mnemonic est utilisé pour récupérer l\'accès au compte. Notez-le, nous ne pourrons pas récupérer votre compte sans lui!</string>
 </resources>

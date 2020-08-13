@@ -31,4 +31,6 @@
     <string name="recovery_raw_seed">Semilla cruda</string>
     <string name="access_restore_phrase_error_message">Tu mnemotécnico no es válido. Por favor, prueba con otro.</string>
     <string name="common_undefined_error_message">Por favor, intente nuevamente con otra entrada. Si el error vuelve a aparecer, comuníquese con el soporte.</string>
+    <string name="common_info">Informacion</string>
+    <string name="account_creation_info">Mnemonic se usa para recuperar el acceso a la cuenta. ¡Anótelo, no podremos recuperar su cuenta sin él!</string>
 </resources>
