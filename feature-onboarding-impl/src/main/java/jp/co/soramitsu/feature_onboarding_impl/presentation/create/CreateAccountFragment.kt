@@ -7,8 +7,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureComponent
@@ -25,7 +27,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
     override fun initViews() {
         toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
 
-        nextBtn.setOnClickListener { viewModel.nextClicked(accountNameEt.text.toString()) }
+        nextBtn.setOnClickListener { viewModel.nextClicked() }
 
         accountNameEt.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -51,5 +53,20 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
         observe(viewModel.nextButtonEnabledLiveData, Observer {
             nextBtn.isEnabled = it
         })
+
+        observe(viewModel.showScreenshotsWarningEvent, EventObserver {
+            showScreenshotWarningDialog()
+        })
+    }
+
+    private fun showScreenshotWarningDialog() {
+        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
+            .setTitle(R.string.common_no_screenshot_title)
+            .setMessage(R.string.common_no_screenshot_message)
+            .setPositiveButton(R.string.common_ok) { dialog, _ ->
+                dialog?.dismiss()
+                viewModel.screenshotWarningConfirmed(accountNameEt.text.toString())
+            }
+            .show()
     }
 }
