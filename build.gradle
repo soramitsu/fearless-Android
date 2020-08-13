@@ -40,6 +40,7 @@ buildscript {
         robolectricVersion = '4.1'
 
         ed25519Version = '1.0'
+        web3jVersion = '4.6.0-android'
 
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
@@ -78,6 +79,8 @@ buildscript {
 
         novaCryptoDep = "io.github.novacrypto:BIP39:$novaCryptoVersion"
         secureStringDep = "io.github.novacrypto:securestring:2019.01.27@jar"
+
+        web3jDep = "org.web3j:crypto:$web3jVersion"
 
         zXingCoreDep = "com.google.zxing:core:$zXingVersion"
         zXingEmbeddedDep = "com.journeyapps:zxing-android-embedded:$zXingEmbeddedVersion"

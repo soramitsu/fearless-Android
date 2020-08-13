@@ -38,6 +38,7 @@ dependencies {
 
     implementation ed25519Dep
     implementation secureStringDep
+    implementation web3jDep
 
     implementation biometricDep
 

@@ -48,6 +48,9 @@ class BackupMnemonicViewModel(
     private val _selectedNetworkLiveData = MediatorLiveData<NetworkModel>()
     val selectedNetworkLiveData: LiveData<NetworkModel> = _selectedNetworkLiveData
 
+    private val _showInfoEvent = MutableLiveData<Event<Unit>>()
+    val showInfoEvent: LiveData<Event<Unit>> = _showInfoEvent
+
     private var mnemonic: String = ""
 
     init {
@@ -114,6 +117,10 @@ class BackupMnemonicViewModel(
 
     fun homeButtonClicked() {
         router.backToCreateAccountScreen()
+    }
+
+    fun infoClicked() {
+        _showInfoEvent.value = Event(Unit)
     }
 
     fun encryptionTypeInputClicked() {

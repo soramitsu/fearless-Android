@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_account_impl.presentation.pincode
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
@@ -81,7 +81,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         })
 
         observe(viewModel.biometricSwitchDialogLiveData, EventObserver {
-            AlertDialog.Builder(requireActivity())
+            MaterialAlertDialogBuilder(requireActivity(), R.style.AlertDialogTheme)
                 .setTitle(android.R.string.dialog_alert_title)
                 .setMessage(R.string.pincode_fingerprint_switch_dialog_title)
                 .setPositiveButton(android.R.string.yes) { _, _ ->
