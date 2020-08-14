@@ -12,7 +12,7 @@
         <item name="shapeAppearanceOverlay">@style/CustomShapeAppearanceBottomSheetDialog</item>
     </style>
 
-    <style name="CustomShapeAppearanceBottomSheetDialog" parent="">
+    <style name="CustomShapeAppearanceBottomSheetDialog">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSizeTopRight">@dimen/x2</item>
         <item name="cornerSizeTopLeft">@dimen/x2</item>
