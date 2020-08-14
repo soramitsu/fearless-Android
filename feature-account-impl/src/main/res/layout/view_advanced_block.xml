@@ -121,6 +121,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/common_choose_network"
                 android:textColor="@color/colorHint"
+                android:layout_marginBottom="@dimen/x1_2"
                 app:layout_constraintEnd_toStartOf="@id/rightIcon"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -131,7 +132,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/ic_ksm_24"
-                android:drawablePadding="@dimen/x2"
+                android:drawablePadding="@dimen/x1_2"
                 android:gravity="center_vertical"
                 android:includeFontPadding="false"
                 android:text=""
