@@ -35,4 +35,5 @@
     <string name="account_creation_info">ニーモニックは、アカウントへのアクセスを回復するために使用されます。それを書き留めてください、それがなければあなたのアカウントを回復することはできません！</string>
     <string name="common_no_screenshot_title">スクリーンショットを撮らないでください</string>
     <string name="common_no_screenshot_message">サードパーティのマルウェアによって収集される可能性のあるスクリーンショットを撮らないでください</string>
+    <string name="account_confirmation_title">ニーモニックを確認する</string>
 </resources>

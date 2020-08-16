@@ -183,7 +183,8 @@ class BackupMnemonicViewModel(
     }
 
     fun nextClicked(derivationPath: String) {
-        selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
+        router.openConfirmMnemonicScreen()
+        /*selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
             selectedNetworkLiveData.value?.networkType?.let { networkType ->
                 disposables.add(
                     interactor.createAccount(accountName, mnemonic, cryptoType, derivationPath, networkType)
@@ -196,6 +197,6 @@ class BackupMnemonicViewModel(
                         })
                 )
             }
-        }
+        }*/
     }
 }

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
@@ -10,98 +9,13 @@
 
     <jp.co.soramitsu.common.base.Toolbar
         android:id="@+id/toolbar"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingStart="@dimen/x1"
         android:paddingEnd="@dimen/x1"
-        app:iconRight="@drawable/ic_info_white_24"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/account_create_title" />
+        app:homeButtonVisible="false"
+        app:iconRight="@drawable/ic_refresh_white_24"
+        app:titleText="@string/account_confirmation_title" />
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scrollView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:overScrollMode="never"
-        app:layout_constraintBottom_toTopOf="@id/nextBtn"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:id="@+id/hintView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingStart="@dimen/x2"
-                android:paddingTop="@dimen/x1"
-                android:paddingEnd="@dimen/x2"
-                android:paddingBottom="@dimen/x1">
-
-                <ImageView
-                    android:id="@+id/alertImg"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_alert_triangle_yellow_24" />
-
-                <Space
-                    android:layout_width="@dimen/x1"
-                    android:layout_height="wrap_content" />
-
-                <TextView
-                    style="@style/TextAppearance.Soramitsu.Body1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:includeFontPadding="false"
-                    android:text="@string/account_create_details"
-                    android:textColor="@color/colorHint" />
-
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/mnemonicRv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/x1"
-                android:visibility="gone"
-                tools:itemCount="6"
-                tools:listitem="@layout/item_mnemonic_word"
-                tools:visibility="visible" />
-
-            <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
-                android:id="@+id/advancedBlockView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/x3"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/mnemonicRv" />
-
-        </LinearLayout>
-
-    </androidx.core.widget.NestedScrollView>
-
-    <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/nextBtn"
-        style="@style/Widget.Fearless.Button.Primary"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginTop="@dimen/x3"
-        android:layout_marginEnd="@dimen/x2"
-        android:layout_marginBottom="@dimen/x3"
-        android:text="@string/common_next"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/scrollView" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

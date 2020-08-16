@@ -35,4 +35,5 @@
     <string name="account_creation_info">Mnemonic is used to recover access to account. Write it down, we will not be able to recover your account without it!</string>
     <string name="common_no_screenshot_title">Do not take screenshots</string>
     <string name="common_no_screenshot_message">Do not take screenshots, which may be collected by third-party malware</string>
+    <string name="account_confirmation_title">Confirm mnemonic</string>
 </resources>

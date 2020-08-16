@@ -35,4 +35,5 @@
     <string name="account_creation_info">Mnemonic se usa para recuperar el acceso a la cuenta. ¡Anótelo, no podremos recuperar su cuenta sin él!</string>
     <string name="common_no_screenshot_title">No tomes capturas de pantalla</string>
     <string name="common_no_screenshot_message">No tome capturas de pantalla, que pueden ser recopiladas por malware de terceros</string>
+    <string name="account_confirmation_title">Confirmar mnemónico</string>
 </resources>
