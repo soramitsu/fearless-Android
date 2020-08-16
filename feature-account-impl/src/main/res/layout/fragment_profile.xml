@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:overScrollMode="never"
+    android:background="@android:color/black"
     app:layout_constraintBottom_toTopOf="@id/nextBtn"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
@@ -16,7 +17,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:animateLayoutChanges="true"
-        android:background="@android:color/black"
         android:fitsSystemWindows="true"
         android:paddingStart="@dimen/x2"
         android:paddingEnd="@dimen/x2"
@@ -27,19 +27,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
-            android:text="@string/account_creation_info" />
+            style="@style/TextAppearance.Soramitsu.Header2"
+            android:layout_marginBottom="@dimen/x2"
+            android:text="@string/profile_title" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/accountBlock"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/x2"
             android:background="@drawable/bg_input_shape_selector"
             android:orientation="vertical"
+            android:layout_marginBottom="@dimen/x3"
             android:paddingStart="@dimen/x2"
             android:paddingTop="@dimen/x1"
             android:paddingEnd="@dimen/x2"
-            android:paddingBottom="@dimen/x1">
+            android:paddingBottom="@dimen/x1" >
 
             <ImageView
                 android:id="@+id/accountIcon"
@@ -55,11 +57,12 @@
                 style="@style/TextAppearance.Soramitsu.Body2"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/recovery_source_type"
                 android:textColor="@color/colorHint"
+                android:layout_marginStart="@dimen/x1"
                 app:layout_constraintEnd_toStartOf="@id/icon"
                 app:layout_constraintStart_toEndOf="@id/accountIcon"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Username" />
 
             <TextView
                 android:id="@+id/accountAddressText"
@@ -68,9 +71,11 @@
                 android:layout_height="wrap_content"
                 android:text="@string/recovery_passphrase"
                 android:textColor="@color/white"
+                android:layout_marginStart="@dimen/x1"
                 app:layout_constraintEnd_toStartOf="@id/icon"
                 app:layout_constraintStart_toEndOf="@id/accountIcon"
-                app:layout_constraintTop_toBottomOf="@id/accountTitle" />
+                app:layout_constraintTop_toBottomOf="@id/accountTitle"
+                tools:text="GybH55...zsi5nA" />
 
             <ImageView
                 android:id="@+id/icon"
@@ -83,6 +88,135 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:drawableStart="@drawable/ic_info_24"
+            android:drawableEnd="@drawable/ic_arrow_right_24"
+            android:gravity="center_vertical"
+            android:drawablePadding="@dimen/x1_5"
+            android:layout_marginBottom="@dimen/x2"
+            style="@style/TextAppearance.AppCompat.Body2"
+            android:text="@string/profile_accounts_title" />
+        
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="@dimen/x2"
+            android:background="@color/colorGreyText"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            style="@style/TextAppearance.Soramitsu.Header2"
+            android:layout_marginBottom="@dimen/x1_5"
+            android:text="@string/profile_settings_title" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/x1_5"
+            android:orientation="horizontal" >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                style="@style/TextAppearance.AppCompat.Body2"
+                android:layout_weight="1"
+                android:drawablePadding="@dimen/x1_5"
+                android:gravity="center_vertical"
+                android:text="@string/profile_network_title"
+                android:drawableStart="@drawable/ic_settings_24"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                style="@style/TextAppearance.AppCompat.Body2"
+                android:gravity="center_vertical"
+                android:drawableEnd="@drawable/ic_arrow_right_24"
+                tools:text="Kusama"
+                />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="@dimen/x1_5"
+            android:background="@color/colorGreyText"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/x1_5"
+            android:orientation="horizontal" >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                style="@style/TextAppearance.AppCompat.Body2"
+                android:layout_weight="1"
+                android:drawablePadding="@dimen/x1_5"
+                android:gravity="center_vertical"
+                android:text="@string/profile_language_title"
+                android:drawableStart="@drawable/ic_globe_24" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                style="@style/TextAppearance.AppCompat.Body2"
+                android:gravity="center_vertical"
+                android:drawableEnd="@drawable/ic_arrow_right_24"
+                tools:text="English" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="@dimen/x1_5"
+            android:background="@color/colorGreyText"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:drawableStart="@drawable/ic_pin_24"
+            android:drawableEnd="@drawable/ic_arrow_right_24"
+            android:gravity="center_vertical"
+            android:drawablePadding="@dimen/x1_5"
+            android:layout_marginBottom="@dimen/x2"
+            style="@style/TextAppearance.AppCompat.Body2"
+            android:text="@string/profile_pincode_change_title" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="@dimen/x1_5"
+            android:background="@color/colorGreyText"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:drawableStart="@drawable/ic_info_24"
+            android:drawableEnd="@drawable/ic_arrow_right_24"
+            android:gravity="center_vertical"
+            android:drawablePadding="@dimen/x1_5"
+            android:layout_marginBottom="@dimen/x2"
+            style="@style/TextAppearance.AppCompat.Body2"
+            android:text="@string/about_title" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="@dimen/x1_5"
+            android:background="@color/colorGreyText"/>
+
     </LinearLayout>
 
 
