@@ -11,6 +11,7 @@ import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
@@ -124,7 +125,7 @@ class AccountRepositoryImpl(
         return when (cryptoType) {
             CryptoType.SR25519 -> EncryptionType.SR25519
             CryptoType.ED25519 -> EncryptionType.ED25519
-            CryptoType.ECDSA -> EncryptionType.ECDCA
+            CryptoType.ECDSA -> EncryptionType.ECDSA
         }
     }
 
@@ -132,7 +133,7 @@ class AccountRepositoryImpl(
         return when (networkType) {
             NetworkType.KUSAMA -> AddressType.KUSAMA
             NetworkType.POLKADOT -> AddressType.POLKADOT
-            NetworkType.WESTEND -> AddressType.POLKADOT
+            NetworkType.WESTEND -> AddressType.WESTEND
         }
     }
 
@@ -167,19 +168,19 @@ class AccountRepositoryImpl(
 
     override fun isBiometricEnabled(): Single<Boolean> {
         return Single.fromCallable {
-            accountDatasource.isBiometricEnabled()
+            accountDatasource.getAuthType() == AuthType.BIOMETRY
         }
     }
 
     override fun setBiometricOn(): Completable {
         return Completable.fromAction {
-            accountDatasource.setBiometricEnabled(true)
+            accountDatasource.saveAuthType(AuthType.BIOMETRY)
         }
     }
 
     override fun setBiometricOff(): Completable {
         return Completable.fromAction {
-            accountDatasource.setBiometricEnabled(false)
+            accountDatasource.saveAuthType(AuthType.PINCODE)
         }
     }
 

@@ -142,12 +142,4 @@ class AccountDatasourceImpl(
         val derivationKey = PREFS_DERIVATION_MASK.format(address)
         return encryptedPreferences.getDecryptedString(derivationKey)
     }
-
-    override fun isBiometricEnabled(): Boolean {
-        return preferences.getBoolean(PREFS_BIOMETRIC_ENABLED, false)
-    }
-
-    override fun setBiometricEnabled(isEnabled: Boolean) {
-        return preferences.putBoolean(PREFS_BIOMETRIC_ENABLED, isEnabled)
-    }
 }

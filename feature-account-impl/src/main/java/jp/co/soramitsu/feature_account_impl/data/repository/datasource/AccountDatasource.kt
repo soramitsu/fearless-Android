@@ -53,8 +53,4 @@ interface AccountDatasource {
     fun saveDerivationPath(derivationPath: String, address: String)
 
     fun getDerivationPath(address: String): String?
-
-    fun isBiometricEnabled(): Boolean
-
-    fun setBiometricEnabled(isEnabled: Boolean)
 }

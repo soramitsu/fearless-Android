@@ -11,6 +11,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.interfaces.BackButtonListener
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.view.FearlessProgressDialog
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
@@ -25,7 +26,7 @@ import kotlinx.android.synthetic.main.fragment_pincode.pinCodeTitleTv
 import kotlinx.android.synthetic.main.fragment_pincode.pinCodeView
 import javax.inject.Inject
 
-class PincodeFragment : BaseFragment<PinCodeViewModel>() {
+class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     @Inject lateinit var fingerprintWrapper: FingerprintWrapper
     private lateinit var fingerprintDialog: BottomSheetDialog
@@ -133,10 +134,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         viewModel.startAuth(action)
     }
 
-    fun onBackPressed() {
-        viewModel.backPressed()
-    }
-
     override fun onPause() {
         super.onPause()
         fingerprintWrapper.cancel()
@@ -145,5 +142,9 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
+    }
+
+    override fun onBackButtonPressed() {
+        viewModel.backPressed()
     }
 }
