@@ -36,6 +36,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         navController?.popBackStack()
     }
 
+    override fun openConfirmMnemonicScreen() {
+        navController?.navigate(R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment)
+    }
+
     override fun openTermsScreen() {
         navController?.navigate(R.id.action_welcomeFragment_to_termsFragment)
     }

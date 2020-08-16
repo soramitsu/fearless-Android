@@ -190,7 +190,7 @@ class BackupMnemonicViewModel(
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({
-                            // TODO: open next screen+
+                            router.openConfirmMnemonicScreen()
                         }, {
                             it.printStackTrace()
                         })
