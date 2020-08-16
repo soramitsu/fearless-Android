@@ -17,5 +17,16 @@
         app:iconRight="@drawable/ic_refresh_white_24"
         app:titleText="@string/account_confirmation_title" />
 
+    <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicContainerView
+        android:id="@+id/confirmationMnemonicView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/x2" />
+
+    <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicContainerView
+        android:id="@+id/wordsMnemonicView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/x2" />
 
 </LinearLayout>
