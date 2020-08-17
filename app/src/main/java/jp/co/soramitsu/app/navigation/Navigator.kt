@@ -36,6 +36,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         navController?.popBackStack()
     }
 
+    override fun showProfile() {
+        navController?.navigate(R.id.profileFragment)
+    }
+
     override fun openTermsScreen() {
         navController?.navigate(R.id.action_welcomeFragment_to_termsFragment)
     }

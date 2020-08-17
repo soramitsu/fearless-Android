@@ -10,10 +10,12 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import jp.co.soramitsu.common.di.scope.ApplicationScope
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.ResourceManagerImpl
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
+import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 
@@ -77,5 +79,17 @@ class CommonModule {
     @ApplicationScope
     fun provideJunctionDecoder(): JunctionDecoder {
         return JunctionDecoder()
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideIconGenerator(): IconGenerator {
+        return IconGenerator()
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideClipboardManager(context: Context): ClipboardManager {
+        return ClipboardManager(context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
     }
 }

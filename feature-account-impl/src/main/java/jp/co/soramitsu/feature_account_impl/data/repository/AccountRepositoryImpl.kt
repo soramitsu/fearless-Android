@@ -124,7 +124,7 @@ class AccountRepositoryImpl(
         return when (cryptoType) {
             CryptoType.SR25519 -> EncryptionType.SR25519
             CryptoType.ED25519 -> EncryptionType.ED25519
-            CryptoType.ECDSA -> EncryptionType.ECDCA
+            CryptoType.ECDSA -> EncryptionType.ECDSA
         }
     }
 
@@ -144,6 +144,30 @@ class AccountRepositoryImpl(
         return Single.fromCallable {
             val mnemonic = bip39.generateMnemonic(Words.TWELVE)
             mnemonic.split(" ")
+        }
+    }
+
+    override fun getAddressId(): Single<ByteArray> {
+        return Single.fromCallable {
+            accountDatasource.getSelectedAddress()?.let { address ->
+                accountDatasource.getNetworkType()?.let { networkType ->
+                    sS58Encoder.decode(address, mapNetworkTypeToAddressType(networkType))
+                }
+            }
+        }
+    }
+
+    override fun getAddress(): Single<String> {
+        return Single.fromCallable {
+            accountDatasource.getSelectedAddress()
+        }
+    }
+
+    override fun getUsername(): Single<String> {
+        return Single.fromCallable {
+            accountDatasource.getSelectedAddress()?.let {
+                accountDatasource.getAccountName(it)
+            }
         }
     }
 

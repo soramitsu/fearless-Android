@@ -95,4 +95,11 @@
 
     </fragment>
 
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.profile.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile">
+
+    </fragment>
 </navigation>

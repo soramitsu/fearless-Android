@@ -38,6 +38,7 @@ buildscript {
         robolectricVersion = '4.1'
 
         ed25519Version = '1.0'
+        svgVersion = '1.4'
 
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
@@ -80,6 +81,7 @@ buildscript {
         rxPermissionsDep = "com.github.tbruyelle:rxpermissions:$rxPermssionVersion"
 
         ed25519Dep = "com.github.warchant:ed25519-sha3-java:$ed25519Version"
+        svgDep = "com.caverock:androidsvg-aar:$svgVersion"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"

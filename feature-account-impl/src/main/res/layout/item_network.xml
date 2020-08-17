@@ -3,9 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingStart="@dimen/x2_5"
+    android:paddingStart="@dimen/x1_5"
     android:paddingTop="@dimen/x2"
-    android:paddingEnd="@dimen/x2_5"
+    android:paddingEnd="@dimen/x1_5"
     android:paddingBottom="@dimen/x2">
 
     <TextView
@@ -19,7 +19,7 @@
         android:drawablePadding="@dimen/x2"
         android:gravity="center_vertical"
         android:includeFontPadding="false"
-        android:text="@string/common_ok"
+        android:text="@android:string/ok"
         android:textColor="@color/white" />
 
     <ImageView

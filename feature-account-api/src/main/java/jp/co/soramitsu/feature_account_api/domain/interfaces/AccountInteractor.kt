@@ -24,4 +24,12 @@ interface AccountInteractor {
     fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
 
     fun importFromJson(json: String, password: String, node: NetworkType): Completable
+
+    fun getAddressId(): Single<ByteArray>
+
+    fun getSelectedLanguage(): Single<String>
+
+    fun getAddress(): Single<String>
+
+    fun getUsername(): Single<String>
 }

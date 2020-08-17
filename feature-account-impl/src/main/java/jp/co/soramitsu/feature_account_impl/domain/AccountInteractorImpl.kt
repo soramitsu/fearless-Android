@@ -57,4 +57,20 @@ class AccountInteractorImpl(
     override fun importFromJson(json: String, password: String, node: NetworkType): Completable {
         return accountRepository.importFromJson(json, password, node)
     }
+
+    override fun getAddressId(): Single<ByteArray> {
+        return accountRepository.getAddressId()
+    }
+
+    override fun getSelectedLanguage(): Single<String> {
+        return Single.just("English")
+    }
+
+    override fun getAddress(): Single<String> {
+        return accountRepository.getAddress()
+    }
+
+    override fun getUsername(): Single<String> {
+        return accountRepository.getUsername()
+    }
 }

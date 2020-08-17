@@ -32,4 +32,10 @@ interface AccountRepository {
     fun importFromJson(json: String, password: String, networkType: NetworkType): Completable
 
     fun generateMnemonic(): Single<List<String>>
+
+    fun getAddressId(): Single<ByteArray>
+
+    fun getAddress(): Single<String>
+
+    fun getUsername(): Single<String>
 }

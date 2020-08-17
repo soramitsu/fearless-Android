@@ -9,22 +9,23 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
+import jp.co.soramitsu.feature_account_impl.presentation.profile.ProfileViewModel
 
 @Module(includes = [ViewModelModule::class])
 class ProfileModule {
 
     @Provides
     @IntoMap
-    @ViewModelKey(ProfileModule::class)
-    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, resourceManager: ResourceManager): ViewModel {
-        return ProfileModule(interactor, router, resourceManager)
+    @ViewModelKey(ProfileViewModel::class)
+    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, resourceManager: ResourceManager, iconGenerator: IconGenerator): ViewModel {
+        return ProfileViewModel(interactor, router, resourceManager, iconGenerator)
     }
 
     @Provides
-    fun provideViewModelCreator(fragment: Fragment, viewModelFactory: ViewModelProvider.Factory): ProfileModule {
-        return ViewModelProvider(fragment, viewModelFactory).get(ProfileModule::class.java)
+    fun provideViewModelCreator(fragment: Fragment, viewModelFactory: ViewModelProvider.Factory): ProfileViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(ProfileViewModel::class.java)
     }
 }
