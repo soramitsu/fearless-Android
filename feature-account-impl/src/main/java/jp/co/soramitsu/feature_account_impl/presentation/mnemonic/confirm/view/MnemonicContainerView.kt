@@ -2,10 +2,9 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import jp.co.soramitsu.feature_account_impl.R
@@ -23,14 +22,13 @@ class MnemonicContainerView @JvmOverloads constructor(
         private const val WORD_MARGIN_DP = 4f
     }
 
-    private var wordClickListener: (MnemonicWordView, String) -> Unit = { _, _ -> }
-
     private val wordMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, WORD_MARGIN_DP, resources.displayMetrics).toInt()
 
     init {
         View.inflate(context, R.layout.view_mnemonic_container, this)
         setBackgroundResource(R.drawable.bg_mnemonic_container)
         orientation = VERTICAL
+        gravity = Gravity.CENTER_VERTICAL
         applyAttributes(attrs)
     }
 
@@ -39,61 +37,67 @@ class MnemonicContainerView @JvmOverloads constructor(
         }
     }
 
-    fun populate(mnemonic: List<String>) {
+    fun populate(mnemonic: List<String>, wordClickListener: (MnemonicWordView, String) -> Unit) {
         mnemonic.forEach {
-            val mnemonicView = MnemonicWordView(context).apply {
-                val params = FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                params.setMargins(wordMargin, wordMargin, wordMargin, wordMargin)
-                layoutParams = params
+            val mnemonicWordView = MnemonicWordView(context).apply {
+                layoutParams = FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+                    setMargins(wordMargin, wordMargin, wordMargin, wordMargin)
+                }
                 setWord(it)
-                setOnClickListener { wordClickListener(this, getWord()) }
             }
-            addWordView(mnemonicView)
+            mnemonicWordView.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
+            addWordView(mnemonicWordView, wordClickListener)
         }
     }
 
-    fun addWordView(word: MnemonicWordView) {
-        val firstLineContainerWidth = firstLineContainer.width
-        word.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
-        val wordWidth = word.measuredWidth
-        val childCount = firstLineContainer.childCount
-        if (childCount > 0) {
+    fun addWordView(word: MnemonicWordView, wordClickListener: (MnemonicWordView, String) -> Unit) {
+        if (firstLineContainer.childCount == 0) {
+            addViewToContainer(firstLineContainer, word, wordClickListener)
+        } else {
+            if (secondLineContainer.childCount == 0) {
+                val spaceAvailable = checkAvailableSpaceForNewWord(word, firstLineContainer)
+                if (spaceAvailable) {
+                    addViewToContainer(firstLineContainer, word, wordClickListener)
+                } else {
+                    addViewToContainer(secondLineContainer, word, wordClickListener)
+                }
+            } else {
+                if (thirdLineContainer.childCount == 0) {
+                    val spaceAvailable = checkAvailableSpaceForNewWord(word, secondLineContainer)
+                    if (spaceAvailable) {
+                        addViewToContainer(secondLineContainer, word, wordClickListener)
+                    } else {
+                        addViewToContainer(thirdLineContainer, word, wordClickListener)
+                    }
+                } else {
+                    addViewToContainer(thirdLineContainer, word, wordClickListener)
+                }
+            }
+        }
+    }
+
+    private fun addViewToContainer(container: LinearLayout, word: MnemonicWordView, wordClickListener: (MnemonicWordView, String) -> Unit) {
+        container.addView(word)
+        word.setOnClickListener {
+            container.removeView(it)
+            wordClickListener(word, word.getWord())
+            word.setOnClickListener { }
+        }
+    }
+
+    private fun checkAvailableSpaceForNewWord(word: MnemonicWordView, container: LinearLayout): Boolean {
+        return if (container.childCount == 0) {
+            true
+        } else {
             var lastChildRight = 0
-            for (x in 0 until childCount) {
-                val child = firstLineContainer.getChildAt(x)
+            for (i in 0 until container.childCount) {
+                val child = container.getChildAt(i)
                 lastChildRight += child.measuredWidth
                 lastChildRight += wordMargin * 2
             }
-            val freeSpace = firstLineContainerWidth - lastChildRight - wordMargin * 2
-            if (freeSpace > wordWidth) {
-                Log.d("mylog", "first... wordWidth: $wordWidth, freeSpace: $freeSpace")
-                firstLineContainer.addView(word)
-            } else {
-                val secondChildCount = secondLineContainer.childCount
-                if (secondChildCount > 0) {
-                    var lastSecondChildRight = 0
-                    for (x in 0 until secondChildCount) {
-                        val child = secondLineContainer.getChildAt(x)
-                        lastSecondChildRight += child.measuredWidth
-                        lastSecondChildRight += wordMargin * 2
-                    }
-                    val secondContainerWidth = firstLineContainer.width
-                    val secondFreeSpace = secondContainerWidth - lastSecondChildRight - wordMargin * 2
-                    if (secondFreeSpace > wordWidth) {
-                        secondLineContainer.addView(word)
-                    } else {
-                        thirdLineContainer.addView(word)
-                    }
-                } else {
-                    secondLineContainer.addView(word)
-                }
-            }
-        } else {
-            firstLineContainer.addView(word)
+            val freeSpace = container.width - lastChildRight - wordMargin - wordMargin
+            val wordSpace = word.measuredWidth
+            freeSpace > wordSpace
         }
-    }
-
-    fun setOnWordClickListener(clickListener: (MnemonicWordView, String) -> Unit) {
-        wordClickListener = clickListener
     }
 }

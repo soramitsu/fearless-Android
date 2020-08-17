@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.confirmationMnemonicView
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.wordsMnemonicView
 
 class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
@@ -30,7 +31,9 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     override fun subscribe(viewModel: ConfirmMnemonicViewModel) {
         observe(viewModel.mnemonicLiveData, Observer {
-            wordsMnemonicView.populate(it)
+            wordsMnemonicView.populate(it) { mnemonicWordView, s ->
+                confirmationMnemonicView.addWordView(mnemonicWordView) { _, _ -> }
+            }
         })
     }
 }
