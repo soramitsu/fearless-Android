@@ -7,31 +7,4 @@
     tools:orientation="vertical"
     tools:parentTag="android.widget.LinearLayout">
 
-    <LinearLayout
-        android:id="@+id/firstLineContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/secondLineContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/thirdLineContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-    </LinearLayout>
-
 </merge>

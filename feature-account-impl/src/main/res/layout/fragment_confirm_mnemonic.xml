@@ -17,7 +17,7 @@
         app:iconRight="@drawable/ic_refresh_white_24"
         app:titleText="@string/account_confirmation_title" />
 
-    <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicContainerView
+    <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicCollectorView
         android:id="@+id/confirmationMnemonicView"
         android:layout_width="match_parent"
         android:layout_height="160dp"
