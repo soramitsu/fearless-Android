@@ -21,6 +21,8 @@ class MnemonicContainerView @JvmOverloads constructor(
 
     private val elements = mutableListOf<Element>()
 
+    private val removedViews = mutableListOf<MnemonicWordView>()
+
     private var minimumMeasuredHeight = 0
 
     init {
@@ -44,7 +46,17 @@ class MnemonicContainerView @JvmOverloads constructor(
     }
 
     fun removeWordView(mnemonicWordView: MnemonicWordView) {
+        removedViews.add(mnemonicWordView)
         removeView(mnemonicWordView)
+    }
+
+    fun restoreLastWord() {
+        if (removedViews.isEmpty()) {
+            return
+        }
+        val lastRemovedView = removedViews.last()
+        removedViews.remove(lastRemovedView)
+        populateWord(lastRemovedView)
     }
 
     fun populateWord(mnemonicWordView: MnemonicWordView) {
@@ -85,7 +97,9 @@ class MnemonicContainerView @JvmOverloads constructor(
         super.onLayout(changed, left, top, right, bottom)
         if (elements.isEmpty()) return
 
-        for (line in 1..3) {
+        val maxLines = elements.maxBy { it.line }!!.line
+
+        for (line in 1..maxLines) {
             var previousLineElementIndex = elements.indexOfLast { it.line == line - 1 } + 1
 
             if (previousLineElementIndex == -1) {

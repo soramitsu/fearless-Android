@@ -21,6 +21,9 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
     }
 
     override fun initViews() {
+        confirmationMnemonicView.setOnClickListener {
+            wordsMnemonicView.restoreLastWord()
+        }
     }
 
     override fun inject() {
@@ -32,19 +35,25 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     override fun subscribe(viewModel: ConfirmMnemonicViewModel) {
         observe(viewModel.mnemonicLiveData, Observer {
-            val words = it.map { mnemonicWord ->
-                MnemonicWordView(activity!!).apply {
-                    setWord(mnemonicWord)
-                    setColorMode(MnemonicWordView.ColorMode.LIGHT)
-                    setOnClickListener { wordClickListener(this, mnemonicWord) }
-                    measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-                }
-            }
-            wordsMnemonicView.populate(words)
-            val containerHeight = wordsMnemonicView.getMinimumMeasuredHeight()
-            wordsMnemonicView.minimumHeight = containerHeight
-            confirmationMnemonicView.minimumHeight = containerHeight
+            populateMnemonicContainer(it)
         })
+    }
+
+    private fun populateMnemonicContainer(mnemonicWords: List<String>) {
+        val words = mnemonicWords.map { mnemonicWord ->
+            MnemonicWordView(activity!!).apply {
+                setWord(mnemonicWord)
+                setColorMode(MnemonicWordView.ColorMode.LIGHT)
+                setOnClickListener { wordClickListener(this, mnemonicWord) }
+                measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+            }
+        }
+
+        wordsMnemonicView.populate(words)
+
+        val containerHeight = wordsMnemonicView.getMinimumMeasuredHeight()
+        wordsMnemonicView.minimumHeight = containerHeight
+        confirmationMnemonicView.minimumHeight = containerHeight
     }
 
     private val wordClickListener: (MnemonicWordView, String) -> Unit = { mnemonicWordView, word ->
