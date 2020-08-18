@@ -19,7 +19,6 @@ class MnemonicContainerView @JvmOverloads constructor(
 
     private val wordMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, WORD_MARGIN_DP, resources.displayMetrics).toInt()
 
-    private val childViews = mutableListOf<MnemonicWordView>()
     private val elements = mutableListOf<Element>()
 
     init {
@@ -34,7 +33,6 @@ class MnemonicContainerView @JvmOverloads constructor(
     }
 
     fun populate(mnemonic: List<String>, wordClickListener: (MnemonicWordView, String) -> Unit) {
-        childViews.clear()
         elements.clear()
         mnemonic.forEach { populateWord(it, wordClickListener) }
     }
@@ -54,11 +52,11 @@ class MnemonicContainerView @JvmOverloads constructor(
         mnemonicWordView.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
             setMargins(wordMargin, wordMargin, wordMargin, wordMargin)
         }
-        if (childViews.isEmpty()) {
+        if (elements.isEmpty()) {
             elements.add(Element(mnemonicWordView, 1))
         } else {
-            val lastView = childViews.last()
             val lastElement = elements.last()
+            val lastView = lastElement.wordView
 
             val lastViewTop = (lastView.layoutParams as LayoutParams).topMargin
             val lastChildRight = (lastView.layoutParams as LayoutParams).leftMargin + lastView.measuredWidth + wordMargin
@@ -80,13 +78,12 @@ class MnemonicContainerView @JvmOverloads constructor(
                 elements.add(Element(mnemonicWordView, lastElement.line + 1))
             }
         }
-        childViews.add(mnemonicWordView)
         addView(mnemonicWordView)
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        if (childViews.isEmpty()) return
+        if (elements.isEmpty()) return
 
         for (line in 1..3) {
             var previousLineElementIndex = elements.indexOfLast { it.line == line - 1 } + 1
@@ -104,7 +101,7 @@ class MnemonicContainerView @JvmOverloads constructor(
             var currentLineSpace = 0
 
             for (i in previousLineElementIndex until nextLineElementIndex) {
-                val childView = childViews[i]
+                val childView = elements[i].wordView
                 currentLineSpace += childView.width + wordMargin + wordMargin
             }
 
