@@ -9,7 +9,7 @@
         android:id="@+id/wordTv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_mnemonic_word_light"
+        tools:background="@drawable/bg_mnemonic_word_light"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:textColor="@color/white"
         android:layout_gravity="center"

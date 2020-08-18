@@ -13,6 +13,11 @@ class MnemonicWordView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
+    enum class ColorMode {
+        LIGHT,
+        DARK
+    }
+
     init {
         View.inflate(context, R.layout.view_mnemonic_word, this)
         applyAttributes(attrs)
@@ -25,6 +30,9 @@ class MnemonicWordView @JvmOverloads constructor(
             val word = typedArray.getString(R.styleable.MnemonicWordView_wordText)
             word?.let { setWord(it) }
 
+            val mode = ColorMode.values()[typedArray.getInt(R.styleable.MnemonicWordView_colorMode, 0)]
+            setColorMode(mode)
+
             typedArray.recycle()
         }
     }
@@ -35,5 +43,13 @@ class MnemonicWordView @JvmOverloads constructor(
 
     fun getWord(): String {
         return wordTv.text.toString()
+    }
+
+    fun setColorMode(colorMode: ColorMode) {
+        val background = when (colorMode) {
+            ColorMode.LIGHT -> R.drawable.bg_mnemonic_word_light
+            ColorMode.DARK -> R.drawable.bg_mnemonic_word_dark
+        }
+        wordTv.setBackgroundResource(background)
     }
 }

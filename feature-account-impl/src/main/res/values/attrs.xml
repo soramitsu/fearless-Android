@@ -2,6 +2,10 @@
 <resources>
     <declare-styleable name="MnemonicWordView">
         <attr name="wordText" format="string" />
+        <attr format="enum" name="colorMode">
+            <enum name="light" value="0" />
+            <enum name="dark" value="1" />
+        </attr>
     </declare-styleable>
 
 </resources>

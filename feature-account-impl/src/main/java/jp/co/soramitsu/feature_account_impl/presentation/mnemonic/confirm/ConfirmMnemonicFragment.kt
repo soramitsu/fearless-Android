@@ -35,6 +35,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
             val words = it.map { mnemonicWord ->
                 MnemonicWordView(activity!!).apply {
                     setWord(mnemonicWord)
+                    setColorMode(MnemonicWordView.ColorMode.LIGHT)
                     setOnClickListener { wordClickListener(this, mnemonicWord) }
                     measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
                 }
@@ -50,6 +51,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         wordsMnemonicView.removeWordView(mnemonicWordView)
         val wordView = MnemonicWordView(activity!!).apply {
             setWord(word)
+            setColorMode(MnemonicWordView.ColorMode.DARK)
             measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         }
         confirmationMnemonicView.populateWord(wordView)
