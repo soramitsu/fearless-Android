@@ -81,7 +81,7 @@ class MnemonicCollectorView @JvmOverloads constructor(
         if (childViews.isEmpty()) return
 
         for (line in 1..3) {
-            var previousLineElementIndex = elements.indexOfFirst { it.line == line - 1 }
+            var previousLineElementIndex = elements.indexOfLast { it.line == line - 1 } + 1
 
             if (previousLineElementIndex == -1) {
                 previousLineElementIndex = 0
@@ -107,6 +107,7 @@ class MnemonicCollectorView @JvmOverloads constructor(
 
             for (i in previousLineElementIndex until nextLineElementIndex) {
                 val view = childViews[i]
+                val viewWidth = view.width
                 val previousView = childViews.getOrNull(i - 1)
                 if (previousView == null) {
                     val viewLeft = wordMargin + dividedSpace
@@ -123,6 +124,11 @@ class MnemonicCollectorView @JvmOverloads constructor(
 
                         view.layout(viewLeft, view.top, viewRight, view.bottom)
                     } else {
+                        Log.d("mylog", "same line")
+                        val viewLeft = wordMargin + dividedSpace
+                        val viewRight = wordMargin + dividedSpace + view.width
+
+                        view.layout(viewLeft.toInt(), view.top, viewRight.toInt(), view.bottom)
                         Log.d("mylog", "new line!")
                     }
                 }
