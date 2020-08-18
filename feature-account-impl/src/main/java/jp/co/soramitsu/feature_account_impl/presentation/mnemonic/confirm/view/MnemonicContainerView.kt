@@ -16,13 +16,11 @@ class MnemonicContainerView @JvmOverloads constructor(
 
     companion object {
         private const val WORD_MARGIN_DP = 4f
-        private const val VIEW_PADDING = 12f
 
         private const val ANIMATION_DURATION = 200L
     }
 
     private val wordMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, WORD_MARGIN_DP, resources.displayMetrics).toInt()
-    private val viewPadding = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, VIEW_PADDING, resources.displayMetrics).toInt()
 
     private val elements = mutableListOf<Element>()
 

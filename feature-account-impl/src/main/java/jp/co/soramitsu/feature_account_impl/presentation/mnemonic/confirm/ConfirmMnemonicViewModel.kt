@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -22,6 +23,14 @@ class ConfirmMnemonicViewModel(
     private val _resetConfirmationEvent = MutableLiveData<Event<Unit>>()
     val resetConfirmationEvent: LiveData<Event<Unit>> = _resetConfirmationEvent
 
+    private val _removeLastWordFromConfirmationEvent = MutableLiveData<Event<Unit>>()
+    val removeLastWordFromConfirmationEvent: LiveData<Event<Unit>> = _removeLastWordFromConfirmationEvent
+
+    private val _nextButtonEnableLiveData = MediatorLiveData<Boolean>()
+    val nextButtonEnableLiveData: LiveData<Boolean> = _nextButtonEnableLiveData
+
+    private val confirmationMnemonicWords = MutableLiveData<List<String>>()
+
     init {
         disposables.add(
             interactor.getMnemonic()
@@ -33,6 +42,14 @@ class ConfirmMnemonicViewModel(
                     it.printStackTrace()
                 })
         )
+
+        _nextButtonEnableLiveData.addSource(confirmationMnemonicWords) { enteredWords ->
+            mnemonicLiveData.value?.let { mnemonic ->
+                _nextButtonEnableLiveData.value = mnemonic.size == enteredWords.size
+            }
+        }
+
+        confirmationMnemonicWords.value = mutableListOf()
     }
 
     fun homeButtonClicked() {
@@ -40,6 +57,43 @@ class ConfirmMnemonicViewModel(
     }
 
     fun resetConfirmationClicked() {
+        reset()
+    }
+
+    private fun reset() {
+        confirmationMnemonicWords.value = mutableListOf()
         _resetConfirmationEvent.value = Event(Unit)
+    }
+
+    fun addWordToConfirmMnemonic(word: String) {
+        confirmationMnemonicWords.value?.let {
+            val wordList = mutableListOf<String>().apply {
+                addAll(it)
+                add(word)
+            }
+            confirmationMnemonicWords.value = wordList
+        }
+    }
+
+    fun removeLastWordFromConfirmation() {
+        confirmationMnemonicWords.value?.let {
+            val wordList = mutableListOf<String>().apply {
+                addAll(it.subList(0, it.size - 1))
+            }
+            confirmationMnemonicWords.value = wordList
+        }
+        _removeLastWordFromConfirmationEvent.value = Event(Unit)
+    }
+
+    fun nextButtonClicked() {
+        confirmationMnemonicWords.value?.let { enteredWords ->
+            mnemonicLiveData.value?.let { mnemonic ->
+                if (mnemonic == enteredWords) {
+                    // TODO: success case here
+                } else {
+                    reset()
+                }
+            }
+        }
     }
 }

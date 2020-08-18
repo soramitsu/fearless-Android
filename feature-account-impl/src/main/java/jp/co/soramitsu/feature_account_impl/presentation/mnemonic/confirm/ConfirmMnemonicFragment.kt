@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.confirmationMnemonicView
+import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.nextBtn
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.wordsMnemonicView
 
 class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
@@ -32,11 +33,14 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         }
 
         confirmationMnemonicView.setOnClickListener {
-            confirmationMnemonicView.removeLastWord()
-            wordsMnemonicView.restoreLastWord()
+            viewModel.removeLastWordFromConfirmation()
         }
 
         confirmationMnemonicView.disableWordDisappearAnimation()
+
+        nextBtn.setOnClickListener {
+            viewModel.nextButtonClicked()
+        }
     }
 
     override fun inject() {
@@ -54,6 +58,15 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         observe(viewModel.resetConfirmationEvent, EventObserver {
             confirmationMnemonicView.resetView()
             wordsMnemonicView.restoreAllWords()
+        })
+
+        observe(viewModel.removeLastWordFromConfirmationEvent, EventObserver {
+            confirmationMnemonicView.removeLastWord()
+            wordsMnemonicView.restoreLastWord()
+        })
+
+        observe(viewModel.nextButtonEnableLiveData, Observer {
+            nextBtn.isEnabled = it
         })
     }
 
@@ -75,7 +88,10 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
     }
 
     private val wordClickListener: (MnemonicWordView, String) -> Unit = { mnemonicWordView, word ->
+        viewModel.addWordToConfirmMnemonic(word)
+
         wordsMnemonicView.removeWordView(mnemonicWordView)
+
         val wordView = MnemonicWordView(activity!!).apply {
             setWord(word)
             setColorMode(MnemonicWordView.ColorMode.DARK)
