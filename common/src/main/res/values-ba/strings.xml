@@ -36,4 +36,5 @@
     <string name="common_no_screenshot_title">Не делайте снимков экрана</string>
     <string name="common_no_screenshot_message">Не делайте снимков экрана, так как они могут быть похищены сторонним вредоносным программным обеспечением</string>
     <string name="account_confirmation_title">Подтверждение</string>
+    <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
 </resources>

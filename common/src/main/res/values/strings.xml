@@ -36,4 +36,5 @@
     <string name="common_no_screenshot_title">Do not take screenshots</string>
     <string name="common_no_screenshot_message">Do not take screenshots, which may be collected by third-party malware</string>
     <string name="account_confirmation_title">Confirm mnemonic</string>
+    <string name="account_confirmation_details">Choose words in the right order</string>
 </resources>

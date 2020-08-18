@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
@@ -13,7 +14,6 @@
         android:layout_height="wrap_content"
         android:paddingStart="@dimen/x1"
         android:paddingEnd="@dimen/x1"
-        app:homeButtonVisible="false"
         app:iconRight="@drawable/ic_refresh_white_24"
         app:titleText="@string/account_confirmation_title" />
 
@@ -21,12 +21,22 @@
         android:id="@+id/confirmationMnemonicView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/x2" />
+        android:layout_margin="@dimen/x2"
+        tools:layout_height="144dp" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/account_confirmation_details"
+        android:textColor="@color/white" />
 
     <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicContainerView
         android:id="@+id/wordsMnemonicView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/x2" />
+        android:layout_margin="@dimen/x2"
+        tools:layout_height="144dp" />
 
 </LinearLayout>
