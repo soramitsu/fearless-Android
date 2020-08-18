@@ -36,7 +36,7 @@ class MnemonicContainerView @JvmOverloads constructor(
         }
     }
 
-    fun populate(mnemonic: List<MnemonicWordView>) {
+    fun populateWithMnemonic(mnemonic: List<MnemonicWordView>) {
         elements.clear()
         mnemonic.forEach { populateWord(it) }
         minimumMeasuredHeight = elements.lastOrNull()?.let {
@@ -48,6 +48,15 @@ class MnemonicContainerView @JvmOverloads constructor(
     fun removeWordView(mnemonicWordView: MnemonicWordView) {
         removedViews.add(mnemonicWordView)
         removeView(mnemonicWordView)
+    }
+
+    fun removeLastWord() {
+        if (elements.isEmpty()) {
+            return
+        }
+        val lastElement = elements.last()
+        elements.remove(lastElement)
+        removeView(lastElement.wordView)
     }
 
     fun restoreLastWord() {

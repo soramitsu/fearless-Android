@@ -22,6 +22,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     override fun initViews() {
         confirmationMnemonicView.setOnClickListener {
+            confirmationMnemonicView.removeLastWord()
             wordsMnemonicView.restoreLastWord()
         }
     }
@@ -49,7 +50,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
             }
         }
 
-        wordsMnemonicView.populate(words)
+        wordsMnemonicView.populateWithMnemonic(words)
 
         val containerHeight = wordsMnemonicView.getMinimumMeasuredHeight()
         wordsMnemonicView.minimumHeight = containerHeight
