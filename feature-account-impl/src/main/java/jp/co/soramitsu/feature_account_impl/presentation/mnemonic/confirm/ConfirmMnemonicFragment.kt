@@ -31,8 +31,9 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     override fun subscribe(viewModel: ConfirmMnemonicViewModel) {
         observe(viewModel.mnemonicLiveData, Observer {
-            wordsMnemonicView.populate(it) { mnemonicWordView, s ->
-                confirmationMnemonicView.populateWord(mnemonicWordView)
+            wordsMnemonicView.populate(it) { mnemonicWordView, word ->
+                wordsMnemonicView.removeWordView(mnemonicWordView)
+                confirmationMnemonicView.populateWord(mnemonicWordView.getWord()) { _, _ -> }
             }
         })
     }
