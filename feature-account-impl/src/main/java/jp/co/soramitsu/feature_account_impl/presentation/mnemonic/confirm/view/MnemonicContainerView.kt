@@ -49,9 +49,10 @@ class MnemonicContainerView @JvmOverloads constructor(
             }
         }
         mnemonicWordView.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
-        mnemonicWordView.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+        val layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
             setMargins(wordMargin, wordMargin, wordMargin, wordMargin)
         }
+        mnemonicWordView.layoutParams = layoutParams
         if (elements.isEmpty()) {
             elements.add(Element(mnemonicWordView, 1))
         } else {
@@ -66,15 +67,11 @@ class MnemonicContainerView @JvmOverloads constructor(
 
             if (freeSpace > wordSpace) {
                 val leftMargin = lastChildRight + wordMargin
-                mnemonicWordView.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(leftMargin, lastViewTop, wordMargin, wordMargin)
-                }
+                (mnemonicWordView.layoutParams as LayoutParams).setMargins(leftMargin, lastViewTop, wordMargin, wordMargin)
                 elements.add(Element(mnemonicWordView, lastElement.line))
             } else {
                 val lastViewBottom = (lastView.layoutParams as LayoutParams).topMargin + lastView.measuredHeight + wordMargin
-                mnemonicWordView.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(wordMargin, lastViewBottom + wordMargin, wordMargin, wordMargin)
-                }
+                (mnemonicWordView.layoutParams as LayoutParams).setMargins(wordMargin, lastViewBottom + wordMargin, wordMargin, wordMargin)
                 elements.add(Element(mnemonicWordView, lastElement.line + 1))
             }
         }

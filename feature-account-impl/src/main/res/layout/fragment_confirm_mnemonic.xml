@@ -20,13 +20,15 @@
     <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicContainerView
         android:id="@+id/confirmationMnemonicView"
         android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:layout_margin="@dimen/x2" />
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/x2"
+        android:minHeight="144dp" />
 
     <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicContainerView
         android:id="@+id/wordsMnemonicView"
         android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:layout_margin="@dimen/x2" />
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/x2"
+        android:minHeight="144dp" />
 
 </LinearLayout>
