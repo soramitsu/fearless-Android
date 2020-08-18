@@ -21,6 +21,8 @@ class MnemonicContainerView @JvmOverloads constructor(
 
     private val elements = mutableListOf<Element>()
 
+    private var minimumMeasuredHeight = 0
+
     init {
         View.inflate(context, R.layout.view_mnemonic_container, this)
         setBackgroundResource(R.drawable.bg_mnemonic_container)
@@ -32,23 +34,20 @@ class MnemonicContainerView @JvmOverloads constructor(
         }
     }
 
-    fun populate(mnemonic: List<String>, wordClickListener: (MnemonicWordView, String) -> Unit) {
+    fun populate(mnemonic: List<MnemonicWordView>) {
         elements.clear()
-        mnemonic.forEach { populateWord(it, wordClickListener) }
+        mnemonic.forEach { populateWord(it) }
+        minimumMeasuredHeight = elements.lastOrNull()?.let {
+            val wordView = it.wordView
+            (wordView.layoutParams as LayoutParams).topMargin + wordView.measuredHeight + wordMargin
+        } ?: 0
     }
 
     fun removeWordView(mnemonicWordView: MnemonicWordView) {
         removeView(mnemonicWordView)
     }
 
-    fun populateWord(mnemonicWord: String, wordClickListener: (MnemonicWordView, String) -> Unit) {
-        val mnemonicWordView = MnemonicWordView(context).apply {
-            setWord(mnemonicWord)
-            setOnClickListener {
-                wordClickListener(this, mnemonicWord)
-            }
-        }
-        mnemonicWordView.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
+    fun populateWord(mnemonicWordView: MnemonicWordView) {
         val layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
             setMargins(wordMargin, wordMargin, wordMargin, wordMargin)
         }
@@ -76,6 +75,10 @@ class MnemonicContainerView @JvmOverloads constructor(
             }
         }
         addView(mnemonicWordView)
+    }
+
+    fun getMinimumMeasuredHeight(): Int {
+        return minimumMeasuredHeight
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {

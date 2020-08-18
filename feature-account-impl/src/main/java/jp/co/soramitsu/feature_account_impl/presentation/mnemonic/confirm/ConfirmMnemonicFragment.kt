@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.confirmationMnemonicView
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.wordsMnemonicView
 
@@ -31,10 +32,26 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     override fun subscribe(viewModel: ConfirmMnemonicViewModel) {
         observe(viewModel.mnemonicLiveData, Observer {
-            wordsMnemonicView.populate(it) { mnemonicWordView, word ->
-                wordsMnemonicView.removeWordView(mnemonicWordView)
-                confirmationMnemonicView.populateWord(mnemonicWordView.getWord()) { _, _ -> }
+            val words = it.map { mnemonicWord ->
+                MnemonicWordView(activity!!).apply {
+                    setWord(mnemonicWord)
+                    setOnClickListener { wordClickListener(this, mnemonicWord) }
+                    measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+                }
             }
+            wordsMnemonicView.populate(words)
+            val containerHeight = wordsMnemonicView.getMinimumMeasuredHeight()
+            wordsMnemonicView.minimumHeight = containerHeight
+            confirmationMnemonicView.minimumHeight = containerHeight
         })
+    }
+
+    private val wordClickListener: (MnemonicWordView, String) -> Unit = { mnemonicWordView, word ->
+        wordsMnemonicView.removeWordView(mnemonicWordView)
+        val wordView = MnemonicWordView(activity!!).apply {
+            setWord(word)
+            measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        }
+        confirmationMnemonicView.populateWord(wordView)
     }
 }
