@@ -91,25 +91,6 @@
 
     <!-- Dialog -->
 
-    <style name="BottomSheetDialog" parent="Theme.MaterialComponents.BottomSheetDialog">
-        <item name="bottomSheetStyle">@style/bottomSheetStyleWrapper</item>
-        <item name="android:windowIsFloating">false</item>
-    </style>
-
-    <style name="bottomSheetStyleWrapper" parent="Widget.MaterialComponents.BottomSheet.Modal">
-        <item name="behavior_peekHeight">600dp</item>
-        <item name="android:background">@null</item>
-        <item name="shapeAppearanceOverlay">@style/CustomShapeAppearanceBottomSheetDialog</item>
-    </style>
-
-    <style name="CustomShapeAppearanceBottomSheetDialog" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSizeTopRight">@dimen/x2</item>
-        <item name="cornerSizeTopLeft">@dimen/x2</item>
-        <item name="cornerSizeBottomRight">0dp</item>
-        <item name="cornerSizeBottomLeft">0dp</item>
-    </style>
-
     <style name="AlertDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
         <item name="buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
     </style>
