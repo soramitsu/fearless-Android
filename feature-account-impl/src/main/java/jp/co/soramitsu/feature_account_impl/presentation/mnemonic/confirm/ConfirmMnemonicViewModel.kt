@@ -8,13 +8,15 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 class ConfirmMnemonicViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val deviceVibrator: DeviceVibrator
 ) : BaseViewModel() {
 
     private val _mnemonicLiveData = MutableLiveData<List<String>>()
@@ -94,6 +96,7 @@ class ConfirmMnemonicViewModel(
                 if (mnemonic == enteredWords) {
                     // TODO: success case here
                 } else {
+                    deviceVibrator.makeShortVibration()
                     _matchingMnemonicErrorAnimationEvent.value = Event(Unit)
                 }
             }
