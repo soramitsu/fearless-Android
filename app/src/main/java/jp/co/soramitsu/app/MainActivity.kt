@@ -6,11 +6,14 @@ import android.os.Bundle
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.NavigationUI
 import jp.co.soramitsu.app.di.deps.findComponentDependencies
 import jp.co.soramitsu.app.di.main.MainComponent
 import jp.co.soramitsu.app.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.interfaces.BackButtonListener
+import jp.co.soramitsu.common.utils.makeVisible
+import kotlinx.android.synthetic.main.activity_main.bottomNavigationView
 import javax.inject.Inject
 
 class MainActivity : BaseActivity<MainViewModel>() {
@@ -53,8 +56,12 @@ class MainActivity : BaseActivity<MainViewModel>() {
     }
 
     override fun initViews() {
+        bottomNavigationView.makeVisible()
+        bottomNavigationView.inflateMenu(R.menu.bottom_navigations)
+
         navController = Navigation.findNavController(this, R.id.nav_host_fragment)
         navigator.attachNavController(navController!!, R.navigation.main_nav_graph)
+        NavigationUI.setupWithNavController(bottomNavigationView, navController!!)
     }
 
     override fun subscribe(viewModel: MainViewModel) {
