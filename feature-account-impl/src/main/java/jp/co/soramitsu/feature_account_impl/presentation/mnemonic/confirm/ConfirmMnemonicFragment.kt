@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -14,6 +16,7 @@ import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.confirmationMnemonicView
+import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.mnemonicViewsContainer
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.nextBtn
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.wordsMnemonicView
 
@@ -68,6 +71,10 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         observe(viewModel.nextButtonEnableLiveData, Observer {
             nextBtn.isEnabled = it
         })
+
+        observe(viewModel.matchingMnemonicErrorAnimationEvent, EventObserver {
+            playMatchingMnemonicErrorAnimation()
+        })
     }
 
     private fun populateMnemonicContainer(mnemonicWords: List<String>) {
@@ -98,5 +105,21 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
             measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         }
         confirmationMnemonicView.populateWord(wordView)
+    }
+
+    private fun playMatchingMnemonicErrorAnimation() {
+        val animation = AnimationUtils.loadAnimation(activity!!, R.anim.shake)
+        animation.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationRepeat(animation: Animation?) {
+            }
+
+            override fun onAnimationStart(animation: Animation?) {
+            }
+
+            override fun onAnimationEnd(animation: Animation?) {
+                viewModel.matchingErrorAnimationCompleted()
+            }
+        })
+        mnemonicViewsContainer.startAnimation(animation)
     }
 }

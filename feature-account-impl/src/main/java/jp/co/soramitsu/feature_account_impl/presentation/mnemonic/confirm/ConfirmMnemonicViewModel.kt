@@ -29,6 +29,9 @@ class ConfirmMnemonicViewModel(
     private val _nextButtonEnableLiveData = MediatorLiveData<Boolean>()
     val nextButtonEnableLiveData: LiveData<Boolean> = _nextButtonEnableLiveData
 
+    private val _matchingMnemonicErrorAnimationEvent = MutableLiveData<Event<Unit>>()
+    val matchingMnemonicErrorAnimationEvent: LiveData<Event<Unit>> = _matchingMnemonicErrorAnimationEvent
+
     private val confirmationMnemonicWords = MutableLiveData<List<String>>()
 
     init {
@@ -91,9 +94,13 @@ class ConfirmMnemonicViewModel(
                 if (mnemonic == enteredWords) {
                     // TODO: success case here
                 } else {
-                    reset()
+                    _matchingMnemonicErrorAnimationEvent.value = Event(Unit)
                 }
             }
         }
+    }
+
+    fun matchingErrorAnimationCompleted() {
+        reset()
     }
 }
