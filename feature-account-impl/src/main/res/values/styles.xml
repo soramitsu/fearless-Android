@@ -4,7 +4,9 @@
     <style name="BottomSheetDialog" parent="Theme.MaterialComponents.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/bottomSheetStyleWrapper</item>
         <item name="android:windowIsFloating">false</item>
-        <item name="android:backgroundTint">@android:color/transparent</item>
+        <item name="android:backgroundTint">@color/bottomSheetBackground</item>
+        <item name="android:windowBackground">@color/black</item>
+        <item name="android:navigationBarColor">@color/black</item>
     </style>
 
     <style name="bottomSheetStyleWrapper" parent="Widget.MaterialComponents.BottomSheet.Modal">
