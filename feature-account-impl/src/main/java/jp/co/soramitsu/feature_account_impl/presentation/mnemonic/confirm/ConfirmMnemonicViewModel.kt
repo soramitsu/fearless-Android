@@ -38,17 +38,6 @@ class ConfirmMnemonicViewModel(
     private val originMnemonic = MutableLiveData<List<String>>()
 
     init {
-        disposables.add(
-            interactor.getMnemonic()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    originMnemonic.value = it
-                }, {
-                    it.printStackTrace()
-                })
-        )
-
         _nextButtonEnableLiveData.addSource(confirmationMnemonicWords) { enteredWords ->
             mnemonicLiveData.value?.let { mnemonic ->
                 _nextButtonEnableLiveData.value = mnemonic.size == enteredWords.size
@@ -60,6 +49,17 @@ class ConfirmMnemonicViewModel(
         }
 
         confirmationMnemonicWords.value = mutableListOf()
+
+        disposables.add(
+            interactor.getMnemonic()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    originMnemonic.value = it
+                }, {
+                    it.printStackTrace()
+                })
+        )
     }
 
     fun homeButtonClicked() {
