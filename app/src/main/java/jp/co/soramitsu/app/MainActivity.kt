@@ -23,8 +23,7 @@ class MainActivity : BaseActivity<MainViewModel>() {
         }
     }
 
-    @Inject
-    lateinit var navigator: Navigator
+    @Inject lateinit var navigator: Navigator
 
     private var navController: NavController? = null
 
