@@ -44,4 +44,6 @@
     <string name="account_creation_info">Мнемоническая фраза используется для восстановления доступа к аккаунту. Запишите ее, мы не сможем восстановить доступ к аккаунту без нее!</string>
     <string name="common_no_screenshot_title">Не делайте скриншоты</string>
     <string name="common_no_screenshot_message">Не делайте скриншоты, которые могут быть собраны сторонними вредоносными программами</string>
+    <string name="account_confirmation_title">Подтверждение</string>
+    <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
 </resources>

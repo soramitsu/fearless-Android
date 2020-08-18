@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
@@ -32,4 +33,6 @@ interface CommonApi {
     fun provideSS58Encoder(): SS58Encoder
 
     fun provideJunctionDecoder(): JunctionDecoder
+
+    fun provideDeviceVibrator(): DeviceVibrator
 }

@@ -33,6 +33,9 @@ class Toolbar @JvmOverloads constructor(
             val rightIcon = typedArray.getDrawable(R.styleable.Toolbar_iconRight)
             rightIcon?.let { setRightIconDrawable(it) }
 
+            val homeButtonVisible = typedArray.getBoolean(R.styleable.Toolbar_homeButtonVisible, true)
+            setHomeButtonVisibility(homeButtonVisible)
+
             typedArray.recycle()
         }
     }
@@ -60,5 +63,9 @@ class Toolbar @JvmOverloads constructor(
 
     fun setRightIconClickListener(listener: (View) -> Unit) {
         rightImg.setOnClickListener(listener)
+    }
+
+    fun setHomeButtonVisibility(visible: Boolean) {
+        backImg.visibility = if (visible) View.VISIBLE else View.GONE
     }
 }

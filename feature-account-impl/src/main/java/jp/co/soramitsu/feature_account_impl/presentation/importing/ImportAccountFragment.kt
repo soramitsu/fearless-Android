@@ -170,7 +170,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         })
 
         observe(viewModel.selectedNetworkLiveData, Observer {
-            advancedBlockView.setNetworkIconResource(it.icon)
+            advancedBlockView.setNetworkIconResource(it.smallIcon)
             advancedBlockView.setNetworkName(it.name)
         })
 

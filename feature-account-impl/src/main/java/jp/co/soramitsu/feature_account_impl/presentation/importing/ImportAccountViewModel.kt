@@ -163,12 +163,19 @@ class ImportAccountViewModel(
     private fun mapNetworkToNetworkModel(networks: List<Network>, selected: NetworkType): List<NetworkModel> {
         return networks.map {
             val icon = when (it.networkType) {
-                NetworkType.POLKADOT -> R.drawable.ic_ksm_24
+                NetworkType.POLKADOT -> R.drawable.ic_polkadot_24
                 NetworkType.KUSAMA -> R.drawable.ic_ksm_24
                 NetworkType.WESTEND -> R.drawable.ic_westend_24
             }
+
+            val smallIcon = when (it.networkType) {
+                NetworkType.POLKADOT -> R.drawable.ic_polkadot_18
+                NetworkType.KUSAMA -> R.drawable.ic_ksm_18
+                NetworkType.WESTEND -> R.drawable.ic_westend_18
+            }
+
             val isSelected = selected == it.networkType
-            NetworkModel(it.name, icon, it.link, it.networkType, isSelected)
+            NetworkModel(it.name, icon, smallIcon, it.link, it.networkType, isSelected)
         }
     }
 

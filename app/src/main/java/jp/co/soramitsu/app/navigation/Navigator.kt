@@ -26,10 +26,6 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         }
     }
 
-    fun currentDestinationIsPincode(): Boolean {
-        return navController?.currentDestination?.id == R.id.pincodeFragment
-    }
-
     override fun openMain(context: Context) {
         MainActivity.start(context)
     }
@@ -47,8 +43,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         navController?.navigate(R.id.pincodeFragment, bundle)
     }
 
-    override fun backToBackupMnemonicScreen() {
-        navController?.popBackStack()
+    override fun openConfirmMnemonicScreen() {
+        navController?.navigate(R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment)
     }
 
     override fun openTermsScreen() {
@@ -69,6 +65,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
     }
 
     override fun backToCreateAccountScreen() {
+        navController?.popBackStack()
+    }
+
+    override fun backToBackupMnemonicScreen() {
         navController?.popBackStack()
     }
 }

@@ -10,5 +10,7 @@ interface AccountRouter {
 
     fun showPincode(action: PinCodeAction)
 
+    fun openConfirmMnemonicScreen()
+
     fun backToBackupMnemonicScreen()
 }

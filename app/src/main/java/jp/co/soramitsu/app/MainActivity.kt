@@ -71,11 +71,15 @@ class MainActivity : BaseActivity<MainViewModel>() {
     override fun onBackPressed() {
         val navHostFragment = supportFragmentManager.fragments[0] as NavHostFragment?
 
-        with(navHostFragment?.childFragmentManager!!.fragments[navHostFragment.childFragmentManager.fragments.size - 1]) {
-            if (this is BackButtonListener) {
-                onBackButtonPressed()
-            } else {
-                super.onBackPressed()
+        navHostFragment?.childFragmentManager?.let {
+            if (it.fragments.isNotEmpty()) {
+                with(it.fragments.last()) {
+                    if (this is BackButtonListener) {
+                        onBackButtonPressed()
+                    } else {
+                        super.onBackPressed()
+                    }
+                }
             }
         }
     }

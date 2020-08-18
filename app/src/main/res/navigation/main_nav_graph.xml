@@ -93,6 +93,24 @@
         android:label="fragment_backup_mnemonic"
         tools:layout="@layout/fragment_backup_mnemonic">
 
+        <action
+            android:id="@+id/action_backupMnemonicFragment_to_confirmMnemonicFragment"
+            app:destination="@id/confirmMnemonicFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit">
+
+        </action>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/confirmMnemonicFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment"
+        android:label="fragment_confirm_mnemonic"
+        tools:layout="@layout/fragment_confirm_mnemonic">
+
     </fragment>
 
     <fragment

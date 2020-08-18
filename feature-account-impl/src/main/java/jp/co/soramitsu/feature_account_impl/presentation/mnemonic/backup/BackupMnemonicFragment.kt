@@ -95,7 +95,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         })
 
         observe(viewModel.selectedNetworkLiveData, Observer {
-            advancedBlockView.setNetworkIconResource(it.icon)
+            advancedBlockView.setNetworkIconResource(it.smallIcon)
             advancedBlockView.setNetworkName(it.name)
         })
 

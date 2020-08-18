@@ -54,8 +54,6 @@ dependencies {
     implementation gsonConvertedDep
     implementation rxCallAdapterDep
 
-    implementation novaCryptoDep
-
     testImplementation jUnitDep
     testImplementation mockitoDep
 }

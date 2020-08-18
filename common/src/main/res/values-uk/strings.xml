@@ -44,4 +44,6 @@
     <string name="account_creation_info">Mnemonic використовується для відновлення доступу до рахунку. Запишіть це, ми не зможемо відновити ваш рахунок без нього!</string>
     <string name="common_no_screenshot_title">Не робити знімки екрана</string>
     <string name="common_no_screenshot_message">Не робіть знімки екрана, які можуть збирати сторонні зловмисні програми</string>
+    <string name="account_confirmation_title">Підтвердіть мнемонічне</string>
+    <string name="account_confirmation_details">Вибирайте слова в потрібному порядку</string>
 </resources>

@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.di.modules
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Vibrator
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -12,10 +13,12 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.ResourceManagerImpl
+import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
@@ -77,5 +80,12 @@ class CommonModule {
     @ApplicationScope
     fun provideJunctionDecoder(): JunctionDecoder {
         return JunctionDecoder()
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideDeviceVibrator(context: Context): DeviceVibrator {
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        return DeviceVibrator(vibrator)
     }
 }

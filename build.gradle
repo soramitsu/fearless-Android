@@ -33,14 +33,9 @@ buildscript {
 
         navControllerVersion = '2.0.0-rc02'
 
-        novaCryptoVersion = '0.1.9'
-
         junitVersion = '4.12'
         mockitoVersion = '2.23.0'
         robolectricVersion = '4.1'
-
-        ed25519Version = '1.0'
-        web3jVersion = '4.6.0-android'
 
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
@@ -77,16 +72,9 @@ buildscript {
         gsonConvertedDep = "com.squareup.retrofit2:converter-gson:$retrofitVersion"
         gsonDep = "com.google.code.gson:gson:$gsonVersion"
 
-        novaCryptoDep = "io.github.novacrypto:BIP39:$novaCryptoVersion"
-        secureStringDep = "io.github.novacrypto:securestring:2019.01.27@jar"
-
-        web3jDep = "org.web3j:crypto:$web3jVersion"
-
         zXingCoreDep = "com.google.zxing:core:$zXingVersion"
         zXingEmbeddedDep = "com.journeyapps:zxing-android-embedded:$zXingEmbeddedVersion"
         rxPermissionsDep = "com.github.tbruyelle:rxpermissions:$rxPermssionVersion"
-
-        ed25519Dep = "com.github.warchant:ed25519-sha3-java:$ed25519Version"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"

@@ -36,10 +36,6 @@ dependencies {
     implementation cardViewDep
     implementation constraintDep
 
-    implementation ed25519Dep
-    implementation secureStringDep
-    implementation web3jDep
-
     implementation biometricDep
 
     implementation rxJavaDep
@@ -58,8 +54,6 @@ dependencies {
 
     implementation lifecycleDep
     kapt lifecycleKapt
-
-    implementation novaCryptoDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep
