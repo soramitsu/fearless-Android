@@ -56,7 +56,7 @@ class MnemonicContainerView @JvmOverloads constructor(
         }
         val lastRemovedView = removedViews.last()
         removedViews.remove(lastRemovedView)
-        populateWord(lastRemovedView)
+        addView(lastRemovedView)
     }
 
     fun populateWord(mnemonicWordView: MnemonicWordView) {
