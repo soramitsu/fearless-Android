@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.FrameLayout
@@ -85,47 +84,6 @@ class MnemonicContainerView @JvmOverloads constructor(
         addView(mnemonicWordView)
     }
 
-    private fun addWordView(word: String, wordClickListener: (MnemonicWordView, String) -> Unit) {
-        val mnemonicWordView = MnemonicWordView(context).apply {
-            setWord(word)
-        }
-        mnemonicWordView.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
-
-        mnemonicWordView.setOnClickListener {
-            removeView(it)
-            wordClickListener(it as MnemonicWordView, it.getWord())
-        }
-
-        if (childViews.isEmpty()) {
-            mnemonicWordView.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-                setMargins(wordMargin, wordMargin, wordMargin, wordMargin)
-            }
-            addView(mnemonicWordView)
-        } else {
-            val lastView = getChildAt(childCount - 1)
-            val lastViewTop = (lastView.layoutParams as LayoutParams).topMargin
-            val lastChildRight = (lastView.layoutParams as LayoutParams).leftMargin + lastView.measuredWidth + wordMargin
-
-            val freeSpace = width - lastChildRight - wordMargin - wordMargin
-            val wordSpace = mnemonicWordView.measuredWidth
-
-            if (freeSpace > wordSpace) {
-                mnemonicWordView.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(lastChildRight + wordMargin, lastViewTop, wordMargin, wordMargin)
-                }
-            } else {
-                val lastViewBottom = (lastView.layoutParams as LayoutParams).topMargin + lastView.measuredHeight + wordMargin
-
-                mnemonicWordView.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(wordMargin, lastViewBottom + wordMargin, wordMargin, wordMargin)
-                }
-            }
-
-            addView(mnemonicWordView)
-        }
-        childViews.add(mnemonicWordView)
-    }
-
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
         if (childViews.isEmpty()) return
@@ -153,34 +111,19 @@ class MnemonicContainerView @JvmOverloads constructor(
             val rightEmptySpace = (width - currentLineSpace).toFloat()
             val dividedSpace = rightEmptySpace.div(2)
 
-            Log.d("mylog", "line: $line, previousLineElementIndex: $previousLineElementIndex, nextLineElementIndex: $nextLineElementIndex")
-
             for (i in previousLineElementIndex until nextLineElementIndex) {
-                val view = childViews[i]
-                val viewWidth = view.width
-                val previousView = childViews.getOrNull(i - 1)
-                if (previousView == null) {
+                val currentElement = elements[i]
+                val previousElement = elements.getOrNull(i - 1)
+                val shouldStartNewLine = previousElement?.let { it.line < currentElement.line } ?: true
+                if (shouldStartNewLine) {
                     val viewLeft = wordMargin + dividedSpace
-                    val viewRight = wordMargin + dividedSpace + view.width
-                    Log.d("mylog", "first item in line")
-                    view.layout(viewLeft.toInt(), view.top, viewRight.toInt(), view.bottom)
+                    val viewRight = wordMargin + dividedSpace + currentElement.wordView.width
+                    currentElement.wordView.layout(viewLeft.toInt(), currentElement.wordView.top, viewRight.toInt(), currentElement.wordView.bottom)
                 } else {
-                    val previousViewLine = elements[i - 1].line
-                    val currentViewLine = elements[i].line
-                    if (previousViewLine == currentViewLine) {
-                        Log.d("mylog", "same line")
-                        val viewLeft = previousView.right + wordMargin + wordMargin
-                        val viewRight = previousView.right + wordMargin + wordMargin + view.width
+                    val viewLeft = previousElement!!.wordView.right + wordMargin + wordMargin
+                    val viewRight = previousElement.wordView.right + wordMargin + wordMargin + currentElement.wordView.width
 
-                        view.layout(viewLeft, view.top, viewRight, view.bottom)
-                    } else {
-                        Log.d("mylog", "same line")
-                        val viewLeft = wordMargin + dividedSpace
-                        val viewRight = wordMargin + dividedSpace + view.width
-
-                        view.layout(viewLeft.toInt(), view.top, viewRight.toInt(), view.bottom)
-                        Log.d("mylog", "new line!")
-                    }
+                    currentElement.wordView.layout(viewLeft, currentElement.wordView.top, viewRight, currentElement.wordView.bottom)
                 }
             }
 
