@@ -19,7 +19,7 @@ class ConfirmMnemonicViewModel(
     private val deviceVibrator: DeviceVibrator
 ) : BaseViewModel() {
 
-    private val _mnemonicLiveData = MutableLiveData<List<String>>()
+    private val _mnemonicLiveData = MediatorLiveData<List<String>>()
     val mnemonicLiveData: LiveData<List<String>> = _mnemonicLiveData
 
     private val _resetConfirmationEvent = MutableLiveData<Event<Unit>>()
@@ -35,6 +35,7 @@ class ConfirmMnemonicViewModel(
     val matchingMnemonicErrorAnimationEvent: LiveData<Event<Unit>> = _matchingMnemonicErrorAnimationEvent
 
     private val confirmationMnemonicWords = MutableLiveData<List<String>>()
+    private val originMnemonic = MutableLiveData<List<String>>()
 
     init {
         disposables.add(
@@ -42,7 +43,7 @@ class ConfirmMnemonicViewModel(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    _mnemonicLiveData.value = it
+                    originMnemonic.value = it
                 }, {
                     it.printStackTrace()
                 })
@@ -52,6 +53,10 @@ class ConfirmMnemonicViewModel(
             mnemonicLiveData.value?.let { mnemonic ->
                 _nextButtonEnableLiveData.value = mnemonic.size == enteredWords.size
             }
+        }
+
+        _mnemonicLiveData.addSource(originMnemonic) {
+            _mnemonicLiveData.value = it.shuffled()
         }
 
         confirmationMnemonicWords.value = mutableListOf()
@@ -92,7 +97,7 @@ class ConfirmMnemonicViewModel(
 
     fun nextButtonClicked() {
         confirmationMnemonicWords.value?.let { enteredWords ->
-            mnemonicLiveData.value?.let { mnemonic ->
+            originMnemonic.value?.let { mnemonic ->
                 if (mnemonic == enteredWords) {
                     // TODO: success case here
                 } else {
