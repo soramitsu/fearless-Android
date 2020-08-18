@@ -1,10 +1,10 @@
 package jp.co.soramitsu.feature_account_impl.data.repository
 
-import io.github.novacrypto.bip39.Words
 import io.reactivex.Completable
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
+import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
@@ -161,7 +161,7 @@ class AccountRepositoryImpl(
 
     override fun generateMnemonic(): Single<List<String>> {
         return Single.fromCallable {
-            val mnemonic = bip39.generateMnemonic(Words.TWELVE)
+            val mnemonic = bip39.generateMnemonic(MnemonicLength.TWELVE)
             mnemonic.split(" ")
         }
     }

@@ -31,8 +31,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation fileTree(dir: '../libs', include: ['*.jar', '*.aar'])
-
+    implementation(fileTree(dir: '../libs', include: ['*.jar', '*.aar']))
 
     implementation kotlinDep
 
@@ -49,6 +48,11 @@ dependencies {
 
     implementation lifecycleDep
     kapt lifecycleKapt
+
+    implementation spoungyCastleBcPixDep
+    implementation spoungyCastleBcPgDep
+
+    implementation novaCryptoDep
 
     implementation retrofitDep
     implementation gsonConvertedDep
