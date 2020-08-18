@@ -22,7 +22,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/x2"
-        tools:layout_height="144dp" />
+        tools:layout_height="144dp"
+        android:animateLayoutChanges="true" />
 
     <TextView
         style="@style/TextAppearance.Soramitsu.Body0"
@@ -37,6 +38,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/x2"
-        tools:layout_height="144dp" />
+        tools:layout_height="144dp"
+        android:animateLayoutChanges="true" />
 
 </LinearLayout>

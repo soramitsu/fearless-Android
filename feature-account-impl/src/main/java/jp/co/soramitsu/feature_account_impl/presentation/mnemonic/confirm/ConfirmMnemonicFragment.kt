@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -25,10 +26,17 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         toolbar.setHomeButtonListener {
             viewModel.homeButtonClicked()
         }
+
+        toolbar.setRightIconClickListener {
+            viewModel.resetConfirmationClicked()
+        }
+
         confirmationMnemonicView.setOnClickListener {
             confirmationMnemonicView.removeLastWord()
             wordsMnemonicView.restoreLastWord()
         }
+
+        confirmationMnemonicView.disableWordDisappearAnimation()
     }
 
     override fun inject() {
@@ -41,6 +49,11 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
     override fun subscribe(viewModel: ConfirmMnemonicViewModel) {
         observe(viewModel.mnemonicLiveData, Observer {
             populateMnemonicContainer(it)
+        })
+
+        observe(viewModel.resetConfirmationEvent, EventObserver {
+            confirmationMnemonicView.resetView()
+            wordsMnemonicView.restoreAllWords()
         })
     }
 

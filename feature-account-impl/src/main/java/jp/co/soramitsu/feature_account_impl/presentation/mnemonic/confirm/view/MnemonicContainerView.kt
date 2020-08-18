@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view
 
+import android.animation.LayoutTransition
 import android.content.Context
 import android.util.AttributeSet
 import android.util.TypedValue
@@ -15,9 +16,13 @@ class MnemonicContainerView @JvmOverloads constructor(
 
     companion object {
         private const val WORD_MARGIN_DP = 4f
+        private const val VIEW_PADDING = 12f
+
+        private const val ANIMATION_DURATION = 200L
     }
 
     private val wordMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, WORD_MARGIN_DP, resources.displayMetrics).toInt()
+    private val viewPadding = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, VIEW_PADDING, resources.displayMetrics).toInt()
 
     private val elements = mutableListOf<Element>()
 
@@ -29,11 +34,22 @@ class MnemonicContainerView @JvmOverloads constructor(
         View.inflate(context, R.layout.view_mnemonic_container, this)
         setBackgroundResource(R.drawable.bg_mnemonic_container)
         applyAttributes(attrs)
+
+        layoutTransition.apply {
+            setDuration(ANIMATION_DURATION)
+            disableTransitionType(LayoutTransition.CHANGING)
+            disableTransitionType(LayoutTransition.CHANGE_APPEARING)
+            disableTransitionType(LayoutTransition.CHANGE_DISAPPEARING)
+        }
     }
 
     private fun applyAttributes(attrs: AttributeSet?) {
         attrs?.let {
         }
+    }
+
+    fun disableWordDisappearAnimation() {
+        layoutTransition.disableTransitionType(LayoutTransition.DISAPPEARING)
     }
 
     fun populateWithMnemonic(mnemonic: List<MnemonicWordView>) {
@@ -66,6 +82,19 @@ class MnemonicContainerView @JvmOverloads constructor(
         val lastRemovedView = removedViews.last()
         removedViews.remove(lastRemovedView)
         addView(lastRemovedView)
+    }
+
+    fun resetView() {
+        elements.clear()
+        removeAllViews()
+    }
+
+    fun restoreAllWords() {
+        if (removedViews.isEmpty()) {
+            return
+        }
+        removedViews.forEach { addView(it) }
+        removedViews.clear()
     }
 
     fun populateWord(mnemonicWordView: MnemonicWordView) {
