@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MnemonicWordView">
+        <attr name="wordText" format="string" />
+        <attr format="enum" name="colorMode">
+            <enum name="light" value="0" />
+            <enum name="dark" value="1" />
+        </attr>
+    </declare-styleable>
+
+</resources>

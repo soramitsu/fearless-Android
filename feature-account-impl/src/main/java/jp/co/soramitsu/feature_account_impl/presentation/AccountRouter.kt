@@ -5,4 +5,8 @@ interface AccountRouter {
     fun backToCreateAccountScreen()
 
     fun backToWelcomeScreen()
+
+    fun openConfirmMnemonicScreen()
+
+    fun backToBackupMnemonicScreen()
 }
