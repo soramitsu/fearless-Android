@@ -60,4 +60,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
     override fun backToCreateAccountScreen() {
         navController?.popBackStack()
     }
+
+    override fun backToBackupMnemonicScreen() {
+        navController?.popBackStack()
+    }
 }

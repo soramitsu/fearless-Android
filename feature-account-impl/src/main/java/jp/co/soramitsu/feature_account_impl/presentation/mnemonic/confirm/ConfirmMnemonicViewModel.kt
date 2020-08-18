@@ -30,4 +30,8 @@ class ConfirmMnemonicViewModel(
                 })
         )
     }
+
+    fun homeButtonClicked() {
+        router.backToBackupMnemonicScreen()
+    }
 }

@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
+import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.confirmationMnemonicView
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.wordsMnemonicView
 
@@ -21,6 +22,9 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
     }
 
     override fun initViews() {
+        toolbar.setHomeButtonListener {
+            viewModel.homeButtonClicked()
+        }
         confirmationMnemonicView.setOnClickListener {
             confirmationMnemonicView.removeLastWord()
             wordsMnemonicView.restoreLastWord()
