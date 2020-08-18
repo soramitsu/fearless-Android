@@ -31,6 +31,11 @@ buildscript {
 
         zXingVersion = '3.5.0'
 
+        spoungyCastleVersion = '1.58.0.0'
+        novaCryptoVersion = '0.1.9'
+        ed25519Version = '1.0'
+        web3jVersion = '4.6.0-android'
+
         navControllerVersion = '2.0.0-rc02'
 
         junitVersion = '4.12'
@@ -66,6 +71,14 @@ buildscript {
 
         navigationFragmentDep = "androidx.navigation:navigation-fragment:$navControllerVersion"
         navigationUiDep = "androidx.navigation:navigation-ui:$navControllerVersion"
+
+        spoungyCastleBcPixDep = "com.madgag.spongycastle:bcpkix-jdk15on:$spoungyCastleVersion"
+        spoungyCastleBcPgDep = "com.madgag.spongycastle:bcpg-jdk15on:$spoungyCastleVersion"
+
+        novaCryptoDep = "io.github.novacrypto:BIP39:$novaCryptoVersion"
+        secureStringDep = "io.github.novacrypto:securestring:2019.01.27@jar"
+        web3jDep = "org.web3j:crypto:$web3jVersion"
+        ed25519Dep = "com.github.warchant:ed25519-sha3-java:$ed25519Version"
 
         retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
         rxCallAdapterDep = "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
