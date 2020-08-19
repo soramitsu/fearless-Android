@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.MainActivity
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.feature_account_impl.domain.model.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
@@ -38,9 +37,13 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         navController?.popBackStack()
     }
 
-    override fun showPincode(action: PinCodeAction) {
-        val bundle = PincodeFragment.getBundle(action)
-        navController?.navigate(R.id.pincodeFragment, bundle)
+    override fun openCreatePincode() {
+        val currentFragmentId = navController?.currentDestination?.id
+        val bundle = PincodeFragment.getBundleForCreatePincode()
+        when (currentFragmentId) {
+            R.id.importAccountFragment -> navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment, bundle)
+            R.id.confirmMnemonicFragment -> navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment, bundle)
+        }
     }
 
     override fun openConfirmMnemonicScreen() {

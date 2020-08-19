@@ -17,7 +17,6 @@ import jp.co.soramitsu.common.view.FearlessProgressDialog
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.domain.model.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.view.DotsProgressView
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
@@ -35,9 +34,9 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     companion object {
         const val PINCODE_ACTION_KEY = "pincode_action"
 
-        fun getBundle(action: PinCodeAction): Bundle {
+        fun getBundleForCreatePincode(): Bundle {
             return Bundle().apply {
-                putSerializable(PINCODE_ACTION_KEY, action)
+                putSerializable(PINCODE_ACTION_KEY, PinCodeAction.CREATE_PIN_CODE)
             }
         }
     }
@@ -86,10 +85,10 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
                 .setTitle(android.R.string.dialog_alert_title)
                 .setMessage(R.string.pincode_fingerprint_switch_dialog_title)
                 .setPositiveButton(android.R.string.yes) { _, _ ->
-                    viewModel.fingerprintSwithcDialogYesClicked()
+                    viewModel.fingerprintSwitchDialogYesClicked()
                 }
                 .setNegativeButton(android.R.string.no) { _, _ ->
-                    viewModel.fingerprintSwithcDialogNoClicked()
+                    viewModel.fingerprintSwitchDialogNoClicked()
                 }
                 .show()
         })
@@ -122,12 +121,16 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             dotsProgressView.setProgress(it)
         })
 
-        observe(viewModel.deleteButtonVisibilityLiveData, Observer {
-            pinCodeView.changeDeleteButtonVisibility(it)
+        observe(viewModel.finisAppEvent, EventObserver {
+            requireActivity().finish()
         })
 
-        observe(viewModel.closeAppLiveData, EventObserver {
-            requireActivity().finish()
+        observe(viewModel.homeButtonVisibilityLiveData, Observer {
+            if (it) {
+                toolbar.showHomeButton()
+            } else {
+                toolbar.hideHomeButton()
+            }
         })
 
         val action = arguments!!.getSerializable(PINCODE_ACTION_KEY) as PinCodeAction

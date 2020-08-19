@@ -8,17 +8,17 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.setValueIfNew
+import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.domain.model.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import java.util.concurrent.TimeUnit
 
 class PinCodeViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
-    private val maxPinCodeLength: Int
+    private val maxPinCodeLength: Int,
+    private val deviceVibrator: DeviceVibrator
 ) : BaseViewModel() {
 
     companion object {
@@ -39,22 +39,22 @@ class PinCodeViewModel(
     val fingerPrintAutFailedLiveData = MutableLiveData<Event<Unit>>()
     val fingerPrintErrorLiveData = MutableLiveData<Event<String>>()
     val pinCodeProgressLiveData = MediatorLiveData<Int>()
-    val deleteButtonVisibilityLiveData = MediatorLiveData<Boolean>()
 
     private val _biometricSwitchDialogLiveData = MutableLiveData<Event<Unit>>()
     val biometricSwitchDialogLiveData: LiveData<Event<Unit>> = _biometricSwitchDialogLiveData
 
-    private val _closeAppLiveData = MutableLiveData<Event<Unit>>()
-    val closeAppLiveData: LiveData<Event<Unit>> = _closeAppLiveData
+    private val _finishAppEvent = MutableLiveData<Event<Unit>>()
+    val finisAppEvent: LiveData<Event<Unit>> = _finishAppEvent
+
+    private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>()
+    val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
 
     init {
         pinCodeProgressLiveData.addSource(inputCodeLiveData) {
             pinCodeProgressLiveData.value = it.length
         }
 
-        deleteButtonVisibilityLiveData.addSource(inputCodeLiveData) {
-            deleteButtonVisibilityLiveData.setValueIfNew(it.isNotEmpty())
-        }
+        _homeButtonVisibilityLiveData.value = false
 
         inputCodeLiveData.value = ""
     }
@@ -74,7 +74,9 @@ class PinCodeViewModel(
                             action = PinCodeAction.CREATE_PIN_CODE
                         }
                     }, {
-                        onError(it.localizedMessage)
+                        it.localizedMessage?.let {
+                            onError(it)
+                        }
                         action = PinCodeAction.CREATE_PIN_CODE
                     })
             )
@@ -115,6 +117,7 @@ class PinCodeViewModel(
                             tempCode = pin
                             inputCodeLiveData.value = ""
                             toolbarTitleResLiveData.value = R.string.pincode_confirm_your_pin_code
+                            _homeButtonVisibilityLiveData.value = true
                         } else {
                             pinCodeEnterComplete(pin)
                         }
@@ -131,10 +134,9 @@ class PinCodeViewModel(
         if (tempCode == pinCode) {
             registerPinCode(pinCode)
         } else {
-            tempCode = ""
             inputCodeLiveData.value = ""
-            toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
-            onError(R.string.pincode_repeat_error)
+            deviceVibrator.makeShortVibration()
+            // TODO: play animation instead of error dialog
         }
     }
 
@@ -172,15 +174,16 @@ class PinCodeViewModel(
     fun backPressed() {
         if (PinCodeAction.CREATE_PIN_CODE == action) {
             if (tempCode.isEmpty()) {
-                _closeAppLiveData.value = Event(Unit)
+                _finishAppEvent.value = Event(Unit)
             } else {
                 tempCode = ""
                 inputCodeLiveData.value = ""
+                _homeButtonVisibilityLiveData.value = false
                 toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
             }
         } else {
             if (PinCodeAction.TIMEOUT_CHECK == action) {
-                _closeAppLiveData.value = Event(Unit)
+                _finishAppEvent.value = Event(Unit)
             } else {
                 router.backToBackupMnemonicScreen()
             }
@@ -209,7 +212,7 @@ class PinCodeViewModel(
         fingerPrintAvailable = authReady
     }
 
-    fun fingerprintSwithcDialogYesClicked() {
+    fun fingerprintSwitchDialogYesClicked() {
         disposables.add(
             interactor.setBiometricOn()
                 .subscribeOn(Schedulers.io())
@@ -222,7 +225,7 @@ class PinCodeViewModel(
         )
     }
 
-    fun fingerprintSwithcDialogNoClicked() {
+    fun fingerprintSwitchDialogNoClicked() {
         disposables.add(
             interactor.setBiometricOff()
                 .subscribeOn(Schedulers.io())

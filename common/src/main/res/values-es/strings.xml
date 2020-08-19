@@ -38,7 +38,6 @@
     <string name="pincode_fingerprint_error">No está autorizado. Pruebe con otro dedo.</string>
     <string name="pincode_touch_fingerprint_scanner">Toca el sensor de huellas digitales</string>
     <string name="pincode_check_error">El código ingresado es incorrecto</string>
-    <string name="pincode_repeat_error">Error de repetición del código PIN</string>
     <string name="pincode_fingerprint_switch_dialog_title">Utilice datos biométricos para autorizar</string>
     <string name="common_info">Informacion</string>
     <string name="account_creation_info">Mnemonic se usa para recuperar el acceso a la cuenta. ¡Anótelo, no podremos recuperar su cuenta sin él!</string>

@@ -65,20 +65,6 @@ class PinCodeView @JvmOverloads constructor(
         fingerprintBtn.setOnClickListener(pinCodeFingerprintClickListener)
     }
 
-    fun changeDeleteButtonVisibility(isVisible: Boolean) {
-        if (isVisible) {
-            btnDelete.animate()
-                .withStartAction { btnDelete.visibility = View.VISIBLE }
-                .alpha(1.0f)
-                .start()
-        } else {
-            btnDelete.animate()
-                .withEndAction { btnDelete.visibility = View.INVISIBLE }
-                .alpha(0.0f)
-                .start()
-        }
-    }
-
     fun changeFingerPrintButtonVisibility(isVisible: Boolean) {
         if (isVisible) {
             fingerprintBtn.visibility = View.VISIBLE
