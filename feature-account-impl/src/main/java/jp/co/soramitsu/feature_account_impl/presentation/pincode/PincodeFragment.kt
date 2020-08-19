@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.Observer
@@ -133,8 +135,27 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             }
         })
 
+        observe(viewModel.matchingPincodeErrorAnimationEvent, EventObserver {
+            playMatchingPincodeErrorAnimation()
+        })
+
         val action = arguments!!.getSerializable(PINCODE_ACTION_KEY) as PinCodeAction
         viewModel.startAuth(action)
+    }
+
+    private fun playMatchingPincodeErrorAnimation() {
+        val animation = AnimationUtils.loadAnimation(activity!!, R.anim.shake)
+        animation.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationRepeat(animation: Animation?) {
+            }
+
+            override fun onAnimationStart(animation: Animation?) {
+            }
+
+            override fun onAnimationEnd(animation: Animation?) {
+            }
+        })
+        dotsProgressView.startAnimation(animation)
     }
 
     override fun onPause() {

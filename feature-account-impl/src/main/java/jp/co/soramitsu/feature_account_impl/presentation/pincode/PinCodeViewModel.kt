@@ -49,6 +49,9 @@ class PinCodeViewModel(
     private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>()
     val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
 
+    private val _matchingPincodeErrorAnimationEvent = MutableLiveData<Event<Unit>>()
+    val matchingPincodeErrorAnimationEvent: LiveData<Event<Unit>> = _matchingPincodeErrorAnimationEvent
+
     init {
         pinCodeProgressLiveData.addSource(inputCodeLiveData) {
             pinCodeProgressLiveData.value = it.length
@@ -136,7 +139,7 @@ class PinCodeViewModel(
         } else {
             inputCodeLiveData.value = ""
             deviceVibrator.makeShortVibration()
-            // TODO: play animation instead of error dialog
+            _matchingPincodeErrorAnimationEvent.value = Event(Unit)
         }
     }
 
