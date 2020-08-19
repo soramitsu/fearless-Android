@@ -12,11 +12,13 @@ import jp.co.soramitsu.app.di.main.MainComponent
 import jp.co.soramitsu.app.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.interfaces.BackButtonListener
+import jp.co.soramitsu.common.interfaces.BottomNavigationVisibilityListener
+import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import kotlinx.android.synthetic.main.activity_main.bottomNavigationView
 import javax.inject.Inject
 
-class MainActivity : BaseActivity<MainViewModel>() {
+class MainActivity : BaseActivity<MainViewModel>(), BottomNavigationVisibilityListener {
 
     companion object {
 
@@ -56,7 +58,6 @@ class MainActivity : BaseActivity<MainViewModel>() {
     }
 
     override fun initViews() {
-        bottomNavigationView.makeVisible()
         bottomNavigationView.inflateMenu(R.menu.bottom_navigations)
 
         navController = Navigation.findNavController(this, R.id.nav_host_fragment)
@@ -88,5 +89,13 @@ class MainActivity : BaseActivity<MainViewModel>() {
                 }
             }
         }
+    }
+
+    override fun showBottomNavigation() {
+        bottomNavigationView.makeVisible()
+    }
+
+    override fun hideBottomNavigation() {
+        bottomNavigationView.makeGone()
     }
 }
