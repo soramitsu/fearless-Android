@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.navigation.fragment.NavHostFragment
 import jp.co.soramitsu.app.di.deps.findComponentDependencies
 import jp.co.soramitsu.app.di.main.MainComponent
 import jp.co.soramitsu.app.navigation.Navigator
@@ -68,16 +67,14 @@ class MainActivity : BaseActivity<MainViewModel>() {
     }
 
     override fun onBackPressed() {
-        val navHostFragment = supportFragmentManager.fragments[0] as NavHostFragment?
-
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
         navHostFragment?.childFragmentManager?.let {
             if (it.fragments.isNotEmpty()) {
-                with(it.fragments.last()) {
-                    if (this is BackButtonListener) {
-                        onBackButtonPressed()
-                    } else {
-                        super.onBackPressed()
-                    }
+                val currentFragment = it.fragments.last()
+                if (currentFragment is BackButtonListener) {
+                    currentFragment.onBackButtonPressed()
+                } else {
+                    super.onBackPressed()
                 }
             }
         }
