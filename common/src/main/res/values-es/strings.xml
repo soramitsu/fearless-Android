@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+   <string name="common_ok">Ok</string>
     <string name="common_next">Siguiente</string>
     <string name="common_error_general_title">Error</string>
     <string name="connection_error_message">Por favor, verifique la conexión a Internet e intente nuevamente más tarde.</string>

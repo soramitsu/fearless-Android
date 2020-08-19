@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_ok">Ok</string>
     <string name="common_next">Далі</string>
     <string name="common_error_general_title">Помилка</string>
     <string name="connection_error_message">Будь ласка, перевірте підключення до Інтернету та повторіть спробу пізніше.</string>

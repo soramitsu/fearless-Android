@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_ok">Ok</string>
     <string name="common_next">Киләһе</string>
     <string name="common_error_general_title">Хата</string>
     <string name="connection_error_message">Зинһар, интернет селтәрен тикшерегеҙ һәм һуңыраҡ ҡабатлап ҡарағыҙ.</string>

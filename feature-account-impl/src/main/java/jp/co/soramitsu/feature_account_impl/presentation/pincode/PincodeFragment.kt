@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.interfaces.BackButtonListener
 import jp.co.soramitsu.common.utils.EventObserver
-import jp.co.soramitsu.common.view.FearlessProgressDialog
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -31,7 +30,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     @Inject lateinit var fingerprintWrapper: FingerprintWrapper
     private lateinit var fingerprintDialog: BottomSheetDialog
-    private lateinit var progressDialog: FearlessProgressDialog
 
     companion object {
         const val PINCODE_ACTION_KEY = "pincode_action"
@@ -56,8 +54,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     override fun initViews() {
         toolbar.setHomeButtonListener { viewModel.backPressed() }
-
-        progressDialog = FearlessProgressDialog(activity!!)
 
         fingerprintDialog = BottomSheetDialog(activity!!).apply {
             setContentView(R.layout.bottom_sheet_fingerprint_dialog)

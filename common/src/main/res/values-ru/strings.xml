@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_ok">Ok</string>
     <string name="common_next">Далее</string>
     <string name="common_error_general_title">Ошибка</string>
     <string name="connection_error_message">Пожалуйста, проверьте подключение к Интернету и повторите попытку.</string>

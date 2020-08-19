@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
     <ImageView
         android:id="@+id/iconFingerprint"
         android:layout_width="50dp"
@@ -39,7 +40,7 @@
         android:padding="@dimen/x1"
         android:clickable="true"
         android:focusable="true"
-        android:foreground="?selectableItemBackground"
+        android:background="?selectableItemBackground"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
