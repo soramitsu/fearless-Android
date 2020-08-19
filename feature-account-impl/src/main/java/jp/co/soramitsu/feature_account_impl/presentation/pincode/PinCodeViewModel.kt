@@ -77,9 +77,7 @@ class PinCodeViewModel(
                             action = PinCodeAction.CREATE_PIN_CODE
                         }
                     }, {
-                        it.localizedMessage?.let {
-                            onError(it)
-                        }
+                        it.printStackTrace()
                         action = PinCodeAction.CREATE_PIN_CODE
                     })
             )
