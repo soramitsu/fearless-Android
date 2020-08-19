@@ -21,7 +21,6 @@
         android:layout_gravity="bottom"
         android:visibility="gone"
         android:background="@color/gray4"
-        android:paddingBottom="@dimen/x4"
         app:itemIconTint="@drawable/bottom_navigation_tint_color_selector"
         app:itemTextAppearanceActive="@style/BottomNavigationView"
         app:itemTextAppearanceInactive="@style/BottomNavigationView"
