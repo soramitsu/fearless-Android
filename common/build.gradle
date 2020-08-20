@@ -49,11 +49,6 @@ dependencies {
     implementation lifecycleDep
     kapt lifecycleKapt
 
-    implementation spoungyCastleBcPixDep
-    implementation spoungyCastleBcPgDep
-
-    implementation novaCryptoDep
-
     implementation retrofitDep
     implementation gsonConvertedDep
     implementation rxCallAdapterDep
