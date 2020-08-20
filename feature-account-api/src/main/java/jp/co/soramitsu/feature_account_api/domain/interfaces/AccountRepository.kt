@@ -35,6 +35,8 @@ interface AccountRepository {
 
     fun savePinCode(code: String): Completable
 
+    fun getPinCode(): String?
+
     fun isPinCorrect(code: String): Single<Boolean>
 
     fun generateMnemonic(): Single<List<String>>

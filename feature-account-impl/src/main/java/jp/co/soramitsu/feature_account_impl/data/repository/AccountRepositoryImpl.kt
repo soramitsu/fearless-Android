@@ -143,7 +143,7 @@ class AccountRepositoryImpl(
 
     override fun isCodeSet(): Single<Boolean> {
         return Single.fromCallable {
-            accountDatasource.getPinCode().isNullOrEmpty()
+            accountDatasource.getPinCode() != null
         }
     }
 
@@ -157,6 +157,10 @@ class AccountRepositoryImpl(
         return Single.fromCallable {
             accountDatasource.getPinCode() == code
         }
+    }
+
+    override fun getPinCode(): String? {
+        return accountDatasource.getPinCode()
     }
 
     override fun generateMnemonic(): Single<List<String>> {

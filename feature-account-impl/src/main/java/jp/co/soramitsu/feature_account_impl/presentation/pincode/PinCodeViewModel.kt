@@ -59,6 +59,7 @@ class PinCodeViewModel(
         _homeButtonVisibilityLiveData.value = false
 
         inputCodeLiveData.value = ""
+        checkPinCode("11")
     }
 
     fun startAuth(pinCodeAction: PinCodeAction) {
