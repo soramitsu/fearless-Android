@@ -37,7 +37,6 @@
     <string name="pincode_create_top_title">Створення пін-коду</string>
     <string name="pincode_fingerprint_error">Ви не авторизовані. Спробуйте інший палець.</string>
     <string name="pincode_touch_fingerprint_scanner">Торкніться сканера відбитків пальців</string>
-    <string name="pincode_check_error">Введено неправильний код</string>
     <string name="pincode_fingerprint_switch_dialog_title">Використовуйте біометричні для авторизації</string>
     <string name="common_info">Інформація</string>
     <string name="account_creation_info">Mnemonic використовується для відновлення доступу до рахунку. Запишіть це, ми не зможемо відновити ваш рахунок без нього!</string>

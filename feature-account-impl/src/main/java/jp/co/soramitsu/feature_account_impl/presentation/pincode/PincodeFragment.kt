@@ -99,10 +99,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             pinCodeTitleTv.setText(it)
         })
 
-        observe(viewModel.wrongPinCodeEventLiveData, EventObserver {
-            Toast.makeText(activity, getString(R.string.pincode_check_error), Toast.LENGTH_LONG).show()
-        })
-
         observe(viewModel.fingerPrintDialogVisibilityLiveData, Observer {
             if (it) fingerprintDialog.show() else fingerprintDialog.dismiss()
         })

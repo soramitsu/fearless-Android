@@ -32,7 +32,6 @@ class PinCodeViewModel(
     private val inputCodeLiveData = MutableLiveData<String>()
 
     val toolbarTitleResLiveData = MutableLiveData<Int>()
-    val wrongPinCodeEventLiveData = MutableLiveData<Event<Unit>>()
     val showFingerPrintEventLiveData = MutableLiveData<Event<Unit>>()
     val startFingerprintScannerEventLiveData = MutableLiveData<Event<Unit>>()
     val fingerPrintDialogVisibilityLiveData = MutableLiveData<Boolean>()
@@ -164,7 +163,8 @@ class PinCodeViewModel(
                         // TODO: 8/12/20 successfull auth
                     } else {
                         inputCodeLiveData.value = ""
-                        wrongPinCodeEventLiveData.value = Event(Unit)
+                        deviceVibrator.makeShortVibration()
+                        _matchingPincodeErrorAnimationEvent.value = Event(Unit)
                     }
                 }, {
                     it.printStackTrace()

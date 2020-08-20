@@ -37,7 +37,6 @@
     <string name="pincode_create_top_title">Новый пинкод</string>
     <string name="pincode_fingerprint_error">Һеҙ . Башҡа бармаҡты тейеп ҡарағыҙ.</string>
     <string name="pincode_touch_fingerprint_scanner">Бармаҡ эҙҙәре сенсор сканерын тейегеҙ</string>
-    <string name="pincode_check_error">Яңылыш код индерелгән</string>
     <string name="pincode_fingerprint_switch_dialog_title">Авторизациялау өсөн файҙаланылған мәғлүмәт биометрический</string>
     <string name="common_info">Информация</string>
     <string name="account_creation_info">Мнемоническая фраза используется для восстановления доступа к аккаунту. Запишите ее, мы не сможем восстановить доступ к аккаунту без нее!</string>

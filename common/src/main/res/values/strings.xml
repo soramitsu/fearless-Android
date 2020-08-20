@@ -34,7 +34,6 @@
     <string name="pincode_create_top_title">Create pin code</string>
     <string name="pincode_fingerprint_error">You are not authorized. Try another finger.</string>
     <string name="pincode_touch_fingerprint_scanner">Touch the fingerprint scanner</string>
-    <string name="pincode_check_error">Entered code is wrong</string>
     <string name="pincode_fingerprint_switch_dialog_title">Use biometric to authorize</string>
     <string name="recovery_raw_seed">Raw seed</string>
     <string name="common_undefined_error_message">Please, try again with another input. If the error appears again, please, contact support.</string>
