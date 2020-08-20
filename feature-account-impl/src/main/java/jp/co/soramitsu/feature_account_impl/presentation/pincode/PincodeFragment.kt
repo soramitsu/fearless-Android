@@ -47,7 +47,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     override fun inject() {
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
-            .pincodeMnemonicComponentFactory()
+            .pincodeComponentFactory()
             .create(DotsProgressView.MAX_PROGRESS, this)
             .inject(this)
     }
