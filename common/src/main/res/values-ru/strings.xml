@@ -5,8 +5,7 @@
     <string name="common_error_general_title">Ошибка</string>
     <string name="connection_error_message">Пожалуйста, проверьте подключение к Интернету и повторите попытку.</string>
     <string name="onboarding_restore_account">Восстановить</string>
-    <string name="onboarding_terms_and_conditions_1">Я подтверждаю, что прочитал и согласен с
-Условиями использования и Политикой конфиденциальности</string>
+    <string name="onboarding_terms_and_conditions_1">Я подтверждаю, что прочитал и согласен с Условиями использования и Политикой конфиденциальности</string>
     <string name="onboarding_terms_and_conditions_2">Условиями использования</string>
     <string name="onboarding_privacy_policy">Политикой конфиденциальности</string>
     <string name="pincode_enter_pin_code">Введите PIN-код</string>

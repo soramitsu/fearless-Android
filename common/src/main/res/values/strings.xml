@@ -5,8 +5,7 @@
     <string name="common_error_general_title">Error</string>
     <string name="connection_error_message">Please, check internet connection and try again later.</string>
     <string name="onboarding_restore_account">Import account</string>
-    <string name="onboarding_terms_and_conditions_1">I have read and agreed to
-Terms and Conditions and Privacy Policy</string>
+    <string name="onboarding_terms_and_conditions_1">I have read and agreed to Terms and Conditions and Privacy Policy</string>
     <string name="onboarding_terms_and_conditions_2">Terms and Conditions</string>
     <string name="onboarding_privacy_policy">Privacy Policy</string>
     <string name="pincode_enter_pin_code">Enter pin code</string>
