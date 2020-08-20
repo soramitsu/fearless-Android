@@ -34,9 +34,9 @@ interface AccountDatasource {
 
     fun getConnectionUrl(): String?
 
-    fun saveNetworkType(networkType: NetworkType)
+    fun saveSelectedNodeLink(link: String)
 
-    fun getNetworkType(): NetworkType?
+    fun getSelectedNodeLink(): String?
 
     fun setMnemonicIsBackedUp(backedUp: Boolean)
 

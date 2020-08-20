@@ -4,6 +4,7 @@ import dagger.BindsInstance
 import dagger.Component
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.importing.di.ImportAccountComponent
@@ -38,7 +39,8 @@ interface AccountFeatureComponent : AccountFeatureApi {
 
     @Component(
         dependencies = [
-            CommonApi::class
+            CommonApi::class,
+            DbApi::class
         ]
     )
     interface AccountFeatureDependenciesComponent : AccountFeatureDependencies

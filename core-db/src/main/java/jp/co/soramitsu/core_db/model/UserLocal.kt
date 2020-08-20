@@ -5,7 +5,9 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "users")
 data class UserLocal(
-    @PrimaryKey val id: Int,
-    val firstName: String,
-    val lastName: String
+    @PrimaryKey val address: String,
+    val username: String,
+    val publicKey: String,
+    val cryptoType: Int,
+    val networkType: Int
 )

@@ -6,6 +6,8 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.core_db.dao.NodeDao
+import jp.co.soramitsu.core_db.dao.UserDao
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
@@ -24,9 +26,11 @@ class AccountFeatureModule {
     @FeatureScope
     fun provideAccountRepository(
         accountDatasource: AccountDatasource,
-        appLinksProvider: AppLinksProvider
+        appLinksProvider: AppLinksProvider,
+        userDao: UserDao,
+        nodeDao: NodeDao
     ): AccountRepository {
-        return AccountRepositoryImpl(accountDatasource, Bip39(), SS58Encoder(), JunctionDecoder(), KeypairFactory(), appLinksProvider)
+        return AccountRepositoryImpl(accountDatasource, userDao, nodeDao, Bip39(), SS58Encoder(), JunctionDecoder(), KeypairFactory(), appLinksProvider)
     }
 
     @Provides

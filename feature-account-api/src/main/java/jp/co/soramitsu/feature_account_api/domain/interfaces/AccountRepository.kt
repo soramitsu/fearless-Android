@@ -19,7 +19,17 @@ interface AccountRepository {
 
     fun getNetworks(): Single<List<Network>>
 
-    fun getSelectedNetwork(): Single<NetworkType>
+    fun getSelectedNetwork(): Single<Network>
+
+    fun saveNetwork(network: Network): Completable
+
+    fun removeNetwork(network: Network): Completable
+
+    fun selectNetwork(network: Network): Completable
+
+    fun selectAccount(address: String): Completable
+
+    fun removeAccount(address: String): Completable
 
     fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable
 

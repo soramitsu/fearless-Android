@@ -5,6 +5,8 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
+import jp.co.soramitsu.core_db.dao.NodeDao
+import jp.co.soramitsu.core_db.dao.UserDao
 
 interface AccountFeatureDependencies {
 
@@ -17,4 +19,8 @@ interface AccountFeatureDependencies {
     fun resourceManager(): ResourceManager
 
     fun deviceVibrator(): DeviceVibrator
+
+    fun userDao(): UserDao
+
+    fun nodeDao(): NodeDao
 }

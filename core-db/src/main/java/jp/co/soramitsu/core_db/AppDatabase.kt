@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.UserDao
 import jp.co.soramitsu.core_db.model.UserLocal
 
@@ -28,6 +29,8 @@ abstract class AppDatabase : RoomDatabase() {
             return instance!!
         }
     }
+
+    abstract fun nodeDao(): NodeDao
 
     abstract fun userDao(): UserDao
 }

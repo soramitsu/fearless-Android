@@ -13,8 +13,8 @@ abstract class UserDao {
     @Query("select * from users")
     abstract fun getUsers(): Single<List<UserLocal>>
 
-    @Query("select * from users where id = :id")
-    abstract fun getUser(id: Int): Single<UserLocal>
+    @Query("select * from users where address = :address")
+    abstract fun getUser(address: String): Single<UserLocal>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insert(users: List<UserLocal>)
