@@ -7,6 +7,7 @@ import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -18,7 +19,8 @@ class PinCodeViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val maxPinCodeLength: Int,
-    private val deviceVibrator: DeviceVibrator
+    private val deviceVibrator: DeviceVibrator,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel() {
 
     companion object {
@@ -35,9 +37,12 @@ class PinCodeViewModel(
     val showFingerPrintEventLiveData = MutableLiveData<Event<Unit>>()
     val startFingerprintScannerEventLiveData = MutableLiveData<Event<Unit>>()
     val fingerPrintDialogVisibilityLiveData = MutableLiveData<Boolean>()
-    val fingerPrintAutFailedLiveData = MutableLiveData<Event<Unit>>()
-    val fingerPrintErrorLiveData = MutableLiveData<Event<String>>()
-    val pinCodeProgressLiveData = MediatorLiveData<Int>()
+
+    private val _fingerPrintErrorEvent = MutableLiveData<Event<String>>()
+    val fingerPrintErrorEvent: LiveData<Event<String>> = _fingerPrintErrorEvent
+
+    private val _pinCodeProgressLiveData = MediatorLiveData<Int>()
+    val pinCodeProgressLiveData: LiveData<Int> = _pinCodeProgressLiveData
 
     private val _biometricSwitchDialogLiveData = MutableLiveData<Event<Unit>>()
     val biometricSwitchDialogLiveData: LiveData<Event<Unit>> = _biometricSwitchDialogLiveData
@@ -52,8 +57,8 @@ class PinCodeViewModel(
     val matchingPincodeErrorAnimationEvent: LiveData<Event<Unit>> = _matchingPincodeErrorAnimationEvent
 
     init {
-        pinCodeProgressLiveData.addSource(inputCodeLiveData) {
-            pinCodeProgressLiveData.value = it.length
+        _pinCodeProgressLiveData.addSource(inputCodeLiveData) {
+            _pinCodeProgressLiveData.value = it.length
         }
 
         _homeButtonVisibilityLiveData.value = false
@@ -199,7 +204,7 @@ class PinCodeViewModel(
     }
 
     fun onAuthenticationError(errString: String) {
-        fingerPrintErrorLiveData.value = Event(errString)
+        _fingerPrintErrorEvent.value = Event(errString)
     }
 
     fun onAuthenticationSucceeded() {
@@ -207,7 +212,7 @@ class PinCodeViewModel(
     }
 
     fun onAuthenticationFailed() {
-        fingerPrintAutFailedLiveData.value = Event(Unit)
+        _fingerPrintErrorEvent.value = Event(resourceManager.getString(R.string.pincode_fingerprint_error))
     }
 
     fun fingerprintScannerAvailable(authReady: Boolean) {

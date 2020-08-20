@@ -103,11 +103,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             if (it) fingerprintDialog.show() else fingerprintDialog.dismiss()
         })
 
-        observe(viewModel.fingerPrintAutFailedLiveData, EventObserver {
-            Toast.makeText(context, R.string.pincode_fingerprint_error, Toast.LENGTH_SHORT).show()
-        })
-
-        observe(viewModel.fingerPrintErrorLiveData, EventObserver {
+        observe(viewModel.fingerPrintErrorEvent, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         })
 

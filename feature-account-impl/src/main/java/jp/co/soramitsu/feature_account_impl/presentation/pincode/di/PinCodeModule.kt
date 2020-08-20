@@ -31,8 +31,8 @@ class PinCodeModule {
     @Provides
     @IntoMap
     @ViewModelKey(PinCodeViewModel::class)
-    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, maxPinCodeLength: Int, deviceVibrator: DeviceVibrator): ViewModel {
-        return PinCodeViewModel(interactor, router, maxPinCodeLength, deviceVibrator)
+    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, maxPinCodeLength: Int, deviceVibrator: DeviceVibrator, resourceManager: ResourceManager): ViewModel {
+        return PinCodeViewModel(interactor, router, maxPinCodeLength, deviceVibrator, resourceManager)
     }
 
     @Provides
@@ -49,11 +49,7 @@ class PinCodeModule {
             .setNegativeButtonText(resourceManager.getString(android.R.string.cancel))
             .build()
 
-        return FingerprintWrapper(
-            biometricManager,
-            biometricPrompt,
-            promptInfo
-        )
+        return FingerprintWrapper(biometricManager, biometricPrompt, promptInfo)
     }
 
     @Provides
