@@ -25,7 +25,6 @@ class AccountDatasourceImpl(
         private const val PREFS_SEED_MASK = "seed_%s"
         private const val PREFS_ENTROPY_MASK = "entropy_%s"
         private const val PREFS_DERIVATION_MASK = "derivation_%s"
-        private const val PREFS_BIOMETRIC_ENABLED = "biometric_enabled"
     }
 
     override fun saveAuthType(authType: AuthType) {
