@@ -41,5 +41,19 @@ interface AccountRepository {
 
     fun importFromJson(json: String, password: String, networkType: NetworkType): Completable
 
+    fun isCodeSet(): Single<Boolean>
+
+    fun savePinCode(code: String): Completable
+
+    fun getPinCode(): String?
+
+    fun isPinCorrect(code: String): Single<Boolean>
+
     fun generateMnemonic(): Single<List<String>>
+
+    fun isBiometricEnabled(): Single<Boolean>
+
+    fun setBiometricOn(): Completable
+
+    fun setBiometricOff(): Completable
 }

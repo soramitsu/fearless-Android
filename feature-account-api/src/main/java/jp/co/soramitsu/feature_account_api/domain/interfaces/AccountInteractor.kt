@@ -24,4 +24,16 @@ interface AccountInteractor {
     fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
 
     fun importFromJson(json: String, password: String, node: NetworkType): Completable
+
+    fun isCodeSet(): Single<Boolean>
+
+    fun savePin(code: String): Completable
+
+    fun isPinCorrect(code: String): Single<Boolean>
+
+    fun isBiometricEnabled(): Single<Boolean>
+
+    fun setBiometricOn(): Completable
+
+    fun setBiometricOff(): Completable
 }

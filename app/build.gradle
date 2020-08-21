@@ -47,8 +47,6 @@ dependencies {
     implementation androidDep
     implementation constraintDep
 
-    implementation novaCryptoDep
-
     implementation zXingEmbeddedDep
 
     implementation navigationFragmentDep
