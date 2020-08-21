@@ -38,7 +38,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         AlertDialog.Builder(activity!!)
             .setTitle(R.string.common_error_general_title)
             .setMessage(errorMessage)
-            .setPositiveButton(android.R.string.ok) { _, _ -> }
+            .setPositiveButton(R.string.common_ok) { _, _ -> }
             .show()
     }
 
@@ -46,7 +46,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         AlertDialog.Builder(activity!!)
             .setTitle(R.string.common_error_general_title)
             .setMessage(resId)
-            .setPositiveButton(android.R.string.ok) { _, _ -> }
+            .setPositiveButton(R.string.common_ok) { _, _ -> }
             .show()
     }
 
@@ -54,7 +54,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         AlertDialog.Builder(activity!!)
             .setTitle(title)
             .setMessage(errorMessage)
-            .setPositiveButton(android.R.string.ok) { _, _ -> }
+            .setPositiveButton(R.string.common_ok) { _, _ -> }
             .show()
     }
 

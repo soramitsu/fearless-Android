@@ -1,16 +1,17 @@
 package jp.co.soramitsu.feature_account_impl.data.repository
 
-import io.github.novacrypto.bip39.Words
 import io.reactivex.Completable
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
+import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
@@ -79,7 +80,7 @@ class AccountRepositoryImpl(
     override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
         return saveSelectedEncryptionType(encryptionType)
             .andThen(saveSelectedNetwork(networkType))
-            .andThen { saveAccountData(accountName, mnemonic, derivationPath, encryptionType, networkType) }
+            .doOnComplete { saveAccountData(accountName, mnemonic, derivationPath, encryptionType, networkType) }
     }
 
     override fun getSourceTypes(): Single<List<SourceType>> {
@@ -124,7 +125,7 @@ class AccountRepositoryImpl(
         return when (cryptoType) {
             CryptoType.SR25519 -> EncryptionType.SR25519
             CryptoType.ED25519 -> EncryptionType.ED25519
-            CryptoType.ECDSA -> EncryptionType.ECDCA
+            CryptoType.ECDSA -> EncryptionType.ECDSA
         }
     }
 
@@ -132,7 +133,7 @@ class AccountRepositoryImpl(
         return when (networkType) {
             NetworkType.KUSAMA -> AddressType.KUSAMA
             NetworkType.POLKADOT -> AddressType.POLKADOT
-            NetworkType.WESTEND -> AddressType.POLKADOT
+            NetworkType.WESTEND -> AddressType.WESTEND
         }
     }
 
@@ -140,10 +141,50 @@ class AccountRepositoryImpl(
         return Completable.complete()
     }
 
+    override fun isCodeSet(): Single<Boolean> {
+        return Single.fromCallable {
+            accountDatasource.getPinCode() != null
+        }
+    }
+
+    override fun savePinCode(code: String): Completable {
+        return Completable.fromCallable {
+            accountDatasource.savePinCode(code)
+        }
+    }
+
+    override fun isPinCorrect(code: String): Single<Boolean> {
+        return Single.fromCallable {
+            accountDatasource.getPinCode() == code
+        }
+    }
+
+    override fun getPinCode(): String? {
+        return accountDatasource.getPinCode()
+    }
+
     override fun generateMnemonic(): Single<List<String>> {
         return Single.fromCallable {
-            val mnemonic = bip39.generateMnemonic(Words.TWELVE)
+            val mnemonic = bip39.generateMnemonic(MnemonicLength.TWELVE)
             mnemonic.split(" ")
+        }
+    }
+
+    override fun isBiometricEnabled(): Single<Boolean> {
+        return Single.fromCallable {
+            accountDatasource.getAuthType() == AuthType.BIOMETRY
+        }
+    }
+
+    override fun setBiometricOn(): Completable {
+        return Completable.fromAction {
+            accountDatasource.saveAuthType(AuthType.BIOMETRY)
+        }
+    }
+
+    override fun setBiometricOff(): Completable {
+        return Completable.fromAction {
+            accountDatasource.saveAuthType(AuthType.PINCODE)
         }
     }
 

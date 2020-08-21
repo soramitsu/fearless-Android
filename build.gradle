@@ -18,6 +18,8 @@ buildscript {
         rxJavaVersion = '2.2.7'
         rxAndroidVersion = '2.1.0'
 
+        biometricVersion = '1.0.1'
+
         daggerVersion = '2.25.2'
         javaxInjectVersion = '1'
 
@@ -37,11 +39,11 @@ buildscript {
         mockitoVersion = '2.23.0'
         robolectricVersion = '4.1'
 
-        ed25519Version = '1.0'
-
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
         rxPermssionVersion = '0.10.2'
+
+        biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
@@ -67,19 +69,16 @@ buildscript {
         navigationFragmentDep = "androidx.navigation:navigation-fragment:$navControllerVersion"
         navigationUiDep = "androidx.navigation:navigation-ui:$navControllerVersion"
 
+        novaCryptoDep = "io.github.novacrypto:BIP39:$novaCryptoVersion"
+
         retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
         rxCallAdapterDep = "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
         gsonConvertedDep = "com.squareup.retrofit2:converter-gson:$retrofitVersion"
         gsonDep = "com.google.code.gson:gson:$gsonVersion"
 
-        novaCryptoDep = "io.github.novacrypto:BIP39:$novaCryptoVersion"
-        secureStringDep = "io.github.novacrypto:securestring:2019.01.27@jar"
-
         zXingCoreDep = "com.google.zxing:core:$zXingVersion"
         zXingEmbeddedDep = "com.journeyapps:zxing-android-embedded:$zXingEmbeddedVersion"
         rxPermissionsDep = "com.github.tbruyelle:rxpermissions:$rxPermssionVersion"
-
-        ed25519Dep = "com.github.warchant:ed25519-sha3-java:$ed25519Version"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"

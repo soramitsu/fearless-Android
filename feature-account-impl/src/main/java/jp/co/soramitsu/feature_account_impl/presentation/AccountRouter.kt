@@ -6,6 +6,8 @@ interface AccountRouter {
 
     fun backToWelcomeScreen()
 
+    fun openCreatePincode()
+
     fun openConfirmMnemonicScreen()
 
     fun backToBackupMnemonicScreen()

@@ -19,7 +19,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 
-
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
 @Module

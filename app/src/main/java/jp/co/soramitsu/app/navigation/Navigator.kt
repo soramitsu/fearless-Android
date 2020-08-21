@@ -6,6 +6,7 @@ import jp.co.soramitsu.app.MainActivity
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.splash.SplashRouter
 
@@ -34,6 +35,15 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
 
     override fun backToWelcomeScreen() {
         navController?.popBackStack()
+    }
+
+    override fun openCreatePincode() {
+        val currentFragmentId = navController?.currentDestination?.id
+        val bundle = PincodeFragment.getBundleForCreatePincode()
+        when (currentFragmentId) {
+            R.id.importAccountFragment -> navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment, bundle)
+            R.id.confirmMnemonicFragment -> navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment, bundle)
+        }
     }
 
     override fun openConfirmMnemonicScreen() {

@@ -8,3 +8,6 @@
 app/src/main/aidl/
 app/*.apk
 /.idea/
+
+# ignore jacoco coverage reports
+/coverage
