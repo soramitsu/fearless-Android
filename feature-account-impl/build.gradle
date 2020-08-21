@@ -24,7 +24,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', "*.aar"])
-    implementation fileTree(dir: '../libs', include: ['*.jar', '*.aar'])
+//    implementation fileTree(dir: '../libs', include: ['*.jar', '*.aar'])
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-account-api')
@@ -36,15 +36,14 @@ dependencies {
     implementation cardViewDep
     implementation constraintDep
 
-    implementation ed25519Dep
-    implementation secureStringDep
-
     implementation rxJavaDep
     implementation rxAndroidDep
 
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
     implementation rxPermissionsDep
+
+    implementation fearlessLibDep
 
     implementation daggerDep
     kapt daggerKapt
@@ -55,8 +54,6 @@ dependencies {
 
     implementation lifecycleDep
     kapt lifecycleKapt
-
-    implementation novaCryptoDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep

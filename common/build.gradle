@@ -31,7 +31,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation fileTree(dir: '../libs', include: ['*.jar', '*.aar'])
 
 
     implementation kotlinDep
@@ -41,6 +40,8 @@ dependencies {
     implementation recyclerViewDep
     implementation materialDep
     implementation constraintDep
+
+    implementation fearlessLibDep
 
     implementation rxJavaDep
 
@@ -53,8 +54,6 @@ dependencies {
     implementation retrofitDep
     implementation gsonConvertedDep
     implementation rxCallAdapterDep
-
-    implementation novaCryptoDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep
