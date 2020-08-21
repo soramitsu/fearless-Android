@@ -32,7 +32,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-
     implementation kotlinDep
 
     implementation androidDep
@@ -40,6 +39,9 @@ dependencies {
     implementation recyclerViewDep
     implementation materialDep
     implementation constraintDep
+
+    implementation spoungyCastleBcPixDep
+    implementation spoungyCastleBcPgDep
 
     implementation fearlessLibDep
 

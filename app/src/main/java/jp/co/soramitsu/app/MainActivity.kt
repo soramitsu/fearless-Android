@@ -9,6 +9,7 @@ import jp.co.soramitsu.app.di.deps.findComponentDependencies
 import jp.co.soramitsu.app.di.main.MainComponent
 import jp.co.soramitsu.app.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
+import jp.co.soramitsu.common.interfaces.BackButtonListener
 import javax.inject.Inject
 
 class MainActivity : BaseActivity<MainViewModel>() {
@@ -62,6 +63,20 @@ class MainActivity : BaseActivity<MainViewModel>() {
         super.onDestroy()
         navController?.let {
             navigator.detachNavController(it)
+        }
+    }
+
+    override fun onBackPressed() {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+        navHostFragment?.childFragmentManager?.let {
+            if (it.fragments.isNotEmpty()) {
+                val currentFragment = it.fragments.last()
+                if (currentFragment is BackButtonListener) {
+                    currentFragment.onBackButtonPressed()
+                } else {
+                    super.onBackPressed()
+                }
+            }
         }
     }
 }

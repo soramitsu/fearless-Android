@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
+apply from: '../tests.gradle'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -35,12 +36,16 @@ dependencies {
     implementation cardViewDep
     implementation constraintDep
 
+    implementation biometricDep
+
     implementation rxJavaDep
     implementation rxAndroidDep
 
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
     implementation rxPermissionsDep
+
+    implementation spoungyCastleBcPgDep
 
     implementation fearlessLibDep
 

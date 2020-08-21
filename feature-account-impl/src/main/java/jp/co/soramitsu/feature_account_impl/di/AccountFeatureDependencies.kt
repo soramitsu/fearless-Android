@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.di
 
+import android.content.Context
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -15,6 +16,8 @@ interface AccountFeatureDependencies {
     fun encryptedPreferences(): EncryptedPreferences
 
     fun resourceManager(): ResourceManager
+
+    fun context(): Context
 
     fun deviceVibrator(): DeviceVibrator
 }

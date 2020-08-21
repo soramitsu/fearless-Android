@@ -235,7 +235,9 @@ class ImportAccountViewModel(
                         importDisposable
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe({}, {
+                            .subscribe({
+                                router.openCreatePincode()
+                            }, {
                                 if (it is Bip39Exception) {
                                     onError(R.string.access_restore_phrase_error_message)
                                 } else {

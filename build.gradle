@@ -18,6 +18,8 @@ buildscript {
         rxJavaVersion = '2.2.7'
         rxAndroidVersion = '2.1.0'
 
+        biometricVersion = '1.0.1'
+
         daggerVersion = '2.25.2'
         javaxInjectVersion = '1'
 
@@ -35,11 +37,15 @@ buildscript {
         mockitoVersion = '2.23.0'
         robolectricVersion = '4.1'
 
-        fearlessLibVersion = '1.0.0'
+        spoungyCastleVersion = '1.58.0.0'
+
+        fearlessLibVersion = '1.0.1'
 
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
         rxPermssionVersion = '0.10.2'
+
+        biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
@@ -64,6 +70,9 @@ buildscript {
 
         navigationFragmentDep = "androidx.navigation:navigation-fragment:$navControllerVersion"
         navigationUiDep = "androidx.navigation:navigation-ui:$navControllerVersion"
+
+        spoungyCastleBcPixDep = "com.madgag.spongycastle:bcpkix-jdk15on:$spoungyCastleVersion"
+        spoungyCastleBcPgDep = "com.madgag.spongycastle:bcpg-jdk15on:$spoungyCastleVersion"
 
         retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
         rxCallAdapterDep = "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
