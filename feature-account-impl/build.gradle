@@ -46,6 +46,8 @@ dependencies {
     implementation zXingEmbeddedDep
     implementation rxPermissionsDep
 
+    implementation novaCryptoDep
+
     implementation daggerDep
     kapt daggerKapt
 
