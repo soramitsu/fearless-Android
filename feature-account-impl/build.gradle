@@ -42,14 +42,6 @@ dependencies {
     implementation rxJavaDep
     implementation rxAndroidDep
 
-    implementation spoungyCastleBcPixDep
-    implementation spoungyCastleBcPgDep
-
-    implementation ed25519Dep
-    implementation secureStringDep
-    implementation web3jDep
-    implementation novaCryptoDep
-
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
     implementation rxPermissionsDep
