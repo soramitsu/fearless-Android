@@ -49,6 +49,8 @@ dependencies {
     implementation lifecycleDep
     kapt lifecycleKapt
 
+    implementation novaCryptoDep
+
     implementation retrofitDep
     implementation gsonConvertedDep
     implementation rxCallAdapterDep
