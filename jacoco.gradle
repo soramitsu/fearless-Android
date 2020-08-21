@@ -1,0 +1,107 @@
+apply plugin: 'jacoco'
+
+jacoco {
+    toolVersion = "0.8.4"
+}
+
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+}
+
+afterEvaluate {
+
+    task jacocoTestReport(type: JacocoReport) {
+        outputs.cacheIf { true }
+
+        Task runTestsTask
+
+        group "Reporting"
+        description "Generate Jacoco coverage reports."
+
+        print "configuring jacoco for project: ${project.name}"
+
+        if (project.tasks.findByName('testDevelopDebugUnitTest')) {
+            runTestsTask = project.tasks.findByName('testDevelopDebugUnitTest')
+        } else {
+            runTestsTask = project.tasks.findByName('testDebugUnitTest')
+        }
+
+
+        dependsOn runTestsTask
+
+        def outputFileName = "coverage/coverage-${project.name}.xml"
+        def outputFileNameHtml = "coverage/coverage-${project.name}.html"
+
+        def file = new File("coverage/")
+        if (!file.exists()) file.mkdirs()
+
+        reports {
+            xml.enabled = true
+            html.enabled = true
+            html.setDestination(new File(outputFileNameHtml))
+            xml.setDestination(new File(outputFileName))
+        }
+
+        outputs.upToDateWhen { false }
+
+        def javaClasses = []
+        def kotlinClasses = []
+        def sourceDirs = []
+        def execution = []
+
+        def fileFilter = ['**/R.class',
+                          '**/R$*.class',
+                          '**/BuildConfig.*',
+                          '**/Manifest*.*',
+                          '**/*Test.*',
+                          '**/*Activity.*',
+                          '**/*Fragment.*',
+                          '**/*Adapter.*',
+                          '**/*Holder.*',
+                          '**/*App.*',
+                          '**/*Application.*',
+                          '**/*Dialog.*',
+                          '**/*Ext.*',
+                          '**/*ViewPager.*',
+                          '**/*Module.*',
+                          '**/*Dependencies.*',
+                          '**/*Router.*',
+                          '**/*Component.*',
+                          '**/*ViewModelFactory.*',
+                          '**/*Api.*',
+                          '**/*Dao.*',
+                          'android/**/*.*',
+                          '**/com/google/protobuf/**/*.*',
+                          '**/com/google/api/*.*',
+                          '**/data/db/dao/*.*',
+                          '**/android/databinding/layouts/*.*',
+                          '**/androidx/databinding/library/baseAdapters/*.*',
+                          '**/*Activity.*',
+                          '**/*Fragment.*',
+                          '**/di/**',
+                          '**/view/**',
+        ]
+
+        javaClasses << fileTree(dir: "$buildDir/intermediates/javac/debug", excludes: fileFilter)
+
+        kotlinClasses << fileTree(dir: "$buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+
+        sourceDirs << fileTree(dir: "$projectDir/src/main/java", excludes: fileFilter)
+
+        execution << fileTree(dir: buildDir,
+                includes: ["jacoco/${runTestsTask.name}.exec",
+                           'outputs/code_coverage/debugAndroidTest/connected/**/*.ec'])
+
+        executionData.setFrom(files(execution))
+        sourceDirectories.setFrom(files([sourceDirs]))
+        classDirectories.setFrom(files([javaClasses, kotlinClasses]))
+
+        doFirst {
+            print "generating jacoco report for project: ${project.name} \n"
+            print "sourceDirs = " + sourceDirs + '\n'
+            print "execution = " + execution + '\n'
+            print "classDirectoriesJava = " + javaClasses + '\n'
+            print "classDirectoriesKT = " + kotlinClasses + '\n'
+        }
+    }
+}
