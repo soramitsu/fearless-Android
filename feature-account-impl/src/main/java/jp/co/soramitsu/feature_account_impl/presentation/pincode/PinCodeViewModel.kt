@@ -33,10 +33,17 @@ class PinCodeViewModel(
 
     private val inputCodeLiveData = MutableLiveData<String>()
 
-    val toolbarTitleResLiveData = MutableLiveData<Int>()
-    val showFingerPrintEventLiveData = MutableLiveData<Event<Unit>>()
-    val startFingerprintScannerEventLiveData = MutableLiveData<Event<Unit>>()
-    val fingerPrintDialogVisibilityLiveData = MutableLiveData<Boolean>()
+    private val _titleLiveData = MutableLiveData<String>()
+    val titleLiveData: LiveData<String> = _titleLiveData
+
+    private val _showFingerPrintEvent = MutableLiveData<Event<Unit>>()
+    val showFingerPrintEvent: LiveData<Event<Unit>> = _showFingerPrintEvent
+
+    private val _startFingerprintScannerEventLiveData = MutableLiveData<Event<Unit>>()
+    val startFingerprintScannerEventLiveData: LiveData<Event<Unit>> = _startFingerprintScannerEventLiveData
+
+    private val _fingerPrintDialogVisibilityLiveData = MutableLiveData<Boolean>()
+    val fingerPrintDialogVisibilityLiveData: LiveData<Boolean> = _fingerPrintDialogVisibilityLiveData
 
     private val _fingerPrintErrorEvent = MutableLiveData<Event<String>>()
     val fingerPrintErrorEvent: LiveData<Event<String>> = _fingerPrintErrorEvent
@@ -68,15 +75,15 @@ class PinCodeViewModel(
 
     fun startAuth(pinCodeAction: PinCodeAction) {
         action = pinCodeAction
-        toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
+        _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
 
         if (action == PinCodeAction.TIMEOUT_CHECK) {
             disposables.add(
                 interactor.isCodeSet()
                     .subscribe({
-                        toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
+                        _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
                         if (it) {
-                            showFingerPrintEventLiveData.value = Event(Unit)
+                            _showFingerPrintEvent.value = Event(Unit)
                         } else {
                             action = PinCodeAction.CREATE_PIN_CODE
                         }
@@ -121,7 +128,7 @@ class PinCodeViewModel(
                         if (tempCode.isEmpty()) {
                             tempCode = pin
                             inputCodeLiveData.value = ""
-                            toolbarTitleResLiveData.value = R.string.pincode_confirm_your_pin_code
+                            _titleLiveData.value = resourceManager.getString(R.string.pincode_confirm_your_pin_code)
                             _homeButtonVisibilityLiveData.value = true
                         } else {
                             pinCodeEnterComplete(pin)
@@ -185,7 +192,7 @@ class PinCodeViewModel(
                 tempCode = ""
                 inputCodeLiveData.value = ""
                 _homeButtonVisibilityLiveData.value = false
-                toolbarTitleResLiveData.value = R.string.pincode_enter_pin_code
+                _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
             }
         } else {
             if (PinCodeAction.TIMEOUT_CHECK == action) {
@@ -198,7 +205,7 @@ class PinCodeViewModel(
 
     fun onResume() {
         if (action != PinCodeAction.CREATE_PIN_CODE) {
-            startFingerprintScannerEventLiveData.value = Event(Unit)
+            _startFingerprintScannerEventLiveData.value = Event(Unit)
         }
     }
 

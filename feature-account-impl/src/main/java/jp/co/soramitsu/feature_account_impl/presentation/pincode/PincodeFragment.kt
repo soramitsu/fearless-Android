@@ -91,12 +91,12 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
                 .show()
         })
 
-        observe(viewModel.showFingerPrintEventLiveData, EventObserver {
+        observe(viewModel.showFingerPrintEvent, EventObserver {
             pinCodeView.changeFingerPrintButtonVisibility(fingerprintWrapper.isAuthReady())
         })
 
-        observe(viewModel.toolbarTitleResLiveData, Observer {
-            pinCodeTitleTv.setText(it)
+        observe(viewModel.titleLiveData, Observer {
+            pinCodeTitleTv.text = it
         })
 
         observe(viewModel.fingerPrintDialogVisibilityLiveData, Observer {

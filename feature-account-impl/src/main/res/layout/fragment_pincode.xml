@@ -12,8 +12,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:homeButtonVisible="false"
-        app:titleText="@string/pincode_create_top_title" />
+        app:homeButtonVisible="false" />
 
     <LinearLayout
         android:layout_width="wrap_content"
