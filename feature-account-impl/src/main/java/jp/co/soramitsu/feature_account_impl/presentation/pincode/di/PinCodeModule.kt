@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.io.MainThreadExecutor
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintCallback
@@ -45,8 +46,8 @@ class PinCodeModule {
         val biometricManager = BiometricManager.from(context)
         val biometricPrompt = BiometricPrompt(fragment, MainThreadExecutor(), fingerprintListener)
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Title")
-            .setNegativeButtonText(resourceManager.getString(android.R.string.cancel))
+            .setTitle(resourceManager.getString(R.string.pincode_biometry_dialog_title))
+            .setNegativeButtonText(resourceManager.getString(R.string.common_cancel))
             .build()
 
         return FingerprintWrapper(biometricManager, biometricPrompt, promptInfo)

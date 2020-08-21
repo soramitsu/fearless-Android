@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="common_ok">Ok</string>
+    <string name="common_use">Использовать</string>
+    <string name="common_skip">Пропустить</string>
     <string name="common_next">Далее</string>
     <string name="common_error_general_title">Ошибка</string>
     <string name="connection_error_message">Пожалуйста, проверьте подключение к Интернету и повторите попытку.</string>
@@ -44,4 +46,6 @@
     <string name="common_no_screenshot_message">Не делайте скриншоты, которые могут быть собраны сторонними вредоносными программами</string>
     <string name="account_confirmation_title">Подтверждение</string>
     <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
+    <string name="common_cancel">Отмена</string>
+    <string name="pincode_biometry_dialog_title">Биометрия</string>
 </resources>

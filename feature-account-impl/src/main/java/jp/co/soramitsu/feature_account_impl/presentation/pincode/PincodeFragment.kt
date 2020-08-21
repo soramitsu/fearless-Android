@@ -29,6 +29,7 @@ import javax.inject.Inject
 class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     @Inject lateinit var fingerprintWrapper: FingerprintWrapper
+
     private lateinit var fingerprintDialog: BottomSheetDialog
 
     companion object {
@@ -80,12 +81,12 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
         observe(viewModel.biometricSwitchDialogLiveData, EventObserver {
             MaterialAlertDialogBuilder(requireActivity(), R.style.AlertDialogTheme)
-                .setTitle(android.R.string.dialog_alert_title)
+                .setTitle(R.string.pincode_biometry_dialog_title)
                 .setMessage(R.string.pincode_fingerprint_switch_dialog_title)
-                .setPositiveButton(android.R.string.yes) { _, _ ->
+                .setPositiveButton(R.string.common_use) { _, _ ->
                     viewModel.fingerprintSwitchDialogYesClicked()
                 }
-                .setNegativeButton(android.R.string.no) { _, _ ->
+                .setNegativeButton(R.string.common_skip) { _, _ ->
                     viewModel.fingerprintSwitchDialogNoClicked()
                 }
                 .show()

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="common_ok">Ok</string>
+    <string name="common_use">Use</string>
+    <string name="common_skip">Skip</string>
     <string name="common_next">Next</string>
     <string name="common_error_general_title">Error</string>
     <string name="connection_error_message">Please, check internet connection and try again later.</string>
@@ -43,4 +45,6 @@
     <string name="common_no_screenshot_message">Do not take screenshots, which may be collected by third-party malware</string>
     <string name="account_confirmation_title">Confirm mnemonic</string>
     <string name="account_confirmation_details">Choose words in the right order</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="pincode_biometry_dialog_title">Biometry</string>
 </resources>

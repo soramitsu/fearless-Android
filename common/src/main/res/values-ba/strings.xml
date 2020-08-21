@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="common_ok">Ok</string>
+    <string name="common_use">Ҡулланыу</string>
+    <string name="common_skip">Үткэрергә</string>
     <string name="common_next">Киләһе</string>
     <string name="common_error_general_title">Хата</string>
     <string name="connection_error_message">Зинһар, интернет селтәрен тикшерегеҙ һәм һуңыраҡ ҡабатлап ҡарағыҙ.</string>
@@ -44,4 +46,6 @@
     <string name="common_no_screenshot_message">Не делайте снимков экрана, так как они могут быть похищены сторонним вредоносным программным обеспечением</string>
     <string name="account_confirmation_title">Подтверждение</string>
     <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
+    <string name="common_cancel">Кире ҡағыу</string>
+    <string name="pincode_biometry_dialog_title">Биометрия</string>
 </resources>

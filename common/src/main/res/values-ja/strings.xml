@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="common_ok">Ok</string>
+    <string name="common_use">設定</string>
+    <string name="common_skip">スキップ</string>
     <string name="common_next">次へ</string>
     <string name="common_error_general_title">エラー</string>
     <string name="connection_error_message">インターネット接続を確認して、後でもう一度やり直してください。</string>
@@ -44,4 +46,6 @@
     <string name="common_no_screenshot_message">サードパーティのマルウェアによって収集される可能性のあるスクリーンショットを撮らないでください</string>
     <string name="account_confirmation_title">ニーモニックを確認する</string>
     <string name="account_confirmation_details">正しい順序で単語を選択する</string>
+    <string name="common_cancel">キャンセル</string>
+    <string name="pincode_biometry_dialog_title">バイオメトリー</string>
 </resources>
