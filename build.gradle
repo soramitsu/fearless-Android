@@ -33,11 +33,13 @@ buildscript {
 
         navControllerVersion = '2.0.0-rc02'
 
-        novaCryptoVersion = '0.1.9'
-
         junitVersion = '4.12'
         mockitoVersion = '2.23.0'
         robolectricVersion = '4.1'
+
+        spoungyCastleVersion = '1.58.0.0'
+
+        fearlessLibVersion = '1.0.1'
 
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
@@ -69,7 +71,8 @@ buildscript {
         navigationFragmentDep = "androidx.navigation:navigation-fragment:$navControllerVersion"
         navigationUiDep = "androidx.navigation:navigation-ui:$navControllerVersion"
 
-        novaCryptoDep = "io.github.novacrypto:BIP39:$novaCryptoVersion"
+        spoungyCastleBcPixDep = "com.madgag.spongycastle:bcpkix-jdk15on:$spoungyCastleVersion"
+        spoungyCastleBcPgDep = "com.madgag.spongycastle:bcpg-jdk15on:$spoungyCastleVersion"
 
         retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
         rxCallAdapterDep = "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
@@ -79,6 +82,8 @@ buildscript {
         zXingCoreDep = "com.google.zxing:core:$zXingVersion"
         zXingEmbeddedDep = "com.journeyapps:zxing-android-embedded:$zXingEmbeddedVersion"
         rxPermissionsDep = "com.github.tbruyelle:rxpermissions:$rxPermssionVersion"
+
+        fearlessLibDep = "jp.co.soramitsu.fearless-utils:fearless-utils:$fearlessLibVersion"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"
@@ -102,6 +107,7 @@ allprojects {
         google()
         jcenter()
         maven { url "https://jitpack.io" }
+        maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
         mavenCentral()
     }
 }
