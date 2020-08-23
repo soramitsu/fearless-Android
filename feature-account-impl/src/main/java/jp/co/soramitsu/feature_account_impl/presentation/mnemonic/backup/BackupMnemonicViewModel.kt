@@ -183,19 +183,20 @@ class BackupMnemonicViewModel(
     }
 
     fun nextClicked(derivationPath: String) {
-        selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
+        router.openConfirmMnemonicScreen()
+        /*selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
             selectedNetworkLiveData.value?.networkType?.let { networkType ->
                 disposables.add(
                     interactor.createAccount(accountName, mnemonic, cryptoType, derivationPath, networkType)
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({
-                            // TODO: open next screen+
+                            router.openConfirmMnemonicScreen()
                         }, {
                             it.printStackTrace()
                         })
                 )
             }
-        }
+        }*/
     }
 }

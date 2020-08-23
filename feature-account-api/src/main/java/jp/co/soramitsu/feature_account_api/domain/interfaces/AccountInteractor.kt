@@ -32,4 +32,16 @@ interface AccountInteractor {
     fun getAddress(): Single<String>
 
     fun getUsername(): Single<String>
+
+    fun isCodeSet(): Single<Boolean>
+
+    fun savePin(code: String): Completable
+
+    fun isPinCorrect(code: String): Single<Boolean>
+
+    fun isBiometricEnabled(): Single<Boolean>
+
+    fun setBiometricOn(): Completable
+
+    fun setBiometricOff(): Completable
 }

@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
@@ -38,4 +39,6 @@ interface CommonApi {
     fun provideIconGenerator(): IconGenerator
 
     fun provideClipboardManager(): ClipboardManager
+
+    fun provideDeviceVibrator(): DeviceVibrator
 }

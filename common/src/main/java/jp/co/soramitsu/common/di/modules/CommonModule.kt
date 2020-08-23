@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.di.modules
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Vibrator
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -13,6 +14,7 @@ import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.ResourceManagerImpl
+import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
@@ -91,5 +93,12 @@ class CommonModule {
     @ApplicationScope
     fun provideClipboardManager(context: Context): ClipboardManager {
         return ClipboardManager(context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideDeviceVibrator(context: Context): DeviceVibrator {
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        return DeviceVibrator(vibrator)
     }
 }

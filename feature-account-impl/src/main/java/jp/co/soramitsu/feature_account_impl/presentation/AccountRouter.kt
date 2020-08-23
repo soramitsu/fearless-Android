@@ -7,4 +7,10 @@ interface AccountRouter {
     fun backToWelcomeScreen()
 
     fun showProfile()
+
+    fun openCreatePincode()
+
+    fun openConfirmMnemonicScreen()
+
+    fun backToBackupMnemonicScreen()
 }

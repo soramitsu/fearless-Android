@@ -73,4 +73,31 @@ class AccountInteractorImpl(
     override fun getUsername(): Single<String> {
         return accountRepository.getUsername()
     }
+
+    override fun isCodeSet(): Single<Boolean> {
+        return accountRepository.isCodeSet()
+    }
+
+    override fun savePin(code: String): Completable {
+        return accountRepository.savePinCode(code)
+    }
+
+    override fun isPinCorrect(code: String): Single<Boolean> {
+        return Single.fromCallable {
+            val pinCode = accountRepository.getPinCode()
+            pinCode == code
+        }
+    }
+
+    override fun isBiometricEnabled(): Single<Boolean> {
+        return accountRepository.isBiometricEnabled()
+    }
+
+    override fun setBiometricOn(): Completable {
+        return accountRepository.setBiometricOn()
+    }
+
+    override fun setBiometricOff(): Completable {
+        return accountRepository.setBiometricOff()
+    }
 }

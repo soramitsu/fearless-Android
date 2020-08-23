@@ -33,7 +33,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation fileTree(dir: '../libs', include: ['*.aar'])
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-splash')
@@ -47,14 +46,14 @@ dependencies {
     implementation androidDep
     implementation constraintDep
 
-    implementation novaCryptoDep
-
     implementation zXingEmbeddedDep
 
     implementation navigationFragmentDep
     implementation navigationUiDep
 
     implementation roomDep
+
+    implementation fearlessLibDep
 
     implementation daggerDep
     kapt daggerKapt

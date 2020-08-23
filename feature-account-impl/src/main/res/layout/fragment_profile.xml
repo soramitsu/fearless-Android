@@ -7,10 +7,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:overScrollMode="never"
-    android:background="@android:color/black"
-    android:paddingStart="@dimen/x2"
-    android:paddingEnd="@dimen/x2"
-    android:paddingTop="@dimen/x1_5"
+    android:background="@color/black"
+    android:paddingTop="@dimen/x6"
     app:layout_constraintBottom_toTopOf="@id/nextBtn"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
@@ -27,17 +25,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
-            style="@style/TextAppearance.Soramitsu.Header2"
+            style="@style/TextAppearance.Soramitsu.Header1"
+            android:layout_marginStart="@dimen/x2"
             android:layout_marginBottom="@dimen/x2"
-            android:text="@string/profile_title" />
+            android:text="@string/profile_settings_title" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/accountBlock"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_input_shape_selector"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/bg_input_shape_filled_selector"
             android:orientation="vertical"
-            android:layout_marginBottom="@dimen/x3"
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
+            android:layout_marginBottom="@dimen/x4"
             android:paddingStart="@dimen/x2"
             android:paddingTop="@dimen/x1"
             android:paddingEnd="@dimen/x2"
@@ -47,7 +50,6 @@
                 android:id="@+id/accountIcon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_arrow_back_24dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -91,35 +93,41 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
-            android:drawableStart="@drawable/ic_settings_24"
+            android:drawableStart="@drawable/ic_user_blue_24"
             android:drawableEnd="@drawable/ic_arrow_right_24"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/bg_primary_list_item"
             android:gravity="center_vertical"
             android:drawablePadding="@dimen/x1_5"
-            android:layout_marginBottom="@dimen/x2"
+            android:paddingStart="@dimen/x2"
+            android:paddingEnd="@dimen/x2"
+            android:paddingTop="@dimen/x1_5"
+            android:paddingBottom="@dimen/x1_5"
             style="@style/TextAppearance.Soramitsu.Body1"
             android:text="@string/profile_accounts_title" />
         
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginBottom="@dimen/x2"
-            android:background="@color/colorGreyText"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            style="@style/TextAppearance.Soramitsu.Header2"
-            android:layout_marginBottom="@dimen/x1_5"
-            android:text="@string/profile_settings_title" />
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
+            android:background="@color/dividerGray"/>
 
         <LinearLayout
+            android:id="@+id/networkWrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/x1_5"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/bg_primary_list_item"
+            android:paddingStart="@dimen/x2"
+            android:paddingEnd="@dimen/x2"
+            android:paddingTop="@dimen/x1_5"
+            android:paddingBottom="@dimen/x1_5"
             android:orientation="horizontal" >
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:textColor="@color/white"
                 style="@style/TextAppearance.Soramitsu.Body1"
@@ -127,7 +135,7 @@
                 android:drawablePadding="@dimen/x1_5"
                 android:gravity="center_vertical"
                 android:text="@string/profile_network_title"
-                android:drawableStart="@drawable/ic_settings_24"
+                android:drawableStart="@drawable/ic_networks_24"
                 />
 
             <TextView
@@ -145,13 +153,21 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginBottom="@dimen/x1_5"
-            android:background="@color/colorGreyText"/>
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
+            android:background="@color/dividerGray"/>
 
         <LinearLayout
+            android:id="@+id/languageWrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/x1_5"
+            android:background="@drawable/bg_primary_list_item"
+            android:focusable="true"
+            android:clickable="true"
+            android:paddingStart="@dimen/x2"
+            android:paddingEnd="@dimen/x2"
+            android:paddingBottom="@dimen/x1_5"
+            android:paddingTop="@dimen/x1_5"
             android:orientation="horizontal" >
             <TextView
                 android:layout_width="wrap_content"
@@ -178,8 +194,9 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginBottom="@dimen/x1_5"
-            android:background="@color/colorGreyText"/>
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
+            android:background="@color/dividerGray"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -189,15 +206,22 @@
             android:drawableEnd="@drawable/ic_arrow_right_24"
             android:gravity="center_vertical"
             android:drawablePadding="@dimen/x1_5"
-            android:layout_marginBottom="@dimen/x2"
+            android:paddingStart="@dimen/x2"
+            android:paddingEnd="@dimen/x2"
+            android:paddingTop="@dimen/x1_5"
+            android:paddingBottom="@dimen/x1_5"
+            android:background="@drawable/bg_primary_list_item"
+            android:focusable="true"
+            android:clickable="true"
             style="@style/TextAppearance.Soramitsu.Body1"
             android:text="@string/profile_pincode_change_title" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginBottom="@dimen/x1_5"
-            android:background="@color/colorGreyText"/>
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
+            android:background="@color/dividerGray"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -207,15 +231,23 @@
             android:drawableEnd="@drawable/ic_arrow_right_24"
             android:gravity="center_vertical"
             android:drawablePadding="@dimen/x1_5"
-            android:layout_marginBottom="@dimen/x2"
+            android:background="@drawable/bg_primary_list_item"
+            android:focusable="true"
+            android:clickable="true"
+            android:paddingStart="@dimen/x2"
+            android:paddingEnd="@dimen/x2"
+            android:paddingTop="@dimen/x1_5"
+            android:paddingBottom="@dimen/x1_5"
             style="@style/TextAppearance.Soramitsu.Body1"
             android:text="@string/about_title" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
             android:layout_marginBottom="@dimen/x1_5"
-            android:background="@color/colorGreyText"/>
+            android:background="@color/dividerGray"/>
 
     </LinearLayout>
 
