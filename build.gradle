@@ -37,8 +37,6 @@ buildscript {
         mockitoVersion = '2.23.0'
         robolectricVersion = '4.1'
 
-//        svgVersion = '1.4'
-
         spoungyCastleVersion = '1.58.0.0'
 
         fearlessLibVersion = '1.0.1'
@@ -85,7 +83,6 @@ buildscript {
         zXingEmbeddedDep = "com.journeyapps:zxing-android-embedded:$zXingEmbeddedVersion"
         rxPermissionsDep = "com.github.tbruyelle:rxpermissions:$rxPermssionVersion"
 
-//        svgDep = "com.caverock:androidsvg-aar:$svgVersion"
         fearlessLibDep = "jp.co.soramitsu.fearless-utils:fearless-utils:$fearlessLibVersion"
 
         jUnitDep = "junit:junit:$junitVersion"
