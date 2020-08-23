@@ -179,8 +179,7 @@ class ImportAccountViewModel(
     }
 
     fun homeButtonClicked() {
-//        router.backToWelcomeScreen()
-        router.showProfile()
+        router.backToWelcomeScreen()
     }
 
     fun sourceTypeInputClicked() {
