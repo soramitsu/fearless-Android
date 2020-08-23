@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.Observer
@@ -13,11 +15,9 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.interfaces.BackButtonListener
 import jp.co.soramitsu.common.utils.EventObserver
-import jp.co.soramitsu.common.view.FearlessProgressDialog
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.domain.model.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.view.DotsProgressView
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
@@ -29,15 +29,15 @@ import javax.inject.Inject
 class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     @Inject lateinit var fingerprintWrapper: FingerprintWrapper
+
     private lateinit var fingerprintDialog: BottomSheetDialog
-    private lateinit var progressDialog: FearlessProgressDialog
 
     companion object {
         const val PINCODE_ACTION_KEY = "pincode_action"
 
-        fun getBundle(action: PinCodeAction): Bundle {
+        fun getBundleForCreatePincode(): Bundle {
             return Bundle().apply {
-                putSerializable(PINCODE_ACTION_KEY, action)
+                putSerializable(PINCODE_ACTION_KEY, PinCodeAction.CREATE_PIN_CODE)
             }
         }
     }
@@ -48,15 +48,13 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     override fun inject() {
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
-            .pincodeMnemonicComponentFactory()
+            .pincodeComponentFactory()
             .create(DotsProgressView.MAX_PROGRESS, this)
             .inject(this)
     }
 
     override fun initViews() {
         toolbar.setHomeButtonListener { viewModel.backPressed() }
-
-        progressDialog = FearlessProgressDialog(activity!!)
 
         fingerprintDialog = BottomSheetDialog(activity!!).apply {
             setContentView(R.layout.bottom_sheet_fingerprint_dialog)
@@ -83,38 +81,30 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
         observe(viewModel.biometricSwitchDialogLiveData, EventObserver {
             MaterialAlertDialogBuilder(requireActivity(), R.style.AlertDialogTheme)
-                .setTitle(android.R.string.dialog_alert_title)
+                .setTitle(R.string.pincode_biometry_dialog_title)
                 .setMessage(R.string.pincode_fingerprint_switch_dialog_title)
-                .setPositiveButton(android.R.string.yes) { _, _ ->
-                    viewModel.fingerprintSwithcDialogYesClicked()
+                .setPositiveButton(R.string.common_use) { _, _ ->
+                    viewModel.fingerprintSwitchDialogYesClicked()
                 }
-                .setNegativeButton(android.R.string.no) { _, _ ->
-                    viewModel.fingerprintSwithcDialogNoClicked()
+                .setNegativeButton(R.string.common_skip) { _, _ ->
+                    viewModel.fingerprintSwitchDialogNoClicked()
                 }
                 .show()
         })
 
-        observe(viewModel.showFingerPrintEventLiveData, EventObserver {
+        observe(viewModel.showFingerPrintEvent, EventObserver {
             pinCodeView.changeFingerPrintButtonVisibility(fingerprintWrapper.isAuthReady())
         })
 
-        observe(viewModel.toolbarTitleResLiveData, Observer {
-            pinCodeTitleTv.setText(it)
-        })
-
-        observe(viewModel.wrongPinCodeEventLiveData, EventObserver {
-            Toast.makeText(activity, getString(R.string.pincode_check_error), Toast.LENGTH_LONG).show()
+        observe(viewModel.titleLiveData, Observer {
+            pinCodeTitleTv.text = it
         })
 
         observe(viewModel.fingerPrintDialogVisibilityLiveData, Observer {
             if (it) fingerprintDialog.show() else fingerprintDialog.dismiss()
         })
 
-        observe(viewModel.fingerPrintAutFailedLiveData, EventObserver {
-            Toast.makeText(context, R.string.pincode_fingerprint_error, Toast.LENGTH_SHORT).show()
-        })
-
-        observe(viewModel.fingerPrintErrorLiveData, EventObserver {
+        observe(viewModel.fingerPrintErrorEvent, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         })
 
@@ -122,16 +112,39 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             dotsProgressView.setProgress(it)
         })
 
-        observe(viewModel.deleteButtonVisibilityLiveData, Observer {
-            pinCodeView.changeDeleteButtonVisibility(it)
+        observe(viewModel.finisAppEvent, EventObserver {
+            requireActivity().finish()
         })
 
-        observe(viewModel.closeAppLiveData, EventObserver {
-            requireActivity().finish()
+        observe(viewModel.homeButtonVisibilityLiveData, Observer {
+            if (it) {
+                toolbar.showHomeButton()
+            } else {
+                toolbar.hideHomeButton()
+            }
+        })
+
+        observe(viewModel.matchingPincodeErrorAnimationEvent, EventObserver {
+            playMatchingPincodeErrorAnimation()
         })
 
         val action = arguments!!.getSerializable(PINCODE_ACTION_KEY) as PinCodeAction
         viewModel.startAuth(action)
+    }
+
+    private fun playMatchingPincodeErrorAnimation() {
+        val animation = AnimationUtils.loadAnimation(activity!!, R.anim.shake)
+        animation.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationRepeat(animation: Animation?) {
+            }
+
+            override fun onAnimationStart(animation: Animation?) {
+            }
+
+            override fun onAnimationEnd(animation: Animation?) {
+            }
+        })
+        dotsProgressView.startAnimation(animation)
     }
 
     override fun onPause() {

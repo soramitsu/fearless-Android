@@ -87,6 +87,9 @@ class ConfirmMnemonicViewModel(
 
     fun removeLastWordFromConfirmation() {
         confirmationMnemonicWords.value?.let {
+            if (it.isEmpty()) {
+                return
+            }
             val wordList = mutableListOf<String>().apply {
                 addAll(it.subList(0, it.size - 1))
             }
@@ -96,16 +99,17 @@ class ConfirmMnemonicViewModel(
     }
 
     fun nextButtonClicked() {
-        confirmationMnemonicWords.value?.let { enteredWords ->
+        router.openCreatePincode()
+        /*confirmationMnemonicWords.value?.let { enteredWords ->
             originMnemonic.value?.let { mnemonic ->
                 if (mnemonic == enteredWords) {
-                    // TODO: success case here
+                    router.openCreatePincode()
                 } else {
                     deviceVibrator.makeShortVibration()
                     _matchingMnemonicErrorAnimationEvent.value = Event(Unit)
                 }
             }
-        }
+        }*/
     }
 
     fun matchingErrorAnimationCompleted() {

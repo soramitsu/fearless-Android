@@ -67,7 +67,10 @@ class AccountInteractorImpl(
     }
 
     override fun isPinCorrect(code: String): Single<Boolean> {
-        return accountRepository.isPinCorrect(code)
+        return Single.fromCallable {
+            val pinCode = accountRepository.getPinCode()
+            pinCode == code
+        }
     }
 
     override fun isBiometricEnabled(): Single<Boolean> {

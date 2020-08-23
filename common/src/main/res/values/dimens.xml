@@ -18,6 +18,5 @@
     <dimen name="x2_5">20dp</dimen>
     <dimen name="x3">24dp</dimen>
     <dimen name="x4">32dp</dimen>
-    <dimen name="x6">48dp</dimen>
 
 </resources>

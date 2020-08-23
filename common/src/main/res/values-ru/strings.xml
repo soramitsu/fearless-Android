@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="common_next">Далее</string>
+    <string name="common_cancel">Отмена</string>
+    <string name="common_skip">Пропустить</string>
+    <string name="common_use">Использовать</string>
     <string name="common_error_general_title">Ошибка</string>
     <string name="connection_error_message">Пожалуйста, проверьте подключение к Интернету и повторите попытку.</string>
     <string name="onboarding_restore_account">Восстановить</string>
@@ -24,6 +27,7 @@
     <string name="username_setup_hint">Имя аккаунта и его отображение рядом с адресом. Используя хранение идентификационных данных в блокчейне, имя можно сделать доступных для остальных.</string>
     <string name="common_no_screenshot_title">Не делайте скриншоты</string>
     <string name="common_no_screenshot_message">Не делайте скриншоты, которые могут быть собраны сторонними вредоносными программами</string>
+    <string name="common_ok">OK</string>
     <string name="account_create_title">Мнемоника</string>
     <string name="account_create_details">Используйте нецифровой носитель для сохранения, например, выпишите слова на бумагу.</string>
     <string name="common_advanced">Продвинутый</string>
@@ -50,12 +54,11 @@
     <string name="pincode_create_top_title">Новый пинкод</string>
     <string name="pincode_fingerprint_error">Вы не авторизованы. Попробуйте другой палец.</string>
     <string name="pincode_touch_fingerprint_scanner">Коснитесь сканера отпечатков пальцев</string>
-    <string name="pincode_check_error">Введен неверный код</string>
-    <string name="pincode_repeat_error">Ошибка подтверждения PIN-кода</string>
     <string name="pincode_fingerprint_switch_dialog_title">Использовать биометрию для авторизации</string>
     <string name="profile_title">Аккаунт</string>
-    <string name="profile_accounts_title">Управление аккаунтами</string>
+    <string name="profile_accounts_title">Аккаунты</string>
     <string name="profile_network_title">Сеть</string>
     <string name="profile_pincode_change_title">Изменить пин-код</string>
     <string name="tabbar_profile_title">Профиль</string>
+    <string name="pincode_biometry_dialog_title">Биометрия</string>
 </resources>

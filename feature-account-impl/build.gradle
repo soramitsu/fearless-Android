@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
+apply from: '../tests.gradle'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -24,7 +25,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', "*.aar"])
-    implementation fileTree(dir: '../libs', include: ['*.jar', '*.aar'])
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-account-api')
@@ -41,17 +41,13 @@ dependencies {
     implementation rxJavaDep
     implementation rxAndroidDep
 
-    implementation spoungyCastleBcPixDep
-    implementation spoungyCastleBcPgDep
-
-    implementation ed25519Dep
-    implementation secureStringDep
-    implementation web3jDep
-    implementation novaCryptoDep
-
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
     implementation rxPermissionsDep
+
+    implementation spoungyCastleBcPgDep
+
+    implementation fearlessLibDep
 
     implementation daggerDep
     kapt daggerKapt

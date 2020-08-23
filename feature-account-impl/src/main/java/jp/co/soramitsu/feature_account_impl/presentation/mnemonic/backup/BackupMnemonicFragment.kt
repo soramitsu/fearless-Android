@@ -108,7 +108,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
             .setTitle(R.string.common_info)
             .setMessage(R.string.account_creation_info)
-            .setPositiveButton(android.R.string.ok) { dialog, _ -> dialog?.dismiss() }
+            .setPositiveButton(R.string.common_ok) { dialog, _ -> dialog?.dismiss() }
             .show()
     }
 }

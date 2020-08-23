@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="common_next">Next</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_skip">Skip</string>
+    <string name="common_use">Use</string>
     <string name="common_error_general_title">Error</string>
     <string name="connection_error_message">Please, check internet connection and try again later.</string>
     <string name="onboarding_restore_account">Import account</string>
@@ -24,6 +27,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="username_setup_hint">The name for this account and how it will appear under your addresses. With an on-chain identity, it can be made available to others.</string>
     <string name="common_no_screenshot_title">Do not take screenshots</string>
     <string name="common_no_screenshot_message">Do not take screenshots, which may be collected by third-party malware</string>
+    <string name="common_ok">OK</string>
     <string name="account_create_title">Backup mnemonic</string>
     <string name="account_create_details">Use non digital way to backup, such as writing it down on paper.</string>
     <string name="common_advanced">Advanced</string>
@@ -50,12 +54,11 @@ Terms and Conditions and Privacy Policy</string>
     <string name="pincode_create_top_title">Create pin code</string>
     <string name="pincode_fingerprint_error">You are not authorized. Try another finger.</string>
     <string name="pincode_touch_fingerprint_scanner">Touch the fingerprint scanner</string>
-    <string name="pincode_check_error">Entered code is wrong</string>
-    <string name="pincode_repeat_error">Pin code repeat error</string>
     <string name="pincode_fingerprint_switch_dialog_title">Use biometric to authorize</string>
     <string name="profile_title">Account</string>
-    <string name="profile_accounts_title">Manage accounts</string>
-    <string name="profile_network_title">Network</string>
+    <string name="profile_accounts_title">Accounts</string>
+    <string name="profile_network_title">Networks</string>
     <string name="profile_pincode_change_title">Change pin-code</string>
     <string name="tabbar_profile_title">Profile</string>
+    <string name="pincode_biometry_dialog_title">Biometry</string>
 </resources>

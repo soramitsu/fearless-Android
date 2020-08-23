@@ -132,9 +132,7 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:layout_margin="@dimen/pin_code_view_spacing"
-            android:src="@drawable/ic_delete"
-            android:visibility="invisible"
-            tools:visibility="visible" />
+            android:src="@drawable/ic_delete" />
 
     </LinearLayout>
 

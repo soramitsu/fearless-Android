@@ -14,7 +14,9 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.io.MainThreadExecutor
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintCallback
@@ -30,8 +32,8 @@ class PinCodeModule {
     @Provides
     @IntoMap
     @ViewModelKey(PinCodeViewModel::class)
-    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, maxPinCodeLength: Int): ViewModel {
-        return PinCodeViewModel(interactor, router, maxPinCodeLength)
+    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, maxPinCodeLength: Int, deviceVibrator: DeviceVibrator, resourceManager: ResourceManager): ViewModel {
+        return PinCodeViewModel(interactor, router, maxPinCodeLength, deviceVibrator, resourceManager)
     }
 
     @Provides
@@ -44,15 +46,11 @@ class PinCodeModule {
         val biometricManager = BiometricManager.from(context)
         val biometricPrompt = BiometricPrompt(fragment, MainThreadExecutor(), fingerprintListener)
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Title")
-            .setNegativeButtonText(resourceManager.getString(android.R.string.cancel))
+            .setTitle(resourceManager.getString(R.string.pincode_biometry_dialog_title))
+            .setNegativeButtonText(resourceManager.getString(R.string.common_cancel))
             .build()
 
-        return FingerprintWrapper(
-            biometricManager,
-            biometricPrompt,
-            promptInfo
-        )
+        return FingerprintWrapper(biometricManager, biometricPrompt, promptInfo)
     }
 
     @Provides

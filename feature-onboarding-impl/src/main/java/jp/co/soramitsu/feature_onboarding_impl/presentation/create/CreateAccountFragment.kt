@@ -63,7 +63,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
         MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
             .setTitle(R.string.common_no_screenshot_title)
             .setMessage(R.string.common_no_screenshot_message)
-            .setPositiveButton(android.R.string.ok) { dialog, _ ->
+            .setPositiveButton(R.string.common_ok) { dialog, _ ->
                 dialog?.dismiss()
                 viewModel.screenshotWarningConfirmed(accountNameEt.text.toString())
             }
