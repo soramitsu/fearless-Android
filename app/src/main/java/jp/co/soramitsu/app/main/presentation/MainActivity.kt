@@ -66,8 +66,7 @@ class MainActivity : BaseActivity<MainViewModel>() {
     }
 
     override fun onBackPressed() {
-        val currentFragment = supportFragmentManager.findFragmentById(R.id.container)
-        when (currentFragment) {
+        when (val currentFragment = supportFragmentManager.findFragmentById(R.id.container)) {
             is OnboardingFragment -> currentFragment.onBackPressed()
             is MainFragment -> currentFragment.onBackPressed()
             else -> super.onBackPressed()
