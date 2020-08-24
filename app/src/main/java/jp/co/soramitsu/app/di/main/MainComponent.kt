@@ -12,6 +12,9 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 @Component(
     dependencies = [
         MainDependencies::class
+    ],
+    modules = [
+        MainFeatureModule::class
     ]
 )
 @FeatureScope
@@ -21,7 +24,7 @@ interface MainComponent {
 
     fun onboardingComponentFactory(): OnboardingComponent.Factory
 
-    fun mainComponentFactory(): MainFragmentComponent.Factory
+    fun mainFragmentComponentFactory(): MainFragmentComponent.Factory
 
     @Component.Factory
     interface Factory {

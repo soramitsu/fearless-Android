@@ -36,6 +36,4 @@ interface AccountInteractor {
     fun setBiometricOn(): Completable
 
     fun setBiometricOff(): Completable
-
-    fun accountExists(): Single<Boolean>
 }

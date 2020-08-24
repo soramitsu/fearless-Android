@@ -8,6 +8,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.app.activity.MainViewModel
+import jp.co.soramitsu.app.activity.domain.MainInteractor
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 
@@ -21,8 +22,8 @@ class MainActivityModule {
     @Provides
     @IntoMap
     @ViewModelKey(MainViewModel::class)
-    fun provideViewModel(): ViewModel {
-        return MainViewModel()
+    fun provideViewModel(interactor: MainInteractor): ViewModel {
+        return MainViewModel(interactor)
     }
 
     @Provides

@@ -13,7 +13,7 @@ class MainFragment : BaseFragment<MainViewModel>() {
 
     override fun inject() {
         FeatureUtils.getFeature<MainComponent>(this, MainApi::class.java)
-            .mainComponentFactory()
+            .mainFragmentComponentFactory()
             .create(this)
             .inject(this)
     }

@@ -3,16 +3,14 @@ package jp.co.soramitsu.app.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.navigation.NavController
-import androidx.navigation.Navigation
+import androidx.lifecycle.Observer
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.di.main.MainApi
 import jp.co.soramitsu.app.di.main.MainComponent
-import jp.co.soramitsu.app.navigation.Navigator
+import jp.co.soramitsu.app.navigation.onboarding.OnboardingFragment
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.interfaces.BackButtonListener
-import javax.inject.Inject
 
 class MainActivity : BaseActivity<MainViewModel>() {
 
@@ -23,10 +21,6 @@ class MainActivity : BaseActivity<MainViewModel>() {
             context.startActivity(intent)
         }
     }
-
-    @Inject lateinit var navigator: Navigator
-
-    private var navController: NavController? = null
 
     override fun inject() {
         FeatureUtils.getFeature<MainComponent>(this, MainApi::class.java)
@@ -55,18 +49,22 @@ class MainActivity : BaseActivity<MainViewModel>() {
     }
 
     override fun initViews() {
-        navController = Navigation.findNavController(this, R.id.nav_host_fragment)
-        navigator.attachNavController(navController!!, R.navigation.main_nav_graph)
     }
 
     override fun subscribe(viewModel: MainViewModel) {
+        viewModel.navigationDestinationLiveData.observe(this, Observer {
+            val onboardingFragment = OnboardingFragment.newInstance()
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.container, onboardingFragment)
+                .commit()
+        })
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        navController?.let {
+        /*navController?.let {
             navigator.detachNavController(it)
-        }
+        }*/
     }
 
     override fun onBackPressed() {
