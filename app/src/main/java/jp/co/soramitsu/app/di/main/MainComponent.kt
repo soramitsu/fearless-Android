@@ -1,36 +1,40 @@
 package jp.co.soramitsu.app.di.main
 
-import androidx.appcompat.app.AppCompatActivity
 import dagger.BindsInstance
 import dagger.Component
-import jp.co.soramitsu.app.MainActivity
-import jp.co.soramitsu.common.di.scope.ScreenScope
+import jp.co.soramitsu.app.activity.di.MainActivityComponent
+import jp.co.soramitsu.app.navigation.Navigator
+import jp.co.soramitsu.app.navigation.main.di.MainFragmentComponent
+import jp.co.soramitsu.app.navigation.onboarding.di.OnboardingComponent
+import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 
 @Component(
     dependencies = [
         MainDependencies::class
-    ],
-    modules = [
-        MainModule::class
     ]
 )
-@ScreenScope
+@FeatureScope
 interface MainComponent {
 
-    companion object {
+    fun mainActivityComponentFactory(): MainActivityComponent.Factory
 
-        fun init(activity: AppCompatActivity, deps: MainDependencies): MainComponent {
-            return DaggerMainComponent.factory().create(activity, deps)
-        }
-    }
+    fun onboardingComponentFactory(): OnboardingComponent.Factory
+
+    fun mainComponentFactory(): MainFragmentComponent.Factory
 
     @Component.Factory
     interface Factory {
         fun create(
-            @BindsInstance activity: AppCompatActivity,
+            @BindsInstance navigator: Navigator,
             deps: MainDependencies
         ): MainComponent
     }
 
-    fun inject(mainActivity: MainActivity)
+    @Component(
+        dependencies = [
+            AccountFeatureApi::class
+        ]
+    )
+    interface MainFeatureDependenciesComponent : MainDependencies
 }

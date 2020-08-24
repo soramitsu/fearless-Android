@@ -202,4 +202,8 @@ class AccountRepositoryImpl(
         accountDatasource.saveEntropy(entropy, address)
         accountDatasource.setMnemonicIsBackedUp(true)
     }
+
+    override fun getExistingAddress(): String? {
+        return accountDatasource.getSelectedAddress()
+    }
 }

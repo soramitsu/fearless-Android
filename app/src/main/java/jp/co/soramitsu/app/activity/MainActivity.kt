@@ -1,14 +1,16 @@
-package jp.co.soramitsu.app
+package jp.co.soramitsu.app.activity
 
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import jp.co.soramitsu.app.di.deps.findComponentDependencies
+import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.di.main.MainApi
 import jp.co.soramitsu.app.di.main.MainComponent
 import jp.co.soramitsu.app.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
+import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.interfaces.BackButtonListener
 import javax.inject.Inject
 
@@ -27,8 +29,9 @@ class MainActivity : BaseActivity<MainViewModel>() {
     private var navController: NavController? = null
 
     override fun inject() {
-        MainComponent
-            .init(this, findComponentDependencies())
+        FeatureUtils.getFeature<MainComponent>(this, MainApi::class.java)
+            .mainActivityComponentFactory()
+            .create(this)
             .inject(this)
     }
 

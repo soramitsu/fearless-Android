@@ -1,4 +1,4 @@
-package jp.co.soramitsu.app
+package jp.co.soramitsu.app.activity
 
 import jp.co.soramitsu.common.base.BaseViewModel
 

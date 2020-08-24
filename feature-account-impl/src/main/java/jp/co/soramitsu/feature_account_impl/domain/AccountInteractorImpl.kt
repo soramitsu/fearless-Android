@@ -84,4 +84,11 @@ class AccountInteractorImpl(
     override fun setBiometricOff(): Completable {
         return accountRepository.setBiometricOff()
     }
+
+    override fun accountExists(): Single<Boolean> {
+        return Single.fromCallable {
+            val address = accountRepository.getExistingAddress()
+            address != null
+        }
+    }
 }

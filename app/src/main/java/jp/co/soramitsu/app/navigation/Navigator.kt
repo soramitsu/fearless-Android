@@ -2,8 +2,8 @@ package jp.co.soramitsu.app.navigation
 
 import android.content.Context
 import androidx.navigation.NavController
-import jp.co.soramitsu.app.MainActivity
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.activity.MainActivity
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
