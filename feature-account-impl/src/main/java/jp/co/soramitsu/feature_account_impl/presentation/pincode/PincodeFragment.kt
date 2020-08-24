@@ -32,16 +32,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     private lateinit var fingerprintDialog: BottomSheetDialog
 
-    companion object {
-        const val PINCODE_ACTION_KEY = "pincode_action"
-
-        fun getBundleForCreatePincode(): Bundle {
-            return Bundle().apply {
-                putSerializable(PINCODE_ACTION_KEY, PinCodeAction.CREATE_PIN_CODE)
-            }
-        }
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_pincode, container, false)
     }
@@ -128,8 +118,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             playMatchingPincodeErrorAnimation()
         })
 
-        val action = arguments!!.getSerializable(PINCODE_ACTION_KEY) as PinCodeAction
-        viewModel.startAuth(action)
+        viewModel.startAuth()
     }
 
     private fun playMatchingPincodeErrorAnimation() {

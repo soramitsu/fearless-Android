@@ -52,6 +52,9 @@ dependencies {
     implementation navigationFragmentDep
     implementation navigationUiDep
 
+    implementation rxJavaDep
+    implementation rxAndroidDep
+
     implementation roomDep
 
     implementation fearlessLibDep
