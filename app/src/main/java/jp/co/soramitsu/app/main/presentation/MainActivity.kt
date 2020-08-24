@@ -51,7 +51,6 @@ class MainActivity : BaseActivity<MainViewModel>() {
     }
 
     override fun initViews() {
-
     }
 
     override fun subscribe(viewModel: MainViewModel) {
