@@ -183,20 +183,13 @@ class BackupMnemonicViewModel(
     }
 
     fun nextClicked(derivationPath: String) {
-        router.openConfirmMnemonicScreen()
-        /*selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
+        selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
             selectedNetworkLiveData.value?.networkType?.let { networkType ->
-                disposables.add(
-                    interactor.createAccount(accountName, mnemonic, cryptoType, derivationPath, networkType)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({
-                            router.openConfirmMnemonicScreen()
-                        }, {
-                            it.printStackTrace()
-                        })
-                )
+                mnemonicLiveData.value?.let {
+                    val mnemonic = it.second.map { it.word }
+                    router.openConfirmMnemonicScreen(accountName, mnemonic, cryptoType, networkType, derivationPath)
+                }
             }
-        }*/
+        }
     }
 }

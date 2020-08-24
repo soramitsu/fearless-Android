@@ -4,8 +4,11 @@ import android.content.Context
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.MainActivity
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.splash.SplashRouter
@@ -46,8 +49,15 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         }
     }
 
-    override fun openConfirmMnemonicScreen() {
-        navController?.navigate(R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment)
+    override fun openConfirmMnemonicScreen(
+        accountName: String,
+        mnemonic: List<String>,
+        cryptoType: CryptoType,
+        networkType: NetworkType,
+        derivationPath: String
+    ) {
+        val bundle = ConfirmMnemonicFragment.getBundle(accountName, mnemonic, cryptoType, networkType, derivationPath)
+        navController?.navigate(R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment, bundle)
     }
 
     override fun openTermsScreen() {
