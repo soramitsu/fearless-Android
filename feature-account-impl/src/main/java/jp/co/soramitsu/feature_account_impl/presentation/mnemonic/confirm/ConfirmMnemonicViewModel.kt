@@ -10,13 +10,20 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 class ConfirmMnemonicViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val resourceManager: ResourceManager,
-    private val deviceVibrator: DeviceVibrator
+    private val deviceVibrator: DeviceVibrator,
+    private val mnemonic: List<String>,
+    private val accountName: String,
+    private val cryptoType: CryptoType,
+    private val networkType: NetworkType,
+    private val derivationPath: String
 ) : BaseViewModel() {
 
     private val _mnemonicLiveData = MediatorLiveData<List<String>>()
@@ -50,16 +57,7 @@ class ConfirmMnemonicViewModel(
 
         confirmationMnemonicWords.value = mutableListOf()
 
-        disposables.add(
-            interactor.getMnemonic()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    originMnemonic.value = it
-                }, {
-                    it.printStackTrace()
-                })
-        )
+        originMnemonic.value = mnemonic
     }
 
     fun homeButtonClicked() {
@@ -99,17 +97,30 @@ class ConfirmMnemonicViewModel(
     }
 
     fun nextButtonClicked() {
-        router.openCreatePincode()
-        /*confirmationMnemonicWords.value?.let { enteredWords ->
+        confirmationMnemonicWords.value?.let { enteredWords ->
             originMnemonic.value?.let { mnemonic ->
                 if (mnemonic == enteredWords) {
-                    router.openCreatePincode()
+                    createAccount()
                 } else {
                     deviceVibrator.makeShortVibration()
                     _matchingMnemonicErrorAnimationEvent.value = Event(Unit)
                 }
             }
-        }*/
+        }
+    }
+
+    private fun createAccount() {
+        val mnemonicString = mnemonic.joinToString(" ")
+        disposables.add(
+            interactor.createAccount(accountName, mnemonicString, cryptoType, derivationPath, networkType)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    router.openCreatePincode()
+                }, {
+                    it.printStackTrace()
+                })
+        )
     }
 
     fun matchingErrorAnimationCompleted() {
