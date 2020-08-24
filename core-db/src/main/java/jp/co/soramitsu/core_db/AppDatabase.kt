@@ -6,12 +6,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.UserDao
+import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.UserLocal
 
 @Database(
-    version = 1,
+    version = 2,
     entities = [
-        UserLocal::class
+        UserLocal::class,
+        NodeLocal::class
     ])
 abstract class AppDatabase : RoomDatabase() {
 

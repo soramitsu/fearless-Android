@@ -15,9 +15,10 @@ import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Network
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDatasource
@@ -67,6 +68,14 @@ class AccountRepositoryImpl(
             }
     }
 
+    override fun selectEncryptionType(cryptoType: CryptoType): Completable {
+        return getSelectedAddress()
+            .map {
+                accountDatasource.saveCryptoType(cryptoType, it)
+            }
+            .ignoreElement()
+    }
+
     private fun getSelectedAddress(): Single<String> {
         return Single.fromCallable {
             val address = accountDatasource.getSelectedAddress()
@@ -81,73 +90,83 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun getNetworks(): Single<List<Network>> {
+    override fun getNodes(): Single<List<Node>> {
         return nodeDao.getNodes()
-            .flatMap { nodes ->
-                getSelectedNetworkLink()
-                    .map {
-                        Pair(nodes, it)
-                    }
-            }
-            .map { pair ->
-                pair.first
-                    .map {
-                        mapNodeLocalToNetwork(it, pair.second)
-                    }
+            .map {
+                it.map {
+                    mapNodeLocalToNode(it)
+                }
             }
     }
 
-    override fun getSelectedNetwork(): Single<Network> {
-        return getSelectedNetworkLink()
-            .flatMap { nodeDao.getNode(it) }
-            .map { mapNodeLocalToNetwork(it, it.link) }
+    override fun getSelectedNode(): Single<Node> {
+        return Single.fromCallable {
+            accountDatasource.getSelectedNetwork()
+        }
     }
 
-    override fun saveNetwork(network: Network): Completable {
+    override fun saveNode(network: Node): Completable {
         return Completable.fromCallable {
             nodeDao.insert(mapNetworkToNodeLocal(network))
         }
     }
 
-    override fun removeNetwork(network: Network): Completable {
+    override fun removeNode(network: Node): Completable {
         return Completable.fromCallable {
             nodeDao.remove(network.link)
         }
     }
 
-    override fun selectNetwork(network: Network): Completable {
+    override fun selectNode(network: Node): Completable {
         return Completable.fromAction {
-            accountDatasource.saveSelectedNodeLink(network.link)
+            accountDatasource.saveSelectedNetwork(network)
         }
     }
 
-    private fun getSelectedNetworkLink(): Single<String> {
-        return Single.fromCallable {
-            accountDatasource.getSelectedNodeLink() ?: DEFAULT_NODES_LIST.first().link
-        }
+    private fun mapNodeLocalToNode(it: NodeLocal): Node {
+        return Node(it.name, NetworkType.values()[it.networkType], it.link, it.default)
     }
 
-    private fun mapNodeLocalToNetwork(it: NodeLocal, selectedLink: String): Network {
-        return Network(it.name, NetworkType.values()[it.networkType], it.link, it.default, it.link == selectedLink)
-    }
-
-    private fun mapNetworkToNodeLocal(it: Network): NodeLocal {
+    private fun mapNetworkToNodeLocal(it: Node): NodeLocal {
         return NodeLocal(0, it.name, it.link, it.networkType.ordinal, it.default)
 
     }
 
-    override fun selectAccount(address: String): Completable {
-        return userDao.getUser(address).ignoreElement()
+    override fun selectAccount(account: Account): Completable {
+        return Completable.fromCallable {
+            accountDatasource.saveSelectedAccount(account)
+        }
     }
 
-    override fun removeAccount(address: String): Completable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun getSelectedAccount(): Single<Account> {
+        return Single.fromCallable {
+            accountDatasource.getSelectedAccount()
+        }
     }
 
-    override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, network: NetworkType): Completable {
-        return saveSelectedEncryptionType(encryptionType)
-//            .andThen(saveSelectedNetwork(network))
-            .doOnComplete { saveAccountData(accountName, mnemonic, derivationPath, encryptionType, network) }
+    override fun removeAccount(account: Account): Completable {
+        return Completable.fromCallable {
+            userDao.remove(account.address)
+        }
+    }
+
+    override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
+        return Completable.fromCallable {
+            saveAccountData(accountName, mnemonic, derivationPath, encryptionType, networkType)
+        }
+    }
+
+    override fun getAccounts(): Single<List<Account>> {
+        return userDao.getUsers()
+            .map {
+                it.map {
+                    mapUserLocalToAccount(it)
+                }
+            }
+    }
+
+    private fun mapUserLocalToAccount(it: UserLocal): Account {
+        return Account(it.address, it.username, it.publicKey, CryptoType.values()[it.cryptoType], NetworkType.values()[it.networkType])
     }
 
     override fun getSourceTypes(): Single<List<SourceType>> {
@@ -175,7 +194,6 @@ class AccountRepositoryImpl(
             val addressType = mapNetworkTypeToAddressType(networkType)
             val address = sS58Encoder.encode(keys.publicKey, addressType)
 
-            accountDatasource.saveAccountName(username, address)
             accountDatasource.saveDerivationPath(derivationPath, address)
             accountDatasource.saveSeed(Hex.decode(keyString), address)
             accountDatasource.setMnemonicIsBackedUp(true)
@@ -259,7 +277,6 @@ class AccountRepositoryImpl(
         val addressType = mapNetworkTypeToAddressType(networkType)
         val address = sS58Encoder.encode(keys.publicKey, addressType)
 
-        accountDatasource.saveAccountName(accountName, address)
         accountDatasource.saveDerivationPath(derivationPath, address)
         accountDatasource.saveSeed(seed, address)
         accountDatasource.saveEntropy(entropy, address)

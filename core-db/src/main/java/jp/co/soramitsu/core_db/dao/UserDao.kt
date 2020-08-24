@@ -21,4 +21,7 @@ abstract class UserDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insert(user: UserLocal): Long
+
+    @Query("DELETE FROM users where address = :address")
+    abstract fun remove(address: String)
 }

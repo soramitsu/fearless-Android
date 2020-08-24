@@ -2,8 +2,9 @@ package jp.co.soramitsu.feature_account_api.domain.interfaces
 
 import io.reactivex.Completable
 import io.reactivex.Single
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Network
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
@@ -17,21 +18,27 @@ interface AccountRepository {
 
     fun getSelectedEncryptionType(): Single<CryptoType>
 
-    fun getNetworks(): Single<List<Network>>
+    fun selectEncryptionType(cryptoType: CryptoType): Completable
 
-    fun getSelectedNetwork(): Single<Network>
+    fun getNodes(): Single<List<Node>>
 
-    fun saveNetwork(network: Network): Completable
+    fun getSelectedNode(): Single<Node>
 
-    fun removeNetwork(network: Network): Completable
+    fun saveNode(node: Node): Completable
 
-    fun selectNetwork(network: Network): Completable
+    fun removeNode(node: Node): Completable
 
-    fun selectAccount(address: String): Completable
+    fun selectNode(node: Node): Completable
 
-    fun removeAccount(address: String): Completable
+    fun selectAccount(account: Account): Completable
+
+    fun getSelectedAccount(): Single<Account>
+
+    fun removeAccount(account: Account): Completable
 
     fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable
+
+    fun getAccounts(): Single<List<Account>>
 
     fun getSourceTypes(): Single<List<SourceType>>
 

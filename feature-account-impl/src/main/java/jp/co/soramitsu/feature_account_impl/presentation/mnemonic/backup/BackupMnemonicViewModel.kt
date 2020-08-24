@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Network
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
@@ -146,7 +146,7 @@ class BackupMnemonicViewModel(
         }
     }
 
-    private fun mapNetworkToNetworkModel(networks: List<Network>, selected: NetworkType): List<NetworkModel> {
+    private fun mapNetworkToNetworkModel(networks: List<Node>, selected: NetworkType): List<NetworkModel> {
         return networks.map {
             val icon = when (it.networkType) {
                 NetworkType.POLKADOT -> R.drawable.ic_polkadot_24

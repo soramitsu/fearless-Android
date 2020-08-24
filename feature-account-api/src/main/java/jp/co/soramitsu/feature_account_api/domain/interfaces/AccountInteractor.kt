@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_account_api.domain.interfaces
 import io.reactivex.Completable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Network
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
@@ -15,9 +15,9 @@ interface AccountInteractor {
 
     fun getEncryptionTypesWithSelected(): Single<Pair<List<CryptoType>, CryptoType>>
 
-    fun getNetworksWithSelected(): Single<Pair<List<Network>, NetworkType>>
+    fun getNetworksWithSelected(): Single<Pair<List<Node>, NetworkType>>
 
-    fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, network: NetworkType): Completable
+    fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, node: Node): Completable
 
     fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
 

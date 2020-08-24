@@ -2,8 +2,10 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import org.spongycastle.util.encoders.Hex
 
@@ -17,10 +19,16 @@ class AccountDatasourceImpl(
         private const val PREFS_SELECTED_LANGUAGE = "selected_language"
         private const val PREFS_PIN_CODE = "pin_code"
         private const val PREFS_SELECTED_ADDRESS = "selected_address"
-        private const val PREFS_ACCOUNT_NAME_MASK = "account_name_%s"
+        private const val PREFS_SELECTED_ACCOUNT_NAME = "account_name"
+        private const val PREFS_SELECTED_PUBLIC_KEY = "account_pub_key"
+        private const val PREFS_SELECTED_ACCOUNT_NETWORK_TYPE = "account_network_type"
+        private const val PREFS_SELECTED_ACCOUNT_CRYPTO_TYPE = "account_crypto_type"
         private const val PREFS_CRYPTO_TYPE_MASK = "crypto_type_%s"
         private const val PREFS_CONNECTION_URL = "connection_url"
         private const val PREFS_NETWORK_TYPE = "network_type"
+        private const val PREFS_NETWORK_LINK = "network_link"
+        private const val PREFS_NETWORK_NAME = "network_name"
+        private const val PREFS_NETWORK_DEFAULT = "network_default"
         private const val PREFS_MNEMONIC_IS_BACKED_UP = "mnemonic_backed_up"
         private const val PREFS_SEED_MASK = "seed_%s"
         private const val PREFS_ENTROPY_MASK = "entropy_%s"
@@ -64,16 +72,6 @@ class AccountDatasourceImpl(
         return preferences.getString(PREFS_SELECTED_ADDRESS)
     }
 
-    override fun saveAccountName(accountName: String, address: String) {
-        val accountNameKey = PREFS_ACCOUNT_NAME_MASK.format(address)
-        preferences.putString(accountNameKey, accountName)
-    }
-
-    override fun getAccountName(address: String): String? {
-        val accountNameKey = PREFS_ACCOUNT_NAME_MASK.format(address)
-        return preferences.getString(accountNameKey)
-    }
-
     override fun saveCryptoType(cryptoType: CryptoType, address: String) {
         val cryptoTypeKey = PREFS_CRYPTO_TYPE_MASK.format(address)
         preferences.putString(cryptoTypeKey, cryptoType.toString())
@@ -92,12 +90,20 @@ class AccountDatasourceImpl(
         return preferences.getString(PREFS_CONNECTION_URL)
     }
 
-    override fun saveNetworkType(networkType: NetworkType) {
-        preferences.putString(PREFS_NETWORK_TYPE, networkType.toString())
+    override fun saveSelectedNetwork(network: Node) {
+        preferences.putString(PREFS_NETWORK_TYPE, network.networkType.toString())
+        preferences.putString(PREFS_NETWORK_NAME, network.name)
+        preferences.putString(PREFS_NETWORK_LINK, network.link)
+        preferences.putBoolean(PREFS_NETWORK_DEFAULT, network.default)
     }
 
-    override fun getNetworkType(): NetworkType? {
-        return preferences.getString(PREFS_NETWORK_TYPE)?.let { NetworkType.valueOf(it) }
+    override fun getSelectedNetwork(): Node? {
+        val type = preferences.getString(PREFS_NETWORK_TYPE)?.let { NetworkType.valueOf(it) }
+        val name = preferences.getString(PREFS_NETWORK_NAME)
+        val link = preferences.getString(PREFS_NETWORK_LINK)
+        val default = preferences.getBoolean(PREFS_NETWORK_DEFAULT, false)
+
+        return Node(name!!, type!!, link!!, default)
     }
 
     override fun setMnemonicIsBackedUp(backedUp: Boolean) {
@@ -140,5 +146,23 @@ class AccountDatasourceImpl(
     override fun getDerivationPath(address: String): String? {
         val derivationKey = PREFS_DERIVATION_MASK.format(address)
         return encryptedPreferences.getDecryptedString(derivationKey)
+    }
+
+    override fun saveSelectedAccount(account: Account) {
+        preferences.putString(PREFS_SELECTED_ACCOUNT_NAME, account.username)
+        preferences.putString(PREFS_SELECTED_ADDRESS, account.address)
+        preferences.putString(PREFS_SELECTED_ACCOUNT_CRYPTO_TYPE, account.cryptoType.toString())
+        preferences.putString(PREFS_SELECTED_PUBLIC_KEY, account.publicKey)
+        preferences.putString(PREFS_SELECTED_ACCOUNT_NETWORK_TYPE, account.networkType.toString())
+    }
+
+    override fun getSelectedAccount(): Account {
+        val accountName = preferences.getString(PREFS_SELECTED_ACCOUNT_NAME)
+        val address = preferences.getString(PREFS_SELECTED_ADDRESS)
+        val cryptoType = CryptoType.valueOf(preferences.getString(PREFS_SELECTED_ACCOUNT_CRYPTO_TYPE)!!)
+        val networkType = NetworkType.valueOf(preferences.getString(PREFS_SELECTED_ACCOUNT_NETWORK_TYPE)!!)
+        val publicKey = preferences.getString(PREFS_SELECTED_PUBLIC_KEY)
+
+        return Account(address!!, accountName!!, publicKey!!, cryptoType, networkType)
     }
 }

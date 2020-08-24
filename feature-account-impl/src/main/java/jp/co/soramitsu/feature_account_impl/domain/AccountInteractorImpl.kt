@@ -5,7 +5,7 @@ import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Network
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
@@ -34,16 +34,18 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun getNetworksWithSelected(): Single<Pair<List<Network>, NetworkType>> {
-        return accountRepository.getNetworks()
-            .flatMap { networks ->
-                accountRepository.getSelectedNetwork()
-                    .map { Pair(networks, it) }
+    override fun getNetworksWithSelected(): Single<Pair<List<Node>, NetworkType>> {
+        return accountRepository.getNodes()
+            .flatMap { nodes ->
+                accountRepository.getSelectedNode()
+                    .map { Pair(nodes, it.networkType) }
             }
     }
 
-    override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
-        return accountRepository.createAccount(accountName, mnemonic, encryptionType, derivationPath, networkType)
+    override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, node: Node): Completable {
+        return accountRepository.createAccount(accountName, mnemonic, encryptionType, derivationPath, node.networkType)
+            .andThen(accountRepository.selectNode(node))
+            .andThen(accountRepository.selectEncryptionType(encryptionType))
     }
 
     override fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable {

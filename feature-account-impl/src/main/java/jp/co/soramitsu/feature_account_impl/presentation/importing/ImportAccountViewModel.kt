@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Network
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.R
@@ -159,7 +159,7 @@ class ImportAccountViewModel(
         }
     }
 
-    private fun mapNetworkToNetworkModel(networks: List<Network>, selected: NetworkType): List<NetworkModel> {
+    private fun mapNetworkToNetworkModel(networks: List<Node>, selected: NetworkType): List<NetworkModel> {
         return networks.map {
             val icon = when (it.networkType) {
                 NetworkType.POLKADOT -> R.drawable.ic_polkadot_24

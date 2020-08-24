@@ -1,9 +1,8 @@
 package jp.co.soramitsu.feature_account_api.domain.model
 
-data class Network(
+data class Node(
     val name: String,
     val networkType: NetworkType,
     val link: String,
-    val default: Boolean,
-    val isSelected: Boolean
+    val default: Boolean
 )
