@@ -123,9 +123,9 @@ class ImportAccountViewModel(
         )
 
         disposables.add(
-            interactor.getNetworksWithSelected()
+            interactor.getNodesWithSelected()
                 .subscribeOn(Schedulers.io())
-                .map { mapNetworkToNetworkModel(it.first, it.second) }
+                .map { mapNodeToNetworkModel(it.first, it.second) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     _networksLiveData.value = it
@@ -159,7 +159,7 @@ class ImportAccountViewModel(
         }
     }
 
-    private fun mapNetworkToNetworkModel(networks: List<Node>, selected: NetworkType): List<NetworkModel> {
+    private fun mapNodeToNetworkModel(networks: List<Node>, selected: Node): List<NetworkModel> {
         return networks.map {
             val icon = when (it.networkType) {
                 NetworkType.POLKADOT -> R.drawable.ic_polkadot_24
@@ -173,9 +173,13 @@ class ImportAccountViewModel(
                 NetworkType.WESTEND -> R.drawable.ic_westend_18
             }
 
-            val isSelected = selected == it.networkType
-            NetworkModel(it.name, icon, smallIcon, it.link, it.networkType, isSelected)
+            val isSelected = selected.link == it.link
+            NetworkModel(it.name, icon, smallIcon, it.link, it.networkType, isSelected, it.isDefault)
         }
+    }
+
+    private fun mapNetworkModelToNode(networkModel: NetworkModel): Node {
+        return Node(networkModel.name, networkModel.networkType, networkModel.link, networkModel.default)
     }
 
     fun homeButtonClicked() {
@@ -222,13 +226,14 @@ class ImportAccountViewModel(
     }
 
     fun nextBtnClicked(keyString: String, username: String, password: String, json: String, derivationPath: String) {
-        selectedNetworkLiveData.value?.networkType?.let { networkType ->
+        selectedNetworkLiveData.value?.let { networkModel ->
+            val node = mapNetworkModelToNode(networkModel)
             selectedSourceTypeLiveData.value?.sourceType?.let { sourceType ->
                 selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
                     val importDisposable = when (sourceType) {
-                        SourceType.MNEMONIC_PASSPHRASE -> interactor.importFromMnemonic(keyString, username, derivationPath, cryptoType, networkType)
-                        SourceType.RAW_SEED -> interactor.importFromSeed(keyString, username, derivationPath, cryptoType, networkType)
-                        SourceType.KEYSTORE -> interactor.importFromJson(json, password, networkType)
+                        SourceType.MNEMONIC_PASSPHRASE -> interactor.importFromMnemonic(keyString, username, derivationPath, cryptoType, node)
+                        SourceType.RAW_SEED -> interactor.importFromSeed(keyString, username, derivationPath, cryptoType, node)
+                        SourceType.KEYSTORE -> interactor.importFromJson(json, password, node.networkType)
                     }
 
                     disposables.add(

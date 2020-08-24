@@ -8,5 +8,6 @@ data class NetworkModel(
     val smallIcon: Int,
     val link: String,
     val networkType: NetworkType,
-    val isSelected: Boolean
+    val isSelected: Boolean,
+    val default: Boolean
 )

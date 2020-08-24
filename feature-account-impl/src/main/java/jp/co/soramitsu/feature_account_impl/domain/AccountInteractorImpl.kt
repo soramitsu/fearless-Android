@@ -34,26 +34,24 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun getNetworksWithSelected(): Single<Pair<List<Node>, NetworkType>> {
+    override fun getNodesWithSelected(): Single<Pair<List<Node>, Node>> {
         return accountRepository.getNodes()
             .flatMap { nodes ->
                 accountRepository.getSelectedNode()
-                    .map { Pair(nodes, it.networkType) }
+                    .map { Pair(nodes, it) }
             }
     }
 
     override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, node: Node): Completable {
-        return accountRepository.createAccount(accountName, mnemonic, encryptionType, derivationPath, node.networkType)
-            .andThen(accountRepository.selectNode(node))
-            .andThen(accountRepository.selectEncryptionType(encryptionType))
+        return accountRepository.createAccount(accountName, mnemonic, encryptionType, derivationPath, node)
     }
 
-    override fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable {
-        return accountRepository.importFromMnemonic(keyString, username, derivationPath, selectedEncryptionType, networkType)
+    override fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable {
+        return accountRepository.importFromMnemonic(keyString, username, derivationPath, selectedEncryptionType, node)
     }
 
-    override fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable {
-        return accountRepository.importFromSeed(keyString, username, derivationPath, selectedEncryptionType, networkType)
+    override fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable {
+        return accountRepository.importFromSeed(keyString, username, derivationPath, selectedEncryptionType, node)
     }
 
     override fun importFromJson(json: String, password: String, node: NetworkType): Completable {

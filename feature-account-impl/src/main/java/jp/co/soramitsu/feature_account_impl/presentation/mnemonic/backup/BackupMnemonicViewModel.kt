@@ -92,9 +92,9 @@ class BackupMnemonicViewModel(
         )
 
         disposables.add(
-            interactor.getNetworksWithSelected()
+            interactor.getNodesWithSelected()
                 .subscribeOn(Schedulers.io())
-                .map { mapNetworkToNetworkModel(it.first, it.second) }
+                .map { mapNodeToNetworkModel(it.first, it.second) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     _networksLiveData.value = it
@@ -146,7 +146,7 @@ class BackupMnemonicViewModel(
         }
     }
 
-    private fun mapNetworkToNetworkModel(networks: List<Node>, selected: NetworkType): List<NetworkModel> {
+    private fun mapNodeToNetworkModel(networks: List<Node>, selected: Node): List<NetworkModel> {
         return networks.map {
             val icon = when (it.networkType) {
                 NetworkType.POLKADOT -> R.drawable.ic_polkadot_24
@@ -160,9 +160,13 @@ class BackupMnemonicViewModel(
                 NetworkType.WESTEND -> R.drawable.ic_westend_18
             }
 
-            val isSelected = selected == it.networkType
-            NetworkModel(it.name, icon, smallIcon, it.link, it.networkType, isSelected)
+            val isSelected = selected.link == it.link
+            NetworkModel(it.name, icon, smallIcon, it.link, it.networkType, isSelected, it.isDefault)
         }
+    }
+
+    private fun mapNetworkModelToNode(networkModel: NetworkModel): Node {
+        return Node(networkModel.name, networkModel.networkType, networkModel.link, networkModel.default)
     }
 
     fun encryptionTypeChanged(cryptoType: CryptoType) {
@@ -183,20 +187,14 @@ class BackupMnemonicViewModel(
     }
 
     fun nextClicked(derivationPath: String) {
-        router.openConfirmMnemonicScreen()
-        /*selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
-            selectedNetworkLiveData.value?.networkType?.let { networkType ->
-                disposables.add(
-                    interactor.createAccount(accountName, mnemonic, cryptoType, derivationPath, networkType)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({
-                            router.openConfirmMnemonicScreen()
-                        }, {
-                            it.printStackTrace()
-                        })
-                )
+        selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
+            selectedNetworkLiveData.value?.let { networkModel ->
+                val node = mapNetworkModelToNode(networkModel)
+                mnemonicLiveData.value?.let {
+                    val mnemonic = it.second.map { it.word }
+                    router.openConfirmMnemonicScreen(accountName, mnemonic, cryptoType, node, derivationPath)
+                }
             }
-        }*/
+        }
     }
 }

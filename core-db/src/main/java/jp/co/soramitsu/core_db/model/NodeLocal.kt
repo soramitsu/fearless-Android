@@ -9,5 +9,5 @@ data class NodeLocal(
     val name: String,
     val link: String,
     val networkType: Int,
-    val default: Boolean
+    val isDefault: Boolean
 )

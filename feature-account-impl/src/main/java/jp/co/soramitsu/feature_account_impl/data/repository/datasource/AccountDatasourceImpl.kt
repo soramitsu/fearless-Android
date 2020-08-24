@@ -94,7 +94,7 @@ class AccountDatasourceImpl(
         preferences.putString(PREFS_NETWORK_TYPE, network.networkType.toString())
         preferences.putString(PREFS_NETWORK_NAME, network.name)
         preferences.putString(PREFS_NETWORK_LINK, network.link)
-        preferences.putBoolean(PREFS_NETWORK_DEFAULT, network.default)
+        preferences.putBoolean(PREFS_NETWORK_DEFAULT, network.isDefault)
     }
 
     override fun getSelectedNetwork(): Node? {
@@ -103,7 +103,11 @@ class AccountDatasourceImpl(
         val link = preferences.getString(PREFS_NETWORK_LINK)
         val default = preferences.getBoolean(PREFS_NETWORK_DEFAULT, false)
 
-        return Node(name!!, type!!, link!!, default)
+        if (link.isNullOrEmpty()) {
+            return null
+        }
+
+        return Node(name!!, type!!, link, default)
     }
 
     override fun setMnemonicIsBackedUp(backedUp: Boolean) {
@@ -157,12 +161,12 @@ class AccountDatasourceImpl(
     }
 
     override fun getSelectedAccount(): Account {
-        val accountName = preferences.getString(PREFS_SELECTED_ACCOUNT_NAME)
-        val address = preferences.getString(PREFS_SELECTED_ADDRESS)
-        val cryptoType = CryptoType.valueOf(preferences.getString(PREFS_SELECTED_ACCOUNT_CRYPTO_TYPE)!!)
-        val networkType = NetworkType.valueOf(preferences.getString(PREFS_SELECTED_ACCOUNT_NETWORK_TYPE)!!)
-        val publicKey = preferences.getString(PREFS_SELECTED_PUBLIC_KEY)
+        val accountName = preferences.getString(PREFS_SELECTED_ACCOUNT_NAME, "")
+        val address = preferences.getString(PREFS_SELECTED_ADDRESS, "")
+        val cryptoType = CryptoType.valueOf(preferences.getString(PREFS_SELECTED_ACCOUNT_CRYPTO_TYPE) ?: CryptoType.ECDSA.toString())
+        val networkType = NetworkType.valueOf(preferences.getString(PREFS_SELECTED_ACCOUNT_NETWORK_TYPE) ?: NetworkType.WESTEND.toString())
+        val publicKey = preferences.getString(PREFS_SELECTED_PUBLIC_KEY, "")
 
-        return Account(address!!, accountName!!, publicKey!!, cryptoType, networkType)
+        return Account(address, accountName, publicKey, cryptoType, networkType)
     }
 }

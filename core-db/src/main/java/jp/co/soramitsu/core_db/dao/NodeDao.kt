@@ -6,7 +6,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import io.reactivex.Single
 import jp.co.soramitsu.core_db.model.NodeLocal
-import jp.co.soramitsu.core_db.model.UserLocal
 
 @Dao
 abstract class NodeDao {

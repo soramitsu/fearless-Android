@@ -15,13 +15,13 @@ interface AccountInteractor {
 
     fun getEncryptionTypesWithSelected(): Single<Pair<List<CryptoType>, CryptoType>>
 
-    fun getNetworksWithSelected(): Single<Pair<List<Node>, NetworkType>>
+    fun getNodesWithSelected(): Single<Pair<List<Node>, Node>>
 
     fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, node: Node): Completable
 
-    fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
+    fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable
 
-    fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
+    fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable
 
     fun importFromJson(json: String, password: String, node: NetworkType): Completable
 

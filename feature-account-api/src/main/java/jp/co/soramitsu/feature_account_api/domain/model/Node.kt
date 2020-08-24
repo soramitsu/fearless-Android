@@ -4,5 +4,5 @@ data class Node(
     val name: String,
     val networkType: NetworkType,
     val link: String,
-    val default: Boolean
+    val isDefault: Boolean
 )
