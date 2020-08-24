@@ -7,8 +7,11 @@ import jp.co.soramitsu.common.di.FeatureUtils
 
 class MainFragment : BaseFragment<MainViewModel>() {
 
+    companion object {
+        fun newInstance() = MainFragment()
+    }
+
     override fun initViews() {
-        TODO("Not yet implemented")
     }
 
     override fun inject() {
@@ -19,6 +22,5 @@ class MainFragment : BaseFragment<MainViewModel>() {
     }
 
     override fun subscribe(viewModel: MainViewModel) {
-        TODO("Not yet implemented")
     }
 }

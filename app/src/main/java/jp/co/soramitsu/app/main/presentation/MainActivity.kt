@@ -7,6 +7,8 @@ import androidx.lifecycle.Observer
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.main.di.MainApi
 import jp.co.soramitsu.app.main.di.MainComponent
+import jp.co.soramitsu.app.main.navigation.Destination
+import jp.co.soramitsu.app.main.navigation.main.MainFragment
 import jp.co.soramitsu.app.main.navigation.onboarding.OnboardingFragment
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -52,10 +54,14 @@ class MainActivity : BaseActivity<MainViewModel>() {
     }
 
     override fun subscribe(viewModel: MainViewModel) {
-        viewModel.navigationDestinationLiveData.observe(this, Observer {
-            val onboardingFragment = OnboardingFragment.newInstance()
+        viewModel.navigationDestinationLiveData.observe(this, Observer { destination ->
+            val destinationFragment = if (Destination.ONBOARDING == destination) {
+                OnboardingFragment.newInstance()
+            } else {
+                MainFragment.newInstance()
+            }
             supportFragmentManager.beginTransaction()
-                .replace(R.id.container, onboardingFragment)
+                .replace(R.id.container, destinationFragment)
                 .commit()
         })
     }
