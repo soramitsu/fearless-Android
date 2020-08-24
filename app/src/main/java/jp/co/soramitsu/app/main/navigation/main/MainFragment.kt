@@ -23,4 +23,7 @@ class MainFragment : BaseFragment<MainViewModel>() {
 
     override fun subscribe(viewModel: MainViewModel) {
     }
+
+    fun onBackPressed() {
+    }
 }

@@ -28,6 +28,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         }
     }
 
+    fun popBackStack() {
+        navController?.popBackStack()
+    }
+
     override fun openMain(context: Context) {
         MainActivity.start(context)
     }

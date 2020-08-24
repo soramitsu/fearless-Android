@@ -12,6 +12,8 @@ import jp.co.soramitsu.app.main.di.MainComponent
 import jp.co.soramitsu.app.main.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.interfaces.BackButtonListener
+import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 import javax.inject.Inject
 
 class OnboardingFragment : BaseFragment<OnboardingViewModel>() {
@@ -41,5 +43,18 @@ class OnboardingFragment : BaseFragment<OnboardingViewModel>() {
     }
 
     override fun subscribe(viewModel: OnboardingViewModel) {
+    }
+
+    fun onBackPressed() {
+        val navHostFragment = childFragmentManager.findFragmentById(R.id.nav_host_fragment)
+        navHostFragment?.childFragmentManager?.let {
+            if (it.fragments.isNotEmpty()) {
+                when (val currentFragment = it.fragments.last()) {
+                    is BackButtonListener -> currentFragment.onBackButtonPressed()
+                    is WelcomeFragment -> activity?.finish()
+                    else -> navigator.popBackStack()
+                }
+            }
+        }
     }
 }

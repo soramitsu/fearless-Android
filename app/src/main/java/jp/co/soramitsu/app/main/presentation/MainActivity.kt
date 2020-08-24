@@ -12,7 +12,6 @@ import jp.co.soramitsu.app.main.navigation.main.MainFragment
 import jp.co.soramitsu.app.main.navigation.onboarding.OnboardingFragment
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.interfaces.BackButtonListener
 
 class MainActivity : BaseActivity<MainViewModel>() {
 
@@ -66,24 +65,12 @@ class MainActivity : BaseActivity<MainViewModel>() {
         })
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        /*navController?.let {
-            navigator.detachNavController(it)
-        }*/
-    }
-
     override fun onBackPressed() {
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
-        navHostFragment?.childFragmentManager?.let {
-            if (it.fragments.isNotEmpty()) {
-                val currentFragment = it.fragments.last()
-                if (currentFragment is BackButtonListener) {
-                    currentFragment.onBackButtonPressed()
-                } else {
-                    super.onBackPressed()
-                }
-            }
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.container)
+        when (currentFragment) {
+            is OnboardingFragment -> currentFragment.onBackPressed()
+            is MainFragment -> currentFragment.onBackPressed()
+            else -> super.onBackPressed()
         }
     }
 }
