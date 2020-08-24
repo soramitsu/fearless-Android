@@ -18,6 +18,9 @@ android {
         debug {
             buildConfigField "String", "PRIVACY_URL", "\"https://sora.org/privacy\""
             buildConfigField "String", "TERMS_URL", "\"https://sora.org/terms\""
+            buildConfigField "String", "GITHUB_URL", "\"https://github.com/soramitsu/fearless-Android\""
+            buildConfigField "String", "TELEGRAM_URL", "\"https://t.me/fearlesswallet\""
+            buildConfigField "String", "EMAIL", "\"fearless@soramitsu.co.jp\""
         }
         release {
             minifyEnabled false
@@ -25,6 +28,9 @@ android {
 
             buildConfigField "String", "PRIVACY_URL", "\"https://sora.org/privacy\""
             buildConfigField "String", "TERMS_URL", "\"https://sora.org/terms\""
+            buildConfigField "String", "GITHUB_URL", "\"https://github.com/soramitsu/fearless-Android\""
+            buildConfigField "String", "TELEGRAM_URL", "\"https://t.me/fearlesswallet\""
+            buildConfigField "String", "EMAIL", "\"fearless@soramitsu.co.jp\""
         }
     }
 }
