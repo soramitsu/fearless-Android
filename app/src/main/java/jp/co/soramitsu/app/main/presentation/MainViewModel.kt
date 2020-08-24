@@ -1,11 +1,11 @@
-package jp.co.soramitsu.app.activity
+package jp.co.soramitsu.app.main.presentation
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import jp.co.soramitsu.app.activity.domain.MainInteractor
-import jp.co.soramitsu.app.navigation.Destination
+import jp.co.soramitsu.app.main.domain.MainInteractor
+import jp.co.soramitsu.app.main.navigation.Destination
 import jp.co.soramitsu.common.base.BaseViewModel
 
 class MainViewModel(

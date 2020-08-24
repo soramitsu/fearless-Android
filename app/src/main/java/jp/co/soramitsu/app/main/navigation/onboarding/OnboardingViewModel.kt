@@ -1,4 +1,4 @@
-package jp.co.soramitsu.app.navigation.onboarding
+package jp.co.soramitsu.app.main.navigation.onboarding
 
 import jp.co.soramitsu.common.base.BaseViewModel
 

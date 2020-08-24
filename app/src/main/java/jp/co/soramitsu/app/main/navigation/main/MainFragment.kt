@@ -1,7 +1,7 @@
-package jp.co.soramitsu.app.navigation.main
+package jp.co.soramitsu.app.main.navigation.main
 
-import jp.co.soramitsu.app.di.main.MainApi
-import jp.co.soramitsu.app.di.main.MainComponent
+import jp.co.soramitsu.app.main.di.MainApi
+import jp.co.soramitsu.app.main.di.MainComponent
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 

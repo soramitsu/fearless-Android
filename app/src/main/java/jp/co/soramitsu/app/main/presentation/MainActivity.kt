@@ -1,13 +1,13 @@
-package jp.co.soramitsu.app.activity
+package jp.co.soramitsu.app.main.presentation
 
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.Observer
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.app.di.main.MainApi
-import jp.co.soramitsu.app.di.main.MainComponent
-import jp.co.soramitsu.app.navigation.onboarding.OnboardingFragment
+import jp.co.soramitsu.app.main.di.MainApi
+import jp.co.soramitsu.app.main.di.MainComponent
+import jp.co.soramitsu.app.main.navigation.onboarding.OnboardingFragment
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.interfaces.BackButtonListener

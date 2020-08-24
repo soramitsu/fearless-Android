@@ -1,4 +1,4 @@
-package jp.co.soramitsu.app.activity.di
+package jp.co.soramitsu.app.main.presentation.di
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
@@ -7,8 +7,8 @@ import androidx.lifecycle.ViewModelProviders
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.app.activity.MainViewModel
-import jp.co.soramitsu.app.activity.domain.MainInteractor
+import jp.co.soramitsu.app.main.domain.MainInteractor
+import jp.co.soramitsu.app.main.presentation.MainViewModel
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 

@@ -5,8 +5,8 @@ import dagger.Module
 import dagger.multibindings.ClassKey
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.app.App
-import jp.co.soramitsu.app.di.main.MainApi
-import jp.co.soramitsu.app.di.main.MainFeatureHolder
+import jp.co.soramitsu.app.main.di.MainApi
+import jp.co.soramitsu.app.main.di.MainFeatureHolder
 import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope

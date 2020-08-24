@@ -1,6 +1,6 @@
-package jp.co.soramitsu.app.di.main
+package jp.co.soramitsu.app.main.di
 
-import jp.co.soramitsu.app.navigation.Navigator
+import jp.co.soramitsu.app.main.navigation.Navigator
 import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope

@@ -1,26 +1,26 @@
-package jp.co.soramitsu.app.navigation.main.di
+package jp.co.soramitsu.app.main.navigation.onboarding.di
 
 import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
-import jp.co.soramitsu.app.navigation.main.MainFragment
+import jp.co.soramitsu.app.main.navigation.onboarding.OnboardingFragment
 import jp.co.soramitsu.common.di.scope.ScreenScope
 
 @Subcomponent(
     modules = [
-        MainModule::class
+        OnboardingModule::class
     ]
 )
 @ScreenScope
-interface MainFragmentComponent {
+interface OnboardingComponent {
 
     @Subcomponent.Factory
     interface Factory {
 
         fun create(
             @BindsInstance fragment: Fragment
-        ): MainFragmentComponent
+        ): OnboardingComponent
     }
 
-    fun inject(mainFragment: MainFragment)
+    fun inject(onboardingFragment: OnboardingFragment)
 }

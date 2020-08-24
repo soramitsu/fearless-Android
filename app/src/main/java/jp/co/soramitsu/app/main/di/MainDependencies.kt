@@ -1,4 +1,4 @@
-package jp.co.soramitsu.app.di.main
+package jp.co.soramitsu.app.main.di
 
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 
