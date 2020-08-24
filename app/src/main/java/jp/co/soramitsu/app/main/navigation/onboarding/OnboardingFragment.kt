@@ -10,6 +10,7 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.main.di.MainApi
 import jp.co.soramitsu.app.main.di.MainComponent
 import jp.co.soramitsu.app.main.navigation.Navigator
+import jp.co.soramitsu.app.main.presentation.MainActivity
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.interfaces.BackButtonListener
@@ -33,6 +34,7 @@ class OnboardingFragment : BaseFragment<OnboardingViewModel>() {
     override fun initViews() {
         navController = NavHostFragment.findNavController(this)
         navigator.attachNavController(navController!!, R.navigation.onboarding_nav_graph)
+        (activity as MainActivity).removeBackgroundImage()
     }
 
     override fun inject() {

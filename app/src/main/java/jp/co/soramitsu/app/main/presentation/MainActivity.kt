@@ -12,6 +12,7 @@ import jp.co.soramitsu.app.main.navigation.main.MainFragment
 import jp.co.soramitsu.app.main.navigation.onboarding.OnboardingFragment
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
+import kotlinx.android.synthetic.main.activity_main.mainView
 
 class MainActivity : BaseActivity<MainViewModel>() {
 
@@ -50,6 +51,7 @@ class MainActivity : BaseActivity<MainViewModel>() {
     }
 
     override fun initViews() {
+
     }
 
     override fun subscribe(viewModel: MainViewModel) {
@@ -63,6 +65,10 @@ class MainActivity : BaseActivity<MainViewModel>() {
                 .replace(R.id.container, destinationFragment)
                 .commit()
         })
+    }
+
+    fun removeBackgroundImage() {
+        mainView.setBackgroundResource(R.color.black)
     }
 
     override fun onBackPressed() {

@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -14,7 +13,6 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import java.util.concurrent.TimeUnit
 
 class ConfirmMnemonicViewModel(
     private val interactor: AccountInteractor,
@@ -59,17 +57,7 @@ class ConfirmMnemonicViewModel(
 
         confirmationMnemonicWords.value = mutableListOf()
 
-        disposables.add(
-            Observable.interval(1000, TimeUnit.MILLISECONDS)
-                .firstOrError()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    originMnemonic.value = mnemonic
-                }, {
-
-                })
-        )
+        originMnemonic.value = mnemonic
     }
 
     fun homeButtonClicked() {
