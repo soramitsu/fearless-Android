@@ -3,7 +3,8 @@ package jp.co.soramitsu.feature_account_impl.data.repository
 import io.reactivex.Completable
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.core_db.AppDatabase
+import jp.co.soramitsu.core_db.dao.NodeDao
+import jp.co.soramitsu.core_db.dao.UserDao
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.UserLocal
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
@@ -25,7 +26,8 @@ import org.spongycastle.util.encoders.Hex
 
 class AccountRepositoryImpl(
     private val accountDatasource: AccountDatasource,
-    private val appDatabase: AppDatabase,
+    private val userDao: UserDao,
+    private val nodeDao: NodeDao,
     private val bip39: Bip39,
     private val sS58Encoder: SS58Encoder,
     private val junctionDecoder: JunctionDecoder,
@@ -73,10 +75,10 @@ class AccountRepositoryImpl(
     }
 
     override fun getNodes(): Single<List<Node>> {
-        return appDatabase.nodeDao().getNodes()
+        return nodeDao.getNodes()
             .map {
                 val nodesLocal = if (it.isEmpty()) {
-                    appDatabase.nodeDao().insert(DEFAULT_NODES_LIST)
+                    nodeDao.insert(DEFAULT_NODES_LIST)
                     DEFAULT_NODES_LIST
                 } else {
                     it
@@ -96,13 +98,13 @@ class AccountRepositoryImpl(
 
     override fun saveNode(node: Node): Completable {
         return Completable.fromCallable {
-            appDatabase.nodeDao().insert(mapNetworkToNodeLocal(node))
+            nodeDao.insert(mapNetworkToNodeLocal(node))
         }
     }
 
     override fun removeNode(node: Node): Completable {
         return Completable.fromCallable {
-            appDatabase.nodeDao().remove(node.link)
+            nodeDao.remove(node.link)
         }
     }
 
@@ -134,7 +136,7 @@ class AccountRepositoryImpl(
 
     override fun removeAccount(account: Account): Completable {
         return Completable.fromCallable {
-            appDatabase.userDao().remove(account.address)
+            userDao.remove(account.address)
         }
     }
 
@@ -147,7 +149,7 @@ class AccountRepositoryImpl(
     }
 
     override fun getAccounts(): Single<List<Account>> {
-        return appDatabase.userDao().getUsers()
+        return userDao.getUsers()
             .map {
                 it.map {
                     mapUserLocalToAccount(it)
@@ -279,6 +281,6 @@ class AccountRepositoryImpl(
     }
 
     private fun addAccountToList(accountName: String, address: String, publicKeyHex: String, cryptoType: Int, networkType: Int) {
-        appDatabase.userDao().insert(UserLocal(address, accountName, publicKeyHex, cryptoType, networkType))
+        userDao.insert(UserLocal(address, accountName, publicKeyHex, cryptoType, networkType))
     }
 }
