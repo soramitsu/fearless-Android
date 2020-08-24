@@ -10,8 +10,8 @@ class MainInteractor(
 
     fun getNavigationDestination(): Single<Destination> {
         return Single.fromCallable {
-            val address = accountRepository.getExistingAddress()
-            if (address == null) {
+            val accountName = accountRepository.getExistingAccountName()
+            if (accountName == null) {
                 Destination.ONBOARDING
             } else {
                 Destination.MAIN

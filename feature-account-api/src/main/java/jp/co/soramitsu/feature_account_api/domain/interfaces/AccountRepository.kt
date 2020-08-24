@@ -47,5 +47,5 @@ interface AccountRepository {
 
     fun setBiometricOff(): Completable
 
-    fun getExistingAddress(): String?
+    fun getExistingAccountName(): String?
 }
