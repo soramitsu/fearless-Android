@@ -73,26 +73,24 @@ class PinCodeViewModel(
         inputCodeLiveData.value = ""
     }
 
-    fun startAuth(pinCodeAction: PinCodeAction) {
-        action = pinCodeAction
+    fun startAuth() {
         _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
 
-        if (action == PinCodeAction.TIMEOUT_CHECK) {
-            disposables.add(
-                interactor.isCodeSet()
-                    .subscribe({
-                        _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
-                        if (it) {
-                            _showFingerPrintEvent.value = Event(Unit)
-                        } else {
-                            action = PinCodeAction.CREATE_PIN_CODE
-                        }
-                    }, {
-                        it.printStackTrace()
+        disposables.add(
+            interactor.isCodeSet()
+                .subscribe({
+                    _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
+                    if (it) {
+                        action = PinCodeAction.TIMEOUT_CHECK
+                        _showFingerPrintEvent.value = Event(Unit)
+                    } else {
                         action = PinCodeAction.CREATE_PIN_CODE
-                    })
-            )
-        }
+                    }
+                }, {
+                    it.printStackTrace()
+                    action = PinCodeAction.CREATE_PIN_CODE
+                })
+        )
     }
 
     fun pinCodeNumberClicked(pinCodeNumber: String) {
