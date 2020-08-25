@@ -41,24 +41,12 @@ class AccountRepositoryImpl(
     }
 
     override fun getSelectedEncryptionType(): Single<CryptoType> {
-        return getSelectedAddress()
-            .flatMap {
-                Single.fromCallable {
-                    accountDatasource.getCryptoType(it) ?: CryptoType.SR25519
-                }
-            }
-    }
-
-    private fun getSelectedAddress(): Single<String> {
         return Single.fromCallable {
             val address = accountDatasource.getSelectedAddress()
             if (address == null) {
-                // TODO: generate address here
-                val newAddress = ""
-                accountDatasource.saveSelectedAddress(newAddress)
-                newAddress
+                CryptoType.SR25519
             } else {
-                address
+                accountDatasource.getCryptoType(address) ?: CryptoType.SR25519
             }
         }
     }
@@ -78,22 +66,21 @@ class AccountRepositoryImpl(
     }
 
     override fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable {
-        return saveSelectedEncryptionType(encryptionType)
-            .andThen(saveSelectedNetwork(networkType))
-            .doOnComplete { saveAccountData(accountName, mnemonic, derivationPath, encryptionType, networkType) }
+        return saveAccountData(accountName, mnemonic, derivationPath, encryptionType, networkType)
+            .flatMapCompletable {
+                saveSelectedEncryptionType(it, encryptionType)
+                    .andThen(saveSelectedNetwork(networkType))
+            }
     }
 
     override fun getSourceTypes(): Single<List<SourceType>> {
         return Single.just(listOf(SourceType.MNEMONIC_PASSPHRASE, SourceType.RAW_SEED, SourceType.KEYSTORE))
     }
 
-    private fun saveSelectedEncryptionType(encryptionType: CryptoType): Completable {
-        return getSelectedAddress()
-            .flatMapCompletable {
-                Completable.fromAction {
-                    accountDatasource.saveCryptoType(encryptionType, it)
-                }
-            }
+    private fun saveSelectedEncryptionType(address: String, encryptionType: CryptoType): Completable {
+        return Completable.fromAction {
+            accountDatasource.saveCryptoType(encryptionType, address)
+        }
     }
 
     private fun saveSelectedNetwork(networkType: NetworkType): Completable {
@@ -103,9 +90,8 @@ class AccountRepositoryImpl(
     }
 
     override fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable {
-        return Completable.fromAction {
-            saveAccountData(username, keyString, derivationPath, selectedEncryptionType, networkType)
-        }
+        return saveAccountData(username, keyString, derivationPath, selectedEncryptionType, networkType)
+            .ignoreElement()
     }
 
     override fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable {
@@ -212,18 +198,28 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun saveAccountData(accountName: String, mnemonic: String, derivationPath: String, cryptoType: CryptoType, networkType: NetworkType) {
-        val entropy = bip39.generateEntropy(mnemonic)
-        val password = junctionDecoder.getPassword(derivationPath)
-        val seed = bip39.generateSeed(entropy, password)
-        val keys = keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
-        val addressType = mapNetworkTypeToAddressType(networkType)
-        val address = sS58Encoder.encode(keys.publicKey, addressType)
+    private fun saveAccountData(accountName: String, mnemonic: String, derivationPath: String, cryptoType: CryptoType, networkType: NetworkType): Single<String> {
+        return Single.fromCallable {
+            val entropy = bip39.generateEntropy(mnemonic)
+            val password = junctionDecoder.getPassword(derivationPath)
+            val seed = bip39.generateSeed(entropy, password)
+            val keys = keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
+            val addressType = mapNetworkTypeToAddressType(networkType)
+            val address = sS58Encoder.encode(keys.publicKey, addressType)
 
-        accountDatasource.saveAccountName(accountName, address)
-        accountDatasource.saveDerivationPath(derivationPath, address)
-        accountDatasource.saveSeed(seed, address)
-        accountDatasource.saveEntropy(entropy, address)
-        accountDatasource.setMnemonicIsBackedUp(true)
+            accountDatasource.saveSelectedAddress(address)
+            accountDatasource.saveAccountName(accountName, address)
+            accountDatasource.saveDerivationPath(derivationPath, address)
+            accountDatasource.saveSeed(seed, address)
+            accountDatasource.saveEntropy(entropy, address)
+            accountDatasource.setMnemonicIsBackedUp(true)
+
+            address
+        }
+    }
+
+    override fun getExistingAccountName(): String? {
+        val address = accountDatasource.getSelectedAddress()
+        return address?.let { accountDatasource.getAccountName(it) }
     }
 }

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import androidx.lifecycle.Observer
@@ -11,6 +12,8 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
@@ -21,6 +24,31 @@ import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.nextBtn
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.wordsMnemonicView
 
 class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
+
+    companion object {
+        private const val KEY_ACCOUNT_NAME = "account_name"
+        private const val KEY_MNEMONIC = "mnemonic"
+        private const val KEY_CRYPTO_TYPE = "crypto_type"
+        private const val KEY_NETWORK_TYPE = "network_type"
+        private const val KEY_DERIVATION_PATH = "derivation_path"
+
+        fun getBundle(
+            accountName: String,
+            mnemonic: List<String>,
+            cryptoType: CryptoType,
+            networkType: NetworkType,
+            derivationPath: String
+        ): Bundle {
+
+            return Bundle().apply {
+                putString(KEY_ACCOUNT_NAME, accountName)
+                putStringArray(KEY_MNEMONIC, mnemonic.toTypedArray())
+                putSerializable(KEY_CRYPTO_TYPE, cryptoType)
+                putSerializable(KEY_NETWORK_TYPE, networkType)
+                putString(KEY_DERIVATION_PATH, derivationPath)
+            }
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_confirm_mnemonic, container, false)
@@ -47,15 +75,26 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
     }
 
     override fun inject() {
+        val mnemonic = arguments!!.getStringArray(KEY_MNEMONIC)!!.toList()
+        val accountName = arguments!!.getString(KEY_ACCOUNT_NAME)!!
+        val cryptoType = arguments!!.getSerializable(KEY_CRYPTO_TYPE) as CryptoType
+        val networkType = arguments!!.getSerializable(KEY_NETWORK_TYPE) as NetworkType
+        val derivationPath = arguments!!.getString(KEY_DERIVATION_PATH)!!
+
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .confirmMnemonicComponentFactory()
-            .create(this)
+            .create(this, mnemonic, accountName, cryptoType, networkType, derivationPath)
             .inject(this)
     }
 
     override fun subscribe(viewModel: ConfirmMnemonicViewModel) {
         observe(viewModel.mnemonicLiveData, Observer {
-            populateMnemonicContainer(it)
+            wordsMnemonicView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    wordsMnemonicView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    populateMnemonicContainer(it)
+                }
+            })
         })
 
         observe(viewModel.resetConfirmationEvent, EventObserver {
@@ -86,7 +125,6 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
                 measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
             }
         }
-
         wordsMnemonicView.populateWithMnemonic(words)
 
         val containerHeight = wordsMnemonicView.getMinimumMeasuredHeight()

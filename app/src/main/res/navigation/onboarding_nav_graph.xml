@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_nav_graph"
+    app:startDestination="@id/welcomeFragment">
+
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment"
+        android:label="fragment_users"
+        tools:layout="@layout/fragment_welcome">
+
+        <action
+            android:id="@+id/action_welcomeFragment_to_createAccountFragment"
+            app:destination="@id/createAccountFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_welcomeFragment_to_termsFragment"
+            app:destination="@id/termsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_welcomeFragment_to_privacyFragment"
+            app:destination="@id/privacyFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/importAction"
+            app:destination="@id/importAccountFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/createAccountFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment"
+        android:label="fragment_create_account"
+        tools:layout="@layout/fragment_create_account">
+
+        <action
+            android:id="@+id/action_createAccountFragment_to_backupMnemonicFragment"
+            app:destination="@id/backupMnemonicFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit">
+
+        </action>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/termsFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.terms.TermsFragment"
+        android:label="fragment_terms"
+        tools:layout="@layout/fragment_terms">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/privacyFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.privacy.PrivacyFragment"
+        android:label="fragment_privacy"
+        tools:layout="@layout/fragment_privacy">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/importAccountFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment"
+        android:label="fragment_import"
+        tools:layout="@layout/fragment_import_account">
+
+        <action
+            android:id="@+id/action_importAccountFragment_to_pincodeFragment"
+            app:destination="@id/pincodeFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit">
+
+        </action>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/backupMnemonicFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment"
+        android:label="fragment_backup_mnemonic"
+        tools:layout="@layout/fragment_backup_mnemonic">
+
+        <action
+            android:id="@+id/action_backupMnemonicFragment_to_confirmMnemonicFragment"
+            app:destination="@id/confirmMnemonicFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit">
+
+        </action>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/confirmMnemonicFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment"
+        android:label="fragment_confirm_mnemonic"
+        tools:layout="@layout/fragment_confirm_mnemonic">
+
+        <action
+            android:id="@+id/action_confirmMnemonicFragment_to_pincodeFragment"
+            app:destination="@id/pincodeFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit">
+
+        </action>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/pincodeFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment"
+        android:label="fragment_pincode"
+        tools:layout="@layout/fragment_pincode">
+
+    </fragment>
+
+</navigation>

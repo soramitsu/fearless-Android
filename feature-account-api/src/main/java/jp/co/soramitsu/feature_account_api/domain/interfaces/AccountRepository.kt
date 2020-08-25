@@ -52,4 +52,6 @@ interface AccountRepository {
     fun setBiometricOn(): Completable
 
     fun setBiometricOff(): Completable
+
+    fun getExistingAccountName(): String?
 }
