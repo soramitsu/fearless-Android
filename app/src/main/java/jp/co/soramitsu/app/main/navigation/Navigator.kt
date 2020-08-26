@@ -48,12 +48,11 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
     }
 
     override fun showProfile() {
-        navController?.navigate(R.id.profileFragment)
+        navController?.navigate(R.id.action_pincodeFragment_to_profileFragment)
     }
 
     override fun openCreatePincode() {
-        val currentFragmentId = navController?.currentDestination?.id
-        when (currentFragmentId) {
+        when (navController?.currentDestination?.id) {
             R.id.importAccountFragment -> navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment)
             R.id.confirmMnemonicFragment -> navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment)
         }

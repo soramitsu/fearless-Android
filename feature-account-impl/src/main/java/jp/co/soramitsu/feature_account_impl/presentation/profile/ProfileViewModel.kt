@@ -1,17 +1,17 @@
 package jp.co.soramitsu.feature_account_impl.presentation.profile
 
 import android.graphics.drawable.Drawable
-import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
+import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 class ProfileViewModel(
     private val interactor: AccountInteractor,
@@ -66,9 +66,10 @@ class ProfileViewModel(
         disposables.add(
             interactor.getAddressId()
                 .subscribeOn(Schedulers.io())
+                .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    _accountIconLiveData.value = iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX)
+                    _accountIconLiveData.value = it
                 }, {
                     it.printStackTrace()
                 })
