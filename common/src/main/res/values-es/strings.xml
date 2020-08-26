@@ -21,8 +21,8 @@
     <string name="tabbar_extrinsics_title">Extrínseca</string>
     <string name="profile_settings_title">Configuraciones</string>
     <string name="profile_language_title">Idioma</string>
-   <string name="about_contact_us">Contáctenos</string>
-   <string name="about_title">Acerca de</string>
+    <string name="about_contact_us">Contáctenos</string>
+    <string name="about_title">Acerca de</string>
     <string name="about_privacy">Política de privacidad</string>
     <string name="about_terms">Términos y Condiciones</string>
     <string name="onboarding_create_account">Crear una cuenta</string>
