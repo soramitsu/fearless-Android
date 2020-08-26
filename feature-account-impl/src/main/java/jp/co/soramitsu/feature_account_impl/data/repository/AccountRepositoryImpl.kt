@@ -156,6 +156,30 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun getAddressId(): Single<ByteArray> {
+        return Single.fromCallable {
+            accountDatasource.getSelectedAddress()?.let { address ->
+                accountDatasource.getNetworkType()?.let { networkType ->
+                    sS58Encoder.decode(address, mapNetworkTypeToAddressType(networkType))
+                }
+            }
+        }
+    }
+
+    override fun getAddress(): Single<String> {
+        return Single.fromCallable {
+            accountDatasource.getSelectedAddress()
+        }
+    }
+
+    override fun getUsername(): Single<String> {
+        return Single.fromCallable {
+            accountDatasource.getSelectedAddress()?.let {
+                accountDatasource.getAccountName(it)
+            }
+        }
+    }
+
     override fun isBiometricEnabled(): Single<Boolean> {
         return Single.fromCallable {
             accountDatasource.getAuthType() == AuthType.BIOMETRY

@@ -41,6 +41,12 @@ interface AccountRepository {
 
     fun generateMnemonic(): Single<List<String>>
 
+    fun getAddressId(): Single<ByteArray>
+
+    fun getAddress(): Single<String>
+
+    fun getUsername(): Single<String>
+
     fun isBiometricEnabled(): Single<Boolean>
 
     fun setBiometricOn(): Completable

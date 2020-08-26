@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.about.di.AboutComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.di.ImportAccountComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.di.BackupMnemonicComponent
+import jp.co.soramitsu.feature_account_impl.presentation.profile.di.ProfileComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.di.ConfirmMnemonicComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.di.PinCodeComponent
 
@@ -28,6 +29,8 @@ interface AccountFeatureComponent : AccountFeatureApi {
     fun importAccountComponentFactory(): ImportAccountComponent.Factory
 
     fun backupMnemonicComponentFactory(): BackupMnemonicComponent.Factory
+
+    fun profileComponentFactory(): ProfileComponent.Factory
 
     fun pincodeComponentFactory(): PinCodeComponent.Factory
 

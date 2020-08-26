@@ -47,6 +47,9 @@ buildscript {
 
         biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
+        firebaseAppDistrVersion = '2.0.1'
+        playPublisherVersion = '2.5.0'
+
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
         androidDep = "androidx.appcompat:appcompat:$supportVersion"
@@ -95,11 +98,14 @@ buildscript {
     repositories {
         google()
         jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath 'com.google.gms:google-services:4.3.3'
+        classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
+        classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
     }
 }
 
@@ -130,4 +136,8 @@ task ktlint(type: JavaExec, group: "verification") {
     classpath = configurations.ktlint
     main = "com.github.shyiko.ktlint.Main"
     args "$project.rootDir/**/src/main/**/*.kt", "--reporter=plain", "--reporter=checkstyle,output=${buildDir}/reports/checkstyle/kotlin-checkstyle-report.xml"
+}
+
+task runTest(type: GradleBuild) {
+  tasks = ['clean', 'ktlint']
 }
