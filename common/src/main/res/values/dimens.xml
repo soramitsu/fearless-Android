@@ -17,8 +17,5 @@
     <dimen name="x1_5">12dp</dimen>
     <dimen name="x2">16dp</dimen>
     <dimen name="x3">24dp</dimen>
-    <dimen name="x4">32dp</dimen>
-    <dimen name="x5">40dp</dimen>
-    <dimen name="x6">48dp</dimen>
 
 </resources>

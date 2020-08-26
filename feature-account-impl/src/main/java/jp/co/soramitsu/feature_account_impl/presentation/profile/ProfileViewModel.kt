@@ -23,6 +23,7 @@ class ProfileViewModel(
     companion object {
         private const val ICON_SIZE_IN_PX = 100
         private const val LABEL_ADDRESS = "label_address"
+        private const val ADDRESS_CHARACTERS_TRUNCATE = 6
     }
 
     private val _accountNameLiveData = MutableLiveData<String>()
@@ -44,6 +45,7 @@ class ProfileViewModel(
         disposables.add(
             interactor.getAddress()
                 .subscribeOn(Schedulers.io())
+                .map { mapAccountAddress(it) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     _accountAddressLiveData.value = it
@@ -97,6 +99,10 @@ class ProfileViewModel(
                     it.printStackTrace()
                 })
         )
+    }
+
+    private fun mapAccountAddress(address: String): String {
+        return "${address.take(ADDRESS_CHARACTERS_TRUNCATE)}...${address.takeLast(ADDRESS_CHARACTERS_TRUNCATE)}"
     }
 
     private fun mapNetworkToSelectedNetworkModel(networks: List<Network>, selected: NetworkType): Network {
