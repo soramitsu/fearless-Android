@@ -1,35 +1,42 @@
 {
   "project_info": {
-    "project_number": "228744550552",
-    "firebase_url": "https://fearless-android-5a6d2.firebaseio.com",
-    "project_id": "fearless-android-5a6d2",
-    "storage_bucket": "fearless-android-5a6d2.appspot.com"
+    "project_number": "621183184145",
+    "firebase_url": "https://manticora-37173.firebaseio.com",
+    "project_id": "manticora-37173",
+    "storage_bucket": "manticora-37173.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:228744550552:android:02ab92161e12f01ff958ed",
+        "mobilesdk_app_id": "1:621183184145:android:2b0172d9e8fe674b0730b0",
         "android_client_info": {
-          "package_name": "jp.co.soramitsu.fearless"
+          "package_name": "jp.co.soramitsu.fearless.dev"
         }
       },
       "oauth_client": [
         {
-          "client_id": "228744550552-3s0o08gep1e9nl6gefmuhf3kk85c9f3g.apps.googleusercontent.com",
+          "client_id": "621183184145-9f45pucnai4o553imtpnep1mdl909i5b.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBIKJ81ub6FAh_WYVDYszzlbNrvvZxEIBc"
+          "current_key": "AIzaSyAdN45IMOhSas1GG1wuJCbXG1VlnrW_ZxE"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "228744550552-3s0o08gep1e9nl6gefmuhf3kk85c9f3g.apps.googleusercontent.com",
+              "client_id": "621183184145-9f45pucnai4o553imtpnep1mdl909i5b.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "621183184145-oglaa8naq0vf2u61je4hcat2jatqnstn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "jp.co.soramitsu.fearless.dev"
+              }
             }
           ]
         }
