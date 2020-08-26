@@ -10,10 +10,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_profile.accountAddressText
-import kotlinx.android.synthetic.main.fragment_profile.accountIcon
-import kotlinx.android.synthetic.main.fragment_profile.accountTitle
-import kotlinx.android.synthetic.main.fragment_profile.copyIcon
+import kotlinx.android.synthetic.main.fragment_profile.accountView
 import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
 import kotlinx.android.synthetic.main.fragment_profile.selectedNetworkTv
 
@@ -24,7 +21,8 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun initViews() {
-        copyIcon.setOnClickListener { viewModel.addressCopyClicked() }
+        accountView.setOnCopyClickListener { viewModel.addressCopyClicked() }
+        accountView.setOnClickListener { viewModel.accountViewClicked() }
     }
 
     override fun inject() {
@@ -36,15 +34,15 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
     override fun subscribe(viewModel: ProfileViewModel) {
         observe(viewModel.accountNameLiveData, Observer {
-            accountTitle.text = it
+            accountView.setAccountName(it)
         })
 
         observe(viewModel.accountAddressLiveData, Observer {
-            accountAddressText.text = it
+            accountView.setAccountAddress(it)
         })
 
         observe(viewModel.accountIconLiveData, Observer {
-            accountIcon.setImageDrawable(it)
+            accountView.setAccountIcon(it)
         })
 
         observe(viewModel.selectedNetworkLiveData, Observer {

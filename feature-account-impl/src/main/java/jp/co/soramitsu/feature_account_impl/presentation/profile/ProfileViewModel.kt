@@ -114,4 +114,8 @@ class ProfileViewModel(
             clipboardManager.addToClipboard(LABEL_ADDRESS, it)
         }
     }
+
+    fun accountViewClicked() {
+        // TODO: 8/26/20 go to account managment 
+    }
 }

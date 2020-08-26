@@ -41,7 +41,7 @@
                 android:layout_marginStart="@dimen/x2"
                 android:layout_marginTop="@dimen/x2"
                 android:layout_marginEnd="@dimen/x2"
-                android:background="@drawable/bg_input_shape_selector"
+                android:background="@drawable/bg_input_shape_filled_selector"
                 android:orientation="vertical"
                 android:paddingStart="@dimen/x2"
                 android:paddingTop="@dimen/x1"
