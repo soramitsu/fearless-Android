@@ -2,8 +2,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingStart="@dimen/x2_5"
-    android:paddingEnd="@dimen/x2_5"
+    android:paddingStart="@dimen/x1_5"
+    android:paddingEnd="@dimen/x1_5"
     android:paddingTop="@dimen/x2"
     android:paddingBottom="@dimen/x2" >
     <TextView
