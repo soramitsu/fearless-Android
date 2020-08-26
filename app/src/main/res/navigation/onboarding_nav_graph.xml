@@ -141,4 +141,12 @@
 
     </fragment>
 
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.about.AboutFragment"
+        android:label="fragment_about"
+        tools:layout="@layout/fragment_about">
+
+    </fragment>
+
 </navigation>

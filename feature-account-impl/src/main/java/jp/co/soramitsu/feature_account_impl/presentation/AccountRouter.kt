@@ -19,5 +19,7 @@ interface AccountRouter {
         derivationPath: String
     )
 
+    fun openAboutScreen()
+
     fun backToBackupMnemonicScreen()
 }

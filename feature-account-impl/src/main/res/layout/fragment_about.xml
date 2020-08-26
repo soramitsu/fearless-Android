@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/bgIv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="centerCrop"
+        android:src="@drawable/about_top_background"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/backIv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:clickable="true"
+        android:background="@drawable/bg_primary_list_item"
+        android:src="@drawable/ic_arrow_back_24dp"
+        android:padding="@dimen/x1"
+        android:layout_marginTop="@dimen/x1"
+        android:layout_marginStart="@dimen/x1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/logoIv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/x2"
+        android:src="@drawable/ic_logo_about"
+        app:layout_constraintBottom_toBottomOf="@+id/bgIv"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView"
+        style="@style/TextAppearance.Soramitsu.Header1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="@dimen/x3"
+        android:text="@string/about_title"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bgIv" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/websiteWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="@drawable/bg_primary_list_item"
+        android:paddingStart="@dimen/x2"
+        android:paddingTop="@dimen/x1"
+        android:paddingEnd="@dimen/x2"
+        android:paddingBottom="@dimen/x1"
+        android:layout_marginTop="@dimen/x2"
+        app:layout_constraintTop_toBottomOf="@id/textView">
+
+        <ImageView
+            android:id="@+id/websiteIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_monitor_blue_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/websiteTitle"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1_5"
+            android:textColor="@color/white"
+            android:text="@string/about_website"
+            app:layout_constraintEnd_toStartOf="@id/websiteRightIcon"
+            app:layout_constraintStart_toEndOf="@id/websiteIcon"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/websiteText"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1_5"
+            android:textColor="@color/colorHint"
+            app:layout_constraintEnd_toStartOf="@id/websiteRightIcon"
+            app:layout_constraintStart_toEndOf="@id/websiteIcon"
+            app:layout_constraintTop_toBottomOf="@id/websiteTitle"
+            tools:text="www.fearless.com" />
+
+        <ImageView
+            android:id="@+id/websiteRightIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_arrow_top_right_white_16"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/websiteTitle"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray3"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        app:layout_constraintTop_toBottomOf="@+id/websiteWrapper"
+        />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/githubWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="@drawable/bg_primary_list_item"
+        android:paddingStart="@dimen/x2"
+        android:paddingTop="@dimen/x1"
+        android:paddingEnd="@dimen/x2"
+        android:paddingBottom="@dimen/x1"
+        app:layout_constraintTop_toBottomOf="@id/divider">
+
+        <ImageView
+            android:id="@+id/githubIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_github_blue_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/githubTitle"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1_5"
+            android:textColor="@color/white"
+            android:text="@string/about_github"
+            app:layout_constraintEnd_toStartOf="@id/githubRightIcon"
+            app:layout_constraintStart_toEndOf="@id/githubIcon"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/githubText"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1_5"
+            android:textColor="@color/colorHint"
+            app:layout_constraintEnd_toStartOf="@id/githubRightIcon"
+            app:layout_constraintStart_toEndOf="@id/githubIcon"
+            app:layout_constraintTop_toBottomOf="@id/githubTitle"
+            tools:text="App version 0.1.2" />
+
+        <ImageView
+            android:id="@+id/githubRightIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_arrow_top_right_white_16"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/githubTitle"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/divider1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray3"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        app:layout_constraintTop_toBottomOf="@+id/githubWrapper"
+        />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/telegramWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="@drawable/bg_primary_list_item"
+        android:paddingStart="@dimen/x2"
+        android:paddingTop="@dimen/x1"
+        android:paddingEnd="@dimen/x2"
+        android:paddingBottom="@dimen/x1"
+        app:layout_constraintTop_toBottomOf="@id/divider1">
+
+        <ImageView
+            android:id="@+id/telegramIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_tg_blue_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/telegramTitle"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1_5"
+            android:textColor="@color/white"
+            android:text="@string/about_telegram"
+            app:layout_constraintEnd_toStartOf="@id/telegramRightIcon"
+            app:layout_constraintStart_toEndOf="@id/telegramIcon"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/telegramText"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1_5"
+            android:textColor="@color/colorHint"
+            app:layout_constraintEnd_toStartOf="@id/telegramRightIcon"
+            app:layout_constraintStart_toEndOf="@id/telegramIcon"
+            app:layout_constraintTop_toBottomOf="@id/telegramTitle"
+            tools:text="https://t.me/fearlesswallet" />
+
+        <ImageView
+            android:id="@+id/telegramRightIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_arrow_top_right_white_16"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/telegramTitle"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/divider2"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray3"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        app:layout_constraintTop_toBottomOf="@+id/telegramWrapper"
+        />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/emailWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="@drawable/bg_primary_list_item"
+        android:paddingStart="@dimen/x2"
+        android:paddingTop="@dimen/x1"
+        android:paddingEnd="@dimen/x2"
+        android:paddingBottom="@dimen/x1"
+        app:layout_constraintTop_toBottomOf="@id/divider2">
+
+        <ImageView
+            android:id="@+id/emailIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_mail_blue_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/emailTitle"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1_5"
+            android:textColor="@color/white"
+            android:text="@string/about_contact_us"
+            app:layout_constraintEnd_toStartOf="@id/emailRightIcon"
+            app:layout_constraintStart_toEndOf="@id/emailIcon"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/emailText"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1_5"
+            android:textColor="@color/colorHint"
+            app:layout_constraintEnd_toStartOf="@id/emailRightIcon"
+            app:layout_constraintStart_toEndOf="@id/emailIcon"
+            app:layout_constraintTop_toBottomOf="@id/emailTitle"
+            tools:text="info@fearless.com" />
+
+        <ImageView
+            android:id="@+id/emailRightIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_arrow_top_right_white_16"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/emailTitle"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/divider3"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray3"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        app:layout_constraintTop_toBottomOf="@+id/emailWrapper"
+        />
+
+    <TextView
+        android:id="@+id/termsTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:focusable="true"
+        android:clickable="true"
+        android:background="@drawable/bg_primary_list_item"
+        android:paddingTop="@dimen/x2"
+        android:paddingBottom="@dimen/x2"
+        android:paddingStart="@dimen/x2"
+        android:paddingEnd="@dimen/x2"
+        android:textColor="@color/white"
+        android:text="@string/about_terms"
+        app:layout_constraintTop_toBottomOf="@+id/divider3"
+        android:drawableEnd="@drawable/ic_arrow_top_right_white_16"
+        />
+
+    <View
+        android:id="@+id/divider4"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray3"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        app:layout_constraintTop_toBottomOf="@+id/termsTv"
+        />
+
+    <TextView
+        android:id="@+id/privacyTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:focusable="true"
+        android:clickable="true"
+        android:background="@drawable/bg_primary_list_item"
+        android:paddingTop="@dimen/x2"
+        android:paddingBottom="@dimen/x2"
+        android:paddingStart="@dimen/x2"
+        android:paddingEnd="@dimen/x2"
+        android:textColor="@color/white"
+        android:text="@string/about_privacy"
+        app:layout_constraintTop_toBottomOf="@+id/divider4"
+        android:drawableEnd="@drawable/ic_arrow_top_right_white_16"
+        />
+
+    <View
+        android:id="@+id/divider5"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray3"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        app:layout_constraintTop_toBottomOf="@+id/privacyTv"
+        />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

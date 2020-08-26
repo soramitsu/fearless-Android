@@ -16,6 +16,7 @@ android {
 
     buildTypes {
         debug {
+            buildConfigField "String", "WEBSITE_URL", "\"https://fearlesswallet.io\""
             buildConfigField "String", "PRIVACY_URL", "\"https://sora.org/privacy\""
             buildConfigField "String", "TERMS_URL", "\"https://sora.org/terms\""
             buildConfigField "String", "GITHUB_URL", "\"https://github.com/soramitsu/fearless-Android\""
@@ -26,6 +27,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
+            buildConfigField "String", "WEBSITE_URL", "\"https://fearlesswallet.io\""
             buildConfigField "String", "PRIVACY_URL", "\"https://sora.org/privacy\""
             buildConfigField "String", "TERMS_URL", "\"https://sora.org/terms\""
             buildConfigField "String", "GITHUB_URL", "\"https://github.com/soramitsu/fearless-Android\""

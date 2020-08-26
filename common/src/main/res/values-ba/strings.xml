@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="common_ok">Ok</string>
-    <string name="common_use">Ҡулланыу</string>
-    <string name="common_skip">Үткэрергә</string>
     <string name="common_next">Киләһе</string>
+    <string name="common_cancel">Кире ҡағыу</string>
+    <string name="common_skip">Үткэрергә</string>
+    <string name="common_use">Ҡулланыу</string>
     <string name="common_error_general_title">Хата</string>
     <string name="connection_error_message">Зинһар, интернет селтәрен тикшерегеҙ һәм һуңыраҡ ҡабатлап ҡарағыҙ.</string>
     <string name="onboarding_restore_account">Импортҡа Иҫәп Яҙмаһы</string>
@@ -14,9 +14,22 @@
     <string name="pincode_confirm_your_pin_code">Пин кодты раҫлаһыҙ</string>
     <string name="access_restore_phrase_error_message">Һеҙҙең мнемоника яраҡһыҙ. Зинһар, икенсене ҡулланып ҡарағыҙ.</string>
     <string name="recovery_passphrase">Мнемоника</string>
+    <string name="tabbar_wallet_title">Янсыҡ</string>
+    <string name="tabbar_staking_title">Стейкинг</string>
+    <string name="tabbar_governance_title">Управление</string>
+    <string name="tabbar_extrinsics_title">Экстринсики</string>
+    <string name="profile_settings_title">Көйләүҙәр</string>
+    <string name="profile_language_title">Тел</string>
+    <string name="about_contact_us">Бәйләнеш</string>
+    <string name="about_title">Тураһында</string>
+    <string name="about_privacy">Хосусил сәйәсәте</string>
+    <string name="about_terms">Ҡағиҙәләр һәм шарттар</string>
     <string name="onboarding_create_account">Создать аккаунт</string>
     <string name="username_setup_choose_title">Выберите имя</string>
     <string name="username_setup_hint">Имя аккаунта и его отображение рядом с адресом. Используя хранение идентификационных данных в блокчейне, имя можно сделать доступных для остальных.</string>
+    <string name="common_no_screenshot_title">Не делайте снимков экрана</string>
+    <string name="common_no_screenshot_message">Не делайте снимков экрана, так как они могут быть похищены сторонним вредоносным программным обеспечением</string>
+    <string name="common_ok">ОК</string>
     <string name="account_create_title">Мнемоника</string>
     <string name="account_create_details">Используйте нецифровой носитель для сохранения, например, выпишите слова на бумагу.</string>
     <string name="common_advanced">Продвинутый</string>
@@ -29,6 +42,8 @@
     <string name="sr25519_selection_title">Schnorrkel</string>
     <string name="ed25519_selection_title">Edwards</string>
     <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="account_creation_info">Мнемоническая фраза используется для восстановления доступа к аккаунту. Запишите ее, мы не сможем восстановить доступ к аккаунту без нее!</string>
+    <string name="common_info">Информация</string>
     <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
     <string name="recovery_source_type">Сығанаҡ тип</string>
     <string name="recovery_raw_seed">Сей орлоҡ</string>
@@ -36,16 +51,24 @@
     <string name="account_import_password_placeholder">Пароль</string>
     <string name="common_error_general_message">Беҙ бөтә тырышлыҡ кәметмәҫкә, был проблеманы хәл итеү өсөн. Зинһар, һуңыраҡ ҡабатларға тырыша.</string>
     <string name="recover_json_hint">Json профилендә йәки загрузить файл...</string>
+    <string name="account_confirmation_title">Подтверждение</string>
+    <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
     <string name="pincode_create_top_title">Новый пинкод</string>
     <string name="pincode_fingerprint_error">Һеҙ . Башҡа бармаҡты тейеп ҡарағыҙ.</string>
     <string name="pincode_touch_fingerprint_scanner">Бармаҡ эҙҙәре сенсор сканерын тейегеҙ</string>
     <string name="pincode_fingerprint_switch_dialog_title">Авторизациялау өсөн файҙаланылған мәғлүмәт биометрический</string>
-    <string name="common_info">Информация</string>
-    <string name="account_creation_info">Мнемоническая фраза используется для восстановления доступа к аккаунту. Запишите ее, мы не сможем восстановить доступ к аккаунту без нее!</string>
-    <string name="common_no_screenshot_title">Не делайте снимков экрана</string>
-    <string name="common_no_screenshot_message">Не делайте снимков экрана, так как они могут быть похищены сторонним вредоносным программным обеспечением</string>
-    <string name="account_confirmation_title">Подтверждение</string>
-    <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
-    <string name="common_cancel">Кире ҡағыу</string>
+    <string name="profile_title">Аккаунт</string>
+    <string name="profile_accounts_title">Аккаунты</string>
+    <string name="profile_network_title">Селтәре</string>
+    <string name="profile_pincode_change_title">Үҙгәртергә pin-код</string>
+    <string name="tabbar_profile_title">Профиль</string>
     <string name="pincode_biometry_dialog_title">Биометрия</string>
+    <string name="common_edit">Шымартыу</string>
+    <string name="common_done">Эшләй</string>
+    <string name="accounts_add_account">Добавить аккаунт</string>
+    <string name="account_add_already_exists_message">Аккаунт уже существует. Пожалуйста, попробуйте другой.</string>
+    <string name="about_website">Официальный Сайт</string>
+    <string name="about_github">Исходным Коды Github</string>
+    <string name="about_version">Версия ҡушымта</string>
+    <string name="about_telegram">Telegram Төркөмөнә Ҡушылды</string>
 </resources>
