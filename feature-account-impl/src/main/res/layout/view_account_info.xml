@@ -1,58 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
-        <ImageView
-            android:id="@+id/accountIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/x1"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/accountIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/accountTitle"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/x1"
-            android:textColor="@color/white"
-            android:layout_marginTop="@dimen/x1"
-            app:layout_constraintEnd_toStartOf="@id/copyIcon"
-            app:layout_constraintStart_toEndOf="@id/accountIcon"
-            app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/accountTitle"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x1"
+        android:layout_marginTop="@dimen/x1"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toStartOf="@id/copyIcon"
+        app:layout_constraintStart_toEndOf="@id/accountIcon"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/accountAddressText"
-            style="@style/TextAppearance.Soramitsu.Body2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/x1"
-            android:textColor="@color/colorHint"
-            android:layout_marginBottom="@dimen/x1"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/copyIcon"
-            app:layout_constraintStart_toEndOf="@id/accountIcon"
-            app:layout_constraintTop_toBottomOf="@id/accountTitle"
-            tools:text="GybH55...zsi5nA" />
+    <TextView
+        android:id="@+id/accountAddressText"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x1"
+        android:layout_marginBottom="@dimen/x1"
+        android:textColor="@color/colorHint"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/copyIcon"
+        app:layout_constraintStart_toEndOf="@id/accountIcon"
+        app:layout_constraintTop_toBottomOf="@id/accountTitle"
+        tools:text="GybH55...zsi5nA" />
 
-        <ImageView
-            android:id="@+id/copyIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_copy_24"
-            android:focusable="true"
-            android:clickable="true"
-            android:background="@drawable/bg_primary_list_item"
-            android:padding="@dimen/x1"
-            android:layout_marginEnd="@dimen/x1"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/accountTitle"
-            app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/copyIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/x1"
+        android:background="@drawable/bg_primary_list_item"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="@dimen/x1"
+        android:src="@drawable/ic_copy_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/accountTitle"
+        app:layout_constraintTop_toTopOf="parent" />
 </merge>
