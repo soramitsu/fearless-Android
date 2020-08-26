@@ -70,7 +70,7 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
     }
 
     override fun openAboutScreen() {
-        navController?.navigate(R.id.aboutFragment)
+        navController?.navigate(R.id.action_profileFragment_to_aboutFragment)
     }
 
     override fun openTermsScreen() {
@@ -95,6 +95,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
     }
 
     override fun backToBackupMnemonicScreen() {
+        navController?.popBackStack()
+    }
+
+    override fun backToProfileScreen() {
         navController?.popBackStack()
     }
 }

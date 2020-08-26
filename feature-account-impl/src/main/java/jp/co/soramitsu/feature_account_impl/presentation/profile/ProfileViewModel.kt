@@ -118,4 +118,8 @@ class ProfileViewModel(
     fun accountViewClicked() {
         // TODO: 8/26/20 go to account managment 
     }
+
+    fun aboutClicked() {
+        router.openAboutScreen()
+    }
 }

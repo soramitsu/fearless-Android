@@ -28,4 +28,6 @@ interface AccountRouter {
     fun openPrivacyScreen()
 
     fun backToBackupMnemonicScreen()
+
+    fun backToProfileScreen()
 }
