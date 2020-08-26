@@ -21,5 +21,9 @@ interface AccountRouter {
 
     fun openAboutScreen()
 
+    fun openTermsScreen()
+
+    fun openPrivacyScreen()
+
     fun backToBackupMnemonicScreen()
 }

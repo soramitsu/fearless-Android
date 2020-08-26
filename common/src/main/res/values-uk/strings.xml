@@ -72,4 +72,5 @@
     <string name="about_github">Вихідний код Github</string>
     <string name="about_version">Версія програми</string>
     <string name="about_telegram">Приєднуйтесь до Telegram Group</string>
+    <string name="common_email_chooser_title">Виберіть додаток для електронної пошти</string>
 </resources>

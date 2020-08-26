@@ -72,4 +72,5 @@ les Termes et Conditions et la Politique de confidentialité</string>
     <string name="about_github">Code source Github</string>
     <string name="about_version">Version de l\'application</string>
     <string name="about_telegram">Rejoignez le groupe Telegram</string>
+    <string name="common_email_chooser_title">Sélectionnez l\'application de messagerie</string>
 </resources>

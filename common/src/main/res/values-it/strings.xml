@@ -71,4 +71,5 @@
     <string name="about_github">Codice sorgente Github</string>
     <string name="about_version">Versione dell\'app</string>
     <string name="about_telegram">Unisciti al gruppo Telegram</string>
+    <string name="common_email_chooser_title">Seleziona l\'app di posta elettronica</string>
 </resources>
