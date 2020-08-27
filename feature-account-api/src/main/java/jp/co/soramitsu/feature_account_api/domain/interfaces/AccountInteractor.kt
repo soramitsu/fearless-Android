@@ -25,6 +25,14 @@ interface AccountInteractor {
 
     fun importFromJson(json: String, password: String, node: NetworkType): Completable
 
+    fun getAddressId(): Single<ByteArray>
+
+    fun getSelectedLanguage(): Single<String>
+
+    fun getAddress(): Single<String>
+
+    fun getUsername(): Single<String>
+
     fun isCodeSet(): Single<Boolean>
 
     fun savePin(code: String): Completable
