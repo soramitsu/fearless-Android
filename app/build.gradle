@@ -19,7 +19,7 @@ android {
     }
     signingConfigs {
       ci {
-          storeFile file(System.env.CI_KEYSTORE_PATH ?: "")
+          storeFile file(System.env.CI_KEYSTORE_PATH ?: "stub")
           storePassword System.env.CI_KEYSTORE_PASS ?: ""
           keyAlias System.env.CI_KEYSTORE_KEY_ALIAS ?: ""
           keyPassword System.env.CI_KEYSTORE_KEY_PASS ?: ""
@@ -28,7 +28,6 @@ android {
     buildTypes {
         debug {
             versionNameSuffix '-debug'
-            signingConfig signingConfigs.ci
         }
         release {
             minifyEnabled false
@@ -36,7 +35,7 @@ android {
             signingConfig signingConfigs.ci
         }
         develop {
-            initWith debug
+            signingConfig signingConfigs.ci
             matchingFallbacks = ['debug']
             versionNameSuffix '-develop'
             applicationIdSuffix '.dev'
