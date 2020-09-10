@@ -4,6 +4,5 @@ import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 
 data class CryptoTypeModel(
     val name: String,
-    val cryptoType: CryptoType,
-    val isSelected: Boolean
+    val cryptoType: CryptoType
 )

@@ -13,7 +13,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
@@ -29,14 +29,17 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         private const val KEY_ACCOUNT_NAME = "account_name"
         private const val KEY_MNEMONIC = "mnemonic"
         private const val KEY_CRYPTO_TYPE = "crypto_type"
-        private const val KEY_NETWORK_TYPE = "network_type"
+        private const val KEY_NODE_NAME = "node_name"
+        private const val KEY_NODE_LINK = "node_link"
+        private const val KEY_NODE_TYPE = "node_type"
+        private const val KEY_NODE_IS_DEFAULT = "node_is_default"
         private const val KEY_DERIVATION_PATH = "derivation_path"
 
         fun getBundle(
             accountName: String,
             mnemonic: List<String>,
             cryptoType: CryptoType,
-            networkType: NetworkType,
+            node: Node,
             derivationPath: String
         ): Bundle {
 
@@ -44,7 +47,10 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
                 putString(KEY_ACCOUNT_NAME, accountName)
                 putStringArray(KEY_MNEMONIC, mnemonic.toTypedArray())
                 putSerializable(KEY_CRYPTO_TYPE, cryptoType)
-                putSerializable(KEY_NETWORK_TYPE, networkType)
+                putString(KEY_NODE_NAME, node.name)
+                putString(KEY_NODE_LINK, node.link)
+                putSerializable(KEY_NODE_TYPE, node.networkType)
+                putBoolean(KEY_NODE_IS_DEFAULT, node.isDefault)
                 putString(KEY_DERIVATION_PATH, derivationPath)
             }
         }
@@ -78,12 +84,16 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         val mnemonic = arguments!!.getStringArray(KEY_MNEMONIC)!!.toList()
         val accountName = arguments!!.getString(KEY_ACCOUNT_NAME)!!
         val cryptoType = arguments!!.getSerializable(KEY_CRYPTO_TYPE) as CryptoType
-        val networkType = arguments!!.getSerializable(KEY_NETWORK_TYPE) as NetworkType
+        val name = arguments!!.getString(KEY_NODE_NAME)!!
+        val link = arguments!!.getString(KEY_NODE_LINK)!!
+        val networkType = arguments!!.getSerializable(KEY_NODE_TYPE) as Node.NetworkType
+        val isDefault = arguments!!.getBoolean(KEY_NODE_IS_DEFAULT)
+        val node = Node(name, networkType, link, isDefault)
         val derivationPath = arguments!!.getString(KEY_DERIVATION_PATH)!!
 
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .confirmMnemonicComponentFactory()
-            .create(this, mnemonic, accountName, cryptoType, networkType, derivationPath)
+            .create(this, mnemonic, accountName, cryptoType, node, derivationPath)
             .inject(this)
     }
 

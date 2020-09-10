@@ -1,11 +1,12 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Network
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 
 interface AccountRepository {
 
@@ -15,21 +16,55 @@ interface AccountRepository {
 
     fun getEncryptionTypes(): Single<List<CryptoType>>
 
-    fun getSelectedEncryptionType(): Single<CryptoType>
+    fun getNodes(): Observable<List<Node>>
 
-    fun getNetworks(): Single<List<Network>>
+    fun getSelectedNode(): Single<Node>
 
-    fun getSelectedNetwork(): Single<NetworkType>
+    fun saveNode(node: Node): Completable
 
-    fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable
+    fun removeNode(node: Node): Completable
+
+    fun selectNode(node: Node): Completable
+
+    fun selectAccount(account: Account): Completable
+
+    fun getSelectedAccount(): Single<Account>
+
+    fun getPreferredCryptoType(): Single<CryptoType>
+
+    fun isAccountSelected(): Single<Boolean>
+
+    fun removeAccount(account: Account): Completable
+
+    fun createAccount(
+        accountName: String,
+        mnemonic: String,
+        encryptionType: CryptoType,
+        derivationPath: String,
+        node: Node
+    ): Completable
+
+    fun getAccounts(): Single<List<Account>>
 
     fun getSourceTypes(): Single<List<SourceType>>
 
-    fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
+    fun importFromMnemonic(
+        keyString: String,
+        username: String,
+        derivationPath: String,
+        selectedEncryptionType: CryptoType,
+        node: Node
+    ): Completable
 
-    fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
+    fun importFromSeed(
+        keyString: String,
+        username: String,
+        derivationPath: String,
+        selectedEncryptionType: CryptoType,
+        node: Node
+    ): Completable
 
-    fun importFromJson(json: String, password: String, networkType: NetworkType): Completable
+    fun importFromJson(json: String, password: String, networkType: Node.NetworkType): Completable
 
     fun isCodeSet(): Single<Boolean>
 
@@ -43,15 +78,9 @@ interface AccountRepository {
 
     fun getAddressId(): Single<ByteArray>
 
-    fun getAddress(): Single<String>
-
-    fun getUsername(): Single<String>
-
     fun isBiometricEnabled(): Single<Boolean>
 
     fun setBiometricOn(): Completable
 
     fun setBiometricOff(): Completable
-
-    fun getExistingAccountName(): String?
 }

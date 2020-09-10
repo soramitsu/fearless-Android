@@ -5,7 +5,7 @@ import androidx.navigation.NavController
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.main.presentation.MainActivity
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
@@ -62,10 +62,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         accountName: String,
         mnemonic: List<String>,
         cryptoType: CryptoType,
-        networkType: NetworkType,
+        node: Node,
         derivationPath: String
     ) {
-        val bundle = ConfirmMnemonicFragment.getBundle(accountName, mnemonic, cryptoType, networkType, derivationPath)
+        val bundle = ConfirmMnemonicFragment.getBundle(accountName, mnemonic, cryptoType, node, derivationPath)
         navController?.navigate(R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment, bundle)
     }
 
