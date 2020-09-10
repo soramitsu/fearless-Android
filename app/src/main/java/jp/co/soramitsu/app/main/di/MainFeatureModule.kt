@@ -11,9 +11,7 @@ class MainFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideMainInteractor(
-        accountRepository: AccountRepository
-    ): MainInteractor {
-        return MainInteractor(accountRepository)
+    fun provideMainInteractor(): MainInteractor {
+        return MainInteractor()
     }
 }

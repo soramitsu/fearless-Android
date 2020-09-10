@@ -157,7 +157,7 @@ class PinCodeViewModel(
                     if (fingerPrintAvailable) {
                         _biometricSwitchDialogLiveData.value = Event(Unit)
                     } else {
-                        router.showProfile()
+                        router.openMain()
                     }
                 }, {
                     it.printStackTrace()
@@ -170,7 +170,7 @@ class PinCodeViewModel(
             interactor.isPinCorrect(code)
                 .subscribe({
                     if (it) {
-                        router.showProfile()
+                        router.openMain()
                     } else {
                         inputCodeLiveData.value = ""
                         deviceVibrator.makeShortVibration()
@@ -212,7 +212,7 @@ class PinCodeViewModel(
     }
 
     fun onAuthenticationSucceeded() {
-        router.showProfile()
+        router.openMain()
     }
 
     fun onAuthenticationFailed() {
@@ -229,7 +229,7 @@ class PinCodeViewModel(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    router.showProfile()
+                    router.openMain()
                 }, {
                     it.printStackTrace()
                 })

@@ -37,7 +37,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     }
 
     override fun inject() {
-        FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
+        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
             .pincodeComponentFactory()
             .create(DotsProgressView.MAX_PROGRESS, this)
             .inject(this)
@@ -46,7 +46,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     override fun initViews() {
         toolbar.setHomeButtonListener { viewModel.backPressed() }
 
-        fingerprintDialog = BottomSheetDialog(activity!!).apply {
+        fingerprintDialog = BottomSheetDialog(requireActivity()).apply {
             setContentView(R.layout.bottom_sheet_fingerprint_dialog)
             setCancelable(true)
             setOnCancelListener { fingerprintWrapper.cancel() }

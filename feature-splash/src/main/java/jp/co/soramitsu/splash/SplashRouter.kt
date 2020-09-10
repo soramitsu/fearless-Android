@@ -1,8 +1,7 @@
 package jp.co.soramitsu.splash
 
-import android.content.Context
-
 interface SplashRouter {
+    fun openOnboarding()
 
-    fun openMain(context: Context)
+    fun openPin()
 }

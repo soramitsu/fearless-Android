@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_nav_graph"
+    app:startDestination="@id/splashFragment">
+
+    <include app:graph="@navigation/main_nav_graph" />
+
+    <include app:graph="@navigation/onboarding_nav_graph" />
+
+    <action
+        android:id="@+id/action_open_main"
+        app:destination="@id/main_nav_graph"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit"
+        app:popUpTo="@id/root_nav_graph"
+        app:popUpToInclusive="true" />
+
+    <action
+        android:id="@+id/openPrivacy"
+        app:destination="@id/privacyFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <action
+        android:id="@+id/openTerms"
+        app:destination="@id/termsFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <fragment
+        android:id="@+id/splashFragment"
+        tools:layout="@layout/fragment_splash"
+        android:name="jp.co.soramitsu.splash.presentation.SplashFragment">
+
+        <action
+            android:id="@+id/action_splash_to_onboarding"
+            app:destination="@id/onboarding_nav_graph"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true" />
+
+        <action  android:id="@+id/action_splash_to_pin"
+            app:destination="@id/pincodeFragment"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/pincodeFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment"
+        android:label="fragment_pincode"
+        tools:layout="@layout/fragment_pincode">
+    </fragment>
+
+    <fragment
+        android:id="@+id/privacyFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.privacy.PrivacyFragment"
+        tools:layout="@layout/fragment_privacy" />
+
+    <fragment
+        android:id="@+id/termsFragment"
+        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.terms.TermsFragment"
+        android:label="fragment_terms"
+        tools:layout="@layout/fragment_terms" />
+
+</navigation>

@@ -16,6 +16,8 @@ abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             setBarColorBackground(android.R.color.black)
         }
+
+
         inject()
         initViews()
         subscribe(viewModel)

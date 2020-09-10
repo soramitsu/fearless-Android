@@ -41,8 +41,10 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun subscribe(viewModel: ProfileViewModel) {
-        viewModel.account.observe {
-            accountView.setAccountName(it.name)
+        viewModel.account.observe {account ->
+           account.name?.let(accountView::setAccountName)
+
+
         }
 
         viewModel.shortenAddress.observe {

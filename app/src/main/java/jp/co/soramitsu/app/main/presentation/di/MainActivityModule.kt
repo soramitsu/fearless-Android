@@ -28,6 +28,6 @@ class MainActivityModule {
 
     @Provides
     fun provideViewModelCreator(activity: AppCompatActivity, viewModelFactory: ViewModelProvider.Factory): MainViewModel {
-        return ViewModelProviders.of(activity, viewModelFactory).get(MainViewModel::class.java)
+        return ViewModelProvider(activity, viewModelFactory).get(MainViewModel::class.java)
     }
 }

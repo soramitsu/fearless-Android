@@ -4,6 +4,7 @@ import dagger.BindsInstance
 import dagger.Component
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.splash.presentation.di.SplashComponent
 
@@ -33,7 +34,8 @@ interface SplashFeatureComponent : SplashFeatureApi {
 
     @Component(
         dependencies = [
-            CommonApi::class
+            CommonApi::class,
+            AccountFeatureApi::class
         ]
     )
     interface SplashFeatureDependenciesComponent : SplashFeatureDependencies

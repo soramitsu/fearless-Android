@@ -7,7 +7,5 @@ class MainViewModel(
     interactor: MainInteractor
 ) : BaseViewModel() {
 
-    val navigationDestinationLiveData = interactor.getInitialDestination().asMutableLiveData()
-
     fun jsonFileOpened(content: String?) {}
 }

@@ -36,7 +36,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     protected fun showError(errorMessage: String) {
-        AlertDialog.Builder(activity!!)
+        AlertDialog.Builder(requireActivity())
             .setTitle(R.string.common_error_general_title)
             .setMessage(errorMessage)
             .setPositiveButton(R.string.common_ok) { _, _ -> }
@@ -44,7 +44,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     protected fun showErrorFromResponse(resId: Int) {
-        AlertDialog.Builder(activity!!)
+        AlertDialog.Builder(requireActivity())
             .setTitle(R.string.common_error_general_title)
             .setMessage(resId)
             .setPositiveButton(R.string.common_ok) { _, _ -> }
@@ -52,7 +52,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     protected fun showErrorWithTitle(title: String, errorMessage: String) {
-        AlertDialog.Builder(activity!!)
+        AlertDialog.Builder(requireActivity())
             .setTitle(title)
             .setMessage(errorMessage)
             .setPositiveButton(R.string.common_ok) { _, _ -> }

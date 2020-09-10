@@ -1,9 +1,7 @@
 package jp.co.soramitsu.app.main.navigation
 
-import android.content.Context
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.app.main.presentation.MainActivity
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
@@ -16,8 +14,7 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
 
     private var navController: NavController? = null
 
-    fun attachNavController(navController: NavController, graph: Int) {
-        navController.setGraph(graph)
+    fun attachNavController(navController: NavController) {
         this.navController = navController
     }
 
@@ -27,16 +24,12 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         }
     }
 
-    fun popBackStack() {
-        navController?.popBackStack()
+    override fun openOnboarding() {
+        navController?.navigate(R.id.action_splash_to_onboarding)
     }
 
-    fun showPin() {
-        navController?.navigate(R.id.action_welcomeFragment_to_pincodeFragment)
-    }
-
-    override fun openMain(context: Context) {
-        MainActivity.start(context)
+    override fun openPin() {
+        navController?.navigate(R.id.action_splash_to_pin)
     }
 
     override fun openCreateAccount() {
@@ -47,8 +40,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         navController?.popBackStack()
     }
 
-    override fun showProfile() {
-        navController?.navigate(R.id.action_pincodeFragment_to_profileFragment)
+    override fun openMain() {
+        navController?.navigate(R.id.action_open_main)
     }
 
     override fun openCreatePincode() {
@@ -65,8 +58,17 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         node: Node,
         derivationPath: String
     ) {
-        val bundle = ConfirmMnemonicFragment.getBundle(accountName, mnemonic, cryptoType, node, derivationPath)
-        navController?.navigate(R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment, bundle)
+        val bundle = ConfirmMnemonicFragment.getBundle(
+            accountName,
+            mnemonic,
+            cryptoType,
+            node,
+            derivationPath
+        )
+        navController?.navigate(
+            R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment,
+            bundle
+        )
     }
 
     override fun openAboutScreen() {
@@ -74,11 +76,11 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
     }
 
     override fun openTermsScreen() {
-        navController?.navigate(R.id.action_welcomeFragment_to_termsFragment)
+        navController?.navigate(R.id.openTerms)
     }
 
     override fun openPrivacyScreen() {
-        navController?.navigate(R.id.action_welcomeFragment_to_privacyFragment)
+        navController?.navigate(R.id.openPrivacy)
     }
 
     override fun openImportAccountScreen() {

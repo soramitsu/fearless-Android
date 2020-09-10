@@ -9,7 +9,7 @@ interface AccountRouter {
 
     fun backToWelcomeScreen()
 
-    fun showProfile()
+    fun openMain()
 
     fun openCreatePincode()
 
