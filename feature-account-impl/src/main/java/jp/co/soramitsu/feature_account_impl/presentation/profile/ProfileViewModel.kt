@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.User
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 private const val ICON_SIZE_IN_PX = 100
@@ -27,7 +27,7 @@ class ProfileViewModel(
         private const val LABEL_ADDRESS = "label_address"
     }
 
-    val account: LiveData<User> = interactor.getSelectedAccount().asMutableLiveData()
+    val account: LiveData<Account> = interactor.getSelectedAccount().asMutableLiveData()
     val shortenAddress: LiveData<String> = account.map(::shortenAddress)
     val accountIconLiveData: LiveData<PictureDrawable> = generateIcon().asMutableLiveData()
 
@@ -47,7 +47,7 @@ class ProfileViewModel(
         // TODO: 8/26/20 go to account managment 
     }
 
-    private fun shortenAddress(account: User): String {
+    private fun shortenAddress(account: Account): String {
         val address = account.address
 
         return "${address.take(ADDRESS_CHARACTERS_TRUNCATE)}...${address.takeLast(

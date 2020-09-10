@@ -6,7 +6,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
-import jp.co.soramitsu.feature_account_api.domain.model.User
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 
 interface AccountInteractor {
 
@@ -62,7 +62,7 @@ interface AccountInteractor {
 
     fun setBiometricOff(): Completable
 
-    fun getSelectedAccount(): Single<User>
+    fun getSelectedAccount(): Single<Account>
 
     fun getNetworks(): Single<List<Network>>
 

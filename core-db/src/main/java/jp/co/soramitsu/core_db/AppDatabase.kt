@@ -5,14 +5,14 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import jp.co.soramitsu.core_db.dao.NodeDao
-import jp.co.soramitsu.core_db.dao.UserDao
+import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.model.NodeLocal
-import jp.co.soramitsu.core_db.model.UserLocal
+import jp.co.soramitsu.core_db.model.AccountLocal
 
 @Database(
     version = 2,
     entities = [
-        UserLocal::class,
+        AccountLocal::class,
         NodeLocal::class
     ])
 abstract class AppDatabase : RoomDatabase() {
@@ -34,5 +34,5 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun nodeDao(): NodeDao
 
-    abstract fun userDao(): UserDao
+    abstract fun userDao(): AccountDao
 }

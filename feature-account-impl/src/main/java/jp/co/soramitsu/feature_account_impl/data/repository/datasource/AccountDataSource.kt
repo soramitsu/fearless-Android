@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.User
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 
 interface AccountDataSource {
 
@@ -38,7 +38,7 @@ interface AccountDataSource {
 
     fun getDerivationPath(address: String): String?
 
-    fun saveSelectedAccount(account: User)
+    fun saveSelectedAccount(account: Account)
 
-    fun getSelectedAccount(): User?
+    fun getSelectedAccount(): Account?
 }

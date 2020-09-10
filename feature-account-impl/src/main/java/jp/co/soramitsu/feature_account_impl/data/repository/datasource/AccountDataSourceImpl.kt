@@ -5,7 +5,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.User
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import org.spongycastle.util.encoders.Hex
 
 private const val PREFS_AUTH_TYPE = "auth_type"
@@ -110,16 +110,16 @@ class AccountDataSourceImpl(
         return encryptedPreferences.getDecryptedString(derivationKey)
     }
 
-    override fun saveSelectedAccount(account: User) {
+    override fun saveSelectedAccount(account: Account) {
         val raw = jsonMapper.toJson(account)
 
         preferences.putString(PREFS_SELECTED_ACCOUNT, raw)
     }
 
-    override fun getSelectedAccount(): User? {
+    override fun getSelectedAccount(): Account? {
         val raw = preferences.getString(PREFS_SELECTED_ACCOUNT)
             ?: return null
 
-        return jsonMapper.fromJson(raw, User::class.java)
+        return jsonMapper.fromJson(raw, Account::class.java)
     }
 }

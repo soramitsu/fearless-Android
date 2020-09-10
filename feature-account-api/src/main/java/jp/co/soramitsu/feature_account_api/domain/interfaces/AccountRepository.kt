@@ -6,7 +6,7 @@ import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
-import jp.co.soramitsu.feature_account_api.domain.model.User
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 
 interface AccountRepository {
 
@@ -26,15 +26,15 @@ interface AccountRepository {
 
     fun selectNode(node: Node): Completable
 
-    fun selectAccount(account: User): Completable
+    fun selectAccount(account: Account): Completable
 
-    fun getSelectedAccount(): Single<User>
+    fun getSelectedAccount(): Single<Account>
 
     fun getPreferredCryptoType(): Single<CryptoType>
 
     fun isAccountSelected(): Single<Boolean>
 
-    fun removeAccount(account: User): Completable
+    fun removeAccount(account: Account): Completable
 
     fun createAccount(
         accountName: String,
@@ -44,7 +44,7 @@ interface AccountRepository {
         node: Node
     ): Completable
 
-    fun getAccounts(): Single<List<User>>
+    fun getAccounts(): Single<List<Account>>
 
     fun getSourceTypes(): Single<List<SourceType>>
 

@@ -5,22 +5,22 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import io.reactivex.Single
-import jp.co.soramitsu.core_db.model.UserLocal
+import jp.co.soramitsu.core_db.model.AccountLocal
 
 @Dao
-abstract class UserDao {
+abstract class AccountDao {
 
     @Query("select * from users")
-    abstract fun getUsers(): Single<List<UserLocal>>
+    abstract fun getAccounts(): Single<List<AccountLocal>>
 
     @Query("select * from users where address = :address")
-    abstract fun getUser(address: String): Single<UserLocal>
+    abstract fun getAccounts(address: String): Single<AccountLocal>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(users: List<UserLocal>)
+    abstract fun insert(accounts: List<AccountLocal>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(user: UserLocal): Long
+    abstract fun insert(account: AccountLocal): Long
 
     @Query("DELETE FROM users where address = :address")
     abstract fun remove(address: String)

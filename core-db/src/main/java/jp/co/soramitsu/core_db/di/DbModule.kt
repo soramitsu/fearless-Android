@@ -6,7 +6,7 @@ import dagger.Provides
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.AppDatabase
 import jp.co.soramitsu.core_db.dao.NodeDao
-import jp.co.soramitsu.core_db.dao.UserDao
+import jp.co.soramitsu.core_db.dao.AccountDao
 
 @Module
 class DbModule {
@@ -19,7 +19,7 @@ class DbModule {
 
     @Provides
     @ApplicationScope
-    fun provideUserDao(appDatabase: AppDatabase): UserDao {
+    fun provideUserDao(appDatabase: AppDatabase): AccountDao {
         return appDatabase.userDao()
     }
 

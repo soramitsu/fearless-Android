@@ -4,10 +4,10 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
-import jp.co.soramitsu.core_db.dao.UserDao
+import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
-import jp.co.soramitsu.core_db.model.UserLocal
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -16,11 +16,11 @@ import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
-import jp.co.soramitsu.feature_account_api.domain.model.User
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import org.spongycastle.util.encoders.Hex
 
@@ -28,7 +28,7 @@ private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 
 class AccountRepositoryImpl(
     private val accountDataSource: AccountDataSource,
-    private val userDao: UserDao,
+    private val accountDao: AccountDao,
     private val nodeDao: NodeDao,
     private val bip39: Bip39,
     private val sS58Encoder: SS58Encoder,
@@ -115,13 +115,13 @@ class AccountRepositoryImpl(
         return NodeLocal(0, it.name, it.link, it.networkType.ordinal, it.isDefault)
     }
 
-    override fun selectAccount(account: User): Completable {
+    override fun selectAccount(account: Account): Completable {
         return Completable.fromCallable {
             accountDataSource.saveSelectedAccount(account)
         }
     }
 
-    override fun getSelectedAccount(): Single<User> {
+    override fun getSelectedAccount(): Single<Account> {
         return Single.fromCallable {
             accountDataSource.getSelectedAccount()
                 ?: throw IllegalArgumentException("No account selected")
@@ -140,9 +140,9 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun removeAccount(account: User): Completable {
+    override fun removeAccount(account: Account): Completable {
         return Completable.fromCallable {
-            userDao.remove(account.address)
+            accountDao.remove(account.address)
         }
     }
 
@@ -163,25 +163,9 @@ class AccountRepositoryImpl(
             .andThen(selectNode(node))
     }
 
-    override fun getAccounts(): Single<List<User>> {
-        return userDao.getUsers()
-            .map {
-                it.map {
-                    mapUserLocalToUser(it)
-                }
-            }
-    }
-
-    private fun mapUserLocalToUser(it: UserLocal): User {
-        return with(it) {
-            User(
-                address = address,
-                username = username,
-                publicKey = publicKey,
-                cryptoType = CryptoType.values()[cryptoType],
-                networkType = Node.NetworkType.values()[it.networkType]
-            )
-        }
+    override fun getAccounts(): Single<List<Account>> {
+        return accountDao.getAccounts()
+            .map { it.map(::mapAccountLocalToAccount) }
     }
 
     override fun getSourceTypes(): Single<List<SourceType>> {
@@ -234,7 +218,7 @@ class AccountRepositoryImpl(
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
-            val userLocal = UserLocal(
+            val userLocal = AccountLocal(
                 address = address,
                 username = username,
                 publicKey = publicKeyEncoded,
@@ -242,28 +226,12 @@ class AccountRepositoryImpl(
                 networkType = node.networkType.ordinal
             )
 
-            userDao.insert(userLocal)
+            accountDao.insert(userLocal)
 
-            User(address, username, publicKeyEncoded, selectedEncryptionType, node.networkType)
+            Account(address, username, publicKeyEncoded, selectedEncryptionType, node.networkType)
         }
             .flatMapCompletable(::selectAccount)
             .andThen(selectNode(node))
-    }
-
-    private fun mapCryptoTypeToEncryption(cryptoType: CryptoType): EncryptionType {
-        return when (cryptoType) {
-            CryptoType.SR25519 -> EncryptionType.SR25519
-            CryptoType.ED25519 -> EncryptionType.ED25519
-            CryptoType.ECDSA -> EncryptionType.ECDSA
-        }
-    }
-
-    private fun mapNetworkTypeToAddressType(networkType: Node.NetworkType): AddressType {
-        return when (networkType) {
-            Node.NetworkType.KUSAMA -> AddressType.KUSAMA
-            Node.NetworkType.POLKADOT -> AddressType.POLKADOT
-            Node.NetworkType.WESTEND -> AddressType.WESTEND
-        }
     }
 
     override fun importFromJson(
@@ -338,7 +306,7 @@ class AccountRepositoryImpl(
         derivationPath: String,
         cryptoType: CryptoType,
         networkType: Node.NetworkType
-    ): Single<User> {
+    ): Single<Account> {
         return Single.fromCallable {
             val entropy = bip39.generateEntropy(mnemonic)
             val password = junctionDecoder.getPassword(derivationPath)
@@ -355,7 +323,7 @@ class AccountRepositoryImpl(
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
-            val userLocal = UserLocal(
+            val userLocal = AccountLocal(
                 address = address,
                 username = accountName,
                 publicKey = publicKeyEncoded,
@@ -363,9 +331,37 @@ class AccountRepositoryImpl(
                 networkType = networkType.ordinal
             )
 
-            userDao.insert(userLocal)
+            accountDao.insert(userLocal)
 
-            User(address, accountName, publicKeyEncoded, cryptoType, networkType)
+            Account(address, accountName, publicKeyEncoded, cryptoType, networkType)
+        }
+    }
+
+    private fun mapCryptoTypeToEncryption(cryptoType: CryptoType): EncryptionType {
+        return when (cryptoType) {
+            CryptoType.SR25519 -> EncryptionType.SR25519
+            CryptoType.ED25519 -> EncryptionType.ED25519
+            CryptoType.ECDSA -> EncryptionType.ECDSA
+        }
+    }
+
+    private fun mapNetworkTypeToAddressType(networkType: Node.NetworkType): AddressType {
+        return when (networkType) {
+            Node.NetworkType.KUSAMA -> AddressType.KUSAMA
+            Node.NetworkType.POLKADOT -> AddressType.POLKADOT
+            Node.NetworkType.WESTEND -> AddressType.WESTEND
+        }
+    }
+
+    private fun mapAccountLocalToAccount(it: AccountLocal): Account {
+        return with(it) {
+            Account(
+                address = address,
+                name = username,
+                publicKey = publicKey,
+                cryptoType = CryptoType.values()[cryptoType],
+                networkType = Node.NetworkType.values()[it.networkType]
+            )
         }
     }
 }
