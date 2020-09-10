@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -15,7 +16,7 @@ interface AccountRepository {
 
     fun getEncryptionTypes(): Single<List<CryptoType>>
 
-    fun getNodes(): Single<List<Node>>
+    fun getNodes(): Observable<List<Node>>
 
     fun getSelectedNode(): Single<Node>
 

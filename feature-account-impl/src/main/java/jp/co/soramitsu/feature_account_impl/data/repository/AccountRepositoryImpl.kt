@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.data.repository
 
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.core_db.dao.NodeDao
@@ -73,16 +74,10 @@ class AccountRepositoryImpl(
         return Single.just(listOf(CryptoType.SR25519, CryptoType.ED25519, CryptoType.ECDSA))
     }
 
-    override fun getNodes(): Single<List<Node>> {
+    override fun getNodes(): Observable<List<Node>> {
         return nodeDao.getNodes()
-            .map {
-                if (it.isEmpty()) {
-                    nodeDao.insert(DEFAULT_NODES_LIST)
-
-                    DEFAULT_NODES_LIST
-                } else {
-                    it
-                }
+            .doOnNext {
+                if (it.isEmpty()) nodeDao.insert(DEFAULT_NODES_LIST)
             }.map { it.map(::mapNodeLocalToNode) }
     }
 

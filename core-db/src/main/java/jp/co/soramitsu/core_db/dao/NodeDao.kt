@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.core_db.model.NodeLocal
 
@@ -11,7 +12,7 @@ import jp.co.soramitsu.core_db.model.NodeLocal
 abstract class NodeDao {
 
     @Query("select * from nodes")
-    abstract fun getNodes(): Single<List<NodeLocal>>
+    abstract fun getNodes(): Observable<List<NodeLocal>>
 
     @Query("select * from nodes where link = :link")
     abstract fun getNode(link: String): Single<NodeLocal>

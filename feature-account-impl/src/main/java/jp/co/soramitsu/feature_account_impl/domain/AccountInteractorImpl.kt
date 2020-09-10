@@ -145,6 +145,8 @@ class AccountInteractorImpl(
 
     override fun getNetworks(): Single<List<Network>> {
         return accountRepository.getNodes()
+            .filter { it.isNotEmpty() }
+            .firstOrError()
             .map(::formNetworkList)
     }
 
