@@ -8,7 +8,7 @@ interface DbApi {
 
     fun provideDatabase(): AppDatabase
 
-    fun provideUserDao(): AccountDao
+    fun provideAccountDao(): AccountDao
 
     fun provideNodeDao(): NodeDao
 }

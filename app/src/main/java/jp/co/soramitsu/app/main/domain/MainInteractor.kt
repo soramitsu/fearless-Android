@@ -10,13 +10,13 @@ class MainInteractor(
     private val accountRepository: AccountRepository
 ) {
 
-    fun getNavigationDestination(): Single<Destination> {
+    fun getInitialDestination(): Single<Destination> {
         return accountRepository.isAccountSelected()
             .subscribeOn(Schedulers.io())
-            .map(::destinationWhen)
+            .map(::determineInitialDestination)
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun destinationWhen(isAccountSelected: Boolean) =
+    private fun determineInitialDestination(isAccountSelected: Boolean) =
         if (isAccountSelected) Destination.MAIN else Destination.ONBOARDING
 }
