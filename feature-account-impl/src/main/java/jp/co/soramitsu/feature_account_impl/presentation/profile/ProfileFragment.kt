@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
@@ -16,7 +15,11 @@ import kotlinx.android.synthetic.main.fragment_profile.selectedNetworkTv
 
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_profile, container, false)
     }
 
@@ -26,31 +29,34 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun inject() {
-        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
+        FeatureUtils.getFeature<AccountFeatureComponent>(
+            requireContext(),
+            AccountFeatureApi::class.java
+        )
             .profileComponentFactory()
             .create(this)
             .inject(this)
     }
 
     override fun subscribe(viewModel: ProfileViewModel) {
-        observe(viewModel.accountNameLiveData, Observer {
-            accountView.setAccountName(it)
-        })
+        viewModel.account.observe {
+            accountView.setAccountName(it.name)
+        }
 
-        observe(viewModel.accountAddressLiveData, Observer {
+        viewModel.shortenAddress.observe {
             accountView.setAccountAddress(it)
-        })
+        }
 
-        observe(viewModel.accountIconLiveData, Observer {
+        viewModel.accountIconLiveData.observe {
             accountView.setAccountIcon(it)
-        })
+        }
 
-        observe(viewModel.selectedNetworkLiveData, Observer {
+        viewModel.selectedNetworkLiveData.observe {
             selectedNetworkTv.text = it
-        })
+        }
 
-        observe(viewModel.selectedLanguageLiveData, Observer {
+        viewModel.selectedLanguageLiveData.observe {
             selectedLanguageTv.text = it
-        })
+        }
     }
 }

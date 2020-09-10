@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicViewModel
 import javax.inject.Named
@@ -31,11 +31,11 @@ class ConfirmMnemonicModule {
         mnemonic: List<String>,
         accountName: String,
         cryptoType: CryptoType,
-        networkType: NetworkType,
+        node: Node,
         @Named("derivation_path") derivationPath: String
     ): ViewModel {
         return ConfirmMnemonicViewModel(interactor, router, resourceManager, deviceVibrator, mnemonic, accountName,
-            cryptoType, networkType, derivationPath)
+            cryptoType, node, derivationPath)
     }
 
     @Provides

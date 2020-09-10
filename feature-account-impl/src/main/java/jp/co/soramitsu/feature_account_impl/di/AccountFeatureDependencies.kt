@@ -8,6 +8,8 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.common.vibration.DeviceVibrator
+import jp.co.soramitsu.core_db.dao.NodeDao
+import jp.co.soramitsu.core_db.dao.AccountDao
 
 interface AccountFeatureDependencies {
 
@@ -26,4 +28,8 @@ interface AccountFeatureDependencies {
     fun context(): Context
 
     fun deviceVibrator(): DeviceVibrator
+
+    fun userDao(): AccountDao
+
+    fun nodeDao(): NodeDao
 }

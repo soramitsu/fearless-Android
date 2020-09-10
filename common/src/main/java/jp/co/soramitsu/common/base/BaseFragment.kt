@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 import javax.inject.Inject
 
@@ -67,6 +68,18 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     protected fun <V : Any?> observe(source: LiveData<V>, observer: Observer<V>) {
         source.observe(this, observer as Observer<in Any?>)
         observables.add(source)
+    }
+
+    protected inline fun <V> LiveData<Event<V>>.observeEvent(crossinline observer: (V) -> Unit) {
+        observe(viewLifecycleOwner, EventObserver {
+            observer.invoke(it)
+        })
+    }
+
+    protected inline fun <V> LiveData<V>.observe(crossinline observer: (V) -> Unit) {
+        observe(viewLifecycleOwner, Observer {
+            observer.invoke(it)
+        })
     }
 
     abstract fun initViews()

@@ -8,31 +8,40 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeListAdapter.EncryptionItemHandler
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import kotlinx.android.synthetic.main.item_encryption_type.view.encryptionTv
 import kotlinx.android.synthetic.main.item_encryption_type.view.rightIcon
 
 class EncryptionTypeListAdapter(
-    private val itemClickListener: (CryptoType) -> Unit
+    private val handler: EncryptionItemHandler,
+    private val selectedType: CryptoTypeModel
 ) : ListAdapter<CryptoTypeModel, EncryptionTypeViewHolder>(DiffCallback2) {
 
+    interface EncryptionItemHandler {
+        fun encryptionClicked(type: CryptoTypeModel)
+    }
+
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): EncryptionTypeViewHolder {
-        val view = LayoutInflater.from(viewGroup.context).inflate(R.layout.item_encryption_type, viewGroup, false)
-        return EncryptionTypeViewHolder(view)
+        val view = LayoutInflater.from(viewGroup.context)
+            .inflate(R.layout.item_encryption_type, viewGroup, false)
+        return EncryptionTypeViewHolder(view, selectedType)
     }
 
     override fun onBindViewHolder(viewHolder: EncryptionTypeViewHolder, position: Int) {
-        viewHolder.bind(getItem(position), itemClickListener)
+        viewHolder.bind(getItem(position), handler)
     }
 }
 
-class EncryptionTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+class EncryptionTypeViewHolder(
+    itemView: View,
+    private val selectedType: CryptoTypeModel
+) : RecyclerView.ViewHolder(itemView) {
 
-    fun bind(encryptionTypeModel: CryptoTypeModel, itemClickListener: (CryptoType) -> Unit) {
+    fun bind(encryptionTypeModel: CryptoTypeModel, handler: EncryptionItemHandler) {
         with(itemView) {
-            if (encryptionTypeModel.isSelected) {
+            if (encryptionTypeModel == selectedType) {
                 rightIcon.makeVisible()
             } else {
                 rightIcon.makeInvisible()
@@ -41,7 +50,7 @@ class EncryptionTypeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemVie
             encryptionTv.text = encryptionTypeModel.name
 
             setOnClickListener {
-                itemClickListener(encryptionTypeModel.cryptoType)
+                handler.encryptionClicked(encryptionTypeModel)
             }
         }
     }
