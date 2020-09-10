@@ -3,11 +3,10 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
-import jp.co.soramitsu.feature_account_api.domain.model.User
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.User
 import org.spongycastle.util.encoders.Hex
-import java.lang.IllegalArgumentException
 
 private const val PREFS_AUTH_TYPE = "auth_type"
 private const val PREFS_SELECTED_LANGUAGE = "selected_language"
@@ -64,7 +63,7 @@ class AccountDataSourceImpl(
     }
 
     override fun getSelectedNode(): Node? {
-       val raw = preferences.getString(PREFS_SELECTED_NETWORK) ?: return null
+        val raw = preferences.getString(PREFS_SELECTED_NETWORK) ?: return null
 
         return jsonMapper.fromJson(raw, Node::class.java)
     }

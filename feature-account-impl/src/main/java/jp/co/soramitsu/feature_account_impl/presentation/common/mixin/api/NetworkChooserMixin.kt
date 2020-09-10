@@ -10,9 +10,9 @@ import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.m
 interface NetworkChooserMixin {
     val networkDisposable: CompositeDisposable
 
-    val selectedNetworkLiveData : MutableLiveData<NetworkModel>
+    val selectedNetworkLiveData: MutableLiveData<NetworkModel>
 
     val networkChooserEvent: LiveData<Event<NetworkChooserPayload>>
-    
+
     fun chooseNetworkClicked()
 }

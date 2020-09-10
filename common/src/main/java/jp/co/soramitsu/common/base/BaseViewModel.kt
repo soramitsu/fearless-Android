@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.asMutableLiveData
 
-
 open class BaseViewModel : ViewModel() {
 
     private val _errorLiveData = MutableLiveData<Event<String>>()
@@ -39,12 +38,11 @@ open class BaseViewModel : ViewModel() {
         errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
     ) = asLiveData(disposables, errorHandler)
 
-
     fun <T> Observable<T>.asLiveData(
         errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
     ) = asLiveData(disposables, errorHandler)
 
     fun <T> Single<T>.asMutableLiveData(
         errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) =  asMutableLiveData(disposables, errorHandler)
+    ) = asMutableLiveData(disposables, errorHandler)
 }

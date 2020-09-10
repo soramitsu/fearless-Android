@@ -7,25 +7,42 @@ import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_api.domain.model.User
-import sun.nio.ch.Net
 
 interface AccountInteractor {
 
-    fun getSelectedNetworkName() : Single<String>
+    fun getSelectedNetworkName(): Single<String>
 
     fun getMnemonic(): Single<List<String>>
 
     fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>>
 
-    fun getCryptoTypes() : Single<List<CryptoType>>
+    fun getCryptoTypes(): Single<List<CryptoType>>
 
-    fun getPreferredCryptoType() : Single<CryptoType>
+    fun getPreferredCryptoType(): Single<CryptoType>
 
-    fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, node: Node): Completable
+    fun createAccount(
+        accountName: String,
+        mnemonic: String,
+        encryptionType: CryptoType,
+        derivationPath: String,
+        node: Node
+    ): Completable
 
-    fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable
+    fun importFromMnemonic(
+        keyString: String,
+        username: String,
+        derivationPath: String,
+        selectedEncryptionType: CryptoType,
+        node: Node
+    ): Completable
 
-    fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable
+    fun importFromSeed(
+        keyString: String,
+        username: String,
+        derivationPath: String,
+        selectedEncryptionType: CryptoType,
+        node: Node
+    ): Completable
 
     fun importFromJson(json: String, password: String, node: Node.NetworkType): Completable
 
@@ -47,9 +64,9 @@ interface AccountInteractor {
 
     fun getSelectedAccount(): Single<User>
 
-    fun getNetworks() : Single<List<Network>>
+    fun getNetworks(): Single<List<Network>>
 
-    fun getSelectedNode() : Single<Node>
+    fun getSelectedNode(): Single<Node>
 
-    fun getSelectedNetwork() : Single<Network>
+    fun getSelectedNetwork(): Single<Network>
 }

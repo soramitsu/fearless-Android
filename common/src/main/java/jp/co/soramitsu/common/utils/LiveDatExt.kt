@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 
-fun <FROM, TO> LiveData<FROM>.map(mapper: (FROM) -> TO) : LiveData<TO> {
+fun <FROM, TO> LiveData<FROM>.map(mapper: (FROM) -> TO): LiveData<TO> {
     return MediatorLiveData<TO>().apply {
         addSource(this@map) {
             value = mapper.invoke(it)
@@ -12,7 +12,7 @@ fun <FROM, TO> LiveData<FROM>.map(mapper: (FROM) -> TO) : LiveData<TO> {
     }
 }
 
-fun <FROM, TO> LiveData<FROM>.mapMutable(mapper: (FROM) -> TO) : MutableLiveData<TO> {
+fun <FROM, TO> LiveData<FROM>.mapMutable(mapper: (FROM) -> TO): MutableLiveData<TO> {
     return MediatorLiveData<TO>().apply {
         addSource(this@mapMutable) {
             value = mapper.invoke(it)
@@ -20,8 +20,10 @@ fun <FROM, TO> LiveData<FROM>.mapMutable(mapper: (FROM) -> TO) : MutableLiveData
     }
 }
 
-fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(another: LiveData<SECOND>, zipper: (FIRST, SECOND) -> RESULT)
-    : LiveData<RESULT> {
+fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(
+    another: LiveData<SECOND>,
+    zipper: (FIRST, SECOND) -> RESULT
+): LiveData<RESULT> {
 
     return MediatorLiveData<RESULT>().apply {
         addSource(this@combine) { first ->

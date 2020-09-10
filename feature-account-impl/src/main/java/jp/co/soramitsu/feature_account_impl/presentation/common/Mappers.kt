@@ -8,8 +8,8 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
-fun mapNetworkToNetworkModel(network: Network) : NetworkModel {
-    val type =  when(network.networkType) {
+fun mapNetworkToNetworkModel(network: Network): NetworkModel {
+    val type = when (network.networkType) {
         Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
         Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
         Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend

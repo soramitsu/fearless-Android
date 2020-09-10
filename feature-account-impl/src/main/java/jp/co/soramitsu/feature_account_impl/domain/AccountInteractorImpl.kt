@@ -12,7 +12,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
-
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {

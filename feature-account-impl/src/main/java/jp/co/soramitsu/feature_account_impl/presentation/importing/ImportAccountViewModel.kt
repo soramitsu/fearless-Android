@@ -54,7 +54,6 @@ class ImportAccountViewModel(
     val sourceTypeChooserDialogInitialData: LiveData<Event<List<SourceTypeModel>>> =
         _sourceTypeChooserDialogInitialData
 
-
     init {
         disposables += networkDisposable
         disposables += cryptoDisposable
@@ -117,7 +116,6 @@ class ImportAccountViewModel(
         val node = selectedNetworkLiveData.value?.defaultNode!!
         val sourceType = selectedSourceTypeLiveData.value!!.sourceType
         val cryptoType = selectedEncryptionTypeLiveData.value!!.cryptoType
-
 
         val importDisposable = when (sourceType) {
             SourceType.MNEMONIC_PASSPHRASE -> interactor.importFromMnemonic(

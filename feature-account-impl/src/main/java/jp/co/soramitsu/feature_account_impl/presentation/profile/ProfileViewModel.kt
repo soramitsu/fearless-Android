@@ -27,16 +27,18 @@ class ProfileViewModel(
         private const val LABEL_ADDRESS = "label_address"
     }
 
-    val account : LiveData<User>  = interactor.getSelectedAccount().asMutableLiveData()
-    val shortenAddress : LiveData<String> = account.map(::shortenAddress)
-    val accountIconLiveData : LiveData<PictureDrawable> = generateIcon().asMutableLiveData()
+    val account: LiveData<User> = interactor.getSelectedAccount().asMutableLiveData()
+    val shortenAddress: LiveData<String> = account.map(::shortenAddress)
+    val accountIconLiveData: LiveData<PictureDrawable> = generateIcon().asMutableLiveData()
 
-    val selectedNetworkLiveData: LiveData<String> = interactor.getSelectedNetworkName().asMutableLiveData()
+    val selectedNetworkLiveData: LiveData<String> =
+        interactor.getSelectedNetworkName().asMutableLiveData()
 
-    val selectedLanguageLiveData: LiveData<String> = interactor.getSelectedLanguage().asMutableLiveData()
+    val selectedLanguageLiveData: LiveData<String> =
+        interactor.getSelectedLanguage().asMutableLiveData()
 
     fun addressCopyClicked() {
-       account.value?.let {
+        account.value?.let {
             clipboardManager.addToClipboard(LABEL_ADDRESS, it.address)
         }
     }
@@ -53,7 +55,7 @@ class ProfileViewModel(
         )}"
     }
 
-    private fun generateIcon() : Single<PictureDrawable> {
+    private fun generateIcon(): Single<PictureDrawable> {
         return interactor.getAddressId()
             .subscribeOn(Schedulers.io())
             .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }

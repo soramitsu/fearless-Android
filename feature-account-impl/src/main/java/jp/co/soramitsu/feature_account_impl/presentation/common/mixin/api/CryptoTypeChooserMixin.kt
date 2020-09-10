@@ -10,7 +10,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryptio
 interface CryptoTypeChooserMixin {
     val cryptoDisposable: CompositeDisposable
 
-    val selectedEncryptionTypeLiveData : MutableLiveData<CryptoTypeModel>
+    val selectedEncryptionTypeLiveData: MutableLiveData<CryptoTypeModel>
 
     val encryptionTypeChooserEvent: LiveData<Event<EncryptionChooserPayload>>
 

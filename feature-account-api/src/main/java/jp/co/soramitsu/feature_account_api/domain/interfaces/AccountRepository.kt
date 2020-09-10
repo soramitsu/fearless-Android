@@ -30,21 +30,39 @@ interface AccountRepository {
 
     fun getSelectedAccount(): Single<User>
 
-    fun getPreferredCryptoType() : Single<CryptoType>
+    fun getPreferredCryptoType(): Single<CryptoType>
 
-    fun isAccountSelected() : Single<Boolean>
+    fun isAccountSelected(): Single<Boolean>
 
     fun removeAccount(account: User): Completable
 
-    fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, node: Node): Completable
+    fun createAccount(
+        accountName: String,
+        mnemonic: String,
+        encryptionType: CryptoType,
+        derivationPath: String,
+        node: Node
+    ): Completable
 
     fun getAccounts(): Single<List<User>>
 
     fun getSourceTypes(): Single<List<SourceType>>
 
-    fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable
+    fun importFromMnemonic(
+        keyString: String,
+        username: String,
+        derivationPath: String,
+        selectedEncryptionType: CryptoType,
+        node: Node
+    ): Completable
 
-    fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable
+    fun importFromSeed(
+        keyString: String,
+        username: String,
+        derivationPath: String,
+        selectedEncryptionType: CryptoType,
+        node: Node
+    ): Completable
 
     fun importFromJson(json: String, password: String, networkType: Node.NetworkType): Completable
 

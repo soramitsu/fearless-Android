@@ -1,31 +1,17 @@
 package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToCryptoTypeModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.mnemonic.model.MnemonicWordModel
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeSelectedModel
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserPayload
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 class BackupMnemonicViewModel(
     interactor: AccountInteractor,
@@ -72,20 +58,32 @@ class BackupMnemonicViewModel(
     fun infoClicked() {
         _showInfoEvent.value = Event(Unit)
     }
+
     fun nextClicked(derivationPath: String) {
         selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
             selectedNetworkLiveData.value?.let { networkModel ->
                 val node = networkModel.defaultNode
                 mnemonicLiveData.value?.let {
                     val mnemonic = it.second.map { it.word }
-                    router.openConfirmMnemonicScreen(accountName, mnemonic, cryptoType, node, derivationPath)
+                    router.openConfirmMnemonicScreen(
+                        accountName,
+                        mnemonic,
+                        cryptoType,
+                        node,
+                        derivationPath
+                    )
                 }
             }
         }
     }
 
     private fun mapMnemonicToMnemonicWords(mnemonic: List<String>): Pair<Int, List<MnemonicWordModel>> {
-        val words = mnemonic.mapIndexed { index: Int, word: String -> MnemonicWordModel((index + 1).toString(), word) }
+        val words = mnemonic.mapIndexed { index: Int, word: String ->
+            MnemonicWordModel(
+                (index + 1).toString(),
+                word
+            )
+        }
         val columns = if (words.size % 2 == 0) {
             words.size / 2
         } else {
