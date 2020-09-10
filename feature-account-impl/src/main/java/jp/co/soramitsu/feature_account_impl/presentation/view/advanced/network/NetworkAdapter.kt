@@ -14,34 +14,41 @@ import kotlinx.android.synthetic.main.item_network.view.networkTv
 import kotlinx.android.synthetic.main.item_network.view.rightIcon
 
 class NetworkAdapter(
-    private val itemClickListener: (NetworkModel) -> Unit
+    private val onSelected: NetworkItemHandler,
+    private val selectedNetwork: NetworkModel
 ) : ListAdapter<NetworkModel, NodeViewHolder>(DiffCallback3) {
+    interface NetworkItemHandler {
+        fun onNetworkClicked(model: NetworkModel)
+    }
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): NodeViewHolder {
         val view = LayoutInflater.from(viewGroup.context).inflate(R.layout.item_network, viewGroup, false)
-        return NodeViewHolder(view)
+        return NodeViewHolder(view, selectedNetwork)
     }
 
     override fun onBindViewHolder(nodeViewHolder: NodeViewHolder, position: Int) {
-        nodeViewHolder.bind(getItem(position), itemClickListener)
+        nodeViewHolder.bind(getItem(position), onSelected)
     }
 }
 
-class NodeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+class NodeViewHolder(
+    itemView: View,
+    private val selectedNetwork: NetworkModel
+) : RecyclerView.ViewHolder(itemView) {
 
-    fun bind(node: NetworkModel, itemClickListener: (NetworkModel) -> Unit) {
+    fun bind(network: NetworkModel, networkHandler: NetworkAdapter.NetworkItemHandler) {
         with(itemView) {
-            if (node.isSelected) {
+            if (selectedNetwork == network) {
                 rightIcon.makeVisible()
             } else {
                 rightIcon.makeInvisible()
             }
 
-            networkTv.text = node.name
-            networkTv.setCompoundDrawablesWithIntrinsicBounds(node.icon, 0, 0, 0)
+            networkTv.text = network.name
+            networkTv.setCompoundDrawablesWithIntrinsicBounds(network.networkTypeUI.icon, 0, 0, 0)
 
             setOnClickListener {
-                itemClickListener(node)
+                networkHandler.onNetworkClicked(network)
             }
         }
     }

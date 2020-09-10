@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.di
 
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -15,8 +16,8 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImpl
-import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDatasource
-import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDatasourceImpl
+import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
+import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
 
 @Module
@@ -24,13 +25,17 @@ class AccountFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideJsonMapper() = Gson()
+
+    @Provides
+    @FeatureScope
     fun provideAccountRepository(
-        accountDatasource: AccountDatasource,
+        accountDataSource: AccountDataSource,
         appLinksProvider: AppLinksProvider,
         userDao: UserDao,
         nodeDao: NodeDao
     ): AccountRepository {
-        return AccountRepositoryImpl(accountDatasource, userDao, nodeDao, Bip39(), SS58Encoder(), JunctionDecoder(), KeypairFactory(), appLinksProvider)
+        return AccountRepositoryImpl(accountDataSource, userDao, nodeDao, Bip39(), SS58Encoder(), JunctionDecoder(), KeypairFactory(), appLinksProvider)
     }
 
     @Provides
@@ -45,8 +50,9 @@ class AccountFeatureModule {
     @FeatureScope
     fun provideAccountDatasource(
         preferences: Preferences,
-        encryptedPreferences: EncryptedPreferences
-    ): AccountDatasource {
-        return AccountDatasourceImpl(preferences, encryptedPreferences)
+        encryptedPreferences: EncryptedPreferences,
+        jsonMapper: Gson
+    ): AccountDataSource {
+        return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper)
     }
 }

@@ -1,11 +1,10 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.User
 
-interface AccountDatasource {
+interface AccountDataSource {
 
     fun saveAuthType(authType: AuthType)
 
@@ -19,21 +18,9 @@ interface AccountDatasource {
 
     fun getPinCode(): String?
 
-    fun saveSelectedAddress(address: String)
+    fun saveSelectedNode(node: Node)
 
-    fun getSelectedAddress(): String?
-
-    fun saveCryptoType(cryptoType: CryptoType, address: String)
-
-    fun getCryptoType(address: String): CryptoType?
-
-    fun saveConnectionUrl(connectionUrl: String)
-
-    fun getConnectionUrl(): String?
-
-    fun saveSelectedNetwork(network: Node)
-
-    fun getSelectedNetwork(): Node?
+    fun getSelectedNode(): Node?
 
     fun setMnemonicIsBackedUp(backedUp: Boolean)
 
@@ -51,7 +38,7 @@ interface AccountDatasource {
 
     fun getDerivationPath(address: String): String?
 
-    fun saveSelectedAccount(account: Account)
+    fun saveSelectedAccount(account: User)
 
-    fun getSelectedAccount(): Account
+    fun getSelectedAccount(): User?
 }

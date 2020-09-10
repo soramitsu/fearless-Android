@@ -33,24 +33,24 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun subscribe(viewModel: ProfileViewModel) {
-        observe(viewModel.accountNameLiveData, Observer {
-            accountView.setAccountName(it)
-        })
+        viewModel.account.observe {
+            accountView.setAccountName(it.username)
+        }
 
-        observe(viewModel.accountAddressLiveData, Observer {
+        viewModel.shortenAddress.observe {
             accountView.setAccountAddress(it)
-        })
+        }
 
-        observe(viewModel.accountIconLiveData, Observer {
+        viewModel.accountIconLiveData.observe {
             accountView.setAccountIcon(it)
-        })
+        }
 
-        observe(viewModel.selectedNetworkLiveData, Observer {
+        viewModel.selectedNetworkLiveData.observe {
             selectedNetworkTv.text = it
-        })
+        }
 
-        observe(viewModel.selectedLanguageLiveData, Observer {
+        viewModel.selectedLanguageLiveData.observe {
             selectedLanguageTv.text = it
-        })
+        }
     }
 }

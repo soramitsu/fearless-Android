@@ -61,4 +61,6 @@ dependencies {
 
     testImplementation jUnitDep
     testImplementation mockitoDep
+
+    implementation gsonDep
 }

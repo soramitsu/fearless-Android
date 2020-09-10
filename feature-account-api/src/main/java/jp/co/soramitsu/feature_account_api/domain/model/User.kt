@@ -1,9 +1,9 @@
 package jp.co.soramitsu.feature_account_api.domain.model
 
-data class Account(
+data class User(
     val address: String,
     val username: String,
     val publicKey: String,
     val cryptoType: CryptoType,
-    val networkType: NetworkType
+    val networkType: Node.NetworkType
 )

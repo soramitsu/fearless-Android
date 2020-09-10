@@ -5,4 +5,10 @@ data class Node(
     val networkType: NetworkType,
     val link: String,
     val isDefault: Boolean
-)
+) {
+    enum class NetworkType(val readableName: String) {
+        KUSAMA("Kusama"),
+        POLKADOT("Polkadot"),
+        WESTEND("Westend")
+    }
+}

@@ -2,11 +2,10 @@ package jp.co.soramitsu.feature_account_api.domain.interfaces
 
 import io.reactivex.Completable
 import io.reactivex.Single
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
+import jp.co.soramitsu.feature_account_api.domain.model.User
 
 interface AccountRepository {
 
@@ -15,10 +14,6 @@ interface AccountRepository {
     fun getPrivacyAddress(): Single<String>
 
     fun getEncryptionTypes(): Single<List<CryptoType>>
-
-    fun getSelectedEncryptionType(): Single<CryptoType>
-
-    fun selectEncryptionType(cryptoType: CryptoType): Completable
 
     fun getNodes(): Single<List<Node>>
 
@@ -30,15 +25,19 @@ interface AccountRepository {
 
     fun selectNode(node: Node): Completable
 
-    fun selectAccount(account: Account): Completable
+    fun selectAccount(account: User): Completable
 
-    fun getSelectedAccount(): Single<Account>
+    fun getSelectedAccount(): Single<User>
 
-    fun removeAccount(account: Account): Completable
+    fun getPreferredCryptoType() : Single<CryptoType>
+
+    fun isAccountSelected() : Single<Boolean>
+
+    fun removeAccount(account: User): Completable
 
     fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, node: Node): Completable
 
-    fun getAccounts(): Single<List<Account>>
+    fun getAccounts(): Single<List<User>>
 
     fun getSourceTypes(): Single<List<SourceType>>
 
@@ -46,7 +45,7 @@ interface AccountRepository {
 
     fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, node: Node): Completable
 
-    fun importFromJson(json: String, password: String, networkType: NetworkType): Completable
+    fun importFromJson(json: String, password: String, networkType: Node.NetworkType): Completable
 
     fun isCodeSet(): Single<Boolean>
 
@@ -59,10 +58,6 @@ interface AccountRepository {
     fun generateMnemonic(): Single<List<String>>
 
     fun getAddressId(): Single<ByteArray>
-
-    fun getAddress(): Single<String>
-
-    fun getUsername(): Single<String>
 
     fun isBiometricEnabled(): Single<Boolean>
 

@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -87,7 +86,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         val cryptoType = arguments!!.getSerializable(KEY_CRYPTO_TYPE) as CryptoType
         val name = arguments!!.getString(KEY_NODE_NAME)!!
         val link = arguments!!.getString(KEY_NODE_LINK)!!
-        val networkType = arguments!!.getSerializable(KEY_NODE_TYPE) as NetworkType
+        val networkType = arguments!!.getSerializable(KEY_NODE_TYPE) as Node.NetworkType
         val isDefault = arguments!!.getBoolean(KEY_NODE_IS_DEFAULT)
         val node = Node(name, networkType, link, isDefault)
         val derivationPath = arguments!!.getString(KEY_DERIVATION_PATH)!!

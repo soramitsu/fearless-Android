@@ -3,49 +3,42 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.map
+import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToCryptoTypeModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
+import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.mnemonic.model.MnemonicWordModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeSelectedModel
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 class BackupMnemonicViewModel(
-    private val interactor: AccountInteractor,
+    interactor: AccountInteractor,
     private val router: AccountRouter,
     private val accountName: String,
-    private val resourceManager: ResourceManager
-) : BaseViewModel() {
+    private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
+    private val networkChooserMixin: NetworkChooserMixin
+) : BaseViewModel(),
+    CryptoTypeChooserMixin by cryptoTypeChooserMixin,
+    NetworkChooserMixin by networkChooserMixin {
 
     private val _mnemonicLiveData = MutableLiveData<Pair<Int, List<MnemonicWordModel>>>()
     val mnemonicLiveData: LiveData<Pair<Int, List<MnemonicWordModel>>> = _mnemonicLiveData
-
-    private val _encryptionTypesLiveData = MutableLiveData<List<CryptoTypeModel>>()
-    val encryptionTypesLiveData: LiveData<List<CryptoTypeModel>> = _encryptionTypesLiveData
-
-    private val _encryptionTypeChooserEvent = MutableLiveData<Event<List<CryptoTypeModel>>>()
-    val encryptionTypeChooserEvent: LiveData<Event<List<CryptoTypeModel>>> = _encryptionTypeChooserEvent
-
-    private val _selectedEncryptionTypeLiveData = MediatorLiveData<CryptoTypeSelectedModel>()
-    val selectedEncryptionTypeLiveData: LiveData<CryptoTypeSelectedModel> = _selectedEncryptionTypeLiveData
-
-    private val _networksLiveData = MutableLiveData<List<NetworkModel>>()
-    val networksLiveData: LiveData<List<NetworkModel>> = _networksLiveData
-
-    private val _networkChooserEvent = MutableLiveData<Event<List<NetworkModel>>>()
-    val networkChooserEvent: LiveData<Event<List<NetworkModel>>> = _networkChooserEvent
-
-    private val _selectedNetworkLiveData = MediatorLiveData<NetworkModel>()
-    val selectedNetworkLiveData: LiveData<NetworkModel> = _selectedNetworkLiveData
 
     private val _showInfoEvent = MutableLiveData<Event<Unit>>()
     val showInfoEvent: LiveData<Event<Unit>> = _showInfoEvent
@@ -53,6 +46,9 @@ class BackupMnemonicViewModel(
     private var mnemonic: String = ""
 
     init {
+        disposables += networkDisposable
+        disposables += cryptoDisposable
+
         disposables.add(
             interactor.getMnemonic()
                 .subscribeOn(Schedulers.io())
@@ -67,41 +63,25 @@ class BackupMnemonicViewModel(
                     it.printStackTrace()
                 })
         )
+    }
 
-        _selectedEncryptionTypeLiveData.addSource(encryptionTypesLiveData) {
-            val selected = it.firstOrNull { it.isSelected } ?: it.first()
-            val encryptionName = getEncryptionTypeNameForCryptoType(selected.cryptoType)
-            _selectedEncryptionTypeLiveData.value = CryptoTypeSelectedModel(encryptionName, selected.cryptoType)
+    fun homeButtonClicked() {
+        router.backToCreateAccountScreen()
+    }
+
+    fun infoClicked() {
+        _showInfoEvent.value = Event(Unit)
+    }
+    fun nextClicked(derivationPath: String) {
+        selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
+            selectedNetworkLiveData.value?.let { networkModel ->
+                val node = networkModel.defaultNode
+                mnemonicLiveData.value?.let {
+                    val mnemonic = it.second.map { it.word }
+                    router.openConfirmMnemonicScreen(accountName, mnemonic, cryptoType, node, derivationPath)
+                }
+            }
         }
-
-        _selectedNetworkLiveData.addSource(networksLiveData) {
-            val selected = it.firstOrNull { it.isSelected } ?: it.first()
-            _selectedNetworkLiveData.value = selected
-        }
-
-        disposables.add(
-            interactor.getEncryptionTypesWithSelected()
-                .subscribeOn(Schedulers.io())
-                .map { mapEncryptionTypeToEncryptionTypeModel(it.first, it.second) }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    _encryptionTypesLiveData.value = it
-                }, {
-                    it.printStackTrace()
-                })
-        )
-
-        disposables.add(
-            interactor.getNodesWithSelected()
-                .subscribeOn(Schedulers.io())
-                .map { mapNodeToNetworkModel(it.first, it.second) }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    _networksLiveData.value = it
-                }, {
-                    it.printStackTrace()
-                })
-        )
     }
 
     private fun mapMnemonicToMnemonicWords(mnemonic: List<String>): Pair<Int, List<MnemonicWordModel>> {
@@ -112,89 +92,5 @@ class BackupMnemonicViewModel(
             words.size / 2 + 1
         }
         return Pair(columns, words)
-    }
-
-    fun homeButtonClicked() {
-        router.backToCreateAccountScreen()
-    }
-
-    fun infoClicked() {
-        _showInfoEvent.value = Event(Unit)
-    }
-
-    fun encryptionTypeInputClicked() {
-        encryptionTypesLiveData.value?.let {
-            _encryptionTypeChooserEvent.value = Event(it)
-        }
-    }
-
-    fun networkInputClicked() {
-        networksLiveData.value?.let {
-            _networkChooserEvent.value = Event(it)
-        }
-    }
-
-    private fun mapEncryptionTypeToEncryptionTypeModel(encryptionTypes: List<CryptoType>, selected: CryptoType): List<CryptoTypeModel> {
-        return encryptionTypes.map {
-            val name = when (it) {
-                CryptoType.SR25519 -> "${resourceManager.getString(R.string.sr25519_selection_title)} | ${resourceManager.getString(R.string.sr25519_selection_subtitle)}"
-                CryptoType.ED25519 -> "${resourceManager.getString(R.string.ed25519_selection_title)} | ${resourceManager.getString(R.string.ed25519_selection_subtitle)}"
-                CryptoType.ECDSA -> "${resourceManager.getString(R.string.ecdsa_selection_title)} | ${resourceManager.getString(R.string.ecdsa_selection_subtitle)}"
-            }
-            val isSelected = it == selected
-            CryptoTypeModel(name, it, isSelected)
-        }
-    }
-
-    private fun mapNodeToNetworkModel(networks: List<Node>, selected: Node): List<NetworkModel> {
-        return networks.map {
-            val icon = when (it.networkType) {
-                NetworkType.POLKADOT -> R.drawable.ic_polkadot_24
-                NetworkType.KUSAMA -> R.drawable.ic_ksm_24
-                NetworkType.WESTEND -> R.drawable.ic_westend_24
-            }
-
-            val smallIcon = when (it.networkType) {
-                NetworkType.POLKADOT -> R.drawable.ic_polkadot_18
-                NetworkType.KUSAMA -> R.drawable.ic_ksm_18
-                NetworkType.WESTEND -> R.drawable.ic_westend_18
-            }
-
-            val isSelected = selected.link == it.link
-            NetworkModel(it.name, icon, smallIcon, it.link, it.networkType, isSelected, it.isDefault)
-        }
-    }
-
-    private fun mapNetworkModelToNode(networkModel: NetworkModel): Node {
-        return Node(networkModel.name, networkModel.networkType, networkModel.link, networkModel.default)
-    }
-
-    fun encryptionTypeChanged(cryptoType: CryptoType) {
-        val encryptionName = getEncryptionTypeNameForCryptoType(cryptoType)
-        _selectedEncryptionTypeLiveData.value = CryptoTypeSelectedModel(encryptionName, cryptoType)
-    }
-
-    private fun getEncryptionTypeNameForCryptoType(cryptoType: CryptoType): String {
-        return when (cryptoType) {
-            CryptoType.SR25519 -> "${resourceManager.getString(R.string.sr25519_selection_title)} | ${resourceManager.getString(R.string.sr25519_selection_subtitle)}"
-            CryptoType.ED25519 -> "${resourceManager.getString(R.string.ed25519_selection_title)} | ${resourceManager.getString(R.string.ed25519_selection_subtitle)}"
-            CryptoType.ECDSA -> "${resourceManager.getString(R.string.ecdsa_selection_title)} | ${resourceManager.getString(R.string.ecdsa_selection_subtitle)}"
-        }
-    }
-
-    fun networkChanged(networkModel: NetworkModel) {
-        _selectedNetworkLiveData.value = networkModel
-    }
-
-    fun nextClicked(derivationPath: String) {
-        selectedEncryptionTypeLiveData.value?.cryptoType?.let { cryptoType ->
-            selectedNetworkLiveData.value?.let { networkModel ->
-                val node = mapNetworkModelToNode(networkModel)
-                mnemonicLiveData.value?.let {
-                    val mnemonic = it.second.map { it.word }
-                    router.openConfirmMnemonicScreen(accountName, mnemonic, cryptoType, node, derivationPath)
-                }
-            }
-        }
     }
 }
