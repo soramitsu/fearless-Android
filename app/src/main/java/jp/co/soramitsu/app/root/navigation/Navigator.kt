@@ -1,4 +1,4 @@
-package jp.co.soramitsu.app.main.navigation
+package jp.co.soramitsu.app.root.navigation
 
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.R
