@@ -72,7 +72,6 @@ class MainActivity : BaseActivity<MainViewModel>() {
 //        }
 //    }
 
-
     private val navController: NavController
         get() = NavHostFragment.findNavController(navHost)
 }

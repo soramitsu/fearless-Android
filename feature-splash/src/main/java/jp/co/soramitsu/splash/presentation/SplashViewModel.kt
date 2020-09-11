@@ -3,7 +3,6 @@ package jp.co.soramitsu.splash.presentation
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.splash.SplashRouter
@@ -20,7 +19,7 @@ class SplashViewModel(
         disposables += repository.isAccountSelected()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {  isSelected ->
+            .subscribe { isSelected ->
                 if (isSelected) {
                     router.openPin()
                 } else {

@@ -3,7 +3,6 @@ package jp.co.soramitsu.app.main.presentation.di
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
@@ -27,7 +26,10 @@ class MainActivityModule {
     }
 
     @Provides
-    fun provideViewModelCreator(activity: AppCompatActivity, viewModelFactory: ViewModelProvider.Factory): MainViewModel {
+    fun provideViewModelCreator(
+        activity: AppCompatActivity,
+        viewModelFactory: ViewModelProvider.Factory
+    ): MainViewModel {
         return ViewModelProvider(activity, viewModelFactory).get(MainViewModel::class.java)
     }
 }

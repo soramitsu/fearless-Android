@@ -17,7 +17,6 @@ abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
             setBarColorBackground(android.R.color.black)
         }
 
-
         inject()
         initViews()
         subscribe(viewModel)

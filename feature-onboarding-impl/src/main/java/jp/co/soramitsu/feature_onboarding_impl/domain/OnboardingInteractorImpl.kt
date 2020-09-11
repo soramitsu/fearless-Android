@@ -1,8 +1,6 @@
 package jp.co.soramitsu.feature_onboarding_impl.domain
 
 import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_onboarding_api.domain.OnboardingInteractor
 

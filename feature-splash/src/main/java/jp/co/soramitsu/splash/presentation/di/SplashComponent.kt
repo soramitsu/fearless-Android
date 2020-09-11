@@ -1,6 +1,5 @@
 package jp.co.soramitsu.splash.presentation.di
 
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
