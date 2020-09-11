@@ -1,26 +1,26 @@
-package jp.co.soramitsu.app.main.presentation.di
+package jp.co.soramitsu.app.root.presentation.di
 
 import androidx.appcompat.app.AppCompatActivity
 import dagger.BindsInstance
 import dagger.Subcomponent
-import jp.co.soramitsu.app.main.presentation.MainActivity
+import jp.co.soramitsu.app.root.presentation.RootActivity
 import jp.co.soramitsu.common.di.scope.ScreenScope
 
 @Subcomponent(
     modules = [
-        MainActivityModule::class
+        RootActivityModule::class
     ]
 )
 @ScreenScope
-interface MainActivityComponent {
+interface RootActivityComponent {
 
     @Subcomponent.Factory
     interface Factory {
 
         fun create(
             @BindsInstance activity: AppCompatActivity
-        ): MainActivityComponent
+        ): RootActivityComponent
     }
 
-    fun inject(mainActivity: MainActivity)
+    fun inject(rootActivity: RootActivity)
 }

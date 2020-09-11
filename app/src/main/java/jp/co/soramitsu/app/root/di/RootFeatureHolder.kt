@@ -1,6 +1,6 @@
-package jp.co.soramitsu.app.main.di
+package jp.co.soramitsu.app.root.di
 
-import jp.co.soramitsu.app.main.navigation.Navigator
+import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
@@ -8,16 +8,16 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import javax.inject.Inject
 
 @ApplicationScope
-class MainFeatureHolder @Inject constructor(
+class RootFeatureHolder @Inject constructor(
     private val navigator: Navigator,
     featureContainer: FeatureContainer
 ) : FeatureApiHolder(featureContainer) {
 
     override fun initializeDependencies(): Any {
-        val mainFeatureDependencies = DaggerMainComponent_MainFeatureDependenciesComponent.builder()
+        val mainFeatureDependencies = DaggerRootComponent_RootFeatureDependenciesComponent.builder()
             .accountFeatureApi(getFeature(AccountFeatureApi::class.java))
             .build()
-        return DaggerMainComponent.factory()
+        return DaggerRootComponent.factory()
             .create(navigator, mainFeatureDependencies)
     }
 }

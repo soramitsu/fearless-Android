@@ -10,7 +10,7 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/extrinsiscsFragment"
+        android:id="@+id/extrinsicsFragment"
         android:enabled="true"
         android:icon="@drawable/ic_extrinsics_24"
         android:title="@string/tabbar_extrinsics_title"

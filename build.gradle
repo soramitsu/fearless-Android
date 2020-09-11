@@ -71,8 +71,8 @@ buildscript {
         rxRoomDep = "androidx.room:room-rxjava2:$architectureComponentVersion"
         roomKapt = "androidx.room:room-compiler:$architectureComponentVersion"
 
-        navigationFragmentDep = "androidx.navigation:navigation-fragment:$navControllerVersion"
-        navigationUiDep = "androidx.navigation:navigation-ui:$navControllerVersion"
+        navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
+        navigationUiDep = "androidx.navigation:navigation-ui-ktx:$navControllerVersion"
 
         spoungyCastleBcPixDep = "com.madgag.spongycastle:bcpkix-jdk15on:$spoungyCastleVersion"
         spoungyCastleBcPgDep = "com.madgag.spongycastle:bcpg-jdk15on:$spoungyCastleVersion"

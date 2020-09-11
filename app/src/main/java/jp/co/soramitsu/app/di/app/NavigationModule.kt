@@ -2,7 +2,7 @@ package jp.co.soramitsu.app.di.app
 
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.app.main.navigation.Navigator
+import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
