@@ -69,4 +69,6 @@ interface AccountInteractor {
     fun getSelectedNode(): Single<Node>
 
     fun getSelectedNetwork(): Single<Network>
+
+    fun shouldOpenOnboarding(): Single<Boolean>
 }

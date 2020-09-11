@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import kotlinx.android.synthetic.main.fragment_profile.aboutTv
 import kotlinx.android.synthetic.main.fragment_profile.accountView
 import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
 import kotlinx.android.synthetic.main.fragment_profile.selectedNetworkTv
@@ -26,6 +27,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     override fun initViews() {
         accountView.setOnCopyClickListener { viewModel.addressCopyClicked() }
         accountView.setOnClickListener { viewModel.accountViewClicked() }
+        aboutTv.setOnClickListener { viewModel.aboutClicked() }
     }
 
     override fun inject() {
@@ -39,8 +41,8 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun subscribe(viewModel: ProfileViewModel) {
-        viewModel.account.observe {
-            accountView.setAccountName(it.name)
+        viewModel.account.observe { account ->
+            account.name?.let(accountView::setAccountName)
         }
 
         viewModel.shortenAddress.observe {

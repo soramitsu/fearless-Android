@@ -20,7 +20,10 @@
     <string name="tabbar_extrinsics_title">Экстринсики</string>
     <string name="profile_settings_title">Настройки</string>
     <string name="profile_language_title">Язык</string>
+    <string name="about_contact_us">Свяжитесь с нами</string>
     <string name="about_title">О приложении</string>
+    <string name="about_privacy">Политика конфиденциальности</string>
+    <string name="about_terms">Условия использования</string>
     <string name="onboarding_create_account">Создать аккаунт</string>
     <string name="username_setup_choose_title">Выберите имя</string>
     <string name="username_setup_hint">Имя аккаунта и его отображение рядом с адресом. Используя хранение идентификационных данных в блокчейне, имя можно сделать доступных для остальных.</string>
@@ -60,4 +63,13 @@
     <string name="profile_pincode_change_title">Изменить пин-код</string>
     <string name="tabbar_profile_title">Профиль</string>
     <string name="pincode_biometry_dialog_title">Биометрия</string>
+    <string name="common_edit">Редактировать</string>
+    <string name="common_done">Готово</string>
+    <string name="accounts_add_account">Добавить аккаунт</string>
+    <string name="account_add_already_exists_message">Аккаунт уже существует. Пожалуйста, попробуйте другой.</string>
+    <string name="about_website">Официальный сайт</string>
+    <string name="about_github">Исходный код на Github</string>
+    <string name="about_version">Версия приложения</string>
+    <string name="about_telegram">Присоединяйтесь к группе Telegram</string>
+    <string name="common_email_chooser_title">Выберите приложение для работы с почтой</string>
 </resources>

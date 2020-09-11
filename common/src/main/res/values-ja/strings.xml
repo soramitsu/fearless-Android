@@ -20,7 +20,10 @@
     <string name="tabbar_extrinsics_title">外因剤</string>
     <string name="profile_settings_title">設定</string>
     <string name="profile_language_title">言語</string>
+    <string name="about_contact_us">お問い合わせ</string>
     <string name="about_title">情報</string>
+    <string name="about_privacy">個人情報保護方針</string>
+    <string name="about_terms">規約と条件</string>
     <string name="onboarding_create_account">アカウントを作成する</string>
     <string name="username_setup_choose_title">名前を選択してください</string>
     <string name="username_setup_hint">このアカウントの名前と、アドレスの下での表示方法。チェーン上のIDを使用すると、他のユーザーが使用できるようになります。</string>
@@ -60,4 +63,13 @@
     <string name="profile_pincode_change_title">PINコードを変更する</string>
     <string name="tabbar_profile_title">プロフィール</string>
     <string name="pincode_biometry_dialog_title">バイオメトリー</string>
+    <string name="common_edit">編集する</string>
+    <string name="common_done">完了</string>
+    <string name="accounts_add_account">アカウントを追加する</string>
+    <string name="account_add_already_exists_message">アカウントはすでに存在しています。別のものを試してください。</string>
+    <string name="about_website">公式サイト</string>
+    <string name="about_github">Githubソースコード</string>
+    <string name="about_version">アプリのバージョン</string>
+    <string name="about_telegram">電報グループに参加する</string>
+    <string name="common_email_chooser_title">メールアプリを選択</string>
 </resources>

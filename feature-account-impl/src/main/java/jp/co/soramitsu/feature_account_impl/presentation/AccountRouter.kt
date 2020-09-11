@@ -9,7 +9,7 @@ interface AccountRouter {
 
     fun backToWelcomeScreen()
 
-    fun showProfile()
+    fun openMain()
 
     fun openCreatePincode()
 
@@ -21,5 +21,13 @@ interface AccountRouter {
         derivationPath: String
     )
 
+    fun openAboutScreen()
+
+    fun openTermsScreen()
+
+    fun openPrivacyScreen()
+
     fun backToBackupMnemonicScreen()
+
+    fun backToProfileScreen()
 }

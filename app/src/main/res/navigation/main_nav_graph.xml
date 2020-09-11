@@ -3,39 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_nav_graph"
-    app:startDestination="@id/welcomeFragment">
-
-    <fragment
-        android:id="@+id/welcomeFragment"
-        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment"
-        android:label="fragment_users"
-        tools:layout="@layout/fragment_welcome">
-
-        <action
-            android:id="@+id/action_welcomeFragment_to_pincodeFragment"
-            app:destination="@id/pincodeFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
-
-    </fragment>
-
-    <fragment
-        android:id="@+id/pincodeFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment"
-        android:label="fragment_pincode"
-        tools:layout="@layout/fragment_pincode">
-
-        <action
-            android:id="@+id/action_pincodeFragment_to_profileFragment"
-            app:destination="@id/profileFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
-
-    </fragment>
+    app:startDestination="@id/profileFragment">
 
     <fragment
         android:id="@+id/profileFragment"
@@ -43,6 +11,22 @@
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile">
 
+        <action
+            android:id="@+id/action_profileFragment_to_aboutFragment"
+            app:destination="@id/aboutFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
+
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.about.AboutFragment"
+        android:label="fragment_about"
+        tools:layout="@layout/fragment_about">
+    </fragment>
+
+
 
 </navigation>

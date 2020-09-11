@@ -175,4 +175,11 @@ class AccountInteractorImpl(
                 Network(networkType.readableName, networkType, defaultNode)
             }
     }
+
+    override fun shouldOpenOnboarding(): Single<Boolean> {
+        return accountRepository.isAccountSelected()
+            .map(Boolean::not)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+    }
 }

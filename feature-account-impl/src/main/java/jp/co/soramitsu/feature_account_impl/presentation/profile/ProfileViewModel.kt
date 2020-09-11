@@ -61,4 +61,8 @@ class ProfileViewModel(
             .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
             .observeOn(AndroidSchedulers.mainThread())
     }
+
+    fun aboutClicked() {
+        router.openAboutScreen()
+    }
 }
