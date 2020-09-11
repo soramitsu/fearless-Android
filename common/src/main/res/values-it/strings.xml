@@ -20,7 +20,10 @@
     <string name="tabbar_extrinsics_title">Estrinseche</string>
     <string name="profile_settings_title">Impostazioni</string>
     <string name="profile_language_title">Lingua</string>
+    <string name="about_contact_us">Contattaci</string>
     <string name="about_title">Informazioni su</string>
+    <string name="about_privacy">Informativa sulla privacy</string>
+    <string name="about_terms">Termini e condizioni</string>
     <string name="onboarding_create_account">Creare un profilo</string>
     <string name="username_setup_choose_title">Scegli il nome</string>
     <string name="username_setup_hint">Il nome per questo account e come apparirà sotto i tuoi indirizzi. Con un\'identità su catena, può essere reso disponibile ad altri.</string>
@@ -60,4 +63,13 @@
     <string name="profile_pincode_change_title">Modifica il codice PIN</string>
     <string name="tabbar_profile_title">Profilo</string>
     <string name="pincode_biometry_dialog_title">Biometria</string>
+    <string name="common_edit">Modifica</string>
+    <string name="common_done">Fatto</string>
+    <string name="accounts_add_account">Aggiungi account</string>
+    <string name="account_add_already_exists_message">L\'account esiste già. Per favore, provane un altro.</string>
+    <string name="about_website">Sito ufficiale</string>
+    <string name="about_github">Codice sorgente Github</string>
+    <string name="about_version">Versione dell\'app</string>
+    <string name="about_telegram">Unisciti al gruppo Telegram</string>
+    <string name="common_email_chooser_title">Seleziona l\'app di posta elettronica</string>
 </resources>

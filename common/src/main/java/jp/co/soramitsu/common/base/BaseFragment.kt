@@ -1,11 +1,13 @@
 package jp.co.soramitsu.common.base
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 import javax.inject.Inject
 
@@ -15,8 +17,9 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
 
     private val observables = mutableListOf<LiveData<*>>()
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         inject()
         initViews()
         subscribe(viewModel)
@@ -35,7 +38,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     protected fun showError(errorMessage: String) {
-        AlertDialog.Builder(activity!!)
+        AlertDialog.Builder(requireActivity())
             .setTitle(R.string.common_error_general_title)
             .setMessage(errorMessage)
             .setPositiveButton(R.string.common_ok) { _, _ -> }
@@ -43,7 +46,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     protected fun showErrorFromResponse(resId: Int) {
-        AlertDialog.Builder(activity!!)
+        AlertDialog.Builder(requireActivity())
             .setTitle(R.string.common_error_general_title)
             .setMessage(resId)
             .setPositiveButton(R.string.common_ok) { _, _ -> }
@@ -51,7 +54,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     protected fun showErrorWithTitle(title: String, errorMessage: String) {
-        AlertDialog.Builder(activity!!)
+        AlertDialog.Builder(requireActivity())
             .setTitle(title)
             .setMessage(errorMessage)
             .setPositiveButton(R.string.common_ok) { _, _ -> }
@@ -65,8 +68,20 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
 
     @Suppress("unchecked_cast")
     protected fun <V : Any?> observe(source: LiveData<V>, observer: Observer<V>) {
-        source.observe(this, observer as Observer<in Any?>)
+        source.observe(viewLifecycleOwner, observer as Observer<in Any?>)
         observables.add(source)
+    }
+
+    protected inline fun <V> LiveData<Event<V>>.observeEvent(crossinline observer: (V) -> Unit) {
+        observe(viewLifecycleOwner, EventObserver {
+            observer.invoke(it)
+        })
+    }
+
+    protected inline fun <V> LiveData<V>.observe(crossinline observer: (V) -> Unit) {
+        observe(viewLifecycleOwner, Observer {
+            observer.invoke(it)
+        })
     }
 
     abstract fun initViews()

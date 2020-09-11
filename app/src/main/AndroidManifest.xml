@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name="jp.co.soramitsu.app.App"
         android:allowBackup="false"
@@ -15,7 +17,7 @@
         android:supportsRtl="true">
 
         <activity
-            android:name="jp.co.soramitsu.app.MainActivity"
+            android:name="jp.co.soramitsu.app.main.presentation.MainActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Soramitsu.Fearless"
             android:windowSoftInputMode="adjustResize">
@@ -23,6 +25,12 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/json" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 

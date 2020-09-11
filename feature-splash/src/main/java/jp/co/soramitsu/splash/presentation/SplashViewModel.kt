@@ -1,24 +1,37 @@
 package jp.co.soramitsu.splash.presentation
 
-import android.content.Context
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.splash.SplashRouter
 
 class SplashViewModel(
-    private val router: SplashRouter
-) : ViewModel() {
-
-    private val _openUsersEvent = MutableLiveData<Event<Unit>>()
-    val openUsersEvent: LiveData<Event<Unit>> = _openUsersEvent
+    private val router: SplashRouter,
+    private val repository: AccountRepository
+) : BaseViewModel() {
+    private val _removeSplashBackgroundLiveData = MutableLiveData<Event<Unit>>()
+    val removeSplashBackgroundLiveData = _removeSplashBackgroundLiveData
 
     init {
-        _openUsersEvent.value = Event(Unit)
+        openInitialDestination()
     }
 
-    fun openScanner(context: Context) {
-        router.openMain(context)
+    private fun openInitialDestination() {
+        disposables += repository.isAccountSelected()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { isSelected ->
+                _removeSplashBackgroundLiveData.value = Event(Unit)
+
+                if (isSelected) {
+                    router.openPin()
+                } else {
+                    router.openOnboarding()
+                }
+            }
     }
 }

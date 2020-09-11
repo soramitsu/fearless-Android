@@ -32,22 +32,12 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     private lateinit var fingerprintDialog: BottomSheetDialog
 
-    companion object {
-        const val PINCODE_ACTION_KEY = "pincode_action"
-
-        fun getBundleForCreatePincode(): Bundle {
-            return Bundle().apply {
-                putSerializable(PINCODE_ACTION_KEY, PinCodeAction.CREATE_PIN_CODE)
-            }
-        }
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_pincode, container, false)
     }
 
     override fun inject() {
-        FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
+        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
             .pincodeComponentFactory()
             .create(DotsProgressView.MAX_PROGRESS, this)
             .inject(this)
@@ -56,7 +46,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     override fun initViews() {
         toolbar.setHomeButtonListener { viewModel.backPressed() }
 
-        fingerprintDialog = BottomSheetDialog(activity!!).apply {
+        fingerprintDialog = BottomSheetDialog(requireActivity()).apply {
             setContentView(R.layout.bottom_sheet_fingerprint_dialog)
             setCancelable(true)
             setOnCancelListener { fingerprintWrapper.cancel() }
@@ -128,8 +118,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             playMatchingPincodeErrorAnimation()
         })
 
-        val action = arguments!!.getSerializable(PINCODE_ACTION_KEY) as PinCodeAction
-        viewModel.startAuth(action)
+        viewModel.startAuth()
     }
 
     private fun playMatchingPincodeErrorAnimation() {

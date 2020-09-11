@@ -73,26 +73,24 @@ class PinCodeViewModel(
         inputCodeLiveData.value = ""
     }
 
-    fun startAuth(pinCodeAction: PinCodeAction) {
-        action = pinCodeAction
+    fun startAuth() {
         _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
 
-        if (action == PinCodeAction.TIMEOUT_CHECK) {
-            disposables.add(
-                interactor.isCodeSet()
-                    .subscribe({
-                        _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
-                        if (it) {
-                            _showFingerPrintEvent.value = Event(Unit)
-                        } else {
-                            action = PinCodeAction.CREATE_PIN_CODE
-                        }
-                    }, {
-                        it.printStackTrace()
+        disposables.add(
+            interactor.isCodeSet()
+                .subscribe({
+                    _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
+                    if (it) {
+                        action = PinCodeAction.TIMEOUT_CHECK
+                        _showFingerPrintEvent.value = Event(Unit)
+                    } else {
                         action = PinCodeAction.CREATE_PIN_CODE
-                    })
-            )
-        }
+                    }
+                }, {
+                    it.printStackTrace()
+                    action = PinCodeAction.CREATE_PIN_CODE
+                })
+        )
     }
 
     fun pinCodeNumberClicked(pinCodeNumber: String) {
@@ -159,7 +157,7 @@ class PinCodeViewModel(
                     if (fingerPrintAvailable) {
                         _biometricSwitchDialogLiveData.value = Event(Unit)
                     } else {
-                        // TODO: 8/12/20 go to next registration screen
+                        router.openMain()
                     }
                 }, {
                     it.printStackTrace()
@@ -172,7 +170,7 @@ class PinCodeViewModel(
             interactor.isPinCorrect(code)
                 .subscribe({
                     if (it) {
-                        // TODO: 8/12/20 successfull auth
+                        router.openMain()
                     } else {
                         inputCodeLiveData.value = ""
                         deviceVibrator.makeShortVibration()
@@ -214,7 +212,7 @@ class PinCodeViewModel(
     }
 
     fun onAuthenticationSucceeded() {
-        // TODO: 8/12/20 fingerprint successfull auth
+        router.openMain()
     }
 
     fun onAuthenticationFailed() {
@@ -231,7 +229,7 @@ class PinCodeViewModel(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    // TODO: 8/12/20 show next registration screen
+                    router.openMain()
                 }, {
                     it.printStackTrace()
                 })

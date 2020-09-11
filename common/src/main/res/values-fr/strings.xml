@@ -22,6 +22,16 @@ les Termes et Conditions et la Politique de confidentialité</string>
     <string name="profile_settings_title">Paramètres</string>
     <string name="profile_language_title">Langue</string>
     <string name="about_title">À propos</string>
+    <string name="tabbar_wallet_title">Portefeuille</string>
+    <string name="tabbar_staking_title">Staking</string>
+    <string name="tabbar_governance_title">Gouvernance</string>
+    <string name="tabbar_extrinsics_title">Extrinsèques</string>
+    <string name="profile_settings_title">Paramètres</string>
+    <string name="profile_language_title">Langue</string>
+    <string name="about_contact_us">Nous contacter</string>
+    <string name="about_title">À propos</string>
+    <string name="about_privacy">Respect de la vie privée</string>
+    <string name="about_terms">Termes et conditions</string>
     <string name="onboarding_create_account">Créer un compte</string>
     <string name="username_setup_choose_title">Choisissez le nom</string>
     <string name="username_setup_hint">Le nom de ce compte et comment il apparaîtra sous vos adresses. Avec une identité en chaîne, il peut être mis à la disposition des autres.</string>
@@ -61,4 +71,13 @@ les Termes et Conditions et la Politique de confidentialité</string>
     <string name="profile_pincode_change_title">Changer le code PIN</string>
     <string name="tabbar_profile_title">Profil</string>
     <string name="pincode_biometry_dialog_title">Biométrie</string>
+    <string name="common_edit">Éditer</string>
+    <string name="common_done">Terminé</string>
+    <string name="accounts_add_account">Ajouter un compte</string>
+    <string name="account_add_already_exists_message">Le compte existe déjà. Veuillez en essayer un autre.</string>
+    <string name="about_website">Site officiel</string>
+    <string name="about_github">Code source Github</string>
+    <string name="about_version">Version de l\'application</string>
+    <string name="about_telegram">Rejoignez le groupe Telegram</string>
+    <string name="common_email_chooser_title">Sélectionnez l\'application de messagerie</string>
 </resources>
