@@ -14,10 +14,10 @@ class RootFeatureHolder @Inject constructor(
 ) : FeatureApiHolder(featureContainer) {
 
     override fun initializeDependencies(): Any {
-        val mainFeatureDependencies = DaggerRootComponent_RootFeatureDependenciesComponent.builder()
+        val rootFeatureDependencies = DaggerRootComponent_RootFeatureDependenciesComponent.builder()
             .accountFeatureApi(getFeature(AccountFeatureApi::class.java))
             .build()
         return DaggerRootComponent.factory()
-            .create(navigator, mainFeatureDependencies)
+            .create(navigator, rootFeatureDependencies)
     }
 }

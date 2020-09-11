@@ -10,7 +10,7 @@ class RootFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideMainInteractor(): RootInteractor {
+    fun provideRootInteractor(): RootInteractor {
         return RootInteractor()
     }
 }
