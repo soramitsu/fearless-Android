@@ -159,7 +159,7 @@ class AccountRepositoryImpl(
             derivationPath,
             encryptionType,
             node.networkType
-        ).flatMapCompletable(::selectAccount)
+        ).flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
     }
 
@@ -197,7 +197,7 @@ class AccountRepositoryImpl(
             selectedEncryptionType,
             node.networkType
         )
-            .flatMapCompletable(::selectAccount)
+            .flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
     }
 
@@ -235,7 +235,7 @@ class AccountRepositoryImpl(
 
             Account(address, username, publicKeyEncoded, selectedEncryptionType, node.networkType)
         }
-            .flatMapCompletable(::selectAccount)
+            .flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
     }
 
@@ -364,6 +364,16 @@ class AccountRepositoryImpl(
                 cryptoType = CryptoType.values()[cryptoType],
                 networkType = Node.NetworkType.values()[it.networkType]
             )
+        }
+    }
+
+    private fun maybeSelectAccount(account: Account): Completable {
+        return isAccountSelected().flatMapCompletable { isSelected ->
+            if (isSelected) {
+                Completable.complete()
+            } else {
+                selectAccount(account)
+            }
         }
     }
 }
