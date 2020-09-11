@@ -1,36 +1,26 @@
-package jp.co.soramitsu.app.main.presentation
+package jp.co.soramitsu.app.root.presentation
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.app.main.di.MainApi
-import jp.co.soramitsu.app.main.di.MainComponent
-import jp.co.soramitsu.app.main.navigation.Navigator
+import jp.co.soramitsu.app.root.di.RootApi
+import jp.co.soramitsu.app.root.di.RootComponent
+import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
-import kotlinx.android.synthetic.main.activity_main.mainView
-import kotlinx.android.synthetic.main.activity_main.navHost
+import kotlinx.android.synthetic.main.activity_root.mainView
+import kotlinx.android.synthetic.main.activity_root.navHost
 import javax.inject.Inject
 
-class MainActivity : BaseActivity<MainViewModel>(), SplashBackgroundHolder {
+class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
 
     @Inject
     lateinit var navigator: Navigator
 
-    companion object {
-
-        fun start(context: Context) {
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
-        }
-    }
-
     override fun inject() {
-        FeatureUtils.getFeature<MainComponent>(this, MainApi::class.java)
+        FeatureUtils.getFeature<RootComponent>(this, RootApi::class.java)
             .mainActivityComponentFactory()
             .create(this)
             .inject(this)
@@ -50,13 +40,13 @@ class MainActivity : BaseActivity<MainViewModel>(), SplashBackgroundHolder {
     }
 
     override fun layoutResource(): Int {
-        return R.layout.activity_main
+        return R.layout.activity_root
     }
 
     override fun initViews() {
     }
 
-    override fun subscribe(viewModel: MainViewModel) {
+    override fun subscribe(viewModel: RootViewModel) {
     }
 
     override fun removeSplashBackground() {

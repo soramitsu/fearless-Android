@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_nav_graph"
-    app:startDestination="@id/profileFragment">
+    app:startDestination="@id/mainFragment">
 
     <fragment
-        android:id="@+id/profileFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.profile.ProfileFragment"
+        android:id="@+id/mainFragment"
+        android:name="jp.co.soramitsu.app.root.presentation.main.MainFragment"
         android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile">
+        tools:layout="@layout/fragment_main">
 
         <action
             android:id="@+id/action_profileFragment_to_aboutFragment"

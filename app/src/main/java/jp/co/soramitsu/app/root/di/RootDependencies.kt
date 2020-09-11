@@ -1,8 +1,8 @@
-package jp.co.soramitsu.app.main.di
+package jp.co.soramitsu.app.root.di
 
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 
-interface MainDependencies {
+interface RootDependencies {
 
     fun accountRepository(): AccountRepository
 }

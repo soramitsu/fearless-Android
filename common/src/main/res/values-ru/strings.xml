@@ -20,8 +20,8 @@
     <string name="tabbar_extrinsics_title">Экстринсики</string>
     <string name="profile_settings_title">Настройки</string>
     <string name="profile_language_title">Язык</string>
-    <string name="about_contact_us">Свяжитесь с нами</string>
     <string name="about_title">О приложении</string>
+    <string name="about_contact_us">Свяжитесь с нами</string>
     <string name="about_privacy">Политика конфиденциальности</string>
     <string name="about_terms">Условия использования</string>
     <string name="onboarding_create_account">Создать аккаунт</string>
