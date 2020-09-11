@@ -29,8 +29,13 @@ class AccountsAdapter(
     private var selectedItem: AccountModel? = null
 
     fun updateSelectedAccount(newSelection: AccountModel) {
-        val positionToHide = selectedItem?.let { currentList.indexOf(it) }
-        val positionToShow = currentList.indexOf(newSelection)
+        val positionToHide = selectedItem?.let { selected ->
+            findIndexOfElement<AccountModel> { selected.address == it.address }
+        }
+
+        val positionToShow = findIndexOfElement<AccountModel> {
+            newSelection.address == it.address
+        }
 
         selectedItem = newSelection
 
@@ -39,11 +44,11 @@ class AccountsAdapter(
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
-        return AccountHolder(inflate(parent, R.layout.item_account))
+        return AccountGroupHolder(inflate(parent, R.layout.item_account_group))
     }
 
     override fun createChildViewHolder(parent: ViewGroup): GroupedListHolder {
-        return AccountGroupHolder(inflate(parent, R.layout.item_account_group))
+        return AccountHolder(inflate(parent, R.layout.item_account))
     }
 
     override fun bindGroup(holder: GroupedListHolder, group: NetworkModel) {
@@ -51,7 +56,7 @@ class AccountsAdapter(
     }
 
     override fun bindChild(holder: GroupedListHolder, child: AccountModel) {
-        val isChecked = child == selectedItem
+        val isChecked = child.address == selectedItem?.address
 
         (holder as AccountHolder).bind(child, accountItemHandler, isChecked)
     }
@@ -85,7 +90,8 @@ class AccountHolder(view: View) : GroupedListHolder(view) {
     }
 }
 
-private object AccountsDiffCallback : BaseGroupedDiffCallback<NetworkModel, AccountModel>() {
+private object AccountsDiffCallback :
+    BaseGroupedDiffCallback<NetworkModel, AccountModel>(NetworkModel::class.java) {
     override fun areGroupItemsTheSame(oldItem: NetworkModel, newItem: NetworkModel): Boolean {
         return oldItem.name == newItem.name
     }

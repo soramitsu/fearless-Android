@@ -103,4 +103,12 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
     override fun backToProfileScreen() {
         navController?.popBackStack()
     }
+
+    override fun back() {
+        navController?.navigateUp()
+    }
+
+    override fun openAccounts() {
+        navController?.navigate(R.id.action_mainFragment_to_accountsFragment)
+    }
 }

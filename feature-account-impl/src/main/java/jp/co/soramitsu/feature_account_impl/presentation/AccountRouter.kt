@@ -30,4 +30,8 @@ interface AccountRouter {
     fun backToBackupMnemonicScreen()
 
     fun backToProfileScreen()
+
+    fun back()
+
+    fun openAccounts()
 }

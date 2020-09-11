@@ -9,6 +9,8 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.accounts.model.AccountModel
+import kotlinx.android.synthetic.main.fragment_accounts.accountsList
+import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 
 class AccountsFragment : BaseFragment<AccountsViewModel>(), AccountsAdapter.AccountItemHandler {
     private lateinit var adapter: AccountsAdapter
@@ -21,6 +23,19 @@ class AccountsFragment : BaseFragment<AccountsViewModel>(), AccountsAdapter.Acco
 
     override fun initViews() {
         adapter = AccountsAdapter(this)
+
+        accountsList.setHasFixedSize(true)
+        accountsList.adapter = adapter
+
+        fearlessToolbar.setAction(R.string.common_edit) {
+            viewModel.editClicked()
+        }
+
+        fearlessToolbar.showBackButton {
+            viewModel.backClicked()
+        }
+
+        fearlessToolbar.setTitle(R.string.profile_accounts_title)
     }
 
     override fun inject() {
@@ -44,6 +59,6 @@ class AccountsFragment : BaseFragment<AccountsViewModel>(), AccountsAdapter.Acco
     }
 
     override fun checkClicked(accountModel: AccountModel) {
-        viewModel.checkClicked(accountModel)
+        viewModel.selectAccountClicked(accountModel)
     }
 }

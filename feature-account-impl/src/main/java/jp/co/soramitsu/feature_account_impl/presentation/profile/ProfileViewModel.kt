@@ -57,4 +57,8 @@ class ProfileViewModel(
     fun aboutClicked() {
         router.openAboutScreen()
     }
+
+    fun accountsClicked() {
+        router.openAccounts()
+    }
 }

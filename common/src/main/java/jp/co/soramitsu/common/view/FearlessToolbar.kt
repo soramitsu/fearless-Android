@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.view_toolbar.view.action
 import kotlinx.android.synthetic.main.view_toolbar.view.back
 import kotlinx.android.synthetic.main.view_toolbar.view.title
 
-class FearlessToolbar(
+class FearlessToolbar @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0

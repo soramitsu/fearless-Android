@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
+import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_account_info.view.accountAddressText
 import kotlinx.android.synthetic.main.view_account_info.view.accountIcon
@@ -20,13 +21,17 @@ class AccountInfoView @JvmOverloads constructor(
     init {
         View.inflate(context, R.layout.view_account_info, this)
 
-        background = resources.getDrawable(R.drawable.bg_input_shape_filled_selector)
+        background = context.getDrawableCompat(R.drawable.bg_input_shape_filled_selector)
         isFocusable = true
         isClickable = true
     }
 
-    fun setOnCopyClickListener(clickListener: () -> Unit) {
-        copyIcon.setOnClickListener { clickListener() }
+    fun setAccountZoneListener(clickListener: (View) -> Unit) {
+        setOnClickListener(clickListener)
+    }
+
+    fun setOnCopyClickListener(clickListener: (View) -> Unit) {
+        copyIcon.setOnClickListener(clickListener)
     }
 
     fun setAccountName(accountName: String) {

@@ -16,11 +16,19 @@ class AccountsViewModel(
         // TODO
     }
 
-    fun checkClicked(accountModel: AccountModel) {
+    fun editClicked() {
+        // TODO
+    }
+
+    fun selectAccountClicked(accountModel: AccountModel) {
         disposables += accountInteractor.selectAccount(accountModel.address)
             .subscribe {
                 selectedAccountLiveData.value = accountModel
             }
+    }
+
+    fun backClicked() {
+        accountRouter.back()
     }
 
     init {

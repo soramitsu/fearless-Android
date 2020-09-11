@@ -181,7 +181,9 @@ class AccountInteractorImpl(
 
     override fun selectAccount(address: String) : Completable {
         return accountRepository.getAccount(address)
+            .subscribeOn(Schedulers.io())
             .flatMapCompletable(accountRepository::selectAccount)
+            .observeOn(AndroidSchedulers.mainThread())
     }
 
     private fun mergeAccountsWithNetworks(accounts: List<Account>, networks: List<Network>) : List<Any> {
@@ -189,7 +191,7 @@ class AccountInteractorImpl(
             .map { (networkType, accounts) ->
                 val network = networks.first { it.networkType == networkType }
 
-                listOf(network, accounts)
+                listOf(network, *accounts.toTypedArray())
             }.flatten()
     }
 
