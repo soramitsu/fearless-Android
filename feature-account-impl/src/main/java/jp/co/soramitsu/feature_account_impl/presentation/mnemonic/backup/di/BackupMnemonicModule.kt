@@ -20,16 +20,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupM
 @Module(includes = [ViewModelModule::class])
 class BackupMnemonicModule {
     @Provides
-    fun provideNetworkChooserMixin(interactor: AccountInteractor): NetworkChooserMixin =
-        NetworkChooser(interactor)
-
-    @Provides
-    fun provideCryptoChooserMixin(
-        interactor: AccountInteractor,
-        resourceManager: ResourceManager
-    ): CryptoTypeChooserMixin = CryptoTypeChooser(interactor, resourceManager)
-
-    @Provides
     @IntoMap
     @ViewModelKey(BackupMnemonicViewModel::class)
     fun provideViewModel(

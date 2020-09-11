@@ -14,7 +14,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 private const val ICON_SIZE_IN_PX = 100
-private const val ADDRESS_CHARACTERS_TRUNCATE = 6
 
 class ProfileViewModel(
     private val interactor: AccountInteractor,
@@ -28,7 +27,7 @@ class ProfileViewModel(
     }
 
     val account: LiveData<Account> = interactor.getSelectedAccount().asMutableLiveData()
-    val shortenAddress: LiveData<String> = account.map(::shortenAddress)
+    val shortenAddress: LiveData<String> = account.map(Account::shortAddress)
     val accountIconLiveData: LiveData<PictureDrawable> = generateIcon().asMutableLiveData()
 
     val selectedNetworkLiveData: LiveData<String> =
@@ -47,16 +46,9 @@ class ProfileViewModel(
         // TODO: 8/26/20 go to account managment 
     }
 
-    private fun shortenAddress(account: Account): String {
-        val address = account.address
-
-        return "${address.take(ADDRESS_CHARACTERS_TRUNCATE)}...${address.takeLast(
-            ADDRESS_CHARACTERS_TRUNCATE
-        )}"
-    }
-
     private fun generateIcon(): Single<PictureDrawable> {
-        return interactor.getAddressId()
+        return interactor.getSelectedAccount()
+            .flatMap(interactor::getAddressId)
             .subscribeOn(Schedulers.io())
             .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
             .observeOn(AndroidSchedulers.mainThread())

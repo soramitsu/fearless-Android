@@ -19,17 +19,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccount
 
 @Module(includes = [ViewModelModule::class])
 class ImportAccountModule {
-
-    @Provides
-    fun provideNetworkChooserMixin(interactor: AccountInteractor): NetworkChooserMixin =
-        NetworkChooser(interactor)
-
-    @Provides
-    fun provideCryptoChooserMixin(
-        interactor: AccountInteractor,
-        resourceManager: ResourceManager
-    ): CryptoTypeChooserMixin = CryptoTypeChooser(interactor, resourceManager)
-
     @Provides
     @IntoMap
     @ViewModelKey(ImportAccountViewModel::class)

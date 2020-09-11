@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="horizontal"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    tools:background="@color/black"
+    android:paddingBottom="16dp"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <ImageView
+        android:id="@+id/accountGroupIcon"
+        android:layout_marginStart="16dp"
+        android:layout_width="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_height="wrap_content"
+        tools:src="@drawable/ic_polkadot_18" />
+
+    <TextView
+        android:id="@+id/accountGroupName"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:fontFamily="@font/soramitsu_semibold"
+        android:textSize="@dimen/text_size_b1"
+        android:includeFontPadding="false"
+        android:textColor="@color/white"
+        android:layout_marginEnd="16dp"
+        android:textAllCaps="true"
+        tools:text="Polcadot"
+        android:layout_marginTop="8dp"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

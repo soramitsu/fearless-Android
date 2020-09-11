@@ -168,6 +168,11 @@ class AccountRepositoryImpl(
             .map { it.map(::mapAccountLocalToAccount) }
     }
 
+    override fun getAccount(address: String): Single<Account> {
+        return accountDao.getAccounts(address)
+            .map(::mapAccountLocalToAccount)
+    }
+
     override fun getSourceTypes(): Single<List<SourceType>> {
         return Single.just(
             listOf(
@@ -271,14 +276,11 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun getAddressId(): Single<ByteArray> {
+    override fun getAddressId(account: Account): Single<ByteArray> {
         return Single.fromCallable {
-            val user = accountDataSource.getSelectedAccount()
-                ?: throw IllegalArgumentException("No selected account found")
+            val addressType = mapNetworkTypeToAddressType(account.networkType)
 
-            val addressType = mapNetworkTypeToAddressType(user.networkType)
-
-            sS58Encoder.decode(user.address, addressType)
+            sS58Encoder.decode(account.address, addressType)
         }
     }
 

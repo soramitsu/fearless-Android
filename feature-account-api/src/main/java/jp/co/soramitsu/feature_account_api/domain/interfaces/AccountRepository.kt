@@ -46,6 +46,8 @@ interface AccountRepository {
 
     fun getAccounts(): Single<List<Account>>
 
+    fun getAccount(address: String) : Single<Account>
+
     fun getSourceTypes(): Single<List<SourceType>>
 
     fun importFromMnemonic(
@@ -76,7 +78,7 @@ interface AccountRepository {
 
     fun generateMnemonic(): Single<List<String>>
 
-    fun getAddressId(): Single<ByteArray>
+    fun getAddressId(account: Account): Single<ByteArray>
 
     fun isBiometricEnabled(): Single<Boolean>
 

@@ -46,7 +46,7 @@ interface AccountInteractor {
 
     fun importFromJson(json: String, password: String, node: Node.NetworkType): Completable
 
-    fun getAddressId(): Single<ByteArray>
+    fun getAddressId(account: Account): Single<ByteArray>
 
     fun getSelectedLanguage(): Single<String>
 
@@ -71,4 +71,8 @@ interface AccountInteractor {
     fun getSelectedNetwork(): Single<Network>
 
     fun shouldOpenOnboarding(): Single<Boolean>
+
+    fun getAccountsWithNetworks() : Single<List<Any>>
+
+    fun selectAccount(address: String) : Completable
 }

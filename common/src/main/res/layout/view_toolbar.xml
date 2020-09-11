@@ -1,0 +1,54 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/actionBarSize"
+    app:contentInsetLeft="0dp"
+    app:contentInsetStart="0dp"
+    tools:background="@color/black"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?selectableItemBackground"
+            android:padding="@dimen/x2"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_arrow_back_24dp" />
+
+        <TextView
+            android:id="@+id/title"
+            style="@style/TextAppearance.Soramitsu.Header3"
+            android:includeFontPadding="false"
+            android:fontFamily="@font/soramitsu_semibold"
+            android:layout_width="wrap_content"
+            android:textColor="@color/white"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Accounts" />
+
+        <TextView
+            android:id="@+id/action"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingEnd="@dimen/x2"
+            android:paddingStart="@dimen/x2"
+            android:fontFamily="@font/soramitsu_semibold"
+            android:drawablePadding="@dimen/x1_2"
+            android:textColor="@color/white"
+            android:visibility="gone"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Action"
+            tools:visibility="visible" />
+</merge>
