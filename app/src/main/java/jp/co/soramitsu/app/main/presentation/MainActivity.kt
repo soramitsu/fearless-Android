@@ -11,11 +11,12 @@ import jp.co.soramitsu.app.main.di.MainComponent
 import jp.co.soramitsu.app.main.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import kotlinx.android.synthetic.main.activity_main.mainView
 import kotlinx.android.synthetic.main.activity_main.navHost
 import javax.inject.Inject
 
-class MainActivity : BaseActivity<MainViewModel>() {
+class MainActivity : BaseActivity<MainViewModel>(), SplashBackgroundHolder {
 
     @Inject
     lateinit var navigator: Navigator
@@ -58,7 +59,7 @@ class MainActivity : BaseActivity<MainViewModel>() {
     override fun subscribe(viewModel: MainViewModel) {
     }
 
-    private fun removeBackgroundImage() {
+    override fun removeSplashBackground() {
         mainView.setBackgroundResource(R.color.black)
     }
 

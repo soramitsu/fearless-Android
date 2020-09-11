@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.base
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
@@ -16,8 +17,9 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
 
     private val observables = mutableListOf<LiveData<*>>()
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         inject()
         initViews()
         subscribe(viewModel)
@@ -66,7 +68,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
 
     @Suppress("unchecked_cast")
     protected fun <V : Any?> observe(source: LiveData<V>, observer: Observer<V>) {
-        source.observe(this, observer as Observer<in Any?>)
+        source.observe(viewLifecycleOwner, observer as Observer<in Any?>)
         observables.add(source)
     }
 
