@@ -8,6 +8,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
+import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 import jp.co.soramitsu.splash.SplashRouter
 
 class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
@@ -24,8 +25,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         }
     }
 
-    override fun openOnboarding() {
-        navController?.navigate(R.id.action_splash_to_onboarding)
+    override fun openAddFirstAccount() {
+        navController?.navigate(R.id.action_splash_to_onboarding, WelcomeFragment.getBundle(false))
     }
 
     override fun openPin() {
@@ -110,5 +111,9 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
 
     override fun openAccounts() {
         navController?.navigate(R.id.action_mainFragment_to_accountsFragment)
+    }
+
+    override fun openAddAccount() {
+        navController?.navigate(R.id.action_accounts_to_onboarding, WelcomeFragment.getBundle(true))
     }
 }

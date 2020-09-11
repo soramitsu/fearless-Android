@@ -141,18 +141,25 @@ class ImportAccountViewModel(
 
         disposables.add(
             importDisposable
+                .andThen(interactor.isCodeSet())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    router.openCreatePincode()
-                }, {
+                .subscribe(::continueBasedOnCodeStatus) {
                     if (it is Bip39Exception) {
                         onError(R.string.access_restore_phrase_error_message)
                     } else {
                         onError(R.string.common_undefined_error_message)
                     }
-                })
+                }
         )
+    }
+
+    private fun continueBasedOnCodeStatus(isCodeSet: Boolean) {
+        if (isCodeSet) {
+            router.openMain()
+        } else {
+            router.openCreatePincode()
+        }
     }
 
     fun inputChanges(input1: String, input2: String) {

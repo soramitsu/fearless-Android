@@ -34,4 +34,6 @@ interface AccountRouter {
     fun back()
 
     fun openAccounts()
+
+    fun openAddAccount()
 }

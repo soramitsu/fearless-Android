@@ -31,6 +31,10 @@ class AccountsViewModel(
         accountRouter.back()
     }
 
+    fun addAccountClicked() {
+        accountRouter.openAddAccount()
+    }
+
     init {
         disposables += accountListingDisposable
     }

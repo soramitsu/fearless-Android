@@ -18,8 +18,8 @@ class WelcomeModule {
     @Provides
     @IntoMap
     @ViewModelKey(WelcomeViewModel::class)
-    fun provideViewModel(interactor: OnboardingInteractor, router: OnboardingRouter): ViewModel {
-        return WelcomeViewModel(interactor, router)
+    fun provideViewModel(interactor: OnboardingInteractor, router: OnboardingRouter, shouldShowBack: Boolean): ViewModel {
+        return WelcomeViewModel(interactor,shouldShowBack, router)
     }
 
     @Provides

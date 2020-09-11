@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.accounts.model.AccountModel
 import kotlinx.android.synthetic.main.fragment_accounts.accountsList
+import kotlinx.android.synthetic.main.fragment_accounts.addAccount
 import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 
 class AccountsFragment : BaseFragment<AccountsViewModel>(), AccountsAdapter.AccountItemHandler {
@@ -36,6 +37,8 @@ class AccountsFragment : BaseFragment<AccountsViewModel>(), AccountsAdapter.Acco
         }
 
         fearlessToolbar.setTitle(R.string.profile_accounts_title)
+
+        addAccount.setOnClickListener { viewModel.addAccountClicked() }
     }
 
     override fun inject() {
