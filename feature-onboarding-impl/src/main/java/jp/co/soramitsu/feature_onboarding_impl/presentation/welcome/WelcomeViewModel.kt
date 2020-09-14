@@ -11,7 +11,7 @@ class WelcomeViewModel(
     private val shouldShowBack: Boolean,
     private val router: OnboardingRouter
 ) : BaseViewModel() {
-    val shouldShowBackLiveData : LiveData<Boolean> = MutableLiveData(shouldShowBack)
+    val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(shouldShowBack)
 
     fun createAccountClicked() {
         router.openCreateAccount()

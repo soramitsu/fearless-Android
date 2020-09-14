@@ -18,12 +18,19 @@ class WelcomeModule {
     @Provides
     @IntoMap
     @ViewModelKey(WelcomeViewModel::class)
-    fun provideViewModel(interactor: OnboardingInteractor, router: OnboardingRouter, shouldShowBack: Boolean): ViewModel {
-        return WelcomeViewModel(interactor,shouldShowBack, router)
+    fun provideViewModel(
+        interactor: OnboardingInteractor,
+        router: OnboardingRouter,
+        shouldShowBack: Boolean
+    ): ViewModel {
+        return WelcomeViewModel(interactor, shouldShowBack, router)
     }
 
     @Provides
-    fun provideViewModelCreator(fragment: Fragment, viewModelFactory: ViewModelProvider.Factory): WelcomeViewModel {
+    fun provideViewModelCreator(
+        fragment: Fragment,
+        viewModelFactory: ViewModelProvider.Factory
+    ): WelcomeViewModel {
         return ViewModelProvider(fragment, viewModelFactory).get(WelcomeViewModel::class.java)
     }
 }

@@ -67,7 +67,6 @@ class AccountGroupHolder(view: View) : GroupedListHolder(view) {
         accountGroupIcon.setImageResource(networkModel.networkTypeUI.smallIcon)
         accountGroupName.text = networkModel.name
     }
-
 }
 
 class AccountHolder(view: View) : GroupedListHolder(view) {

@@ -3,10 +3,10 @@ package jp.co.soramitsu.feature_account_api.domain.interfaces
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 
 interface AccountRepository {
 
@@ -46,7 +46,7 @@ interface AccountRepository {
 
     fun getAccounts(): Single<List<Account>>
 
-    fun getAccount(address: String) : Single<Account>
+    fun getAccount(address: String): Single<Account>
 
     fun getSourceTypes(): Single<List<SourceType>>
 

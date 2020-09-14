@@ -48,8 +48,8 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
         }
     }
 
-    protected  inline fun <reified T> findIndexOfElement(crossinline condition: (T) -> Boolean) : Int {
-        return currentList.indexOfFirst { it is T &&  condition(it) }
+    protected inline fun <reified T> findIndexOfElement(crossinline condition: (T) -> Boolean): Int {
+        return currentList.indexOfFirst { it is T && condition(it) }
     }
 
     protected fun inflate(parent: ViewGroup, @LayoutRes id: Int): View {
@@ -88,7 +88,6 @@ abstract class BaseGroupedDiffCallback<GROUP, CHILD>(private val groupClass: Cla
 
     internal fun isGroup(item: Any) = item::class.java == groupClass
 }
-
 
 abstract class GroupedListHolder(override val containerView: View) :
     RecyclerView.ViewHolder(containerView), LayoutContainer

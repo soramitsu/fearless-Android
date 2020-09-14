@@ -6,9 +6,9 @@ import io.reactivex.disposables.CompositeDisposable
 import jp.co.soramitsu.feature_account_impl.presentation.accounts.model.AccountModel
 
 interface AccountListingMixin {
-    val accountListingDisposable : CompositeDisposable
+    val accountListingDisposable: CompositeDisposable
 
-    val groupedAccountModelsLiveData : LiveData<List<Any>>
+    val groupedAccountModelsLiveData: LiveData<List<Any>>
 
-    val selectedAccountLiveData : MutableLiveData<AccountModel>
+    val selectedAccountLiveData: MutableLiveData<AccountModel>
 }

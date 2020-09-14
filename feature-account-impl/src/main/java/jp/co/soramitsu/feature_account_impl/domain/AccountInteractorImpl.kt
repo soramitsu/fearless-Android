@@ -179,14 +179,17 @@ class AccountInteractorImpl(
             })
     }
 
-    override fun selectAccount(address: String) : Completable {
+    override fun selectAccount(address: String): Completable {
         return accountRepository.getAccount(address)
             .subscribeOn(Schedulers.io())
             .flatMapCompletable(accountRepository::selectAccount)
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun mergeAccountsWithNetworks(accounts: List<Account>, networks: List<Network>) : List<Any> {
+    private fun mergeAccountsWithNetworks(
+        accounts: List<Account>,
+        networks: List<Network>
+    ): List<Any> {
         return accounts.groupBy(Account::networkType)
             .map { (networkType, accounts) ->
                 val network = networks.first { it.networkType == networkType }

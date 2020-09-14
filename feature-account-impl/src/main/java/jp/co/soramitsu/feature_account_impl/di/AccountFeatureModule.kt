@@ -8,8 +8,8 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.AccountDao
+import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
@@ -45,7 +45,7 @@ class AccountFeatureModule {
     fun provideAccountListingMixin(
         interactor: AccountInteractor,
         iconGenerator: IconGenerator
-    ) : AccountListingMixin = AccountListingProvider(interactor, iconGenerator)
+    ): AccountListingMixin = AccountListingProvider(interactor, iconGenerator)
 
     @Provides
     @FeatureScope
@@ -59,7 +59,16 @@ class AccountFeatureModule {
         accountDao: AccountDao,
         nodeDao: NodeDao
     ): AccountRepository {
-        return AccountRepositoryImpl(accountDataSource, accountDao, nodeDao, Bip39(), SS58Encoder(), JunctionDecoder(), KeypairFactory(), appLinksProvider)
+        return AccountRepositoryImpl(
+            accountDataSource,
+            accountDao,
+            nodeDao,
+            Bip39(),
+            SS58Encoder(),
+            JunctionDecoder(),
+            KeypairFactory(),
+            appLinksProvider
+        )
     }
 
     @Provides
