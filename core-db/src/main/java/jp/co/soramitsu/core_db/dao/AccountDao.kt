@@ -16,10 +16,7 @@ abstract class AccountDao {
     @Query("select * from users where address = :address")
     abstract fun getAccounts(address: String): Single<AccountLocal>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(accounts: List<AccountLocal>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     abstract fun insert(account: AccountLocal): Long
 
     @Query("DELETE FROM users where address = :address")

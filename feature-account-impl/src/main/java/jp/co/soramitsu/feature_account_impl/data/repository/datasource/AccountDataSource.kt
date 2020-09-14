@@ -4,6 +4,7 @@ import io.reactivex.Observable
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.Account
+import java.lang.Exception
 
 interface AccountDataSource {
 

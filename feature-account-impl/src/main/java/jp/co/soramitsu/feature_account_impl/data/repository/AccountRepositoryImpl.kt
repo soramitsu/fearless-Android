@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.data.repository
 
+import android.database.sqlite.SQLiteConstraintException
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -15,6 +16,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
@@ -226,7 +228,7 @@ class AccountRepositoryImpl(
                 networkType = node.networkType.ordinal
             )
 
-            accountDao.insert(userLocal)
+            insertAccount(userLocal)
 
             Account(address, username, publicKeyEncoded, selectedEncryptionType, node.networkType)
         }
@@ -328,7 +330,7 @@ class AccountRepositoryImpl(
                 networkType = networkType.ordinal
             )
 
-            accountDao.insert(userLocal)
+            insertAccount(userLocal)
 
             Account(address, accountName, publicKeyEncoded, cryptoType, networkType)
         }
@@ -370,5 +372,11 @@ class AccountRepositoryImpl(
                 selectAccount(account)
             }
         }
+    }
+
+    private fun insertAccount(account: AccountLocal) = try {
+        accountDao.insert(account)
+    } catch (e: SQLiteConstraintException) {
+        throw AccountAlreadyExistsException()
     }
 }

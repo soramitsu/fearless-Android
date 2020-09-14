@@ -7,6 +7,9 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
+import java.lang.Exception
+
+class AccountAlreadyExistsException : Exception()
 
 interface AccountRepository {
 
