@@ -25,4 +25,7 @@ abstract class NodeDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insert(nodes: NodeLocal): Long
+
+    @Query("SELECT * from nodes where isDefault = 1 AND networkType = :networkType")
+    abstract fun getDefaultNodeFor(networkType: Int): NodeLocal
 }

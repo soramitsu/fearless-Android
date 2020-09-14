@@ -8,9 +8,9 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_account_info.view.accountAddressText
+import kotlinx.android.synthetic.main.view_account_info.view.accountCopy
 import kotlinx.android.synthetic.main.view_account_info.view.accountIcon
 import kotlinx.android.synthetic.main.view_account_info.view.accountTitle
-import kotlinx.android.synthetic.main.view_account_info.view.copyIcon
 
 class AccountInfoView @JvmOverloads constructor(
     context: Context,
@@ -27,7 +27,7 @@ class AccountInfoView @JvmOverloads constructor(
     }
 
     fun setOnCopyClickListener(clickListener: (View) -> Unit) {
-        copyIcon.setOnClickListener(clickListener)
+        accountCopy.setOnClickListener(clickListener)
     }
 
     fun setAccountName(accountName: String) {

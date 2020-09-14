@@ -5,12 +5,18 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
 import kotlinx.android.synthetic.main.view_toolbar.view.action
 import kotlinx.android.synthetic.main.view_toolbar.view.back
 import kotlinx.android.synthetic.main.view_toolbar.view.title
+
+enum class BackStyle(@DrawableRes val imageId: Int) {
+    ARROW(R.drawable.ic_arrow_back_24dp),
+    CROSS(R.drawable.ic_close)
+}
 
 class FearlessToolbar @JvmOverloads constructor(
     context: Context,
@@ -41,9 +47,10 @@ class FearlessToolbar @JvmOverloads constructor(
         actionView.setOnClickListener(listener)
     }
 
-    fun showBackButton(listener: (View) -> Unit) {
+    fun showBackButton(style: BackStyle = BackStyle.ARROW, listener: (View) -> Unit) {
         backView.visibility = View.VISIBLE
 
+        backView.setImageResource(style.imageId)
         backView.setOnClickListener(listener)
     }
 }

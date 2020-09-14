@@ -5,8 +5,10 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
+import sun.nio.ch.Net
 import java.lang.Exception
 
 class AccountAlreadyExistsException : Exception()
@@ -20,6 +22,8 @@ interface AccountRepository {
     fun getEncryptionTypes(): Single<List<CryptoType>>
 
     fun getNodes(): Observable<List<Node>>
+
+    fun getNetworks() : Single<List<Network>>
 
     fun getSelectedNode(): Single<Node>
 

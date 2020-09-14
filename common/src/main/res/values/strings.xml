@@ -72,4 +72,7 @@
     <string name="about_version">App version</string>
     <string name="about_telegram">Join Telegram Group</string>
     <string name="common_email_chooser_title">Select email app</string>
+
+    <string name="account_address">Account address</string>
+    <string name="account_export">Export account</string>
 </resources>

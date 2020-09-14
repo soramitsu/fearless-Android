@@ -8,6 +8,7 @@ import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.about.di.AboutComponent
+import jp.co.soramitsu.feature_account_impl.presentation.accountDetials.di.AccountDetailsComponent
 import jp.co.soramitsu.feature_account_impl.presentation.accounts.di.AccountsComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.di.ImportAccountComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.di.BackupMnemonicComponent
@@ -39,6 +40,8 @@ interface AccountFeatureComponent : AccountFeatureApi {
     fun confirmMnemonicComponentFactory(): ConfirmMnemonicComponent.Factory
 
     fun accountsComponentFactory(): AccountsComponent.Factory
+
+    fun accountDetailsComponentFactory() : AccountDetailsComponent.Factory
 
     @Component.Factory
     interface Factory {

@@ -139,13 +139,14 @@ class AccountInteractorImpl(
         return accountRepository.setBiometricOff()
     }
 
+    override fun getAccount(address: String): Single<Account> {
+        return accountRepository.getAccount(address)
+    }
+
     override fun observeSelectedAccount() = accountRepository.observeSelectedAccount()
 
     override fun getNetworks(): Single<List<Network>> {
-        return accountRepository.getNodes()
-            .filter { it.isNotEmpty() }
-            .firstOrError()
-            .map(::formNetworkList)
+        return accountRepository.getNetworks()
     }
 
     override fun getSelectedNode() = accountRepository.getSelectedNode()
@@ -172,9 +173,7 @@ class AccountInteractorImpl(
 
     override fun getAccountsWithNetworks(): Single<List<Any>> {
         return accountRepository.getAccounts()
-            .zipWith(getNetworks(), BiFunction { accounts, networks ->
-                mergeAccountsWithNetworks(accounts, networks)
-            })
+            .map(::mergeAccountsWithNetworks)
     }
 
     override fun selectAccount(address: String): Completable {
@@ -184,27 +183,9 @@ class AccountInteractorImpl(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun mergeAccountsWithNetworks(
-        accounts: List<Account>,
-        networks: List<Network>
-    ): List<Any> {
-        return accounts.groupBy(Account::networkType)
-            .map { (networkType, accounts) ->
-                val network = networks.first { it.networkType == networkType }
-
-                listOf(network, *accounts.toTypedArray())
-            }.flatten()
-    }
-
-    private fun formNetworkList(
-        allNodes: List<Node>
-    ): List<Network> {
-        return allNodes.groupBy(Node::networkType)
-            .map { (networkType, nodesPerType) ->
-                val defaultNode = nodesPerType.find(Node::isDefault)
-                    ?: throw IllegalArgumentException("No default node for ${networkType.readableName} network")
-
-                Network(networkType.readableName, networkType, defaultNode)
-            }
+    private fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
+        return accounts.groupBy(Account::network)
+            .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
+            .flatten()
     }
 }

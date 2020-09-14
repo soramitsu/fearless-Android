@@ -4,53 +4,48 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:clipChildren="true"
-    tools:background="@color/black"
+    tools:background="@drawable/bg_button_primary_disabled"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
-
-    <ImageView
-        android:id="@+id/accountIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/x1"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/accountTitle"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="@dimen/x1"
-        android:layout_marginEnd="16dp"
-        android:textColor="@color/white"
-        app:layout_constraintEnd_toStartOf="@id/accountCopy"
-        app:layout_constraintStart_toEndOf="@id/accountIcon"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="Account Name" />
-
-    <TextView
-        android:id="@+id/accountAddressText"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/x1"
+        android:layout_marginStart="16dp"
+        android:text="@string/account_address"
+        android:textColor="@color/colorHint"
+        app:layout_constraintBottom_toTopOf="@+id/accountAddress"
+        app:layout_constraintEnd_toStartOf="@id/accountCopy"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@id/accountIcon"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/accountCopy"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/accountAddress"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:ellipsize="middle"
         android:singleLine="true"
-        android:textColor="@color/colorHint"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:textColor="@color/white"
+        android:layout_marginEnd="@dimen/item_account_address_margin"
+        app:layout_constraintBottom_toBottomOf="@+id/accountCopy"
         app:layout_constraintEnd_toEndOf="@+id/accountTitle"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="@+id/accountTitle"
-        app:layout_constraintTop_toBottomOf="@id/accountTitle"
+        app:layout_constraintTop_toBottomOf="@+id/accountTitle"
         tools:text="GybH55zsi5nAGybH55zsi5nAGybH55zsi5nAGybH55zsi5nA" />
 
     <ImageView
         android:id="@+id/accountCopy"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/x1"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/bg_primary_list_item"
         android:clickable="true"
         android:focusable="true"
@@ -60,4 +55,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/accountTitle"
         app:layout_constraintTop_toTopOf="parent" />
+
 </merge>

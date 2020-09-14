@@ -63,6 +63,8 @@ interface AccountInteractor {
 
     fun setBiometricOff(): Completable
 
+    fun getAccount(address: String) : Single<Account>
+
     fun observeSelectedAccount(): Observable<Account>
 
     fun getNetworks(): Single<List<Network>>

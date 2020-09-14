@@ -10,7 +10,7 @@ import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.AccountLocal
 
 @Database(
-    version = 2,
+    version = 3,
     entities = [
         AccountLocal::class,
         NodeLocal::class
