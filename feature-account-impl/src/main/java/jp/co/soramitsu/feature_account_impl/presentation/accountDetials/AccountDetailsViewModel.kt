@@ -17,7 +17,7 @@ class AccountDetailsViewModel(
 ) : BaseViewModel() {
     val account = getAccount(accountAddress).asLiveData()
 
-    val network = account.map { mapNetworkToNetworkModel(it.network) }
+    val networkModel = account.map { mapNetworkToNetworkModel(it.network) }
 
     fun backClicked() {
         accountRouter.back()

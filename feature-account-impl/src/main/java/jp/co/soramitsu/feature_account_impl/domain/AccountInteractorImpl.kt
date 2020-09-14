@@ -159,7 +159,7 @@ class AccountInteractorImpl(
             .zipWith<Node, Network>(
                 getSelectedNode(),
                 BiFunction { networks, selectedNode ->
-                    networks.first { it.networkType == selectedNode.networkType }
+                    networks.first { it.type == selectedNode.networkType }
                 })
             .observeOn(AndroidSchedulers.mainThread())
     }
@@ -185,7 +185,6 @@ class AccountInteractorImpl(
 
     private fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
         return accounts.groupBy(Account::network)
-            .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
-            .flatten()
+            .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }.flatten()
     }
 }

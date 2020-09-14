@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.core_db.model.AccountWithNode
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
@@ -86,7 +85,8 @@ class AccountRepositoryImpl(
     override fun getNetworks(): Single<List<Network>> {
         return getNodes()
             .filter { it.isNotEmpty() }
-            .map { it.map(::getNetworkForNode).distinct() }
+            .map { it.map(Node::networkType) }
+            .map { it.map(::getNetworkForType).distinct() }
             .firstOrError()
     }
 
@@ -156,7 +156,7 @@ class AccountRepositoryImpl(
     }
 
     override fun getAccounts(): Single<List<Account>> {
-        return accountDao.getAccountsWithNodes()
+        return accountDao.getAccounts()
             .map { it.map(::mapAccountWithNodeToAccount) }
     }
 
@@ -220,14 +220,14 @@ class AccountRepositoryImpl(
                 username = username,
                 publicKey = publicKeyEncoded,
                 cryptoType = selectedEncryptionType.ordinal,
-                nodeLink = node.link
+                networkType = node.networkType.ordinal
             )
 
             insertAccount(accountLocal)
 
-            val network = getNetworkForNode(node)
+            val network = getNetworkForType(node.networkType)
 
-            Account(address, username, publicKeyEncoded, selectedEncryptionType, node, network)
+            Account(address, username, publicKeyEncoded, selectedEncryptionType, network)
         }
             .flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
@@ -272,7 +272,7 @@ class AccountRepositoryImpl(
 
     override fun getAddressId(account: Account): Single<ByteArray> {
         return Single.fromCallable {
-            val addressType = mapNetworkTypeToAddressType(account.node.networkType)
+            val addressType = mapNetworkTypeToAddressType(account.network.type)
 
             sS58Encoder.decode(account.address, addressType)
         }
@@ -324,14 +324,14 @@ class AccountRepositoryImpl(
                 username = accountName,
                 publicKey = publicKeyEncoded,
                 cryptoType = cryptoType.ordinal,
-                nodeLink = node.link
+                networkType = node.networkType.ordinal
             )
 
             insertAccount(userLocal)
 
-            val network = getNetworkForNode(node)
+            val network = getNetworkForType(node.networkType)
 
-            Account(address, accountName, publicKeyEncoded, cryptoType, node, network)
+            Account(address, accountName, publicKeyEncoded, cryptoType, network)
         }
     }
 
@@ -351,17 +351,17 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapAccountWithNodeToAccount(it: AccountWithNode): Account {
-        val node = mapNodeLocalToNode(it.nodeLocal)
+    private fun mapAccountWithNodeToAccount(accountLocal: AccountLocal): Account {
+        val networkType =  Node.NetworkType.values()[accountLocal.networkType]
+        val network = getNetworkForType(networkType)
 
-        return with(it) {
+        return with(accountLocal) {
             Account(
-                address = accountLocal.address,
-                name = accountLocal.username,
-                publicKey = accountLocal.publicKey,
+                address = address,
+                name = username,
+                publicKey = publicKey,
                 cryptoType = CryptoType.values()[accountLocal.cryptoType],
-                node = node,
-                network = getNetworkForNode(node)
+                network = network
             )
         }
     }
@@ -382,10 +382,10 @@ class AccountRepositoryImpl(
         throw AccountAlreadyExistsException()
     }
 
-    private fun getNetworkForNode(node: Node) : Network {
-        val defaultNode = nodeDao.getDefaultNodeFor(node.networkType.ordinal)
+    private fun getNetworkForType(networkType: Node.NetworkType): Network {
+        val defaultNode = nodeDao.getDefaultNodeFor(networkType.ordinal)
 
-        return Network(node.networkType, mapNodeLocalToNode(defaultNode))
+        return Network(networkType, mapNodeLocalToNode(defaultNode))
     }
 
     private fun mapNodeLocalToNode(it: NodeLocal): Node {

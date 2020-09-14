@@ -62,10 +62,10 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
 
             accountDetailsName.setText(account.name)
 
-            accountDetailsNode.text = account.node.name
+            accountDetailsNode.text = account.network.name
         }
 
-        viewModel.network.observe { networkModel ->
+        viewModel.networkModel.observe { networkModel ->
             accountDetailsNode.setCompoundDrawablesWithIntrinsicBounds(networkModel.networkTypeUI.icon, 0, 0, 0)
         }
     }

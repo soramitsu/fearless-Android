@@ -4,9 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "nodes", indices = [
-    Index(value = ["link"], unique = true)
-])
+@Entity(tableName = "nodes")
 data class NodeLocal(
     @PrimaryKey val id: Int,
     val name: String,

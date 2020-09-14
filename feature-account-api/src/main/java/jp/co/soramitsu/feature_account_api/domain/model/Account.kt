@@ -5,6 +5,5 @@ data class Account(
     val name: String?,
     val publicKey: String,
     val cryptoType: CryptoType,
-    val node: Node,
     val network: Network
 )
