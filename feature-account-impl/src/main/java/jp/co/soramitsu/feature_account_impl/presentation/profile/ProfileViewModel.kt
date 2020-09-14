@@ -7,7 +7,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -26,16 +25,14 @@ class ProfileViewModel(
         private const val LABEL_ADDRESS = "label_address"
     }
 
-    private val accountObservable = interactor.observeSelectedAccount()
+    private val selectedAccountObservable = interactor.observeSelectedAccount()
 
-    val account: LiveData<Account> = accountObservable.subscribeOn(Schedulers.io())
+    val selectedAccount: LiveData<Account> = selectedAccountObservable.subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .asLiveData()
 
-    val shortenAddress: LiveData<String> = account.map(Account::shortAddress)
-
     val accountIconLiveData: LiveData<PictureDrawable> =
-        observeIcon(accountObservable).asMutableLiveData()
+        observeIcon(selectedAccountObservable).asMutableLiveData()
 
     val selectedNetworkLiveData: LiveData<String> =
         interactor.getSelectedNetworkName().asMutableLiveData()
@@ -44,7 +41,7 @@ class ProfileViewModel(
         interactor.getSelectedLanguage().asMutableLiveData()
 
     fun addressCopyClicked() {
-        account.value?.let {
+        selectedAccount.value?.let {
             clipboardManager.addToClipboard(LABEL_ADDRESS, it.address)
         }
     }

@@ -53,7 +53,7 @@ class AccountListingProvider(
     private fun transformAccount(account: Account): AccountModel {
         val picture = generateIcon(account)
 
-        return AccountModel(account.address, account.shortAddress, account.name, picture)
+        return AccountModel(account.address, account.name, picture)
     }
 
     private fun generateIcon(account: Account): PictureDrawable {

@@ -77,7 +77,7 @@ class AccountHolder(view: View) : GroupedListHolder(view) {
     ) {
         with(containerView) {
             accountTitle.text = accountModel.name ?: ""
-            accountAddress.text = accountModel.shortenAddress
+            accountAddress.text = accountModel.address
             accountIcon.setImageDrawable(accountModel.image)
 
             accountCheck.visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
@@ -100,7 +100,7 @@ private object AccountsDiffCallback :
     }
 
     override fun areChildItemsTheSame(oldItem: AccountModel, newItem: AccountModel): Boolean {
-        return oldItem.shortenAddress == newItem.shortenAddress
+        return oldItem.address == newItem.address
     }
 
     override fun areChildContentsTheSame(oldItem: AccountModel, newItem: AccountModel): Boolean {
