@@ -172,12 +172,19 @@ class AccountInteractorImpl(
     override fun selectAccount(address: String): Completable {
         return accountRepository.getAccount(address)
             .subscribeOn(Schedulers.io())
-            .flatMapCompletable(accountRepository::selectAccount)
+            .flatMapCompletable(::selectAccount)
             .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    private fun selectAccount(account: Account) : Completable {
+        return accountRepository.getDefaultNode(account.network.type)
+            .flatMapCompletable(accountRepository::selectNode)
+            .andThen(accountRepository.selectAccount(account))
     }
 
     private fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
         return accounts.groupBy(Account::network)
-            .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }.flatten()
+            .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
+            .flatten()
     }
 }

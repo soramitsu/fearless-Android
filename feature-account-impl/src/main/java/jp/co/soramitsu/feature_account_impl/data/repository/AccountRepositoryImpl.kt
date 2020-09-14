@@ -114,6 +114,12 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun getDefaultNode(networkType: Node.NetworkType): Single<Node> {
+        return Single.fromCallable {
+            getNetworkForType(networkType).defaultNode
+        }
+    }
+
     override fun selectAccount(account: Account): Completable {
         return Completable.fromCallable {
             accountDataSource.saveSelectedAccount(account)

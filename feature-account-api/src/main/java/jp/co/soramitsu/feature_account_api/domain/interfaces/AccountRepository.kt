@@ -33,6 +33,8 @@ interface AccountRepository {
 
     fun selectNode(node: Node): Completable
 
+    fun getDefaultNode(networkType: Node.NetworkType) : Single<Node>
+
     fun selectAccount(account: Account): Completable
 
     fun observeSelectedAccount(): Observable<Account>
