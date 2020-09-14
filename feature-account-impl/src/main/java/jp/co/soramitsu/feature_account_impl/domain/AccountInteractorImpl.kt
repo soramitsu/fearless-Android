@@ -16,13 +16,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {
-    override fun getSelectedNetworkName(): Single<String> {
-        return accountRepository.getSelectedNode()
-            .observeOn(Schedulers.io())
-            .map { it.networkType.readableName }
-            .observeOn(AndroidSchedulers.mainThread())
-    }
-
     override fun getMnemonic(): Single<List<String>> {
         return accountRepository.generateMnemonic()
     }

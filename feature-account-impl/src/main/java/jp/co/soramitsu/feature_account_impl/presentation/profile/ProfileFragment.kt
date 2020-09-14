@@ -49,14 +49,12 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             account.name?.let(accountView::setAccountName)
 
             accountView.setAccountAddress(account.address)
+
+            selectedNetworkTv.text = account.network.name
         }
 
         viewModel.accountIconLiveData.observe {
             accountView.setAccountIcon(it)
-        }
-
-        viewModel.selectedNetworkLiveData.observe {
-            selectedNetworkTv.text = it
         }
 
         viewModel.selectedLanguageLiveData.observe {

@@ -7,6 +7,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -33,9 +34,6 @@ class ProfileViewModel(
 
     val accountIconLiveData: LiveData<PictureDrawable> =
         observeIcon(selectedAccountObservable).asMutableLiveData()
-
-    val selectedNetworkLiveData: LiveData<String> =
-        interactor.getSelectedNetworkName().asMutableLiveData()
 
     val selectedLanguageLiveData: LiveData<String> =
         interactor.getSelectedLanguage().asMutableLiveData()

@@ -10,9 +10,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 interface AccountInteractor {
-
-    fun getSelectedNetworkName(): Single<String>
-
     fun getMnemonic(): Single<List<String>>
 
     fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>>
