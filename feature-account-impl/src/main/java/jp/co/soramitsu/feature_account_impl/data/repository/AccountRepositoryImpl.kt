@@ -26,8 +26,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import org.spongycastle.util.encoders.Hex
 
-private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
-
 class AccountRepositoryImpl(
     private val accountDataSource: AccountDataSource,
     private val accountDao: AccountDao,
@@ -128,9 +126,7 @@ class AccountRepositoryImpl(
     }
 
     override fun getPreferredCryptoType(): Single<CryptoType> {
-        return accountDataSource.observeSelectedAccount()
-            .map(Account::cryptoType)
-            .firstOrError()
+        return accountDataSource.getPreferredCryptoType()
     }
 
     override fun isAccountSelected(): Single<Boolean> {

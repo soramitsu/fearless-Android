@@ -1,8 +1,10 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
 import io.reactivex.Observable
+import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 
 interface AccountDataSource {
@@ -44,4 +46,6 @@ interface AccountDataSource {
     fun saveSelectedAccount(account: Account)
 
     fun observeSelectedAccount(): Observable<Account>
+
+    fun getPreferredCryptoType(): Single<CryptoType>
 }

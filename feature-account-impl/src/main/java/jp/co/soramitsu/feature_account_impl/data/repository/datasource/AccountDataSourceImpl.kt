@@ -2,11 +2,13 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
 import com.google.gson.Gson
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
+import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import org.spongycastle.util.encoders.Hex
 
@@ -22,6 +24,8 @@ private const val PREFS_MNEMONIC_IS_BACKED_UP = "mnemonic_backed_up"
 private const val PREFS_SEED_MASK = "seed_%s"
 private const val PREFS_ENTROPY_MASK = "entropy_%s"
 private const val PREFS_DERIVATION_MASK = "derivation_%s"
+
+private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 
 class AccountDataSourceImpl(
     private val preferences: Preferences,
@@ -126,6 +130,16 @@ class AccountDataSourceImpl(
 
     override fun observeSelectedAccount(): Observable<Account> {
         return selectedAccountSubject
+    }
+
+    override fun getPreferredCryptoType(): Single<CryptoType> {
+        return if (anyAccountSelected()) {
+            observeSelectedAccount()
+                .singleOrError()
+                .map(Account::cryptoType)
+        } else {
+            Single.just(DEFAULT_CRYPTO_TYPE)
+        }
     }
 
     private fun getSelectedAccount(): Account {
