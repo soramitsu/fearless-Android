@@ -7,6 +7,7 @@ import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -103,8 +104,8 @@ class AccountInteractorImpl(
         return accountRepository.importFromJson(json, password, node)
     }
 
-    override fun getAddressId(): Single<ByteArray> {
-        return accountRepository.getAddressId()
+    override fun getAddressId(account: Account): Single<ByteArray> {
+        return accountRepository.getAddressId(account)
     }
 
     override fun getSelectedLanguage(): Single<String> {
@@ -138,9 +139,7 @@ class AccountInteractorImpl(
         return accountRepository.setBiometricOff()
     }
 
-    override fun getSelectedAccount() = accountRepository.getSelectedAccount()
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
+    override fun observeSelectedAccount() = accountRepository.observeSelectedAccount()
 
     override fun getNetworks(): Single<List<Network>> {
         return accountRepository.getNodes()
@@ -164,6 +163,39 @@ class AccountInteractorImpl(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
+    override fun shouldOpenOnboarding(): Single<Boolean> {
+        return accountRepository.isAccountSelected()
+            .map(Boolean::not)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    override fun getAccountsWithNetworks(): Single<List<Any>> {
+        return accountRepository.getAccounts()
+            .zipWith(getNetworks(), BiFunction { accounts, networks ->
+                mergeAccountsWithNetworks(accounts, networks)
+            })
+    }
+
+    override fun selectAccount(address: String): Completable {
+        return accountRepository.getAccount(address)
+            .subscribeOn(Schedulers.io())
+            .flatMapCompletable(accountRepository::selectAccount)
+            .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    private fun mergeAccountsWithNetworks(
+        accounts: List<Account>,
+        networks: List<Network>
+    ): List<Any> {
+        return accounts.groupBy(Account::networkType)
+            .map { (networkType, accounts) ->
+                val network = networks.first { it.networkType == networkType }
+
+                listOf(network, *accounts.toTypedArray())
+            }.flatten()
+    }
+
     private fun formNetworkList(
         allNodes: List<Node>
     ): List<Network> {
@@ -174,12 +206,5 @@ class AccountInteractorImpl(
 
                 Network(networkType.readableName, networkType, defaultNode)
             }
-    }
-
-    override fun shouldOpenOnboarding(): Single<Boolean> {
-        return accountRepository.isAccountSelected()
-            .map(Boolean::not)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
     }
 }

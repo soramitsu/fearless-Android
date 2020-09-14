@@ -50,6 +50,19 @@ fun <T> Observable<T>.asLiveData(
     return liveData
 }
 
+fun <T> Observable<T>.asMutableLiveData(
+    disposable: CompositeDisposable,
+    errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
+): MutableLiveData<T> {
+    val liveData = MutableLiveData<T>()
+
+    disposable.add(subscribe({
+        liveData.value = it
+    }, errorHandler))
+
+    return liveData
+}
+
 operator fun CompositeDisposable.plusAssign(child: Disposable) {
     add(child)
 }

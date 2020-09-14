@@ -18,7 +18,8 @@ interface WelcomeComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance fragment: Fragment
+            @BindsInstance fragment: Fragment,
+            @BindsInstance shouldShowBack: Boolean
         ): WelcomeComponent
     }
 

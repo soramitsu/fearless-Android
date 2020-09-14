@@ -2,19 +2,17 @@ package jp.co.soramitsu.feature_account_impl.presentation.profile
 
 import android.graphics.drawable.PictureDrawable
 import androidx.lifecycle.LiveData
-import io.reactivex.Single
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 private const val ICON_SIZE_IN_PX = 100
-private const val ADDRESS_CHARACTERS_TRUNCATE = 6
 
 class ProfileViewModel(
     private val interactor: AccountInteractor,
@@ -27,9 +25,14 @@ class ProfileViewModel(
         private const val LABEL_ADDRESS = "label_address"
     }
 
-    val account: LiveData<Account> = interactor.getSelectedAccount().asMutableLiveData()
-    val shortenAddress: LiveData<String> = account.map(::shortenAddress)
-    val accountIconLiveData: LiveData<PictureDrawable> = generateIcon().asMutableLiveData()
+    private val selectedAccountObservable = interactor.observeSelectedAccount()
+
+    val selectedAccount: LiveData<Account> = selectedAccountObservable.subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .asLiveData()
+
+    val accountIconLiveData: LiveData<PictureDrawable> =
+        observeIcon(selectedAccountObservable).asMutableLiveData()
 
     val selectedNetworkLiveData: LiveData<String> =
         interactor.getSelectedNetworkName().asMutableLiveData()
@@ -38,25 +41,14 @@ class ProfileViewModel(
         interactor.getSelectedLanguage().asMutableLiveData()
 
     fun addressCopyClicked() {
-        account.value?.let {
+        selectedAccount.value?.let {
             clipboardManager.addToClipboard(LABEL_ADDRESS, it.address)
         }
     }
 
-    fun accountViewClicked() {
-        // TODO: 8/26/20 go to account managment 
-    }
-
-    private fun shortenAddress(account: Account): String {
-        val address = account.address
-
-        return "${address.take(ADDRESS_CHARACTERS_TRUNCATE)}...${address.takeLast(
-            ADDRESS_CHARACTERS_TRUNCATE
-        )}"
-    }
-
-    private fun generateIcon(): Single<PictureDrawable> {
-        return interactor.getAddressId()
+    private fun observeIcon(accountObservable: Observable<Account>): Observable<PictureDrawable> {
+        return accountObservable
+            .map { interactor.getAddressId(it).blockingGet() }
             .subscribeOn(Schedulers.io())
             .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
             .observeOn(AndroidSchedulers.mainThread())
@@ -64,5 +56,9 @@ class ProfileViewModel(
 
     fun aboutClicked() {
         router.openAboutScreen()
+    }
+
+    fun accountsClicked() {
+        router.openAccounts()
     }
 }

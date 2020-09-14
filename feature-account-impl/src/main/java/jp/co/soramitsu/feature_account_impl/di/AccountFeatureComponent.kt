@@ -8,11 +8,12 @@ import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.about.di.AboutComponent
+import jp.co.soramitsu.feature_account_impl.presentation.accounts.di.AccountsComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.di.ImportAccountComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.di.BackupMnemonicComponent
-import jp.co.soramitsu.feature_account_impl.presentation.profile.di.ProfileComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.di.ConfirmMnemonicComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.di.PinCodeComponent
+import jp.co.soramitsu.feature_account_impl.presentation.profile.di.ProfileComponent
 
 @Component(
     dependencies = [
@@ -36,6 +37,8 @@ interface AccountFeatureComponent : AccountFeatureApi {
     fun pincodeComponentFactory(): PinCodeComponent.Factory
 
     fun confirmMnemonicComponentFactory(): ConfirmMnemonicComponent.Factory
+
+    fun accountsComponentFactory(): AccountsComponent.Factory
 
     @Component.Factory
     interface Factory {

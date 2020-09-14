@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.data.repository
 
+import android.database.sqlite.SQLiteConstraintException
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -15,6 +16,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
@@ -121,23 +123,18 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun getSelectedAccount(): Single<Account> {
-        return Single.fromCallable {
-            accountDataSource.getSelectedAccount()
-                ?: throw IllegalArgumentException("No account selected")
-        }
+    override fun observeSelectedAccount(): Observable<Account> {
+        return accountDataSource.observeSelectedAccount()
     }
 
     override fun getPreferredCryptoType(): Single<CryptoType> {
-        return Single.fromCallable {
-            accountDataSource.getSelectedAccount()?.cryptoType ?: DEFAULT_CRYPTO_TYPE
-        }
+        return accountDataSource.observeSelectedAccount()
+            .map(Account::cryptoType)
+            .firstOrError()
     }
 
     override fun isAccountSelected(): Single<Boolean> {
-        return Single.fromCallable {
-            accountDataSource.getSelectedAccount() != null
-        }
+        return Single.fromCallable(accountDataSource::anyAccountSelected)
     }
 
     override fun removeAccount(account: Account): Completable {
@@ -159,13 +156,18 @@ class AccountRepositoryImpl(
             derivationPath,
             encryptionType,
             node.networkType
-        ).flatMapCompletable(::selectAccount)
+        ).flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
     }
 
     override fun getAccounts(): Single<List<Account>> {
         return accountDao.getAccounts()
             .map { it.map(::mapAccountLocalToAccount) }
+    }
+
+    override fun getAccount(address: String): Single<Account> {
+        return accountDao.getAccounts(address)
+            .map(::mapAccountLocalToAccount)
     }
 
     override fun getSourceTypes(): Single<List<SourceType>> {
@@ -192,7 +194,7 @@ class AccountRepositoryImpl(
             selectedEncryptionType,
             node.networkType
         )
-            .flatMapCompletable(::selectAccount)
+            .flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
     }
 
@@ -226,11 +228,11 @@ class AccountRepositoryImpl(
                 networkType = node.networkType.ordinal
             )
 
-            accountDao.insert(userLocal)
+            insertAccount(userLocal)
 
             Account(address, username, publicKeyEncoded, selectedEncryptionType, node.networkType)
         }
-            .flatMapCompletable(::selectAccount)
+            .flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
     }
 
@@ -271,14 +273,11 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun getAddressId(): Single<ByteArray> {
+    override fun getAddressId(account: Account): Single<ByteArray> {
         return Single.fromCallable {
-            val user = accountDataSource.getSelectedAccount()
-                ?: throw IllegalArgumentException("No selected account found")
+            val addressType = mapNetworkTypeToAddressType(account.networkType)
 
-            val addressType = mapNetworkTypeToAddressType(user.networkType)
-
-            sS58Encoder.decode(user.address, addressType)
+            sS58Encoder.decode(account.address, addressType)
         }
     }
 
@@ -331,7 +330,7 @@ class AccountRepositoryImpl(
                 networkType = networkType.ordinal
             )
 
-            accountDao.insert(userLocal)
+            insertAccount(userLocal)
 
             Account(address, accountName, publicKeyEncoded, cryptoType, networkType)
         }
@@ -363,5 +362,21 @@ class AccountRepositoryImpl(
                 networkType = Node.NetworkType.values()[it.networkType]
             )
         }
+    }
+
+    private fun maybeSelectAccount(account: Account): Completable {
+        return isAccountSelected().flatMapCompletable { isSelected ->
+            if (isSelected) {
+                Completable.complete()
+            } else {
+                selectAccount(account)
+            }
+        }
+    }
+
+    private fun insertAccount(account: AccountLocal) = try {
+        accountDao.insert(account)
+    } catch (e: SQLiteConstraintException) {
+        throw AccountAlreadyExistsException()
     }
 }

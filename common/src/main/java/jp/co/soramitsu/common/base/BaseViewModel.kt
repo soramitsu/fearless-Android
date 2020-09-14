@@ -45,4 +45,8 @@ open class BaseViewModel : ViewModel() {
     fun <T> Single<T>.asMutableLiveData(
         errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
     ) = asMutableLiveData(disposables, errorHandler)
+
+    fun <T> Observable<T>.asMutableLiveData(
+        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
+    ) = asMutableLiveData(disposables, errorHandler)
 }

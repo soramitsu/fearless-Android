@@ -1,11 +1,13 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
 import com.google.gson.Gson
+import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import org.spongycastle.util.encoders.Hex
 
 private const val PREFS_AUTH_TYPE = "auth_type"
@@ -26,6 +28,7 @@ class AccountDataSourceImpl(
     private val encryptedPreferences: EncryptedPreferences,
     private val jsonMapper: Gson
 ) : AccountDataSource {
+    private val selectedAccountSubject = createAccountBehaviorSubject()
 
     override fun saveAuthType(authType: AuthType) {
         preferences.putString(PREFS_AUTH_TYPE, authType.toString())
@@ -110,16 +113,35 @@ class AccountDataSourceImpl(
         return encryptedPreferences.getDecryptedString(derivationKey)
     }
 
-    override fun saveSelectedAccount(account: Account) {
-        val raw = jsonMapper.toJson(account)
-
-        preferences.putString(PREFS_SELECTED_ACCOUNT, raw)
+    override fun anyAccountSelected(): Boolean {
+        return preferences.contains(PREFS_SELECTED_ACCOUNT)
     }
 
-    override fun getSelectedAccount(): Account? {
+    override fun saveSelectedAccount(account: Account) {
+        val raw = jsonMapper.toJson(account)
+        preferences.putString(PREFS_SELECTED_ACCOUNT, raw)
+
+        selectedAccountSubject.onNext(account)
+    }
+
+    override fun observeSelectedAccount(): Observable<Account> {
+        return selectedAccountSubject
+    }
+
+    private fun getSelectedAccount(): Account {
         val raw = preferences.getString(PREFS_SELECTED_ACCOUNT)
-            ?: return null
+            ?: throw IllegalArgumentException("No account selected")
 
         return jsonMapper.fromJson(raw, Account::class.java)
+    }
+
+    private fun createAccountBehaviorSubject(): BehaviorSubject<Account> {
+        val subject = BehaviorSubject.create<Account>()
+
+        if (preferences.contains(PREFS_SELECTED_ACCOUNT)) {
+            subject.onNext(getSelectedAccount())
+        }
+
+        return subject
     }
 }

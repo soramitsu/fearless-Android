@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.storage
 
 interface Preferences {
+    fun contains(field: String): Boolean
 
     fun putString(field: String, value: String)
 

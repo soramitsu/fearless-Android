@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.R
@@ -141,18 +142,19 @@ class ImportAccountViewModel(
 
         disposables.add(
             importDisposable
+                .andThen(interactor.isCodeSet())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    router.openCreatePincode()
-                }, {
-                    if (it is Bip39Exception) {
-                        onError(R.string.access_restore_phrase_error_message)
-                    } else {
-                        onError(R.string.common_undefined_error_message)
-                    }
-                })
+                .subscribe(::continueBasedOnCodeStatus, ::handleCreateAccountError)
         )
+    }
+
+    private fun continueBasedOnCodeStatus(isCodeSet: Boolean) {
+        if (isCodeSet) {
+            router.openMain()
+        } else {
+            router.openCreatePincode()
+        }
     }
 
     fun inputChanges(input1: String, input2: String) {
@@ -172,5 +174,15 @@ class ImportAccountViewModel(
 
             SourceTypeModel(name, it, selected == it)
         }
+    }
+
+    private fun handleCreateAccountError(throwable: Throwable) {
+        val errorMessage = when (throwable) {
+            is Bip39Exception -> R.string.access_restore_phrase_error_message
+            is AccountAlreadyExistsException -> R.string.account_add_already_exists_message
+            else -> R.string.common_undefined_error_message
+        }
+
+        onError(errorMessage)
     }
 }

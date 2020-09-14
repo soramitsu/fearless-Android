@@ -42,6 +42,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_primary_list_item"
         android:clickable="true"
+        android:id="@+id/profileAccounts"
         android:drawableStart="@drawable/ic_user_blue_24"
         android:drawableEnd="@drawable/ic_arrow_right_24"
         android:drawablePadding="@dimen/x1_5"

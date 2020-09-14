@@ -3,10 +3,13 @@ package jp.co.soramitsu.feature_account_api.domain.interfaces
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
-import jp.co.soramitsu.feature_account_api.domain.model.Account
+import java.lang.Exception
+
+class AccountAlreadyExistsException : Exception()
 
 interface AccountRepository {
 
@@ -28,7 +31,7 @@ interface AccountRepository {
 
     fun selectAccount(account: Account): Completable
 
-    fun getSelectedAccount(): Single<Account>
+    fun observeSelectedAccount(): Observable<Account>
 
     fun getPreferredCryptoType(): Single<CryptoType>
 
@@ -45,6 +48,8 @@ interface AccountRepository {
     ): Completable
 
     fun getAccounts(): Single<List<Account>>
+
+    fun getAccount(address: String): Single<Account>
 
     fun getSourceTypes(): Single<List<SourceType>>
 
@@ -76,7 +81,7 @@ interface AccountRepository {
 
     fun generateMnemonic(): Single<List<String>>
 
-    fun getAddressId(): Single<ByteArray>
+    fun getAddressId(account: Account): Single<ByteArray>
 
     fun isBiometricEnabled(): Single<Boolean>
 

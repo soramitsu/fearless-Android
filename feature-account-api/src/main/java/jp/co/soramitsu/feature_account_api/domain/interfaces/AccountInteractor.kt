@@ -1,12 +1,13 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 
 interface AccountInteractor {
 
@@ -46,7 +47,7 @@ interface AccountInteractor {
 
     fun importFromJson(json: String, password: String, node: Node.NetworkType): Completable
 
-    fun getAddressId(): Single<ByteArray>
+    fun getAddressId(account: Account): Single<ByteArray>
 
     fun getSelectedLanguage(): Single<String>
 
@@ -62,7 +63,7 @@ interface AccountInteractor {
 
     fun setBiometricOff(): Completable
 
-    fun getSelectedAccount(): Single<Account>
+    fun observeSelectedAccount(): Observable<Account>
 
     fun getNetworks(): Single<List<Network>>
 
@@ -71,4 +72,8 @@ interface AccountInteractor {
     fun getSelectedNetwork(): Single<Network>
 
     fun shouldOpenOnboarding(): Single<Boolean>
+
+    fun getAccountsWithNetworks(): Single<List<Any>>
+
+    fun selectAccount(address: String): Completable
 }

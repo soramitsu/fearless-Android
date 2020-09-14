@@ -113,17 +113,22 @@ class ConfirmMnemonicViewModel(
         val mnemonicString = mnemonic.joinToString(" ")
         disposables.add(
             interactor.createAccount(accountName, mnemonicString, cryptoType, derivationPath, node)
+                .andThen(interactor.isCodeSet())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    router.openCreatePincode()
-                }, {
-                    it.printStackTrace()
-                })
+                .subscribe(::continueBasedOnCodeStatus, Throwable::printStackTrace)
         )
     }
 
     fun matchingErrorAnimationCompleted() {
         reset()
+    }
+
+    private fun continueBasedOnCodeStatus(isCodeSet: Boolean) {
+        if (isCodeSet) {
+            router.openMain()
+        } else {
+            router.openCreatePincode()
+        }
     }
 }

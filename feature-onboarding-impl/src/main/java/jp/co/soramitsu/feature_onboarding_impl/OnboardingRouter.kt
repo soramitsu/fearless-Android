@@ -13,4 +13,6 @@ interface OnboardingRouter {
     fun openPrivacyScreen()
 
     fun openImportAccountScreen()
+
+    fun back()
 }

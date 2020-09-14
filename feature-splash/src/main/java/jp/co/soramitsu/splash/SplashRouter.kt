@@ -1,7 +1,7 @@
 package jp.co.soramitsu.splash
 
 interface SplashRouter {
-    fun openOnboarding()
+    fun openAddFirstAccount()
 
     fun openPin()
 }

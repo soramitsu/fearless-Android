@@ -30,7 +30,7 @@ class SplashViewModel(
                 if (isSelected) {
                     router.openPin()
                 } else {
-                    router.openOnboarding()
+                    router.openAddFirstAccount()
                 }
             }
     }

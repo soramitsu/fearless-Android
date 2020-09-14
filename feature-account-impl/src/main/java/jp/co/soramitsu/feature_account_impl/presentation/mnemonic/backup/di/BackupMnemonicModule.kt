@@ -8,27 +8,14 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.CryptoTypeChooser
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.NetworkChooser
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicViewModel
 
 @Module(includes = [ViewModelModule::class])
 class BackupMnemonicModule {
-    @Provides
-    fun provideNetworkChooserMixin(interactor: AccountInteractor): NetworkChooserMixin =
-        NetworkChooser(interactor)
-
-    @Provides
-    fun provideCryptoChooserMixin(
-        interactor: AccountInteractor,
-        resourceManager: ResourceManager
-    ): CryptoTypeChooserMixin = CryptoTypeChooser(interactor, resourceManager)
-
     @Provides
     @IntoMap
     @ViewModelKey(BackupMnemonicViewModel::class)
@@ -39,7 +26,13 @@ class BackupMnemonicModule {
         networkChooserMixin: NetworkChooserMixin,
         cryptoTypeChooserMixin: CryptoTypeChooserMixin
     ): ViewModel {
-        return BackupMnemonicViewModel(interactor, router, accountName, cryptoTypeChooserMixin, networkChooserMixin)
+        return BackupMnemonicViewModel(
+            interactor,
+            router,
+            accountName,
+            cryptoTypeChooserMixin,
+            networkChooserMixin
+        )
     }
 
     @Provides

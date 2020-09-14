@@ -1,8 +1,9 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
+import io.reactivex.Observable
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 
 interface AccountDataSource {
 
@@ -38,7 +39,9 @@ interface AccountDataSource {
 
     fun getDerivationPath(address: String): String?
 
+    fun anyAccountSelected(): Boolean
+
     fun saveSelectedAccount(account: Account)
 
-    fun getSelectedAccount(): Account?
+    fun observeSelectedAccount(): Observable<Account>
 }

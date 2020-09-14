@@ -15,11 +15,23 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureComponent
+import kotlinx.android.synthetic.main.fragment_welcome.back
 import kotlinx.android.synthetic.main.fragment_welcome.createAccountBtn
 import kotlinx.android.synthetic.main.fragment_welcome.importAccountBtn
 import kotlinx.android.synthetic.main.fragment_welcome.termsTv
 
 class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
+
+    companion object {
+        private const val KEY_DISPLAY_BACK = "display_back"
+
+        fun getBundle(displayBack: Boolean): Bundle {
+
+            return Bundle().apply {
+                putBoolean(KEY_DISPLAY_BACK, displayBack)
+            }
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_welcome, container, false)
@@ -37,6 +49,8 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
         createAccountBtn.setOnClickListener { viewModel.createAccountClicked() }
 
         importAccountBtn.setOnClickListener { viewModel.importAccountClicked() }
+
+        back.setOnClickListener { viewModel.backClicked() }
     }
 
     private fun configureTermsAndPrivacy1(sourceText: String, terms: String, privacy: String) {
@@ -105,12 +119,17 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
     }
 
     override fun inject() {
+        val shouldShowBack = arguments!![KEY_DISPLAY_BACK] as Boolean
+
         FeatureUtils.getFeature<OnboardingFeatureComponent>(context!!, OnboardingFeatureApi::class.java)
             .welcomeComponentFactory()
-            .create(this)
+            .create(this, shouldShowBack)
             .inject(this)
     }
 
     override fun subscribe(viewModel: WelcomeViewModel) {
+        viewModel.shouldShowBackLiveData.observe {
+            back.visibility = if (it) View.VISIBLE else View.GONE
+        }
     }
 }
