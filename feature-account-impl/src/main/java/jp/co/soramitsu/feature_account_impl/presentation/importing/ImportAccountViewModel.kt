@@ -177,7 +177,7 @@ class ImportAccountViewModel(
     }
 
     private fun handleCreateAccountError(throwable: Throwable) {
-        val errorMessage = when(throwable) {
+        val errorMessage = when (throwable) {
             is Bip39Exception -> R.string.access_restore_phrase_error_message
             is AccountAlreadyExistsException -> R.string.account_add_already_exists_message
             else -> R.string.common_undefined_error_message
