@@ -11,7 +11,7 @@ import jp.co.soramitsu.core_db.model.AccountWithNode
 @Dao
 abstract class AccountDao {
 
-    @Query("select * from users, nodes")
+    @Query("select * from users, nodes where link = nodeLink")
     abstract fun getAccountsWithNodes(): Single<List<AccountWithNode>>
 
     @Query("select * from users, nodes where address = :address")

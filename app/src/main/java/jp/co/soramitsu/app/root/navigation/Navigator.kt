@@ -5,6 +5,7 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.accountDetials.AccountDetailsFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
@@ -115,5 +116,11 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
 
     override fun openAddAccount() {
         navController?.navigate(R.id.action_accounts_to_onboarding, WelcomeFragment.getBundle(true))
+    }
+
+    override fun openAccountDetails(address: String) {
+        val extras = AccountDetailsFragment.getBundle(address)
+
+        navController?.navigate(R.id.action_accountsFragment_to_accountDetailsFragment, extras)
     }
 }

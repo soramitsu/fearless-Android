@@ -13,7 +13,7 @@ class AccountsViewModel(
     private val accountListingMixin: AccountListingMixin
 ) : BaseViewModel(), AccountListingMixin by accountListingMixin {
     fun infoClicked(accountModel: AccountModel) {
-        // TODO
+       accountRouter.openAccountDetails(accountModel.address)
     }
 
     fun editClicked() {

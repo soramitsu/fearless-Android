@@ -10,8 +10,9 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsAddressView
+import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsName
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNode
-import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
+import kotlinx.android.synthetic.main.fragment_account_details.fearlessToolbar
 
 private const val ACCOUNT_ADDRESS_KEY = "ACCOUNT_ADDRESS_KEY"
 
@@ -29,7 +30,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_accounts, container, false)
+    ) = layoutInflater.inflate(R.layout.fragment_account_details, container, false)
 
     override fun initViews() {
         fearlessToolbar.setAction(R.string.common_done) {
@@ -58,6 +59,8 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
     override fun subscribe(viewModel: AccountDetailsViewModel) {
         viewModel.account.observe { account ->
             accountDetailsAddressView.setAddress(account.address)
+
+            accountDetailsName.setText(account.name)
 
             accountDetailsNode.text = account.node.name
         }

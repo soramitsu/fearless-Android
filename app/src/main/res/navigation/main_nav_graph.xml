@@ -25,29 +25,42 @@
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"/>
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <fragment
         android:id="@+id/aboutFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.about.AboutFragment"
         android:label="fragment_about"
-        tools:layout="@layout/fragment_about">
-    </fragment>
+        tools:layout="@layout/fragment_about" />
 
     <fragment
         android:id="@+id/accountsFragment"
-        tools:layout="@layout/fragment_accounts"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.accounts.AccountsFragment"
-        android:label="AccountsFragment">
+        android:label="AccountsFragment"
+        tools:layout="@layout/fragment_accounts">
 
-        <action android:id="@+id/action_accounts_to_onboarding"
+        <action
+            android:id="@+id/action_accounts_to_onboarding"
+            app:destination="@+id/onboarding_nav_graph"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            app:destination="@+id/onboarding_nav_graph" />
+            app:popExitAnim="@anim/fragment_close_exit" />
+        <action
+            android:id="@+id/action_accountsFragment_to_accountDetailsFragment"
+            app:destination="@id/accountDetailsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
+
+    <fragment
+        android:id="@+id/accountDetailsFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.accountDetials.AccountDetailsFragment"
+        android:label="AccountDetailsFragment"
+        tools:layout="@layout/fragment_account_details" />
 
 
 </navigation>

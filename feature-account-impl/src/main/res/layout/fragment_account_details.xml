@@ -3,11 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:fitsSystemWindows="true"
     android:layout_height="match_parent"
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.FearlessToolbar
-        android:id="@+id/fearlessToolbar2"
+        android:id="@+id/fearlessToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
@@ -15,7 +16,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/accountNameInput"
+        android:id="@+id/accountDetailsNameContainer"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,10 +26,10 @@
         android:hint="@string/username_setup_choose_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fearlessToolbar2">
+        app:layout_constraintTop_toBottomOf="@+id/fearlessToolbar">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/accountNameEt"
+            android:id="@+id/accountDetailsName"
             style="@style/Widget.Fearless.Input.Primary.Internal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -42,9 +43,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="@+id/accountNameInput"
-        app:layout_constraintStart_toStartOf="@+id/accountNameInput"
-        app:layout_constraintTop_toBottomOf="@+id/accountNameInput" />
+        app:layout_constraintEnd_toEndOf="@+id/accountDetailsNameContainer"
+        app:layout_constraintStart_toStartOf="@+id/accountDetailsNameContainer"
+        app:layout_constraintTop_toBottomOf="@+id/accountDetailsNameContainer" />
 
     <TextView
         android:id="@+id/accountDetailsNode"
