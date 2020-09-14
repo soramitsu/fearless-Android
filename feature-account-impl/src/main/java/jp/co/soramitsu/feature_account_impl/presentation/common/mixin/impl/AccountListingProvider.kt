@@ -28,7 +28,7 @@ class AccountListingProvider(
     override val selectedAccountLiveData = getSelectedAccountModel()
         .asMutableLiveData(accountListingDisposable)
 
-    private fun getSelectedAccountModel() = accountInteractor.getSelectedAccount()
+    private fun getSelectedAccountModel() = accountInteractor.observeSelectedAccount()
         .subscribeOn(Schedulers.computation())
         .map(::transformAccount)
         .observeOn(AndroidSchedulers.mainThread())

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.domain
 
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiFunction
@@ -139,9 +140,7 @@ class AccountInteractorImpl(
         return accountRepository.setBiometricOff()
     }
 
-    override fun getSelectedAccount() = accountRepository.getSelectedAccount()
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
+    override fun observeSelectedAccount() = accountRepository.observeSelectedAccount()
 
     override fun getNetworks(): Single<List<Network>> {
         return accountRepository.getNodes()

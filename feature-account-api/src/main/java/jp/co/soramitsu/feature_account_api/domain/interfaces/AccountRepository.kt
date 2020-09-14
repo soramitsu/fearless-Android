@@ -28,7 +28,7 @@ interface AccountRepository {
 
     fun selectAccount(account: Account): Completable
 
-    fun getSelectedAccount(): Single<Account>
+    fun observeSelectedAccount(): Observable<Account>
 
     fun getPreferredCryptoType(): Single<CryptoType>
 

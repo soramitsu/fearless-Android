@@ -26,10 +26,6 @@ class AccountInfoView @JvmOverloads constructor(
         isClickable = true
     }
 
-    fun setAccountZoneListener(clickListener: (View) -> Unit) {
-        setOnClickListener(clickListener)
-    }
-
     fun setOnCopyClickListener(clickListener: (View) -> Unit) {
         copyIcon.setOnClickListener(clickListener)
     }

@@ -27,8 +27,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
     override fun initViews() {
         accountView.setOnCopyClickListener { viewModel.addressCopyClicked() }
-        accountView.setOnClickListener { viewModel.accountViewClicked() }
-        accountView.setAccountZoneListener { viewModel.accountsClicked() }
+        accountView.setOnClickListener { viewModel.accountsClicked() }
 
         aboutTv.setOnClickListener { viewModel.aboutClicked() }
 

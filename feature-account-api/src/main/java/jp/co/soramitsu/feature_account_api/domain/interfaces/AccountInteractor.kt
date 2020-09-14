@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
@@ -62,7 +63,7 @@ interface AccountInteractor {
 
     fun setBiometricOff(): Completable
 
-    fun getSelectedAccount(): Single<Account>
+    fun observeSelectedAccount(): Observable<Account>
 
     fun getNetworks(): Single<List<Network>>
 

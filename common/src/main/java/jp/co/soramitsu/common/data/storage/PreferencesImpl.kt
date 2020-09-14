@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 class PreferencesImpl(
     private val sharedPreferences: SharedPreferences
 ) : Preferences {
+    override fun contains(field: String) = sharedPreferences.contains(field)
 
     override fun putString(field: String, value: String) {
         sharedPreferences.edit().putString(field, value).apply()

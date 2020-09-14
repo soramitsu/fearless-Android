@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.profile
 
 import android.graphics.drawable.PictureDrawable
 import androidx.lifecycle.LiveData
-import io.reactivex.Single
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -26,9 +26,16 @@ class ProfileViewModel(
         private const val LABEL_ADDRESS = "label_address"
     }
 
-    val account: LiveData<Account> = interactor.getSelectedAccount().asMutableLiveData()
+    private val accountObservable = interactor.observeSelectedAccount()
+
+    val account: LiveData<Account> = accountObservable.subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .asLiveData()
+
     val shortenAddress: LiveData<String> = account.map(Account::shortAddress)
-    val accountIconLiveData: LiveData<PictureDrawable> = generateIcon().asMutableLiveData()
+
+    val accountIconLiveData: LiveData<PictureDrawable> =
+        observeIcon(accountObservable).asMutableLiveData()
 
     val selectedNetworkLiveData: LiveData<String> =
         interactor.getSelectedNetworkName().asMutableLiveData()
@@ -42,13 +49,9 @@ class ProfileViewModel(
         }
     }
 
-    fun accountViewClicked() {
-        // TODO: 8/26/20 go to account managment 
-    }
-
-    private fun generateIcon(): Single<PictureDrawable> {
-        return interactor.getSelectedAccount()
-            .flatMap(interactor::getAddressId)
+    private fun observeIcon(accountObservable: Observable<Account>): Observable<PictureDrawable> {
+        return accountObservable
+            .map { interactor.getAddressId(it).blockingGet() }
             .subscribeOn(Schedulers.io())
             .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
             .observeOn(AndroidSchedulers.mainThread())

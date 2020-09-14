@@ -121,23 +121,18 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun getSelectedAccount(): Single<Account> {
-        return Single.fromCallable {
-            accountDataSource.getSelectedAccount()
-                ?: throw IllegalArgumentException("No account selected")
-        }
+    override fun observeSelectedAccount(): Observable<Account> {
+        return accountDataSource.observeSelectedAccount()
     }
 
     override fun getPreferredCryptoType(): Single<CryptoType> {
-        return Single.fromCallable {
-            accountDataSource.getSelectedAccount()?.cryptoType ?: DEFAULT_CRYPTO_TYPE
-        }
+        return accountDataSource.observeSelectedAccount()
+            .map(Account::cryptoType)
+            .firstOrError()
     }
 
     override fun isAccountSelected(): Single<Boolean> {
-        return Single.fromCallable {
-            accountDataSource.getSelectedAccount() != null
-        }
+        return Single.fromCallable(accountDataSource::anyAccountSelected)
     }
 
     override fun removeAccount(account: Account): Completable {

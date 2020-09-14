@@ -22,9 +22,7 @@ class AccountsViewModel(
 
     fun selectAccountClicked(accountModel: AccountModel) {
         disposables += accountInteractor.selectAccount(accountModel.address)
-            .subscribe {
-                selectedAccountLiveData.value = accountModel
-            }
+            .subscribe()
     }
 
     fun backClicked() {
