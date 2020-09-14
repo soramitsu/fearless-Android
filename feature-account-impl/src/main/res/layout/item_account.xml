@@ -13,18 +13,18 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:src="@drawable/ic_checkmark_white_24"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/accountIcon"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/accountIcon" />
 
     <ImageView
         android:id="@+id/accountIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/accountAddress"
         app:layout_constraintStart_toEndOf="@id/accountCheck"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/accountTitle"
         tools:layout_height="24dp"
         tools:layout_width="24dp"
         tools:src="@color/colorAccent" />
@@ -50,9 +50,7 @@
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/x1"
         android:textColor="@color/colorHint"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/accountTitle"
         app:layout_constraintStart_toStartOf="@+id/accountTitle"
         app:layout_constraintTop_toBottomOf="@+id/accountTitle"
@@ -65,8 +63,16 @@
         android:layout_marginEnd="16dp"
         android:src="@drawable/ic_info_24"
         android:tint="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/accountAddress"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/accountTitle" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/dividerGray"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/accountAddress" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
