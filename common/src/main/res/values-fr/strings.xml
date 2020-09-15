@@ -75,4 +75,5 @@
     <string name="account_address">Adresse du compte</string>
     <string name="account_export">Compte d\'exportation</string>
     <string name="common_copied">Copié dans le presse-papier</string>
+    <string name="connections_add_connection">Add connection</string>
 </resources>

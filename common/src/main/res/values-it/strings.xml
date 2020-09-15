@@ -75,4 +75,5 @@
     <string name="account_address">Indirizzo dell\'account</string>
     <string name="account_export">Account di esportazione</string>
     <string name="common_copied">Copiato negli appunti</string>
+    <string name="connections_add_connection">Add connection</string>
 </resources>
