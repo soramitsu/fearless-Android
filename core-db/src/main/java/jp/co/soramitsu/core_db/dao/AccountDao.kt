@@ -26,5 +26,5 @@ abstract class AccountDao {
     abstract fun remove(address: String)
 
     @Update
-    abstract fun updateAccount(account: AccountLocal) : Completable
+    abstract fun updateAccount(account: AccountLocal): Completable
 }

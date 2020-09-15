@@ -376,7 +376,7 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapAccountToAccountLocal(account: Account) : AccountLocal {
+    private fun mapAccountToAccountLocal(account: Account): AccountLocal {
         val nameLocal = account.name ?: ""
 
         return with(account) {

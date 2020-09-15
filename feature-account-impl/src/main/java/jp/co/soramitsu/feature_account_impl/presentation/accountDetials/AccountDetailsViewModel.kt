@@ -70,13 +70,13 @@ class AccountDetailsViewModel(
             .subscribe()
     }
 
-    private fun changeName(newName: String) : Completable {
+    private fun changeName(newName: String): Completable {
         val account = accountLiveData.value!!
 
         return accountInteractor.updateAccountName(account, newName)
     }
 
-    private fun nameNotChanged(name: String) : Boolean {
+    private fun nameNotChanged(name: String): Boolean {
         val account = accountLiveData.value
 
         return account == null || account.name == name
