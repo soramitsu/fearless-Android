@@ -3,11 +3,13 @@ package jp.co.soramitsu.common.resources
 import android.content.ClipData
 import android.content.ClipboardManager
 
+private const val DEFAULT_LABEL = "fearless"
+
 class ClipboardManager(
     private val clipboardManager: ClipboardManager
 ) {
 
-    fun addToClipboard(label: String, text: String) {
+    fun addToClipboard(text: String, label: String = DEFAULT_LABEL) {
         val clip = ClipData.newPlainText(label, text)
         clipboardManager.setPrimaryClip(clip)
     }

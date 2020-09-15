@@ -33,7 +33,7 @@ class AccountListingProvider(
         .map(::transformAccount)
         .observeOn(AndroidSchedulers.mainThread())
 
-    private fun getGroupedAccounts() = accountInteractor.getAccountsWithNetworks()
+    private fun getGroupedAccounts() = accountInteractor.observeGroupedAccounts()
         .subscribeOn(Schedulers.computation())
         .map(::transformToModels)
         .observeOn(AndroidSchedulers.mainThread())

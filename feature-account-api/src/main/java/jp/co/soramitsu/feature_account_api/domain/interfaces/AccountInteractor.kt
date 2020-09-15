@@ -10,9 +10,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 interface AccountInteractor {
-
-    fun getSelectedNetworkName(): Single<String>
-
     fun getMnemonic(): Single<List<String>>
 
     fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>>
@@ -63,6 +60,8 @@ interface AccountInteractor {
 
     fun setBiometricOff(): Completable
 
+    fun getAccount(address: String): Single<Account>
+
     fun observeSelectedAccount(): Observable<Account>
 
     fun getNetworks(): Single<List<Network>>
@@ -73,7 +72,9 @@ interface AccountInteractor {
 
     fun shouldOpenOnboarding(): Single<Boolean>
 
-    fun getAccountsWithNetworks(): Single<List<Any>>
+    fun observeGroupedAccounts(): Observable<List<Any>>
 
     fun selectAccount(address: String): Completable
+
+    fun updateAccountName(account: Account, newName: String): Completable
 }

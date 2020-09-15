@@ -72,4 +72,8 @@
     <string name="about_version">Версія програми</string>
     <string name="about_telegram">Приєднуйтесь до Telegram Group</string>
     <string name="common_email_chooser_title">Виберіть додаток для електронної пошти</string>
+
+    <string name="account_address">Адреса рахунку</string>
+    <string name="account_export">Експортний рахунок</string>
+    <string name="common_copied">Скопійовано в буфер обміну</string>
 </resources>

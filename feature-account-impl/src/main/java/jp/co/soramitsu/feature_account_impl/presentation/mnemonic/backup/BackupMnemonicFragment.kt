@@ -47,7 +47,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
             viewModel.homeButtonClicked()
         }
 
-        toolbar.setRightIconClickListener {
+        toolbar.setRightActionClickListener {
             viewModel.infoClicked()
         }
 

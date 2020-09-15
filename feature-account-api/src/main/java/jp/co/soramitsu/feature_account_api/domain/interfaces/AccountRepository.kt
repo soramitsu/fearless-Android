@@ -5,9 +5,9 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
-import java.lang.Exception
 
 class AccountAlreadyExistsException : Exception()
 
@@ -21,6 +21,8 @@ interface AccountRepository {
 
     fun getNodes(): Observable<List<Node>>
 
+    fun getNetworks(): Single<List<Network>>
+
     fun getSelectedNode(): Single<Node>
 
     fun saveNode(node: Node): Completable
@@ -28,6 +30,8 @@ interface AccountRepository {
     fun removeNode(node: Node): Completable
 
     fun selectNode(node: Node): Completable
+
+    fun getDefaultNode(networkType: Node.NetworkType): Single<Node>
 
     fun selectAccount(account: Account): Completable
 
@@ -47,7 +51,7 @@ interface AccountRepository {
         node: Node
     ): Completable
 
-    fun getAccounts(): Single<List<Account>>
+    fun observeAccounts(): Observable<List<Account>>
 
     fun getAccount(address: String): Single<Account>
 
@@ -88,4 +92,6 @@ interface AccountRepository {
     fun setBiometricOn(): Completable
 
     fun setBiometricOff(): Completable
+
+    fun updateAccount(newAccount: Account): Completable
 }

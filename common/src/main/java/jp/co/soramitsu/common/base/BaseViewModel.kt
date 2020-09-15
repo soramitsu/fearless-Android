@@ -17,11 +17,11 @@ open class BaseViewModel : ViewModel() {
     private val _errorLiveData = MutableLiveData<Event<String>>()
     val errorLiveData: LiveData<Event<String>> = _errorLiveData
 
-    private val _errorFromResourceLiveData = MutableLiveData<Event<Int>>()
-    val errorFromResourceLiveData: LiveData<Event<Int>> = _errorFromResourceLiveData
-
     private val _errorWithTitleLiveData = MutableLiveData<Event<Pair<String, String>>>()
     val errorWithTitleLiveData: LiveData<Event<Pair<String, String>>> = _errorWithTitleLiveData
+
+    private val _messageLiveData = MutableLiveData<Event<String>>()
+    val messageLiveData: LiveData<Event<String>> = _messageLiveData
 
     protected val disposables = CompositeDisposable()
 
@@ -30,8 +30,12 @@ open class BaseViewModel : ViewModel() {
         if (!disposables.isDisposed) disposables.dispose()
     }
 
-    fun onError(messageResource: Int) {
-        _errorFromResourceLiveData.value = Event(messageResource)
+    fun showMessage(text: String) {
+        _messageLiveData.value = Event(text)
+    }
+
+    fun showError(text: String) {
+        _errorLiveData.value = Event(text)
     }
 
     fun <T> Single<T>.asLiveData(

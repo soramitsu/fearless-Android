@@ -18,7 +18,7 @@ private const val PREFS_PIN_CODE = "pin_code"
 
 private const val PREFS_SELECTED_ACCOUNT = "selected_address"
 
-private const val PREFS_SELECTED_NETWORK = "network"
+private const val PREFS_SELECTED_NODE = "node"
 
 private const val PREFS_MNEMONIC_IS_BACKED_UP = "mnemonic_backed_up"
 private const val PREFS_SEED_MASK = "seed_%s"
@@ -66,11 +66,11 @@ class AccountDataSourceImpl(
     override fun saveSelectedNode(node: Node) {
         val raw = jsonMapper.toJson(node)
 
-        preferences.putString(PREFS_SELECTED_NETWORK, raw)
+        preferences.putString(PREFS_SELECTED_NODE, raw)
     }
 
     override fun getSelectedNode(): Node? {
-        val raw = preferences.getString(PREFS_SELECTED_NETWORK) ?: return null
+        val raw = preferences.getString(PREFS_SELECTED_NODE) ?: return null
 
         return jsonMapper.fromJson(raw, Node::class.java)
     }
@@ -134,8 +134,8 @@ class AccountDataSourceImpl(
 
     override fun getPreferredCryptoType(): Single<CryptoType> {
         return if (anyAccountSelected()) {
-            observeSelectedAccount()
-                .singleOrError()
+            selectedAccountSubject
+                .firstOrError()
                 .map(Account::cryptoType)
         } else {
             Single.just(DEFAULT_CRYPTO_TYPE)

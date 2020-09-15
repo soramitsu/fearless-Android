@@ -183,6 +183,6 @@ class ImportAccountViewModel(
             else -> R.string.common_undefined_error_message
         }
 
-        onError(errorMessage)
+        showError(resourceManager.getString(errorMessage))
     }
 }

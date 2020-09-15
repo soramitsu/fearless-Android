@@ -65,7 +65,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
             viewModel.homeButtonClicked()
         }
 
-        toolbar.setRightIconClickListener {
+        toolbar.setRightActionClickListener {
             viewModel.resetConfirmationClicked()
         }
 

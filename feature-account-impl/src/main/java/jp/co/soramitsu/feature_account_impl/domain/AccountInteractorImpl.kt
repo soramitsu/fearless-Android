@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.domain
 
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiFunction
@@ -16,13 +17,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {
-    override fun getSelectedNetworkName(): Single<String> {
-        return accountRepository.getSelectedNode()
-            .observeOn(Schedulers.io())
-            .map { it.networkType.readableName }
-            .observeOn(AndroidSchedulers.mainThread())
-    }
-
     override fun getMnemonic(): Single<List<String>> {
         return accountRepository.generateMnemonic()
     }
@@ -139,13 +133,14 @@ class AccountInteractorImpl(
         return accountRepository.setBiometricOff()
     }
 
+    override fun getAccount(address: String): Single<Account> {
+        return accountRepository.getAccount(address)
+    }
+
     override fun observeSelectedAccount() = accountRepository.observeSelectedAccount()
 
     override fun getNetworks(): Single<List<Network>> {
-        return accountRepository.getNodes()
-            .filter { it.isNotEmpty() }
-            .firstOrError()
-            .map(::formNetworkList)
+        return accountRepository.getNetworks()
     }
 
     override fun getSelectedNode() = accountRepository.getSelectedNode()
@@ -158,7 +153,7 @@ class AccountInteractorImpl(
             .zipWith<Node, Network>(
                 getSelectedNode(),
                 BiFunction { networks, selectedNode ->
-                    networks.first { it.networkType == selectedNode.networkType }
+                    networks.first { it.type == selectedNode.networkType }
                 })
             .observeOn(AndroidSchedulers.mainThread())
     }
@@ -170,41 +165,46 @@ class AccountInteractorImpl(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    override fun getAccountsWithNetworks(): Single<List<Any>> {
-        return accountRepository.getAccounts()
-            .zipWith(getNetworks(), BiFunction { accounts, networks ->
-                mergeAccountsWithNetworks(accounts, networks)
-            })
+    override fun observeGroupedAccounts(): Observable<List<Any>> {
+        return accountRepository.observeAccounts()
+            .map(::mergeAccountsWithNetworks)
     }
 
     override fun selectAccount(address: String): Completable {
         return accountRepository.getAccount(address)
             .subscribeOn(Schedulers.io())
-            .flatMapCompletable(accountRepository::selectAccount)
+            .flatMapCompletable(::selectAccount)
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun mergeAccountsWithNetworks(
-        accounts: List<Account>,
-        networks: List<Network>
-    ): List<Any> {
-        return accounts.groupBy(Account::networkType)
-            .map { (networkType, accounts) ->
-                val network = networks.first { it.networkType == networkType }
+    override fun updateAccountName(account: Account, newName: String): Completable {
+        val newAccount = account.copy(name = newName)
 
-                listOf(network, *accounts.toTypedArray())
-            }.flatten()
+        return accountRepository.updateAccount(newAccount)
+            .andThen(maybeUpdateSelectedAccount(newAccount))
     }
 
-    private fun formNetworkList(
-        allNodes: List<Node>
-    ): List<Network> {
-        return allNodes.groupBy(Node::networkType)
-            .map { (networkType, nodesPerType) ->
-                val defaultNode = nodesPerType.find(Node::isDefault)
-                    ?: throw IllegalArgumentException("No default node for ${networkType.readableName} network")
-
-                Network(networkType.readableName, networkType, defaultNode)
+    private fun maybeUpdateSelectedAccount(newAccount: Account): Completable {
+        return accountRepository.observeSelectedAccount()
+            .firstOrError()
+            .flatMapCompletable {
+                if (it.address == newAccount.address) {
+                    accountRepository.selectAccount(newAccount)
+                } else {
+                    Completable.complete()
+                }
             }
+    }
+
+    private fun selectAccount(account: Account): Completable {
+        return accountRepository.getDefaultNode(account.network.type)
+            .flatMapCompletable(accountRepository::selectNode)
+            .andThen(accountRepository.selectAccount(account))
+    }
+
+    private fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
+        return accounts.groupBy(Account::network)
+            .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
+            .flatten()
     }
 }

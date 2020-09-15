@@ -7,7 +7,9 @@
     android:layout_height="match_parent"
     tools:background="@color/black">
 
-    <jp.co.soramitsu.common.view.FearlessToolbar
+    <jp.co.soramitsu.common.base.Toolbar
+        app:textRight="@string/common_edit"
+        app:titleText="@string/profile_accounts_title"
         android:id="@+id/fearlessToolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

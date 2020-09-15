@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
@@ -81,6 +82,14 @@ class AccountRepositoryImpl(
             }.map { it.map(::mapNodeLocalToNode) }
     }
 
+    override fun getNetworks(): Single<List<Network>> {
+        return getNodes()
+            .filter { it.isNotEmpty() }
+            .map { it.map(Node::networkType) }
+            .map { it.map(::getNetworkForType).distinct() }
+            .firstOrError()
+    }
+
     override fun getSelectedNode(): Single<Node> {
         return Single.fromCallable {
             accountDataSource.getSelectedNode() ?: mapNodeLocalToNode(DEFAULT_NODES_LIST.first())
@@ -105,14 +114,10 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapNodeLocalToNode(it: NodeLocal): Node {
-        val networkType = Node.NetworkType.values()[it.networkType]
-
-        return Node(it.name, networkType, it.link, it.isDefault)
-    }
-
-    private fun mapNetworkToNodeLocal(it: Node): NodeLocal {
-        return NodeLocal(0, it.name, it.link, it.networkType.ordinal, it.isDefault)
+    override fun getDefaultNode(networkType: Node.NetworkType): Single<Node> {
+        return Single.fromCallable {
+            getNetworkForType(networkType).defaultNode
+        }
     }
 
     override fun selectAccount(account: Account): Completable {
@@ -151,18 +156,18 @@ class AccountRepositoryImpl(
             mnemonic,
             derivationPath,
             encryptionType,
-            node.networkType
+            node
         ).flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
     }
 
-    override fun getAccounts(): Single<List<Account>> {
-        return accountDao.getAccounts()
+    override fun observeAccounts(): Observable<List<Account>> {
+        return accountDao.observeAccounts()
             .map { it.map(::mapAccountLocalToAccount) }
     }
 
     override fun getAccount(address: String): Single<Account> {
-        return accountDao.getAccounts(address)
+        return accountDao.getAccount(address)
             .map(::mapAccountLocalToAccount)
     }
 
@@ -188,7 +193,7 @@ class AccountRepositoryImpl(
             keyString,
             derivationPath,
             selectedEncryptionType,
-            node.networkType
+            node
         )
             .flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
@@ -216,7 +221,7 @@ class AccountRepositoryImpl(
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
-            val userLocal = AccountLocal(
+            val accountLocal = AccountLocal(
                 address = address,
                 username = username,
                 publicKey = publicKeyEncoded,
@@ -224,9 +229,11 @@ class AccountRepositoryImpl(
                 networkType = node.networkType.ordinal
             )
 
-            insertAccount(userLocal)
+            insertAccount(accountLocal)
 
-            Account(address, username, publicKeyEncoded, selectedEncryptionType, node.networkType)
+            val network = getNetworkForType(node.networkType)
+
+            Account(address, username, publicKeyEncoded, selectedEncryptionType, network)
         }
             .flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
@@ -271,7 +278,7 @@ class AccountRepositoryImpl(
 
     override fun getAddressId(account: Account): Single<ByteArray> {
         return Single.fromCallable {
-            val addressType = mapNetworkTypeToAddressType(account.networkType)
+            val addressType = mapNetworkTypeToAddressType(account.network.type)
 
             sS58Encoder.decode(account.address, addressType)
         }
@@ -295,12 +302,16 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun updateAccount(newAccount: Account): Completable {
+        return accountDao.updateAccount(mapAccountToAccountLocal(newAccount))
+    }
+
     private fun saveAccountData(
         accountName: String,
         mnemonic: String,
         derivationPath: String,
         cryptoType: CryptoType,
-        networkType: Node.NetworkType
+        node: Node
     ): Single<Account> {
         return Single.fromCallable {
             val entropy = bip39.generateEntropy(mnemonic)
@@ -308,7 +319,7 @@ class AccountRepositoryImpl(
             val seed = bip39.generateSeed(entropy, password)
             val keys =
                 keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
-            val addressType = mapNetworkTypeToAddressType(networkType)
+            val addressType = mapNetworkTypeToAddressType(node.networkType)
             val address = sS58Encoder.encode(keys.publicKey, addressType)
 
             accountDataSource.saveDerivationPath(derivationPath, address)
@@ -323,12 +334,14 @@ class AccountRepositoryImpl(
                 username = accountName,
                 publicKey = publicKeyEncoded,
                 cryptoType = cryptoType.ordinal,
-                networkType = networkType.ordinal
+                networkType = node.networkType.ordinal
             )
 
             insertAccount(userLocal)
 
-            Account(address, accountName, publicKeyEncoded, cryptoType, networkType)
+            val network = getNetworkForType(node.networkType)
+
+            Account(address, accountName, publicKeyEncoded, cryptoType, network)
         }
     }
 
@@ -348,14 +361,31 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapAccountLocalToAccount(it: AccountLocal): Account {
-        return with(it) {
+    private fun mapAccountLocalToAccount(accountLocal: AccountLocal): Account {
+        val networkType = Node.NetworkType.values()[accountLocal.networkType]
+        val network = getNetworkForType(networkType)
+
+        return with(accountLocal) {
             Account(
                 address = address,
                 name = username,
                 publicKey = publicKey,
-                cryptoType = CryptoType.values()[cryptoType],
-                networkType = Node.NetworkType.values()[it.networkType]
+                cryptoType = CryptoType.values()[accountLocal.cryptoType],
+                network = network
+            )
+        }
+    }
+
+    private fun mapAccountToAccountLocal(account: Account): AccountLocal {
+        val nameLocal = account.name ?: ""
+
+        return with(account) {
+            AccountLocal(
+                address = address,
+                username = nameLocal,
+                cryptoType = cryptoType.ordinal,
+                networkType = network.type.ordinal,
+                publicKey = publicKey
             )
         }
     }
@@ -374,5 +404,21 @@ class AccountRepositoryImpl(
         accountDao.insert(account)
     } catch (e: SQLiteConstraintException) {
         throw AccountAlreadyExistsException()
+    }
+
+    private fun getNetworkForType(networkType: Node.NetworkType): Network {
+        val defaultNode = nodeDao.getDefaultNodeFor(networkType.ordinal)
+
+        return Network(networkType, mapNodeLocalToNode(defaultNode))
+    }
+
+    private fun mapNodeLocalToNode(it: NodeLocal): Node {
+        val networkType = Node.NetworkType.values()[it.networkType]
+
+        return Node(it.name, networkType, it.link, it.isDefault)
+    }
+
+    private fun mapNetworkToNodeLocal(it: Node): NodeLocal {
+        return NodeLocal(0, it.name, it.link, it.networkType.ordinal, it.isDefault)
     }
 }
