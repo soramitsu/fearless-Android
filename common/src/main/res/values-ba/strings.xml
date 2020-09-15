@@ -72,6 +72,7 @@
     <string name="about_version">Версия ҡушымта</string>
     <string name="about_telegram">Telegram Төркөмөнә Ҡушылды</string>
     <string name="common_email_chooser_title">Email һайлағыҙ</string>
-    <string name="account_address">Адрес</string>
-    <string name="account_export">Экспортировать</string>
+    <string name="account_address">Адрес аккаунта</string>
+    <string name="account_export">Экспортировать аккаунт</string>
+    <string name="common_copied">Скопировано в буфер обмена</string>
 </resources>

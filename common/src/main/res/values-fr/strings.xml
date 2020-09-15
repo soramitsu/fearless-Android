@@ -72,6 +72,7 @@
     <string name="about_version">Version de l\'application</string>
     <string name="about_telegram">Rejoignez le groupe Telegram</string>
     <string name="common_email_chooser_title">Sélectionnez l\'application de messagerie</string>
-    <string name="account_address">Adresse</string>
-    <string name="account_export">Exportation</string>
+    <string name="account_address">Adresse du compte</string>
+    <string name="account_export">Compte d\'exportation</string>
+    <string name="common_copied">Copié dans le presse-papier</string>
 </resources>
