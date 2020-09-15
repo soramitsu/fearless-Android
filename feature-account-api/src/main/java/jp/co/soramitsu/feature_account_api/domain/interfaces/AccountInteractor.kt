@@ -72,7 +72,9 @@ interface AccountInteractor {
 
     fun shouldOpenOnboarding(): Single<Boolean>
 
-    fun getAccountsWithNetworks(): Single<List<Any>>
+    fun observeGroupedAccounts(): Observable<List<Any>>
 
     fun selectAccount(address: String): Completable
+
+    fun updateAccountName(account: Account, newName: String): Completable
 }

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.domain
 
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiFunction
@@ -164,8 +165,8 @@ class AccountInteractorImpl(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    override fun getAccountsWithNetworks(): Single<List<Any>> {
-        return accountRepository.getAccounts()
+    override fun observeGroupedAccounts(): Observable<List<Any>> {
+        return accountRepository.observeAccounts()
             .map(::mergeAccountsWithNetworks)
     }
 
@@ -174,6 +175,25 @@ class AccountInteractorImpl(
             .subscribeOn(Schedulers.io())
             .flatMapCompletable(::selectAccount)
             .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    override fun updateAccountName(account: Account, newName: String): Completable {
+        val newAccount = account.copy(name = newName)
+
+        return accountRepository.updateAccount(newAccount)
+            .andThen(maybeUpdateSelectedAccount(newAccount))
+    }
+
+    private fun maybeUpdateSelectedAccount(newAccount: Account): Completable {
+        return accountRepository.observeSelectedAccount()
+            .firstOrError()
+            .flatMapCompletable {
+                if (it.address == newAccount.address) {
+                    accountRepository.selectAccount(newAccount)
+                } else {
+                    Completable.complete()
+                }
+            }
     }
 
     private fun selectAccount(account: Account): Completable {

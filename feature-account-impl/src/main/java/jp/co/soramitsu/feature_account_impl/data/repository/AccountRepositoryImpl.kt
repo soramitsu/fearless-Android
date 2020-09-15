@@ -161,8 +161,8 @@ class AccountRepositoryImpl(
             .andThen(selectNode(node))
     }
 
-    override fun getAccounts(): Single<List<Account>> {
-        return accountDao.getAccounts()
+    override fun observeAccounts(): Observable<List<Account>> {
+        return accountDao.observeAccounts()
             .map { it.map(::mapAccountLocalToAccount) }
     }
 
@@ -302,6 +302,10 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun updateAccount(newAccount: Account): Completable {
+        return accountDao.updateAccount(mapAccountToAccountLocal(newAccount))
+    }
+
     private fun saveAccountData(
         accountName: String,
         mnemonic: String,
@@ -368,6 +372,20 @@ class AccountRepositoryImpl(
                 publicKey = publicKey,
                 cryptoType = CryptoType.values()[accountLocal.cryptoType],
                 network = network
+            )
+        }
+    }
+
+    private fun mapAccountToAccountLocal(account: Account) : AccountLocal {
+        val nameLocal = account.name ?: ""
+
+        return with(account) {
+            AccountLocal(
+                address = address,
+                username = nameLocal,
+                cryptoType = cryptoType.ordinal,
+                networkType = network.type.ordinal,
+                publicKey = publicKey
             )
         }
     }

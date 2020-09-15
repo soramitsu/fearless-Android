@@ -51,7 +51,7 @@ interface AccountRepository {
         node: Node
     ): Completable
 
-    fun getAccounts(): Single<List<Account>>
+    fun observeAccounts(): Observable<List<Account>>
 
     fun getAccount(address: String): Single<Account>
 
@@ -92,4 +92,6 @@ interface AccountRepository {
     fun setBiometricOn(): Completable
 
     fun setBiometricOff(): Completable
+
+    fun updateAccount(newAccount: Account) : Completable
 }

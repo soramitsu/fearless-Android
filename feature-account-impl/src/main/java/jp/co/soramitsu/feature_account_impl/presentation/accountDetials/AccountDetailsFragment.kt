@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.view.BackStyle
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -61,7 +62,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
     }
 
     override fun subscribe(viewModel: AccountDetailsViewModel) {
-        viewModel.account.observe { account ->
+        viewModel.accountLiveData.observe { account ->
             accountDetailsAddressView.setAddress(account.address)
 
             accountDetailsName.setText(account.name)
@@ -72,5 +73,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
         viewModel.networkModel.observe { networkModel ->
             accountDetailsNode.setCompoundDrawablesWithIntrinsicBounds(networkModel.networkTypeUI.icon, 0, 0, 0)
         }
+
+        accountDetailsName.onTextChanged(viewModel::nameChanged)
     }
 }
