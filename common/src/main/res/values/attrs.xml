@@ -22,7 +22,9 @@
 
     <declare-styleable name="Toolbar">
         <attr name="titleText" format="string" />
-        <attr name="iconRight" format="integer" />
+        <attr name="iconRight" format="reference|color" />
+        <attr name="textRight" format="string" />
+        <attr name="homeButtonIcon" format="reference|color" />
         <attr name="homeButtonVisible" format="boolean" />
     </declare-styleable>
 

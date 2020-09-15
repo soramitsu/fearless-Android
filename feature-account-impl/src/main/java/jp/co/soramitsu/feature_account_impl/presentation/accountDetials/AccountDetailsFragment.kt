@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
-import jp.co.soramitsu.common.view.BackStyle
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -34,19 +33,17 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_account_details, container, false)
 
     override fun initViews() {
-        fearlessToolbar.setAction(R.string.common_done) {
+        fearlessToolbar.setRightActionClickListener {
             viewModel.backClicked()
         }
 
-        fearlessToolbar.showBackButton(BackStyle.CROSS) {
+        fearlessToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
 
         accountDetailsAddressView.setOnCopyClickListener {
             viewModel.copyAddressClicked()
         }
-
-        fearlessToolbar.setTitle(R.string.profile_title)
     }
 
     override fun inject() {

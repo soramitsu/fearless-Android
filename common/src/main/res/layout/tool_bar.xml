@@ -11,9 +11,11 @@
     <ImageView
         android:id="@+id/backImg"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
-        android:padding="@dimen/x1"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="@drawable/bg_primary_list_item"
         android:src="@drawable/ic_arrow_back_24dp" />
 
     <TextView
@@ -36,6 +38,22 @@
         android:padding="@dimen/x1"
         android:src="@drawable/ic_info_white_24"
         android:visibility="gone"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/rightText"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingEnd="@dimen/x2"
+        android:paddingStart="@dimen/x2"
+        android:fontFamily="@font/soramitsu_semibold"
+        android:layout_gravity="center_vertical|end"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        android:background="@drawable/bg_primary_list_item"
+        android:gravity="center_vertical"
+        tools:text="Action"
         tools:visibility="visible" />
 
 </FrameLayout>

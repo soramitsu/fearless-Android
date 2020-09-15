@@ -28,15 +28,13 @@ class AccountsFragment : BaseFragment<AccountsViewModel>(), AccountsAdapter.Acco
         accountsList.setHasFixedSize(true)
         accountsList.adapter = adapter
 
-        fearlessToolbar.setAction(R.string.common_edit) {
+        fearlessToolbar.setRightActionClickListener {
             viewModel.editClicked()
         }
 
-        fearlessToolbar.showBackButton {
+        fearlessToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
-
-        fearlessToolbar.setTitle(R.string.profile_accounts_title)
 
         addAccount.setOnClickListener { viewModel.addAccountClicked() }
     }

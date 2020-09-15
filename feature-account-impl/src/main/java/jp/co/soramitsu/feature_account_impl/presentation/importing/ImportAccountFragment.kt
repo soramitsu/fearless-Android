@@ -65,7 +65,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
 
         toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
-        toolbar.setRightIconClickListener { viewModel.qrScanClicked() }
+        toolbar.setRightActionClickListener { viewModel.qrScanClicked() }
 
         sourceTypeInput.setOnClickListener { viewModel.sourceTypeInputClicked() }
 

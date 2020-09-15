@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import kotlinx.android.synthetic.main.tool_bar.view.backImg
 import kotlinx.android.synthetic.main.tool_bar.view.rightImg
+import kotlinx.android.synthetic.main.tool_bar.view.rightText
 import kotlinx.android.synthetic.main.tool_bar.view.titleTv
 
 class Toolbar @JvmOverloads constructor(
@@ -33,11 +34,28 @@ class Toolbar @JvmOverloads constructor(
             val rightIcon = typedArray.getDrawable(R.styleable.Toolbar_iconRight)
             rightIcon?.let { setRightIconDrawable(it) }
 
+            val action = typedArray.getString(R.styleable.Toolbar_textRight)
+            action?.let { setTextRight(it) }
+
+            val homeButtonIcon = typedArray.getDrawable(R.styleable.Toolbar_homeButtonIcon)
+            homeButtonIcon?.let { setHomeButtonIcon(it) }
+
             val homeButtonVisible = typedArray.getBoolean(R.styleable.Toolbar_homeButtonVisible, true)
             setHomeButtonVisibility(homeButtonVisible)
 
             typedArray.recycle()
         }
+    }
+
+    fun setHomeButtonIcon(icon: Drawable) {
+        backImg.setImageDrawable(icon)
+    }
+
+    fun setTextRight(action: String) {
+        rightImg.makeGone()
+
+        rightText.makeVisible()
+        rightText.text = action
     }
 
     fun setTitle(title: String) {
@@ -57,12 +75,15 @@ class Toolbar @JvmOverloads constructor(
     }
 
     fun setRightIconDrawable(assetIconDrawable: Drawable) {
+        rightText.makeGone()
+
         rightImg.makeVisible()
         rightImg.setImageDrawable(assetIconDrawable)
     }
 
-    fun setRightIconClickListener(listener: (View) -> Unit) {
+    fun setRightActionClickListener(listener: (View) -> Unit) {
         rightImg.setOnClickListener(listener)
+        rightText.setOnClickListener(listener)
     }
 
     fun setHomeButtonVisibility(visible: Boolean) {

@@ -7,9 +7,12 @@
     android:layout_height="match_parent"
     tools:background="@color/black">
 
-    <jp.co.soramitsu.common.view.FearlessToolbar
+    <jp.co.soramitsu.common.base.Toolbar
+        app:textRight="@string/common_done"
+        app:homeButtonIcon="@drawable/ic_close"
+        app:titleText="@string/profile_title"
         android:id="@+id/fearlessToolbar"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
