@@ -38,7 +38,7 @@ object compactInt : DataType<Int>() {
     override fun write(writer: ScaleCodecWriter, value: Int) = writer.writeCompact(value)
 }
 
-object byteArray: DataType<ByteArray>() {
+object byteArray : DataType<ByteArray>() {
     override fun read(reader: ScaleCodecReader) = reader.readByteArray()
 
     override fun write(writer: ScaleCodecWriter, value: ByteArray) = writer.writeByteArray(value)

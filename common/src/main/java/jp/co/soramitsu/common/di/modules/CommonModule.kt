@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.os.Vibrator
 import dagger.Module
 import dagger.Provides
-import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences

@@ -1,6 +1,5 @@
 package jp.co.soramitsu.common.data.network.scale
 
-
 class Field<T>(val dataType: DataType<T>)
 
 @Suppress("UNCHECKED_CAST", "unused")
@@ -16,15 +15,14 @@ class EncodableStruct<S : Schema<S>>(schema: Schema<S>) {
     operator fun <T> get(field: Field<T>): T {
         val value = fieldsWithValues[field]
 
-        if (value == null) {
+        return if (value == null) {
             if (field.dataType is optional<*>) {
-                return null as T
+                null as T
             } else {
-                throw IllegalArgumentException("123")
+                throw IllegalArgumentException("Non nullable value is not set")
             }
         } else {
-            return value as T
+            value as T
         }
     }
 }
-
