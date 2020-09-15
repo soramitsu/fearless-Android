@@ -163,12 +163,12 @@ class AccountRepositoryImpl(
 
     override fun getAccounts(): Single<List<Account>> {
         return accountDao.getAccounts()
-            .map { it.map(::mapAccountWithNodeToAccount) }
+            .map { it.map(::mapAccountLocalToAccount) }
     }
 
     override fun getAccount(address: String): Single<Account> {
         return accountDao.getAccount(address)
-            .map(::mapAccountWithNodeToAccount)
+            .map(::mapAccountLocalToAccount)
     }
 
     override fun getSourceTypes(): Single<List<SourceType>> {
@@ -357,7 +357,7 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapAccountWithNodeToAccount(accountLocal: AccountLocal): Account {
+    private fun mapAccountLocalToAccount(accountLocal: AccountLocal): Account {
         val networkType = Node.NetworkType.values()[accountLocal.networkType]
         val network = getNetworkForType(networkType)
 
