@@ -20,7 +20,10 @@
     <string name="tabbar_extrinsics_title">Extrinsics</string>
     <string name="profile_settings_title">Параметри</string>
     <string name="profile_language_title">Мова</string>
+    <string name="about_contact_us">Зв\'яжіться з нами</string>
     <string name="about_title">Про додаток</string>
+    <string name="about_privacy">Політика конфіденційності</string>
+    <string name="about_terms">Умови користування</string>
     <string name="onboarding_create_account">Створити рахунок</string>
     <string name="username_setup_choose_title">Виберіть ім\'я</string>
     <string name="username_setup_hint">Назва цього облікового запису та спосіб відображення під вашими адресами. Завдяки ланцюговій ідентичності він може бути доступний для інших.</string>
@@ -60,4 +63,17 @@
     <string name="profile_pincode_change_title">Зміна пін-коду</string>
     <string name="tabbar_profile_title">Профіль</string>
     <string name="pincode_biometry_dialog_title">Біометрія</string>
+    <string name="common_edit">Редагувати</string>
+    <string name="common_done">Завершено</string>
+    <string name="accounts_add_account">Додати обліковий запис</string>
+    <string name="account_add_already_exists_message">Рахунок вже існує. Спробуйте інший.</string>
+    <string name="about_website">Офіційний веб-сайт</string>
+    <string name="about_github">Вихідний код Github</string>
+    <string name="about_version">Версія програми</string>
+    <string name="about_telegram">Приєднуйтесь до Telegram Group</string>
+    <string name="common_email_chooser_title">Виберіть додаток для електронної пошти</string>
+
+    <string name="account_address">Адреса рахунку</string>
+    <string name="account_export">Експортний рахунок</string>
+    <string name="common_copied">Скопійовано в буфер обміну</string>
 </resources>

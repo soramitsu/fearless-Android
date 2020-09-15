@@ -20,7 +20,10 @@
     <string name="tabbar_extrinsics_title">Extrínseca</string>
     <string name="profile_settings_title">Configuraciones</string>
     <string name="profile_language_title">Idioma</string>
+    <string name="about_contact_us">Contáctenos</string>
     <string name="about_title">Acerca de</string>
+    <string name="about_privacy">Política de privacidad</string>
+    <string name="about_terms">Términos y Condiciones</string>
     <string name="onboarding_create_account">Crear una cuenta</string>
     <string name="username_setup_choose_title">Elegir nombre</string>
     <string name="username_setup_hint">El nombre de esta cuenta y cómo aparecerá bajo sus direcciones. Con una identidad en cadena, puede estar disponible para otros.</string>
@@ -60,4 +63,16 @@
     <string name="profile_pincode_change_title">Cambiar el código pin</string>
     <string name="tabbar_profile_title">Perfil</string>
     <string name="pincode_biometry_dialog_title">Biometria</string>
+    <string name="common_edit">Editar</string>
+    <string name="common_done">Hecho</string>
+    <string name="accounts_add_account">Añadir cuenta</string>
+    <string name="account_add_already_exists_message">La cuenta ya existe. Por favor, pruebe con otro.</string>
+    <string name="about_website">Página web oficial</string>
+    <string name="about_github">Código fuente de Github</string>
+    <string name="about_version">Version de aplicacion</string>
+    <string name="about_telegram">Únete al grupo de Telegram</string>
+    <string name="common_email_chooser_title">Seleccione el correo electrónico de la aplicación</string>
+    <string name="account_address">Dirección de cuenta</string>
+    <string name="account_export">Exportar cuenta</string>
+    <string name="common_copied">Copiado al portapapeles</string>
 </resources>

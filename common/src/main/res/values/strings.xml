@@ -20,7 +20,10 @@
     <string name="tabbar_extrinsics_title">Extrinsics</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_language_title">Language</string>
+    <string name="about_contact_us">Contact Us</string>
     <string name="about_title">About</string>
+    <string name="about_privacy">Privacy policy</string>
+    <string name="about_terms">Terms and conditions</string>
     <string name="onboarding_create_account">Create account</string>
     <string name="username_setup_choose_title">Choose name</string>
     <string name="username_setup_hint">The name for this account and how it will appear under your addresses. With an on-chain identity, it can be made available to others.</string>
@@ -60,4 +63,17 @@
     <string name="profile_pincode_change_title">Change pin-code</string>
     <string name="tabbar_profile_title">Profile</string>
     <string name="pincode_biometry_dialog_title">Biometry</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_done">Done</string>
+    <string name="accounts_add_account">Add account</string>
+    <string name="account_add_already_exists_message">Account already exists. Please, try another one.</string>
+    <string name="about_website">Official Website</string>
+    <string name="about_github">Github Source Code</string>
+    <string name="about_version">App version</string>
+    <string name="about_telegram">Join Telegram Group</string>
+    <string name="common_email_chooser_title">Select email app</string>
+
+    <string name="account_address">Account address</string>
+    <string name="account_export">Export account</string>
+    <string name="common_copied">Copied to clipboard</string>
 </resources>

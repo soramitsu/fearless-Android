@@ -1,7 +1,8 @@
 package jp.co.soramitsu.feature_account_api.domain.model
 
 data class Network(
-    val name: String,
-    val networkType: NetworkType,
-    val link: String
-)
+    val type: Node.NetworkType,
+    val defaultNode: Node
+) {
+    val name = type.readableName
+}

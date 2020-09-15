@@ -4,53 +4,61 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import kotlinx.android.synthetic.main.fragment_profile.aboutTv
 import kotlinx.android.synthetic.main.fragment_profile.accountView
+import kotlinx.android.synthetic.main.fragment_profile.profileAccounts
 import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
 import kotlinx.android.synthetic.main.fragment_profile.selectedNetworkTv
 
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_profile, container, false)
     }
 
     override fun initViews() {
         accountView.setOnCopyClickListener { viewModel.addressCopyClicked() }
-        accountView.setOnClickListener { viewModel.accountViewClicked() }
+        accountView.setOnClickListener { viewModel.accountsClicked() }
+
+        aboutTv.setOnClickListener { viewModel.aboutClicked() }
+
+        profileAccounts.setOnClickListener { viewModel.accountsClicked() }
     }
 
     override fun inject() {
-        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
+        FeatureUtils.getFeature<AccountFeatureComponent>(
+            requireContext(),
+            AccountFeatureApi::class.java
+        )
             .profileComponentFactory()
             .create(this)
             .inject(this)
     }
 
     override fun subscribe(viewModel: ProfileViewModel) {
-        observe(viewModel.accountNameLiveData, Observer {
-            accountView.setAccountName(it)
-        })
+        viewModel.selectedAccount.observe { account ->
+            account.name?.let(accountView::setAccountName)
 
-        observe(viewModel.accountAddressLiveData, Observer {
-            accountView.setAccountAddress(it)
-        })
+            accountView.setAccountAddress(account.address)
 
-        observe(viewModel.accountIconLiveData, Observer {
+            selectedNetworkTv.text = account.network.name
+        }
+
+        viewModel.accountIconLiveData.observe {
             accountView.setAccountIcon(it)
-        })
+        }
 
-        observe(viewModel.selectedNetworkLiveData, Observer {
-            selectedNetworkTv.text = it
-        })
-
-        observe(viewModel.selectedLanguageLiveData, Observer {
+        viewModel.selectedLanguageLiveData.observe {
             selectedLanguageTv.text = it
-        })
+        }
     }
 }

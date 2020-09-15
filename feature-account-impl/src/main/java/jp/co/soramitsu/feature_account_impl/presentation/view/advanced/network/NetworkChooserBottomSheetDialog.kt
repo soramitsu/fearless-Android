@@ -9,23 +9,27 @@ import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.m
 import kotlinx.android.synthetic.main.bottom_sheet_network_chooser.networkRv
 import kotlinx.android.synthetic.main.bottom_sheet_network_chooser.titleTv
 
+class NetworkChooserPayload(val networkModels: List<NetworkModel>, val selectedNetwork: NetworkModel)
+
 class NetworkChooserBottomSheetDialog(
     context: Context,
-    nodes: List<NetworkModel>,
-    itemClickListener: (NetworkModel) -> Unit
-) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
+    payload: NetworkChooserPayload,
+    val itemClickListener: (NetworkModel) -> Unit
+) : BottomSheetDialog(context, R.style.BottomSheetDialog), NetworkAdapter.NetworkItemHandler {
 
     init {
         setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheet_network_chooser, null))
         titleTv.text = context.getString(R.string.common_choose_network)
 
-        val adapter = NetworkAdapter {
-            itemClickListener(it)
-            dismiss()
-        }
+        val adapter = NetworkAdapter(this, payload.selectedNetwork)
 
-        adapter.submitList(nodes)
+        adapter.submitList(payload.networkModels)
         networkRv.adapter = adapter
         networkRv.layoutManager = LinearLayoutManager(context)
+    }
+
+    override fun onNetworkClicked(model: NetworkModel) {
+        itemClickListener.invoke(model)
+        dismiss()
     }
 }

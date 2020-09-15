@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation
 
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 
 interface AccountRouter {
 
@@ -9,7 +9,7 @@ interface AccountRouter {
 
     fun backToWelcomeScreen()
 
-    fun showProfile()
+    fun openMain()
 
     fun openCreatePincode()
 
@@ -17,9 +17,25 @@ interface AccountRouter {
         accountName: String,
         mnemonic: List<String>,
         cryptoType: CryptoType,
-        networkType: NetworkType,
+        node: Node,
         derivationPath: String
     )
 
+    fun openAboutScreen()
+
+    fun openTermsScreen()
+
+    fun openPrivacyScreen()
+
     fun backToBackupMnemonicScreen()
+
+    fun backToProfileScreen()
+
+    fun back()
+
+    fun openAccounts()
+
+    fun openAddAccount()
+
+    fun openAccountDetails(address: String)
 }

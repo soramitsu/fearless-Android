@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 class ConfirmMnemonicViewModel(
@@ -22,7 +22,7 @@ class ConfirmMnemonicViewModel(
     private val mnemonic: List<String>,
     private val accountName: String,
     private val cryptoType: CryptoType,
-    private val networkType: NetworkType,
+    private val node: Node,
     private val derivationPath: String
 ) : BaseViewModel() {
 
@@ -112,18 +112,23 @@ class ConfirmMnemonicViewModel(
     private fun createAccount() {
         val mnemonicString = mnemonic.joinToString(" ")
         disposables.add(
-            interactor.createAccount(accountName, mnemonicString, cryptoType, derivationPath, networkType)
+            interactor.createAccount(accountName, mnemonicString, cryptoType, derivationPath, node)
+                .andThen(interactor.isCodeSet())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    router.openCreatePincode()
-                }, {
-                    it.printStackTrace()
-                })
+                .subscribe(::continueBasedOnCodeStatus, Throwable::printStackTrace)
         )
     }
 
     fun matchingErrorAnimationCompleted() {
         reset()
+    }
+
+    private fun continueBasedOnCodeStatus(isCodeSet: Boolean) {
+        if (isCodeSet) {
+            router.openMain()
+        } else {
+            router.openCreatePincode()
+        }
     }
 }

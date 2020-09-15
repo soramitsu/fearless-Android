@@ -34,7 +34,11 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_backup_mnemonic, container, false)
     }
 
@@ -43,16 +47,16 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
             viewModel.homeButtonClicked()
         }
 
-        toolbar.setRightIconClickListener {
+        toolbar.setRightActionClickListener {
             viewModel.infoClicked()
         }
 
         advancedBlockView.setOnEncryptionTypeClickListener {
-            viewModel.encryptionTypeInputClicked()
+            viewModel.chooseEncryptionClicked()
         }
 
         advancedBlockView.setOnNetworkClickListener {
-            viewModel.networkInputClicked()
+            viewModel.chooseNetworkClicked()
         }
 
         nextBtn.setOnClickListener {
@@ -71,7 +75,8 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     override fun subscribe(viewModel: BackupMnemonicViewModel) {
         observe(viewModel.mnemonicLiveData, Observer {
             if (mnemonicRv.adapter == null) {
-                mnemonicRv.layoutManager = GridLayoutManager(activity!!, it.first, GridLayoutManager.HORIZONTAL, false)
+                mnemonicRv.layoutManager =
+                    GridLayoutManager(activity!!, it.first, GridLayoutManager.HORIZONTAL, false)
                 mnemonicRv.adapter = MnemonicWordsAdapter()
             }
             (mnemonicRv.adapter as MnemonicWordsAdapter).submitList(it.second)
@@ -79,15 +84,17 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         })
 
         observe(viewModel.encryptionTypeChooserEvent, EventObserver {
-            EncryptionTypeChooserBottomSheetDialog(requireActivity(), it) {
-                viewModel.encryptionTypeChanged(it)
-            }.show()
+            EncryptionTypeChooserBottomSheetDialog(
+                requireActivity(), it,
+                viewModel.selectedEncryptionTypeLiveData::setValue
+            ).show()
         })
 
         observe(viewModel.networkChooserEvent, EventObserver {
-            NetworkChooserBottomSheetDialog(requireActivity(), it) {
-                viewModel.networkChanged(it)
-            }.show()
+            NetworkChooserBottomSheetDialog(
+                requireActivity(), it,
+                viewModel.selectedNetworkLiveData::setValue
+            ).show()
         })
 
         observe(viewModel.selectedEncryptionTypeLiveData, Observer {
@@ -95,7 +102,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         })
 
         observe(viewModel.selectedNetworkLiveData, Observer {
-            advancedBlockView.setNetworkIconResource(it.smallIcon)
+            advancedBlockView.setNetworkIconResource(it.networkTypeUI.smallIcon)
             advancedBlockView.setNetworkName(it.name)
         })
 

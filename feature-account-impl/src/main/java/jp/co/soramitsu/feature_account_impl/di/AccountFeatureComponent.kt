@@ -4,13 +4,17 @@ import dagger.BindsInstance
 import dagger.Component
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.about.di.AboutComponent
+import jp.co.soramitsu.feature_account_impl.presentation.accountDetials.di.AccountDetailsComponent
+import jp.co.soramitsu.feature_account_impl.presentation.accounts.di.AccountsComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.di.ImportAccountComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.di.BackupMnemonicComponent
-import jp.co.soramitsu.feature_account_impl.presentation.profile.di.ProfileComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.di.ConfirmMnemonicComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.di.PinCodeComponent
+import jp.co.soramitsu.feature_account_impl.presentation.profile.di.ProfileComponent
 
 @Component(
     dependencies = [
@@ -23,6 +27,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.di.PinCodeCompo
 @FeatureScope
 interface AccountFeatureComponent : AccountFeatureApi {
 
+    fun aboutComponentFactory(): AboutComponent.Factory
+
     fun importAccountComponentFactory(): ImportAccountComponent.Factory
 
     fun backupMnemonicComponentFactory(): BackupMnemonicComponent.Factory
@@ -32,6 +38,10 @@ interface AccountFeatureComponent : AccountFeatureApi {
     fun pincodeComponentFactory(): PinCodeComponent.Factory
 
     fun confirmMnemonicComponentFactory(): ConfirmMnemonicComponent.Factory
+
+    fun accountsComponentFactory(): AccountsComponent.Factory
+
+    fun accountDetailsComponentFactory(): AccountDetailsComponent.Factory
 
     @Component.Factory
     interface Factory {
@@ -44,7 +54,8 @@ interface AccountFeatureComponent : AccountFeatureApi {
 
     @Component(
         dependencies = [
-            CommonApi::class
+            CommonApi::class,
+            DbApi::class
         ]
     )
     interface AccountFeatureDependenciesComponent : AccountFeatureDependencies

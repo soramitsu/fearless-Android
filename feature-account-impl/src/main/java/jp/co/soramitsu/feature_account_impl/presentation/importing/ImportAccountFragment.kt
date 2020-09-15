@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -47,7 +48,11 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     private lateinit var integrator: IntentIntegrator
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_import_account, container, false)
     }
 
@@ -60,20 +65,26 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
 
         toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
-        toolbar.setRightIconClickListener { viewModel.qrScanClicked() }
+        toolbar.setRightActionClickListener { viewModel.qrScanClicked() }
 
         sourceTypeInput.setOnClickListener { viewModel.sourceTypeInputClicked() }
 
         advancedBlockView.setOnEncryptionTypeClickListener {
-            viewModel.encryptionTypeInputClicked()
+            viewModel.chooseEncryptionClicked()
         }
 
         advancedBlockView.setOnNetworkClickListener {
-            viewModel.networkInputClicked()
+            viewModel.chooseNetworkClicked()
         }
 
         nextBtn.setOnClickListener {
-            viewModel.nextBtnClicked(keyEt.text.toString(), usernameEt.text.toString(), passwordEt.text.toString(), jsonFileEt.text.toString(), advancedBlockView.getDerivationPath())
+            viewModel.nextClicked(
+                keyEt.text.toString(),
+                usernameEt.text.toString(),
+                passwordEt.text.toString(),
+                jsonFileEt.text.toString(),
+                advancedBlockView.getDerivationPath()
+            )
         }
 
         jsonFileIcon.setOnClickListener {
@@ -94,45 +105,18 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             }
         })
 
-        keyEt.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-            }
+        keyEt.onTextChanged { viewModel.inputChanges(usernameEt.text.toString(), it) }
 
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
+        jsonFileEt.onTextChanged { viewModel.inputChanges(it, passwordEt.text.toString()) }
 
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                viewModel.inputChanges(usernameEt.text.toString(), s.toString())
-            }
-        })
-
-        jsonFileEt.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                viewModel.inputChanges(s.toString(), passwordEt.text.toString())
-            }
-        })
-
-        passwordEt.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                viewModel.inputChanges(jsonFileEt.text.toString(), s.toString())
-            }
-        })
+        passwordEt.onTextChanged { viewModel.inputChanges(jsonFileEt.text.toString(), it) }
     }
 
     override fun inject() {
-        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
+        FeatureUtils.getFeature<AccountFeatureComponent>(
+            requireContext(),
+            AccountFeatureApi::class.java
+        )
             .importAccountComponentFactory()
             .create(this)
             .inject(this)
@@ -154,9 +138,12 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         })
 
         observe(viewModel.encryptionTypeChooserEvent, EventObserver {
-            EncryptionTypeChooserBottomSheetDialog(requireActivity(), it) {
-                viewModel.encryptionTypeChanged(it)
-            }.show()
+            EncryptionTypeChooserBottomSheetDialog(
+                requireActivity(),
+                it,
+                viewModel.selectedEncryptionTypeLiveData::setValue
+            )
+                .show()
         })
 
         observe(viewModel.selectedEncryptionTypeLiveData, Observer {
@@ -164,13 +151,15 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         })
 
         observe(viewModel.networkChooserEvent, EventObserver {
-            NetworkChooserBottomSheetDialog(requireActivity(), it) {
-                viewModel.networkChanged(it)
-            }.show()
+            NetworkChooserBottomSheetDialog(
+                requireActivity(),
+                it,
+                viewModel.selectedNetworkLiveData::setValue
+            ).show()
         })
 
         observe(viewModel.selectedNetworkLiveData, Observer {
-            advancedBlockView.setNetworkIconResource(it.smallIcon)
+            advancedBlockView.setNetworkIconResource(it.networkTypeUI.icon)
             advancedBlockView.setNetworkName(it.name)
         })
 

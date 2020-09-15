@@ -1,37 +1,52 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
-import jp.co.soramitsu.feature_account_api.domain.model.NetworkType
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 interface AccountInteractor {
-
     fun getMnemonic(): Single<List<String>>
 
     fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>>
 
-    fun getEncryptionTypesWithSelected(): Single<Pair<List<CryptoType>, CryptoType>>
+    fun getCryptoTypes(): Single<List<CryptoType>>
 
-    fun getNetworksWithSelected(): Single<Pair<List<Network>, NetworkType>>
+    fun getPreferredCryptoType(): Single<CryptoType>
 
-    fun createAccount(accountName: String, mnemonic: String, encryptionType: CryptoType, derivationPath: String, networkType: NetworkType): Completable
+    fun createAccount(
+        accountName: String,
+        mnemonic: String,
+        encryptionType: CryptoType,
+        derivationPath: String,
+        node: Node
+    ): Completable
 
-    fun importFromMnemonic(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
+    fun importFromMnemonic(
+        keyString: String,
+        username: String,
+        derivationPath: String,
+        selectedEncryptionType: CryptoType,
+        node: Node
+    ): Completable
 
-    fun importFromSeed(keyString: String, username: String, derivationPath: String, selectedEncryptionType: CryptoType, networkType: NetworkType): Completable
+    fun importFromSeed(
+        keyString: String,
+        username: String,
+        derivationPath: String,
+        selectedEncryptionType: CryptoType,
+        node: Node
+    ): Completable
 
-    fun importFromJson(json: String, password: String, node: NetworkType): Completable
+    fun importFromJson(json: String, password: String, node: Node.NetworkType): Completable
 
-    fun getAddressId(): Single<ByteArray>
+    fun getAddressId(account: Account): Single<ByteArray>
 
     fun getSelectedLanguage(): Single<String>
-
-    fun getAddress(): Single<String>
-
-    fun getUsername(): Single<String>
 
     fun isCodeSet(): Single<Boolean>
 
@@ -44,4 +59,22 @@ interface AccountInteractor {
     fun setBiometricOn(): Completable
 
     fun setBiometricOff(): Completable
+
+    fun getAccount(address: String): Single<Account>
+
+    fun observeSelectedAccount(): Observable<Account>
+
+    fun getNetworks(): Single<List<Network>>
+
+    fun getSelectedNode(): Single<Node>
+
+    fun getSelectedNetwork(): Single<Network>
+
+    fun shouldOpenOnboarding(): Single<Boolean>
+
+    fun observeGroupedAccounts(): Observable<List<Any>>
+
+    fun selectAccount(address: String): Completable
+
+    fun updateAccountName(account: Account, newName: String): Completable
 }
