@@ -3,7 +3,6 @@ package jp.co.soramitsu.common.resources
 import android.content.ClipData
 import android.content.ClipboardManager
 
-
 private const val DEFAULT_LABEL = "fearless"
 
 class ClipboardManager(
