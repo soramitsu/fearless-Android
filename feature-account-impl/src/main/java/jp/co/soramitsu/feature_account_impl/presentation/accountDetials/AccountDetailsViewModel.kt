@@ -19,6 +19,7 @@ class AccountDetailsViewModel(
     private val clipboardManager: ClipboardManager,
     accountAddress: String
 ) : BaseViewModel() {
+
     val account = getAccount(accountAddress).asLiveData()
 
     val networkModel = account.map { mapNetworkToNetworkModel(it.network) }

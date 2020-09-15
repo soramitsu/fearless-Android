@@ -14,6 +14,7 @@ class AccountAddressView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+
     init {
         View.inflate(context, R.layout.view_account_address, this)
 
