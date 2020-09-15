@@ -19,7 +19,7 @@ private const val ACCOUNT_ADDRESS_KEY = "ACCOUNT_ADDRESS_KEY"
 class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
 
     companion object {
-        fun getBundle(accountAddress: String) : Bundle {
+        fun getBundle(accountAddress: String): Bundle {
             return Bundle().apply {
                 putString(ACCOUNT_ADDRESS_KEY, accountAddress)
             }

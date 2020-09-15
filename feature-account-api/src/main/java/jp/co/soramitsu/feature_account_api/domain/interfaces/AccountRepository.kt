@@ -8,8 +8,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SourceType
-import sun.nio.ch.Net
-import java.lang.Exception
 
 class AccountAlreadyExistsException : Exception()
 
@@ -23,7 +21,7 @@ interface AccountRepository {
 
     fun getNodes(): Observable<List<Node>>
 
-    fun getNetworks() : Single<List<Network>>
+    fun getNetworks(): Single<List<Network>>
 
     fun getSelectedNode(): Single<Node>
 
@@ -33,7 +31,7 @@ interface AccountRepository {
 
     fun selectNode(node: Node): Completable
 
-    fun getDefaultNode(networkType: Node.NetworkType) : Single<Node>
+    fun getDefaultNode(networkType: Node.NetworkType): Single<Node>
 
     fun selectAccount(account: Account): Completable
 

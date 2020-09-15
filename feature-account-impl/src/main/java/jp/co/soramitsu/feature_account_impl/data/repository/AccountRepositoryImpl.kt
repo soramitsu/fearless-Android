@@ -358,7 +358,7 @@ class AccountRepositoryImpl(
     }
 
     private fun mapAccountWithNodeToAccount(accountLocal: AccountLocal): Account {
-        val networkType =  Node.NetworkType.values()[accountLocal.networkType]
+        val networkType = Node.NetworkType.values()[accountLocal.networkType]
         val network = getNetworkForType(networkType)
 
         return with(accountLocal) {

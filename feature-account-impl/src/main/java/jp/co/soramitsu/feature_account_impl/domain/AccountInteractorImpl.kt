@@ -176,7 +176,7 @@ class AccountInteractorImpl(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun selectAccount(account: Account) : Completable {
+    private fun selectAccount(account: Account): Completable {
         return accountRepository.getDefaultNode(account.network.type)
             .flatMapCompletable(accountRepository::selectNode)
             .andThen(accountRepository.selectAccount(account))

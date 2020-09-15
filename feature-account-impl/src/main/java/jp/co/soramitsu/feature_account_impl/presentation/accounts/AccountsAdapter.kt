@@ -18,8 +18,7 @@ import kotlinx.android.synthetic.main.item_account_group.view.accountGroupName
 
 class AccountsAdapter(
     private val accountItemHandler: AccountItemHandler
-) :
-    GroupedListAdapter<NetworkModel, AccountModel>(AccountsDiffCallback) {
+) : GroupedListAdapter<NetworkModel, AccountModel>(AccountsDiffCallback) {
     interface AccountItemHandler {
         fun infoClicked(accountModel: AccountModel)
 
