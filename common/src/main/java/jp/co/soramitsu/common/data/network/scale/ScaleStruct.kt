@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.scale
+package jp.co.soramitsu.common.data.network.scale
 
 
 class Field<T>(val dataType: DataType<T>)

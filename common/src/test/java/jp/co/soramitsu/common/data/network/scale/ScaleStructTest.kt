@@ -1,13 +1,13 @@
 @file:Suppress("EXPERIMENTAL_API_USAGE")
 
-package jp.co.soramitsu.common.scale
+package jp.co.soramitsu.common.data.network.scale
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
-import jp.co.soramitsu.common.scale.Account.address
-import jp.co.soramitsu.common.scale.Account.balance
-import jp.co.soramitsu.common.scale.Address.publicKey
-import jp.co.soramitsu.common.scale.Balance.amount
+import jp.co.soramitsu.common.data.network.scale.Account.address
+import jp.co.soramitsu.common.data.network.scale.Account.balance
+import jp.co.soramitsu.common.data.network.scale.Address.publicKey
+import jp.co.soramitsu.common.data.network.scale.Balance.amount
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner

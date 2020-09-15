@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package jp.co.soramitsu.common.scale
+package jp.co.soramitsu.common.data.network.scale
 
 typealias StructBuilder<SCHEMA> = (EncodableStruct<SCHEMA>) -> Unit
 

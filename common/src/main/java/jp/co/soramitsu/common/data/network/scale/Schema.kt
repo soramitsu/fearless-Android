@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.scale
+package jp.co.soramitsu.common.data.network.scale
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter

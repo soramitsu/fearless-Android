@@ -1,12 +1,10 @@
-package jp.co.soramitsu.common.scale
+package jp.co.soramitsu.common.data.network.scale
 
-import android.text.InputFilter
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import io.emeraldpay.polkaj.scale.ScaleReader
 import io.emeraldpay.polkaj.scale.ScaleWriter
 import io.emeraldpay.polkaj.scale.writer.BoolWriter
-import java.lang.IllegalArgumentException
 
 sealed class DataType<T> : ScaleReader<T>, ScaleWriter<T>
 

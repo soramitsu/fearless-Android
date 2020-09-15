@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.scale
+package jp.co.soramitsu.common.data.network.scale
 
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
