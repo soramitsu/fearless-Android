@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.base
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
@@ -24,17 +25,17 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         initViews()
         subscribe(viewModel)
 
-        observe(viewModel.errorLiveData, EventObserver {
-            showError(it)
-        })
+        viewModel.errorLiveData.observeEvent {
+            showError(it.getText(resources))
+        }
 
-        observe(viewModel.errorWithTitleLiveData, EventObserver {
+        viewModel.errorWithTitleLiveData.observeEvent {
             showErrorWithTitle(it.first, it.second)
-        })
+        }
 
-        observe(viewModel.errorFromResourceLiveData, EventObserver {
-            showErrorFromResponse(it)
-        })
+        viewModel.messageLiveData.observeEvent {
+            showMessage(it.getText(resources))
+        }
     }
 
     protected fun showError(errorMessage: String) {
@@ -45,19 +46,16 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
             .show()
     }
 
-    protected fun showErrorFromResponse(resId: Int) {
-        AlertDialog.Builder(requireActivity())
-            .setTitle(R.string.common_error_general_title)
-            .setMessage(resId)
-            .setPositiveButton(R.string.common_ok) { _, _ -> }
-            .show()
-    }
-
     protected fun showErrorWithTitle(title: String, errorMessage: String) {
         AlertDialog.Builder(requireActivity())
             .setTitle(title)
             .setMessage(errorMessage)
             .setPositiveButton(R.string.common_ok) { _, _ -> }
+            .show()
+    }
+
+    protected fun showMessage(text: String) {
+        Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT)
             .show()
     }
 

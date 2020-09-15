@@ -9,19 +9,20 @@ import io.reactivex.disposables.CompositeDisposable
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.TextProvider
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.asMutableLiveData
 
 open class BaseViewModel : ViewModel() {
 
-    private val _errorLiveData = MutableLiveData<Event<String>>()
-    val errorLiveData: LiveData<Event<String>> = _errorLiveData
-
-    private val _errorFromResourceLiveData = MutableLiveData<Event<Int>>()
-    val errorFromResourceLiveData: LiveData<Event<Int>> = _errorFromResourceLiveData
+    private val _errorLiveData = MutableLiveData<Event<TextProvider>>()
+    val errorLiveData: LiveData<Event<TextProvider>> = _errorLiveData
 
     private val _errorWithTitleLiveData = MutableLiveData<Event<Pair<String, String>>>()
     val errorWithTitleLiveData: LiveData<Event<Pair<String, String>>> = _errorWithTitleLiveData
+
+    private val _messageLiveData = MutableLiveData<Event<TextProvider>>()
+    val messageLiveData: LiveData<Event<TextProvider>> = _messageLiveData
 
     protected val disposables = CompositeDisposable()
 
@@ -30,8 +31,12 @@ open class BaseViewModel : ViewModel() {
         if (!disposables.isDisposed) disposables.dispose()
     }
 
-    fun onError(messageResource: Int) {
-        _errorFromResourceLiveData.value = Event(messageResource)
+    fun showMessage(textProvider: TextProvider) {
+        _messageLiveData.value = Event(textProvider)
+    }
+
+    fun showError(textProvider: TextProvider) {
+        _errorLiveData.value = Event(textProvider)
     }
 
     fun <T> Single<T>.asLiveData(
