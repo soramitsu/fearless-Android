@@ -24,7 +24,7 @@ class AccountAddressView @JvmOverloads constructor(
         accountAddress.text = address
     }
 
-    fun setOnCopyClickListener(listener: OnClickListener) {
+    fun setOnCopyClickListener(listener: (View) -> Unit) {
         accountCopy.setOnClickListener(listener)
     }
 }

@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.accountDetials.AccountDetailsViewModel
@@ -20,9 +21,10 @@ class AccountDetailsModule {
     fun provideViewModel(
         interactor: AccountInteractor,
         accountAddress: String,
-        router: AccountRouter
+        router: AccountRouter,
+        clipboardManager: ClipboardManager
     ): ViewModel {
-        return AccountDetailsViewModel(interactor, router, accountAddress)
+        return AccountDetailsViewModel(interactor, router, clipboardManager, accountAddress)
     }
 
     @Provides

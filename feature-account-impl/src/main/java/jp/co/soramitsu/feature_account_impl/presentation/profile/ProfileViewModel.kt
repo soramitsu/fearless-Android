@@ -7,9 +7,11 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
+import jp.co.soramitsu.common.utils.from
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 private const val ICON_SIZE_IN_PX = 100
@@ -20,10 +22,6 @@ class ProfileViewModel(
     private val iconGenerator: IconGenerator,
     private val clipboardManager: ClipboardManager
 ) : BaseViewModel() {
-
-    companion object {
-        private const val LABEL_ADDRESS = "label_address"
-    }
 
     private val selectedAccountObservable = interactor.observeSelectedAccount()
 
@@ -39,7 +37,9 @@ class ProfileViewModel(
 
     fun addressCopyClicked() {
         selectedAccount.value?.let {
-            clipboardManager.addToClipboard(LABEL_ADDRESS, it.address)
+            clipboardManager.addToClipboard(it.address)
+
+            showMessage(from(R.string.common_copied))
         }
     }
 

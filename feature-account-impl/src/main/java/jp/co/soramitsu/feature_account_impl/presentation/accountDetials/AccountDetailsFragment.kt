@@ -41,6 +41,10 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
             viewModel.backClicked()
         }
 
+        accountDetailsAddressView.setOnCopyClickListener {
+            viewModel.copyAddressClicked()
+        }
+
         fearlessToolbar.setTitle(R.string.profile_title)
     }
 
