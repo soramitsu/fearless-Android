@@ -72,4 +72,6 @@
     <string name="about_version">Version de aplicacion</string>
     <string name="about_telegram">Únete al grupo de Telegram</string>
     <string name="common_email_chooser_title">Seleccione el correo electrónico de la aplicación</string>
+    <string name="account_address">Habla a</string>
+    <string name="account_export">Exportar</string>
 </resources>

@@ -72,4 +72,6 @@
     <string name="about_version">アプリのバージョン</string>
     <string name="about_telegram">電報グループに参加する</string>
     <string name="common_email_chooser_title">メールアプリを選択</string>
+    <string name="account_address">住所</string>
+    <string name="account_export">書き出す</string>
 </resources>
