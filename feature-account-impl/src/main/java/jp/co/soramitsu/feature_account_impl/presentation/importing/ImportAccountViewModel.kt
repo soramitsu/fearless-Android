@@ -8,7 +8,6 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.from
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
@@ -184,6 +183,6 @@ class ImportAccountViewModel(
             else -> R.string.common_undefined_error_message
         }
 
-        showError(from(errorMessage))
+        showError(resourceManager.getString(errorMessage))
     }
 }

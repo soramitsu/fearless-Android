@@ -9,6 +9,7 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.accountDetials.AccountDetailsViewModel
@@ -22,9 +23,10 @@ class AccountDetailsModule {
         interactor: AccountInteractor,
         accountAddress: String,
         router: AccountRouter,
-        clipboardManager: ClipboardManager
+        clipboardManager: ClipboardManager,
+        resourceManager: ResourceManager
     ): ViewModel {
-        return AccountDetailsViewModel(interactor, router, clipboardManager, accountAddress)
+        return AccountDetailsViewModel(interactor, router, clipboardManager, resourceManager, accountAddress)
     }
 
     @Provides

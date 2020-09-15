@@ -25,17 +25,13 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         initViews()
         subscribe(viewModel)
 
-        viewModel.errorLiveData.observeEvent {
-            showError(it.getText(resources))
-        }
+        viewModel.errorLiveData.observeEvent(::showError)
 
         viewModel.errorWithTitleLiveData.observeEvent {
             showErrorWithTitle(it.first, it.second)
         }
 
-        viewModel.messageLiveData.observeEvent {
-            showMessage(it.getText(resources))
-        }
+        viewModel.messageLiveData.observeEvent(::showMessage)
     }
 
     protected fun showError(errorMessage: String) {

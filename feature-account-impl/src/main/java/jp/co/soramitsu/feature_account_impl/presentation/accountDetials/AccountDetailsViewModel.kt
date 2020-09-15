@@ -5,7 +5,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
-import jp.co.soramitsu.common.utils.from
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -17,6 +17,7 @@ class AccountDetailsViewModel(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
     private val clipboardManager: ClipboardManager,
+    private val resourceManager: ResourceManager,
     accountAddress: String
 ) : BaseViewModel() {
 
@@ -38,7 +39,7 @@ class AccountDetailsViewModel(
         account.value?.let {
             clipboardManager.addToClipboard(it.address)
 
-            showMessage(from(R.string.common_copied))
+            showMessage(resourceManager.getString(R.string.common_copied))
         }
     }
 }
