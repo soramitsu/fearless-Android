@@ -10,7 +10,7 @@ class NodesViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val nodeListingMixin: NodeListingMixin
-): BaseViewModel(), NodeListingMixin by nodeListingMixin {
+) : BaseViewModel(), NodeListingMixin by nodeListingMixin {
 
     fun editClicked() {
         // TODO
