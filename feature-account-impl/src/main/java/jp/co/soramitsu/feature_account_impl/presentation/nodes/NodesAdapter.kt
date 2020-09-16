@@ -8,17 +8,21 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.Grou
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListHolder
 import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeHeaderModel
 import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
+import kotlinx.android.synthetic.main.item_node.view.nodeCheck
+import kotlinx.android.synthetic.main.item_node.view.nodeHost
+import kotlinx.android.synthetic.main.item_node.view.nodeInfo
+import kotlinx.android.synthetic.main.item_node.view.nodeTitle
+import kotlinx.android.synthetic.main.item_node_group.view.nodeGroupTitle
 
 class NodesAdapter(
-    private val networkItemHandler: NetworkItemHandler
+    private val nodeItemHandler: NodeItemHandler
 ) : GroupedListAdapter<NodeHeaderModel, NodeModel>(NodesDiffCallback) {
 
-    interface NetworkItemHandler {
+    interface NodeItemHandler {
 
-        fun infoClicked(networkModel: NetworkModel)
+        fun infoClicked(nodeModel: NodeModel)
 
-        fun checkClicked(networkModel: NetworkModel)
+        fun checkClicked(nodeModel: NodeModel)
     }
 
     private var selectedItem: NodeModel? = null
@@ -53,13 +57,13 @@ class NodesAdapter(
     override fun bindChild(holder: GroupedListHolder, child: NodeModel) {
         val isChecked = child.link == selectedItem?.link
 
-        (holder as NodeHolder).bind(child, networkItemHandler, isChecked)
+        (holder as NodeHolder).bind(child, nodeItemHandler, isChecked)
     }
 }
 
 class NodeGroupHolder(view: View) : GroupedListHolder(view) {
     fun bind(nodeHeaderModel: NodeHeaderModel) = with(containerView) {
-
+        nodeGroupTitle.text = nodeHeaderModel.title
     }
 }
 
@@ -67,10 +71,18 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
 
     fun bind(
         nodeModel: NodeModel,
-        handler: NodesAdapter.NetworkItemHandler,
+        handler: NodesAdapter.NodeItemHandler,
         isChecked: Boolean
     ) {
         with(containerView) {
+            nodeTitle.text = nodeModel.name
+            nodeHost.text = nodeModel.link
+
+            nodeCheck.visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
+
+            setOnClickListener { handler.checkClicked(nodeModel) }
+
+            nodeInfo.setOnClickListener { handler.infoClicked(nodeModel) }
         }
     }
 }

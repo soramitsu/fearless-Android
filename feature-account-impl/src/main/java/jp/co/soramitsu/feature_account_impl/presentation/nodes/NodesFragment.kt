@@ -8,11 +8,12 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_nodes.connectionsList
 
-class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NetworkItemHandler {
+class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler {
 
     private lateinit var adapter: NodesAdapter
 
@@ -53,11 +54,11 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NetworkItemHa
         viewModel.selectedNodeLiveData.observe(adapter::updateSelectedNode)
     }
 
-    override fun infoClicked(networkModel: NetworkModel) {
-        viewModel.infoClicked(networkModel)
+    override fun infoClicked(nodeModel: NodeModel) {
+        viewModel.infoClicked(nodeModel)
     }
 
-    override fun checkClicked(networkModel: NetworkModel) {
-        viewModel.selectNetworkClicked(networkModel)
+    override fun checkClicked(nodeModel: NodeModel) {
+        viewModel.selectNetworkClicked(nodeModel)
     }
 }

@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NodeListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 class NodesViewModel(
@@ -20,11 +21,11 @@ class NodesViewModel(
         router.back()
     }
 
-    fun infoClicked(networkModel: NetworkModel) {
+    fun infoClicked(nodeModel: NodeModel) {
         // TODO
     }
 
-    fun selectNetworkClicked(networkModel: NetworkModel) {
+    fun selectNetworkClicked(nodeModel: NodeModel) {
         // TODO
     }
 }

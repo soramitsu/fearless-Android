@@ -8,29 +8,29 @@
     tools:background="@color/black">
 
     <ImageView
-        android:id="@+id/connectionCheck"
+        android:id="@+id/nodeCheck"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:src="@drawable/ic_checkmark_white_24"
-        app:layout_constraintBottom_toBottomOf="@+id/connectionIcon"
+        app:layout_constraintBottom_toBottomOf="@+id/nodeIcon"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/connectionIcon" />
+        app:layout_constraintTop_toTopOf="@+id/nodeIcon" />
 
     <ImageView
-        android:id="@+id/connectionIcon"
+        android:id="@+id/nodeIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/connectionHost"
-        app:layout_constraintStart_toEndOf="@id/connectionCheck"
-        app:layout_constraintTop_toTopOf="@+id/accountTitle"
+        app:layout_constraintBottom_toBottomOf="@+id/nodeHost"
+        app:layout_constraintStart_toEndOf="@id/nodeCheck"
+        app:layout_constraintTop_toTopOf="@+id/nodeTitle"
         tools:layout_height="24dp"
         tools:layout_width="24dp"
         tools:src="@drawable/ic_ksm_24" />
 
     <TextView
-        android:id="@+id/accountTitle"
+        android:id="@+id/nodeTitle"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -38,36 +38,36 @@
         android:layout_marginTop="@dimen/x1"
         android:layout_marginEnd="16dp"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toTopOf="@+id/connectionHost"
-        app:layout_constraintEnd_toStartOf="@+id/connectionInfo"
-        app:layout_constraintStart_toEndOf="@+id/connectionIcon"
+        app:layout_constraintBottom_toTopOf="@+id/nodeHost"
+        app:layout_constraintEnd_toStartOf="@+id/nodeInfo"
+        app:layout_constraintStart_toEndOf="@+id/nodeIcon"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
         tools:text="Kusama, Parity node" />
 
     <TextView
-        android:id="@+id/connectionHost"
+        android:id="@+id/nodeHost"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/item_account_address_margin"
         android:singleLine="true"
         android:textColor="@color/colorHint"
-        app:layout_constraintEnd_toEndOf="@+id/accountTitle"
-        app:layout_constraintStart_toStartOf="@+id/accountTitle"
-        app:layout_constraintTop_toBottomOf="@+id/accountTitle"
+        app:layout_constraintEnd_toEndOf="@+id/nodeTitle"
+        app:layout_constraintStart_toStartOf="@+id/nodeTitle"
+        app:layout_constraintTop_toBottomOf="@+id/nodeTitle"
         tools:text="wss://rpc.kusama.io" />
 
     <ImageView
-        android:id="@+id/connectionInfo"
+        android:id="@+id/nodeInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:src="@drawable/ic_info_24"
         android:tint="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/connectionHost"
+        app:layout_constraintBottom_toBottomOf="@+id/nodeHost"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/accountTitle" />
+        app:layout_constraintTop_toTopOf="@+id/nodeTitle" />
 
     <View
         android:layout_width="match_parent"
@@ -75,6 +75,6 @@
         android:layout_marginTop="8dp"
         android:background="@color/dividerGray"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/connectionHost" />
+        app:layout_constraintTop_toBottomOf="@id/nodeHost" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -67,14 +67,14 @@ class AccountDataSourceImpl(
     }
 
     override fun saveSelectedNode(node: Node) {
-        val raw = jsonMapper.toJson(node)
+        selectedNodeSubject.onNext(node)
 
+        val raw = jsonMapper.toJson(node)
         preferences.putString(PREFS_SELECTED_NODE, raw)
     }
 
     override fun getSelectedNode(): Node? {
         val raw = preferences.getString(PREFS_SELECTED_NODE) ?: return null
-
         return jsonMapper.fromJson(raw, Node::class.java)
     }
 
