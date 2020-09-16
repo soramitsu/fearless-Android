@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
+    android:fitsSystemWindows="true"
     tools:background="@color/black"
     android:layout_height="match_parent">
 
@@ -20,7 +21,7 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         android:layout_height="0dp"
         android:layout_weight="1"
-        tools:listitem="@layout/item_account"
+        tools:listitem="@layout/item_edit_account"
         app:layout_constraintBottom_toTopOf="@+id/addAccount"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

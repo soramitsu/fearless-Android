@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.editAccounts
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
@@ -48,6 +49,19 @@ class EditAccountsFragment : BaseFragment<EditAccountsViewModel>(), EditAccounts
 
     override fun subscribe(viewModel: EditAccountsViewModel) {
         viewModel.accountListingLiveData.observe(adapter::submitListing)
+
+        viewModel.deleteConfirmationLiveData.observeEvent(::showDeleteConfirmation)
+    }
+
+    private fun showDeleteConfirmation(account: AccountModel) {
+        AlertDialog.Builder(requireActivity())
+            .setTitle(R.string.account_delete_confirmation_title)
+            .setMessage(R.string.account_delete_confirmation_description)
+            .setPositiveButton(R.string.account_delete_confirm) { _, _ ->
+                viewModel.deleteConfirmed(account)
+            }
+            .setNegativeButton(R.string.common_cancel, null)
+            .show()
     }
 
     override fun deleteClicked(accountModel: AccountModel) {
