@@ -4,7 +4,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.accounts.model.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListingMixin
 
 class AccountsViewModel(

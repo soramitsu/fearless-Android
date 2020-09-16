@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.accounts.model
+package jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment
 
 import android.graphics.drawable.PictureDrawable
 

@@ -184,6 +184,10 @@ class AccountInteractorImpl(
             .andThen(maybeUpdateSelectedAccount(newAccount))
     }
 
+    override fun deleteAccount(address: String): Completable {
+        return accountRepository.deleteAccount(address)
+    }
+
     private fun maybeUpdateSelectedAccount(newAccount: Account): Completable {
         return accountRepository.observeSelectedAccount()
             .firstOrError()

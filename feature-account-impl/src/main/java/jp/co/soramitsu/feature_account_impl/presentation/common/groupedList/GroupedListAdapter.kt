@@ -51,12 +51,6 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
     protected inline fun <reified T> findIndexOfElement(crossinline condition: (T) -> Boolean): Int {
         return currentList.indexOfFirst { it is T && condition(it) }
     }
-
-    protected fun inflate(parent: ViewGroup, @LayoutRes id: Int): View {
-        return LayoutInflater.from(parent.context).run {
-            inflate(id, parent, false)
-        }
-    }
 }
 
 @Suppress("UNCHECKED_CAST")

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.accounts
+package jp.co.soramitsu.feature_account_impl.presentation.editAccounts
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,23 +13,23 @@ import kotlinx.android.synthetic.main.fragment_accounts.accountsList
 import kotlinx.android.synthetic.main.fragment_accounts.addAccount
 import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 
-class AccountsFragment : BaseFragment<AccountsViewModel>(), AccountsAdapter.AccountItemHandler {
-    private lateinit var adapter: AccountsAdapter
+class EditAccountsFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsAdapter.EditAccountItemHandler {
+    private lateinit var adapter: EditAccountsAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_accounts, container, false)
+    ) = layoutInflater.inflate(R.layout.fragment_edit_accounts, container, false)
 
     override fun initViews() {
-        adapter = AccountsAdapter(this)
-
         accountsList.setHasFixedSize(true)
+
+        adapter = EditAccountsAdapter(this)
         accountsList.adapter = adapter
 
         fearlessToolbar.setRightActionClickListener {
-            viewModel.editClicked()
+            viewModel.backClicked()
         }
 
         fearlessToolbar.setHomeButtonListener {
@@ -44,22 +44,16 @@ class AccountsFragment : BaseFragment<AccountsViewModel>(), AccountsAdapter.Acco
             requireContext(),
             AccountFeatureApi::class.java
         )
-            .accountsComponentFactory()
+            .editAccountsComponentFactory()
             .create(this)
             .inject(this)
     }
 
-    override fun subscribe(viewModel: AccountsViewModel) {
-        viewModel.accountListingLiveData.observe { adapter.submitList(it.groupedAccounts) }
-
-        viewModel.selectedAccountLiveData.observe(adapter::updateSelectedAccount)
+    override fun subscribe(viewModel: EditAccountsViewModel) {
+        viewModel.accountListingLiveData.observe(adapter::submitListing)
     }
 
-    override fun infoClicked(accountModel: AccountModel) {
-        viewModel.infoClicked(accountModel)
-    }
-
-    override fun checkClicked(accountModel: AccountModel) {
-        viewModel.selectAccountClicked(accountModel)
+    override fun deleteClicked(accountModel: AccountModel) {
+        viewModel.deleteClicked(accountModel)
     }
 }

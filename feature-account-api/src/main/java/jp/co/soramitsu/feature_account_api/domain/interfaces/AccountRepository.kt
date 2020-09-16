@@ -94,4 +94,6 @@ interface AccountRepository {
     fun setBiometricOff(): Completable
 
     fun updateAccount(newAccount: Account): Completable
+
+    fun deleteAccount(address: String): Completable
 }

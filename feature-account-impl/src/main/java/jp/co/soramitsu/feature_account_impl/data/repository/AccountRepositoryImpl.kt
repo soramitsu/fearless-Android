@@ -306,6 +306,10 @@ class AccountRepositoryImpl(
         return accountDao.updateAccount(mapAccountToAccountLocal(newAccount))
     }
 
+    override fun deleteAccount(address: String): Completable {
+        return accountDao.remove(address)
+    }
+
     private fun saveAccountData(
         accountName: String,
         mnemonic: String,
