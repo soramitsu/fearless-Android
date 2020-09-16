@@ -58,6 +58,6 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     }
 
     override fun checkClicked(nodeModel: NodeModel) {
-        viewModel.selectNetworkClicked(nodeModel)
+        viewModel.selectNodeClicked(nodeModel)
     }
 }

@@ -68,7 +68,7 @@
     <fragment
         android:id="@+id/nodesFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.nodes.NodesFragment"
-        android:label="NetworksFragment"
+        android:label="NodesFragment"
         tools:layout="@layout/fragment_nodes" />
 
     <fragment

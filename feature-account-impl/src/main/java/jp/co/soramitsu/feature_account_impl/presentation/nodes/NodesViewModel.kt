@@ -24,7 +24,7 @@ class NodesViewModel(
         // TODO
     }
 
-    fun selectNetworkClicked(nodeModel: NodeModel) {
+    fun selectNodeClicked(nodeModel: NodeModel) {
         // TODO
     }
 }
