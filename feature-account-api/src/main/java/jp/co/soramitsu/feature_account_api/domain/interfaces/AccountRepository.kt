@@ -94,4 +94,8 @@ interface AccountRepository {
     fun setBiometricOff(): Completable
 
     fun updateAccount(newAccount: Account): Completable
+
+    fun observeNodes(): Observable<List<Node>>
+
+    fun observeSelectedNode(): Observable<Node>
 }

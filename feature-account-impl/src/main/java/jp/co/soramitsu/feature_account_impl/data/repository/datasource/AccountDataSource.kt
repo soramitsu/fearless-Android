@@ -48,4 +48,6 @@ interface AccountDataSource {
     fun observeSelectedAccount(): Observable<Account>
 
     fun getPreferredCryptoType(): Single<CryptoType>
+
+    fun observeSelectedNode(): Observable<Node>
 }
