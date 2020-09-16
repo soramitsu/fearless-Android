@@ -114,8 +114,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         navController?.navigate(R.id.action_mainFragment_to_accountsFragment)
     }
 
-    override fun openNetworks() {
-        navController?.navigate(R.id.action_mainFragment_to_networksFragment)
+    override fun openNodes() {
+        navController?.navigate(R.id.action_mainFragment_to_nodesFragment)
     }
 
     override fun openAddAccount() {

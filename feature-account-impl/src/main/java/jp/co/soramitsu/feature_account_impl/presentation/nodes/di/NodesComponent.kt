@@ -1,26 +1,26 @@
-package jp.co.soramitsu.feature_account_impl.presentation.networks.di
+package jp.co.soramitsu.feature_account_impl.presentation.nodes.di
 
 import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
-import jp.co.soramitsu.feature_account_impl.presentation.networks.NetworksFragment
+import jp.co.soramitsu.feature_account_impl.presentation.nodes.NodesFragment
 
 @Subcomponent(
     modules = [
-        NetworksModule::class
+        NodesModule::class
     ]
 )
 @ScreenScope
-interface NetworksComponent {
+interface NodesComponent {
 
     @Subcomponent.Factory
     interface Factory {
 
         fun create(
             @BindsInstance fragment: Fragment
-        ): NetworksComponent
+        ): NodesComponent
     }
 
-    fun inject(fragment: NetworksFragment)
+    fun inject(fragment: NodesFragment)
 }

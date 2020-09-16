@@ -26,7 +26,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/fearlessToolbar"
-        tools:listitem="@layout/item_connection" />
+        tools:listitem="@layout/item_node" />
 
     <TextView
         android:id="@+id/addConnectionTv"

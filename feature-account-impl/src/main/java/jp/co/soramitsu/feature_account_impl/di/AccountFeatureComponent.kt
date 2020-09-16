@@ -10,7 +10,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.about.di.AboutComponent
 import jp.co.soramitsu.feature_account_impl.presentation.accountDetials.di.AccountDetailsComponent
 import jp.co.soramitsu.feature_account_impl.presentation.accounts.di.AccountsComponent
-import jp.co.soramitsu.feature_account_impl.presentation.networks.di.NetworksComponent
+import jp.co.soramitsu.feature_account_impl.presentation.nodes.di.NodesComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.di.ImportAccountComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.di.BackupMnemonicComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.di.ConfirmMnemonicComponent
@@ -44,7 +44,7 @@ interface AccountFeatureComponent : AccountFeatureApi {
 
     fun accountDetailsComponentFactory(): AccountDetailsComponent.Factory
 
-    fun connectionsComponentFactory(): NetworksComponent.Factory
+    fun connectionsComponentFactory(): NodesComponent.Factory
 
     @Component.Factory
     interface Factory {

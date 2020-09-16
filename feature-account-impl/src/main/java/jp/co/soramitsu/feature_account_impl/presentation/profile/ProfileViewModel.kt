@@ -61,6 +61,6 @@ class ProfileViewModel(
     }
 
     fun networksClicked() {
-        router.openNetworks()
+        router.openNodes()
     }
 }

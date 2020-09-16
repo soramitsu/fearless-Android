@@ -421,4 +421,13 @@ class AccountRepositoryImpl(
     private fun mapNetworkToNodeLocal(it: Node): NodeLocal {
         return NodeLocal(0, it.name, it.link, it.networkType.ordinal, it.isDefault)
     }
+
+    override fun observeNodes(): Observable<List<Node>> {
+        return getNodes()
+            .filter { it.isNotEmpty() }
+    }
+
+    override fun observeSelectedNode(): Observable<Node> {
+        return accountDataSource.observeSelectedNode()
+    }
 }

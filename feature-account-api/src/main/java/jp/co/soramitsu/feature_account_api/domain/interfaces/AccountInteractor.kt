@@ -77,4 +77,8 @@ interface AccountInteractor {
     fun selectAccount(address: String): Completable
 
     fun updateAccountName(account: Account, newName: String): Completable
+
+    fun observeNodes(): Observable<List<Node>>
+
+    fun observeSelectedNode(): Observable<Node>
 }
