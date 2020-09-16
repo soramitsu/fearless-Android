@@ -26,6 +26,15 @@
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_mainFragment_to_networksFragment"
+            app:destination="@id/networksFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
     </fragment>
 
     <fragment
@@ -55,6 +64,12 @@
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
+
+    <fragment
+        android:id="@+id/networksFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.networks.NetworksFragment"
+        android:label="NetworksFragment"
+        tools:layout="@layout/fragment_networks" />
 
     <fragment
         android:id="@+id/accountDetailsFragment"

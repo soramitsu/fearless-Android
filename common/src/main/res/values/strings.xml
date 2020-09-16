@@ -77,4 +77,6 @@
     <string name="account_export">Export account</string>
     <string name="common_copied">Copied to clipboard</string>
     <string name="connections_add_connection">Add connection</string>
+    <string name="connection_management_title">Networks</string>
+
 </resources>

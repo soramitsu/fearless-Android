@@ -75,5 +75,6 @@
     <string name="account_address">アカウントアドレス</string>
     <string name="account_export">アカウントをエクスポート</string>
     <string name="common_copied">クリップボードにコピーしました</string>
-    <string name="connections_add_connection">Add connection</string>
+    <string name="connections_add_connection">接続の追加</string>
+    <string name="connection_management_title">ネットワーク</string>
 </resources>

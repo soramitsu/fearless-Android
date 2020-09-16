@@ -15,7 +15,7 @@ class NetworksFragment : BaseFragment<NetworksViewModel>() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_connections, container, false)
+    ) = layoutInflater.inflate(R.layout.fragment_networks, container, false)
 
     override fun initViews() {
     }

@@ -75,5 +75,6 @@
     <string name="account_address">Dirección de cuenta</string>
     <string name="account_export">Exportar cuenta</string>
     <string name="common_copied">Copiado al portapapeles</string>
-    <string name="connections_add_connection">Add connection</string>
+    <string name="connections_add_connection">Añadir la conexión</string>
+    <string name="connection_management_title">Redes</string>
 </resources>

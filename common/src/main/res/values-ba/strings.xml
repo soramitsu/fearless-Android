@@ -75,5 +75,6 @@
     <string name="account_address">Адрес аккаунта</string>
     <string name="account_export">Экспортировать аккаунт</string>
     <string name="common_copied">Скопировано в буфер обмена</string>
-    <string name="connections_add_connection">Add connection</string>
+    <string name="connections_add_connection">Добавить соединение</string>
+    <string name="connection_management_title">Сети</string>
 </resources>
