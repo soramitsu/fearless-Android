@@ -77,4 +77,6 @@
     <string name="common_copied">Copiado al portapapeles</string>
     <string name="connections_add_connection">Añadir la conexión</string>
     <string name="connection_management_title">Redes</string>
+    <string name="connection_management_default_title">Defecto</string>
+    <string name="connection_management_custom_title">Personalizado</string>
 </resources>

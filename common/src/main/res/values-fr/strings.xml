@@ -77,4 +77,6 @@
     <string name="common_copied">Copié dans le presse-papier</string>
     <string name="connections_add_connection">Ajouter une connexion</string>
     <string name="connection_management_title">Réseaux</string>
+    <string name="connection_management_default_title">Défaut</string>
+    <string name="connection_management_custom_title">Douane</string>
 </resources>

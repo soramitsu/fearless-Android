@@ -78,5 +78,7 @@
     <string name="common_copied">Copied to clipboard</string>
     <string name="connections_add_connection">Add connection</string>
     <string name="connection_management_title">Networks</string>
+    <string name="connection_management_default_title">Default</string>
+    <string name="connection_management_custom_title">Custom</string>
 
 </resources>

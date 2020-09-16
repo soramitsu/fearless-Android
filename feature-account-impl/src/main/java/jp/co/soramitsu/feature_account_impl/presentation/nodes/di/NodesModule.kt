@@ -11,8 +11,8 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NodeListingMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.NodeListingProvider
+import jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.api.NodeListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.impl.NodeListingProvider
 import jp.co.soramitsu.feature_account_impl.presentation.nodes.NodesViewModel
 
 @Module(includes = [ViewModelModule::class])

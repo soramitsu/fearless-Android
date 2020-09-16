@@ -3,9 +3,8 @@ package jp.co.soramitsu.feature_account_impl.presentation.nodes
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NodeListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 class NodesViewModel(
     private val interactor: AccountInteractor,

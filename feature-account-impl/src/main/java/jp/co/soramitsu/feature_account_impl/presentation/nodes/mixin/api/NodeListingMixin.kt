@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api
+package jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.api
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

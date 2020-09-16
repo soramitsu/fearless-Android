@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl
+package jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.impl
 
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -8,7 +8,8 @@ import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.asMutableLiveData
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NodeListingMixin
+import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeHeaderModel
 import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
 
@@ -36,8 +37,8 @@ class NodeListingProvider(
         .observeOn(AndroidSchedulers.mainThread())
 
     private fun transformToModels(list: List<Node>): List<Any> {
-        val defaultHeader = NodeHeaderModel("Default")
-        val customHeader = NodeHeaderModel("Custom")
+        val defaultHeader = NodeHeaderModel(resourceManager.getString(R.string.connection_management_default_title))
+        val customHeader = NodeHeaderModel(resourceManager.getString(R.string.connection_management_custom_title))
 
         val defaultNodes = list.filter(Node::isDefault)
         val customNodes = list.filter { !it.isDefault }
