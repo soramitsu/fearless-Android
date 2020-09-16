@@ -17,7 +17,7 @@ class AccountsViewModel(
     }
 
     fun editClicked() {
-        // TODO
+        accountRouter.openEditAccounts()
     }
 
     fun selectAccountClicked(accountModel: AccountModel) {

@@ -9,9 +9,8 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
-import kotlinx.android.synthetic.main.fragment_accounts.accountsList
-import kotlinx.android.synthetic.main.fragment_accounts.addAccount
-import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
+import kotlinx.android.synthetic.main.fragment_edit_accounts.accountsList
+import kotlinx.android.synthetic.main.fragment_edit_accounts.fearlessToolbar
 
 class EditAccountsFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsAdapter.EditAccountItemHandler {
     private lateinit var adapter: EditAccountsAdapter
@@ -35,8 +34,6 @@ class EditAccountsFragment : BaseFragment<EditAccountsViewModel>(), EditAccounts
         fearlessToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
-
-        addAccount.setOnClickListener { viewModel.addAccountClicked() }
     }
 
     override fun inject() {
