@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.connections.di
+package jp.co.soramitsu.feature_account_impl.presentation.networks.di
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -11,27 +11,26 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.accounts.AccountsViewModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.networks.NetworksViewModel
 
 @Module(includes = [ViewModelModule::class])
-class ConnectionsModule {
+class NetworksModule {
 
     @Provides
     @IntoMap
-    @ViewModelKey(AccountsViewModel::class)
+    @ViewModelKey(NetworksViewModel::class)
     fun provideViewModel(
         interactor: AccountInteractor,
-        router: AccountRouter,
-        accountListingMixin: AccountListingMixin
+        router: AccountRouter
     ): ViewModel {
-        return AccountsViewModel(interactor, router, accountListingMixin)
+        return NetworksViewModel(interactor, router)
     }
 
     @Provides
     fun provideViewModelCreator(
         fragment: Fragment,
         viewModelFactory: ViewModelProvider.Factory
-    ): AccountsViewModel {
-        return ViewModelProvider(fragment, viewModelFactory).get(AccountsViewModel::class.java)
+    ): NetworksViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(NetworksViewModel::class.java)
     }
 }

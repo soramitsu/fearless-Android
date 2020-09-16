@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/connectionUrlTv"
+        app:layout_constraintBottom_toBottomOf="@+id/connectionHost"
         app:layout_constraintStart_toEndOf="@id/connectionCheck"
         app:layout_constraintTop_toTopOf="@+id/accountTitle"
         tools:layout_height="24dp"
@@ -38,7 +38,7 @@
         android:layout_marginTop="@dimen/x1"
         android:layout_marginEnd="16dp"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toTopOf="@+id/connectionUrlTv"
+        app:layout_constraintBottom_toTopOf="@+id/connectionHost"
         app:layout_constraintEnd_toStartOf="@+id/connectionInfo"
         app:layout_constraintStart_toEndOf="@+id/connectionIcon"
         app:layout_constraintTop_toTopOf="parent"
@@ -46,7 +46,7 @@
         tools:text="Kusama, Parity node" />
 
     <TextView
-        android:id="@+id/connectionUrlTv"
+        android:id="@+id/connectionHost"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -65,7 +65,7 @@
         android:layout_marginEnd="16dp"
         android:src="@drawable/ic_info_24"
         android:tint="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/connectionUrlTv"
+        app:layout_constraintBottom_toBottomOf="@+id/connectionHost"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/accountTitle" />
 
@@ -75,6 +75,6 @@
         android:layout_marginTop="8dp"
         android:background="@color/dividerGray"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/connectionUrlTv" />
+        app:layout_constraintTop_toBottomOf="@id/connectionHost" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
