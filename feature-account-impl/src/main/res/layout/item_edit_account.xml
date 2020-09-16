@@ -39,7 +39,7 @@
         android:layout_marginEnd="16dp"
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/accountAddress"
-        app:layout_constraintEnd_toStartOf="@+id/accountInfo"
+        app:layout_constraintEnd_toStartOf="@+id/accountDrag"
         app:layout_constraintStart_toEndOf="@+id/accountIcon"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
@@ -60,7 +60,7 @@
         tools:text="GybH55zsi5nAGybH55zsi5nAGybH55zsi5nAGybH55zsi5nA" />
 
     <ImageView
-        android:id="@+id/accountInfo"
+        android:id="@+id/accountDrag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"

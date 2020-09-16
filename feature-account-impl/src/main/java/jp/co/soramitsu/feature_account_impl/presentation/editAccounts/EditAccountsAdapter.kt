@@ -1,31 +1,31 @@
 package jp.co.soramitsu.feature_account_impl.presentation.editAccounts
 
+import android.annotation.SuppressLint
+import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.ItemTouchHelper
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountGroupHolder
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountsDiffCallback
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountsDiffCallback
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListAdapter
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListHolder
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListing
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.android.synthetic.main.item_edit_account.view.accountAddress
 import kotlinx.android.synthetic.main.item_edit_account.view.accountDelete
+import kotlinx.android.synthetic.main.item_edit_account.view.accountDrag
 import kotlinx.android.synthetic.main.item_edit_account.view.accountIcon
 import kotlinx.android.synthetic.main.item_edit_account.view.accountTitle
 
 class EditAccountsAdapter(
-    private val accountItemHandler: EditAccountItemHandler
+    private val accountItemHandler: EditAccountItemHandler,
+    private val dragHelper: ItemTouchHelper
 ) : GroupedListAdapter<NetworkModel, AccountModel>(AccountsDiffCallback) {
     private var selectedItem: AccountModel? = null
-
-    fun submitListing(accountListing: AccountListing) {
-        selectedItem = accountListing.selectedAccount
-
-        submitList(accountListing.groupedAccounts)
-    }
 
     interface EditAccountItemHandler {
         fun deleteClicked(accountModel: AccountModel)
@@ -36,7 +36,9 @@ class EditAccountsAdapter(
     }
 
     override fun createChildViewHolder(parent: ViewGroup): GroupedListHolder {
-        return EditAccountHolder(parent.inflateChild(R.layout.item_edit_account))
+        val view = parent.inflateChild(R.layout.item_edit_account)
+
+        return EditAccountHolder(view, dragHelper)
     }
 
     override fun bindGroup(holder: GroupedListHolder, group: NetworkModel) {
@@ -48,9 +50,36 @@ class EditAccountsAdapter(
 
         (holder as EditAccountHolder).bind(child, accountItemHandler, isChecked)
     }
+
+    fun unsyncedSwap(payload: UnsyncedSwapPayload) {
+        Log.d("DRAGANDDROP", "Submitted" + payload.newState.filterIsInstance<AccountModel>().map { it.name }.joinToString())
+
+        submitList(payload.newState)
+    }
+
+    fun submitListing(accountListing: AccountListing) {
+        selectedItem = accountListing.selectedAccount
+
+        submitList(accountListing.groupedAccounts)
+    }
+
+    override fun onCurrentListChanged(previousList: MutableList<Any>, currentList: MutableList<Any>) {
+        Log.d("DRAGANDDROP", "Dispatched")
+    }
 }
 
-class EditAccountHolder(view: View) : GroupedListHolder(view) {
+@SuppressLint("ClickableViewAccessibility")
+class EditAccountHolder(view: View, dragHelper: ItemTouchHelper) : GroupedListHolder(view) {
+    init {
+        containerView.accountDrag.setOnTouchListener { _, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                dragHelper.startDrag(this)
+            }
+
+            false
+        }
+    }
+
     fun bind(
         accountModel: AccountModel,
         handler: EditAccountsAdapter.EditAccountItemHandler,

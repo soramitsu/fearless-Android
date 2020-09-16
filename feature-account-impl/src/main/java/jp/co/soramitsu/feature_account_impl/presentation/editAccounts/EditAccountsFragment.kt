@@ -1,9 +1,12 @@
 package jp.co.soramitsu.feature_account_impl.presentation.editAccounts
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
@@ -25,7 +28,10 @@ class EditAccountsFragment : BaseFragment<EditAccountsViewModel>(), EditAccounts
     override fun initViews() {
         accountsList.setHasFixedSize(true)
 
-        adapter = EditAccountsAdapter(this)
+        val dragHelper = createTouchHelper()
+        dragHelper.attachToRecyclerView(accountsList)
+
+        adapter = EditAccountsAdapter(this, dragHelper)
         accountsList.adapter = adapter
 
         fearlessToolbar.setRightActionClickListener {
@@ -51,6 +57,10 @@ class EditAccountsFragment : BaseFragment<EditAccountsViewModel>(), EditAccounts
         viewModel.accountListingLiveData.observe(adapter::submitListing)
 
         viewModel.deleteConfirmationLiveData.observeEvent(::showDeleteConfirmation)
+
+        viewModel.unsyncedSwapLiveData.observe { payload ->
+            payload?.let { adapter.unsyncedSwap(payload) }
+        }
     }
 
     private fun showDeleteConfirmation(account: AccountModel) {
@@ -66,5 +76,47 @@ class EditAccountsFragment : BaseFragment<EditAccountsViewModel>(), EditAccounts
 
     override fun deleteClicked(accountModel: AccountModel) {
         viewModel.deleteClicked(accountModel)
+    }
+
+    private fun createTouchHelper(): ItemTouchHelper {
+        val callback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
+            var dragFrom: Int? = null
+            var dragTo: Int? = null
+
+            override fun isLongPressDragEnabled() = false
+
+            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+                val from = viewHolder.adapterPosition
+                val to = target.adapterPosition
+
+                if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
+
+                if (dragFrom == null) {
+                    dragFrom = from
+                }
+
+                dragTo = to
+
+                viewModel.onItemDrag(from, to)
+
+                return false
+            }
+
+            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+                super.clearView(recyclerView, viewHolder)
+
+                if (dragFrom != null && dragTo != null) {
+                    viewModel.onItemDrop()
+                }
+
+                dragFrom = null
+                dragTo = null
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            }
+        }
+
+        return ItemTouchHelper(callback)
     }
 }

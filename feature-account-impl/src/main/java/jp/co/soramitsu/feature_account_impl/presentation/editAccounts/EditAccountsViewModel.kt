@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation.editAccounts
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -11,7 +12,12 @@ import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapAccountModelToAccount
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListingMixin
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+
+data class UnsyncedSwapPayload(val newState: List<Any>, val from: Int, val to: Int)
 
 class EditAccountsViewModel(
     private val accountInteractor: AccountInteractor,
@@ -22,12 +28,15 @@ class EditAccountsViewModel(
     private val _deleteConfirmationLiveData = MutableLiveData<Event<AccountModel>>()
     val deleteConfirmationLiveData: LiveData<Event<AccountModel>> = _deleteConfirmationLiveData
 
-    fun backClicked() {
-        accountRouter.back()
+    private val _unsyncedSwapLiveData = MutableLiveData<UnsyncedSwapPayload?>()
+    val unsyncedSwapLiveData : LiveData<UnsyncedSwapPayload?> = _unsyncedSwapLiveData
+
+    init {
+        disposables += accountListingDisposable
     }
 
-    fun addAccountClicked() {
-        accountRouter.openAddAccount()
+    fun backClicked() {
+        accountRouter.back()
     }
 
     fun deleteClicked(account: AccountModel) {
@@ -45,7 +54,49 @@ class EditAccountsViewModel(
             .subscribeToError { showError(it.message!!) }
     }
 
-    init {
-        disposables += accountListingDisposable
+    fun onItemDrag(from: Int, to: Int) {
+        val currentState = _unsyncedSwapLiveData.value?.newState
+            ?: accountListingLiveData.value!!.groupedAccounts
+
+        val fromElement = currentState[from]
+        val toElement = currentState[to]
+
+        if (isSwapable(fromElement, toElement)) {
+            val newUnsyncedState = currentState.toMutableList()
+
+            newUnsyncedState.add(to, newUnsyncedState.removeAt(from))
+
+            Log.d("DRAGANDDROP", "Submitted" + newUnsyncedState.filterIsInstance<AccountModel>().map { it.name }.joinToString())
+
+            _unsyncedSwapLiveData.value = UnsyncedSwapPayload(newUnsyncedState, from, to)
+        }
     }
+
+    fun onItemDrop() {
+        val unsyncedState = _unsyncedSwapLiveData.value?.newState ?: return
+
+        val accountsToUpdate = unsyncedState.filterIsInstance<AccountModel>()
+            .mapIndexed { index: Int, accountModel: AccountModel ->
+                mapAccountModelToAccount(accountModel, index)
+            }
+
+        disposables += accountInteractor.updateAccountPositionsInNetwork(accountsToUpdate)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                _unsyncedSwapLiveData.value = null
+            }, {
+                showError(it.message!!)
+            })
+    }
+}
+
+
+@UseExperimental(ExperimentalContracts::class)
+private fun isSwapable(fromElement: Any, toElement: Any): Boolean {
+    contract {
+        returns(true) implies (fromElement is AccountModel && toElement is AccountModel)
+    }
+
+    return fromElement is AccountModel && toElement is AccountModel && fromElement.network.type == toElement.network.type
 }

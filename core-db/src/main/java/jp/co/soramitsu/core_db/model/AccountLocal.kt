@@ -9,5 +9,6 @@ data class AccountLocal(
     val username: String,
     val publicKey: String,
     val cryptoType: Int,
+    val position: Int,
     val networkType: Int
 )

@@ -17,6 +17,6 @@ object AccountsDiffCallback : BaseGroupedDiffCallback<NetworkModel, AccountModel
     }
 
     override fun areChildContentsTheSame(oldItem: AccountModel, newItem: AccountModel): Boolean {
-        return oldItem == newItem
+        return true
     }
 }

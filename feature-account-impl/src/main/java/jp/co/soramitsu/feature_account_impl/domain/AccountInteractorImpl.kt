@@ -188,6 +188,14 @@ class AccountInteractorImpl(
         return accountRepository.deleteAccount(address)
     }
 
+    override fun updateAccountPositionsInNetwork(newOrdering: List<Account>): Completable {
+        return Single.fromCallable {
+            newOrdering.mapIndexed { index: Int, account: Account ->
+                account.copy(position = index)
+            }
+        }.flatMapCompletable(accountRepository::updateAccounts)
+    }
+
     private fun maybeUpdateSelectedAccount(newAccount: Account): Completable {
         return accountRepository.observeSelectedAccount()
             .firstOrError()
