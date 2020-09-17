@@ -46,6 +46,8 @@ interface AccountFeatureComponent : AccountFeatureApi {
 
     fun accountDetailsComponentFactory(): AccountDetailsComponent.Factory
 
+    fun connectionsComponentFactory(): NodesComponent.Factory
+
     @Component.Factory
     interface Factory {
 

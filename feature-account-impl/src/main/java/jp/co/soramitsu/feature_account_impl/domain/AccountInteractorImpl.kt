@@ -219,4 +219,12 @@ class AccountInteractorImpl(
             .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
             .flatten()
     }
+
+    override fun observeNodes(): Observable<List<Node>> {
+        return accountRepository.observeNodes()
+    }
+
+    override fun observeSelectedNode(): Observable<Node> {
+        return accountRepository.observeSelectedNode()
+    }
 }

@@ -95,6 +95,10 @@ interface AccountRepository {
 
     fun updateAccount(newAccount: Account): Completable
 
+    fun observeNodes(): Observable<List<Node>>
+
+    fun observeSelectedNode(): Observable<Node>
+
     fun updateAccounts(accounts: List<Account>): Completable
 
     fun deleteAccount(address: String): Completable

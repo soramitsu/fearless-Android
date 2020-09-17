@@ -32,7 +32,10 @@ class AccountDataSourceImpl(
     private val encryptedPreferences: EncryptedPreferences,
     private val jsonMapper: Gson
 ) : AccountDataSource {
+
     private val selectedAccountSubject = createAccountBehaviorSubject()
+
+    private val selectedNodeSubject = createNodeBehaviorSubject()
 
     override fun saveAuthType(authType: AuthType) {
         preferences.putString(PREFS_AUTH_TYPE, authType.toString())
@@ -64,14 +67,14 @@ class AccountDataSourceImpl(
     }
 
     override fun saveSelectedNode(node: Node) {
-        val raw = jsonMapper.toJson(node)
+        selectedNodeSubject.onNext(node)
 
+        val raw = jsonMapper.toJson(node)
         preferences.putString(PREFS_SELECTED_NODE, raw)
     }
 
     override fun getSelectedNode(): Node? {
         val raw = preferences.getString(PREFS_SELECTED_NODE) ?: return null
-
         return jsonMapper.fromJson(raw, Node::class.java)
     }
 
@@ -142,6 +145,10 @@ class AccountDataSourceImpl(
         }
     }
 
+    override fun observeSelectedNode(): Observable<Node> {
+        return selectedNodeSubject
+    }
+
     private fun getSelectedAccount(): Account {
         val raw = preferences.getString(PREFS_SELECTED_ACCOUNT)
             ?: throw IllegalArgumentException("No account selected")
@@ -154,6 +161,18 @@ class AccountDataSourceImpl(
 
         if (preferences.contains(PREFS_SELECTED_ACCOUNT)) {
             subject.onNext(getSelectedAccount())
+        }
+
+        return subject
+    }
+
+    private fun createNodeBehaviorSubject(): BehaviorSubject<Node> {
+        val subject = BehaviorSubject.create<Node>()
+
+        if (preferences.contains(PREFS_SELECTED_NODE)) {
+            val selectedNode = getSelectedNode()
+                ?: throw IllegalArgumentException("No node selected")
+            subject.onNext(selectedNode)
         }
 
         return subject

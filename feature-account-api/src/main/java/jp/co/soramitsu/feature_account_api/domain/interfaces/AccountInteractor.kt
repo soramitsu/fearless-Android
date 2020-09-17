@@ -81,4 +81,8 @@ interface AccountInteractor {
     fun deleteAccount(address: String): Completable
 
     fun updateAccountPositionsInNetwork(newOrdering: List<Account>): Completable
+
+    fun observeNodes(): Observable<List<Node>>
+
+    fun observeSelectedNode(): Observable<Node>
 }

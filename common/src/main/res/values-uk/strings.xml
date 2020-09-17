@@ -76,4 +76,8 @@
     <string name="account_address">Адреса рахунку</string>
     <string name="account_export">Експортний рахунок</string>
     <string name="common_copied">Скопійовано в буфер обміну</string>
+    <string name="connections_add_connection">Додати підключення</string>
+    <string name="connection_management_title">Мережі</string>
+    <string name="connection_management_default_title">За замовчуванням</string>
+    <string name="connection_management_custom_title">На замовлення</string>
 </resources>

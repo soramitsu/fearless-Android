@@ -59,4 +59,8 @@ class ProfileViewModel(
     fun accountsClicked() {
         router.openAccounts()
     }
+
+    fun networksClicked() {
+        router.openNodes()
+    }
 }
