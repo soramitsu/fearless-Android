@@ -7,7 +7,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 class AccountAlreadyExistsException : Exception()
 
@@ -54,8 +53,6 @@ interface AccountRepository {
     fun observeAccounts(): Observable<List<Account>>
 
     fun getAccount(address: String): Single<Account>
-
-    fun getSourceTypes(): Single<List<SourceType>>
 
     fun importFromMnemonic(
         keyString: String,

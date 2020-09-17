@@ -3,42 +3,37 @@ package jp.co.soramitsu.feature_account_impl.presentation.importing
 import android.Manifest
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Observer
 import com.google.zxing.integration.android.IntentIntegrator
 import com.tbruyelle.rxpermissions2.RxPermissions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.EventObserver
-import jp.co.soramitsu.common.utils.makeGone
-import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.ImportSourceView
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.JsonImportView
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.MnemonicImportView
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.SeedImportView
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserBottomSheetDialog
 import kotlinx.android.synthetic.main.fragment_import_account.advancedBlockView
-import kotlinx.android.synthetic.main.fragment_import_account.jsonFileEt
-import kotlinx.android.synthetic.main.fragment_import_account.jsonFileIcon
-import kotlinx.android.synthetic.main.fragment_import_account.jsonFileInput
-import kotlinx.android.synthetic.main.fragment_import_account.keyEt
-import kotlinx.android.synthetic.main.fragment_import_account.keyInput
-import kotlinx.android.synthetic.main.fragment_import_account.keyInputTitle
 import kotlinx.android.synthetic.main.fragment_import_account.nextBtn
-import kotlinx.android.synthetic.main.fragment_import_account.passwordEt
-import kotlinx.android.synthetic.main.fragment_import_account.passwordInput
+import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeContainer
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeText
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
-import kotlinx.android.synthetic.main.fragment_import_account.usernameEt
-import kotlinx.android.synthetic.main.fragment_import_account.usernameHintTv
+import kotlinx.android.synthetic.main.fragment_import_account.usernameField
 import kotlinx.android.synthetic.main.fragment_import_account.usernameInput
+import javax.inject.Inject
 
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
@@ -47,6 +42,11 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     private lateinit var integrator: IntentIntegrator
+
+    @Inject
+    lateinit var externalFileReader: FileReader
+
+    private var sourceViews : List<View>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,7 +67,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
         toolbar.setRightActionClickListener { viewModel.qrScanClicked() }
 
-        sourceTypeInput.setOnClickListener { viewModel.sourceTypeInputClicked() }
+        sourceTypeInput.setOnClickListener { viewModel.openSourceChooserClicked() }
 
         advancedBlockView.setOnEncryptionTypeClickListener {
             viewModel.chooseEncryptionClicked()
@@ -77,39 +77,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             viewModel.chooseNetworkClicked()
         }
 
-        nextBtn.setOnClickListener {
-            viewModel.nextClicked(
-                keyEt.text.toString(),
-                usernameEt.text.toString(),
-                passwordEt.text.toString(),
-                jsonFileEt.text.toString(),
-                advancedBlockView.getDerivationPath()
-            )
-        }
-
-        jsonFileIcon.setOnClickListener {
-            val intent = Intent(Intent.ACTION_GET_CONTENT)
-            intent.type = "application/json"
-            startActivityForResult(intent, PICKFILE_RESULT_CODE)
-        }
-
-        usernameEt.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                viewModel.inputChanges(s.toString(), keyEt.text.toString())
-            }
-        })
-
-        keyEt.onTextChanged { viewModel.inputChanges(usernameEt.text.toString(), it) }
-
-        jsonFileEt.onTextChanged { viewModel.inputChanges(it, passwordEt.text.toString()) }
-
-        passwordEt.onTextChanged { viewModel.inputChanges(jsonFileEt.text.toString(), it) }
+        nextBtn.setOnClickListener { viewModel.nextClicked() }
     }
 
     override fun inject() {
@@ -123,85 +91,69 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun subscribe(viewModel: ImportAccountViewModel) {
-        observe(viewModel.sourceTypeChooserDialogInitialData, EventObserver {
+        sourceViews = viewModel.sourceTypes.map {
+            val view = createSourceView(it)
+
+            view.observeSource(it, viewLifecycleOwner)
+
+            view
+        }
+
+        viewModel.showSourceChooserLiveData.observeEvent {
             SourceTypeChooserBottomSheetDialog(requireActivity(), it) {
                 viewModel.sourceTypeChanged(it)
             }.show()
-        })
+        }
 
-        observe(viewModel.selectedSourceTypeLiveData, Observer {
-            sourceTypeText.text = it.name
-            keyInputTitle.text = it.name
-            keyEt.setText("")
-            jsonFileEt.setText("")
-            passwordEt.setText("")
-        })
+        viewModel.selectedSourceTypeLiveData.observe {
+            val index = viewModel.sourceTypes.indexOf(it)
 
-        observe(viewModel.encryptionTypeChooserEvent, EventObserver {
+            sourceTypeContainer.removeAllViews()
+            sourceTypeContainer.addView(sourceViews!![index])
+
+            sourceTypeText.setText(it.nameRes)
+        }
+
+        viewModel.encryptionTypeChooserEvent.observeEvent {
             EncryptionTypeChooserBottomSheetDialog(
                 requireActivity(),
                 it,
                 viewModel.selectedEncryptionTypeLiveData::setValue
             )
                 .show()
-        })
+        }
 
-        observe(viewModel.selectedEncryptionTypeLiveData, Observer {
+        viewModel.selectedEncryptionTypeLiveData.observe {
             advancedBlockView.setEncryption(it.name)
-        })
+        }
 
-        observe(viewModel.networkChooserEvent, EventObserver {
+        viewModel.networkChooserEvent.observeEvent {
             NetworkChooserBottomSheetDialog(
                 requireActivity(),
                 it,
                 viewModel.selectedNetworkLiveData::setValue
             ).show()
-        })
+        }
 
-        observe(viewModel.selectedNetworkLiveData, Observer {
+        viewModel.selectedNetworkLiveData.observe {
             advancedBlockView.setNetworkIconResource(it.networkTypeUI.icon)
             advancedBlockView.setNetworkName(it.name)
-        })
+        }
 
-        observe(viewModel.usernameVisibilityLiveData, Observer {
-            if (it) {
-                usernameInput.makeVisible()
-                usernameHintTv.makeVisible()
-            } else {
-                usernameInput.makeGone()
-                usernameHintTv.makeGone()
-            }
-        })
-
-        observe(viewModel.passwordVisibilityLiveData, Observer {
-            if (it) {
-                passwordInput.makeVisible()
-            } else {
-                passwordInput.makeGone()
-            }
-        })
-
-        observe(viewModel.jsonInputVisibilityLiveData, Observer {
-            if (it) {
-                jsonFileInput.makeVisible()
-                keyInput.makeGone()
-            } else {
-                jsonFileInput.makeGone()
-                keyInput.makeVisible()
-            }
-        })
-
-        observe(viewModel.qrScanStartLiveData, Observer {
+        viewModel.qrScanStartLiveData.observeEvent {
             RxPermissions(this@ImportAccountFragment)
                 .request(Manifest.permission.CAMERA)
                 .subscribe {
                     if (it) integrator.initiateScan()
                 }
-        })
+        }
 
-        observe(viewModel.nextButtonEnabledLiveData, Observer {
+        viewModel.nextButtonEnabledLiveData.observe {
             nextBtn.isEnabled = it
-        })
+        }
+
+        advancedBlockView.derivationPathField.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)
+        usernameField.bindTo(viewModel.nameLiveData, viewLifecycleOwner)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -214,11 +166,30 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     private fun processJsonOpenIntent(intent: Intent) {
-        val file = requireActivity().contentResolver.openInputStream(intent.data!!)
-        file?.reader(Charsets.UTF_8)?.readText()?.let {
-            if (it.length < 1000) {
-                jsonFileEt.setText(it)
+        val fileContent = externalFileReader.readFile(intent.data!!)
+
+        viewModel.fileChosen(fileContent)
+    }
+
+    private fun openFilePicker() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "application/json"
+        startActivityForResult(intent, PICKFILE_RESULT_CODE)
+    }
+
+    private fun createSourceView(source: ImportSource) : ImportSourceView {
+        val context = requireContext()
+
+        return when(source) {
+            is JsonImportSource ->  {
+                val view = JsonImportView(context)
+
+                view.setImportFromFileClickListener(::openFilePicker)
+
+                view
             }
+            is MnemonicImportSource -> MnemonicImportView(context)
+            is RawSeedImportSource -> SeedImportView(context)
         }
     }
 }

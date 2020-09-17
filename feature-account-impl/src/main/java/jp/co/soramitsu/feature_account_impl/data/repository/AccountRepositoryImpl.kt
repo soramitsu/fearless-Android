@@ -23,7 +23,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import org.spongycastle.util.encoders.Hex
 
@@ -169,16 +168,6 @@ class AccountRepositoryImpl(
     override fun getAccount(address: String): Single<Account> {
         return accountDao.getAccount(address)
             .map(::mapAccountLocalToAccount)
-    }
-
-    override fun getSourceTypes(): Single<List<SourceType>> {
-        return Single.just(
-            listOf(
-                SourceType.MNEMONIC_PASSPHRASE,
-                SourceType.RAW_SEED,
-                SourceType.KEYSTORE
-            )
-        )
     }
 
     override fun importFromMnemonic(

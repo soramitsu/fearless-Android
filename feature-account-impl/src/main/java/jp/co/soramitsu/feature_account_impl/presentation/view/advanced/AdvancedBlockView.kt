@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.view.View.OnClickListener
+import android.widget.EditText
 import android.widget.LinearLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -43,6 +44,9 @@ class AdvancedBlockView @JvmOverloads constructor(
         attrs?.let {
         }
     }
+
+    val derivationPathField: EditText
+        get() = derivationPathEt
 
     private fun showAdvanced() {
         advancedView.makeVisible()

@@ -3,6 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/black"
     android:fitsSystemWindows="true">
 
@@ -146,7 +148,7 @@
                 android:visibility="visible">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/usernameEt"
+                    android:id="@+id/usernameField"
                     style="@style/Widget.Fearless.Input.Primary.Internal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -188,43 +190,16 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <LinearLayout
-                android:id="@+id/keyInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+            <FrameLayout
+                tools:layout_height="200dp"
                 android:layout_marginStart="@dimen/x2"
                 android:layout_marginTop="@dimen/x2"
                 android:layout_marginEnd="@dimen/x2"
-                android:background="@drawable/bg_big_input_shape_selector"
-                android:orientation="vertical"
-                android:paddingStart="@dimen/x2"
-                android:paddingTop="@dimen/x1"
-                android:paddingEnd="@dimen/x2"
-                android:paddingBottom="@dimen/x1">
-
-                <TextView
-                    android:id="@+id/keyInputTitle"
-                    style="@style/TextAppearance.Soramitsu.Body2"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/recovery_passphrase"
-                    android:textColor="@color/colorHint"
-                    app:layout_constraintEnd_toStartOf="@id/icon"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <EditText
-                    android:id="@+id/keyEt"
-                    android:layout_width="match_parent"
-                    android:layout_height="160dp"
-                    android:background="@null"
-                    android:gravity="top"
-                    android:inputType="textMultiLine|textVisiblePassword"
-                    android:minHeight="156dp"
-                    android:padding="0dp"
-                    android:textColor="@color/white" />
-
-            </LinearLayout>
+                android:animateLayoutChanges="true"
+                tools:background="@drawable/bg_big_input_shape"
+                android:id="@+id/sourceTypeContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
             <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/advancedBlockView"
