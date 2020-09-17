@@ -17,7 +17,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingP
 import jp.co.soramitsu.feature_account_impl.presentation.account.edit.EditAccountsViewModel
 
 @Module(includes = [ViewModelModule::class])
-class EditAccountsModule {
+class AccountEditModule {
 
     @Provides
     @ScreenScope

@@ -4,23 +4,23 @@ import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
-import jp.co.soramitsu.feature_account_impl.presentation.account.edit.EditAccountsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.account.edit.AccountEditFragment
 
 @Subcomponent(
     modules = [
-        EditAccountsModule::class
+        AccountEditModule::class
     ]
 )
 @ScreenScope
-interface EditAccountsComponent {
+interface AccountEditComponent {
 
     @Subcomponent.Factory
     interface Factory {
 
         fun create(
             @BindsInstance fragment: Fragment
-        ): EditAccountsComponent
+        ): AccountEditComponent
     }
 
-    fun inject(fragment: EditAccountsFragment)
+    fun inject(fragment: AccountEditFragment)
 }

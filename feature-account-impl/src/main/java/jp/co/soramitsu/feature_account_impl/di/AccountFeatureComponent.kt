@@ -10,10 +10,11 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.about.di.AboutComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.di.AccountDetailsComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.di.AccountListComponent
-import jp.co.soramitsu.feature_account_impl.presentation.account.edit.di.EditAccountsComponent
+import jp.co.soramitsu.feature_account_impl.presentation.account.edit.di.AccountEditComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.di.ImportAccountComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.di.BackupMnemonicComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.di.ConfirmMnemonicComponent
+import jp.co.soramitsu.feature_account_impl.presentation.nodes.di.NodesComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.di.PinCodeComponent
 import jp.co.soramitsu.feature_account_impl.presentation.profile.di.ProfileComponent
 
@@ -42,7 +43,7 @@ interface AccountFeatureComponent : AccountFeatureApi {
 
     fun accountsComponentFactory(): AccountListComponent.Factory
 
-    fun editAccountsComponentFactory(): EditAccountsComponent.Factory
+    fun editAccountsComponentFactory(): AccountEditComponent.Factory
 
     fun accountDetailsComponentFactory(): AccountDetailsComponent.Factory
 

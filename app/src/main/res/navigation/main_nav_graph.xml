@@ -83,7 +83,7 @@
 
     <fragment
         android:id="@+id/editAccountsFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.edit.EditAccountsFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.edit.AccountEditFragment"
         android:label="EditAccountsFragment"
         tools:layout="@layout/fragment_edit_accounts">
 

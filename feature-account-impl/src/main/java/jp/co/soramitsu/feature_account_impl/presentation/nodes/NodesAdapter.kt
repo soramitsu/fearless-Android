@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.nodes
 
 import android.view.View
 import android.view.ViewGroup
+import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.BaseGroupedDiffCallback
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListAdapter
@@ -43,11 +44,11 @@ class NodesAdapter(
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
-        return NodeGroupHolder(inflate(parent, R.layout.item_node_group))
+        return NodeGroupHolder(parent.inflateChild(R.layout.item_node_group))
     }
 
     override fun createChildViewHolder(parent: ViewGroup): GroupedListHolder {
-        return NodeHolder(inflate(parent, R.layout.item_node))
+        return NodeHolder(parent.inflateChild(R.layout.item_node))
     }
 
     override fun bindGroup(holder: GroupedListHolder, group: NodeHeaderModel) {

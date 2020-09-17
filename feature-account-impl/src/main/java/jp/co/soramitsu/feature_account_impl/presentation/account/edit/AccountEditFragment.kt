@@ -15,7 +15,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
 import kotlinx.android.synthetic.main.fragment_edit_accounts.accountsList
 import kotlinx.android.synthetic.main.fragment_edit_accounts.fearlessToolbar
 
-class EditAccountsFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsAdapter.EditAccountItemHandler {
+class AccountEditFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsAdapter.EditAccountItemHandler {
     private lateinit var adapter: EditAccountsAdapter
 
     override fun onCreateView(
