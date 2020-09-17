@@ -1,9 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation.common.groupedList
 
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -50,12 +48,6 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
 
     protected inline fun <reified T> findIndexOfElement(crossinline condition: (T) -> Boolean): Int {
         return currentList.indexOfFirst { it is T && condition(it) }
-    }
-
-    protected fun inflate(parent: ViewGroup, @LayoutRes id: Int): View {
-        return LayoutInflater.from(parent.context).run {
-            inflate(id, parent, false)
-        }
     }
 }
 

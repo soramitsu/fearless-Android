@@ -1,10 +1,12 @@
 package jp.co.soramitsu.feature_account_impl.presentation.common
 
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
@@ -36,4 +38,10 @@ fun mapCryptoTypeToCryptoTypeModel(
     }
 
     return CryptoTypeModel(name, encryptionType)
+}
+
+fun mapAccountModelToAccount(accountModel: AccountModel, position: Int): Account {
+    return with(accountModel) {
+        Account(address, name, publicKey, cryptoType, position, network)
+    }
 }

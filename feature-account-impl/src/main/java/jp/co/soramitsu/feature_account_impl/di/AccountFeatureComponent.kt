@@ -8,12 +8,13 @@ import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.about.di.AboutComponent
-import jp.co.soramitsu.feature_account_impl.presentation.accountDetials.di.AccountDetailsComponent
-import jp.co.soramitsu.feature_account_impl.presentation.accounts.di.AccountsComponent
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.di.NodesComponent
+import jp.co.soramitsu.feature_account_impl.presentation.account.details.di.AccountDetailsComponent
+import jp.co.soramitsu.feature_account_impl.presentation.account.list.di.AccountListComponent
+import jp.co.soramitsu.feature_account_impl.presentation.account.edit.di.AccountEditComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.di.ImportAccountComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.di.BackupMnemonicComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.di.ConfirmMnemonicComponent
+import jp.co.soramitsu.feature_account_impl.presentation.nodes.di.NodesComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.di.PinCodeComponent
 import jp.co.soramitsu.feature_account_impl.presentation.profile.di.ProfileComponent
 
@@ -40,7 +41,9 @@ interface AccountFeatureComponent : AccountFeatureApi {
 
     fun confirmMnemonicComponentFactory(): ConfirmMnemonicComponent.Factory
 
-    fun accountsComponentFactory(): AccountsComponent.Factory
+    fun accountsComponentFactory(): AccountListComponent.Factory
+
+    fun editAccountsComponentFactory(): AccountEditComponent.Factory
 
     fun accountDetailsComponentFactory(): AccountDetailsComponent.Factory
 

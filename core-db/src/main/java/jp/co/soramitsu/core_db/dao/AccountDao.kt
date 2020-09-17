@@ -13,7 +13,7 @@ import jp.co.soramitsu.core_db.model.AccountLocal
 @Dao
 abstract class AccountDao {
 
-    @Query("select * from users")
+    @Query("select * from users order by networkType, position")
     abstract fun observeAccounts(): Observable<List<AccountLocal>>
 
     @Query("select * from users where address = :address")
@@ -23,8 +23,14 @@ abstract class AccountDao {
     abstract fun insert(account: AccountLocal): Long
 
     @Query("DELETE FROM users where address = :address")
-    abstract fun remove(address: String)
+    abstract fun remove(address: String): Completable
 
     @Update
     abstract fun updateAccount(account: AccountLocal): Completable
+
+    @Update
+    abstract fun updateAccounts(accounts: List<AccountLocal>): Completable
+
+    @Query("SELECT COALESCE(MAX(position), 0)  + 1 from users")
+    abstract fun getNextPosition(): Int
 }

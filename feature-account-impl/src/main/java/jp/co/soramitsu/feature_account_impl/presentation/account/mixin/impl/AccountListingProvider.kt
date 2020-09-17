@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl
+package jp.co.soramitsu.feature_account_impl.presentation.account.mixin.impl
 
 import android.graphics.drawable.PictureDrawable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -6,13 +6,15 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.asMutableLiveData
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Network
-import jp.co.soramitsu.feature_account_impl.presentation.accounts.model.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListing
+import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListingMixin
 
 private const val ICON_SIZE_IN_PX = 50
 
@@ -22,11 +24,16 @@ class AccountListingProvider(
 ) : AccountListingMixin {
     override val accountListingDisposable: CompositeDisposable = CompositeDisposable()
 
-    override val groupedAccountModelsLiveData =
-        getGroupedAccounts().asLiveData(accountListingDisposable)
+    private val groupedAccountModelsLiveData = getGroupedAccounts()
+        .asLiveData(accountListingDisposable)
 
     override val selectedAccountLiveData = getSelectedAccountModel()
         .asMutableLiveData(accountListingDisposable)
+
+    override val accountListingLiveData = groupedAccountModelsLiveData
+        .combine(selectedAccountLiveData) { groupedAccounts, selected ->
+            AccountListing(groupedAccounts, selected)
+        }
 
     private fun getSelectedAccountModel() = accountInteractor.observeSelectedAccount()
         .subscribeOn(Schedulers.computation())
@@ -53,7 +60,9 @@ class AccountListingProvider(
     private fun transformAccount(account: Account): AccountModel {
         val picture = generateIcon(account)
 
-        return AccountModel(account.address, account.name, picture)
+        return with(account) {
+            AccountModel(address, name, picture, publicKey, cryptoType, network)
+        }
     }
 
     private fun generateIcon(account: Account): PictureDrawable {

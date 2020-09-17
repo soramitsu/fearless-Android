@@ -80,4 +80,7 @@
     <string name="connection_management_title">Сети</string>
     <string name="connection_management_default_title">По умолчанию</string>
     <string name="connection_management_custom_title">Добавленные</string>
+    <string name="account_delete_confirmation_title">Забыли аккаунт?</string>
+    <string name="account_delete_confirmation_description">Прежде чем продолжить, убедитесь, что вы создали резервную копию своей учетной записи.</string>
+    <string name="account_delete_confirm">Забыть</string>
 </resources>

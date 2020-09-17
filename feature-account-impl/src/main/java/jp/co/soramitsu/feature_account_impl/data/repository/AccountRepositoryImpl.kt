@@ -221,19 +221,11 @@ class AccountRepositoryImpl(
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
-            val accountLocal = AccountLocal(
-                address = address,
-                username = username,
-                publicKey = publicKeyEncoded,
-                cryptoType = selectedEncryptionType.ordinal,
-                networkType = node.networkType.ordinal
-            )
-
-            insertAccount(accountLocal)
+            val accountLocal = insertAccount(address, username, publicKeyEncoded, selectedEncryptionType, node.networkType)
 
             val network = getNetworkForType(node.networkType)
 
-            Account(address, username, publicKeyEncoded, selectedEncryptionType, network)
+            Account(address, username, publicKeyEncoded, selectedEncryptionType, accountLocal.position, network)
         }
             .flatMapCompletable(::maybeSelectAccount)
             .andThen(selectNode(node))
@@ -306,6 +298,16 @@ class AccountRepositoryImpl(
         return accountDao.updateAccount(mapAccountToAccountLocal(newAccount))
     }
 
+    override fun updateAccounts(accounts: List<Account>): Completable {
+        val accountsLocal = accounts.map(::mapAccountToAccountLocal)
+
+        return accountDao.updateAccounts(accountsLocal)
+    }
+
+    override fun deleteAccount(address: String): Completable {
+        return accountDao.remove(address)
+    }
+
     private fun saveAccountData(
         accountName: String,
         mnemonic: String,
@@ -329,19 +331,11 @@ class AccountRepositoryImpl(
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
-            val userLocal = AccountLocal(
-                address = address,
-                username = accountName,
-                publicKey = publicKeyEncoded,
-                cryptoType = cryptoType.ordinal,
-                networkType = node.networkType.ordinal
-            )
-
-            insertAccount(userLocal)
+            val accountLocal = insertAccount(address, accountName, publicKeyEncoded, cryptoType, node.networkType)
 
             val network = getNetworkForType(node.networkType)
 
-            Account(address, accountName, publicKeyEncoded, cryptoType, network)
+            Account(address, accountName, publicKeyEncoded, cryptoType, accountLocal.position, network)
         }
     }
 
@@ -371,7 +365,8 @@ class AccountRepositoryImpl(
                 name = username,
                 publicKey = publicKey,
                 cryptoType = CryptoType.values()[accountLocal.cryptoType],
-                network = network
+                network = network,
+                position = position
             )
         }
     }
@@ -385,7 +380,8 @@ class AccountRepositoryImpl(
                 username = nameLocal,
                 cryptoType = cryptoType.ordinal,
                 networkType = network.type.ordinal,
-                publicKey = publicKey
+                publicKey = publicKey,
+                position = position
             )
         }
     }
@@ -400,8 +396,30 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun insertAccount(account: AccountLocal) = try {
+    private fun insertAccount(
+        address: String,
+        accountName: String,
+        publicKeyEncoded: String,
+        cryptoType: CryptoType,
+        networkType: Node.NetworkType
+    ) = try {
+        val networkTypeLocal = networkType.ordinal
+        val cryptoTypeLocal = cryptoType.ordinal
+
+        val positionInGroup = accountDao.getNextPosition()
+
+        val account = AccountLocal(
+            address = address,
+            username = accountName,
+            publicKey = publicKeyEncoded,
+            cryptoType = cryptoTypeLocal,
+            networkType = networkTypeLocal,
+            position = positionInGroup
+        )
+
         accountDao.insert(account)
+
+        account
     } catch (e: SQLiteConstraintException) {
         throw AccountAlreadyExistsException()
     }

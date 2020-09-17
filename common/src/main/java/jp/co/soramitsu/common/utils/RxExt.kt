@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.utils
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
@@ -66,3 +67,5 @@ fun <T> Observable<T>.asMutableLiveData(
 operator fun CompositeDisposable.plusAssign(child: Disposable) {
     add(child)
 }
+
+fun Completable.subscribeToError(onError: (Throwable) -> Unit) = subscribe({ }, onError)

@@ -1,26 +1,26 @@
-package jp.co.soramitsu.feature_account_impl.presentation.accounts.di
+package jp.co.soramitsu.feature_account_impl.presentation.account.list.di
 
 import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
-import jp.co.soramitsu.feature_account_impl.presentation.accounts.AccountsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListFragment
 
 @Subcomponent(
     modules = [
-        AccountsModule::class
+        AccountListModule::class
     ]
 )
 @ScreenScope
-interface AccountsComponent {
+interface AccountListComponent {
 
     @Subcomponent.Factory
     interface Factory {
 
         fun create(
             @BindsInstance fragment: Fragment
-        ): AccountsComponent
+        ): AccountListComponent
     }
 
-    fun inject(fragment: AccountsFragment)
+    fun inject(fragment: AccountListFragment)
 }

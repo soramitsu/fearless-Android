@@ -5,7 +5,7 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.accountDetials.AccountDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
@@ -126,5 +126,13 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
         val extras = AccountDetailsFragment.getBundle(address)
 
         navController?.navigate(R.id.action_accountsFragment_to_accountDetailsFragment, extras)
+    }
+
+    override fun openEditAccounts() {
+        navController?.navigate(R.id.action_accountsFragment_to_editAccountsFragment)
+    }
+
+    override fun backToMainScreen() {
+        navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
     }
 }
