@@ -32,7 +32,6 @@ import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeText
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
 import kotlinx.android.synthetic.main.fragment_import_account.usernameField
-import kotlinx.android.synthetic.main.fragment_import_account.usernameInput
 import javax.inject.Inject
 
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
@@ -46,7 +45,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     @Inject
     lateinit var externalFileReader: FileReader
 
-    private var sourceViews : List<View>? = null
+    private var sourceViews: List<View>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -177,11 +176,11 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         startActivityForResult(intent, PICKFILE_RESULT_CODE)
     }
 
-    private fun createSourceView(source: ImportSource) : ImportSourceView {
+    private fun createSourceView(source: ImportSource): ImportSourceView {
         val context = requireContext()
 
-        return when(source) {
-            is JsonImportSource ->  {
+        return when (source) {
+            is JsonImportSource -> {
                 val view = JsonImportView(context)
 
                 view.setImportFromFileClickListener(::openFilePicker)

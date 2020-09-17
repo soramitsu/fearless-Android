@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceTypeListAdapter.*
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceTypeListAdapter.SourceItemHandler
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import kotlinx.android.synthetic.main.item_source.view.rightIcon
 import kotlinx.android.synthetic.main.item_source.view.sourceTv

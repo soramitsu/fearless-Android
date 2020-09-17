@@ -5,7 +5,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.utils.isNotEmpty
-import jp.co.soramitsu.common.utils.setValueIfNew
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_impl.R
 
@@ -17,7 +16,7 @@ sealed class ImportSource(@StringRes val nameRes: Int) {
         _validationLiveData.value = false
     }
 
-    abstract fun isFieldsValid() : Boolean
+    abstract fun isFieldsValid(): Boolean
 
     @StringRes
     open fun handleError(throwable: Throwable): Int? = null
@@ -32,12 +31,12 @@ sealed class ImportSource(@StringRes val nameRes: Int) {
 class JsonImportSource : ImportSource(R.string.recovery_json) {
     val jsonContentLiveData = MutableLiveData<String>()
 
-    override fun isFieldsValid() : Boolean {
+    override fun isFieldsValid(): Boolean {
         return jsonContentLiveData.isNotEmpty()
     }
 
     override fun handleError(throwable: Throwable): Int? {
-        return when(throwable) {
+        return when (throwable) {
             else -> null
         }
     }
@@ -57,7 +56,7 @@ class MnemonicImportSource : ImportSource(R.string.recovery_passphrase) {
     }
 
     override fun handleError(throwable: Throwable): Int? {
-        return when(throwable) {
+        return when (throwable) {
             is Bip39Exception -> R.string.access_restore_phrase_error_message
             else -> null
         }
