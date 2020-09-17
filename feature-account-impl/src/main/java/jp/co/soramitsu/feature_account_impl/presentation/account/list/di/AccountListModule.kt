@@ -6,15 +6,26 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingProvider
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListViewModel
 
 @Module(includes = [ViewModelModule::class])
 class AccountListModule {
+
+    @Provides
+    @ScreenScope
+    fun provideAccountListingMixin(
+        interactor: AccountInteractor,
+        iconGenerator: IconGenerator
+    ): AccountListingMixin = AccountListingProvider(interactor, iconGenerator)
+
     @Provides
     @IntoMap
     @ViewModelKey(AccountListViewModel::class)

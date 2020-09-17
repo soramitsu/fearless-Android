@@ -42,12 +42,6 @@ class AccountFeatureModule {
     ): CryptoTypeChooserMixin = CryptoTypeChooser(interactor, resourceManager)
 
     @Provides
-    fun provideAccountListingMixin(
-        interactor: AccountInteractor,
-        iconGenerator: IconGenerator
-    ): AccountListingMixin = AccountListingProvider(interactor, iconGenerator)
-
-    @Provides
     @FeatureScope
     fun provideJsonMapper() = Gson()
 
