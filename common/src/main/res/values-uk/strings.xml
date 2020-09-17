@@ -80,4 +80,7 @@
     <string name="connection_management_title">Мережі</string>
     <string name="connection_management_default_title">За замовчуванням</string>
     <string name="connection_management_custom_title">На замовлення</string>
+    <string name="account_delete_confirmation_title">Забути рахунок?</string>
+    <string name="account_delete_confirmation_description">Перш ніж продовжувати, переконайтеся, що ви створили резервну копію свого облікового запису.</string>
+    <string name="account_delete_confirm">Забути</string>
 </resources>
