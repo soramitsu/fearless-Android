@@ -4,8 +4,8 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingMixin
-import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 
 class AccountListViewModel(
     private val accountInteractor: AccountInteractor,

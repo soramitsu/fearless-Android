@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.account
+package jp.co.soramitsu.feature_account_impl.presentation.account.model
 
 import android.graphics.drawable.PictureDrawable
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType

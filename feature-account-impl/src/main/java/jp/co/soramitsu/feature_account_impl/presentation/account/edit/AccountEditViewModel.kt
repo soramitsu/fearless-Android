@@ -10,8 +10,8 @@ import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingMixin
-import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapAccountModelToAccount
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract

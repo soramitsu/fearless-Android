@@ -8,11 +8,11 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.AccountGroupHolder
-import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.account.AccountsDiffCallback
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListAdapter
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListHolder
-import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListing
+import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListing
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.android.synthetic.main.item_edit_account.view.accountAddress
 import kotlinx.android.synthetic.main.item_edit_account.view.accountDelete

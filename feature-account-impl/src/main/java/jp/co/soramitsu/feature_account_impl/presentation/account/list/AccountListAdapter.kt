@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.AccountGroupHolder
-import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.account.AccountsDiffCallback
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListAdapter
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListHolder

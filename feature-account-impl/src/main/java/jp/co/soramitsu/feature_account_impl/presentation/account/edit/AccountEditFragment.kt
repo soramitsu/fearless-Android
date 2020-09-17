@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import kotlinx.android.synthetic.main.fragment_edit_accounts.accountsList
 import kotlinx.android.synthetic.main.fragment_edit_accounts.fearlessToolbar
 

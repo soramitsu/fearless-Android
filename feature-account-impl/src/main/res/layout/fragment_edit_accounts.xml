@@ -1,31 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:background="@color/black"
-    android:layout_height="match_parent">
+    android:orientation="vertical"
+    tools:background="@color/black">
 
     <jp.co.soramitsu.common.base.Toolbar
-        app:textRight="@string/common_done"
-        app:titleText="@string/profile_accounts_title"
         android:id="@+id/fearlessToolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        app:textRight="@string/common_done"
+        app:titleText="@string/profile_accounts_title" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:layout_width="match_parent"
         android:id="@+id/accountsList"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        tools:listitem="@layout/item_edit_account"
-        app:layout_constraintBottom_toTopOf="@+id/addAccount"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fearlessToolbar" />
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_edit_account" />
 
 
 </LinearLayout>

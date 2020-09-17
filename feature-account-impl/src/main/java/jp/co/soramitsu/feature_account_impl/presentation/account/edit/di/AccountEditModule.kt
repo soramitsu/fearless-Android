@@ -12,8 +12,8 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingMixin
-import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingProvider
+import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.impl.AccountListingProvider
 import jp.co.soramitsu.feature_account_impl.presentation.account.edit.EditAccountsViewModel
 
 @Module(includes = [ViewModelModule::class])
