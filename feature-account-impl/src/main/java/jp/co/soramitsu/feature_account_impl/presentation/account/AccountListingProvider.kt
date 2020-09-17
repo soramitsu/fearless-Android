@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl
+package jp.co.soramitsu.feature_account_impl.presentation.account
 
 import android.graphics.drawable.PictureDrawable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -11,10 +11,7 @@ import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Network
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListing
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListingMixin
 
 private const val ICON_SIZE_IN_PX = 50
 

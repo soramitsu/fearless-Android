@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.accounts
+package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,12 +8,12 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
 import kotlinx.android.synthetic.main.fragment_accounts.accountsList
 import kotlinx.android.synthetic.main.fragment_accounts.addAccount
 import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 
-class AccountsFragment : BaseFragment<AccountsViewModel>(), AccountsAdapter.AccountItemHandler {
+class AccountListFragment : BaseFragment<AccountListViewModel>(), AccountsAdapter.AccountItemHandler {
     private lateinit var adapter: AccountsAdapter
 
     override fun onCreateView(
@@ -49,7 +49,7 @@ class AccountsFragment : BaseFragment<AccountsViewModel>(), AccountsAdapter.Acco
             .inject(this)
     }
 
-    override fun subscribe(viewModel: AccountsViewModel) {
+    override fun subscribe(viewModel: AccountListViewModel) {
         viewModel.accountListingLiveData.observe { adapter.submitList(it.groupedAccounts) }
 
         viewModel.selectedAccountLiveData.observe(adapter::updateSelectedAccount)

@@ -95,7 +95,7 @@ interface AccountRepository {
 
     fun updateAccount(newAccount: Account): Completable
 
-    fun updateAccounts(accounts: List<Account>) : Completable
+    fun updateAccounts(accounts: List<Account>): Completable
 
     fun deleteAccount(address: String): Completable
 }

@@ -1,14 +1,14 @@
-package jp.co.soramitsu.feature_account_impl.presentation.accounts
+package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
 import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountGroupHolder
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountsDiffCallback
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountGroupHolder
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountsDiffCallback
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListAdapter
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListHolder
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.android.synthetic.main.item_account.view.accountAddress
 import kotlinx.android.synthetic.main.item_account.view.accountCheck
@@ -80,4 +80,3 @@ class AccountHolder(view: View) : GroupedListHolder(view) {
         }
     }
 }
-

@@ -36,7 +36,7 @@
 
     <fragment
         android:id="@+id/accountsFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.accounts.AccountsFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListFragment"
         android:label="AccountsFragment"
         tools:layout="@layout/fragment_accounts">
 
@@ -62,13 +62,13 @@
 
     <fragment
         android:id="@+id/accountDetailsFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.accountDetials.AccountDetailsFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment"
         android:label="AccountDetailsFragment"
         tools:layout="@layout/fragment_account_details" />
 
     <fragment
         android:id="@+id/editAccountsFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.editAccounts.EditAccountsFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.edit.EditAccountsFragment"
         android:label="EditAccountsFragment"
         tools:layout="@layout/fragment_edit_accounts" />
 

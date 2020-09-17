@@ -1,6 +1,5 @@
-package jp.co.soramitsu.feature_account_impl.presentation.editAccounts
+package jp.co.soramitsu.feature_account_impl.presentation.account.edit
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -11,9 +10,9 @@ import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapAccountModelToAccount
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListingMixin
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -29,7 +28,7 @@ class EditAccountsViewModel(
     val deleteConfirmationLiveData: LiveData<Event<AccountModel>> = _deleteConfirmationLiveData
 
     private val _unsyncedSwapLiveData = MutableLiveData<UnsyncedSwapPayload?>()
-    val unsyncedSwapLiveData : LiveData<UnsyncedSwapPayload?> = _unsyncedSwapLiveData
+    val unsyncedSwapLiveData: LiveData<UnsyncedSwapPayload?> = _unsyncedSwapLiveData
 
     init {
         disposables += accountListingDisposable
@@ -88,7 +87,6 @@ class EditAccountsViewModel(
             })
     }
 }
-
 
 @UseExperimental(ExperimentalContracts::class)
 private fun isSwapable(fromElement: Any, toElement: Any): Boolean {

@@ -21,10 +21,10 @@ import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImp
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.AccountListingProvider
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingProvider
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.CryptoTypeChooser
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.NetworkChooser
 

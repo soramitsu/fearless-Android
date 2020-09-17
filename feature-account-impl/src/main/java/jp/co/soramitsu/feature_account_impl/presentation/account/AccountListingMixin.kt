@@ -1,9 +1,8 @@
-package jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api
+package jp.co.soramitsu.feature_account_impl.presentation.account
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.disposables.CompositeDisposable
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
 
 class AccountListing(val groupedAccounts: List<Any>, val selectedAccount: AccountModel)
 
@@ -12,5 +11,5 @@ interface AccountListingMixin {
 
     val selectedAccountLiveData: MutableLiveData<AccountModel>
 
-    val accountListingLiveData : LiveData<AccountListing>
+    val accountListingLiveData: LiveData<AccountListing>
 }

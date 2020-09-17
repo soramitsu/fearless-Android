@@ -6,7 +6,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
@@ -40,7 +40,7 @@ fun mapCryptoTypeToCryptoTypeModel(
     return CryptoTypeModel(name, encryptionType)
 }
 
-fun mapAccountModelToAccount(accountModel: AccountModel, position: Int) : Account {
+fun mapAccountModelToAccount(accountModel: AccountModel, position: Int): Account {
     return with(accountModel) {
         Account(address, name, publicKey, cryptoType, position, network)
     }

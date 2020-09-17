@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.accountDetials.di
+package jp.co.soramitsu.feature_account_impl.presentation.account.details.di
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.accountDetials.AccountDetailsViewModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsViewModel
 
 @Module(includes = [ViewModelModule::class])
 class AccountDetailsModule {

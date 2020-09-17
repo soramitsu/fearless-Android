@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.accountDetials
+package jp.co.soramitsu.feature_account_impl.presentation.account.details
 
 import android.os.Bundle
 import android.view.LayoutInflater

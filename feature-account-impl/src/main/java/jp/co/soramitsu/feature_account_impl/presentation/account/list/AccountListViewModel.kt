@@ -1,13 +1,13 @@
-package jp.co.soramitsu.feature_account_impl.presentation.accounts
+package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
 
-class AccountsViewModel(
+class AccountListViewModel(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
     private val accountListingMixin: AccountListingMixin

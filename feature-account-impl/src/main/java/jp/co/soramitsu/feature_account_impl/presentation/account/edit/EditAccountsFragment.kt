@@ -1,7 +1,6 @@
-package jp.co.soramitsu.feature_account_impl.presentation.editAccounts
+package jp.co.soramitsu.feature_account_impl.presentation.account.edit
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
@@ -12,7 +11,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountModel
 import kotlinx.android.synthetic.main.fragment_edit_accounts.accountsList
 import kotlinx.android.synthetic.main.fragment_edit_accounts.fearlessToolbar
 

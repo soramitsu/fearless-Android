@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.common.accountManagment
+package jp.co.soramitsu.feature_account_impl.presentation.account
 
 import android.view.ViewGroup
 import jp.co.soramitsu.common.utils.inflateChild

@@ -1,7 +1,6 @@
 package jp.co.soramitsu.core_db.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -24,14 +23,14 @@ abstract class AccountDao {
     abstract fun insert(account: AccountLocal): Long
 
     @Query("DELETE FROM users where address = :address")
-    abstract fun remove(address: String) : Completable
+    abstract fun remove(address: String): Completable
 
     @Update
     abstract fun updateAccount(account: AccountLocal): Completable
 
     @Update
-    abstract fun updateAccounts(accounts: List<AccountLocal>) : Completable
+    abstract fun updateAccounts(accounts: List<AccountLocal>): Completable
 
     @Query("SELECT COALESCE(MAX(position), 0)  + 1 from users")
-    abstract fun getNextPosition() : Int
+    abstract fun getNextPosition(): Int
 }

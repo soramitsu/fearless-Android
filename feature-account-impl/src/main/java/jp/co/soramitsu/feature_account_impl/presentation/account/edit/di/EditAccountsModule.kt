@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.editAccounts.di
+package jp.co.soramitsu.feature_account_impl.presentation.account.edit.di
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -10,9 +10,8 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.accounts.AccountsViewModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.AccountListingMixin
-import jp.co.soramitsu.feature_account_impl.presentation.editAccounts.EditAccountsViewModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.account.edit.EditAccountsViewModel
 
 @Module(includes = [ViewModelModule::class])
 class EditAccountsModule {
