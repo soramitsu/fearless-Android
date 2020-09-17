@@ -70,6 +70,16 @@
         android:id="@+id/editAccountsFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.account.edit.EditAccountsFragment"
         android:label="EditAccountsFragment"
-        tools:layout="@layout/fragment_edit_accounts" />
+        tools:layout="@layout/fragment_edit_accounts">
+
+
+        <action
+            app:popUpTo="@id/mainFragment"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit"
+            app:enterAnim="@anim/fragment_close_enter"
+            app:exitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_editAccountsFragment_to_mainFragment" />
+    </fragment>
 
 </navigation>

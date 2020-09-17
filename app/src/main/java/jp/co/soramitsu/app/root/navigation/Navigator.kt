@@ -127,4 +127,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
     override fun openEditAccounts() {
         navController?.navigate(R.id.action_accountsFragment_to_editAccountsFragment)
     }
+
+    override fun backToMainScreen() {
+        navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
+    }
 }

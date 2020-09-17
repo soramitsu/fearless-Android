@@ -40,4 +40,6 @@ interface AccountRouter {
     fun openAccountDetails(address: String)
 
     fun openEditAccounts()
+
+    fun backToMainScreen()
 }

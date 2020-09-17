@@ -34,7 +34,7 @@ class EditAccountsFragment : BaseFragment<EditAccountsViewModel>(), EditAccounts
         accountsList.adapter = adapter
 
         fearlessToolbar.setRightActionClickListener {
-            viewModel.backClicked()
+            viewModel.doneClicked()
         }
 
         fearlessToolbar.setHomeButtonListener {

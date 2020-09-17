@@ -34,8 +34,12 @@ class EditAccountsViewModel(
         disposables += accountListingDisposable
     }
 
-    fun backClicked() {
+    fun doneClicked() {
         accountRouter.back()
+    }
+
+    fun backClicked() {
+        accountRouter.backToMainScreen()
     }
 
     fun deleteClicked(account: AccountModel) {
