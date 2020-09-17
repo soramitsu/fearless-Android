@@ -15,8 +15,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.AccountListingProvider
 import jp.co.soramitsu.feature_account_impl.presentation.account.edit.EditAccountsViewModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.NetworkChooser
 
 @Module(includes = [ViewModelModule::class])
 class EditAccountsModule {
