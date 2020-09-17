@@ -52,8 +52,6 @@ class EditAccountsAdapter(
     }
 
     fun unsyncedSwap(payload: UnsyncedSwapPayload) {
-        Log.d("DRAGANDDROP", "Submitted" + payload.newState.filterIsInstance<AccountModel>().map { it.name }.joinToString())
-
         submitList(payload.newState)
     }
 
@@ -61,10 +59,6 @@ class EditAccountsAdapter(
         selectedItem = accountListing.selectedAccount
 
         submitList(accountListing.groupedAccounts)
-    }
-
-    override fun onCurrentListChanged(previousList: MutableList<Any>, currentList: MutableList<Any>) {
-        Log.d("DRAGANDDROP", "Dispatched")
     }
 }
 

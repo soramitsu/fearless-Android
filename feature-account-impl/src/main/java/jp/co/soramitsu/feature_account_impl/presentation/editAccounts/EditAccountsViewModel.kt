@@ -66,8 +66,6 @@ class EditAccountsViewModel(
 
             newUnsyncedState.add(to, newUnsyncedState.removeAt(from))
 
-            Log.d("DRAGANDDROP", "Submitted" + newUnsyncedState.filterIsInstance<AccountModel>().map { it.name }.joinToString())
-
             _unsyncedSwapLiveData.value = UnsyncedSwapPayload(newUnsyncedState, from, to)
         }
     }
