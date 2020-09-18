@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeHeaderModel
 import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 class NodeListingProvider(
     private val accountInteractor: AccountInteractor,
@@ -54,6 +55,11 @@ class NodeListingProvider(
     }
 
     private fun transformNode(node: Node): NodeModel {
-        return NodeModel(node.name, node.link)
+        val networkModelType = when (node.networkType) {
+            Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
+            Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
+            Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
+        }
+        return NodeModel(node.name, node.link, networkModelType)
     }
 }
