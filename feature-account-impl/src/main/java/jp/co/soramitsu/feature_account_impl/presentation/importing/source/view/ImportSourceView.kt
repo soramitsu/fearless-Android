@@ -6,6 +6,7 @@ import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.LifecycleOwner
+import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 
 abstract class ImportSourceView @JvmOverloads constructor(
@@ -20,4 +21,6 @@ abstract class ImportSourceView @JvmOverloads constructor(
     }
 
     abstract fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner)
+
+    abstract fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner)
 }

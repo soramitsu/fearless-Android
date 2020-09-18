@@ -4,36 +4,79 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:background="@drawable/bg_big_input_shape_selector"
+    tools:background="@color/black"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
-    <TextView
-        android:id="@+id/importSeedTitle"
-        style="@style/TextAppearance.Soramitsu.Body2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/recovery_raw_seed"
-        android:textColor="@color/colorHint"
-        app:layout_constraintEnd_toStartOf="@id/icon"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <EditText
-        android:id="@+id/importSeedContent"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/importSeedUsernameInput"
+        style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:background="@null"
-        android:gravity="top"
-        android:inputType="textMultiLine|textVisiblePassword"
-        android:minLines="5"
-        android:padding="0dp"
+        android:hint="@string/username_setup_choose_title"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/importSeedUsernameField"
+            style="@style/Widget.Fearless.Input.Primary.Internal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLength="64" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/usernameHintTv"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        android:text="@string/username_setup_hint"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/importSeedTitle"
-        app:layout_constraintStart_toStartOf="@+id/importSeedTitle"
-        app:layout_constraintTop_toBottomOf="@+id/importSeedTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/importSeedUsernameInput" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_big_input_shape_selector"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/usernameHintTv">
+
+        <TextView
+            android:id="@+id/importSeedTitle"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:text="@string/recovery_raw_seed"
+            android:textColor="@color/colorHint"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/importSeedContent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:background="@null"
+            android:gravity="top"
+            android:inputType="textMultiLine|textVisiblePassword"
+            android:minLines="5"
+            android:padding="0dp"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/importSeedTitle"
+            app:layout_constraintStart_toStartOf="@+id/importSeedTitle"
+            app:layout_constraintTop_toBottomOf="@+id/importSeedTitle" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </merge>

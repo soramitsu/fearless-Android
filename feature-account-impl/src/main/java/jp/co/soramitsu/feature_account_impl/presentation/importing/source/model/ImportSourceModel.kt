@@ -5,6 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.utils.isNotEmpty
+import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.IncorrectPasswordException
+import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.InvalidJsonException
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_impl.R
 
@@ -30,19 +32,24 @@ sealed class ImportSource(@StringRes val nameRes: Int) {
 
 class JsonImportSource : ImportSource(R.string.recovery_json) {
     val jsonContentLiveData = MutableLiveData<String>()
+    val passwordLiveData = MutableLiveData<String>()
 
     override fun isFieldsValid(): Boolean {
-        return jsonContentLiveData.isNotEmpty()
+        return jsonContentLiveData.isNotEmpty() && passwordLiveData.isNotEmpty()
     }
 
     override fun handleError(throwable: Throwable): Int? {
         return when (throwable) {
+            is IncorrectPasswordException -> R.string.import_json_invalid_password
+            is InvalidJsonException -> R.string.import_json_invalid_format
             else -> null
         }
     }
 
     init {
         addValidationSource(jsonContentLiveData)
+
+        addValidationSource(passwordLiveData)
     }
 }
 

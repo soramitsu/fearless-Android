@@ -70,7 +70,7 @@ interface AccountRepository {
         node: Node
     ): Completable
 
-    fun importFromJson(json: String, password: String, networkType: Node.NetworkType): Completable
+    fun importFromJson(json: String, password: String, name: String): Completable
 
     fun isCodeSet(): Single<Boolean>
 

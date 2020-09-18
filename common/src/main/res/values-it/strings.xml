@@ -82,4 +82,6 @@
     <string name="account_delete_confirmation_title">Hai dimenticato l\'account?</string>
     <string name="account_delete_confirmation_description">Assicurati di aver eseguito il backup del tuo account prima di procedere.</string>
     <string name="account_delete_confirm">Dimenticare</string>
+    <string name="import_json_invalid_format">Json di ripristino non valido. Per favore, assicurati che l\'input contenga json valido.</string>
+    <string name="import_json_invalid_password">Per favore, controlla la correttezza della password e riprova.</string>
 </resources>

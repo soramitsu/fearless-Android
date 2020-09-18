@@ -31,7 +31,6 @@ import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeContaine
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeText
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
-import kotlinx.android.synthetic.main.fragment_import_account.usernameField
 import javax.inject.Inject
 
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
@@ -94,6 +93,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             val view = createSourceView(it)
 
             view.observeSource(it, viewLifecycleOwner)
+            view.observeCommon(viewModel, viewLifecycleOwner)
 
             view
         }
@@ -152,7 +152,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
 
         advancedBlockView.derivationPathField.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)
-        usernameField.bindTo(viewModel.nameLiveData, viewLifecycleOwner)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

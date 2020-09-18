@@ -39,7 +39,7 @@ interface AccountInteractor {
         node: Node
     ): Completable
 
-    fun importFromJson(json: String, password: String, node: Node.NetworkType): Completable
+    fun importFromJson(json: String, password: String, name: String): Completable
 
     fun getAddressId(account: Account): Single<ByteArray>
 
