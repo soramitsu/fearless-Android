@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wallet_assets_total_title">Assets value</string>
+    <string name="wallet_asset_receive">Receive</string>
+    <string name="wallet_asset_send">Send</string>
+</resources>

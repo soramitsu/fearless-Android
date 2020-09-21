@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.di.BalanceListComponent
 
 @Component(
     dependencies = [
@@ -18,6 +19,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 )
 @FeatureScope
 interface WalletFeatureComponent : AccountFeatureApi {
+
+    fun balanceListComponentFactory(): BalanceListComponent.Factory
 
     @Component.Factory
     interface Factory {
