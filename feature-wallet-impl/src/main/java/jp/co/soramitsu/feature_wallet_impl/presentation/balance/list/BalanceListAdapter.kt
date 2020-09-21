@@ -30,7 +30,7 @@ class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapte
     }
 
     override fun onBindViewHolder(holder: AssetViewHolder, position: Int) {
-       val item = getItem(position)
+        val item = getItem(position)
 
         holder.bind(item, itemHandler)
     }
@@ -61,5 +61,4 @@ private object AssetDiffCallback : DiffUtil.ItemCallback<AssetModel>() {
     override fun areContentsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {
         return oldItem == newItem
     }
-
 }

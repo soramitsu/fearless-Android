@@ -30,5 +30,5 @@ class NavigationModule {
 
     @ApplicationScope
     @Provides
-    fun provideWalletRouter(navigator: Navigator) : WalletRouter = navigator
+    fun provideWalletRouter(navigator: Navigator): WalletRouter = navigator
 }
