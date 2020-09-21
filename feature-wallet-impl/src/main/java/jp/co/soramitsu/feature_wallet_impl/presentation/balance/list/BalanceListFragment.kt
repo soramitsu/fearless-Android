@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
+import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
@@ -45,6 +46,10 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
             // TODO proper double formatting
             balanceListTotalAmount.text = it.totalBalance.toString()
+        }
+
+        viewModel.userIconLiveData.observe {
+            balanceListAvatar.setImageDrawable(it)
         }
     }
 
