@@ -85,4 +85,6 @@ interface AccountInteractor {
     fun observeNodes(): Observable<List<Node>>
 
     fun observeSelectedNode(): Observable<Node>
+
+    fun getNode(nodeId: Int): Single<Node>
 }

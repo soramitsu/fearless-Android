@@ -9,6 +9,10 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_node_details.fearlessToolbar
+import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHost
+import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHostContainer
+import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsName
+import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNameContainer
 
 class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
@@ -33,15 +37,33 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
     }
 
     override fun inject() {
+        val nodeId = arguments!!.getInt(KEY_NODE_ID)
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .nodeDetailsComponentFactory()
-            .create(this)
+            .create(this, nodeId)
             .inject(this)
     }
 
     override fun subscribe(viewModel: NodeDetailsViewModel) {
+        viewModel.nodeLiveData.observe { node ->
+            nodeDetailsName.setText(node.name)
+            nodeDetailsHost.setText(node.link)
+        }
+
+        viewModel.editEnabled.observe { editEnabled ->
+            nodeDetailsName.isEnabled = editEnabled
+            nodeDetailsHost.isEnabled = editEnabled
+
+            if (editEnabled) {
+                nodeDetailsHost.setBackgroundResource(R.drawable.bg_input_shape_selector)
+                nodeDetailsNameContainer.setBackgroundResource(R.drawable.bg_input_shape_selector)
+            } else {
+                nodeDetailsHostContainer.setBackgroundResource(R.drawable.bg_button_primary_disabled)
+                nodeDetailsNameContainer.setBackgroundResource(R.drawable.bg_button_primary_disabled)
+            }
+        }
     }
 }

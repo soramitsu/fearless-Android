@@ -82,6 +82,11 @@ class AccountRepositoryImpl(
             }.map { it.map(::mapNodeLocalToNode) }
     }
 
+    override fun getNode(nodeId: Int): Single<Node> {
+        return nodeDao.getNodeById(nodeId)
+            .map(::mapNodeLocalToNode)
+    }
+
     override fun getNetworks(): Single<List<Network>> {
         return getNodes()
             .filter { it.isNotEmpty() }

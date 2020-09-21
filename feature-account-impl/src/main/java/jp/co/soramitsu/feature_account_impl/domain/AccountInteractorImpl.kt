@@ -227,4 +227,8 @@ class AccountInteractorImpl(
     override fun observeSelectedNode(): Observable<Node> {
         return accountRepository.observeSelectedNode()
     }
+
+    override fun getNode(nodeId: Int): Single<Node> {
+        return accountRepository.getNode(nodeId)
+    }
 }

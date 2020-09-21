@@ -21,6 +21,8 @@ interface AccountRepository {
 
     fun getNodes(): Observable<List<Node>>
 
+    fun getNode(nodeId: Int): Single<Node>
+
     fun getNetworks(): Single<List<Network>>
 
     fun getSelectedNode(): Single<Node>

@@ -20,9 +20,10 @@ class NodeDetailsModule {
     @ViewModelKey(NodeDetailsViewModel::class)
     fun provideViewModel(
         interactor: AccountInteractor,
-        router: AccountRouter
+        router: AccountRouter,
+        nodeId: Int
     ): ViewModel {
-        return NodeDetailsViewModel(interactor, router)
+        return NodeDetailsViewModel(interactor, router, nodeId)
     }
 
     @Provides
