@@ -1,10 +1,10 @@
-package jp.co.soramitsu.feature_account_impl.presentation.nodes.di
+package jp.co.soramitsu.feature_account_impl.presentation.node.list.di
 
 import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.NodesFragment
+import jp.co.soramitsu.feature_account_impl.presentation.node.list.NodesFragment
 
 @Subcomponent(
     modules = [

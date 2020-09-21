@@ -9,12 +9,13 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.about.di.AboutComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.di.AccountDetailsComponent
-import jp.co.soramitsu.feature_account_impl.presentation.account.list.di.AccountListComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.edit.di.AccountEditComponent
+import jp.co.soramitsu.feature_account_impl.presentation.account.list.di.AccountListComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.di.ImportAccountComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.di.BackupMnemonicComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.di.ConfirmMnemonicComponent
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.di.NodesComponent
+import jp.co.soramitsu.feature_account_impl.presentation.node.details.di.NodeDetailsComponent
+import jp.co.soramitsu.feature_account_impl.presentation.node.list.di.NodesComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.di.PinCodeComponent
 import jp.co.soramitsu.feature_account_impl.presentation.profile.di.ProfileComponent
 
@@ -48,6 +49,8 @@ interface AccountFeatureComponent : AccountFeatureApi {
     fun accountDetailsComponentFactory(): AccountDetailsComponent.Factory
 
     fun connectionsComponentFactory(): NodesComponent.Factory
+
+    fun nodeDetailsComponentFactory(): NodeDetailsComponent.Factory
 
     @Component.Factory
     interface Factory {

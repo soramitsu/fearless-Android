@@ -82,4 +82,5 @@
     <string name="account_delete_confirmation_title">Hai dimenticato l\'account?</string>
     <string name="account_delete_confirmation_description">Assicurati di aver eseguito il backup del tuo account prima di procedere.</string>
     <string name="account_delete_confirm">Dimenticare</string>
+    <string name="connection_details_title">Network info</string>
 </resources>

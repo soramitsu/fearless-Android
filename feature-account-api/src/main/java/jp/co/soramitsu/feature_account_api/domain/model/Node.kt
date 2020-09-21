@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_api.domain.model
 
 data class Node(
+    val id: Int,
     val name: String,
     val networkType: NetworkType,
     val link: String,

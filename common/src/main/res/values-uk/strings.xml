@@ -83,4 +83,5 @@
     <string name="account_delete_confirmation_title">Забути рахунок?</string>
     <string name="account_delete_confirmation_description">Перш ніж продовжувати, переконайтеся, що ви створили резервну копію свого облікового запису.</string>
     <string name="account_delete_confirm">Забути</string>
+    <string name="connection_details_title">Network info</string>
 </resources>

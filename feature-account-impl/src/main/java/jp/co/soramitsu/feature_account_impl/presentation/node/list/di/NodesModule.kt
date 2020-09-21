@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.nodes.di
+package jp.co.soramitsu.feature_account_impl.presentation.node.list.di
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -11,9 +11,9 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.api.NodeListingMixin
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.impl.NodeListingProvider
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.NodesViewModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.list.NodesViewModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.impl.NodeListingProvider
 
 @Module(includes = [ViewModelModule::class])
 class NodesModule {

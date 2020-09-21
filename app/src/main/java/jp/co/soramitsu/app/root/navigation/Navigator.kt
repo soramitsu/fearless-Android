@@ -8,6 +8,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 import jp.co.soramitsu.splash.SplashRouter
@@ -134,5 +135,9 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter {
 
     override fun backToMainScreen() {
         navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
+    }
+
+    override fun openNodeDetails(nodeId: Int) {
+        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId))
     }
 }

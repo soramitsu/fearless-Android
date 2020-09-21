@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.nodes
+package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
 import android.view.View
 import android.view.ViewGroup
@@ -7,8 +7,8 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.BaseGroupedDiffCallback
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListAdapter
 import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListHolder
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeHeaderModel
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeHeaderModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import kotlinx.android.synthetic.main.item_node.view.nodeCheck
 import kotlinx.android.synthetic.main.item_node.view.nodeHost
 import kotlinx.android.synthetic.main.item_node.view.nodeIcon

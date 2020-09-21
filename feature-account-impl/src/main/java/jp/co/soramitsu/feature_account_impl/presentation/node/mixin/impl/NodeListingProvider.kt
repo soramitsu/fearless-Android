@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.impl
+package jp.co.soramitsu.feature_account_impl.presentation.node.mixin.impl
 
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -9,9 +9,9 @@ import jp.co.soramitsu.common.utils.asMutableLiveData
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.api.NodeListingMixin
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeHeaderModel
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeHeaderModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 class NodeListingProvider(
@@ -60,6 +60,6 @@ class NodeListingProvider(
             Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
             Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
         }
-        return NodeModel(node.name, node.link, networkModelType)
+        return NodeModel(node.id, node.name, node.link, networkModelType)
     }
 }
