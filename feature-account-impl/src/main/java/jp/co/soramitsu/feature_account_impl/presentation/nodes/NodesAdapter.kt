@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeHeaderM
 import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
 import kotlinx.android.synthetic.main.item_node.view.nodeCheck
 import kotlinx.android.synthetic.main.item_node.view.nodeHost
+import kotlinx.android.synthetic.main.item_node.view.nodeIcon
 import kotlinx.android.synthetic.main.item_node.view.nodeInfo
 import kotlinx.android.synthetic.main.item_node.view.nodeTitle
 import kotlinx.android.synthetic.main.item_node_group.view.nodeGroupTitle
@@ -80,6 +81,8 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
             nodeHost.text = nodeModel.link
 
             nodeCheck.visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
+
+            nodeIcon.setImageResource(nodeModel.networkModelType.icon)
 
             setOnClickListener { handler.checkClicked(nodeModel) }
 

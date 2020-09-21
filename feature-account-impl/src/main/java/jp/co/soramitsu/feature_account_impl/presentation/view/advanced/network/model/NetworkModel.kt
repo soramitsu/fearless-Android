@@ -14,6 +14,6 @@ data class NetworkModel(
     sealed class NetworkTypeUI(val icon: Int, val smallIcon: Int, val networkType: Node.NetworkType) {
         object Kusama : NetworkTypeUI(R.drawable.ic_ksm_24, R.drawable.ic_ksm_18, KUSAMA)
         object Polkadot : NetworkTypeUI(R.drawable.ic_polkadot_24, R.drawable.ic_polkadot_18, POLKADOT)
-        object Westend : NetworkTypeUI(R.drawable.ic_westend_18, R.drawable.ic_westend_18, WESTEND)
+        object Westend : NetworkTypeUI(R.drawable.ic_westend_24, R.drawable.ic_westend_18, WESTEND)
     }
 }
