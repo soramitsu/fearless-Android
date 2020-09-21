@@ -82,4 +82,8 @@
     <string name="account_delete_confirmation_title">Забыли аккаунт?</string>
     <string name="account_delete_confirmation_description">Прежде чем продолжить, убедитесь, что вы создали резервную копию своей учетной записи.</string>
     <string name="account_delete_confirm">Забыть</string>
+
+    <string name="wallet_asset_send">Отправить</string>
+    <string name="wallet_asset_receive">Получить</string>
+    <string name="wallet_assets_total_title">Стоимость активов</string>
 </resources>

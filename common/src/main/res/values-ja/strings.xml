@@ -82,4 +82,8 @@
     <string name="account_delete_confirmation_title">アカウントをお忘れですか？</string>
     <string name="account_delete_confirmation_description">続行する前に、アカウントをバックアップしたことを確認してください。</string>
     <string name="account_delete_confirm">忘れる</string>
+
+    <string name="wallet_asset_send">送る</string>
+    <string name="wallet_asset_receive">受け取る</string>
+    <string name="wallet_assets_total_title">資産価値</string>
 </resources>

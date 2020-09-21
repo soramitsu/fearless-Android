@@ -82,4 +82,8 @@
     <string name="account_delete_confirmation_title">¿Olvidaste tu cuenta?</string>
     <string name="account_delete_confirmation_description">Asegúrese de haber realizado una copia de seguridad de su cuenta antes de continuar.</string>
     <string name="account_delete_confirm">Olvidar</string>
+
+    <string name="wallet_asset_send">Enviar</string>
+    <string name="wallet_asset_receive">Recibir</string>
+    <string name="wallet_assets_total_title">Valor de los activos</string>
 </resources>

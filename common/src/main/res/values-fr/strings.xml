@@ -82,4 +82,8 @@
     <string name="account_delete_confirmation_title">Oubliez le compte?</string>
     <string name="account_delete_confirmation_description">Assurez-vous d\'avoir sauvegardé votre compte avant de continuer.</string>
     <string name="account_delete_confirm">Oublier</string>
+
+    <string name="wallet_asset_send">Envoyer</string>
+    <string name="wallet_asset_receive">Recevoir</string>
+    <string name="wallet_assets_total_title">Valeur des actifs</string>
 </resources>
