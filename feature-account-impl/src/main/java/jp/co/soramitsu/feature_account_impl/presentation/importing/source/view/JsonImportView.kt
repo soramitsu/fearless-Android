@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.lifecycle.LifecycleOwner
 import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel

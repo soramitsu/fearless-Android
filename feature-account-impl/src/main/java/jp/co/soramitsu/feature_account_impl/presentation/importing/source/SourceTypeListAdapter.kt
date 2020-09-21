@@ -18,6 +18,7 @@ class SourceTypeListAdapter(
     private val selectedSource: ImportSource,
     private val itemClickListener: SourceItemHandler
 ) : ListAdapter<ImportSource, SourceTypeViewHolder>(DiffCallback) {
+
     interface SourceItemHandler {
         fun onSourceSelected(source: ImportSource)
     }

@@ -23,8 +23,8 @@ class AdvancedBlockView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
-    private var areSelectorsEnabled : Boolean = true
 
+    private var areSelectorsEnabled: Boolean = true
 
     private val showClickListener = OnClickListener {
         if (advancedView.visibility == View.VISIBLE) {
@@ -63,7 +63,7 @@ class AdvancedBlockView @JvmOverloads constructor(
 
     fun setOnEncryptionTypeClickListener(clickListener: () -> Unit) {
         encryptionTypeInput.setOnClickListener {
-           maybeCallSelectorListener(clickListener)
+            maybeCallSelectorListener(clickListener)
         }
     }
 

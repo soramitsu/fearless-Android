@@ -11,6 +11,7 @@ import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_impl.R
 
 sealed class ImportSource(@StringRes val nameRes: Int) {
+
     private val _validationLiveData = MediatorLiveData<Boolean>()
     val validationLiveData = _validationLiveData
 
@@ -31,6 +32,7 @@ sealed class ImportSource(@StringRes val nameRes: Int) {
 }
 
 class JsonImportSource : ImportSource(R.string.recovery_json) {
+
     val jsonContentLiveData = MutableLiveData<String>()
     val passwordLiveData = MutableLiveData<String>()
 
@@ -54,6 +56,7 @@ class JsonImportSource : ImportSource(R.string.recovery_json) {
 }
 
 class MnemonicImportSource : ImportSource(R.string.recovery_passphrase) {
+
     val mnemonicContentLiveData = MutableLiveData<String>()
 
     override fun isFieldsValid() = mnemonicContentLiveData.isNotEmpty()
@@ -71,6 +74,7 @@ class MnemonicImportSource : ImportSource(R.string.recovery_passphrase) {
 }
 
 class RawSeedImportSource : ImportSource(R.string.recovery_raw_seed) {
+
     val rawSeedLiveData = MutableLiveData<String>()
 
     override fun isFieldsValid() = rawSeedLiveData.isNotEmpty()
