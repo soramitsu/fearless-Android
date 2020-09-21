@@ -5,6 +5,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 
@@ -99,4 +100,6 @@ interface AccountRepository {
     fun updateAccounts(accounts: List<Account>): Completable
 
     fun deleteAccount(address: String): Completable
+
+    fun processAccountJson(json: String): Single<ImportJsonData>
 }

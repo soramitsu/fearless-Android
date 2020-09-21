@@ -22,6 +22,8 @@ class AdvancedBlockView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
+    private var areSelectorsEnabled : Boolean = true
+
 
     private val showClickListener = OnClickListener {
         if (advancedView.visibility == View.VISIBLE) {
@@ -59,11 +61,15 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     fun setOnEncryptionTypeClickListener(clickListener: () -> Unit) {
-        encryptionTypeInput.setOnClickListener { clickListener() }
+        encryptionTypeInput.setOnClickListener {
+           maybeCallSelectorListener(clickListener)
+        }
     }
 
     fun setOnNetworkClickListener(clickListener: () -> Unit) {
-        networkInput.setOnClickListener { clickListener() }
+        networkInput.setOnClickListener {
+            maybeCallSelectorListener(clickListener)
+        }
     }
 
     fun getDerivationPath(): String {
@@ -80,5 +86,24 @@ class AdvancedBlockView @JvmOverloads constructor(
 
     fun setNetworkIconResource(icon: Int) {
         networkText.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0)
+    }
+
+    fun setSelectorsEnabled(enabled: Boolean) {
+        areSelectorsEnabled = enabled
+
+        updateSelectorState(encryptionTypeInput, enabled)
+        updateSelectorState(networkInput, enabled)
+    }
+
+    private fun updateSelectorState(view: View, enabled: Boolean) {
+        val background = if (enabled) R.drawable.bg_input_shape_selector else R.drawable.bg_button_primary_disabled
+
+        view.setBackgroundResource(background)
+    }
+
+    private fun maybeCallSelectorListener(clickListener: () -> Unit) {
+        if (areSelectorsEnabled) {
+            clickListener.invoke()
+        }
     }
 }

@@ -14,6 +14,7 @@ import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.model.ImportAccountData
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
@@ -22,6 +23,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
@@ -313,6 +315,19 @@ class AccountRepositoryImpl(
 
     override fun deleteAccount(address: String): Completable {
         return accountDao.remove(address)
+    }
+
+    override fun processAccountJson(json: String): Single<ImportJsonData> {
+        return Single.fromCallable {
+            val importJsonData = ImportAccountData()
+
+            with(importJsonData) {
+                val network = getNetworkForType(mapAddressTypeToNetworkType(networType))
+                val cryptoType = mapEncryptionToCryptoType(encryptionType)
+
+                ImportJsonData(username, network, cryptoType)
+            }
+        }
     }
 
     private fun saveAccountData(

@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import androidx.lifecycle.LifecycleOwner
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.getDrawableCompat
+import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
@@ -29,6 +30,10 @@ class JsonImportView @JvmOverloads constructor(
 
     override fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {
         importJsonUsernameField.bindTo(viewModel.nameLiveData, lifecycleOwner)
+
+        importJsonContent.onTextChanged {
+            viewModel.jsonChanged(it)
+        }
     }
 
     inline fun setImportFromFileClickListener(crossinline listener: () -> Unit) {

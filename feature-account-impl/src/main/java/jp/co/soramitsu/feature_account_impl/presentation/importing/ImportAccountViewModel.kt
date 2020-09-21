@@ -7,6 +7,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.plusAssign
@@ -14,9 +15,12 @@ import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToCryptoTypeModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceSelectorPayload
@@ -152,6 +156,23 @@ class ImportAccountViewModel(
                 name
             )
         }
+    }
+
+    fun jsonChanged(newJson: String) {
+        disposables += interactor.processAccountJson(newJson)
+            .subscribeOn(Schedulers.computation())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(::handleParsedImportData, DEFAULT_ERROR_HANDLER)
+    }
+
+    private fun handleParsedImportData(it: ImportJsonData) {
+        val networkModel = mapNetworkToNetworkModel(it.network)
+        selectedNetworkLiveData.value = networkModel
+
+        val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, it.encryptionType)
+        selectedEncryptionTypeLiveData.value = cryptoModel
+
+        nameLiveData.value = it.name
     }
 
     fun fileChosen(fileContent: String?) {

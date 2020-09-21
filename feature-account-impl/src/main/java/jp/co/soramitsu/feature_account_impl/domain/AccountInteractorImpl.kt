@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 
@@ -216,5 +217,9 @@ class AccountInteractorImpl(
 
     override fun observeSelectedNode(): Observable<Node> {
         return accountRepository.observeSelectedNode()
+    }
+
+    override fun processAccountJson(json: String): Single<ImportJsonData> {
+        return accountRepository.processAccountJson(json)
     }
 }

@@ -111,6 +111,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             sourceTypeContainer.addView(sourceViews!![index])
 
             sourceTypeText.setText(it.nameRes)
+
+            val isSelectorsEnabled = it !is JsonImportSource
+
+            advancedBlockView.setSelectorsEnabled(isSelectorsEnabled)
         }
 
         viewModel.encryptionTypeChooserEvent.observeEvent {
