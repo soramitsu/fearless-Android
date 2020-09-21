@@ -15,7 +15,7 @@ data class AssetModel(
 
     private fun determineIcon(): Int {
         return when (token) {
-            Asset.Token.KSM -> R.drawable.ic_currency_kusama
+            Asset.Token.KSM -> R.drawable.ic_token_ksm
             else -> throw IllegalArgumentException("Only Kusama is supported")
         }
     }
