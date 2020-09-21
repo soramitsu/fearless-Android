@@ -69,10 +69,15 @@ dependencies {
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-splash')
+
     implementation project(':feature-onboarding-api')
     implementation project(':feature-onboarding-impl')
+
     implementation project(':feature-account-api')
     implementation project(':feature-account-impl')
+
+    implementation project(':feature-wallet-api')
+    implementation project(':feature-wallet-impl')
 
     implementation kotlinDep
 
