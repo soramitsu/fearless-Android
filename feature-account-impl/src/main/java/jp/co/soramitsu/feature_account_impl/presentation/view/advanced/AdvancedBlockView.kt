@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
 import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathEt
+import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeText
 import kotlinx.android.synthetic.main.view_advanced_block.view.networkInput
@@ -93,6 +94,8 @@ class AdvancedBlockView @JvmOverloads constructor(
 
         updateSelectorState(encryptionTypeInput, enabled)
         updateSelectorState(networkInput, enabled)
+
+        derivationPathInput.visibility = if (enabled) View.VISIBLE else View.GONE
     }
 
     private fun updateSelectorState(view: View, enabled: Boolean) {

@@ -319,13 +319,13 @@ class AccountRepositoryImpl(
 
     override fun processAccountJson(json: String): Single<ImportJsonData> {
         return Single.fromCallable {
-            val importJsonData = ImportAccountData()
+            val importAccountMeta = jsonSeedDecoder.extractImportMetaData(json)
 
-            with(importJsonData) {
-                val network = getNetworkForType(mapAddressTypeToNetworkType(networType))
+            with(importAccountMeta) {
+                val network = getNetworkForType(mapAddressTypeToNetworkType(networkType))
                 val cryptoType = mapEncryptionToCryptoType(encryptionType)
 
-                ImportJsonData(username, network, cryptoType)
+                ImportJsonData(name, network, cryptoType)
             }
         }
     }
