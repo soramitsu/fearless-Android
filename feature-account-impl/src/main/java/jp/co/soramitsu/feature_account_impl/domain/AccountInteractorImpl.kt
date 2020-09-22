@@ -10,24 +10,15 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {
     override fun getMnemonic(): Single<List<String>> {
         return accountRepository.generateMnemonic()
-    }
-
-    override fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>> {
-        return accountRepository.getSourceTypes()
-            .flatMap {
-                Single.fromCallable {
-                    Pair(it, it.first())
-                }
-            }
     }
 
     override fun getCryptoTypes(): Single<List<CryptoType>> {
@@ -93,9 +84,9 @@ class AccountInteractorImpl(
     override fun importFromJson(
         json: String,
         password: String,
-        node: Node.NetworkType
+        name: String
     ): Completable {
-        return accountRepository.importFromJson(json, password, node)
+        return accountRepository.importFromJson(json, password, name)
     }
 
     override fun getAddressId(account: Account): Single<ByteArray> {
@@ -230,5 +221,9 @@ class AccountInteractorImpl(
 
     override fun getNode(nodeId: Int): Single<Node> {
         return accountRepository.getNode(nodeId)
+    }
+
+    override fun processAccountJson(json: String): Single<ImportJsonData> {
+        return accountRepository.processAccountJson(json)
     }
 }

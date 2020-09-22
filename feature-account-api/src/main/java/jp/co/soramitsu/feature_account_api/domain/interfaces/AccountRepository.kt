@@ -5,9 +5,9 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 class AccountAlreadyExistsException : Exception()
 
@@ -57,8 +57,6 @@ interface AccountRepository {
 
     fun getAccount(address: String): Single<Account>
 
-    fun getSourceTypes(): Single<List<SourceType>>
-
     fun importFromMnemonic(
         keyString: String,
         username: String,
@@ -75,7 +73,7 @@ interface AccountRepository {
         node: Node
     ): Completable
 
-    fun importFromJson(json: String, password: String, networkType: Node.NetworkType): Completable
+    fun importFromJson(json: String, password: String, name: String): Completable
 
     fun isCodeSet(): Single<Boolean>
 
@@ -104,4 +102,6 @@ interface AccountRepository {
     fun updateAccounts(accounts: List<Account>): Completable
 
     fun deleteAccount(address: String): Completable
+
+    fun processAccountJson(json: String): Single<ImportJsonData>
 }

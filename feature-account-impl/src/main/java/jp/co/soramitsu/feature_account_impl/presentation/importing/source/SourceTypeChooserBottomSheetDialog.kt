@@ -6,15 +6,18 @@ import android.view.View
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.SourceTypeModel
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceTypeListAdapter.SourceItemHandler
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.sourceRv
 import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.titleTv
 
+class SourceSelectorPayload(val allSources: List<ImportSource>, val selected: ImportSource)
+
 class SourceTypeChooserBottomSheetDialog(
     context: Activity,
-    sourceTypeModels: List<SourceTypeModel>,
-    itemClickListener: (SourceTypeModel) -> Unit
-) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
+    payload: SourceSelectorPayload,
+    private val itemTypeClickListener: (ImportSource) -> Unit
+) : BottomSheetDialog(context, R.style.BottomSheetDialog), SourceItemHandler {
 
     init {
         setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheet_source_chooser, null))
@@ -31,12 +34,15 @@ class SourceTypeChooserBottomSheetDialog(
 
         titleTv.text = context.getString(R.string.recovery_source_type)
 
-        val adapter = SourceTypeListAdapter {
-            itemClickListener(it)
-            dismiss()
-        }
+        val adapter = SourceTypeListAdapter(payload.selected, this)
 
-        adapter.submitList(sourceTypeModels)
+        adapter.submitList(payload.allSources)
         sourceRv.adapter = adapter
+    }
+
+    override fun onSourceSelected(source: ImportSource) {
+        itemTypeClickListener.invoke(source)
+
+        dismiss()
     }
 }

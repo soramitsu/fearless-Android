@@ -31,7 +31,7 @@
 
     <fragment
         android:id="@+id/walletFragment"
-        tools:layout="@layout/fragment_placeholder"
-        android:name="jp.co.soramitsu.app.root.presentation.PlaceholderFragment"
+        tools:layout="@layout/fragment_balance_list"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.BalanceListFragment"
         android:label="WalletFragment" />
 </navigation>

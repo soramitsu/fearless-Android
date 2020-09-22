@@ -16,6 +16,8 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureHolder
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureHolder
+import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
+import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureHolder
 import jp.co.soramitsu.splash.di.SplashFeatureApi
 import jp.co.soramitsu.splash.di.SplashFeatureHolder
 
@@ -49,6 +51,12 @@ interface ComponentHolderModule {
     @ClassKey(AccountFeatureApi::class)
     @IntoMap
     fun provideAccountFeature(accountFeatureHolder: AccountFeatureHolder): FeatureApiHolder
+
+    @ApplicationScope
+    @Binds
+    @ClassKey(WalletFeatureApi::class)
+    @IntoMap
+    fun provideWalletFeature(walletFeatureHolder: WalletFeatureHolder): FeatureApiHolder
 
     @ApplicationScope
     @Binds
