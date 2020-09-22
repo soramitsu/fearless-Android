@@ -86,4 +86,6 @@
     <string name="wallet_asset_send">送る</string>
     <string name="wallet_asset_receive">受け取る</string>
     <string name="wallet_assets_total_title">資産価値</string>
+    <string name="import_json_invalid_format">無効なリカバリーJSON。入力に有効なjsonが含まれていることを確認してください。</string>
+    <string name="import_json_invalid_password">パスワードが正しいことを確認して、もう一度お試しください。</string>
 </resources>

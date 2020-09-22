@@ -12,6 +12,7 @@ import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
+import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
@@ -21,9 +22,9 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import org.spongycastle.util.encoders.Hex
 
@@ -35,7 +36,8 @@ class AccountRepositoryImpl(
     private val sS58Encoder: SS58Encoder,
     private val junctionDecoder: JunctionDecoder,
     private val keypairFactory: KeypairFactory,
-    private val appLinksProvider: AppLinksProvider
+    private val appLinksProvider: AppLinksProvider,
+    private val jsonSeedDecoder: JsonSeedDecoder
 ) : AccountRepository {
 
     companion object {
@@ -171,16 +173,6 @@ class AccountRepositoryImpl(
             .map(::mapAccountLocalToAccount)
     }
 
-    override fun getSourceTypes(): Single<List<SourceType>> {
-        return Single.just(
-            listOf(
-                SourceType.MNEMONIC_PASSPHRASE,
-                SourceType.RAW_SEED,
-                SourceType.KEYSTORE
-            )
-        )
-    }
-
     override fun importFromMnemonic(
         keyString: String,
         username: String,
@@ -234,9 +226,25 @@ class AccountRepositoryImpl(
     override fun importFromJson(
         json: String,
         password: String,
-        networkType: Node.NetworkType
+        name: String
     ): Completable {
-        return Completable.complete()
+        return Completable.fromAction {
+            val importData = jsonSeedDecoder.decode(json, password)
+
+            val publicKeyEncoded = Hex.toHexString(importData.keypair.publicKey)
+
+            val cryptoType = mapEncryptionToCryptoType(importData.encryptionType)
+            val networkType = mapAddressTypeToNetworkType(importData.networType)
+
+            val accountLocal = insertAccount(importData.address, name, publicKeyEncoded, cryptoType, networkType)
+
+            val network = getNetworkForType(networkType)
+
+            val account = Account(accountLocal.address, name, publicKeyEncoded, cryptoType, accountLocal.position, network)
+
+            maybeSelectAccount(account).blockingAwait()
+            selectNode(account.network.defaultNode).blockingAwait()
+        }
     }
 
     override fun isCodeSet(): Single<Boolean> {
@@ -308,6 +316,19 @@ class AccountRepositoryImpl(
         return accountDao.remove(address)
     }
 
+    override fun processAccountJson(json: String): Single<ImportJsonData> {
+        return Single.fromCallable {
+            val importAccountMeta = jsonSeedDecoder.extractImportMetaData(json)
+
+            with(importAccountMeta) {
+                val network = getNetworkForType(mapAddressTypeToNetworkType(networkType))
+                val cryptoType = mapEncryptionToCryptoType(encryptionType)
+
+                ImportJsonData(name, network, cryptoType)
+            }
+        }
+    }
+
     private fun saveAccountData(
         accountName: String,
         mnemonic: String,
@@ -347,11 +368,27 @@ class AccountRepositoryImpl(
         }
     }
 
+    private fun mapEncryptionToCryptoType(cryptoType: EncryptionType): CryptoType {
+        return when (cryptoType) {
+            EncryptionType.SR25519 -> CryptoType.SR25519
+            EncryptionType.ED25519 -> CryptoType.ED25519
+            EncryptionType.ECDSA -> CryptoType.ECDSA
+        }
+    }
+
     private fun mapNetworkTypeToAddressType(networkType: Node.NetworkType): AddressType {
         return when (networkType) {
             Node.NetworkType.KUSAMA -> AddressType.KUSAMA
             Node.NetworkType.POLKADOT -> AddressType.POLKADOT
             Node.NetworkType.WESTEND -> AddressType.WESTEND
+        }
+    }
+
+    private fun mapAddressTypeToNetworkType(networkType: AddressType): Node.NetworkType {
+        return when (networkType) {
+            AddressType.KUSAMA -> Node.NetworkType.KUSAMA
+            AddressType.POLKADOT -> Node.NetworkType.POLKADOT
+            AddressType.WESTEND -> Node.NetworkType.WESTEND
         }
     }
 

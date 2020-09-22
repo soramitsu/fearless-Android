@@ -86,4 +86,6 @@
     <string name="wallet_asset_send">Spedire</string>
     <string name="wallet_asset_receive">Ricevere</string>
     <string name="wallet_assets_total_title">Valore delle attività</string>
+    <string name="import_json_invalid_format">Json di ripristino non valido. Per favore, assicurati che l\'input contenga json valido.</string>
+    <string name="import_json_invalid_password">Per favore, controlla la correttezza della password e riprova.</string>
 </resources>

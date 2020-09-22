@@ -90,4 +90,6 @@
     <string name="wallet_asset_receive">Receive</string>
     <string name="wallet_asset_send">Send</string>
 
+    <string name="import_json_invalid_format">Invalid recovery json. Please, make sure that input contains valid json.</string>
+    <string name="import_json_invalid_password">Please, check password correctness and try again.</string>
 </resources>

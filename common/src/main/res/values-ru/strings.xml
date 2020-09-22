@@ -87,4 +87,6 @@
     <string name="wallet_asset_send">Отправить</string>
     <string name="wallet_asset_receive">Получить</string>
     <string name="wallet_assets_total_title">Стоимость активов</string>
+    <string name="import_json_invalid_format">Неверный формат данных восстановления. Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
+    <string name="import_json_invalid_password">Пожалуйста, проверьте корректность пароля и попробуйте снова.</string>
 </resources>
