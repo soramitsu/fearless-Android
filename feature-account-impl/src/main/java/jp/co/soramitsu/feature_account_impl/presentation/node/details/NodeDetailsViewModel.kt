@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.details
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -19,6 +21,9 @@ class NodeDetailsViewModel(
 
     val editEnabled = nodeLiveData.map(::mapNodeEditState)
 
+    private val _updateButtonEnabled = MutableLiveData<Boolean>()
+    val updateButtonEnabled: LiveData<Boolean> = _updateButtonEnabled
+
     fun backClicked() {
         router.back()
     }
@@ -30,6 +35,10 @@ class NodeDetailsViewModel(
     }
 
     private fun mapNodeEditState(node: Node): Boolean {
-        return !node.isDefault
+        return node.isDefault
+    }
+
+    fun nodeDetailsEdited() {
+        _updateButtonEnabled.value = true
     }
 }

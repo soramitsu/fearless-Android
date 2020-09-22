@@ -2,9 +2,11 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.details
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -13,6 +15,7 @@ import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHost
 import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHostContainer
 import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsName
 import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNameContainer
+import kotlinx.android.synthetic.main.fragment_node_details.updateBtn
 
 class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
@@ -54,6 +57,8 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
         }
 
         viewModel.editEnabled.observe { editEnabled ->
+            updateBtn.visibility = if (editEnabled) View.VISIBLE else View.GONE
+
             nodeDetailsName.isEnabled = editEnabled
             nodeDetailsHost.isEnabled = editEnabled
 
@@ -64,6 +69,18 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
                 nodeDetailsHostContainer.setBackgroundResource(R.drawable.bg_button_primary_disabled)
                 nodeDetailsNameContainer.setBackgroundResource(R.drawable.bg_button_primary_disabled)
             }
+
+            nodeDetailsName.onTextChanged {
+                viewModel.nodeDetailsEdited()
+            }
+
+            nodeDetailsHost.onTextChanged {
+                viewModel.nodeDetailsEdited()
+            }
+        }
+
+        viewModel.updateButtonEnabled.observe {
+            updateBtn.isEnabled = it
         }
     }
 }
