@@ -82,4 +82,6 @@
     <string name="account_delete_confirmation_title">Забыли аккаунт?</string>
     <string name="account_delete_confirmation_description">Прежде чем продолжить, убедитесь, что вы создали резервную копию своей учетной записи.</string>
     <string name="account_delete_confirm">Забыть</string>
+    <string name="import_json_invalid_format">Неверный формат данных восстановления. Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
+    <string name="import_json_invalid_password">Пожалуйста, проверьте корректность пароля и попробуйте снова.</string>
 </resources>

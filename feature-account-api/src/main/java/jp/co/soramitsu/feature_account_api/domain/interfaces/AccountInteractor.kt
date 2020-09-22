@@ -5,14 +5,12 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.SourceType
 
 interface AccountInteractor {
     fun getMnemonic(): Single<List<String>>
-
-    fun getSourceTypesWithSelected(): Single<Pair<List<SourceType>, SourceType>>
 
     fun getCryptoTypes(): Single<List<CryptoType>>
 
@@ -42,7 +40,7 @@ interface AccountInteractor {
         node: Node
     ): Completable
 
-    fun importFromJson(json: String, password: String, node: Node.NetworkType): Completable
+    fun importFromJson(json: String, password: String, name: String): Completable
 
     fun getAddressId(account: Account): Single<ByteArray>
 
@@ -85,4 +83,6 @@ interface AccountInteractor {
     fun observeNodes(): Observable<List<Node>>
 
     fun observeSelectedNode(): Observable<Node>
+
+    fun processAccountJson(json: String): Single<ImportJsonData>
 }

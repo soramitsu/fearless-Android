@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
+import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
@@ -29,6 +30,34 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.Netwo
 class AccountFeatureModule {
 
     @Provides
+    @FeatureScope
+    fun provideBip39() = Bip39()
+
+    @Provides
+    @FeatureScope
+    fun provideSs58Encoder() = SS58Encoder()
+
+    @Provides
+    @FeatureScope
+    fun provideJunctionDecoder() = JunctionDecoder()
+
+    @Provides
+    @FeatureScope
+    fun provideKeyFactory() = KeypairFactory()
+
+    @Provides
+    @FeatureScope
+    fun provideJsonDecoder(
+        sS58Encoder: SS58Encoder,
+        keypairFactory: KeypairFactory,
+        jsonMapper: Gson
+    ) = JsonSeedDecoder(jsonMapper, sS58Encoder, keypairFactory)
+
+    @Provides
+    @FeatureScope
+    fun provideJsonMapper() = Gson()
+
+    @Provides
     fun provideNetworkChooserMixin(interactor: AccountInteractor): NetworkChooserMixin =
         NetworkChooser(interactor)
 
@@ -40,25 +69,27 @@ class AccountFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideJsonMapper() = Gson()
-
-    @Provides
-    @FeatureScope
     fun provideAccountRepository(
+        bip39: Bip39,
+        sS58Encoder: SS58Encoder,
+        junctionDecoder: JunctionDecoder,
+        keypairFactory: KeypairFactory,
         accountDataSource: AccountDataSource,
         appLinksProvider: AppLinksProvider,
         accountDao: AccountDao,
-        nodeDao: NodeDao
+        nodeDao: NodeDao,
+        jsonSeedDecoder: JsonSeedDecoder
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
             accountDao,
             nodeDao,
-            Bip39(),
-            SS58Encoder(),
-            JunctionDecoder(),
-            KeypairFactory(),
-            appLinksProvider
+            bip39,
+            sS58Encoder,
+            junctionDecoder,
+            keypairFactory,
+            appLinksProvider,
+            jsonSeedDecoder
         )
     }
 
