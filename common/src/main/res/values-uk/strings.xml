@@ -83,6 +83,10 @@
     <string name="account_delete_confirmation_title">Забути рахунок?</string>
     <string name="account_delete_confirmation_description">Перш ніж продовжувати, переконайтеся, що ви створили резервну копію свого облікового запису.</string>
     <string name="account_delete_confirm">Забути</string>
+
+    <string name="wallet_asset_send">Надіслати</string>
+    <string name="wallet_asset_receive">Отримати</string>
+    <string name="wallet_assets_total_title">Вартість активів</string>
     <string name="import_json_invalid_format">Недійсний json для відновлення. Переконайтеся, що вхід містить дійсний json.</string>
     <string name="import_json_invalid_password">Перевірте правильність пароля і повторіть спробу.</string>
 </resources>

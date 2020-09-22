@@ -28,4 +28,9 @@
         <attr name="homeButtonVisible" format="boolean" />
     </declare-styleable>
 
+    <declare-styleable name="GlassyButton">
+        <attr name="text" format="string" />
+        <attr name="drawable" format="reference|color" />
+    </declare-styleable>
+
 </resources>

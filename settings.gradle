@@ -1,3 +1,5 @@
+include ':feature-wallet-impl'
+include ':feature-wallet-api'
 include ':feature-onboarding-impl'
 include ':feature-onboarding-api'
 include ':app', ':test-shared', ':common', ':feature-splash', ':core-db'

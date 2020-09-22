@@ -86,6 +86,10 @@
     <string name="account_delete_confirmation_description">Make sure you have backed up your account before proceeding.</string>
     <string name="account_delete_confirm">Forget</string>
 
+    <string name="wallet_assets_total_title">Assets value</string>
+    <string name="wallet_asset_receive">Receive</string>
+    <string name="wallet_asset_send">Send</string>
+
     <string name="import_json_invalid_format">Invalid recovery json. Please, make sure that input contains valid json.</string>
     <string name="import_json_invalid_password">Please, check password correctness and try again.</string>
 </resources>
