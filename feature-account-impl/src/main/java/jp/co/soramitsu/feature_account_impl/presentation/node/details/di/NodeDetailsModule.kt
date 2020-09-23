@@ -8,6 +8,8 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.common.resources.ClipboardManager
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsViewModel
@@ -21,9 +23,11 @@ class NodeDetailsModule {
     fun provideViewModel(
         interactor: AccountInteractor,
         router: AccountRouter,
-        nodeId: Int
+        nodeId: Int,
+        clipboardManager: ClipboardManager,
+        resourceManager: ResourceManager
     ): ViewModel {
-        return NodeDetailsViewModel(interactor, router, nodeId)
+        return NodeDetailsViewModel(interactor, router, nodeId, clipboardManager, resourceManager)
     }
 
     @Provides

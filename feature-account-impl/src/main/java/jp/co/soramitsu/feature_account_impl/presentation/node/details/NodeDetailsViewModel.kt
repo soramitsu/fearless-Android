@@ -6,15 +6,20 @@ import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ClipboardManager
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 class NodeDetailsViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
-    private val nodeId: Int
+    private val nodeId: Int,
+    private val clipboardManager: ClipboardManager,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel() {
 
     val nodeLiveData = getNode(nodeId).asLiveData()
@@ -40,5 +45,13 @@ class NodeDetailsViewModel(
 
     fun nodeDetailsEdited() {
         _updateButtonEnabled.value = true
+    }
+
+    fun copyNodeHostClicked() {
+        nodeLiveData.value?.let {
+            clipboardManager.addToClipboard(it.link)
+
+            showMessage(resourceManager.getString(R.string.common_copied))
+        }
     }
 }

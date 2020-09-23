@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHost
 import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHostContainer
 import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsName
 import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNameContainer
+import kotlinx.android.synthetic.main.fragment_node_details.nodeHostCopy
 import kotlinx.android.synthetic.main.fragment_node_details.updateBtn
 
 class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
@@ -37,6 +38,10 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
     override fun initViews() {
         fearlessToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        nodeHostCopy.setOnClickListener {
+            viewModel.copyNodeHostClicked()
+        }
     }
 
     override fun inject() {
