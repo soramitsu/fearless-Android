@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
+import jp.co.soramitsu.common.utils.setValueIfNew
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
@@ -44,7 +45,7 @@ class NodeDetailsViewModel(
     }
 
     fun nodeDetailsEdited() {
-        _updateButtonEnabled.value = true
+        _updateButtonEnabled.setValueIfNew(true)
     }
 
     fun copyNodeHostClicked() {
