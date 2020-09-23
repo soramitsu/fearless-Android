@@ -7,5 +7,5 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 interface WalletInteractor {
     fun getAssets(): Observable<List<Asset>>
 
-    fun syncAssets() : Completable
+    fun syncAssets(): Completable
 }

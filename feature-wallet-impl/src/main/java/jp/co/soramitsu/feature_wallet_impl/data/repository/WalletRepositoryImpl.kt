@@ -26,7 +26,7 @@ class WalletRepositoryImpl(
 
     override fun getAssets(): Observable<List<Asset>> {
         return accountRepository.observeSelectedAccount().switchMap { account ->
-           assetDao.observeAssets(account.address)
+            assetDao.observeAssets(account.address)
         }.map { it.map(AssetLocal::toAsset) }
     }
 

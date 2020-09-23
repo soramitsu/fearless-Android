@@ -11,13 +11,11 @@ import java.util.Locale
 private const val DOLLAR_CODE = "USD"
 
 private const val DECIMAL_PATTERN_BASE = "###,###."
-private const val TWO_DIGITS_PATTERN = "00"
 
 private const val DEFAULT_PRECISION = 4
 
 private const val GROUPING_SEPARATOR = ' '
 private const val DECIMAL_SEPARATOR = '.'
-
 
 fun BigDecimal.formatAsCurrency(): String {
     val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
@@ -26,11 +24,11 @@ fun BigDecimal.formatAsCurrency(): String {
     return formatter.format(this)
 }
 
-fun  BigDecimal.format(precision: Int = DEFAULT_PRECISION): String {
+fun BigDecimal.format(precision: Int = DEFAULT_PRECISION): String {
     return decimalFormatterFor(patternWith(precision)).format(this)
 }
 
-fun BigDecimal.formatAsChange() : String {
+fun BigDecimal.formatAsChange(): String {
     val prefix = if (isNonNegative) '+' else '-'
 
     val formatted = format()

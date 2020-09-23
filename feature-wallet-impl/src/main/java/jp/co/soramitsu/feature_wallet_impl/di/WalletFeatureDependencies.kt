@@ -25,5 +25,5 @@ interface WalletFeatureDependencies {
 
     fun accountRepository(): AccountRepository
 
-    fun assetsDao() : AssetDao
+    fun assetsDao(): AssetDao
 }
