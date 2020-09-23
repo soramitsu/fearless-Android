@@ -18,8 +18,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     private val backCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
-            isEnabled =
-                navController!!.navigateUp()
+            isEnabled = navController!!.navigateUp()
         }
     }
 
@@ -42,6 +41,12 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         navController!!.addOnDestinationChangedListener { _, destination, _ ->
             backCallback.isEnabled = !isAtHomeTab(destination)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        backCallback.isEnabled = false
     }
 
     private fun isAtHomeTab(destination: NavDestination) =

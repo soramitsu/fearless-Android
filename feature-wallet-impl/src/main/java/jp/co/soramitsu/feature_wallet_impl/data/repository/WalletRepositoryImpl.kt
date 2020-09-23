@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
 import io.reactivex.Observable
-import io.reactivex.functions.BiFunction
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -19,12 +18,12 @@ class WalletRepositoryImpl(
 ) : WalletRepository {
 
     override fun getAssets(): Observable<List<Asset>> {
-        return accountRepository.getSelectedNode().toObservable()
-            .zipWith(accountRepository.observeSelectedAccount(), BiFunction { node, account ->
-                val accountInfo = substrateSource.fetchAccountInfo(account, node).blockingGet()
+        return accountRepository.observeSelectedAccount().map { account ->
+            val node = accountRepository.getSelectedNode().blockingGet()
+            val accountInfo = substrateSource.fetchAccountInfo(account, node).blockingGet()
 
-                listOf(createAsset(node.networkType, accountInfo))
-            })
+            listOf(createAsset(node.networkType, accountInfo))
+        }
     }
 
     private fun createAsset(networkType: Node.NetworkType, accountInfo: EncodableStruct<AccountInfo>): Asset {
