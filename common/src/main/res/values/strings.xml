@@ -92,4 +92,8 @@
 
     <string name="import_json_invalid_format">Invalid recovery json. Please, make sure that input contains valid json.</string>
     <string name="import_json_invalid_password">Please, check password correctness and try again.</string>
+    <string name="node_info_title">Node Info</string>
+    <string name="network_info_name">Node name</string>
+    <string name="common_update">Update</string>
+    <string name="network_info_address">Node address</string>
 </resources>

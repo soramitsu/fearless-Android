@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.nodes
+package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,7 +8,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_nodes.connectionsList
 

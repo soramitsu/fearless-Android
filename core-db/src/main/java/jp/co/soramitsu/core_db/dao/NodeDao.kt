@@ -17,6 +17,9 @@ abstract class NodeDao {
     @Query("select * from nodes where link = :link")
     abstract fun getNode(link: String): Single<NodeLocal>
 
+    @Query("select * from nodes where id = :id")
+    abstract fun getNodeById(id: Int): Single<NodeLocal>
+
     @Query("DELETE FROM nodes where link = :link")
     abstract fun remove(link: String)
 
