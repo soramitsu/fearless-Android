@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.domain
 
+import io.reactivex.Completable
 import io.reactivex.Observable
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -11,5 +12,9 @@ class WalletInteractorImpl(
 
     override fun getAssets(): Observable<List<Asset>> {
         return walletRepository.getAssets()
+    }
+
+    override fun syncAssets(): Completable {
+        return walletRepository.syncAssets()
     }
 }

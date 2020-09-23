@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -28,7 +29,11 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideWalletRepository(substrateSource: WssSubstrateSource, accountRepository: AccountRepository): WalletRepository = WalletRepositoryImpl(substrateSource, accountRepository)
+    fun provideWalletRepository(
+        substrateSource: WssSubstrateSource,
+        accountRepository: AccountRepository,
+        assetDao: AssetDao
+    ): WalletRepository = WalletRepositoryImpl(substrateSource, accountRepository, assetDao)
 
     @Provides
     @FeatureScope

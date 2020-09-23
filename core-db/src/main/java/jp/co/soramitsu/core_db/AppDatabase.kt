@@ -4,17 +4,23 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import jp.co.soramitsu.core_db.dao.NodeDao
+import androidx.room.TypeConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
-import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
+import jp.co.soramitsu.core_db.model.AssetConverters
+import jp.co.soramitsu.core_db.model.AssetLocal
+import jp.co.soramitsu.core_db.model.NodeLocal
 
 @Database(
-    version = 3,
+    version = 4,
     entities = [
         AccountLocal::class,
-        NodeLocal::class
+        NodeLocal::class,
+        AssetLocal::class
     ])
+@TypeConverters(AssetConverters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     companion object {
@@ -35,4 +41,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun nodeDao(): NodeDao
 
     abstract fun userDao(): AccountDao
+
+    abstract fun assetDao() : AssetDao
 }

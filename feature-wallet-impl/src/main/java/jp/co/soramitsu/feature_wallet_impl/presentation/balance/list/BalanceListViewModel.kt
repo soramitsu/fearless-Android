@@ -5,6 +5,8 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -41,6 +43,13 @@ class BalanceListViewModel(
             .map { it.map(Asset::toUiModel) }
             .map(::BalanceModel)
             .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    fun syncAssets() {
+        disposables += interactor.syncAssets()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeToError { showError(it.message!!) }
     }
 
     fun assetClicked() {

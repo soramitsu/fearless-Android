@@ -4,11 +4,11 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import java.math.BigDecimal
 import java.math.BigInteger
 
-private val DEFAULT_MANTISSA = 12
+private const val DEFAULT_MANTISSA = 12
 
 class Asset(
     val token: Token,
-    balanceInPlanks: BigInteger,
+    val balanceInPlanks: BigInteger,
     val dollarRate: BigDecimal,
     val recentRateChange: BigDecimal
 ) {
