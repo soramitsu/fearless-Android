@@ -12,4 +12,5 @@
     <color name="green">#0ED33B</color>
     <color name="dividerGray">#88888888</color>
     <color name="bottomSheetBackground">#80004CB7</color>
+    <color name="red">#F00004</color>
 </resources>

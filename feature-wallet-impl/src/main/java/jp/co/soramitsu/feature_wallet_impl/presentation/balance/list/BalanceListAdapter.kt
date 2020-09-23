@@ -6,8 +6,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.isNonNegative
+import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
+import jp.co.soramitsu.feature_wallet_impl.util.format
+import jp.co.soramitsu.feature_wallet_impl.util.formatAsChange
+import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetBalance
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetDollarAmount
@@ -41,11 +46,14 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
         itemAssetImage.setImageResource(asset.icon)
         itemAssetNetwork.text = asset.token.networkType.readableName
 
-        // TODO proper double formatting
-        itemAssetRate.text = asset.dollarRate.toString()
-        itemAssetRateChange.text = asset.recentRateChange.toString()
-        itemAssetDollarAmount.text = asset.dollarAmount.toString()
-        itemAssetBalance.text = asset.balance.toString()
+        itemAssetRate.text = asset.dollarRate.formatAsCurrency()
+
+        val rateChangeColor = if (asset.recentRateChange.isNonNegative) R.color.green else R.color.red
+        itemAssetRateChange.setTextColorRes(rateChangeColor)
+        itemAssetRateChange.text = asset.recentRateChange.formatAsChange()
+
+        itemAssetDollarAmount.text = asset.dollarAmount.formatAsCurrency()
+        itemAssetBalance.text = asset.balance.format()
 
         itemAssetToken.text = asset.token.displayName
 

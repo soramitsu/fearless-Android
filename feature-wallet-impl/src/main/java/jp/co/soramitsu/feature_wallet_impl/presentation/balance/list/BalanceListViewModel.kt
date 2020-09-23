@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 
 import android.graphics.drawable.PictureDrawable
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -23,7 +22,7 @@ class BalanceListViewModel(
     private val iconGenerator: IconGenerator,
     private val router: WalletRouter
 ) : BaseViewModel() {
-    val userIconLiveData = getUserIcon().asLiveData()
+    val userIconLiveData = getUserIcon().asLiveData { showError(it.message!!) }
 
     // TODO repeating code
     private fun getUserIcon(): Observable<PictureDrawable> {
@@ -36,7 +35,7 @@ class BalanceListViewModel(
 
     val balanceLiveData = getBalance().asLiveData()
 
-    private fun getBalance(): Single<BalanceModel> {
+    private fun getBalance(): Observable<BalanceModel> {
         return interactor.getAssets()
             .subscribeOn(Schedulers.io())
             .map { it.map(Asset::toUiModel) }

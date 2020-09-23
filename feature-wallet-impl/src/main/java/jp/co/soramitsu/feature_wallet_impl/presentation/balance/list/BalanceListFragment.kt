@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
+import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
@@ -45,7 +46,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
             adapter.submitList(it.assetModels)
 
             // TODO proper double formatting
-            balanceListTotalAmount.text = it.totalBalance.toString()
+            balanceListTotalAmount.text = it.totalBalance.formatAsCurrency()
         }
 
         viewModel.userIconLiveData.observe {

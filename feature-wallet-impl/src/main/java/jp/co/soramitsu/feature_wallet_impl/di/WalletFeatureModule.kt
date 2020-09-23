@@ -3,9 +3,12 @@ package jp.co.soramitsu.feature_wallet_impl.di
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.feature_wallet_impl.data.network.source.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
 
@@ -13,11 +16,19 @@ import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
 class WalletFeatureModule {
     @Provides
     @FeatureScope
+    fun provideRxWebSocket(mapper: Gson) = RxWebSocket(mapper)
+
+    @Provides
+    @FeatureScope
+    fun provideSubstrateSource(rxWebSocket: RxWebSocket) = WssSubstrateSource(rxWebSocket)
+
+    @Provides
+    @FeatureScope
     fun provideJsonMapper() = Gson()
 
     @Provides
     @FeatureScope
-    fun provideWalletRepository(): WalletRepository = WalletRepositoryImpl()
+    fun provideWalletRepository(substrateSource: WssSubstrateSource, accountRepository: AccountRepository): WalletRepository = WalletRepositoryImpl(substrateSource, accountRepository)
 
     @Provides
     @FeatureScope

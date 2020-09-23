@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "EXPERIMENTAL_API_USAGE")
 
 package jp.co.soramitsu.common.data.network.scale
 
@@ -12,22 +12,25 @@ operator fun <S : Schema<S>> S.invoke(block: StructBuilder<S>? = null): Encodabl
     return struct
 }
 
-fun <S : Schema<S>> S.string() = NonNullFieldDelegate<S, String>(string)
+fun <S : Schema<S>> S.string() = NonNullFieldDelegate(string, this)
 
-@ExperimentalUnsignedTypes
-fun <S : Schema<S>> S.uint32() = NonNullFieldDelegate<S, UInt>(uint32)
+fun <S : Schema<S>> S.uint8() = NonNullFieldDelegate(uint8, this)
 
-fun <S : Schema<S>, T : Schema<T>> S.struct(schema: T) =
-    NonNullFieldDelegate<S, EncodableStruct<T>>(scalable(schema))
+fun <S : Schema<S>> S.uint32() = NonNullFieldDelegate(uint32, this)
 
-fun <S : Schema<S>> S.byte() = NonNullFieldDelegate<S, Byte>(byte)
+fun <S : Schema<S>> S.uint128() = NonNullFieldDelegate(uint128, this)
 
-fun <S : Schema<S>> S.compactInt() = NonNullFieldDelegate<S, Int>(compactInt)
+fun <S : Schema<S>, T : Schema<T>> S.schema(schema: T) =
+    NonNullFieldDelegate(scalable(schema), this)
+
+fun <S : Schema<S>> S.byte() = NonNullFieldDelegate(byte, this)
+
+fun <S : Schema<S>> S.compactInt() = NonNullFieldDelegate(compactInt, this)
 
 fun <S : Schema<S>> S.byteArray(length: Int? = null): NonNullFieldDelegate<S, ByteArray> {
     val type = if (length != null) byteArraySized(length) else byteArray
 
-    return NonNullFieldDelegate(type)
+    return NonNullFieldDelegate(type, this)
 }
 
-fun <S : Schema<S>> S.long() = NonNullFieldDelegate<S, Long>(long)
+fun <S : Schema<S>> S.long() = NonNullFieldDelegate(long, this)

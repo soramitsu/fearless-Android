@@ -1,3 +1,5 @@
+@file:Suppress("EXPERIMENTAL_API_USAGE")
+
 package jp.co.soramitsu.common.data.network.scale
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
@@ -5,6 +7,7 @@ import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import io.emeraldpay.polkaj.scale.ScaleReader
 import io.emeraldpay.polkaj.scale.ScaleWriter
 import io.emeraldpay.polkaj.scale.writer.BoolWriter
+import java.math.BigInteger
 
 sealed class DataType<T> : ScaleReader<T>, ScaleWriter<T>
 
@@ -13,9 +16,10 @@ object string : DataType<String>() {
     override fun write(writer: ScaleCodecWriter, value: String) = writer.writeString(value)
 }
 
-@ExperimentalUnsignedTypes
 object uint32 : DataType<UInt>() {
-    override fun read(reader: ScaleCodecReader) = reader.readUint32().toUInt()
+    override fun read(reader: ScaleCodecReader): UInt {
+        return reader.readUint32().toUInt()
+    }
 
     override fun write(writer: ScaleCodecWriter, value: UInt) = writer.writeUint32(value.toLong())
 }
@@ -30,6 +34,33 @@ object byte : DataType<Byte>() {
     override fun read(reader: ScaleCodecReader) = reader.readByte()
 
     override fun write(writer: ScaleCodecWriter, value: Byte) = writer.writeByte(value)
+}
+
+object uint8 : DataType<UByte>() {
+    override fun read(reader: ScaleCodecReader): UByte {
+        return reader.readUByte().toUByte()
+    }
+
+    override fun write(writer: ScaleCodecWriter, value: UByte) = writer.writeByte(value.toInt())
+}
+
+object uint128 : DataType<BigInteger>() {
+    override fun read(reader: ScaleCodecReader): BigInteger {
+        val bytes = reader.readByteArray(16)
+
+        return BigInteger(bytes.reversedArray())
+    }
+
+    override fun write(writer: ScaleCodecWriter, value: BigInteger) {
+        val array = value.toByteArray()
+        val padded = ByteArray(16)
+
+        val startAt = padded.size - array.size
+
+        array.copyInto(padded, startAt)
+
+        writer.directWrite(padded.reversedArray(), 0, 16)
+    }
 }
 
 object compactInt : DataType<Int>() {
