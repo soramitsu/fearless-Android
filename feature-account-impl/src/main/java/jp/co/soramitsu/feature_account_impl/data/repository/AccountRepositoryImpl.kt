@@ -84,6 +84,11 @@ class AccountRepositoryImpl(
             }.map { it.map(::mapNodeLocalToNode) }
     }
 
+    override fun getNode(nodeId: Int): Single<Node> {
+        return nodeDao.getNodeById(nodeId)
+            .map(::mapNodeLocalToNode)
+    }
+
     override fun getNetworks(): Single<List<Network>> {
         return getNodes()
             .filter { it.isNotEmpty() }
@@ -470,11 +475,11 @@ class AccountRepositoryImpl(
     private fun mapNodeLocalToNode(it: NodeLocal): Node {
         val networkType = Node.NetworkType.values()[it.networkType]
 
-        return Node(it.name, networkType, it.link, it.isDefault)
+        return Node(it.id, it.name, networkType, it.link, it.isDefault)
     }
 
     private fun mapNetworkToNodeLocal(it: Node): NodeLocal {
-        return NodeLocal(0, it.name, it.link, it.networkType.ordinal, it.isDefault)
+        return NodeLocal(it.id, it.name, it.link, it.networkType.ordinal, it.isDefault)
     }
 
     override fun observeNodes(): Observable<List<Node>> {

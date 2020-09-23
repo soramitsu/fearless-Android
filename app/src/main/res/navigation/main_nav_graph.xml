@@ -71,9 +71,25 @@
 
     <fragment
         android:id="@+id/nodesFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.nodes.NodesFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.node.list.NodesFragment"
         android:label="NodesFragment"
-        tools:layout="@layout/fragment_nodes" />
+        tools:layout="@layout/fragment_nodes">
+
+        <action
+            android:id="@+id/action_nodesFragment_to_nodeDetailsFragment"
+            app:destination="@id/nodeDetailsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/nodeDetailsFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment"
+        android:label="NodeDetailsFragment"
+        tools:layout="@layout/fragment_node_details" />
 
     <fragment
         android:id="@+id/accountDetailsFragment"

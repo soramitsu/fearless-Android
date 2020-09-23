@@ -219,6 +219,10 @@ class AccountInteractorImpl(
         return accountRepository.observeSelectedNode()
     }
 
+    override fun getNode(nodeId: Int): Single<Node> {
+        return accountRepository.getNode(nodeId)
+    }
+
     override fun processAccountJson(json: String): Single<ImportJsonData> {
         return accountRepository.processAccountJson(json)
     }

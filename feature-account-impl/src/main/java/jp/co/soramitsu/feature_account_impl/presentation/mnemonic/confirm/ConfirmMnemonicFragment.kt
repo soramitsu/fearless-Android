@@ -29,6 +29,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         private const val KEY_ACCOUNT_NAME = "account_name"
         private const val KEY_MNEMONIC = "mnemonic"
         private const val KEY_CRYPTO_TYPE = "crypto_type"
+        private const val KEY_NODE_ID = "node_id"
         private const val KEY_NODE_NAME = "node_name"
         private const val KEY_NODE_LINK = "node_link"
         private const val KEY_NODE_TYPE = "node_type"
@@ -47,6 +48,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
                 putString(KEY_ACCOUNT_NAME, accountName)
                 putStringArray(KEY_MNEMONIC, mnemonic.toTypedArray())
                 putSerializable(KEY_CRYPTO_TYPE, cryptoType)
+                putInt(KEY_NODE_ID, node.id)
                 putString(KEY_NODE_NAME, node.name)
                 putString(KEY_NODE_LINK, node.link)
                 putSerializable(KEY_NODE_TYPE, node.networkType)
@@ -84,11 +86,12 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         val mnemonic = arguments!!.getStringArray(KEY_MNEMONIC)!!.toList()
         val accountName = arguments!!.getString(KEY_ACCOUNT_NAME)!!
         val cryptoType = arguments!!.getSerializable(KEY_CRYPTO_TYPE) as CryptoType
+        val nodeId = arguments!!.getInt(KEY_NODE_ID)
         val name = arguments!!.getString(KEY_NODE_NAME)!!
         val link = arguments!!.getString(KEY_NODE_LINK)!!
         val networkType = arguments!!.getSerializable(KEY_NODE_TYPE) as Node.NetworkType
         val isDefault = arguments!!.getBoolean(KEY_NODE_IS_DEFAULT)
-        val node = Node(name, networkType, link, isDefault)
+        val node = Node(nodeId, name, networkType, link, isDefault)
         val derivationPath = arguments!!.getString(KEY_DERIVATION_PATH)!!
 
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)

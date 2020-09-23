@@ -84,5 +84,7 @@ interface AccountInteractor {
 
     fun observeSelectedNode(): Observable<Node>
 
+    fun getNode(nodeId: Int): Single<Node>
+
     fun processAccountJson(json: String): Single<ImportJsonData>
 }

@@ -1,10 +1,10 @@
-package jp.co.soramitsu.feature_account_impl.presentation.nodes
+package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.mixin.api.NodeListingMixin
-import jp.co.soramitsu.feature_account_impl.presentation.nodes.model.NodeModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
+import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 
 class NodesViewModel(
     private val interactor: AccountInteractor,
@@ -21,7 +21,7 @@ class NodesViewModel(
     }
 
     fun infoClicked(nodeModel: NodeModel) {
-        // TODO
+        router.openNodeDetails(nodeModel.id)
     }
 
     fun selectNodeClicked(nodeModel: NodeModel) {
