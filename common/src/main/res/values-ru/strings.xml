@@ -92,4 +92,5 @@
     <string name="node_info_title">Информация об узле</string>
     <string name="network_info_name">Название узла</string>
     <string name="common_update">Обновить</string>
+    <string name="network_info_address">Адрес узла</string>
 </resources>

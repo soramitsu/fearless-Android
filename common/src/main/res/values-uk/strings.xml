@@ -92,4 +92,5 @@
     <string name="node_info_title">Інформація про вузол</string>
     <string name="network_info_name">Ім\'я вузла</string>
     <string name="common_update">Оновлення</string>
+    <string name="network_info_address">Адреса вузла</string>
 </resources>
