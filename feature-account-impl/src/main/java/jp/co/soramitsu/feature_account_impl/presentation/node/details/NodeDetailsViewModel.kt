@@ -35,7 +35,7 @@ class NodeDetailsViewModel(
     }
 
     private fun mapNodeEditState(node: Node): Boolean {
-        return node.isDefault
+        return !node.isDefault
     }
 
     fun nodeDetailsEdited() {

@@ -88,5 +88,7 @@
     <string name="wallet_assets_total_title">Valore delle attività</string>
     <string name="import_json_invalid_format">Json di ripristino non valido. Per favore, assicurati che l\'input contenga json valido.</string>
     <string name="import_json_invalid_password">Per favore, controlla la correttezza della password e riprova.</string>
-    <string name="connection_details_title">Network info</string>
+    <string name="node_info_title">Informazioni sul nodo</string>
+    <string name="network_info_name">Nome nodo</string>
+    <string name="common_update">Aggiornare</string>
 </resources>

@@ -88,5 +88,7 @@
     <string name="wallet_assets_total_title">Valeur des actifs</string>
     <string name="import_json_invalid_format">Json de récupération non valide. Veuillez vous assurer que l\'entrée contient un json valide.</string>
     <string name="import_json_invalid_password">Veuillez vérifier l\'exactitude du mot de passe et réessayer.</string>
-    <string name="connection_details_title">Network info</string>
+    <string name="node_info_title">Informations sur le nœud</string>
+    <string name="network_info_name">Nom du nœud</string>
+    <string name="common_update">Mettre à jour</string>
 </resources>

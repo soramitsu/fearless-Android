@@ -89,5 +89,7 @@
     <string name="wallet_assets_total_title">Вартість активів</string>
     <string name="import_json_invalid_format">Недійсний json для відновлення. Переконайтеся, що вхід містить дійсний json.</string>
     <string name="import_json_invalid_password">Перевірте правильність пароля і повторіть спробу.</string>
-    <string name="connection_details_title">Network info</string>
+    <string name="node_info_title">Інформація про вузол</string>
+    <string name="network_info_name">Ім\'я вузла</string>
+    <string name="common_update">Оновлення</string>
 </resources>

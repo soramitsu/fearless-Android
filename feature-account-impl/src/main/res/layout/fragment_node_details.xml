@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/connection_details_title" />
+        app:titleText="@string/node_info_title" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/nodeDetailsNameContainer"
@@ -61,6 +61,6 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:enabled="false"
-        android:text="Update" />
+        android:text="@string/common_update" />
 
 </LinearLayout>
