@@ -27,4 +27,8 @@ class NodesViewModel(
     fun selectNodeClicked(nodeModel: NodeModel) {
         // TODO
     }
+
+    fun addNodeClicked() {
+        router.openAddNode()
+    }
 }

@@ -46,4 +46,6 @@ interface AccountRouter {
     fun backToMainScreen()
 
     fun openNodeDetails(nodeId: Int)
+
+    fun openAddNode()
 }
