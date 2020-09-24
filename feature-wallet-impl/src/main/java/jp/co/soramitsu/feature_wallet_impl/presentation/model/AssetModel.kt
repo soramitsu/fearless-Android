@@ -25,8 +25,8 @@ data class AssetModel(
     private fun determineIcon(): Int {
         return when (token) {
             Asset.Token.KSM -> R.drawable.ic_token_ksm
-            Asset.Token.WND -> R.drawable.ic_westend_24
-            Asset.Token.DOT -> R.drawable.ic_polkadot_24
+            Asset.Token.WND -> R.drawable.ic_token_wnd
+            Asset.Token.DOT -> R.drawable.ic_token_dot
         }
     }
 }
