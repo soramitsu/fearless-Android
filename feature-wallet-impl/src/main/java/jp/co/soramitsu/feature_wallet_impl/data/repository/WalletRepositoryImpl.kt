@@ -55,7 +55,7 @@ class WalletRepositoryImpl(
     private fun zipSyncAssetRequests(
         account: Account,
         node: Node
-    ) : Single<List<Asset>> {
+    ): Single<List<Asset>> {
         val accountInfoSingle = substrateSource.fetchAccountInfo(account, node)
 
         val networkType = account.network.type
@@ -91,12 +91,11 @@ class WalletRepositoryImpl(
         )
     }
 
-    private fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest) : Single<AssetPriceStatistics> {
+    private fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): Single<AssetPriceStatistics> {
         return subscanApi.getAssetPrice(subDomainFor(networkType), request)
     }
 
     private fun subDomainFor(networkType: Node.NetworkType): String {
         return networkType.readableName.toLowerCase(Locale.ROOT)
     }
-
 }

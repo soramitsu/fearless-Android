@@ -28,5 +28,5 @@ interface WalletFeatureDependencies {
 
     fun assetsDao(): AssetDao
 
-    fun networkCreator() : NetworkApiCreator
+    fun networkCreator(): NetworkApiCreator
 }

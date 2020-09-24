@@ -12,5 +12,6 @@ interface SubscanNetworkApi {
     @POST("//{subDomain}.subscan.io/api/open/price")
     fun getAssetPrice(
         @Path("subDomain") subDomain: String,
-        @Body body: AssetPriceRequest): Single<AssetPriceStatistics>
+        @Body body: AssetPriceRequest
+    ): Single<AssetPriceStatistics>
 }
