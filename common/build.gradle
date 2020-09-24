@@ -64,6 +64,7 @@ dependencies {
     implementation retrofitDep
     implementation gsonConvertedDep
     implementation rxCallAdapterDep
+    implementation interceptorVersion
 
     testImplementation jUnitDep
     testImplementation mockitoDep

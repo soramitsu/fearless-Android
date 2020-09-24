@@ -9,12 +9,12 @@ private const val DEFAULT_MANTISSA = 12
 class Asset(
     val token: Token,
     val balanceInPlanks: BigInteger,
-    val dollarRate: BigDecimal,
-    val recentRateChange: BigDecimal
+    val dollarRate: BigDecimal?,
+    val recentRateChange: BigDecimal?
 ) {
     val balance = balanceInPlanks.toBigDecimal(scale = token.mantissa)
 
-    val dollarAmount = balance * dollarRate
+    val dollarAmount = dollarRate?.multiply(balance)
 
     enum class Token(
         val displayName: String,

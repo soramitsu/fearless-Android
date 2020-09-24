@@ -60,4 +60,5 @@ dependencies {
     implementation fearlessLibDep
 
     implementation gsonDep
+    implementation retrofitDep
 }

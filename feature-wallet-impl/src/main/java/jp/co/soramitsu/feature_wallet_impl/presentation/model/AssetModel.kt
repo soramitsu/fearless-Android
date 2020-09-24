@@ -8,13 +8,19 @@ import java.math.BigDecimal
 data class AssetModel(
     val token: Asset.Token,
     val balance: BigDecimal,
-    val dollarRate: BigDecimal,
-    val recentRateChange: BigDecimal,
-    val dollarAmount: BigDecimal
+    val dollarRate: BigDecimal?,
+    val recentRateChange: BigDecimal?,
+    val dollarAmount: BigDecimal?
 ) {
     val icon = determineIcon()
 
-    val rateChangeColor = if (recentRateChange.isNonNegative) R.color.green else R.color.red
+    val rateChangeColorRes = determineChangeColor()
+
+    private fun determineChangeColor(): Int? {
+        if (recentRateChange == null) return null
+
+        return if (recentRateChange.isNonNegative) R.color.green else R.color.red
+    }
 
     private fun determineIcon(): Int {
         return when (token) {

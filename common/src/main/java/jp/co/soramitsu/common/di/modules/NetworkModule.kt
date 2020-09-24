@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.network.RxCallAdapterFactory
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
 
@@ -45,6 +46,7 @@ class NetworkModule {
             .connectTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             .retryOnConnectionFailure(true)
             .build()
     }
@@ -61,6 +63,6 @@ class NetworkModule {
         okHttpClient: OkHttpClient,
         rxCallAdapterFactory: RxCallAdapterFactory
     ): NetworkApiCreator {
-        return NetworkApiCreator(okHttpClient, "test url", rxCallAdapterFactory)
+        return NetworkApiCreator(okHttpClient, "https://placeholder.com", rxCallAdapterFactory)
     }
 }
