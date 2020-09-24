@@ -31,7 +31,7 @@ fun BigDecimal.format(precision: Int = DEFAULT_PRECISION): String {
 fun BigDecimal.formatAsChange(): String {
     val prefix = if (isNonNegative) '+' else '-'
 
-    val formatted = format()
+    val formatted = format(precision = 2)
 
     return "$prefix$formatted%"
 }

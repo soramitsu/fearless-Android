@@ -9,7 +9,9 @@ class BalanceModel(val assetModels: List<AssetModel>) {
 
     private fun calculateTotalBalance(): BigDecimal {
         return assetModels.fold(BigDecimal(BigInteger.ZERO)) { acc, current ->
-            acc + current.dollarAmount
+            val toAdd = current.dollarAmount ?: BigDecimal.ZERO
+
+            acc + toAdd
         }
     }
 }

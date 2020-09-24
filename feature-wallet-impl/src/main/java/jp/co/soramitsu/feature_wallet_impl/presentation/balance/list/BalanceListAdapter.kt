@@ -20,6 +20,7 @@ import kotlinx.android.synthetic.main.item_asset.view.itemAssetNetwork
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetRate
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetRateChange
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetToken
+import java.math.BigDecimal
 
 class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapter<AssetModel, AssetViewHolder>(AssetDiffCallback) {
 
@@ -45,17 +46,20 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
         itemAssetImage.setImageResource(asset.icon)
         itemAssetNetwork.text = asset.token.networkType.readableName
 
-        itemAssetRate.text = asset.dollarRate.formatAsCurrency()
+        asset.dollarRate?.let { itemAssetRate.text = it.formatAsCurrency() }
+        asset.recentRateChange?.let { showRateChange(it, asset.rateChangeColorRes!!) }
+        asset.dollarAmount?.let { itemAssetDollarAmount.text = it.formatAsCurrency() }
 
-        itemAssetRateChange.setTextColorRes(asset.rateChangeColor)
-        itemAssetRateChange.text = asset.recentRateChange.formatAsChange()
-
-        itemAssetDollarAmount.text = asset.dollarAmount.formatAsCurrency()
         itemAssetBalance.text = asset.balance.format()
 
         itemAssetToken.text = asset.token.displayName
 
         setOnClickListener { itemHandler.assetClicked(asset) }
+    }
+
+    private fun showRateChange(rateChange: BigDecimal, rateChangeColorRes: Int) = with(containerView) {
+        itemAssetRateChange.setTextColorRes(rateChangeColorRes)
+        itemAssetRateChange.text = rateChange.formatAsChange()
     }
 }
 

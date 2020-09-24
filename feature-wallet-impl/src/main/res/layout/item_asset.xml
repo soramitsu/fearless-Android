@@ -9,8 +9,8 @@
 
     <ImageView
         android:id="@+id/itemAssetImage"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_width="@dimen/asset_image_width"
+        android:layout_height="@dimen/asset_image_height"
         android:background="@drawable/bg_asset_left"
         android:paddingStart="16dp"
         android:paddingEnd="17dp"
@@ -21,7 +21,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
         android:background="@drawable/bg_asset_right">
 
@@ -31,10 +31,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="6dp"
             android:textColor="@color/white"
+            app:layout_constraintBottom_toTopOf="@+id/itemAssetToken"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
             tools:text="Kusama" />
 
         <TextView
@@ -44,6 +45,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/soramitsu_bold"
             android:textColor="@color/colorGreyText"
+            app:layout_constraintBottom_toTopOf="@+id/itemAssetRate"
             app:layout_constraintStart_toStartOf="@+id/itemAssetNetwork"
             app:layout_constraintTop_toBottomOf="@+id/itemAssetNetwork"
             tools:text="KSM" />
@@ -53,7 +55,6 @@
             style="@style/TextAppearance.Soramitsu.Body1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
             android:textColor="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="@+id/itemAssetToken"
@@ -84,10 +85,10 @@
             tools:text="$1,000.05" />
 
         <TextView
+            android:id="@+id/itemAssetBalance"
             style="@style/TextAppearance.Soramitsu.Header3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/itemAssetBalance"
             android:layout_marginBottom="4dp"
             app:layout_constraintBottom_toTopOf="@+id/itemAssetDollarAmount"
             app:layout_constraintEnd_toEndOf="@+id/itemAssetDollarAmount"

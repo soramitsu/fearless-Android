@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.di
 
 import android.content.Context
+import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -26,4 +27,6 @@ interface WalletFeatureDependencies {
     fun accountRepository(): AccountRepository
 
     fun assetsDao(): AssetDao
+
+    fun networkCreator(): NetworkApiCreator
 }

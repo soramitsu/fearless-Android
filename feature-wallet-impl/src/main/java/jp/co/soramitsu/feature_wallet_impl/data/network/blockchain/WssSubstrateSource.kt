@@ -1,6 +1,6 @@
 @file:Suppress("EXPERIMENTAL_API_USAGE")
 
-package jp.co.soramitsu.feature_wallet_impl.data.network.source
+package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocket

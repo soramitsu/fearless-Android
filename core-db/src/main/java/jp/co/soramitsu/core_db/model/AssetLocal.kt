@@ -20,8 +20,8 @@ class AssetLocal(
     val token: Asset.Token,
     @ColumnInfo(index = true) val accountAddress: String,
     val balanceInPlanks: BigInteger,
-    val dollarRate: BigDecimal,
-    val recentRateChange: BigDecimal
+    val dollarRate: BigDecimal?,
+    val recentRateChange: BigDecimal?
 )
 
 class AssetConverters {
@@ -37,13 +37,13 @@ class AssetConverters {
     }
 
     @TypeConverter
-    fun fromBigDecimal(balance: BigDecimal): String {
-        return balance.toString()
+    fun fromBigDecimal(balance: BigDecimal?): String? {
+        return balance?.toString()
     }
 
     @TypeConverter
-    fun toBigDecimal(balance: String): BigDecimal {
-        return BigDecimal(balance)
+    fun toBigDecimal(balance: String?): BigDecimal? {
+        return balance?.let { BigDecimal(it) }
     }
 
     @TypeConverter
