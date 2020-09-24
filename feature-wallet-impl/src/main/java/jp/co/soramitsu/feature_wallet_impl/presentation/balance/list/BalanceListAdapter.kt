@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
-import jp.co.soramitsu.common.utils.isNonNegative
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
@@ -48,8 +47,7 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
 
         itemAssetRate.text = asset.dollarRate.formatAsCurrency()
 
-        val rateChangeColor = if (asset.recentRateChange.isNonNegative) R.color.green else R.color.red
-        itemAssetRateChange.setTextColorRes(rateChangeColor)
+        itemAssetRateChange.setTextColorRes(asset.rateChangeColor)
         itemAssetRateChange.text = asset.recentRateChange.formatAsChange()
 
         itemAssetDollarAmount.text = asset.dollarAmount.formatAsCurrency()
