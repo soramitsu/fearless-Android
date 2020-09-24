@@ -30,7 +30,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:text="$21,000.43"
+            tools:text="$21,000.43"
             android:singleLine="true"
             android:ellipsize="end"
             app:layout_constraintEnd_toStartOf="@+id/balanceListAvatar"

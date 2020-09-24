@@ -6,7 +6,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.TextView
+import androidx.annotation.ColorRes
 import androidx.annotation.LayoutRes
+import androidx.core.content.ContextCompat
 
 inline fun EditText.onTextChanged(crossinline listener: (String) -> Unit) {
     addTextChangedListener(object : TextWatcher {
@@ -27,3 +30,5 @@ fun ViewGroup.inflateChild(@LayoutRes id: Int): View {
         inflate(id, this@inflateChild, false)
     }
 }
+
+fun TextView.setTextColorRes(@ColorRes colorRes: Int) = setTextColor(ContextCompat.getColor(context, colorRes))

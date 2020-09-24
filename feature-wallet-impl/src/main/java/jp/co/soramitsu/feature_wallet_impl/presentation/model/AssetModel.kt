@@ -1,22 +1,26 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.model
 
+import jp.co.soramitsu.common.utils.isNonNegative
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
+import java.math.BigDecimal
 
 data class AssetModel(
     val token: Asset.Token,
-    val balance: Double,
-    val dollarRate: Double,
-    val recentRateChange: Double
+    val balance: BigDecimal,
+    val dollarRate: BigDecimal,
+    val recentRateChange: BigDecimal,
+    val dollarAmount: BigDecimal
 ) {
-    val dollarAmount = balance * dollarRate
-
     val icon = determineIcon()
+
+    val rateChangeColor = if (recentRateChange.isNonNegative) R.color.green else R.color.red
 
     private fun determineIcon(): Int {
         return when (token) {
             Asset.Token.KSM -> R.drawable.ic_token_ksm
-            else -> throw IllegalArgumentException("Only Kusama is supported")
+            Asset.Token.WND -> R.drawable.ic_westend_24
+            Asset.Token.DOT -> R.drawable.ic_polkadot_24
         }
     }
 }
@@ -26,6 +30,7 @@ fun Asset.toUiModel(): AssetModel {
         token = token,
         balance = balance,
         dollarRate = dollarRate,
-        recentRateChange = recentRateChange
+        recentRateChange = recentRateChange,
+        dollarAmount = dollarAmount
     )
 }

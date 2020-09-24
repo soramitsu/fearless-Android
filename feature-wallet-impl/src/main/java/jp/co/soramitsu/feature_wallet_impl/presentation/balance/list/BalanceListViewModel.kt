@@ -2,10 +2,11 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 
 import android.graphics.drawable.PictureDrawable
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -23,7 +24,7 @@ class BalanceListViewModel(
     private val iconGenerator: IconGenerator,
     private val router: WalletRouter
 ) : BaseViewModel() {
-    val userIconLiveData = getUserIcon().asLiveData()
+    val userIconLiveData = getUserIcon().asLiveData { showError(it.message!!) }
 
     // TODO repeating code
     private fun getUserIcon(): Observable<PictureDrawable> {
@@ -36,12 +37,19 @@ class BalanceListViewModel(
 
     val balanceLiveData = getBalance().asLiveData()
 
-    private fun getBalance(): Single<BalanceModel> {
+    private fun getBalance(): Observable<BalanceModel> {
         return interactor.getAssets()
             .subscribeOn(Schedulers.io())
             .map { it.map(Asset::toUiModel) }
             .map(::BalanceModel)
             .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    fun syncAssets() {
+        disposables += interactor.syncAssets()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeToError { showError(it.message!!) }
     }
 
     fun assetClicked() {

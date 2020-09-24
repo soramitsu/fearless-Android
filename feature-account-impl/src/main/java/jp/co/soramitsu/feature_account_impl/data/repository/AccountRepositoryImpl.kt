@@ -164,8 +164,7 @@ class AccountRepositoryImpl(
             derivationPath,
             encryptionType,
             node
-        ).flatMapCompletable(::maybeSelectAccount)
-            .andThen(selectNode(node))
+        ).flatMapCompletable { maybeSelectInitial(it, node) }
     }
 
     override fun observeAccounts(): Observable<List<Account>> {
@@ -191,9 +190,7 @@ class AccountRepositoryImpl(
             derivationPath,
             selectedEncryptionType,
             node
-        )
-            .flatMapCompletable(::maybeSelectAccount)
-            .andThen(selectNode(node))
+        ).flatMapCompletable { maybeSelectInitial(it, node) }
     }
 
     override fun importFromSeed(
@@ -223,9 +220,7 @@ class AccountRepositoryImpl(
             val network = getNetworkForType(node.networkType)
 
             Account(address, username, publicKeyEncoded, selectedEncryptionType, accountLocal.position, network)
-        }
-            .flatMapCompletable(::maybeSelectAccount)
-            .andThen(selectNode(node))
+        }.flatMapCompletable { maybeSelectInitial(it, node) }
     }
 
     override fun importFromJson(
@@ -247,8 +242,9 @@ class AccountRepositoryImpl(
 
             val account = Account(accountLocal.address, name, publicKeyEncoded, cryptoType, accountLocal.position, network)
 
-            maybeSelectAccount(account).blockingAwait()
-            selectNode(account.network.defaultNode).blockingAwait()
+            val node = account.network.defaultNode
+
+            maybeSelectInitial(account, node).blockingAwait()
         }
     }
 
@@ -428,12 +424,13 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun maybeSelectAccount(account: Account): Completable {
+    private fun maybeSelectInitial(account: Account, node: Node): Completable {
         return isAccountSelected().flatMapCompletable { isSelected ->
             if (isSelected) {
                 Completable.complete()
             } else {
                 selectAccount(account)
+                    .andThen(selectNode(node))
             }
         }
     }
