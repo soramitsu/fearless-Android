@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.functions.Function3
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.model.AssetLocal
@@ -43,19 +44,33 @@ class WalletRepositoryImpl(
 
     private fun syncAssets(account: Account) {
         val node = accountRepository.getSelectedNode().blockingGet()
-        val accountInfo = substrateSource.fetchAccountInfo(account, node).blockingGet()
 
-        val networkType = account.network.type
+        val assets = zipSyncAssetRequests(account, node).blockingGet()
 
-        val currentPriceStats = getAssetPrice(networkType, AssetPriceRequest.createForNow()).blockingGet()
-        val yesterdayPriceStats = getAssetPrice(networkType, AssetPriceRequest.createForYesterday()).blockingGet()
-
-        val assets = listOf(createAsset(networkType, accountInfo, currentPriceStats, yesterdayPriceStats))
         val assetsLocal = assets.map { it.toLocal(account.address) }
 
         assetDao.insert(assetsLocal)
+    }
 
-        print("test")
+    private fun zipSyncAssetRequests(
+        account: Account,
+        node: Node
+    ) : Single<List<Asset>> {
+        val accountInfoSingle = substrateSource.fetchAccountInfo(account, node)
+
+        val networkType = account.network.type
+
+        val currentPriceStatsSingle = getAssetPrice(networkType, AssetPriceRequest.createForNow())
+        val yesterdayPriceStatsSingle = getAssetPrice(networkType, AssetPriceRequest.createForYesterday())
+
+        return Single.zip(accountInfoSingle,
+            currentPriceStatsSingle,
+            yesterdayPriceStatsSingle,
+            Function3<EncodableStruct<AccountInfo>, AssetPriceStatistics, AssetPriceStatistics, List<Asset>> { accountInfo, nowStats, yesterdayStats ->
+                listOf(
+                    createAsset(account.network.type, accountInfo, nowStats, yesterdayStats)
+                )
+            })
     }
 
     private fun createAsset(
