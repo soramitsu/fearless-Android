@@ -49,7 +49,7 @@ fun Long.formatPastDay(context: Context): String? {
     return when (TimeUnit.MILLISECONDS.toDays(diffInMillis)) {
         0L -> context.getString(R.string.today)
         1L -> context.getString(R.string.yesterday)
-        else -> DateUtils.formatDateTime(context, this, DateUtils.FORMAT_ABBREV_ALL)
+        else -> DateUtils.formatDateTime(context, this, 0)
     }
 }
 

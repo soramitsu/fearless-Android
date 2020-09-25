@@ -4,8 +4,7 @@
     android:id="@+id/itemDayHeader"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:fontFamily="@font/soramitsu_semibold"
+    android:fontFamily="@font/soramitsu_bold"
     android:includeFontPadding="false"
     android:paddingStart="@dimen/x2"
     android:paddingTop="@dimen/x1"
@@ -13,6 +12,6 @@
     android:paddingBottom="@dimen/x1"
     android:textAllCaps="true"
     android:textColor="@color/white"
-    android:textSize="@dimen/text_size_b1"
+    android:textSize="@dimen/text_size_b3"
     tools:background="@color/black"
     tools:text="Today" />
