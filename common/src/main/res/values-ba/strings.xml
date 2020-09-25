@@ -93,4 +93,9 @@
     <string name="network_info_name">Название узла</string>
     <string name="common_update">Обновить</string>
     <string name="network_info_address">Адрес узла</string>
+
+    <string name="transfers">Переводы</string>
+    <string name="yesterday">Кисә</string>
+    <string name="today">Бөгөн</string>
+    <string name="transfers_empty">Килгән һәм ебәрелгән транзакциялар бында күрһәтеләсәк</string>
 </resources>
