@@ -30,8 +30,6 @@ class TransferHistorySheet @JvmOverloads constructor(
     private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         anchor?.let {
             bottomSheetBehavior.peekHeight = parentView.measuredHeight - it.measuredHeight - coordinatorParams.topMargin
-
-            removeListener()
         }
     }
 
@@ -44,6 +42,32 @@ class TransferHistorySheet @JvmOverloads constructor(
         transactionHistoryList.setHasFixedSize(true)
 
         addScrollListener()
+    }
+
+    fun showTransactions(transactions: List<Any>) {
+        adapter.submitList(transactions)
+    }
+
+    fun anchorTo(newAnchor: View) {
+        anchor = newAnchor
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+
+        bottomSheetBehavior = BottomSheetBehavior.from(this)
+
+        addLayoutListener()
+    }
+
+    override fun onDetachedFromWindow() {
+        removeLayoutListener()
+
+        super.onDetachedFromWindow()
+    }
+
+    fun setPageLoadListener(listener: PageLoadListener) {
+        pageLoadListener = listener
     }
 
     private fun addScrollListener() {
@@ -63,28 +87,12 @@ class TransferHistorySheet @JvmOverloads constructor(
         transactionHistoryList.addOnScrollListener(scrollListener)
     }
 
-    fun showTransactions(transactions: List<Any>) {
-        adapter.submitList(transactions)
+    private fun removeLayoutListener() {
+        parentView.viewTreeObserver.removeOnGlobalLayoutListener(layoutListener)
     }
 
-    fun anchorTo(newAnchor: View) {
-        anchor = newAnchor
-    }
-
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-
-        bottomSheetBehavior = BottomSheetBehavior.from(this)
-
-        removeListener()
-    }
-
-    private fun removeListener() {
+    private fun addLayoutListener() {
         parentView.viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
-    }
-
-    fun setPageLoadListener(listener: PageLoadListener) {
-        pageLoadListener = listener
     }
 
     private val parentView: View

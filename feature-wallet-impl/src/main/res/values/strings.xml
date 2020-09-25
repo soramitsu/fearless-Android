@@ -2,4 +2,6 @@
 <resources>
 
     <string name="transfers">Transfers</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
 </resources>

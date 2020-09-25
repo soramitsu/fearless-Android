@@ -11,7 +11,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.util.formatDateTime
-import jp.co.soramitsu.feature_wallet_impl.util.formatRelativeDay
+import jp.co.soramitsu.feature_wallet_impl.util.formatPastDay
 import kotlinx.android.synthetic.main.item_day_header.view.itemDayHeader
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAddress
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAmount
@@ -53,7 +53,7 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
 class DayHolder(view: View) : GroupedListHolder(view) {
     fun bind(item: DayHeader) {
         with(containerView) {
-            itemDayHeader.text = item.date.formatRelativeDay(context)
+            itemDayHeader.text = item.date.formatPastDay(context)
         }
     }
 }
