@@ -4,6 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -13,7 +17,9 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
+import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
+import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
     private lateinit var adapter: BalanceListAdapter
@@ -29,6 +35,12 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     override fun initViews() {
         adapter = BalanceListAdapter(this)
         balanceListAssets.adapter = adapter
+
+        transfersContainer.anchorTo(balanceListContent)
+
+        transfersContainer.setPageLoadListener {
+            viewModel.shouldLoadPage()
+        }
     }
 
     override fun inject() {
@@ -44,10 +56,11 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     override fun subscribe(viewModel: BalanceListViewModel) {
         viewModel.syncAssets()
 
+        viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
+
         viewModel.balanceLiveData.observe {
             adapter.submitList(it.assetModels)
 
-            // TODO proper double formatting
             balanceListTotalAmount.text = it.totalBalance.formatAsCurrency()
         }
 

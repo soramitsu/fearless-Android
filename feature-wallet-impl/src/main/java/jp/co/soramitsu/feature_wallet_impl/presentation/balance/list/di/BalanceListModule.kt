@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
@@ -13,9 +14,17 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.BalanceListViewModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryProvider
 
 @Module(includes = [ViewModelModule::class])
 class BalanceListModule {
+
+    @Provides
+    @ScreenScope
+    fun provideTransferHistoryMixin(walletInteractor: WalletInteractor) : TransferHistoryMixin {
+        return TransferHistoryProvider(walletInteractor)
+    }
 
     @Provides
     @IntoMap
@@ -23,10 +32,10 @@ class BalanceListModule {
     fun provideViewModel(
         interactor: WalletInteractor,
         router: WalletRouter,
-        accountRepository: AccountRepository,
-        iconGenerator: IconGenerator
+        iconGenerator: IconGenerator,
+        transferHistoryMixin: TransferHistoryMixin
     ): ViewModel {
-        return BalanceListViewModel(interactor, accountRepository, iconGenerator, router)
+        return BalanceListViewModel(interactor, iconGenerator, router, transferHistoryMixin)
     }
 
     @Provides

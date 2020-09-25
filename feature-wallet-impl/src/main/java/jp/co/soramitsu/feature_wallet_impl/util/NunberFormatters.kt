@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.util
 
+import android.content.Context
+import android.text.format.DateUtils
 import jp.co.soramitsu.common.utils.isNonNegative
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -29,12 +31,16 @@ fun BigDecimal.format(precision: Int = DEFAULT_PRECISION): String {
 }
 
 fun BigDecimal.formatAsChange(): String {
-    val prefix = if (isNonNegative) '+' else '-'
+    val prefix = if (isNonNegative) "+" else ""
 
     val formatted = format(precision = 2)
 
     return "$prefix$formatted%"
 }
+
+fun Long.formatRelativeDay(context: Context) = DateUtils.formatDateTime(context, this, 0)
+
+fun Long.formatDateTime(context: Context) =  DateUtils.getRelativeDateTimeString(context, this, DateUtils.SECOND_IN_MILLIS, 0, 0)
 
 private fun decimalFormatterFor(pattern: String): DecimalFormat {
     return DecimalFormat(pattern).apply {

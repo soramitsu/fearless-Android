@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.common.groupedList
+package jp.co.soramitsu.common.groupedList
 
 import android.view.View
 import android.view.ViewGroup
