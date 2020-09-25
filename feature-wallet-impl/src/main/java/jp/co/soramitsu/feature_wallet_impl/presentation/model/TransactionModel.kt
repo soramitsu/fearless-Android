@@ -29,7 +29,7 @@ data class TransactionModel(
     }
 }
 
-fun Transaction.toUI() : TransactionModel {
+fun Transaction.toUI(): TransactionModel {
     return TransactionModel(
         hash = hash,
         token = token,

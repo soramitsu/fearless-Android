@@ -32,7 +32,7 @@ class TransferHistoryAdapter : GroupedListAdapter<DayHeader, TransactionModel>(T
     }
 
     override fun bindChild(holder: GroupedListHolder, child: TransactionModel) {
-       (holder as TransactionHolder).bind(child)
+        (holder as TransactionHolder).bind(child)
     }
 }
 
@@ -72,6 +72,6 @@ object TransferHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, Transact
     }
 
     override fun areChildContentsTheSame(oldItem: TransactionModel, newItem: TransactionModel): Boolean {
-       return oldItem == newItem
+        return oldItem == newItem
     }
 }

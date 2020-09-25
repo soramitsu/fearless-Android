@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import io.reactivex.disposables.Disposable
 
 interface TransferHistoryMixin {
-    val transferHistoryDisposable : Disposable
+    val transferHistoryDisposable: Disposable
 
     val transactionsLiveData: LiveData<List<Any>>
 

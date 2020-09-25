@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit
 private const val PAGE_SIZE = 20
 
 class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : TransferHistoryMixin {
+
     override val transferHistoryDisposable = CompositeDisposable()
 
     private val _transactionsLiveData: MutableLiveData<List<Any>> = MutableLiveData()

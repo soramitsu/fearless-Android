@@ -4,10 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -22,6 +18,7 @@ import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmou
 import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
+
     private lateinit var adapter: BalanceListAdapter
 
     override fun onCreateView(

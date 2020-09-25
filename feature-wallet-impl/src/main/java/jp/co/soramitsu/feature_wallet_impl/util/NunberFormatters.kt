@@ -4,7 +4,6 @@ import android.content.Context
 import android.text.format.DateUtils
 import jp.co.soramitsu.common.utils.isNonNegative
 import jp.co.soramitsu.feature_wallet_impl.R
-import java.lang.IllegalArgumentException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -53,7 +52,7 @@ fun Long.formatPastDay(context: Context): String? {
     }
 }
 
-fun Long.formatDateTime(context: Context) =  DateUtils.getRelativeDateTimeString(context, this, DateUtils.SECOND_IN_MILLIS, 0, 0)
+fun Long.formatDateTime(context: Context) = DateUtils.getRelativeDateTimeString(context, this, DateUtils.SECOND_IN_MILLIS, 0, 0)
 
 private fun decimalFormatterFor(pattern: String): DecimalFormat {
     return DecimalFormat(pattern).apply {
