@@ -92,4 +92,5 @@
     <string name="network_info_name">Nome nodo</string>
     <string name="common_update">Aggiornare</string>
     <string name="network_info_address">Indirizzo del nodo</string>
+    <string name="common_add">Inserisci</string>
 </resources>

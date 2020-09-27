@@ -9,6 +9,7 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.add.AddNodeViewModel
 
@@ -20,9 +21,10 @@ class AddNodeModule {
     @ViewModelKey(AddNodeViewModel::class)
     fun provideViewModel(
         interactor: AccountInteractor,
-        router: AccountRouter
+        router: AccountRouter,
+        nodeHostValidator: NodeHostValidator
     ): ViewModel {
-        return AddNodeViewModel(interactor, router)
+        return AddNodeViewModel(interactor, router, nodeHostValidator)
     }
 
     @Provides

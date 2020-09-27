@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:focusableInTouchMode="true"
     android:orientation="vertical"
     tools:background="@color/black">
 
@@ -16,77 +17,50 @@
         app:titleText="@string/connections_add_connection" />
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/nodeDetailsNameContainer"
+        android:id="@+id/nodeNameContainer"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:hint="@string/username_setup_choose_title">
+        android:hint="@string/network_info_name">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/nodeDetailsName"
+            android:id="@+id/nodeName"
             style="@style/Widget.Fearless.Input.Primary.Internal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLength="64" />
+            android:inputType="text" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/nodeHostContainer"
+        style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp">
+        android:layout_marginEnd="16dp"
+        android:hint="@string/network_info_address">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/nodeDetailsHostContainer"
-            style="@style/Widget.Fearless.Input.Primary.External"
-            android:layout_width="0dp"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/nodeHost"
+            style="@style/Widget.Fearless.Input.Primary.Internal"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/username_setup_choose_title"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:inputType="textWebEmailAddress" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/nodeDetailsHost"
-                style="@style/Widget.Fearless.Input.Primary.Internal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <ImageView
-            android:id="@+id/nodeHostCopy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/bg_primary_list_item"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="@dimen/x1"
-            android:src="@drawable/ic_copy_24"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/updateBtn"
+        android:id="@+id/addBtn"
         style="@style/Widget.Fearless.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:enabled="false"
-        android:text="@string/common_update" />
+        android:text="@string/common_add" />
 
 </LinearLayout>

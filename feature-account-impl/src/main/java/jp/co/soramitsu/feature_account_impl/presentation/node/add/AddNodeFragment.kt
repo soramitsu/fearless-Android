@@ -5,9 +5,14 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import kotlinx.android.synthetic.main.fragment_node_add.addBtn
+import kotlinx.android.synthetic.main.fragment_node_add.fearlessToolbar
+import kotlinx.android.synthetic.main.fragment_node_add.nodeHost
+import kotlinx.android.synthetic.main.fragment_node_add.nodeName
 
 class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
 
@@ -18,6 +23,15 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_node_add, container, false)
 
     override fun initViews() {
+        fearlessToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        nodeName.onTextChanged {
+            viewModel.nodeNameChanged(it)
+        }
+
+        nodeHost.onTextChanged {
+            viewModel.nodeHostChanged(it)
+        }
     }
 
     override fun inject() {
@@ -31,5 +45,8 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
     }
 
     override fun subscribe(viewModel: AddNodeViewModel) {
+        viewModel.addButtonEnabled.observe {
+            addBtn.isEnabled = it
+        }
     }
 }

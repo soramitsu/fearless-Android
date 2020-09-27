@@ -92,4 +92,5 @@
     <string name="network_info_name">ノード名</string>
     <string name="common_update">更新</string>
     <string name="network_info_address">ノードアドレス</string>
+    <string name="common_add">追加</string>
 </resources>

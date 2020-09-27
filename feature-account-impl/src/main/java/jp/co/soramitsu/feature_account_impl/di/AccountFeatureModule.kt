@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImp
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
+import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.CryptoTypeChooser
@@ -110,4 +111,7 @@ class AccountFeatureModule {
     ): AccountDataSource {
         return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper)
     }
+
+    @Provides
+    fun provideNodeHostValidator() = NodeHostValidator()
 }
