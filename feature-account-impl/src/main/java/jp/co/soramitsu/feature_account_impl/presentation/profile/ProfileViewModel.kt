@@ -63,4 +63,8 @@ class ProfileViewModel(
     fun networksClicked() {
         router.openNodes()
     }
+
+    fun languagesClicked() {
+        router.openLanguages()
+    }
 }

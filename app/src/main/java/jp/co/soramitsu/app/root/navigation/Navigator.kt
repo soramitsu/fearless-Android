@@ -120,6 +120,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_mainFragment_to_nodesFragment)
     }
 
+    override fun openLanguages() {
+        navController?.navigate(R.id.action_mainFragment_to_languagesFragment)
+    }
+
     override fun openAddAccount() {
         navController?.navigate(R.id.action_accounts_to_onboarding, WelcomeFragment.getBundle(true))
     }
