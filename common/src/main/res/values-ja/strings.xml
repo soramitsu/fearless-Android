@@ -92,5 +92,10 @@
     <string name="network_info_name">ノード名</string>
     <string name="common_update">更新</string>
     <string name="network_info_address">ノードアドレス</string>
+
+    <string name="transfers">乗り換え</string>
+    <string name="yesterday">昨日</string>
+    <string name="today">今日</string>
+    <string name="transfers_empty">出入金の取引履歴はここに表示されます</string>
     <string name="language_title">言語</string>
 </resources>

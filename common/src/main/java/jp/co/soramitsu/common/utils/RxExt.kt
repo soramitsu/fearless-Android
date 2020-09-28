@@ -69,3 +69,11 @@ operator fun CompositeDisposable.plusAssign(child: Disposable) {
 }
 
 fun Completable.subscribeToError(onError: (Throwable) -> Unit) = subscribe({ }, onError)
+
+fun <T, R> Observable<List<T>>.mapList(mapper: (T) -> R): Observable<List<R>> {
+    return map { list -> list.map(mapper) }
+}
+
+fun <T, R> Single<List<T>>.mapList(mapper: (T) -> R): Single<List<R>> {
+    return map { list -> list.map(mapper) }
+}

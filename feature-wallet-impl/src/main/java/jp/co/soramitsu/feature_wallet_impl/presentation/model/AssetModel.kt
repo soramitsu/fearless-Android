@@ -12,22 +12,12 @@ data class AssetModel(
     val recentRateChange: BigDecimal?,
     val dollarAmount: BigDecimal?
 ) {
-    val icon = determineIcon()
-
     val rateChangeColorRes = determineChangeColor()
 
     private fun determineChangeColor(): Int? {
         if (recentRateChange == null) return null
 
         return if (recentRateChange.isNonNegative) R.color.green else R.color.red
-    }
-
-    private fun determineIcon(): Int {
-        return when (token) {
-            Asset.Token.KSM -> R.drawable.ic_token_ksm
-            Asset.Token.WND -> R.drawable.ic_token_wnd
-            Asset.Token.DOT -> R.drawable.ic_token_dot
-        }
     }
 }
 

@@ -92,5 +92,10 @@
     <string name="network_info_name">Nome nodo</string>
     <string name="common_update">Aggiornare</string>
     <string name="network_info_address">Indirizzo del nodo</string>
+
+    <string name="transfers">Trasferimenti</string>
+    <string name="yesterday">Ieri</string>
+    <string name="today">Oggi</string>
+    <string name="transfers_empty">In entrata e in uscita trasferimenti appariranno qui</string>
     <string name="language_title">Lingua</string>
 </resources>

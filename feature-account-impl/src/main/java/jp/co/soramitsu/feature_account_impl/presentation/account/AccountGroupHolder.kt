@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.account
 import android.view.ViewGroup
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.GroupedListHolder
+import jp.co.soramitsu.common.groupedList.GroupedListHolder
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.android.synthetic.main.item_account_group.view.accountGroupIcon
 import kotlinx.android.synthetic.main.item_account_group.view.accountGroupName

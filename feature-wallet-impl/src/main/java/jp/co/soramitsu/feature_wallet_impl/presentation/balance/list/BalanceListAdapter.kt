@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.util.format
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsChange
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
@@ -43,7 +44,7 @@ class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapte
 
 class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
     fun bind(asset: AssetModel, itemHandler: BalanceListAdapter.ItemAssetHandler) = with(containerView) {
-        itemAssetImage.setImageResource(asset.icon)
+        itemAssetImage.setImageResource(asset.token.icon)
         itemAssetNetwork.text = asset.token.networkType.readableName
 
         asset.dollarRate?.let { itemAssetRate.text = it.formatAsCurrency() }

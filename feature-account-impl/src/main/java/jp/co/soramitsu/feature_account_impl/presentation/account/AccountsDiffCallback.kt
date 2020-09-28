@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account
 
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.groupedList.BaseGroupedDiffCallback
+import jp.co.soramitsu.common.groupedList.BaseGroupedDiffCallback
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 object AccountsDiffCallback : BaseGroupedDiffCallback<NetworkModel, AccountModel>(NetworkModel::class.java) {

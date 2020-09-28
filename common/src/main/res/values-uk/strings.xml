@@ -93,5 +93,10 @@
     <string name="network_info_name">Ім\'я вузла</string>
     <string name="common_update">Оновлення</string>
     <string name="network_info_address">Адреса вузла</string>
+
+    <string name="transfers">Трансфери</string>
+    <string name="yesterday">Вчора</string>
+    <string name="today">Сьогодні</string>
+    <string name="transfers_empty">Вхідні й вихідні транзакції з\'являтимуться тут</string>
     <string name="language_title">Мова</string>
 </resources>
