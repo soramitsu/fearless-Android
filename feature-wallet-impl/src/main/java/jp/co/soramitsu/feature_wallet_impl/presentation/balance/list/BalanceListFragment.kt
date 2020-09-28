@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -14,8 +15,10 @@ import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
+import kotlinx.android.synthetic.main.fragment_balance_list.balanceListReceive
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
 import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
+import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
 
@@ -37,6 +40,15 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         transfersContainer.setPageLoadListener {
             viewModel.shouldLoadPage()
+        }
+
+        transfersContainer.setSlidingStateListener {
+            val bottomSheetExpanded = BottomSheetBehavior.STATE_EXPANDED == it
+            walletContainer.isEnabled = !bottomSheetExpanded
+        }
+
+        walletContainer.setOnRefreshListener {
+           viewModel.refresh()
         }
     }
 
@@ -64,6 +76,10 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         viewModel.userIconLiveData.observe {
             balanceListAvatar.setImageDrawable(it)
+        }
+
+        viewModel.hideRefreshEvent.observeEvent {
+            walletContainer.isRefreshing = false
         }
     }
 

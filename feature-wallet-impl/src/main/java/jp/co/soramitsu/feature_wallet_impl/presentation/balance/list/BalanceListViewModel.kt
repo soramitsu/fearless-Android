@@ -1,10 +1,14 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 
 import android.graphics.drawable.PictureDrawable
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.ErrorHandler
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
@@ -24,11 +28,27 @@ class BalanceListViewModel(
     private val router: WalletRouter,
     private val transferHistoryMixin: TransferHistoryMixin
 ) : BaseViewModel(), TransferHistoryMixin by transferHistoryMixin {
+    private var transactionsRefreshed: Boolean = false
+    private var balanceRefreshed: Boolean = false
+
+    private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
+    val hideRefreshEvent : LiveData<Event<Unit>> = _hideRefreshEvent
+
+    private val errorHandler: ErrorHandler = {
+        showError(it.message!!)
+
+        transactionsRefreshFinished()
+        balanceRefreshFinished()
+    }
 
     init {
         disposables += transferHistoryDisposable
-        transactionsErrorHandler = { showError(it.message!!) }
+
+        setTransactionErrorHandler(errorHandler)
+
+        setTransactionSyncedInterceptor { transactionsRefreshFinished() }
     }
+
 
     val userIconLiveData = getUserIcon().asLiveData { showError(it.message!!) }
 
@@ -54,10 +74,37 @@ class BalanceListViewModel(
         disposables += interactor.syncAssets()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribeToError { showError(it.message!!) }
+            .doOnComplete { balanceRefreshFinished() }
+            .subscribeToError(errorHandler)
+    }
+
+    fun refresh() {
+        transactionsRefreshed = false
+        balanceRefreshed = false
+
+        syncAssets()
+        syncFirstTransactionsPage()
     }
 
     fun assetClicked() {
         // TODO
+    }
+
+    private fun transactionsRefreshFinished() {
+        transactionsRefreshed = true
+
+        maybeHideRefresh()
+    }
+
+    private fun balanceRefreshFinished() {
+        balanceRefreshed = true
+
+        maybeHideRefresh()
+    }
+
+    private fun maybeHideRefresh() {
+        if (transactionsRefreshed && balanceRefreshed) {
+            _hideRefreshEvent.value = Event(Unit)
+        }
     }
 }

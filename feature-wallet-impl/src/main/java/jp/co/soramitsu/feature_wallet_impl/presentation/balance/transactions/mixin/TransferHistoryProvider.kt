@@ -25,7 +25,8 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
     private val _transactionsLiveData: MutableLiveData<List<Any>> = MutableLiveData()
     override val transactionsLiveData: LiveData<List<Any>> = _transactionsLiveData
 
-    override var transactionsErrorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
+    private var transactionsErrorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
+    private var transactionsSyncedInterceptor: Interceptor? = null
 
     private var currentTransactions: List<TransactionModel> = emptyList()
 
@@ -35,6 +36,26 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
 
     init {
         observeFirstPage()
+    }
+
+    override fun setTransactionErrorHandler(handler: ErrorHandler) {
+        transactionsErrorHandler = handler
+    }
+
+    override fun setTransactionSyncedInterceptor(interceptor: Interceptor) {
+        transactionsSyncedInterceptor = interceptor
+    }
+
+    override fun shouldLoadPage() {
+        maybeLoadNewPage()
+    }
+
+    override fun syncFirstTransactionsPage() {
+        transferHistoryDisposable += walletInteractor.syncTransactionsFirstPage(PAGE_SIZE)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnComplete { transactionsSyncedInterceptor?.invoke() }
+            .subscribeToError(transactionsErrorHandler)
     }
 
     private fun observeFirstPage() {
@@ -84,17 +105,6 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
 
                 listOf(header) + transactions
             }.flatten()
-    }
-
-    override fun shouldLoadPage() {
-        maybeLoadNewPage()
-    }
-
-    override fun syncFirstTransactionsPage() {
-        transferHistoryDisposable += walletInteractor.syncTransactionsFirstPage(PAGE_SIZE)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeToError(transactionsErrorHandler)
     }
 
     private fun extractDay(millis: Long): Long {

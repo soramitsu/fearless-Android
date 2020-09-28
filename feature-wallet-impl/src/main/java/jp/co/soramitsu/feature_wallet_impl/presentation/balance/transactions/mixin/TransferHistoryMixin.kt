@@ -4,12 +4,16 @@ import androidx.lifecycle.LiveData
 import io.reactivex.disposables.Disposable
 import jp.co.soramitsu.common.utils.ErrorHandler
 
+typealias Interceptor = () -> Unit
+
 interface TransferHistoryMixin {
     val transferHistoryDisposable: Disposable
 
     val transactionsLiveData: LiveData<List<Any>>
 
-    var transactionsErrorHandler: ErrorHandler
+    fun setTransactionErrorHandler(handler: ErrorHandler)
+
+    fun setTransactionSyncedInterceptor(interceptor: Interceptor)
 
     fun shouldLoadPage()
 

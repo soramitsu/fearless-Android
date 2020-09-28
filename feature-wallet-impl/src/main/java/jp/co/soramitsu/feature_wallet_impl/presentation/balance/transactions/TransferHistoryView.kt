@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.view_transfer_history.view.placeholder
 import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryList
 
 typealias PageLoadListener = () -> Unit
+typealias SlidingStateListener = (Int) -> Unit
 
 class TransferHistorySheet @JvmOverloads constructor(
     context: Context,
@@ -25,7 +26,9 @@ class TransferHistorySheet @JvmOverloads constructor(
     private lateinit var bottomSheetBehavior: LockBottomSheetBehavior<View>
 
     private var anchor: View? = null
+
     private var pageLoadListener: PageLoadListener? = null
+    private var slidingStateListener: SlidingStateListener? = null
 
     private val adapter = TransferHistoryAdapter()
 
@@ -62,6 +65,15 @@ class TransferHistorySheet @JvmOverloads constructor(
 
         bottomSheetBehavior = LockBottomSheetBehavior.fromView(this)
 
+        bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+            }
+
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+               slidingStateListener?.invoke(newState)
+            }
+        })
+
         addLayoutListener()
     }
 
@@ -73,6 +85,10 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     fun setPageLoadListener(listener: PageLoadListener) {
         pageLoadListener = listener
+    }
+
+    fun setSlidingStateListener(listener: SlidingStateListener) {
+        slidingStateListener = listener
     }
 
     private fun addScrollListener() {
