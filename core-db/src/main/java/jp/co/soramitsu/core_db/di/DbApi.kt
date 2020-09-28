@@ -16,5 +16,5 @@ interface DbApi {
 
     fun provideAssetDao(): AssetDao
 
-    fun provideTransactionsDao() : TransactionDao
+    fun provideTransactionsDao(): TransactionDao
 }

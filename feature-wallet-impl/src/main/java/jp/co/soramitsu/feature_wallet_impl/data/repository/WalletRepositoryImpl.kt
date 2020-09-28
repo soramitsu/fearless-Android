@@ -31,7 +31,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanError
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import java.math.BigDecimal
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 class WalletRepositoryImpl(
     private val substrateSource: WssSubstrateSource,

@@ -70,7 +70,7 @@ class TransferHistorySheet @JvmOverloads constructor(
             }
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
-               slidingStateListener?.invoke(newState)
+                slidingStateListener?.invoke(newState)
             }
         })
 

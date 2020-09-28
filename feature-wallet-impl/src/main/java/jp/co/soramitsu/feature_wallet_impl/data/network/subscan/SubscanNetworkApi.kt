@@ -24,5 +24,5 @@ interface SubscanNetworkApi {
     fun getTransactionHistory(
         @Path("subDomain") subDomain: String,
         @Body body: TransactionHistoryRequest
-    ) : Single<SubscanResponse<TransactionHistory>>
+    ): Single<SubscanResponse<TransactionHistory>>
 }

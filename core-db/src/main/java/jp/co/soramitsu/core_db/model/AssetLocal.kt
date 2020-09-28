@@ -3,7 +3,6 @@ package jp.co.soramitsu.core_db.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.TypeConverter
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -23,4 +22,3 @@ class AssetLocal(
     val dollarRate: BigDecimal?,
     val recentRateChange: BigDecimal?
 )
-

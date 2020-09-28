@@ -19,7 +19,7 @@ fun Transaction.toUI(): TransactionModel {
     )
 }
 
-fun TransactionLocal.toTransaction() : Transaction {
+fun TransactionLocal.toTransaction(): Transaction {
     return Transaction(
         hash = hash,
         isIncome = isIncome,
@@ -31,7 +31,7 @@ fun TransactionLocal.toTransaction() : Transaction {
     )
 }
 
-fun Transaction.toLocal(accountAddress: String) : TransactionLocal {
+fun Transaction.toLocal(accountAddress: String): TransactionLocal {
     return TransactionLocal(
         accountAddress = accountAddress,
         hash = hash,
@@ -44,7 +44,7 @@ fun Transaction.toLocal(accountAddress: String) : TransactionLocal {
     )
 }
 
-fun Transfer.toTransaction(account: Account) : Transaction {
+fun Transfer.toTransaction(account: Account): Transaction {
     return Transaction(
         hash = hash,
         token = Asset.Token.fromNetworkType(account.network.type),

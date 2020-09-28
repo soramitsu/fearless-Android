@@ -15,4 +15,3 @@ class TokenConverters {
         return Asset.Token.values()[ordinal]
     }
 }
-

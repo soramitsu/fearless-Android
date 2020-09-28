@@ -13,7 +13,7 @@ interface WalletRepository {
 
     fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>>
 
-    fun syncTransactionsFirstPage(pageSize: Int) : Completable
+    fun syncTransactionsFirstPage(pageSize: Int): Completable
 
-    fun getTransactionPage(pageSize: Int, page: Int) : Single<List<Transaction>>
+    fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>>
 }

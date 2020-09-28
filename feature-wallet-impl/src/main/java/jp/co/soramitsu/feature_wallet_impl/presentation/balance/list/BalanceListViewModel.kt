@@ -32,7 +32,7 @@ class BalanceListViewModel(
     private var balanceRefreshed: Boolean = false
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
-    val hideRefreshEvent : LiveData<Event<Unit>> = _hideRefreshEvent
+    val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
 
     private val errorHandler: ErrorHandler = {
         showError(it.message!!)
@@ -48,7 +48,6 @@ class BalanceListViewModel(
 
         setTransactionSyncedInterceptor { transactionsRefreshFinished() }
     }
-
 
     val userIconLiveData = getUserIcon().asLiveData { showError(it.message!!) }
 

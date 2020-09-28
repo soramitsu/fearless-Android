@@ -29,7 +29,7 @@ interface WalletFeatureDependencies {
 
     fun assetsDao(): AssetDao
 
-    fun transactionsDao() : TransactionDao
+    fun transactionsDao(): TransactionDao
 
     fun networkCreator(): NetworkApiCreator
 }

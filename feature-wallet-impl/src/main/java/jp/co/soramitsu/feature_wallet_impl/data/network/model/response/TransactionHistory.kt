@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.model.response
 
-
 import com.google.gson.annotations.SerializedName
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
