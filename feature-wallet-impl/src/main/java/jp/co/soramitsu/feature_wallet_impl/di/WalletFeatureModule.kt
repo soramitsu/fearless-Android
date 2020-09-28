@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -42,8 +43,9 @@ class WalletFeatureModule {
         substrateSource: WssSubstrateSource,
         accountRepository: AccountRepository,
         assetDao: AssetDao,
+        transactionDao: TransactionDao,
         subscanNetworkApi: SubscanNetworkApi
-    ): WalletRepository = WalletRepositoryImpl(substrateSource, accountRepository, assetDao, subscanNetworkApi)
+    ): WalletRepository = WalletRepositoryImpl(substrateSource, accountRepository, assetDao, transactionDao, subscanNetworkApi)
 
     @Provides
     @FeatureScope

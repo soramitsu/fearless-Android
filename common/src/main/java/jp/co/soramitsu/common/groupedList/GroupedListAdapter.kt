@@ -71,6 +71,8 @@ abstract class BaseGroupedDiffCallback<GROUP, CHILD>(private val groupClass: Cla
     }
 
     override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean {
+        if (oldItem::class != newItem::class) return false
+
         return if (isGroup(oldItem)) {
             areGroupContentsTheSame(oldItem as GROUP, newItem as GROUP)
         } else {

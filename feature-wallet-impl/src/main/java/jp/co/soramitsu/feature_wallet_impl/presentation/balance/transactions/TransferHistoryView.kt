@@ -9,10 +9,13 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior
 import jp.co.soramitsu.feature_wallet_impl.R
+import kotlinx.android.synthetic.main.view_transfer_history.view.placeholder
 import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryList
 
 typealias PageLoadListener = () -> Unit
+typealias SlidingStateListener = (Int) -> Unit
 
 class TransferHistorySheet @JvmOverloads constructor(
     context: Context,
@@ -20,10 +23,12 @@ class TransferHistorySheet @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
+    private lateinit var bottomSheetBehavior: LockBottomSheetBehavior<View>
 
     private var anchor: View? = null
+
     private var pageLoadListener: PageLoadListener? = null
+    private var slidingStateListener: SlidingStateListener? = null
 
     private val adapter = TransferHistoryAdapter()
 
@@ -45,6 +50,9 @@ class TransferHistorySheet @JvmOverloads constructor(
     }
 
     fun showTransactions(transactions: List<Any>) {
+        placeholder.visibility = if (transactions.isEmpty()) View.VISIBLE else View.GONE
+        bottomSheetBehavior.isDraggable = transactions.isNotEmpty()
+
         adapter.submitList(transactions)
     }
 
@@ -55,7 +63,16 @@ class TransferHistorySheet @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
 
-        bottomSheetBehavior = BottomSheetBehavior.from(this)
+        bottomSheetBehavior = LockBottomSheetBehavior.fromView(this)
+
+        bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+            }
+
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                slidingStateListener?.invoke(newState)
+            }
+        })
 
         addLayoutListener()
     }
@@ -68,6 +85,10 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     fun setPageLoadListener(listener: PageLoadListener) {
         pageLoadListener = listener
+    }
+
+    fun setSlidingStateListener(listener: SlidingStateListener) {
+        slidingStateListener = listener
     }
 
     private fun addScrollListener() {
