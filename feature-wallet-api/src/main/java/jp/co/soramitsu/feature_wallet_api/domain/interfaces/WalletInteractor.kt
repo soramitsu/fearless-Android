@@ -8,4 +8,6 @@ interface WalletInteractor {
     fun getAssets(): Observable<List<Asset>>
 
     fun syncAssets(): Completable
+
+    fun observeSelectedAddressId(): Observable<ByteArray>
 }

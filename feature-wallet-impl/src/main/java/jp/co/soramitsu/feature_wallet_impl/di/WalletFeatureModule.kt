@@ -47,5 +47,8 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideWalletInteractor(repository: WalletRepository): WalletInteractor = WalletInteractorImpl(repository)
+    fun provideWalletInteractor(
+        walletRepository: WalletRepository,
+        accountRepository: AccountRepository
+    ): WalletInteractor = WalletInteractorImpl(walletRepository, accountRepository)
 }

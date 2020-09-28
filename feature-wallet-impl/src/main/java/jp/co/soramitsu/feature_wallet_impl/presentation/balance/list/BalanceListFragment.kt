@@ -13,9 +13,12 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
+import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
+import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
+
     private lateinit var adapter: BalanceListAdapter
 
     override fun onCreateView(
@@ -29,6 +32,12 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     override fun initViews() {
         adapter = BalanceListAdapter(this)
         balanceListAssets.adapter = adapter
+
+        transfersContainer.anchorTo(balanceListContent)
+
+        transfersContainer.setPageLoadListener {
+            viewModel.shouldLoadPage()
+        }
     }
 
     override fun inject() {
@@ -44,10 +53,11 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     override fun subscribe(viewModel: BalanceListViewModel) {
         viewModel.syncAssets()
 
+        viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
+
         viewModel.balanceLiveData.observe {
             adapter.submitList(it.assetModels)
 
-            // TODO proper double formatting
             balanceListTotalAmount.text = it.totalBalance.formatAsCurrency()
         }
 

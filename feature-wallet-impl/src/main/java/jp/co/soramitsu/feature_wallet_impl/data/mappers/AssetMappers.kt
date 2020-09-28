@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.data
+package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset

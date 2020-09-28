@@ -1,12 +1,16 @@
 package jp.co.soramitsu.feature_wallet_impl.util
 
+import android.content.Context
+import android.text.format.DateUtils
 import jp.co.soramitsu.common.utils.isNonNegative
+import jp.co.soramitsu.feature_wallet_impl.R
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 private const val DOLLAR_CODE = "USD"
 
@@ -29,12 +33,26 @@ fun BigDecimal.format(precision: Int = DEFAULT_PRECISION): String {
 }
 
 fun BigDecimal.formatAsChange(): String {
-    val prefix = if (isNonNegative) '+' else '-'
+    val prefix = if (isNonNegative) "+" else ""
 
     val formatted = format(precision = 2)
 
     return "$prefix$formatted%"
 }
+
+fun Long.formatPastDay(context: Context): String? {
+    val diffInMillis = System.currentTimeMillis() - this
+
+    if (diffInMillis < 0) throw IllegalArgumentException("Past date should be less than current")
+
+    return when (TimeUnit.MILLISECONDS.toDays(diffInMillis)) {
+        0L -> context.getString(R.string.today)
+        1L -> context.getString(R.string.yesterday)
+        else -> DateUtils.formatDateTime(context, this, 0)
+    }
+}
+
+fun Long.formatDateTime(context: Context) = DateUtils.getRelativeDateTimeString(context, this, DateUtils.SECOND_IN_MILLIS, 0, 0)
 
 private fun decimalFormatterFor(pattern: String): DecimalFormat {
     return DecimalFormat(pattern).apply {
