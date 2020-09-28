@@ -68,7 +68,7 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
     }
 
     override fun changeLanguage() {
-
+        restartAfterLanguageChange(this)
     }
 
 //    private fun processJsonOpenIntent() {

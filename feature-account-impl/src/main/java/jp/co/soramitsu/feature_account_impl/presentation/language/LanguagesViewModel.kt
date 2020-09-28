@@ -23,8 +23,8 @@ class LanguagesViewModel(
     val selectedLanguageLiveData = getSelectedLanguageModel()
         .asMutableLiveData()
 
-    private val _languageChangedEvent = MutableLiveData<Event<String>>()
-    val languageChangedEvent: LiveData<Event<String>> = _languageChangedEvent
+    private val _languageChangedEvent = MutableLiveData<Event<Unit>>()
+    val languageChangedEvent: LiveData<Event<Unit>> = _languageChangedEvent
 
     fun backClicked() {
         router.back()
@@ -50,6 +50,14 @@ class LanguagesViewModel(
     }
 
     fun selectLanguageClicked(languageModel: LanguageModel) {
-        // TODO
+        disposables.add(
+            interactor.changeSelectedLanguage(Language(languageModel.iso))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    _languageChangedEvent.value = Event(Unit)
+                }, {
+
+                })
+        )
     }
 }

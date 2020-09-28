@@ -109,4 +109,6 @@ interface AccountRepository {
     fun observeLanguages(): Observable<List<Language>>
 
     fun getSelectedLanguage(): Single<Language>
+
+    fun changeLanguage(language: Language): Completable
 }

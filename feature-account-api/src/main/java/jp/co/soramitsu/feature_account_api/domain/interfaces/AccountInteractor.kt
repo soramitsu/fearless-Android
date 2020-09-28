@@ -90,4 +90,6 @@ interface AccountInteractor {
     fun observeLanguages(): Observable<List<Language>>
 
     fun getSelectedLanguage(): Single<Language>
+
+    fun changeSelectedLanguage(language: Language): Completable
 }

@@ -231,4 +231,8 @@ class AccountInteractorImpl(
     override fun getSelectedLanguage(): Single<Language> {
         return accountRepository.getSelectedLanguage()
     }
+
+    override fun changeSelectedLanguage(language: Language): Completable {
+        return accountRepository.changeLanguage(language)
+    }
 }

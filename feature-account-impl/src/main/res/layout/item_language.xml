@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_primary_list_item"
+    android:paddingTop="@dimen/x1"
+    android:paddingBottom="@dimen/x1"
     tools:background="@color/black">
 
     <ImageView
@@ -12,6 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:src="@drawable/ic_checkmark_white_24"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

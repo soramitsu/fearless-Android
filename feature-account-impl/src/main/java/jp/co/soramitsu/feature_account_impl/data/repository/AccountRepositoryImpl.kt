@@ -500,4 +500,10 @@ class AccountRepositoryImpl(
             accountDataSource.getSelectedLanguage()
         }
     }
+
+    override fun changeLanguage(language: Language): Completable {
+        return Completable.fromAction {
+            accountDataSource.changeSelectedLanguage(language)
+        }
+    }
 }

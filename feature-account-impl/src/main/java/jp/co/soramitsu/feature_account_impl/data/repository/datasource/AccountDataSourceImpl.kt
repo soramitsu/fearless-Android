@@ -173,4 +173,8 @@ class AccountDataSourceImpl(
     override fun getSelectedLanguage(): Language? {
         return preferences.getCurrentLanguage()
     }
+
+    override fun changeSelectedLanguage(language: Language) {
+        preferences.saveCurrentLanguage(language.iso)
+    }
 }
