@@ -9,7 +9,9 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior
 import jp.co.soramitsu.feature_wallet_impl.R
+import kotlinx.android.synthetic.main.view_transfer_history.view.placeholder
 import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryList
 
 typealias PageLoadListener = () -> Unit
@@ -20,7 +22,7 @@ class TransferHistorySheet @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
+    private lateinit var bottomSheetBehavior: LockBottomSheetBehavior<View>
 
     private var anchor: View? = null
     private var pageLoadListener: PageLoadListener? = null
@@ -45,6 +47,9 @@ class TransferHistorySheet @JvmOverloads constructor(
     }
 
     fun showTransactions(transactions: List<Any>) {
+        placeholder.visibility = if (transactions.isEmpty()) View.VISIBLE else View.GONE
+        bottomSheetBehavior.isDraggable = transactions.isNotEmpty()
+
         adapter.submitList(transactions)
     }
 
@@ -55,7 +60,7 @@ class TransferHistorySheet @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
 
-        bottomSheetBehavior = BottomSheetBehavior.from(this)
+        bottomSheetBehavior = LockBottomSheetBehavior.fromView(this)
 
         addLayoutListener()
     }
