@@ -10,6 +10,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 
 @Dao
 abstract class TransactionDao {
+
     @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress")
     abstract fun observeTransactions(accountAddress: String): Observable<List<TransactionLocal>>
 

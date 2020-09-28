@@ -5,6 +5,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 class LongMathConverters {
+
     @TypeConverter
     fun fromBigDecimal(balance: BigDecimal?): String? {
         return balance?.toString()
