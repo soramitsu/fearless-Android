@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.model
 
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.util.format
 import java.math.BigDecimal
@@ -27,16 +26,4 @@ data class TransactionModel(
 
         return sign + withoutSign
     }
-}
-
-fun Transaction.toUI(): TransactionModel {
-    return TransactionModel(
-        hash = hash,
-        token = token,
-        senderAddress = senderAddress,
-        recipientAddress = recipientAddress,
-        isIncome = isIncome,
-        date = date,
-        amount = amount
-    )
 }

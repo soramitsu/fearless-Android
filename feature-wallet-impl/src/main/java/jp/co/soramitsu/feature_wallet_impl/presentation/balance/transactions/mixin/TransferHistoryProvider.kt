@@ -11,9 +11,9 @@ import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.toUI
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.toUI
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 

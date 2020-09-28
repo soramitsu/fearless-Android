@@ -12,6 +12,8 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.toAsset
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.toLocal
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
@@ -19,8 +21,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.free
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.data
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
-import jp.co.soramitsu.feature_wallet_impl.data.toAsset
-import jp.co.soramitsu.feature_wallet_impl.data.toLocal
 import java.util.Locale
 
 class WalletRepositoryImpl(
