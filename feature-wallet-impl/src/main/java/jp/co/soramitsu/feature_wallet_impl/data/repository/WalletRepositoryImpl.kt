@@ -8,17 +8,17 @@ import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
-import jp.co.soramitsu.core_db.model.AssetLocal
-import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.toAsset
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.toLocal
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.toTransaction
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetLocal
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTransaction
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
@@ -43,7 +43,7 @@ class WalletRepositoryImpl(
     override fun getAssets(): Observable<List<Asset>> {
         return accountRepository.observeSelectedAccount().switchMap { account ->
             assetDao.observeAssets(account.address)
-        }.mapList(AssetLocal::toAsset)
+        }.mapList(::mapAssetLocalToAsset)
     }
 
     override fun syncAssets(): Completable {
@@ -69,7 +69,7 @@ class WalletRepositoryImpl(
 
     private fun syncTransactionsFirstPage(pageSize: Int, account: Account): Completable {
         return getTransactionPage(pageSize, 0, account)
-            .mapList { it.toLocal(account.address) }
+            .mapList { mapTransactionToTransactionLocal(it, account.address) }
             .doOnSuccess { transactionsDao.clearAndInsert(account.address, it) }
             .ignoreElement()
     }
@@ -79,7 +79,7 @@ class WalletRepositoryImpl(
 
         val assets = zipSyncAssetRequests(account, node).blockingGet()
 
-        val assetsLocal = assets.map { it.toLocal(account.address) }
+        val assetsLocal = assets.map { mapAssetToAssetLocal(it, account.address) }
 
         assetDao.insert(assetsLocal)
     }
@@ -94,7 +94,7 @@ class WalletRepositoryImpl(
 
                 val transfers = content.transfers ?: emptyList()
 
-                transfers.map { transfer -> transfer.toTransaction(account) }
+                transfers.map { transfer -> mapTransferToTransaction(transfer, account) }
             }
     }
 
@@ -143,7 +143,7 @@ class WalletRepositoryImpl(
 
     private fun observeTransactions(accountAddress: String): Observable<List<Transaction>> {
         return transactionsDao.observeTransactions(accountAddress)
-            .mapList(TransactionLocal::toTransaction)
+            .mapList(::mapTransactionLocalToTransaction)
     }
 
     private fun getSelectedAccount() = accountRepository.observeSelectedAccount().firstOrError()

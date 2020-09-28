@@ -10,8 +10,7 @@ import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.toUI
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import java.util.concurrent.TimeUnit
@@ -65,7 +64,7 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
         transferHistoryDisposable += walletInteractor.observeTransactionsFirstPage(PAGE_SIZE)
             .subscribeOn(Schedulers.io())
             .doOnNext { lastPageLoaded = false }
-            .map { it.map(Transaction::toUI) }
+            .map { it.map(::mapTransactionToTransactionModel) }
             .map { regroup(it, reset = true) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
@@ -83,7 +82,7 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
         transferHistoryDisposable += walletInteractor.getTransactionPage(PAGE_SIZE, currentPage)
             .subscribeOn(Schedulers.io())
             .doOnSuccess { lastPageLoaded = it.isEmpty() }
-            .map { it.map(Transaction::toUI) }
+            .map { it.map(::mapTransactionToTransactionModel) }
             .map { regroup(it, reset = false) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
