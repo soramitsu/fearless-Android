@@ -8,6 +8,7 @@ import jp.co.soramitsu.core_db.AppDatabase
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.core_db.dao.TransactionDao
 
 @Module
 class DbModule {
@@ -34,5 +35,11 @@ class DbModule {
     @ApplicationScope
     fun provideAssetDao(appDatabase: AppDatabase): AssetDao {
         return appDatabase.assetDao()
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideTransactionDao(appDatabase: AppDatabase) : TransactionDao {
+        return appDatabase.transactionsDao()
     }
 }

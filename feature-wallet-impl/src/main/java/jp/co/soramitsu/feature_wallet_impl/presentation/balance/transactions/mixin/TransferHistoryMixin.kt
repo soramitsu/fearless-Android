@@ -9,4 +9,6 @@ interface TransferHistoryMixin {
     val transactionsLiveData: LiveData<List<Any>>
 
     fun shouldLoadPage()
+
+    fun syncFirstTransactionsPage()
 }
