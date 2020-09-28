@@ -22,7 +22,7 @@ interface SubscanNetworkApi {
 
     @POST("//{subDomain}.subscan.io/api/scan/transfers")
     fun getTransactionHistory(
-        @Path("subdomain") subDomain: String,
+        @Path("subDomain") subDomain: String,
         @Body body: TransactionHistoryRequest
     ) : Single<SubscanResponse<TransactionHistory>>
 }

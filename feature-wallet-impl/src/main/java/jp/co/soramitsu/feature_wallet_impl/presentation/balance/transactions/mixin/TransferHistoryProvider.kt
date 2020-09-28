@@ -6,6 +6,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
+import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -23,6 +24,8 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
 
     private val _transactionsLiveData: MutableLiveData<List<Any>> = MutableLiveData()
     override val transactionsLiveData: LiveData<List<Any>> = _transactionsLiveData
+
+    override var transactionsErrorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
 
     private var currentTransactions: List<TransactionModel> = emptyList()
 
@@ -47,7 +50,7 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
             .subscribe({
                 _transactionsLiveData.value = it
                 isLoading = false
-            }, DEFAULT_ERROR_HANDLER)
+            }, transactionsErrorHandler)
     }
 
     private fun maybeLoadNewPage() {
@@ -65,7 +68,7 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
             .subscribe({
                 _transactionsLiveData.value = it
                 isLoading = false
-            }, DEFAULT_ERROR_HANDLER)
+            }, transactionsErrorHandler)
     }
 
     private fun regroup(newPage: List<TransactionModel>, reset: Boolean): List<Any> {
@@ -91,7 +94,7 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
         transferHistoryDisposable += walletInteractor.syncTransactionsFirstPage(PAGE_SIZE)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribeToError(DEFAULT_ERROR_HANDLER)
+            .subscribeToError(transactionsErrorHandler)
     }
 
     private fun extractDay(millis: Long): Long {

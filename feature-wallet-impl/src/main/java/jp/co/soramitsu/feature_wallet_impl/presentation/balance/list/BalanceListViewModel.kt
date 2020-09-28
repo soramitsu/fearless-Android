@@ -27,6 +27,7 @@ class BalanceListViewModel(
 
     init {
         disposables += transferHistoryDisposable
+        transactionsErrorHandler = { showError(it.message!!) }
     }
 
     val userIconLiveData = getUserIcon().asLiveData { showError(it.message!!) }

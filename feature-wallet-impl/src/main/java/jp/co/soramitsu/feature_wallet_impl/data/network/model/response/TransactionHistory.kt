@@ -3,10 +3,11 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.model.response
 
 import com.google.gson.annotations.SerializedName
 import java.math.BigDecimal
+import java.util.concurrent.TimeUnit
 
 class TransactionHistory(
     val count: Int,
-    val transfers: List<Transfer>
+    val transfers: List<Transfer>?
 )
 
 class Transfer(
@@ -23,4 +24,7 @@ class Transfer(
     val module: String,
     val amount: BigDecimal,
     val fee: String
-)
+) {
+    val timeInMillis: Long
+        get() = TimeUnit.SECONDS.toMillis(blockTimestamp)
+}

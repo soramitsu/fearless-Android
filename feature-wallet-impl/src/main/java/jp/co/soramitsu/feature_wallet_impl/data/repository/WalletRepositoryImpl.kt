@@ -21,11 +21,13 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.toLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.toTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubscanResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.free
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.data
+import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanError
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import java.math.BigDecimal
 import java.util.Locale
@@ -84,17 +86,17 @@ class WalletRepositoryImpl(
     }
 
     private fun getTransactionPage(pageSize: Int, page: Int, account: Account): Single<List<Transaction>> {
-//        val subDomain = subDomainFor(account.network.type)
-//        val request = TransactionHistoryRequest(account.address, pageSize, page)
-//
-//        return subscanApi.getTransactionHistory(subDomain, request)
-//            .map {
-//                val content = it.content ?: throw SubscanError(it.message)
-//
-//                content.transfers.map { transfer -> transfer.toTransaction(account) }
-//            }
+        val subDomain = subDomainFor(account.network.type)
+        val request = TransactionHistoryRequest(account.address, pageSize, page)
 
-        return fake(pageSize, page, account).delay(800, TimeUnit.MILLISECONDS)
+        return subscanApi.getTransactionHistory(subDomain, request)
+            .map {
+                val content = it.content ?: throw SubscanError(it.message)
+
+                val transfers = content.transfers ?: emptyList()
+
+                transfers.map { transfer -> transfer.toTransaction(account) }
+            }
     }
 
     private fun zipSyncAssetRequests(

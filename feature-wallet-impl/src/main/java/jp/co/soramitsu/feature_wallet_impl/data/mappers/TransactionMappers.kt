@@ -48,7 +48,7 @@ fun Transfer.toTransaction(account: Account) : Transaction {
     return Transaction(
         hash = hash,
         token = Asset.Token.fromNetworkType(account.network.type),
-        date = blockTimestamp,
+        date = timeInMillis,
         amount = amount,
         senderAddress = from,
         recipientAddress = to,
