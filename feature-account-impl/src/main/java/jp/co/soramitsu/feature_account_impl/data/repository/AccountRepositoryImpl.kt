@@ -5,6 +5,7 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
@@ -23,6 +24,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
@@ -37,7 +39,8 @@ class AccountRepositoryImpl(
     private val junctionDecoder: JunctionDecoder,
     private val keypairFactory: KeypairFactory,
     private val appLinksProvider: AppLinksProvider,
-    private val jsonSeedDecoder: JsonSeedDecoder
+    private val jsonSeedDecoder: JsonSeedDecoder,
+    private val languagesHolder: LanguagesHolder
 ) : AccountRepository {
 
     companion object {
@@ -486,5 +489,15 @@ class AccountRepositoryImpl(
 
     override fun observeSelectedNode(): Observable<Node> {
         return accountDataSource.observeSelectedNode()
+    }
+
+    override fun observeLanguages(): Observable<List<Language>> {
+        return Observable.just(languagesHolder.getLanguages())
+    }
+
+    override fun getSelectedLanguage(): Single<Language> {
+        return Single.fromCallable {
+            accountDataSource.getSelectedLanguage()
+        }
     }
 }

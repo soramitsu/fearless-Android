@@ -40,6 +40,8 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    implementation project(':feature-account-api')
+
     implementation kotlinDep
 
     implementation androidDep

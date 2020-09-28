@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.profile
 import android.graphics.drawable.PictureDrawable
 import androidx.lifecycle.LiveData
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -11,8 +12,11 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.language.model.LanguageModel
+import java.util.Locale
 
 private const val ICON_SIZE_IN_PX = 100
 
@@ -33,8 +37,8 @@ class ProfileViewModel(
     val accountIconLiveData: LiveData<PictureDrawable> =
         observeIcon(selectedAccountObservable).asMutableLiveData()
 
-    val selectedLanguageLiveData: LiveData<String> =
-        interactor.getSelectedLanguage().asMutableLiveData()
+    val selectedLanguageLiveData: LiveData<LanguageModel> =
+        getSelectedLanguage().asMutableLiveData()
 
     fun addressCopyClicked() {
         selectedAccount.value?.let {
@@ -50,6 +54,20 @@ class ProfileViewModel(
             .subscribeOn(Schedulers.io())
             .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
             .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    private fun getSelectedLanguage(): Single<LanguageModel> {
+        return interactor.getSelectedLanguage()
+            .map(::transformLanguage)
+    }
+
+    private fun transformLanguage(language: Language): LanguageModel {
+        val languageLocale = Locale(language.iso)
+        return LanguageModel(
+            language.iso,
+            languageLocale.displayLanguage,
+            languageLocale.getDisplayLanguage(languageLocale)
+        )
     }
 
     fun aboutClicked() {

@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
@@ -78,7 +79,8 @@ class AccountFeatureModule {
         appLinksProvider: AppLinksProvider,
         accountDao: AccountDao,
         nodeDao: NodeDao,
-        jsonSeedDecoder: JsonSeedDecoder
+        jsonSeedDecoder: JsonSeedDecoder,
+        languagesHolder: LanguagesHolder
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -89,7 +91,8 @@ class AccountFeatureModule {
             junctionDecoder,
             keypairFactory,
             appLinksProvider,
-            jsonSeedDecoder
+            jsonSeedDecoder,
+            languagesHolder
         )
     }
 

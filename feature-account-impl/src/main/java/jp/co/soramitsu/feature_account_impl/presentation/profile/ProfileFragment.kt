@@ -62,7 +62,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         }
 
         viewModel.selectedLanguageLiveData.observe {
-            selectedLanguageTv.text = it
+            selectedLanguageTv.text = it.displayName
         }
     }
 }

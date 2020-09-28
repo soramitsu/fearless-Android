@@ -1,5 +1,7 @@
 package jp.co.soramitsu.app.root.presentation
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -15,6 +17,18 @@ import kotlinx.android.synthetic.main.activity_root.navHost
 import javax.inject.Inject
 
 class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
+
+    companion object {
+        private const val ACTION_CHANGE_LANGUAGE = "jp.co.soramitsu.app.root.presentation.ACTION_CHANGE_LANGUAGE"
+
+        fun restartAfterLanguageChange(context: Context) {
+            val intent = Intent(context, RootActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                action = ACTION_CHANGE_LANGUAGE
+            }
+            context.startActivity(intent)
+        }
+    }
 
     @Inject
     lateinit var navigator: Navigator
@@ -51,6 +65,10 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
 
     override fun removeSplashBackground() {
         mainView.setBackgroundResource(R.color.black)
+    }
+
+    override fun changeLanguage() {
+
     }
 
 //    private fun processJsonOpenIntent() {
