@@ -56,7 +56,7 @@ class LanguagesViewModel(
                 .subscribe({
                     _languageChangedEvent.value = Event(Unit)
                 }, {
-
+                    it.message?.let { showError(it) }
                 })
         )
     }
