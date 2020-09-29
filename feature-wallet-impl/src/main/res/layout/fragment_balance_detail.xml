@@ -21,8 +21,8 @@
             <ImageView
                 android:id="@+id/blur"
                 android:layout_width="0dp"
-                android:background="@color/blurColor"
                 android:layout_height="0dp"
+                android:background="@color/blurColor"
                 app:layout_constraintBottom_toBottomOf="@+id/balanceDetailRate"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
@@ -43,12 +43,12 @@
                 android:id="@+id/balanceDetailTokenIcon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:src="@drawable/ic_token_ksm"
                 app:layout_constraintBottom_toBottomOf="@+id/balanceDetailBack"
                 app:layout_constraintEnd_toStartOf="@+id/balanceDetailTokenName"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
                 app:layout_constraintStart_toStartOf="@+id/balanceDetailAmount"
-                app:layout_constraintTop_toTopOf="@+id/balanceDetailBack"
-                android:src="@drawable/ic_token_ksm" />
+                app:layout_constraintTop_toTopOf="@+id/balanceDetailBack" />
 
             <TextView
                 android:id="@+id/balanceDetailTokenName"
@@ -56,11 +56,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:includeFontPadding="false"
+                android:text="Kusama"
                 app:layout_constraintBottom_toBottomOf="@+id/balanceDetailTokenIcon"
                 app:layout_constraintEnd_toEndOf="@+id/balanceDetailAmount"
                 app:layout_constraintStart_toEndOf="@+id/balanceDetailTokenIcon"
-                app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenIcon"
-                android:text="Kusama" />
+                app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenIcon" />
 
             <TextView
                 android:id="@+id/balanceDetailAmount"
@@ -69,10 +69,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:includeFontPadding="false"
+                android:text="44.0849 KSM"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/balanceDetailTokenIcon"
-                android:text="44.0849 KSM" />
+                app:layout_constraintTop_toBottomOf="@+id/balanceDetailTokenIcon" />
 
             <TextView
                 android:id="@+id/balanceDetailRate"
@@ -80,13 +80,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingBottom="8dp"
+                android:text="$10.25"
                 android:textColor="@color/white"
                 app:layout_constraintEnd_toStartOf="@+id/balanceDetailRateChange"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/balanceDetailAmount"
-                android:text="$10.25" />
+                app:layout_constraintTop_toBottomOf="@+id/balanceDetailAmount" />
 
             <TextView
                 android:id="@+id/balanceDetailRateChange"
@@ -94,14 +94,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
+                android:text="+25%"
                 android:textColor="@color/green"
                 app:layout_constraintBottom_toBottomOf="@+id/balanceDetailRate"
                 app:layout_constraintEnd_toStartOf="@+id/view"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/balanceDetailRate"
                 app:layout_constraintTop_toTopOf="@+id/balanceDetailRate"
-                app:layout_constraintVertical_bias="0.0"
-                android:text="+25%" />
+                app:layout_constraintVertical_bias="0.0" />
 
             <View
                 android:id="@+id/view"
@@ -124,12 +124,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
+                android:text="$1,000.05"
                 app:layout_constraintBottom_toBottomOf="@+id/balanceDetailRateChange"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/view"
-                app:layout_constraintTop_toTopOf="@+id/balanceDetailRateChange"
-                android:text="$1,000.05" />
+                app:layout_constraintTop_toTopOf="@+id/balanceDetailRateChange" />
 
             <TextView
                 android:id="@+id/balanceDetailBondedAmount"
@@ -138,9 +138,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:includeFontPadding="false"
+                android:text="2.0"
                 app:layout_constraintStart_toStartOf="@+id/balanceDetailBondedTitle"
-                app:layout_constraintTop_toBottomOf="@+id/blur"
-                android:text="2.0" />
+                app:layout_constraintTop_toBottomOf="@+id/blur" />
 
             <TextView
                 android:id="@+id/balanceDetailBondedTitle"
@@ -149,10 +149,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:includeFontPadding="false"
-                app:layout_constraintHorizontal_chainStyle="spread_inside"
                 android:text="@string/wallet_balance_bonded"
                 app:layout_constraintEnd_toStartOf="@+id/balanceDetailAvailableTitle"
                 app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
                 app:layout_constraintStart_toStartOf="@+id/balanceDetailRate"
                 app:layout_constraintTop_toBottomOf="@+id/balanceDetailBondedAmount" />
 
@@ -163,9 +163,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:includeFontPadding="false"
+                android:text="42.0849"
                 app:layout_constraintStart_toStartOf="@+id/balanceDetailAvailableTitle"
-                app:layout_constraintTop_toBottomOf="@+id/blur"
-                android:text="42.0849" />
+                app:layout_constraintTop_toBottomOf="@+id/blur" />
 
             <TextView
                 android:id="@+id/balanceDetailAvailableTitle"

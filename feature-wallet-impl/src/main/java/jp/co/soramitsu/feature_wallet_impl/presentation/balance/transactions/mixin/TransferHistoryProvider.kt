@@ -132,6 +132,6 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
     }
 
     private fun List<TransactionModel>.filter(filters: List<TransactionFilter>): List<TransactionModel> {
-        return filter { item -> filters.all { filter -> filter.shouldInclude(item)  } }
+        return filter { item -> filters.all { filter -> filter.shouldInclude(item) } }
     }
 }

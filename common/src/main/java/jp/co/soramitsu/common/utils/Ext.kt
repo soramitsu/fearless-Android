@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.View
-import android.view.animation.Animation
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat

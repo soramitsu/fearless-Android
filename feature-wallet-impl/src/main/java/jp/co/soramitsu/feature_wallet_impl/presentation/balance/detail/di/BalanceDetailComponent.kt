@@ -6,7 +6,6 @@ import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.BalanceListFragment
 
 @Subcomponent(
     modules = [

@@ -8,7 +8,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 typealias Interceptor = () -> Unit
 
 interface TransactionFilter {
-    fun shouldInclude(model: TransactionModel) : Boolean
+    fun shouldInclude(model: TransactionModel): Boolean
 }
 
 interface TransactionHistoryUi {
