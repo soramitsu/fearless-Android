@@ -83,6 +83,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     }
 
     override fun assetClicked(asset: AssetModel) {
-        viewModel.assetClicked()
+        viewModel.assetClicked(asset)
     }
 }

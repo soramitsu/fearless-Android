@@ -98,5 +98,8 @@
     <string name="yesterday">Кисә</string>
     <string name="today">Бөгөн</string>
     <string name="transfers_empty">Килгән һәм ебәрелгән транзакциялар бында күрһәтеләсәк</string>
+
+    <string name="wallet_balance_available">Доступно</string>
+    <string name="wallet_balance_bonded">Заморожено</string>
     <string name="language_title">Тел</string>
 </resources>

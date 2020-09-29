@@ -97,5 +97,8 @@
     <string name="yesterday">Ieri</string>
     <string name="today">Oggi</string>
     <string name="transfers_empty">In entrata e in uscita trasferimenti appariranno qui</string>
+
+    <string name="wallet_balance_available">A disposizione</string>
+    <string name="wallet_balance_bonded">Legato</string>
     <string name="language_title">Lingua</string>
 </resources>

@@ -97,5 +97,8 @@
     <string name="yesterday">昨日</string>
     <string name="today">今日</string>
     <string name="transfers_empty">出入金の取引履歴はここに表示されます</string>
+
+    <string name="wallet_balance_available">利用可能</string>
+    <string name="wallet_balance_bonded">保税</string>
     <string name="language_title">言語</string>
 </resources>

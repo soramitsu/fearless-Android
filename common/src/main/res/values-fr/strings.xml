@@ -97,5 +97,8 @@
     <string name="yesterday">Hier</string>
     <string name="today">Aujourd\'hui</string>
     <string name="transfers_empty">Les transactions entrantes et sortantes apparaitront ici</string>
+
+    <string name="wallet_balance_available">Disponible</string>
+    <string name="wallet_balance_bonded">Collé</string>
     <string name="language_title">Langue</string>
 </resources>
