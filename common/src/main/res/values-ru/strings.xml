@@ -98,4 +98,7 @@
     <string name="yesterday">Вчера</string>
     <string name="today">Сегодня</string>
     <string name="transfers_empty">Входящие и исходящие транзакции будут отображаться здесь</string>
+
+    <string name="wallet_balance_available">Доступно</string>
+    <string name="wallet_balance_bonded">Заморожено</string>
 </resources>
