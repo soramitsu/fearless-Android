@@ -37,8 +37,8 @@
 
     <fragment
         android:id="@+id/splashFragment"
-        tools:layout="@layout/fragment_splash"
-        android:name="jp.co.soramitsu.splash.presentation.SplashFragment">
+        android:name="jp.co.soramitsu.splash.presentation.SplashFragment"
+        tools:layout="@layout/fragment_splash">
 
         <action
             android:id="@+id/action_splash_to_onboarding"
@@ -48,21 +48,29 @@
             app:popUpTo="@id/splashFragment"
             app:popUpToInclusive="true" />
 
-        <action  android:id="@+id/action_splash_to_pin"
+        <action
+            android:id="@+id/action_splash_to_pin"
             app:destination="@id/pincodeFragment"
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit"
             app:popUpTo="@id/splashFragment"
             app:popUpToInclusive="true" />
-    </fragment>
 
+        <action
+            android:id="@+id/action_splash_to_profile"
+            app:destination="@id/main_nav_graph"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/pincodeFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment"
         android:label="fragment_pincode"
-        tools:layout="@layout/fragment_pincode">
-    </fragment>
+        tools:layout="@layout/fragment_pincode" />
 
     <fragment
         android:id="@+id/privacyFragment"

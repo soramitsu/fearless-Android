@@ -22,18 +22,16 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         this.navController = navController
     }
 
-    fun detachNavController(navController: NavController) {
-        if (this.navController == navController) {
-            this.navController = null
-        }
-    }
-
     override fun openAddFirstAccount() {
         navController?.navigate(R.id.action_splash_to_onboarding, WelcomeFragment.getBundle(false))
     }
 
     override fun openPin() {
         navController?.navigate(R.id.action_splash_to_pin)
+    }
+
+    override fun showProfile() {
+        navController?.navigate(R.id.action_splash_to_profile)
     }
 
     override fun openCreateAccount() {

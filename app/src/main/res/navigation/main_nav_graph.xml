@@ -75,6 +75,7 @@
         <action
             android:id="@+id/action_accountsFragment_to_editAccountsFragment"
             app:destination="@id/editAccountsFragment" />
+
     </fragment>
 
     <fragment
@@ -117,7 +118,6 @@
         android:label="EditAccountsFragment"
         tools:layout="@layout/fragment_edit_accounts">
 
-
         <action
             app:popUpTo="@id/mainFragment"
             app:popEnterAnim="@anim/fragment_open_enter"
@@ -125,6 +125,7 @@
             app:enterAnim="@anim/fragment_close_enter"
             app:exitAnim="@anim/fragment_close_exit"
             android:id="@+id/action_editAccountsFragment_to_mainFragment" />
+
     </fragment>
 
 </navigation>

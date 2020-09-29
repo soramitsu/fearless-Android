@@ -12,6 +12,7 @@ import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
+import jp.co.soramitsu.splash.presentation.SplashFragment
 import kotlinx.android.synthetic.main.activity_root.mainView
 import kotlinx.android.synthetic.main.activity_root.navHost
 import javax.inject.Inject
@@ -43,13 +44,14 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val languageChanged = ACTION_CHANGE_LANGUAGE == intent.action
+        navController.setGraph(R.navigation.root_nav_graph, SplashFragment.getBundle(languageChanged))
         navigator.attachNavController(navController)
 
 //        processJsonOpenIntent()
     }
 
     override fun onDestroy() {
-        navigator.detachNavController(navController)
         super.onDestroy()
     }
 
