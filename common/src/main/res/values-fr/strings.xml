@@ -92,5 +92,13 @@
     <string name="network_info_name">Nom du nœud</string>
     <string name="common_update">Mettre à jour</string>
     <string name="network_info_address">Adresse de nœud</string>
+
+    <string name="transfers">Transferts</string>
+    <string name="yesterday">Hier</string>
+    <string name="today">Aujourd\'hui</string>
+    <string name="transfers_empty">Les transactions entrantes et sortantes apparaitront ici</string>
+
+    <string name="wallet_balance_available">Disponible</string>
+    <string name="wallet_balance_bonded">Collé</string>
     <string name="common_add">Ajouter</string>
 </resources>

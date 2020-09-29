@@ -96,5 +96,13 @@
     <string name="network_info_name">Node name</string>
     <string name="common_update">Update</string>
     <string name="network_info_address">Node address</string>
+
+    <string name="transfers">Transfers</string>
+    <string name="transfers_empty">Incoming and outgoing transfers will appear here</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+
+    <string name="wallet_balance_bonded">Bonded</string>
+    <string name="wallet_balance_available">Available</string>
     <string name="common_add">Add</string>
 </resources>
