@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mi
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -33,6 +34,8 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
     private var isLoading = false
     private var lastPageLoaded = false
 
+    private val filters: MutableList<TransactionFilter> = mutableListOf()
+
     init {
         observeFirstPage()
     }
@@ -47,6 +50,22 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
 
     override fun shouldLoadPage() {
         maybeLoadNewPage()
+    }
+
+    override fun addFilter(filter: TransactionFilter) {
+        filters += filter
+
+        transferHistoryDisposable += Single.just(currentTransactions)
+            .subscribeOn(Schedulers.io())
+            .map { list -> list.filter(filters) }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                _transactionsLiveData.value = it
+            }, transactionsErrorHandler)
+    }
+
+    override fun clear() {
+        filters.clear()
     }
 
     override fun syncFirstTransactionsPage() {
@@ -65,6 +84,7 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
             .subscribeOn(Schedulers.io())
             .doOnNext { lastPageLoaded = false }
             .map { it.map(::mapTransactionToTransactionModel) }
+            .map { list -> list.filter(filters) }
             .map { regroup(it, reset = true) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
@@ -83,6 +103,7 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
             .subscribeOn(Schedulers.io())
             .doOnSuccess { lastPageLoaded = it.isEmpty() }
             .map { it.map(::mapTransactionToTransactionModel) }
+            .map { list -> list.filter(filters) }
             .map { regroup(it, reset = false) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
@@ -108,5 +129,9 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
 
     private fun extractDay(millis: Long): Long {
         return TimeUnit.MILLISECONDS.toDays(millis)
+    }
+
+    private fun List<TransactionModel>.filter(filters: List<TransactionFilter>): List<TransactionModel> {
+        return filter { item -> filters.all { filter -> filter.shouldInclude(item)  } }
     }
 }

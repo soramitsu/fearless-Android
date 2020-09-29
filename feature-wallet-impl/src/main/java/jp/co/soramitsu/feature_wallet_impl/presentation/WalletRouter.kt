@@ -1,3 +1,9 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation
 
-interface WalletRouter
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+
+interface WalletRouter {
+    fun openAssetDetails(token: Asset.Token)
+
+    fun back()
+}
