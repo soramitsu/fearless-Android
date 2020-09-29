@@ -32,8 +32,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_splash_to_pin)
     }
 
-    override fun showProfile() {
-        navController?.navigate(R.id.action_splash_to_profile)
+    override fun openMainScreen() {
+        navController?.navigate(R.id.action_splash_to_main)
     }
 
     override fun openCreateAccount() {

@@ -31,7 +31,7 @@ class SplashViewModel(
 
                 if (isSelected) {
                     if (languageChanged) {
-                        router.showProfile()
+                        router.openMainScreen()
                     } else {
                         router.openPin()
                     }

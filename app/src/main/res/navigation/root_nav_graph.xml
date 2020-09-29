@@ -57,7 +57,7 @@
             app:popUpToInclusive="true" />
 
         <action
-            android:id="@+id/action_splash_to_profile"
+            android:id="@+id/action_splash_to_main"
             app:destination="@id/main_nav_graph"
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit"

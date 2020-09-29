@@ -6,5 +6,5 @@ interface SplashRouter {
 
     fun openPin()
 
-    fun showProfile()
+    fun openMainScreen()
 }
