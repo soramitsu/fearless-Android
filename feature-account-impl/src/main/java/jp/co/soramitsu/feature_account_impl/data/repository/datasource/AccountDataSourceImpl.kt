@@ -170,8 +170,8 @@ class AccountDataSourceImpl(
         return subject
     }
 
-    override fun getSelectedLanguage(): Language? {
-        return preferences.getCurrentLanguage()
+    override fun getSelectedLanguage(): Language {
+        return preferences.getCurrentLanguage() ?: throw IllegalArgumentException("No language selected")
     }
 
     override fun changeSelectedLanguage(language: Language) {

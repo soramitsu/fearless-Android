@@ -48,7 +48,7 @@ interface AccountDataSource {
 
     fun observeSelectedNode(): Observable<Node>
 
-    fun getSelectedLanguage(): Language?
+    fun getSelectedLanguage(): Language
 
     fun changeSelectedLanguage(language: Language)
 }

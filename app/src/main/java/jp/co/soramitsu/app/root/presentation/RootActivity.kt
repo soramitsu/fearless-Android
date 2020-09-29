@@ -51,10 +51,6 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
 //        processJsonOpenIntent()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     override fun layoutResource(): Int {
         return R.layout.activity_root
     }

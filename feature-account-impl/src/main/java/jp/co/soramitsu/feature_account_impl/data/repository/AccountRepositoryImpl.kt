@@ -496,9 +496,7 @@ class AccountRepositoryImpl(
     }
 
     override fun getSelectedLanguage(): Single<Language> {
-        return Single.fromCallable {
-            accountDataSource.getSelectedLanguage()
-        }
+        return Single.just(accountDataSource.getSelectedLanguage())
     }
 
     override fun changeLanguage(language: Language): Completable {
