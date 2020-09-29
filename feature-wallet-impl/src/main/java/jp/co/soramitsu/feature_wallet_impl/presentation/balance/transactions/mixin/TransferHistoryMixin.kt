@@ -16,10 +16,6 @@ interface TransactionHistoryUi {
 
     fun shouldLoadPage()
 
-    fun addFilter(filter: TransactionFilter)
-
-    fun clear()
-
     fun syncFirstTransactionsPage()
 }
 
@@ -29,4 +25,8 @@ interface TransferHistoryMixin : TransactionHistoryUi {
     fun setTransactionErrorHandler(handler: ErrorHandler)
 
     fun setTransactionSyncedInterceptor(interceptor: Interceptor)
+
+    fun addFilter(filter: TransactionFilter)
+
+    fun clear()
 }
