@@ -9,8 +9,8 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.language.mapper.mapLanguageToLanguageModel
 import jp.co.soramitsu.feature_account_impl.presentation.language.model.LanguageModel
-import java.util.Locale
 
 class LanguagesViewModel(
     private val interactor: AccountInteractor,
@@ -32,22 +32,13 @@ class LanguagesViewModel(
 
     private fun getSelectedLanguageModel() = interactor.getSelectedLanguage()
         .subscribeOn(Schedulers.computation())
-        .map(::transformLanguage)
+        .map(::mapLanguageToLanguageModel)
         .observeOn(AndroidSchedulers.mainThread())
 
     private fun getLanguages() = interactor.observeLanguages()
         .subscribeOn(Schedulers.computation())
-        .map { it.map(::transformLanguage) }
+        .map { it.map(::mapLanguageToLanguageModel) }
         .observeOn(AndroidSchedulers.mainThread())
-
-    private fun transformLanguage(language: Language): LanguageModel {
-        val languageLocale = Locale(language.iso)
-        return LanguageModel(
-            language.iso,
-            languageLocale.displayLanguage,
-            languageLocale.getDisplayLanguage(languageLocale)
-        )
-    }
 
     fun selectLanguageClicked(languageModel: LanguageModel) {
         disposables.add(

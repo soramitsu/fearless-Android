@@ -12,11 +12,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.language.mapper.mapLanguageToLanguageModel
 import jp.co.soramitsu.feature_account_impl.presentation.language.model.LanguageModel
-import java.util.Locale
 
 private const val ICON_SIZE_IN_PX = 100
 
@@ -58,16 +57,7 @@ class ProfileViewModel(
 
     private fun getSelectedLanguage(): Single<LanguageModel> {
         return interactor.getSelectedLanguage()
-            .map(::transformLanguage)
-    }
-
-    private fun transformLanguage(language: Language): LanguageModel {
-        val languageLocale = Locale(language.iso)
-        return LanguageModel(
-            language.iso,
-            languageLocale.displayLanguage,
-            languageLocale.getDisplayLanguage(languageLocale)
-        )
+            .map(::mapLanguageToLanguageModel)
     }
 
     fun aboutClicked() {
