@@ -102,4 +102,6 @@
     <string name="wallet_balance_bonded">保税</string>
     <string name="language_title">言語</string>
     <string name="common_add">追加</string>
+    <string name="connection_add_invalid_error">ノードとの接続を確立できません。別のものを試してください。</string>
+    <string name="connection_add_already_exists_error">ノードはすでに以前に追加されています。別のノードを試してください。</string>
 </resources>

@@ -103,4 +103,6 @@
     <string name="wallet_balance_bonded">Заморожено</string>
     <string name="language_title">Язык</string>
     <string name="common_add">Добавить</string>
+    <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
+    <string name="connection_add_already_exists_error">Узел уже был добавлен ранее. Пожалуйста, попробуйте другой узел.</string>
 </resources>

@@ -103,4 +103,6 @@
     <string name="wallet_balance_bonded">Кабальний</string>
     <string name="language_title">Мова</string>
     <string name="common_add">Додати</string>
+    <string name="connection_add_invalid_error">Не вдається встановити зв’язок з вузлом. Будь ласка, спробуйте інший.</string>
+    <string name="connection_add_already_exists_error">Вузол вже додано раніше. Будь ласка, спробуйте інший вузол.</string>
 </resources>

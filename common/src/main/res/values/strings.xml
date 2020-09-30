@@ -106,4 +106,6 @@
     <string name="wallet_balance_available">Available</string>
     <string name="language_title">Language</string>
     <string name="common_add">Add</string>
+    <string name="connection_add_invalid_error">Can\'t establish connection with node. Please, try another one.</string>
+    <string name="connection_add_already_exists_error">The node has already been added previously. Please, try another node.</string>
 </resources>

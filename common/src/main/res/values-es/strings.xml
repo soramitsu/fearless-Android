@@ -102,4 +102,6 @@
     <string name="wallet_balance_bonded">Garantizado</string>
     <string name="language_title">Idioma</string>
     <string name="common_add">Añadir</string>
+    <string name="connection_add_invalid_error">No se puede establecer conexión con el nodo. Por favor, pruebe con otro.</string>
+    <string name="connection_add_already_exists_error">El nodo ya se agregó anteriormente. Por favor, pruebe con otro nodo.</string>
 </resources>
