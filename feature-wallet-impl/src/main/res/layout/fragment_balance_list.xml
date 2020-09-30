@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/walletContainer"
     android:background="@drawable/wallet_background"
     android:fitsSystemWindows="true">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:tools="http://schemas.android.com/tools"
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:id="@+id/container"
         android:layout_height="match_parent">
@@ -77,6 +78,8 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="4dp"
                 app:drawable="@drawable/ic_send"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginBottom="16dp"
                 app:layout_constraintEnd_toStartOf="@+id/guideline"
                 app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="@+id/balanceListAssets"
@@ -110,7 +113,6 @@
             android:id="@+id/transfersContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="16dp"
             app:layout_behavior="jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

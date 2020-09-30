@@ -9,17 +9,17 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransactionHistoryUi
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.toUiModel
 
 // TODO use dp
 private const val ICON_SIZE_IN_PX = 40
@@ -64,9 +64,9 @@ class BalanceListViewModel(
     val balanceLiveData = getBalance().asLiveData()
 
     private fun getBalance(): Observable<BalanceModel> {
-        return interactor.getAssets()
+        return interactor.observeAssets()
             .subscribeOn(Schedulers.io())
-            .map { it.map(Asset::toUiModel) }
+            .mapList(::mapAssetToAssetModel)
             .map(::BalanceModel)
             .observeOn(AndroidSchedulers.mainThread())
     }

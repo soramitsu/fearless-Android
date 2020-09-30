@@ -7,9 +7,13 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 
 interface WalletInteractor {
-    fun getAssets(): Observable<List<Asset>>
+    fun observeAssets(): Observable<List<Asset>>
 
     fun syncAssets(): Completable
+
+    fun observeAsset(token: Asset.Token): Observable<Asset>
+
+    fun syncAsset(token: Asset.Token): Completable
 
     fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>>
 

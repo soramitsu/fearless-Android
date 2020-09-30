@@ -18,7 +18,10 @@ import java.math.BigInteger
 class AssetLocal(
     val token: Asset.Token,
     @ColumnInfo(index = true) val accountAddress: String,
-    val balanceInPlanks: BigInteger,
+    val freeInPlanks: BigInteger,
+    val reservedInPlanks: BigInteger,
+    val miscFrozenInPlanks: BigInteger,
+    val feeFrozenInPlanks: BigInteger,
     val dollarRate: BigDecimal?,
     val recentRateChange: BigDecimal?
 )

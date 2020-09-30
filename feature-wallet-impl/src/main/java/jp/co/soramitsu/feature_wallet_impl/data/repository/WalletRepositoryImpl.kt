@@ -24,12 +24,14 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPrice
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubscanResponse
+import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.feeFrozen
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.free
+import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.miscFrozen
+import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.reserved
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.data
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanError
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
-import java.math.BigDecimal
 import java.util.Locale
 
 class WalletRepositoryImpl(
@@ -40,7 +42,7 @@ class WalletRepositoryImpl(
     private val subscanApi: SubscanNetworkApi
 ) : WalletRepository {
 
-    override fun getAssets(): Observable<List<Asset>> {
+    override fun observeAssets(): Observable<List<Asset>> {
         return accountRepository.observeSelectedAccount().switchMap { account ->
             assetDao.observeAssets(account.address)
         }.mapList(::mapAssetLocalToAsset)
@@ -50,6 +52,16 @@ class WalletRepositoryImpl(
         return getSelectedAccount()
             .doOnSuccess(::syncAssets)
             .ignoreElement()
+    }
+
+    override fun observeAsset(token: Asset.Token): Observable<Asset> {
+        return accountRepository.observeSelectedAccount().switchMap { account ->
+            assetDao.observeAsset(account.address, token)
+        }.map(::mapAssetLocalToAsset)
+    }
+
+    override fun syncAsset(token: Asset.Token): Completable {
+        return syncAssets()
     }
 
     override fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>> {
@@ -128,14 +140,17 @@ class WalletRepositoryImpl(
         val todayStats = todayResponse.content
         val yesterdayStats = yesterdayResponse.content
 
-        val balanceInPlanks = accountInfo[data][free]
+        val data = accountInfo[data]
         val mostRecentPrice = todayStats?.price
 
         val change = todayStats?.calculateRateChange(yesterdayStats)
 
         return Asset(
             Asset.Token.fromNetworkType(networkType),
-            balanceInPlanks,
+            data[free],
+            data[reserved],
+            data[miscFrozen],
+            data[feeFrozen],
             mostRecentPrice,
             change
         )
@@ -147,25 +162,6 @@ class WalletRepositoryImpl(
     }
 
     private fun getSelectedAccount() = accountRepository.observeSelectedAccount().firstOrError()
-
-    private fun fake(pageSize: Int, page: Int, account: Account) = Single.fromCallable {
-        (0..pageSize).map {
-            val timestamp = System.currentTimeMillis()
-            val hash = ((pageSize + 1) * page + it).toString() + account.network.type.readableName
-
-            val address1 = account.network.type.readableName + "5DEwU2U97RnBHCpfwHMDfJC7pqAdfWaPFib9wiZcr2ephSfT"
-            val address2 = account.network.type.readableName + "F2dMuaCik4Ackmo9hoMMV79ETtVNvKSZMVK5sue9q1syPrW"
-
-            Transaction(
-                hash, Asset.Token.KSM,
-                address1,
-                address2,
-                BigDecimal.TEN,
-                timestamp,
-                it % 2 == 0
-            )
-        }
-    }
 
     private fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): Single<SubscanResponse<AssetPriceStatistics>> {
         return subscanApi.getAssetPrice(subDomainFor(networkType), request)
