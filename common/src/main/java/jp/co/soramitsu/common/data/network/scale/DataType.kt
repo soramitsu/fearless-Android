@@ -6,7 +6,9 @@ import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import io.emeraldpay.polkaj.scale.ScaleReader
 import io.emeraldpay.polkaj.scale.ScaleWriter
+import io.emeraldpay.polkaj.scale.reader.CompactBigIntReader
 import io.emeraldpay.polkaj.scale.writer.BoolWriter
+import io.emeraldpay.polkaj.scale.writer.CompactBigIntWriter
 import java.math.BigInteger
 
 sealed class DataType<T> : ScaleReader<T>, ScaleWriter<T>
@@ -63,10 +65,30 @@ object uint128 : DataType<BigInteger>() {
     }
 }
 
-object compactInt : DataType<Int>() {
-    override fun read(reader: ScaleCodecReader) = reader.readCompactInt()
+class tuple<A, B>(
+    private val a: DataType<A>,
+    private val b: DataType<B>
+) : DataType<Pair<A, B>>() {
+    override fun read(reader: ScaleCodecReader): Pair<A, B> {
+        val a = a.read(reader)
+        val b = b.read(reader)
 
-    override fun write(writer: ScaleCodecWriter, value: Int) = writer.writeCompact(value)
+        return a to b
+    }
+
+    override fun write(writer: ScaleCodecWriter, value: Pair<A, B>) {
+        a.write(writer, value.first)
+        b.write(writer, value.second)
+    }
+}
+
+private val compactIntReader = CompactBigIntReader()
+private val compactIntWriter = CompactBigIntWriter()
+
+object compactInt : DataType<BigInteger>() {
+    override fun read(reader: ScaleCodecReader) = compactIntReader.read(reader)
+
+    override fun write(writer: ScaleCodecWriter, value: BigInteger) = compactIntWriter.write(writer, value)
 }
 
 object byteArray : DataType<ByteArray>() {
@@ -116,22 +138,10 @@ class optional<T>(private val dataType: DataType<T>) : DataType<T?>() {
 @Suppress("UNCHECKED_CAST")
 class scalable<S : Schema<S>>(private val schema: Schema<S>) : DataType<EncodableStruct<S>>() {
     override fun read(reader: ScaleCodecReader): EncodableStruct<S> {
-        val struct = EncodableStruct(schema)
-
-        for (field in schema.fields) {
-            struct[field as Field<Any?>] = field.dataType.read(reader)
-        }
-
-        return struct
+        return schema.read(reader)
     }
 
     override fun write(writer: ScaleCodecWriter, struct: EncodableStruct<S>) {
-        for (field in schema.fields) {
-            val value = struct.fieldsWithValues[field]
-
-            val type = field.dataType as DataType<Any?>
-
-            type.write(writer, value)
-        }
+        schema.write(writer, struct)
     }
 }

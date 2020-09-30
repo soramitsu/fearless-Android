@@ -12,16 +12,16 @@ abstract class Schema<S : Schema<S>> : ScaleReader<EncodableStruct<S>>,
 
     internal val fields: MutableList<Field<*>> = mutableListOf()
 
-    fun <T> field(dataType: DataType<T>): Field<T> {
-        val field = Field(dataType)
+    fun <T> field(dataType: DataType<T>, default: T?): Field<T> {
+        val field = Field(dataType, default)
 
         fields += field
 
         return field
     }
 
-    fun <T> nullableField(dataType: optional<T>): Field<T?> {
-        val field = Field(dataType)
+    fun <T> nullableField(dataType: optional<T>, default: T?): Field<T?> {
+        val field = Field(dataType, default)
 
         fields += field
 
