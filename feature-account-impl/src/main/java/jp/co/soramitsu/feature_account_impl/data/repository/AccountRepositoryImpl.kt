@@ -507,8 +507,7 @@ class AccountRepositoryImpl(
     override fun addNode(nodeName: String, nodeHost: String): Completable {
         return accountSubstrateSource.getNodeNetworkType(nodeHost)
             .map(::getNetworkTypeByName)
-            .map { Node(0, nodeName, it, nodeHost, false) }
-            .map(::mapNetworkToNodeLocal)
+            .map { NodeLocal(nodeName, nodeHost, it.ordinal, false) }
             .doOnSuccess { nodeDao.insert(it) }
             .ignoreElement()
     }
