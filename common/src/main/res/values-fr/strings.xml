@@ -100,5 +100,6 @@
 
     <string name="wallet_balance_available">Disponible</string>
     <string name="wallet_balance_bonded">Collé</string>
+    <string name="language_title">Langue</string>
     <string name="common_add">Ajouter</string>
 </resources>

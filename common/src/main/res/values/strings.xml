@@ -104,5 +104,6 @@
 
     <string name="wallet_balance_bonded">Bonded</string>
     <string name="wallet_balance_available">Available</string>
+    <string name="language_title">Language</string>
     <string name="common_add">Add</string>
 </resources>

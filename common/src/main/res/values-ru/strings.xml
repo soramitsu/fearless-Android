@@ -101,5 +101,6 @@
 
     <string name="wallet_balance_available">Доступно</string>
     <string name="wallet_balance_bonded">Заморожено</string>
+    <string name="language_title">Язык</string>
     <string name="common_add">Добавить</string>
 </resources>

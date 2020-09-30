@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
@@ -80,6 +81,7 @@ class AccountFeatureModule {
         nodeDao: NodeDao,
         jsonSeedDecoder: JsonSeedDecoder,
         accountSubstrateSource: AccountSubstrateSource
+        languagesHolder: LanguagesHolder
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -91,7 +93,8 @@ class AccountFeatureModule {
             keypairFactory,
             appLinksProvider,
             jsonSeedDecoder,
-            accountSubstrateSource
+            accountSubstrateSource,
+            languagesHolder
         )
     }
 

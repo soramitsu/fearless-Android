@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 
@@ -91,10 +92,6 @@ class AccountInteractorImpl(
 
     override fun getAddressId(account: Account): Single<ByteArray> {
         return accountRepository.getAddressId(account)
-    }
-
-    override fun getSelectedLanguage(): Single<String> {
-        return Single.just("English")
     }
 
     override fun isCodeSet(): Single<Boolean> {
@@ -225,6 +222,18 @@ class AccountInteractorImpl(
 
     override fun processAccountJson(json: String): Single<ImportJsonData> {
         return accountRepository.processAccountJson(json)
+    }
+
+    override fun observeLanguages(): Observable<List<Language>> {
+        return accountRepository.observeLanguages()
+    }
+
+    override fun getSelectedLanguage(): Single<Language> {
+        return accountRepository.getSelectedLanguage()
+    }
+
+    override fun changeSelectedLanguage(language: Language): Completable {
+        return accountRepository.changeLanguage(language)
     }
 
     override fun addNode(nodeName: String, nodeHost: String): Completable {

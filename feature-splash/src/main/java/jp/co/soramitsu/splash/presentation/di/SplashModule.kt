@@ -23,7 +23,7 @@ class SplashModule {
     @Provides
     @IntoMap
     @ViewModelKey(SplashViewModel::class)
-    fun provideSignInViewModel(accountRepository: AccountRepository, router: SplashRouter): ViewModel {
-        return SplashViewModel(router, accountRepository)
+    fun provideSignInViewModel(accountRepository: AccountRepository, router: SplashRouter, languageChanged: Boolean): ViewModel {
+        return SplashViewModel(router, accountRepository, languageChanged)
     }
 }

@@ -18,7 +18,8 @@ interface SplashComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance fragment: Fragment
+            @BindsInstance fragment: Fragment,
+            @BindsInstance languageChanged: Boolean
         ): SplashComponent
     }
 

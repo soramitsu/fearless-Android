@@ -24,18 +24,16 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         this.navController = navController
     }
 
-    fun detachNavController(navController: NavController) {
-        if (this.navController == navController) {
-            this.navController = null
-        }
-    }
-
     override fun openAddFirstAccount() {
         navController?.navigate(R.id.action_splash_to_onboarding, WelcomeFragment.getBundle(false))
     }
 
     override fun openPin() {
         navController?.navigate(R.id.action_splash_to_pin)
+    }
+
+    override fun openMainScreen() {
+        navController?.navigate(R.id.action_splash_to_main)
     }
 
     override fun openCreateAccount() {
@@ -120,6 +118,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
 
     override fun openNodes() {
         navController?.navigate(R.id.action_mainFragment_to_nodesFragment)
+    }
+
+    override fun openLanguages() {
+        navController?.navigate(R.id.action_mainFragment_to_languagesFragment)
     }
 
     override fun openAddAccount() {

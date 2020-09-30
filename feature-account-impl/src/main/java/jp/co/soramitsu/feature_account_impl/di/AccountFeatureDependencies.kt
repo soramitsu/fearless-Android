@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ClipboardManager
+import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.core_db.dao.AccountDao
@@ -34,6 +35,8 @@ interface AccountFeatureDependencies {
     fun userDao(): AccountDao
 
     fun nodeDao(): NodeDao
+
+    fun languagesHolder(): LanguagesHolder
 
     fun rxWebSocket(): RxWebSocket
 

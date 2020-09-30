@@ -101,5 +101,6 @@
 
     <string name="wallet_balance_available">Доступні</string>
     <string name="wallet_balance_bonded">Кабальний</string>
+    <string name="language_title">Мова</string>
     <string name="common_add">Додати</string>
 </resources>

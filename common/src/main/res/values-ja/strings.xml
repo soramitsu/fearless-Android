@@ -100,5 +100,6 @@
 
     <string name="wallet_balance_available">利用可能</string>
     <string name="wallet_balance_bonded">保税</string>
+    <string name="language_title">言語</string>
     <string name="common_add">追加</string>
 </resources>
