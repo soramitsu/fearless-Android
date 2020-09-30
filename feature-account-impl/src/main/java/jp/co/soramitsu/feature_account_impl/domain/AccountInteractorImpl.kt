@@ -226,4 +226,8 @@ class AccountInteractorImpl(
     override fun processAccountJson(json: String): Single<ImportJsonData> {
         return accountRepository.processAccountJson(json)
     }
+
+    override fun addNode(nodeName: String, nodeHost: String): Completable {
+        return accountRepository.addNode(nodeName, nodeHost)
+    }
 }

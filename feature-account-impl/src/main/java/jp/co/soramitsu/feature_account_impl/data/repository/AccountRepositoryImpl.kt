@@ -487,4 +487,8 @@ class AccountRepositoryImpl(
     override fun observeSelectedNode(): Observable<Node> {
         return accountDataSource.observeSelectedNode()
     }
+
+    override fun addNode(nodeName: String, nodeHost: String): Completable {
+        return Completable.complete()
+    }
 }

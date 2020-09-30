@@ -1,11 +1,13 @@
 package jp.co.soramitsu.common.di.modules
 
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.RxCallAdapterFactory
+import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import okhttp3.OkHttpClient
@@ -69,4 +71,12 @@ class NetworkModule {
     ): NetworkApiCreator {
         return NetworkApiCreator(okHttpClient, "https://placeholder.com", rxCallAdapterFactory)
     }
+
+    @Provides
+    @ApplicationScope
+    fun provideRxWebSocket(mapper: Gson) = RxWebSocket(mapper)
+
+    @Provides
+    @ApplicationScope
+    fun provideJsonMapper() = Gson()
 }

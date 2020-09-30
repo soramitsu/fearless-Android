@@ -104,4 +104,6 @@ interface AccountRepository {
     fun deleteAccount(address: String): Completable
 
     fun processAccountJson(json: String): Single<ImportJsonData>
+
+    fun addNode(nodeName: String, nodeHost: String): Completable
 }

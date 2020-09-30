@@ -32,6 +32,8 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
         nodeHost.onTextChanged {
             viewModel.nodeHostChanged(it)
         }
+
+        addBtn.setOnClickListener { viewModel.addNodeClicked() }
     }
 
     override fun inject() {

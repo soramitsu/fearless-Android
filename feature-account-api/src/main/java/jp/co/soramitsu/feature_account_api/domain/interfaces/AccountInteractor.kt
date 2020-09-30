@@ -87,4 +87,6 @@ interface AccountInteractor {
     fun getNode(nodeId: Int): Single<Node>
 
     fun processAccountJson(json: String): Single<ImportJsonData>
+
+    fun addNode(nodeName: String, nodeHost: String): Completable
 }

@@ -55,10 +55,6 @@ class AccountFeatureModule {
     ) = JsonSeedDecoder(jsonMapper, sS58Encoder, keypairFactory)
 
     @Provides
-    @FeatureScope
-    fun provideJsonMapper() = Gson()
-
-    @Provides
     fun provideNetworkChooserMixin(interactor: AccountInteractor): NetworkChooserMixin =
         NetworkChooser(interactor)
 

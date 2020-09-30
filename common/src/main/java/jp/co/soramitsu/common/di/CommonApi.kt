@@ -1,8 +1,10 @@
 package jp.co.soramitsu.common.di
 
 import android.content.Context
+import com.google.gson.Gson
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -41,4 +43,8 @@ interface CommonApi {
     fun provideClipboardManager(): ClipboardManager
 
     fun provideDeviceVibrator(): DeviceVibrator
+
+    fun provideRxWebSocket(): RxWebSocket
+
+    fun provideJsonMapper(): Gson
 }
