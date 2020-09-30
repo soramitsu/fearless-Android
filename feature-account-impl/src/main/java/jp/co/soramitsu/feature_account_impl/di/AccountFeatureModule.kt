@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
@@ -17,6 +18,8 @@ import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
+import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSourceImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSourceImpl
@@ -75,7 +78,8 @@ class AccountFeatureModule {
         appLinksProvider: AppLinksProvider,
         accountDao: AccountDao,
         nodeDao: NodeDao,
-        jsonSeedDecoder: JsonSeedDecoder
+        jsonSeedDecoder: JsonSeedDecoder,
+        accountSubstrateSource: AccountSubstrateSource
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -86,7 +90,8 @@ class AccountFeatureModule {
             junctionDecoder,
             keypairFactory,
             appLinksProvider,
-            jsonSeedDecoder
+            jsonSeedDecoder,
+            accountSubstrateSource
         )
     }
 
@@ -110,4 +115,10 @@ class AccountFeatureModule {
 
     @Provides
     fun provideNodeHostValidator() = NodeHostValidator()
+
+    @Provides
+    @FeatureScope
+    fun provideAccountSubstrateSource(rxWebSocket: RxWebSocket): AccountSubstrateSource {
+        return AccountSubstrateSourceImpl(rxWebSocket)
+    }
 }

@@ -8,31 +8,48 @@ import jp.co.soramitsu.fearless_utils.wsrpc.WebSocketWrapper
 import jp.co.soramitsu.fearless_utils.wsrpc.request.base.RpcRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
 
-class RxWebSocket(private val mapper: Gson) {
+class RxWebSocket(
+    private val mapper: Gson
+) {
+
     fun <S : Schema<S>> requestWithScaleResponse(
         request: RpcRequest,
         url: String,
         responseSchema: S
     ): Single<ScaleRpcResponse<S>> {
-        var webSocket: WebSocketWrapper? = null
 
-        return Single.fromPublisher<ScaleRpcResponse<S>> { publisher ->
+        return adapt(request, url)
+            .map { ScaleRpcResponse.from(it, responseSchema) }
+    }
+
+    fun requestWithStringResponse(
+        request: RpcRequest,
+        url: String
+    ): Single<String> {
+
+        return adapt(request, url)
+            .map { it.result as String }
+    }
+
+    private fun adapt(request: RpcRequest, url: String): Single<RpcResponse> {
+
+        var webSocket: WebSocketWrapper? = null
+        return Single.fromPublisher<RpcResponse> { publisher ->
+
             webSocket = WebSocketWrapper(url, object : WebSocketResponseListener {
                 override fun onError(error: Throwable) {
                     publisher.onError(error)
                 }
 
                 override fun onResponse(response: RpcResponse) {
-                    val scaleResponse = ScaleRpcResponse.from(response, responseSchema)
-
-                    publisher.onNext(scaleResponse)
+                    publisher.onNext(response)
                     publisher.onComplete()
                 }
             })
-
             webSocket!!.connect()
 
             webSocket!!.sendRpcRequest(request)
-        }.doOnDispose { webSocket!!.disconnect() }
+        }
+            .doOnDispose { webSocket!!.disconnect() }
     }
 }

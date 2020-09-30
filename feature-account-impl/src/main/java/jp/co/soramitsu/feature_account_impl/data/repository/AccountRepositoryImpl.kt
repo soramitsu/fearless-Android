@@ -25,6 +25,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import org.spongycastle.util.encoders.Hex
 
@@ -37,26 +38,24 @@ class AccountRepositoryImpl(
     private val junctionDecoder: JunctionDecoder,
     private val keypairFactory: KeypairFactory,
     private val appLinksProvider: AppLinksProvider,
-    private val jsonSeedDecoder: JsonSeedDecoder
+    private val jsonSeedDecoder: JsonSeedDecoder,
+    private val accountSubstrateSource: AccountSubstrateSource
 ) : AccountRepository {
 
     companion object {
         val DEFAULT_NODES_LIST = listOf(
             NodeLocal(
-                0,
                 "Kusama Parity Node",
                 "wss://kusama-rpc.polkadot.io",
                 Node.NetworkType.KUSAMA.ordinal,
                 true
             ),
             NodeLocal(
-                1,
                 "Polkadot Parity Node", "wss://rpc.polkadot.io",
                 Node.NetworkType.POLKADOT.ordinal,
                 true
             ),
             NodeLocal(
-                2,
                 "Westend Parity Node",
                 "wss://westend-rpc.polkadot.io",
                 Node.NetworkType.WESTEND.ordinal,
@@ -476,7 +475,7 @@ class AccountRepositoryImpl(
     }
 
     private fun mapNetworkToNodeLocal(it: Node): NodeLocal {
-        return NodeLocal(it.id, it.name, it.link, it.networkType.ordinal, it.isDefault)
+        return NodeLocal(it.name, it.link, it.networkType.ordinal, it.isDefault)
     }
 
     override fun observeNodes(): Observable<List<Node>> {
@@ -489,6 +488,20 @@ class AccountRepositoryImpl(
     }
 
     override fun addNode(nodeName: String, nodeHost: String): Completable {
-        return Completable.complete()
+        return accountSubstrateSource.getNodeNetworkType(nodeHost)
+            .map(::getNetworkTypeByName)
+            .map { Node(0, nodeName, it, nodeHost, false) }
+            .map(::mapNetworkToNodeLocal)
+            .doOnSuccess { nodeDao.insert(it) }
+            .ignoreElement()
+    }
+
+    private fun getNetworkTypeByName(networkName: String): Node.NetworkType {
+        return when (networkName) {
+            Node.NetworkType.WESTEND.readableName -> Node.NetworkType.WESTEND
+            Node.NetworkType.KUSAMA.readableName -> Node.NetworkType.KUSAMA
+            Node.NetworkType.POLKADOT.readableName -> Node.NetworkType.POLKADOT
+            else -> throw IllegalArgumentException("can't detect network by name: $networkName")
+        }
     }
 }

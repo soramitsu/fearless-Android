@@ -5,7 +5,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.subscribeToError
+import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
@@ -43,10 +43,15 @@ class AddNodeViewModel(
     fun addNodeClicked() {
         nodeNameInputLiveData.value?.let { nodeName ->
             nodeHostInputLiveData.value?.let { nodeHost ->
-                interactor.addNode(nodeName, nodeHost)
+                disposables += interactor.addNode(nodeName, nodeHost)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeToError { showError(it.message!!) }
+                    .subscribe({
+                        router.back()
+                    }, {
+                        it.message?.let { showError(it) }
+                    })
+
             }
         }
     }
