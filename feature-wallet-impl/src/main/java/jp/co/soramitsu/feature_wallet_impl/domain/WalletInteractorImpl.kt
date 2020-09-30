@@ -14,12 +14,20 @@ class WalletInteractorImpl(
     private val accountRepository: AccountRepository
 ) : WalletInteractor {
 
-    override fun getAssets(): Observable<List<Asset>> {
-        return walletRepository.getAssets()
+    override fun observeAssets(): Observable<List<Asset>> {
+        return walletRepository.observeAssets()
     }
 
     override fun syncAssets(): Completable {
         return walletRepository.syncAssets()
+    }
+
+    override fun observeAsset(token: Asset.Token): Observable<Asset> {
+        return walletRepository.observeAsset(token)
+    }
+
+    override fun syncAsset(token: Asset.Token): Completable {
+        return walletRepository.syncAsset(token)
     }
 
     override fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>> {

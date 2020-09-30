@@ -17,7 +17,7 @@ import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
 
 @Database(
-    version = 5,
+    version = 6,
     entities = [
         AccountLocal::class,
         NodeLocal::class,

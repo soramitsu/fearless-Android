@@ -2,17 +2,23 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransactionFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransactionHistoryUi
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
 // TODO use dp
@@ -60,32 +66,29 @@ class BalanceDetailViewModel(
         transferHistoryMixin.clear()
     }
 
-//    val balanceLiveData = getBalance().asLiveData()
+    val assetLiveData = observeAssetModel().asLiveData()
 
-//    private fun getBalance(): Observable<BalanceModel> {
-//        return interactor.getAssets()
-//            .subscribeOn(Schedulers.io())
-//            .map { it.map(Asset::toUiModel) }
-//            .map(::BalanceModel)
-//            .observeOn(AndroidSchedulers.mainThread())
-//    }
+    private fun observeAssetModel(): Observable<AssetModel> {
+        return interactor.observeAsset(token)
+            .subscribeOn(Schedulers.io())
+            .map(::mapAssetToAssetModel)
+            .observeOn(AndroidSchedulers.mainThread())
+    }
 
-    fun syncAssets() {
-//        disposables += interactor.syncAssets()
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .doOnComplete { balanceRefreshFinished() }
-//            .subscribeToError(errorHandler)
+    fun syncAsset() {
+        disposables += interactor.syncAsset(token)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnComplete { balanceRefreshFinished() }
+            .subscribeToError(errorHandler)
     }
 
     fun refresh() {
         transactionsRefreshed = false
         balanceRefreshed = false
 
-        syncAssets()
+        syncAsset()
         syncFirstTransactionsPage()
-
-        balanceRefreshFinished()
     }
 
     fun backClicked() {
