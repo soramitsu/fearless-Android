@@ -80,7 +80,7 @@ class AccountFeatureModule {
         accountDao: AccountDao,
         nodeDao: NodeDao,
         jsonSeedDecoder: JsonSeedDecoder,
-        accountSubstrateSource: AccountSubstrateSource
+        accountSubstrateSource: AccountSubstrateSource,
         languagesHolder: LanguagesHolder
     ): AccountRepository {
         return AccountRepositoryImpl(
@@ -93,8 +93,8 @@ class AccountFeatureModule {
             keypairFactory,
             appLinksProvider,
             jsonSeedDecoder,
-            accountSubstrateSource,
-            languagesHolder
+            languagesHolder,
+            accountSubstrateSource
         )
     }
 

@@ -42,7 +42,6 @@ class AccountRepositoryImpl(
     private val appLinksProvider: AppLinksProvider,
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val languagesHolder: LanguagesHolder,
-    private val jsonSeedDecoder: JsonSeedDecoder,
     private val accountSubstrateSource: AccountSubstrateSource
 ) : AccountRepository {
 
