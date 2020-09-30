@@ -6,6 +6,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
@@ -41,14 +42,12 @@ class LanguagesViewModel(
         .observeOn(AndroidSchedulers.mainThread())
 
     fun selectLanguageClicked(languageModel: LanguageModel) {
-        disposables.add(
-            interactor.changeSelectedLanguage(Language(languageModel.iso))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    _languageChangedEvent.value = Event(Unit)
-                }, {
-                    it.message?.let { showError(it) }
-                })
-        )
+        disposables += interactor.changeSelectedLanguage(Language(languageModel.iso))
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                _languageChangedEvent.value = Event(Unit)
+            }, {
+                it.message?.let { showError(it) }
+            })
     }
 }

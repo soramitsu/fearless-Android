@@ -13,7 +13,7 @@ import kotlinx.android.synthetic.main.item_language.view.languageCheck
 
 class LanguagesAdapter(
     private val languagesItemHandler: LanguagesItemHandler
-) : ListAdapter<LanguageModel, LanguageViewHolder>(DiffCallback) {
+) : ListAdapter<LanguageModel, LanguageViewHolder>(LanguagesDiffCallback) {
 
     interface LanguagesItemHandler {
 
@@ -66,7 +66,7 @@ class LanguageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     }
 }
 
-object DiffCallback : DiffUtil.ItemCallback<LanguageModel>() {
+object LanguagesDiffCallback : DiffUtil.ItemCallback<LanguageModel>() {
     override fun areItemsTheSame(oldItem: LanguageModel, newItem: LanguageModel): Boolean {
         return oldItem.iso == newItem.iso
     }
