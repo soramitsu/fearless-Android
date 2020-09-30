@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.details.di.Acco
 import jp.co.soramitsu.feature_account_impl.presentation.account.edit.di.AccountEditComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.di.AccountListComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.di.ImportAccountComponent
+import jp.co.soramitsu.feature_account_impl.presentation.language.di.LanguagesComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.di.BackupMnemonicComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.di.ConfirmMnemonicComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.di.NodeDetailsComponent
@@ -51,6 +52,8 @@ interface AccountFeatureComponent : AccountFeatureApi {
     fun connectionsComponentFactory(): NodesComponent.Factory
 
     fun nodeDetailsComponentFactory(): NodeDetailsComponent.Factory
+
+    fun languagesComponentFactory(): LanguagesComponent.Factory
 
     @Component.Factory
     interface Factory {

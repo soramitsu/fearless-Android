@@ -43,6 +43,14 @@
             android:id="@+id/action_mainFragment_to_balanceDetailFragment"
             app:destination="@id/balanceDetailFragment" />
 
+        <action
+            android:id="@+id/action_mainFragment_to_languagesFragment"
+            app:destination="@id/languagesFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
     </fragment>
 
     <fragment
@@ -75,6 +83,7 @@
         <action
             android:id="@+id/action_accountsFragment_to_editAccountsFragment"
             app:destination="@id/editAccountsFragment" />
+
     </fragment>
 
     <fragment
@@ -100,6 +109,12 @@
         tools:layout="@layout/fragment_node_details" />
 
     <fragment
+        android:id="@+id/languagesFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.language.LanguagesFragment"
+        android:label="LanguagesFragment"
+        tools:layout="@layout/fragment_languages" />
+
+    <fragment
         android:id="@+id/accountDetailsFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment"
         android:label="AccountDetailsFragment"
@@ -111,7 +126,6 @@
         android:label="EditAccountsFragment"
         tools:layout="@layout/fragment_edit_accounts">
 
-
         <action
             app:popUpTo="@id/mainFragment"
             app:popEnterAnim="@anim/fragment_open_enter"
@@ -119,6 +133,7 @@
             app:enterAnim="@anim/fragment_close_enter"
             app:exitAnim="@anim/fragment_close_exit"
             android:id="@+id/action_editAccountsFragment_to_mainFragment" />
+
     </fragment>
 
     <fragment

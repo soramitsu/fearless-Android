@@ -9,11 +9,11 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import org.spongycastle.util.encoders.Hex
 
 private const val PREFS_AUTH_TYPE = "auth_type"
-private const val PREFS_SELECTED_LANGUAGE = "selected_language"
 private const val PREFS_PIN_CODE = "pin_code"
 
 private const val PREFS_SELECTED_ACCOUNT = "selected_address"
@@ -48,14 +48,6 @@ class AccountDataSourceImpl(
         } else {
             AuthType.valueOf(savedValue)
         }
-    }
-
-    override fun saveSelectedLanguage(language: String) {
-        preferences.putString(PREFS_SELECTED_LANGUAGE, language)
-    }
-
-    override fun getSelectedLanguage(): String? {
-        return preferences.getString(PREFS_SELECTED_LANGUAGE)
     }
 
     override fun savePinCode(pinCode: String) {
@@ -176,5 +168,13 @@ class AccountDataSourceImpl(
         }
 
         return subject
+    }
+
+    override fun getSelectedLanguage(): Language {
+        return preferences.getCurrentLanguage() ?: throw IllegalArgumentException("No language selected")
+    }
+
+    override fun changeSelectedLanguage(language: Language) {
+        preferences.saveCurrentLanguage(language.iso)
     }
 }

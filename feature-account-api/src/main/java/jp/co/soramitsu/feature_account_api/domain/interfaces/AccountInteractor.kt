@@ -6,6 +6,7 @@ import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 
@@ -43,8 +44,6 @@ interface AccountInteractor {
     fun importFromJson(json: String, password: String, name: String): Completable
 
     fun getAddressId(account: Account): Single<ByteArray>
-
-    fun getSelectedLanguage(): Single<String>
 
     fun isCodeSet(): Single<Boolean>
 
@@ -87,4 +86,10 @@ interface AccountInteractor {
     fun getNode(nodeId: Int): Single<Node>
 
     fun processAccountJson(json: String): Single<ImportJsonData>
+
+    fun observeLanguages(): Observable<List<Language>>
+
+    fun getSelectedLanguage(): Single<Language>
+
+    fun changeSelectedLanguage(language: Language): Completable
 }

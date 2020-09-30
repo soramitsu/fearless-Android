@@ -37,6 +37,8 @@ interface AccountRouter {
 
     fun openNodes()
 
+    fun openLanguages()
+
     fun openAddAccount()
 
     fun openAccountDetails(address: String)

@@ -11,8 +11,10 @@ import jp.co.soramitsu.splash.SplashRouter
 
 class SplashViewModel(
     private val router: SplashRouter,
-    private val repository: AccountRepository
+    private val repository: AccountRepository,
+    private val languageChanged: Boolean
 ) : BaseViewModel() {
+
     private val _removeSplashBackgroundLiveData = MutableLiveData<Event<Unit>>()
     val removeSplashBackgroundLiveData = _removeSplashBackgroundLiveData
 
@@ -28,7 +30,11 @@ class SplashViewModel(
                 _removeSplashBackgroundLiveData.value = Event(Unit)
 
                 if (isSelected) {
-                    router.openPin()
+                    if (languageChanged) {
+                        router.openMainScreen()
+                    } else {
+                        router.openPin()
+                    }
                 } else {
                     router.openAddFirstAccount()
                 }
