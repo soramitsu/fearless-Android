@@ -5,6 +5,7 @@ import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 
 interface AccountDataSource {
@@ -30,6 +31,10 @@ interface AccountDataSource {
     fun getMnemonicIsBackedUp(): Boolean
 
     fun saveSeed(seed: ByteArray, address: String)
+
+    fun saveSigningData(address: String, signingData: SigningData)
+
+    fun getSigningData(address: String) : SigningData?
 
     fun getSeed(address: String): ByteArray?
 

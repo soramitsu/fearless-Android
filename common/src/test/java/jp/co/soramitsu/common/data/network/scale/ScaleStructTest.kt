@@ -2,8 +2,6 @@
 
 package jp.co.soramitsu.common.data.network.scale
 
-import io.emeraldpay.polkaj.scale.ScaleCodecReader
-import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import jp.co.soramitsu.common.data.network.scale.Account.address
 import jp.co.soramitsu.common.data.network.scale.Account.balance
 import jp.co.soramitsu.common.data.network.scale.Account.something
@@ -25,7 +23,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner
 import org.spongycastle.util.encoders.Hex
-import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.MathContext
@@ -155,18 +152,11 @@ class ScaleStructTest {
     }
 
     private fun <S : Schema<S>> writeAndRead(schema: S, struct: EncodableStruct<S>): EncodableStruct<S> {
-        val outputStream = ByteArrayOutputStream()
+        val bytes = schema.toByteArray(struct)
 
-        val writer = ScaleCodecWriter(outputStream)
-
-        writer.write(schema, struct)
-
-        val bytes = outputStream.toByteArray()
         println(bytes.toHexString())
 
-        val reader = ScaleCodecReader(bytes)
-
-        return reader.read(schema)
+        return schema.read(bytes.toHexString())
     }
 
     private fun ByteArray.toHexString() = Hex.toHexString(this)

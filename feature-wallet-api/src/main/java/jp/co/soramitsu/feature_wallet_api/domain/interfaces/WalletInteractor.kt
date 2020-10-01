@@ -4,7 +4,9 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
+import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 
 interface WalletInteractor {
     fun observeAssets(): Observable<List<Asset>>
@@ -22,4 +24,8 @@ interface WalletInteractor {
     fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>>
 
     fun observeSelectedAddressId(): Observable<ByteArray>
+
+    fun getTransferFee(transfer: Transfer): Single<Fee>
+
+    fun performTransfer(transfer: Transfer) : Completable
 }

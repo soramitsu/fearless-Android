@@ -14,7 +14,9 @@ import java.math.BigInteger
 sealed class DataType<T> : ScaleReader<T>, ScaleWriter<T>
 
 object string : DataType<String>() {
-    override fun read(reader: ScaleCodecReader) = reader.readString()
+    override fun read(reader: ScaleCodecReader): String? {
+        return reader.readString()
+    }
     override fun write(writer: ScaleCodecWriter, value: String) = writer.writeString(value)
 }
 
@@ -27,20 +29,26 @@ object uint32 : DataType<UInt>() {
 }
 
 object boolean : DataType<Boolean>() {
-    override fun read(reader: ScaleCodecReader) = reader.readBoolean()
+    override fun read(reader: ScaleCodecReader): Boolean {
+        return reader.readBoolean()
+    }
 
     override fun write(writer: ScaleCodecWriter, value: Boolean) = writer.write(BoolWriter(), value)
 }
 
 object byte : DataType<Byte>() {
-    override fun read(reader: ScaleCodecReader) = reader.readByte()
+    override fun read(reader: ScaleCodecReader): Byte {
+        val readByte = reader.readByte()
+        return readByte
+    }
 
     override fun write(writer: ScaleCodecWriter, value: Byte) = writer.writeByte(value)
 }
 
 object uint8 : DataType<UByte>() {
     override fun read(reader: ScaleCodecReader): UByte {
-        return reader.readUByte().toUByte()
+        val toUByte = reader.readUByte().toUByte()
+        return toUByte
     }
 
     override fun write(writer: ScaleCodecWriter, value: UByte) = writer.writeByte(value.toInt())
@@ -86,27 +94,40 @@ private val compactIntReader = CompactBigIntReader()
 private val compactIntWriter = CompactBigIntWriter()
 
 object compactInt : DataType<BigInteger>() {
-    override fun read(reader: ScaleCodecReader) = compactIntReader.read(reader)
+    override fun read(reader: ScaleCodecReader): BigInteger? {
+        val read = compactIntReader.read(reader)
+        return read
+    }
 
     override fun write(writer: ScaleCodecWriter, value: BigInteger) = compactIntWriter.write(writer, value)
 }
 
 object byteArray : DataType<ByteArray>() {
-    override fun read(reader: ScaleCodecReader) = reader.readByteArray()
+    override fun read(reader: ScaleCodecReader): ByteArray? {
+        val readByteArray = reader.readByteArray()
+        return readByteArray
+    }
 
-    override fun write(writer: ScaleCodecWriter, value: ByteArray) = writer.writeByteArray(value)
+    override fun write(writer: ScaleCodecWriter, value: ByteArray) {
+        writer.writeByteArray(value)
+    }
 }
 
 class byteArraySized(private val length: Int) : DataType<ByteArray>() {
-    override fun read(reader: ScaleCodecReader) = reader.readByteArray(length)
+    override fun read(reader: ScaleCodecReader): ByteArray? {
+        val readByteArray = reader.readByteArray(length)
+        return readByteArray
+    }
 
-    override fun write(writer: ScaleCodecWriter, value: ByteArray) = writer.writeByteArray(value)
+    override fun write(writer: ScaleCodecWriter, value: ByteArray) = writer.directWrite(value, 0, length)
 }
 
 object long : DataType<Long>() {
     override fun read(reader: ScaleCodecReader) = reader.readLong()
 
-    override fun write(writer: ScaleCodecWriter, value: Long) = writer.writeLong(value)
+    override fun write(writer: ScaleCodecWriter, value: Long) {
+        writer.writeLong(value)
+    }
 }
 
 @Suppress("UNCHECKED_CAST")
