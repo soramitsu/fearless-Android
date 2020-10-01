@@ -20,6 +20,9 @@ abstract class NodeDao {
     @Query("select * from nodes where id = :id")
     abstract fun getNodeById(id: Int): Single<NodeLocal>
 
+    @Query("select count(*) from nodes where link = :nodeHost")
+    abstract fun getNodesCountByHost(nodeHost: String): Single<Int>
+
     @Query("DELETE FROM nodes where link = :link")
     abstract fun remove(link: String)
 

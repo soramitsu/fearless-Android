@@ -512,6 +512,11 @@ class AccountRepositoryImpl(
             .ignoreElement()
     }
 
+    override fun checkNodeExists(nodeHost: String): Single<Boolean> {
+        return nodeDao.getNodesCountByHost(nodeHost)
+            .map { it > 0 }
+    }
+
     private fun getNetworkTypeByName(networkName: String): Node.NetworkType {
         return when (networkName) {
             Node.NetworkType.WESTEND.readableName -> Node.NetworkType.WESTEND
