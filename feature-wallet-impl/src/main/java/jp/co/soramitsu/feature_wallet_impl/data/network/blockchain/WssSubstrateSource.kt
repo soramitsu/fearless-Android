@@ -50,7 +50,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SubmittableExtrin
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SubmittableExtrinsic.signedExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs
 import org.spongycastle.util.encoders.Hex
-import java.lang.Exception
 import java.math.BigInteger
 
 class WssSubstrateSource(
@@ -88,7 +87,8 @@ class WssSubstrateSource(
         account: Account,
         node: Node,
         transfer: Transfer,
-        keypair: Keypair): Completable {
+        keypair: Keypair
+    ): Completable {
 
         return Single.fromCallable {
             val extrinsic = buildSubmittableExtrinsic(account, node, transfer, keypair)

@@ -7,7 +7,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
-import java.math.BigDecimal
 
 interface WalletRepository {
     fun observeAssets(): Observable<List<Asset>>
@@ -26,5 +25,5 @@ interface WalletRepository {
 
     fun getTransferFee(transfer: Transfer): Single<Fee>
 
-    fun performTransfer(transfer: Transfer) : Completable
+    fun performTransfer(transfer: Transfer): Completable
 }

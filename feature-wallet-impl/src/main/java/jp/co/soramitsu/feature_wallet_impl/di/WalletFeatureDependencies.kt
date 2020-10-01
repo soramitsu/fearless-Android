@@ -41,7 +41,7 @@ interface WalletFeatureDependencies {
 
     fun signer(): Signer
 
-    fun sS58Encoder() : SS58Encoder
+    fun sS58Encoder(): SS58Encoder
 
     fun logger(): Logger
 }

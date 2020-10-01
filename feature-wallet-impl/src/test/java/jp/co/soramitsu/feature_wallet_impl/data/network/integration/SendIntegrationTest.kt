@@ -34,6 +34,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SubmittableExtrin
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs.amount
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs.recipientId
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner
@@ -47,6 +48,7 @@ private const val TO_ADDRESS = "5CDayXd3cDCWpBkSXVsVfhE5bWKyTZdD3D1XUinR1ezS1sGn
 private const val URL = "wss://westend-rpc.polkadot.io"
 
 @RunWith(MockitoJUnitRunner::class)
+@Ignore("Manual run only")
 class SendIntegrationTest {
     private val sS58Encoder = SS58Encoder()
     private val signer = Signer()
@@ -151,14 +153,5 @@ class SendIntegrationTest {
             struct[SubmittableExtrinsic.byteLength] = byteLength
             struct[signedExtrinsic] = extrinsic
         }
-    }
-
-    @Test
-    fun `aa aa`() {
-        val data = "0x350284fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d16801d2854c7cee44a1ffaa8727fdd78733a15871191f287252aba39c0ebc5c0aa4c34f9e5dc0a4acec8b4427778fc2744094df87eaf77daceb591dea41029da25307000000040006c60aeddcff7ecdf122d0299e915f63815cdc06a5fbabaa639588b4b9283d500700bca06501"
-
-        val decoded = SubmittableExtrinsic.read(data)
-
-        print(decoded)
     }
 }

@@ -123,7 +123,7 @@ class BalanceListViewModel(
         disposables += interactor.performTransfer(TEST_TRAINSFER)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe ({
+            .subscribe({
                 showMessage("Sent")
 
                 refresh()
@@ -134,7 +134,7 @@ class BalanceListViewModel(
         disposables += interactor.getTransferFee(TEST_TRAINSFER)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe ({
+            .subscribe({
                 showMessage(it.amount.format())
             }, errorHandler)
     }

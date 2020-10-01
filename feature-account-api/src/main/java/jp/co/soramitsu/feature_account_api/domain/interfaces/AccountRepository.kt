@@ -9,7 +9,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
-import java.security.KeyPair
 
 class AccountAlreadyExistsException : Exception()
 
@@ -107,5 +106,5 @@ interface AccountRepository {
 
     fun processAccountJson(json: String): Single<ImportJsonData>
 
-    fun getSigningData() : Single<SigningData>
+    fun getSigningData(): Single<SigningData>
 }

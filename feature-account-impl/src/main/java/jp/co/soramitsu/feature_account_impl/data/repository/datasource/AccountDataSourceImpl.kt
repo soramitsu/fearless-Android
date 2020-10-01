@@ -119,7 +119,7 @@ class AccountDataSourceImpl(
         encryptedPreferences.putEncryptedString(key, ScaleSigningData.toHexString(toSave))
     }
 
-    override fun getSigningData(address: String) : SigningData? {
+    override fun getSigningData(address: String): SigningData? {
         val key = PREFS_PRIVATE_KEY.format(address)
 
         val raw = encryptedPreferences.getDecryptedString(key) ?: return null

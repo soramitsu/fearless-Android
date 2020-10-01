@@ -192,7 +192,7 @@ class WalletRepositoryImpl(
         return subscanApi.getAssetPrice(subDomainFor(networkType), request)
     }
 
-    private fun mapSigningDataToKeypair(singingData: SigningData) : Keypair {
+    private fun mapSigningDataToKeypair(singingData: SigningData): Keypair {
         return with(singingData) {
             Keypair(
                 publicKey = publicKey,

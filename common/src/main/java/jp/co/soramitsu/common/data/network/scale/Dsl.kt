@@ -40,7 +40,8 @@ fun <S : Schema<S>> S.sizedByteArray(length: Int, default: ByteArray? = null): N
 fun <S : Schema<S>, A, B> S.pair(
     first: DataType<A>,
     second: DataType<B>,
-    default: Pair<A, B>? = null) = NonNullFieldDelegate(tuple(first, second), this, default)
+    default: Pair<A, B>? = null
+) = NonNullFieldDelegate(tuple(first, second), this, default)
 
 fun <S : Schema<S>> S.byteArray(default: ByteArray? = null): NonNullFieldDelegate<S, ByteArray> {
     return NonNullFieldDelegate(byteArray, this, default)

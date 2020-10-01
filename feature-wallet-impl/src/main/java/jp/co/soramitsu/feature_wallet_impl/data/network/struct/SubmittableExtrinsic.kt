@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.struct
 
 import jp.co.soramitsu.common.data.network.scale.Schema
 import jp.co.soramitsu.common.data.network.scale.byte
-import jp.co.soramitsu.common.data.network.scale.byteArray
 import jp.co.soramitsu.common.data.network.scale.compactInt
 import jp.co.soramitsu.common.data.network.scale.pair
 import jp.co.soramitsu.common.data.network.scale.schema

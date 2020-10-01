@@ -27,5 +27,5 @@ interface WalletInteractor {
 
     fun getTransferFee(transfer: Transfer): Single<Fee>
 
-    fun performTransfer(transfer: Transfer) : Completable
+    fun performTransfer(transfer: Transfer): Completable
 }

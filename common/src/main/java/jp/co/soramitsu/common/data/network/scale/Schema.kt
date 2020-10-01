@@ -50,7 +50,7 @@ abstract class Schema<S : Schema<S>> : ScaleReader<EncodableStruct<S>>,
         return struct
     }
 
-    fun toByteArray(struct: EncodableStruct<S>) : ByteArray {
+    fun toByteArray(struct: EncodableStruct<S>): ByteArray {
         val outputStream = ByteArrayOutputStream()
 
         val writer = ScaleCodecWriter(outputStream)
@@ -60,7 +60,7 @@ abstract class Schema<S : Schema<S>> : ScaleReader<EncodableStruct<S>>,
         return outputStream.toByteArray()
     }
 
-    fun toHexString(struct: EncodableStruct<S>) : String = "0x${Hex.toHexString(toByteArray(struct))}"
+    fun toHexString(struct: EncodableStruct<S>): String = "0x${Hex.toHexString(toByteArray(struct))}"
 
     override fun write(writer: ScaleCodecWriter, struct: EncodableStruct<S>) {
         for (field in fields) {

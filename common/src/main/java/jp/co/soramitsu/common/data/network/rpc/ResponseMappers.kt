@@ -39,7 +39,7 @@ class StringMapper : ResponseMapper<String> {
     }
 }
 
-inline fun <reified T>  pojo() = POJOMapper(T::class.java)
+inline fun <reified T> pojo() = POJOMapper(T::class.java)
 
 class POJOMapper<T>(val classRef: Class<T>) : ResponseMapper<T> {
     override fun map(rpcResponse: RpcResponse, jsonMapper: Gson): T {
