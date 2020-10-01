@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
-import jp.co.soramitsu.feature_account_impl.domain.errors.NodeExistsException
+import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 class AddNodeViewModel(
@@ -54,11 +54,10 @@ class AddNodeViewModel(
                         router.back()
                     }, {
                         when (it) {
-                            is NodeExistsException -> showError(resourceManager.getString(R.string.connection_add_already_exists_error))
+                            is NodeAlreadyExistsException -> showError(resourceManager.getString(R.string.connection_add_already_exists_error))
                             else -> it.message?.let { showError(it) }
                         }
                     })
-
             }
         }
     }

@@ -34,16 +34,14 @@ class RxWebSocket(
     private fun adapt(request: RpcRequest, url: String): Single<RpcResponse> {
 
         var webSocket: WebSocketWrapper? = null
-        return Single.fromPublisher<RpcResponse> { publisher ->
-
+        return Single.create<RpcResponse> { emitter ->
             webSocket = WebSocketWrapper(url, object : WebSocketResponseListener {
                 override fun onError(error: Throwable) {
-                    publisher.onError(error)
+                    emitter.onError(error)
                 }
 
                 override fun onResponse(response: RpcResponse) {
-                    publisher.onNext(response)
-                    publisher.onComplete()
+                    emitter.onSuccess(response)
                 }
             })
             webSocket!!.connect()

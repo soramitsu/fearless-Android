@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_impl.domain.errors.NodeExistsException
+import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
@@ -241,7 +241,7 @@ class AccountInteractorImpl(
         return accountRepository.checkNodeExists(nodeHost)
             .flatMapCompletable {
                 if (it) {
-                    throw NodeExistsException()
+                    throw NodeAlreadyExistsException()
                 } else {
                     accountRepository.addNode(nodeName, nodeHost)
                 }
