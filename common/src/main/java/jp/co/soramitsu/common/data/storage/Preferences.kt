@@ -1,5 +1,7 @@
 package jp.co.soramitsu.common.data.storage
 
+import jp.co.soramitsu.feature_account_api.domain.model.Language
+
 interface Preferences {
     fun contains(field: String): Boolean
 
@@ -20,4 +22,8 @@ interface Preferences {
     fun putLong(field: String, value: Long)
 
     fun getLong(field: String, defaultValue: Long): Long
+
+    fun getCurrentLanguage(): Language?
+
+    fun saveCurrentLanguage(languageIsoCode: String)
 }

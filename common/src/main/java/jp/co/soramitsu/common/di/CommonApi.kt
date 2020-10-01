@@ -6,6 +6,8 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ClipboardManager
+import jp.co.soramitsu.common.resources.ContextManager
+import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
@@ -47,4 +49,8 @@ interface CommonApi {
     fun signer(): Signer
 
     fun logger(): Logger
+
+    fun contextManager(): ContextManager
+
+    fun languagesHolder(): LanguagesHolder
 }

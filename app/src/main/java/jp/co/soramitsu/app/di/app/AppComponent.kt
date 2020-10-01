@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.modules.CommonModule
 import jp.co.soramitsu.common.di.modules.NetworkModule
 import jp.co.soramitsu.common.di.scope.ApplicationScope
+import jp.co.soramitsu.common.resources.ContextManager
 
 @ApplicationScope
 @Component(
@@ -27,6 +28,9 @@ interface AppComponent : CommonApi {
 
         @BindsInstance
         fun application(application: App): Builder
+
+        @BindsInstance
+        fun contextManager(contextManager: ContextManager): Builder
 
         fun build(): AppComponent
     }

@@ -12,6 +12,8 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.resources.ClipboardManager
+import jp.co.soramitsu.common.resources.ContextManager
+import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.ResourceManagerImpl
 import jp.co.soramitsu.common.vibration.DeviceVibrator
@@ -29,8 +31,8 @@ class CommonModule {
 
     @Provides
     @ApplicationScope
-    fun provideResourceManager(context: Context): ResourceManager {
-        return ResourceManagerImpl(context)
+    fun provideResourceManager(contextManager: ContextManager): ResourceManager {
+        return ResourceManagerImpl(contextManager)
     }
 
     @Provides
@@ -107,5 +109,11 @@ class CommonModule {
     fun provideDeviceVibrator(context: Context): DeviceVibrator {
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         return DeviceVibrator(vibrator)
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideLanguagesHolder(): LanguagesHolder {
+        return LanguagesHolder()
     }
 }

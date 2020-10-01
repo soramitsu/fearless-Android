@@ -6,6 +6,7 @@ import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
@@ -105,6 +106,12 @@ interface AccountRepository {
     fun deleteAccount(address: String): Completable
 
     fun processAccountJson(json: String): Single<ImportJsonData>
+
+    fun observeLanguages(): Observable<List<Language>>
+
+    fun getSelectedLanguage(): Single<Language>
+
+    fun changeLanguage(language: Language): Completable
 
     fun getSigningData(): Single<SigningData>
 }

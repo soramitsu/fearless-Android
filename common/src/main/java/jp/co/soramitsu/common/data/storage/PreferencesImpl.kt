@@ -1,10 +1,16 @@
 package jp.co.soramitsu.common.data.storage
 
 import android.content.SharedPreferences
+import jp.co.soramitsu.feature_account_api.domain.model.Language
 
 class PreferencesImpl(
     private val sharedPreferences: SharedPreferences
 ) : Preferences {
+
+    companion object {
+        private const val PREFS_SELECTED_LANGUAGE = "selected_language"
+    }
+
     override fun contains(field: String) = sharedPreferences.contains(field)
 
     override fun putString(field: String, value: String) {
@@ -41,5 +47,17 @@ class PreferencesImpl(
 
     override fun getLong(field: String, defaultValue: Long): Long {
         return sharedPreferences.getLong(field, defaultValue)
+    }
+
+    override fun getCurrentLanguage(): Language? {
+        return if (sharedPreferences.contains(PREFS_SELECTED_LANGUAGE)) {
+            Language(sharedPreferences.getString(PREFS_SELECTED_LANGUAGE, "")!!)
+        } else {
+            null
+        }
+    }
+
+    override fun saveCurrentLanguage(languageIsoCode: String) {
+        sharedPreferences.edit().putString(PREFS_SELECTED_LANGUAGE, languageIsoCode).apply()
     }
 }
