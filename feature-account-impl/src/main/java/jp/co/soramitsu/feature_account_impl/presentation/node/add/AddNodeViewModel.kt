@@ -53,12 +53,16 @@ class AddNodeViewModel(
                     .subscribe({
                         router.back()
                     }, {
-                        when (it) {
-                            is NodeAlreadyExistsException -> showError(resourceManager.getString(R.string.connection_add_already_exists_error))
-                            else -> it.message?.let { showError(it) }
-                        }
+                        handleNAddNodeError(it)
                     })
             }
+        }
+    }
+
+    private fun handleNAddNodeError(throwable: Throwable) {
+        when (throwable) {
+            is NodeAlreadyExistsException -> showError(resourceManager.getString(R.string.connection_add_already_exists_error))
+            else -> throwable.message?.let { showError(it) }
         }
     }
 }
