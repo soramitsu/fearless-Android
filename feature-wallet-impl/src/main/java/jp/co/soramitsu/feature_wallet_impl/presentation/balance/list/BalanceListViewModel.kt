@@ -22,7 +22,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.Balan
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransactionHistoryUi
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.util.format
 import java.math.BigDecimal
 
 // TODO use dp
@@ -120,22 +119,22 @@ class BalanceListViewModel(
     }
 
     fun sendClicked() {
-        disposables += interactor.performTransfer(TEST_TRAINSFER)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                showMessage("Sent")
-
-                refresh()
-            }, errorHandler)
+//        disposables += interactor.performTransfer(TEST_TRAINSFER)
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe({
+//                showMessage("Sent")
+//
+//                refresh()
+//            }, errorHandler)
     }
 
     fun receiveClicked() {
-        disposables += interactor.getTransferFee(TEST_TRAINSFER)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                showMessage(it.amount.format())
-            }, errorHandler)
+//        disposables += interactor.getTransferFee(TEST_TRAINSFER)
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe({
+//                showMessage(it.amount.format())
+//            }, errorHandler)
     }
 }

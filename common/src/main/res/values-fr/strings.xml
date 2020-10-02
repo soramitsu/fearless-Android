@@ -17,7 +17,6 @@
     <string name="tabbar_wallet_title">Portefeuille</string>
     <string name="tabbar_staking_title">Staking</string>
     <string name="tabbar_governance_title">Gouvernance</string>
-    <string name="tabbar_extrinsics_title">Extrinsèques</string>
     <string name="profile_settings_title">Paramètres</string>
     <string name="profile_language_title">Langue</string>
     <string name="about_contact_us">Nous contacter</string>
