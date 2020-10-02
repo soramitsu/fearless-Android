@@ -112,7 +112,9 @@ interface AccountRepository {
 
     fun changeLanguage(language: Language): Completable
 
-    fun addNode(nodeName: String, nodeHost: String): Completable
+    fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable
 
     fun checkNodeExists(nodeHost: String): Single<Boolean>
+
+    fun getNetworkName(nodeHost: String): Single<String>
 }

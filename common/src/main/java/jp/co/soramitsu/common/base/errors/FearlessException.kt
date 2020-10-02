@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.base.errors
 
 import jp.co.soramitsu.common.resources.ResourceManager
-import java.io.IOException
 
 class FearlessException(
     val kind: Kind,
@@ -16,8 +15,8 @@ class FearlessException(
 
     companion object {
 
-        fun networkError(resourceManager: ResourceManager, exception: IOException): FearlessException {
-            return FearlessException(Kind.NETWORK, "", exception)
+        fun networkError(resourceManager: ResourceManager, throwable: Throwable): FearlessException {
+            return FearlessException(Kind.NETWORK, "", throwable)
         }
 
         fun unexpectedError(exception: Throwable): FearlessException {

@@ -4,13 +4,16 @@ import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.base.errors.FearlessException
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
+import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 class AddNodeViewModel(
@@ -62,7 +65,22 @@ class AddNodeViewModel(
     private fun handleAddNodeError(throwable: Throwable) {
         when (throwable) {
             is NodeAlreadyExistsException -> showError(resourceManager.getString(R.string.connection_add_already_exists_error))
+            is UnsupportedNetworkException -> showError(getUnsupportedNodeError())
+            is FearlessException -> {
+                if (FearlessException.Kind.NETWORK == throwable.kind) {
+                    showError(resourceManager.getString(R.string.connection_add_invalid_error))
+                } else {
+                    throwable.message?.let { showError(it) }
+                }
+            }
             else -> throwable.message?.let { showError(it) }
         }
+    }
+
+    private fun getUnsupportedNodeError(): String {
+        val supportedNodes = listOf(Node.NetworkType.KUSAMA.readableName, Node.NetworkType.POLKADOT.readableName, Node.NetworkType.WESTEND.readableName)
+            .joinToString(",")
+        val unsupportedNodeErrorMsg = resourceManager.getString(R.string.connection_add_unsupported_error)
+        return unsupportedNodeErrorMsg.format(supportedNodes)
     }
 }

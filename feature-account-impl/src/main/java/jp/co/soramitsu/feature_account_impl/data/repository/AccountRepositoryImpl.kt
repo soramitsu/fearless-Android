@@ -504,12 +504,11 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun addNode(nodeName: String, nodeHost: String): Completable {
-        return accountSubstrateSource.getNodeNetworkType(nodeHost)
-            .map(::getNetworkTypeByName)
-            .map { NodeLocal(nodeName, nodeHost, it.ordinal, false) }
-            .doOnSuccess { nodeDao.insert(it) }
-            .ignoreElement()
+    override fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable {
+        return Completable.fromAction {
+            val nodeLocal = NodeLocal(nodeName, nodeHost, networkType.ordinal, false)
+            nodeDao.insert(nodeLocal)
+        }
     }
 
     override fun checkNodeExists(nodeHost: String): Single<Boolean> {
@@ -517,12 +516,7 @@ class AccountRepositoryImpl(
             .map { it > 0 }
     }
 
-    private fun getNetworkTypeByName(networkName: String): Node.NetworkType {
-        return when (networkName) {
-            Node.NetworkType.WESTEND.readableName -> Node.NetworkType.WESTEND
-            Node.NetworkType.KUSAMA.readableName -> Node.NetworkType.KUSAMA
-            Node.NetworkType.POLKADOT.readableName -> Node.NetworkType.POLKADOT
-            else -> throw IllegalArgumentException("can't detect network by name: $networkName")
-        }
+    override fun getNetworkName(nodeHost: String): Single<String> {
+        return accountSubstrateSource.getNodeNetworkType(nodeHost)
     }
 }

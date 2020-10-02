@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
+import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
@@ -243,8 +244,18 @@ class AccountInteractorImpl(
                 if (it) {
                     throw NodeAlreadyExistsException()
                 } else {
-                    accountRepository.addNode(nodeName, nodeHost)
+                    getNetworkTypeByNodeHost(nodeHost)
+                        .flatMapCompletable { networkType -> accountRepository.addNode(nodeName, nodeHost, networkType) }
                 }
+            }
+    }
+
+    private fun getNetworkTypeByNodeHost(nodeHost: String): Single<Node.NetworkType> {
+        return accountRepository.getNetworkName(nodeHost)
+            .map { networkName ->
+                val supportedNetworks = mutableListOf(Node.NetworkType.POLKADOT, Node.NetworkType.KUSAMA, Node.NetworkType.WESTEND)
+                val networkType = supportedNetworks.firstOrNull { networkName == "kek" }
+                networkType ?: throw UnsupportedNetworkException()
             }
     }
 }

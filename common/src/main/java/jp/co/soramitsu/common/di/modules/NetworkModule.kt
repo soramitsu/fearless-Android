@@ -74,7 +74,7 @@ class NetworkModule {
 
     @Provides
     @ApplicationScope
-    fun provideRxWebSocket(mapper: Gson) = RxWebSocket(mapper)
+    fun provideRxWebSocket(mapper: Gson, resourceManager: ResourceManager) = RxWebSocket(mapper, resourceManager)
 
     @Provides
     @ApplicationScope
