@@ -4,6 +4,9 @@ import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.subjects.BehaviorSubject
+import jp.co.soramitsu.common.data.network.scale.Schema
+import jp.co.soramitsu.common.data.network.scale.byteArray
+import jp.co.soramitsu.common.data.network.scale.invoke
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -11,6 +14,10 @@ import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SigningData
+import jp.co.soramitsu.feature_account_impl.data.repository.datasource.ScaleSigningData.Nonce
+import jp.co.soramitsu.feature_account_impl.data.repository.datasource.ScaleSigningData.PrivateKey
+import jp.co.soramitsu.feature_account_impl.data.repository.datasource.ScaleSigningData.PublicKey
 import org.spongycastle.util.encoders.Hex
 
 private const val PREFS_AUTH_TYPE = "auth_type"
@@ -24,8 +31,16 @@ private const val PREFS_MNEMONIC_IS_BACKED_UP = "mnemonic_backed_up"
 private const val PREFS_SEED_MASK = "seed_%s"
 private const val PREFS_ENTROPY_MASK = "entropy_%s"
 private const val PREFS_DERIVATION_MASK = "derivation_%s"
+private const val PREFS_PRIVATE_KEY = "private_%s"
 
 private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
+
+private object ScaleSigningData : Schema<ScaleSigningData>() {
+    val PrivateKey by byteArray()
+    val PublicKey by byteArray()
+
+    val Nonce by byteArray().optional()
+}
 
 class AccountDataSourceImpl(
     private val preferences: Preferences,
@@ -82,6 +97,32 @@ class AccountDataSourceImpl(
         val seedKey = PREFS_SEED_MASK.format(address)
         val seedStr = Hex.toHexString(seed)
         encryptedPreferences.putEncryptedString(seedKey, seedStr)
+    }
+
+    override fun saveSigningData(address: String, signingData: SigningData) {
+        val key = PREFS_PRIVATE_KEY.format(address)
+
+        val toSave = ScaleSigningData {
+            it[PrivateKey] = signingData.privateKey
+            it[PublicKey] = signingData.publicKey
+            it[Nonce] = signingData.nonce
+        }
+
+        encryptedPreferences.putEncryptedString(key, ScaleSigningData.toHexString(toSave))
+    }
+
+    override fun getSigningData(address: String): SigningData? {
+        val key = PREFS_PRIVATE_KEY.format(address)
+
+        val raw = encryptedPreferences.getDecryptedString(key) ?: return null
+
+        val data = ScaleSigningData.read(raw)
+
+        return SigningData(
+            publicKey = data[PublicKey],
+            privateKey = data[PrivateKey],
+            nonce = data[Nonce]
+        )
     }
 
     override fun getSeed(address: String): ByteArray? {

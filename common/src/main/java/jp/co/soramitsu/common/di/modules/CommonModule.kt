@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.resources.ResourceManagerImpl
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
@@ -83,6 +84,12 @@ class CommonModule {
     @ApplicationScope
     fun provideJunctionDecoder(): JunctionDecoder {
         return JunctionDecoder()
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideSigner(): Signer {
+        return Signer()
     }
 
     @Provides

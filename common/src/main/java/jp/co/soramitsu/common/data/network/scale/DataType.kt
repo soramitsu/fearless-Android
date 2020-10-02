@@ -6,13 +6,17 @@ import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import io.emeraldpay.polkaj.scale.ScaleReader
 import io.emeraldpay.polkaj.scale.ScaleWriter
+import io.emeraldpay.polkaj.scale.reader.CompactBigIntReader
 import io.emeraldpay.polkaj.scale.writer.BoolWriter
+import io.emeraldpay.polkaj.scale.writer.CompactBigIntWriter
 import java.math.BigInteger
 
 sealed class DataType<T> : ScaleReader<T>, ScaleWriter<T>
 
 object string : DataType<String>() {
-    override fun read(reader: ScaleCodecReader) = reader.readString()
+    override fun read(reader: ScaleCodecReader): String? {
+        return reader.readString()
+    }
     override fun write(writer: ScaleCodecWriter, value: String) = writer.writeString(value)
 }
 
@@ -25,20 +29,26 @@ object uint32 : DataType<UInt>() {
 }
 
 object boolean : DataType<Boolean>() {
-    override fun read(reader: ScaleCodecReader) = reader.readBoolean()
+    override fun read(reader: ScaleCodecReader): Boolean {
+        return reader.readBoolean()
+    }
 
     override fun write(writer: ScaleCodecWriter, value: Boolean) = writer.write(BoolWriter(), value)
 }
 
 object byte : DataType<Byte>() {
-    override fun read(reader: ScaleCodecReader) = reader.readByte()
+    override fun read(reader: ScaleCodecReader): Byte {
+        val readByte = reader.readByte()
+        return readByte
+    }
 
     override fun write(writer: ScaleCodecWriter, value: Byte) = writer.writeByte(value)
 }
 
 object uint8 : DataType<UByte>() {
     override fun read(reader: ScaleCodecReader): UByte {
-        return reader.readUByte().toUByte()
+        val toUByte = reader.readUByte().toUByte()
+        return toUByte
     }
 
     override fun write(writer: ScaleCodecWriter, value: UByte) = writer.writeByte(value.toInt())
@@ -63,28 +73,61 @@ object uint128 : DataType<BigInteger>() {
     }
 }
 
-object compactInt : DataType<Int>() {
-    override fun read(reader: ScaleCodecReader) = reader.readCompactInt()
+class tuple<A, B>(
+    private val a: DataType<A>,
+    private val b: DataType<B>
+) : DataType<Pair<A, B>>() {
+    override fun read(reader: ScaleCodecReader): Pair<A, B> {
+        val a = a.read(reader)
+        val b = b.read(reader)
 
-    override fun write(writer: ScaleCodecWriter, value: Int) = writer.writeCompact(value)
+        return a to b
+    }
+
+    override fun write(writer: ScaleCodecWriter, value: Pair<A, B>) {
+        a.write(writer, value.first)
+        b.write(writer, value.second)
+    }
+}
+
+private val compactIntReader = CompactBigIntReader()
+private val compactIntWriter = CompactBigIntWriter()
+
+object compactInt : DataType<BigInteger>() {
+    override fun read(reader: ScaleCodecReader): BigInteger? {
+        val read = compactIntReader.read(reader)
+        return read
+    }
+
+    override fun write(writer: ScaleCodecWriter, value: BigInteger) = compactIntWriter.write(writer, value)
 }
 
 object byteArray : DataType<ByteArray>() {
-    override fun read(reader: ScaleCodecReader) = reader.readByteArray()
+    override fun read(reader: ScaleCodecReader): ByteArray? {
+        val readByteArray = reader.readByteArray()
+        return readByteArray
+    }
 
-    override fun write(writer: ScaleCodecWriter, value: ByteArray) = writer.writeByteArray(value)
+    override fun write(writer: ScaleCodecWriter, value: ByteArray) {
+        writer.writeByteArray(value)
+    }
 }
 
 class byteArraySized(private val length: Int) : DataType<ByteArray>() {
-    override fun read(reader: ScaleCodecReader) = reader.readByteArray(length)
+    override fun read(reader: ScaleCodecReader): ByteArray? {
+        val readByteArray = reader.readByteArray(length)
+        return readByteArray
+    }
 
-    override fun write(writer: ScaleCodecWriter, value: ByteArray) = writer.writeByteArray(value)
+    override fun write(writer: ScaleCodecWriter, value: ByteArray) = writer.directWrite(value, 0, length)
 }
 
 object long : DataType<Long>() {
     override fun read(reader: ScaleCodecReader) = reader.readLong()
 
-    override fun write(writer: ScaleCodecWriter, value: Long) = writer.writeLong(value)
+    override fun write(writer: ScaleCodecWriter, value: Long) {
+        writer.writeLong(value)
+    }
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -116,22 +159,10 @@ class optional<T>(private val dataType: DataType<T>) : DataType<T?>() {
 @Suppress("UNCHECKED_CAST")
 class scalable<S : Schema<S>>(private val schema: Schema<S>) : DataType<EncodableStruct<S>>() {
     override fun read(reader: ScaleCodecReader): EncodableStruct<S> {
-        val struct = EncodableStruct(schema)
-
-        for (field in schema.fields) {
-            struct[field as Field<Any?>] = field.dataType.read(reader)
-        }
-
-        return struct
+        return schema.read(reader)
     }
 
     override fun write(writer: ScaleCodecWriter, struct: EncodableStruct<S>) {
-        for (field in schema.fields) {
-            val value = struct.fieldsWithValues[field]
-
-            val type = field.dataType as DataType<Any?>
-
-            type.write(writer, value)
-        }
+        schema.write(writer, struct)
     }
 }
