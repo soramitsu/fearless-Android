@@ -112,4 +112,8 @@ class BalanceListViewModel(
     fun sendClicked() {
         router.openChooseRecipient()
     }
+
+    fun receiveClicked() {
+        // TODO
+    }
 }

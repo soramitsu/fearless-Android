@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
+import kotlinx.android.synthetic.main.fragment_balance_list.balanceListReceive
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListSend
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
 import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
@@ -53,6 +54,10 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         balanceListSend.setOnClickListener {
             viewModel.sendClicked()
+        }
+
+        balanceListReceive.setOnClickListener {
+            viewModel.receiveClicked()
         }
     }
 

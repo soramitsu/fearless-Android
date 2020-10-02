@@ -8,14 +8,19 @@ import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
+import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetLocal
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
@@ -81,6 +86,26 @@ class WalletRepositoryImpl(
 
     override fun getContacts(query: String) : Single<List<String>> {
         return transactionsDao.getContacts(query)
+    }
+
+    override fun getTransferFee(transfer: Transfer): Single<Fee> {
+        return Single.fromCallable {
+            val account = getSelectedAccount().blockingGet()
+            val node = accountRepository.getSelectedNode().blockingGet()
+
+            substrateSource.getTransferFee(account, node, transfer).blockingGet()
+        }.map { mapFeeRemoteToFee(it, transfer.token) }
+    }
+
+    override fun performTransfer(transfer: Transfer): Completable {
+        return Completable.fromAction {
+            val account = getSelectedAccount().blockingGet()
+            val node = accountRepository.getSelectedNode().blockingGet()
+            val signingData = accountRepository.getSigningData().blockingGet()
+            val keys = mapSigningDataToKeypair(signingData)
+
+            substrateSource.performTransfer(account, node, transfer, keys).blockingAwait()
+        }
     }
 
     private fun syncTransactionsFirstPage(pageSize: Int, account: Account): Completable {
@@ -169,6 +194,16 @@ class WalletRepositoryImpl(
 
     private fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): Single<SubscanResponse<AssetPriceStatistics>> {
         return subscanApi.getAssetPrice(subDomainFor(networkType), request)
+    }
+
+    private fun mapSigningDataToKeypair(singingData: SigningData): Keypair {
+        return with(singingData) {
+            Keypair(
+                publicKey = publicKey,
+                privateKey = privateKey,
+                nonce = nonce
+            )
+        }
     }
 
     private fun subDomainFor(networkType: Node.NetworkType): String {

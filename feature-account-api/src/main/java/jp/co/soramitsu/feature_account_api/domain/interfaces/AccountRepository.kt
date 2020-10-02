@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 
 class AccountAlreadyExistsException : Exception()
 
@@ -113,4 +114,6 @@ interface AccountRepository {
     fun getSelectedLanguage(): Single<Language>
 
     fun changeLanguage(language: Language): Completable
+
+    fun getSigningData(): Single<SigningData>
 }

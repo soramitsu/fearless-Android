@@ -8,7 +8,11 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 
 interface WalletFeatureDependencies {
@@ -32,4 +36,12 @@ interface WalletFeatureDependencies {
     fun transactionsDao(): TransactionDao
 
     fun networkCreator(): NetworkApiCreator
+
+    fun keypairFactory(): KeypairFactory
+
+    fun signer(): Signer
+
+    fun sS58Encoder(): SS58Encoder
+
+    fun logger(): Logger
 }
