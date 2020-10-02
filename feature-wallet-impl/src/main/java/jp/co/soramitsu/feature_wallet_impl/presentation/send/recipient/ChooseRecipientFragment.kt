@@ -5,9 +5,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.onDoneClicked
 import jp.co.soramitsu.common.utils.onTextChanged
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
@@ -40,6 +39,10 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
 
         searchRecipientToolbar.setHomeButtonListener {
             viewModel.backClicked()
+        }
+
+        searchRecipientField.onDoneClicked {
+            viewModel.enterClicked()
         }
     }
 

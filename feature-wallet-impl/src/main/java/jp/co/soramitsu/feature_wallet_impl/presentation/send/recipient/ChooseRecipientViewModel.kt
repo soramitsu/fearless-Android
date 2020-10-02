@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.distinctUntilChanged
+import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -45,7 +46,7 @@ class ChooseRecipientViewModel(
     }
 
     fun recipientSelected(address: String) {
-        // TODO
+       showMessage("Selected: $address")
     }
 
     private fun determineState(queryEmpty: Boolean, searchResult: List<Any>): State {
@@ -65,7 +66,7 @@ class ChooseRecipientViewModel(
                 val searchResults = interactor.getContacts(address).blockingGet()
 
                 val models = searchResults.map(this::generateModel)
-                val contactsWithHeader = appendContectsHeader(models)
+                val contactsWithHeader = appendContactsHeader(models)
 
                 val result = if (isValidAddress) {
                     val searchHeader = ContactsHeader(resourceManager.getString(R.string.search_result_header))
@@ -92,7 +93,7 @@ class ChooseRecipientViewModel(
         return ContactModel(address, icon)
     }
 
-    private fun appendContectsHeader(content: List<Any>): List<Any> {
+    private fun appendContactsHeader(content: List<Any>): List<Any> {
         if (content.isEmpty()) return emptyList()
 
         val header = ContactsHeader(resourceManager.getString(R.string.wallet_contacts))
@@ -102,5 +103,14 @@ class ChooseRecipientViewModel(
 
     fun queryChanged(query: String) {
         searchEventSubject.onNext(query)
+    }
+
+    fun enterClicked() {
+        val value = searchEventSubject.value ?: return
+
+        disposables += interactor.validateSendAddress(value)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { valid -> if (valid) recipientSelected(value) }
     }
 }

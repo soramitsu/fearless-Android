@@ -2,9 +2,11 @@ package jp.co.soramitsu.common.utils
 
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
 import androidx.annotation.ColorRes
@@ -23,6 +25,18 @@ inline fun EditText.onTextChanged(crossinline listener: (String) -> Unit) {
             listener.invoke(s.toString())
         }
     })
+}
+
+inline fun EditText.onDoneClicked(crossinline listener: () -> Unit) {
+    setOnEditorActionListener { _, actionId, _ ->
+        if (actionId == EditorInfo.IME_ACTION_DONE) {
+            listener.invoke()
+
+            true
+        }
+
+        false
+    }
 }
 
 fun ViewGroup.inflateChild(@LayoutRes id: Int): View {

@@ -26,6 +26,8 @@
         android:layout_marginEnd="16dp"
         android:background="@drawable/ic_search_field"
         android:drawableStart="@drawable/ic_search"
+        android:imeOptions="actionDone"
+        android:singleLine="true"
         android:drawablePadding="8dp"
         android:hint="@string/search_recipient_hint"
         android:includeFontPadding="false"
