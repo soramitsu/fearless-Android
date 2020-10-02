@@ -546,8 +546,7 @@ class AccountRepositoryImpl(
     }
 
     override fun checkNodeExists(nodeHost: String): Single<Boolean> {
-        return nodeDao.getNodesCountByHost(nodeHost)
-            .map { it > 0 }
+        return nodeDao.checkNodeExists(nodeHost)
     }
 
     override fun getNetworkName(nodeHost: String): Single<String> {

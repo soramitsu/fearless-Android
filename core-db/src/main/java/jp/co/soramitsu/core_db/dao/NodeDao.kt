@@ -23,6 +23,9 @@ abstract class NodeDao {
     @Query("select count(*) from nodes where link = :nodeHost")
     abstract fun getNodesCountByHost(nodeHost: String): Single<Int>
 
+    @Query("select exists (select * from nodes where link = :nodeHost)")
+    abstract fun checkNodeExists(nodeHost: String): Single<Boolean>
+
     @Query("DELETE FROM nodes where link = :link")
     abstract fun remove(link: String)
 
