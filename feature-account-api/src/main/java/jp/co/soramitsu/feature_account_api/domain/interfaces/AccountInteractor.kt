@@ -92,4 +92,6 @@ interface AccountInteractor {
     fun getSelectedLanguage(): Single<Language>
 
     fun changeSelectedLanguage(language: Language): Completable
+
+    fun addNode(nodeName: String, nodeHost: String): Completable
 }

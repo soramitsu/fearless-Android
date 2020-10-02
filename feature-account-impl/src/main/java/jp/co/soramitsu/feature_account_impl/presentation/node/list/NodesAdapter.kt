@@ -2,11 +2,11 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
 import android.view.View
 import android.view.ViewGroup
-import jp.co.soramitsu.common.utils.inflateChild
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.common.groupedList.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.groupedList.GroupedListAdapter
 import jp.co.soramitsu.common.groupedList.GroupedListHolder
+import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeHeaderModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import kotlinx.android.synthetic.main.item_node.view.nodeCheck
@@ -31,11 +31,11 @@ class NodesAdapter(
 
     fun updateSelectedNode(newSelection: NodeModel) {
         val positionToHide = selectedItem?.let { selected ->
-            findIndexOfElement<NodeModel> { selected.link == it.link }
+            findIndexOfElement<NodeModel> { selected.id == it.id }
         }
 
         val positionToShow = findIndexOfElement<NodeModel> {
-            newSelection.link == it.link
+            newSelection.id == it.id
         }
 
         selectedItem = newSelection
@@ -57,7 +57,7 @@ class NodesAdapter(
     }
 
     override fun bindChild(holder: GroupedListHolder, child: NodeModel) {
-        val isChecked = child.link == selectedItem?.link
+        val isChecked = child.id == selectedItem?.id
 
         (holder as NodeHolder).bind(child, nodeItemHandler, isChecked)
     }
@@ -102,7 +102,7 @@ private object NodesDiffCallback : BaseGroupedDiffCallback<NodeHeaderModel, Node
     }
 
     override fun areChildItemsTheSame(oldItem: NodeModel, newItem: NodeModel): Boolean {
-        return oldItem.link == newItem.link
+        return oldItem.id == newItem.id
     }
 
     override fun areChildContentsTheSame(oldItem: NodeModel, newItem: NodeModel): Boolean {

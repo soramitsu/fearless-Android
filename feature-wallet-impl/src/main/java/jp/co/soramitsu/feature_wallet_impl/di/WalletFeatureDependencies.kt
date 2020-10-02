@@ -1,7 +1,9 @@
 package jp.co.soramitsu.feature_wallet_impl.di
 
 import android.content.Context
+import com.google.gson.Gson
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -44,4 +46,8 @@ interface WalletFeatureDependencies {
     fun sS58Encoder(): SS58Encoder
 
     fun logger(): Logger
+
+    fun rxWebSocket(): RxWebSocket
+
+    fun jsonMapper(): Gson
 }

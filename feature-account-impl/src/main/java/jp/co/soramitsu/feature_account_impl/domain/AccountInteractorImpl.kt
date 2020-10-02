@@ -14,6 +14,8 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
+import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
@@ -234,5 +236,26 @@ class AccountInteractorImpl(
 
     override fun changeSelectedLanguage(language: Language): Completable {
         return accountRepository.changeLanguage(language)
+    }
+
+    override fun addNode(nodeName: String, nodeHost: String): Completable {
+        return accountRepository.checkNodeExists(nodeHost)
+            .flatMapCompletable {
+                if (it) {
+                    throw NodeAlreadyExistsException()
+                } else {
+                    getNetworkTypeByNodeHost(nodeHost)
+                        .flatMapCompletable { networkType -> accountRepository.addNode(nodeName, nodeHost, networkType) }
+                }
+            }
+    }
+
+    private fun getNetworkTypeByNodeHost(nodeHost: String): Single<Node.NetworkType> {
+        return accountRepository.getNetworkName(nodeHost)
+            .map { networkName ->
+                val supportedNetworks = Node.NetworkType.values()
+                val networkType = supportedNetworks.firstOrNull { networkName == it.readableName }
+                networkType ?: throw UnsupportedNetworkException()
+            }
     }
 }

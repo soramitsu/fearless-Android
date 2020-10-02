@@ -101,4 +101,8 @@
     <string name="wallet_balance_available">Доступно</string>
     <string name="wallet_balance_bonded">Заморожено</string>
     <string name="language_title">Язык</string>
+    <string name="common_add">Добавить</string>
+    <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
+    <string name="connection_add_already_exists_error">Узел уже был добавлен ранее. Пожалуйста, попробуйте другой узел.</string>
+    <string name="connection_add_unsupported_error">К сожалению, сеть не поддерживается. Пожалуйста, попробуйте одну из следующих: %s.</string>
 </resources>

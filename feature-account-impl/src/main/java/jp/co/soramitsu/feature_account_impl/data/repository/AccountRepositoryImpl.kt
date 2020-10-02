@@ -29,6 +29,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
+import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import org.spongycastle.util.encoders.Hex
 
@@ -42,26 +43,36 @@ class AccountRepositoryImpl(
     private val keypairFactory: KeypairFactory,
     private val appLinksProvider: AppLinksProvider,
     private val jsonSeedDecoder: JsonSeedDecoder,
-    private val languagesHolder: LanguagesHolder
+    private val languagesHolder: LanguagesHolder,
+    private val accountSubstrateSource: AccountSubstrateSource
 ) : AccountRepository {
 
     companion object {
         val DEFAULT_NODES_LIST = listOf(
             NodeLocal(
-                0,
                 "Kusama Parity Node",
                 "wss://kusama-rpc.polkadot.io",
                 Node.NetworkType.KUSAMA.ordinal,
                 true
             ),
             NodeLocal(
-                1,
+                "Kusama, Web3 Foundation node",
+                "wss://cc3-5.kusama.network",
+                Node.NetworkType.KUSAMA.ordinal,
+                true
+            ),
+            NodeLocal(
                 "Polkadot Parity Node", "wss://rpc.polkadot.io",
                 Node.NetworkType.POLKADOT.ordinal,
                 true
             ),
             NodeLocal(
-                2,
+                "Polkadot, Web3 Foundation node",
+                "wss://cc1-1.polkadot.network",
+                Node.NetworkType.KUSAMA.ordinal,
+                true
+            ),
+            NodeLocal(
                 "Westend Parity Node",
                 "wss://westend-rpc.polkadot.io",
                 Node.NetworkType.WESTEND.ordinal,
@@ -501,7 +512,7 @@ class AccountRepositoryImpl(
     }
 
     private fun mapNetworkToNodeLocal(it: Node): NodeLocal {
-        return NodeLocal(it.id, it.name, it.link, it.networkType.ordinal, it.isDefault)
+        return NodeLocal(it.name, it.link, it.networkType.ordinal, it.isDefault)
     }
 
     override fun observeNodes(): Observable<List<Node>> {
@@ -525,5 +536,20 @@ class AccountRepositoryImpl(
         return Completable.fromAction {
             accountDataSource.changeSelectedLanguage(language)
         }
+    }
+
+    override fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable {
+        return Completable.fromAction {
+            val nodeLocal = NodeLocal(nodeName, nodeHost, networkType.ordinal, false)
+            nodeDao.insert(nodeLocal)
+        }
+    }
+
+    override fun checkNodeExists(nodeHost: String): Single<Boolean> {
+        return nodeDao.checkNodeExists(nodeHost)
+    }
+
+    override fun getNetworkName(nodeHost: String): Single<String> {
+        return accountSubstrateSource.getNodeNetworkType(nodeHost)
     }
 }

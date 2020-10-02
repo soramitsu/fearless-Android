@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.di
 
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
@@ -11,7 +10,6 @@ import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
-import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -31,20 +29,12 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideRxWebSocket(mapper: Gson, logger: Logger) = RxWebSocket(mapper, logger)
-
-    @Provides
-    @FeatureScope
     fun provideSubstrateSource(
         rxWebSocket: RxWebSocket,
         keypairFactory: KeypairFactory,
         signer: Signer,
         sS58Encoder: SS58Encoder
     ) = WssSubstrateSource(rxWebSocket, signer, keypairFactory, sS58Encoder)
-
-    @Provides
-    @FeatureScope
-    fun provideJsonMapper() = Gson()
 
     @Provides
     @FeatureScope

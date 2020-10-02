@@ -151,4 +151,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
 
         navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle)
     }
+
+    override fun openAddNode() {
+        navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment)
+    }
 }
