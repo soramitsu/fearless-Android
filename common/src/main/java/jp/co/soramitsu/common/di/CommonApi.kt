@@ -14,9 +14,11 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 
 interface CommonApi {
 
@@ -45,6 +47,10 @@ interface CommonApi {
     fun provideClipboardManager(): ClipboardManager
 
     fun provideDeviceVibrator(): DeviceVibrator
+
+    fun signer(): Signer
+
+    fun logger(): Logger
 
     fun contextManager(): ContextManager
 

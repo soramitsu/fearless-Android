@@ -14,15 +14,24 @@ import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransactionHistoryUi
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
+import java.math.BigDecimal
 
 // TODO use dp
 private const val ICON_SIZE_IN_PX = 40
+
+private val TEST_TRAINSFER = Transfer(
+    recipient = "5CDayXd3cDCWpBkSXVsVfhE5bWKyTZdD3D1XUinR1ezS1sGn",
+    amount = BigDecimal("0.01"),
+    token = Asset.Token.WND
+)
 
 class BalanceListViewModel(
     private val interactor: WalletInteractor,
@@ -107,5 +116,25 @@ class BalanceListViewModel(
         if (transactionsRefreshed && balanceRefreshed) {
             _hideRefreshEvent.value = Event(Unit)
         }
+    }
+
+    fun sendClicked() {
+//        disposables += interactor.performTransfer(TEST_TRAINSFER)
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe({
+//                showMessage("Sent")
+//
+//                refresh()
+//            }, errorHandler)
+    }
+
+    fun receiveClicked() {
+//        disposables += interactor.getTransferFee(TEST_TRAINSFER)
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe({
+//                showMessage(it.amount.format())
+//            }, errorHandler)
     }
 }

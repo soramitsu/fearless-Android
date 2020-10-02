@@ -17,7 +17,6 @@
     <string name="tabbar_wallet_title">Гаманець</string>
     <string name="tabbar_staking_title">Стекiнг</string>
     <string name="tabbar_governance_title">Управління</string>
-    <string name="tabbar_extrinsics_title">Extrinsics</string>
     <string name="profile_settings_title">Параметри</string>
     <string name="profile_language_title">Мова</string>
     <string name="about_contact_us">Зв\'яжіться з нами</string>

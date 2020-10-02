@@ -17,7 +17,7 @@
     <string name="tabbar_wallet_title">Wallet</string>
     <string name="tabbar_staking_title">Staking</string>
     <string name="tabbar_governance_title">Governance</string>
-    <string name="tabbar_extrinsics_title">Extrinsics</string>
+    <string name="tabbar_polkaswap_title" translatable="false">Polkaswap</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_language_title">Language</string>
     <string name="about_contact_us">Contact Us</string>

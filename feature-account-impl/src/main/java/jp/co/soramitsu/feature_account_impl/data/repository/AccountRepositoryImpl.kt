@@ -15,6 +15,7 @@ import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
@@ -27,6 +28,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import org.spongycastle.util.encoders.Hex
@@ -208,11 +210,13 @@ class AccountRepositoryImpl(
                 Hex.decode(keyString),
                 derivationPath
             )
+
             val addressType = mapNetworkTypeToAddressType(node.networkType)
             val address = sS58Encoder.encode(keys.publicKey, addressType)
 
             accountDataSource.saveDerivationPath(derivationPath, address)
             accountDataSource.saveSeed(Hex.decode(keyString), address)
+            accountDataSource.saveSigningData(address, mapKeyPairToSigningData(keys))
             accountDataSource.setMnemonicIsBackedUp(true)
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
@@ -237,6 +241,8 @@ class AccountRepositoryImpl(
 
             val cryptoType = mapEncryptionToCryptoType(importData.encryptionType)
             val networkType = mapAddressTypeToNetworkType(importData.networType)
+
+            accountDataSource.saveSigningData(importData.address, mapKeyPairToSigningData(importData.keypair))
 
             val accountLocal = insertAccount(importData.address, name, publicKeyEncoded, cryptoType, networkType)
 
@@ -332,6 +338,11 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun getSigningData(): Single<SigningData> {
+        return observeSelectedAccount().firstOrError()
+            .map { accountDataSource.getSigningData(it.address)!! }
+    }
+
     private fun saveAccountData(
         accountName: String,
         mnemonic: String,
@@ -351,6 +362,7 @@ class AccountRepositoryImpl(
             accountDataSource.saveDerivationPath(derivationPath, address)
             accountDataSource.saveSeed(seed, address)
             accountDataSource.saveEntropy(entropy, address)
+            accountDataSource.saveSigningData(address, mapKeyPairToSigningData(keys))
             accountDataSource.setMnemonicIsBackedUp(true)
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
@@ -392,6 +404,16 @@ class AccountRepositoryImpl(
             AddressType.KUSAMA -> Node.NetworkType.KUSAMA
             AddressType.POLKADOT -> Node.NetworkType.POLKADOT
             AddressType.WESTEND -> Node.NetworkType.WESTEND
+        }
+    }
+
+    private fun mapKeyPairToSigningData(keyPair: Keypair): SigningData {
+        return with(keyPair) {
+            SigningData(
+                publicKey = publicKey,
+                privateKey = privateKey,
+                nonce = nonce
+            )
         }
     }
 

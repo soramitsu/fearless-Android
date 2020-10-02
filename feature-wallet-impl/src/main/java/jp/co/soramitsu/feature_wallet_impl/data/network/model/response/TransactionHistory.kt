@@ -6,10 +6,10 @@ import java.util.concurrent.TimeUnit
 
 class TransactionHistory(
     val count: Int,
-    val transfers: List<Transfer>?
+    val transfers: List<TransactionRemote>?
 )
 
-class Transfer(
+class TransactionRemote(
     val from: String,
     val to: String,
     @SerializedName("extrinsic_index")

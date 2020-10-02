@@ -17,7 +17,6 @@
     <string name="tabbar_wallet_title">Billetera</string>
     <string name="tabbar_staking_title">Staking</string>
     <string name="tabbar_governance_title">Gobernanza</string>
-    <string name="tabbar_extrinsics_title">Extrínseca</string>
     <string name="profile_settings_title">Configuraciones</string>
     <string name="profile_language_title">Idioma</string>
     <string name="about_contact_us">Contáctenos</string>

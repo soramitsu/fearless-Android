@@ -4,7 +4,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.Transfer
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionRemote
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
 fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel {
@@ -50,7 +50,7 @@ fun mapTransactionToTransactionLocal(transaction: Transaction, accountAddress: S
     }
 }
 
-fun mapTransferToTransaction(transfer: Transfer, account: Account): Transaction {
+fun mapTransferToTransaction(transfer: TransactionRemote, account: Account): Transaction {
     return with(transfer) {
         Transaction(
             hash = hash,

@@ -4,12 +4,14 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.BuildConfig
+import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.RxCallAdapterFactory
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
@@ -62,6 +64,10 @@ class NetworkModule {
     fun provideRxCallAdapterFactory(resourceManager: ResourceManager): RxCallAdapterFactory {
         return RxCallAdapterFactory(resourceManager)
     }
+
+    @Provides
+    @ApplicationScope
+    fun provideLogger(): Logger = AndroidLogger()
 
     @Provides
     @ApplicationScope
