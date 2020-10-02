@@ -79,6 +79,10 @@ class WalletRepositoryImpl(
             .flatMap { getTransactionPage(pageSize, page, it) }
     }
 
+    override fun getContacts(query: String) : Single<List<String>> {
+        return transactionsDao.getContacts(query)
+    }
+
     private fun syncTransactionsFirstPage(pageSize: Int, account: Account): Completable {
         return getTransactionPage(pageSize, 0, account)
             .mapList { mapTransactionToTransactionLocal(it, account.address) }

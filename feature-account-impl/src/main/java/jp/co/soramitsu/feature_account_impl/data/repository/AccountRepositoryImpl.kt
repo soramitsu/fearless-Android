@@ -288,6 +288,15 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun getAddressId(address: String): Single<ByteArray> {
+        return observeSelectedAccount().firstOrError()
+            .map {
+                val addressType = mapNetworkTypeToAddressType(it.network.type)
+
+                sS58Encoder.decode(address, addressType)
+            }
+    }
+
     override fun isBiometricEnabled(): Single<Boolean> {
         return Single.fromCallable {
             accountDataSource.getAuthType() == AuthType.BIOMETRY

@@ -22,4 +22,10 @@ interface WalletInteractor {
     fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>>
 
     fun observeSelectedAddressId(): Observable<ByteArray>
+
+    fun getAddressId(address: String) : Single<ByteArray>
+
+    fun getContacts(query: String) : Single<List<String>>
+
+    fun validateSendAddress(address: String) : Single<Boolean>
 }

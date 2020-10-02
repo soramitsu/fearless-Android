@@ -20,4 +20,6 @@ interface WalletRepository {
     fun syncTransactionsFirstPage(pageSize: Int): Completable
 
     fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>>
+
+    fun getContacts(query: String): Single<List<String>>
 }

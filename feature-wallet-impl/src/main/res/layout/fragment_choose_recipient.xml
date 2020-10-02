@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.base.Toolbar
+        android:id="@+id/searchRecipientToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:homeButtonIcon="@drawable/ic_arrow_back_24dp"
+        app:iconRight="@drawable/ic_scan_qr"
+        app:titleText="@string/wallet_send" />
+
+    <EditText
+        android:id="@+id/searchRecipientField"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/ic_search_field"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="8dp"
+        android:hint="@string/search_recipient_hint"
+        android:includeFontPadding="false"
+        android:padding="12dp"
+        android:textColorHint="@color/gray1" />
+
+    <ViewFlipper
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:id="@+id/searchRecipientFlipper"
+        android:layout_weight="1">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/searchRecipientWelcome"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/welcomePlaceholderIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_transactions_placeholder"
+                app:layout_constraintBottom_toTopOf="@+id/welcomePlaceholderText"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.35"
+                app:layout_constraintVertical_chainStyle="packed" />
+
+            <TextView
+                android:id="@+id/welcomePlaceholderText"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="95dp"
+                android:layout_marginTop="18dp"
+                android:layout_marginEnd="96dp"
+                android:gravity="center"
+                android:text="@string/choose_recipient_welcome"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/welcomePlaceholderIcon" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/searchRecipientList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="16dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_contact" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/searchRecipientEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/emptyPlaceholderIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_no_search_results"
+                app:layout_constraintBottom_toTopOf="@+id/emptyPlaceholderText"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.35"
+                app:layout_constraintVertical_chainStyle="packed" />
+
+            <TextView
+                android:id="@+id/emptyPlaceholderText"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="95dp"
+                android:layout_marginTop="18dp"
+                android:layout_marginEnd="96dp"
+                android:gravity="center"
+                android:text="@string/choose_recipient_no_results"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/emptyPlaceholderIcon" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ViewFlipper>
+</LinearLayout>

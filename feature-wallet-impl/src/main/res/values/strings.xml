@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wallet_contacts">Contacts</string>
+    <string name="wrong_send_addresss">Wrong recipient address. Probably it is from another network</string>
+    <string name="wallet_send">Send</string>
+    <string name="search_recipient_hint">Account address or account name</string>
+    <string name="choose_recipient_welcome">Your accounts and contacts to who you were sending transfers will appear here</string>
+    <string name="search_result_header">Search result</string>
+    <string name="choose_recipient_no_results">No search results</string>
+</resources>

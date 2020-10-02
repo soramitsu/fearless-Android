@@ -78,6 +78,8 @@ fun <FROM, TO> LiveData<FROM>.switchMap(
     return result
 }
 
+fun <T> LiveData<T>.distinctUntilChanged() = Transformations.distinctUntilChanged(this)
+
 fun EditText.bindTo(liveData: MutableLiveData<String>, lifecycleOwner: LifecycleOwner) {
     onTextChanged {
         if (liveData.value != it) {
