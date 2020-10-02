@@ -22,7 +22,7 @@ abstract class TransactionDao {
             SELECT DISTINCT senderAddress FROM transactions WHERE (senderAddress LIKE '%' || :query  || '%' AND senderAddress != accountAddress)
         """
     )
-    abstract fun getContacts(query: String) : Single<List<String>>
+    abstract fun getContacts(query: String): Single<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract fun insert(transactions: List<TransactionLocal>)

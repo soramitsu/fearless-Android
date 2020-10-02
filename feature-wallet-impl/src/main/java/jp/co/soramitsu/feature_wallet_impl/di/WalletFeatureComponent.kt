@@ -26,7 +26,7 @@ interface WalletFeatureComponent : AccountFeatureApi {
 
     fun balanceDetailComponentFactory(): BalanceDetailComponent.Factory
 
-    fun chooseRecipientComponentFactory() : ChooseRecipientComponent.Factory
+    fun chooseRecipientComponentFactory(): ChooseRecipientComponent.Factory
 
     @Component.Factory
     interface Factory {

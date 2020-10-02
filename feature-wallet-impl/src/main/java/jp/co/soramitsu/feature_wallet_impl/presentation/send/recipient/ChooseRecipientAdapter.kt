@@ -2,10 +2,10 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 
 import android.view.View
 import android.view.ViewGroup
-import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.groupedList.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.groupedList.GroupedListAdapter
 import jp.co.soramitsu.common.groupedList.GroupedListHolder
+import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
@@ -74,6 +74,6 @@ private object NodesDiffCallback : BaseGroupedDiffCallback<ContactsHeader, Conta
     }
 
     override fun areChildContentsTheSame(oldItem: ContactModel, newItem: ContactModel): Boolean {
-       return true
+        return true
     }
 }

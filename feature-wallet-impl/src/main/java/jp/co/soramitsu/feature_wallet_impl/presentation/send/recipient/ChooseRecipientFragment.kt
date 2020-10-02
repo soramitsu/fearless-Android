@@ -20,7 +20,6 @@ private const val INDEX_WELCOME = 0
 private const val INDEX_CONTENT = 1
 private const val INDEX_EMPTY = 2
 
-
 class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), ChooseRecipientAdapter.NodeItemHandler {
 
     private lateinit var adapter: ChooseRecipientAdapter
@@ -58,7 +57,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
 
     override fun subscribe(viewModel: ChooseRecipientViewModel) {
         viewModel.screenStateLiveData.observe {
-            val index = when(it) {
+            val index = when (it) {
                 State.WELCOME -> INDEX_WELCOME
                 State.CONTENT -> INDEX_CONTENT
                 State.EMPTY -> INDEX_EMPTY

@@ -25,11 +25,11 @@ interface WalletInteractor {
 
     fun observeSelectedAddressId(): Observable<ByteArray>
 
-    fun getAddressId(address: String) : Single<ByteArray>
+    fun getAddressId(address: String): Single<ByteArray>
 
-    fun getContacts(query: String) : Single<List<String>>
+    fun getContacts(query: String): Single<List<String>>
 
-    fun validateSendAddress(address: String) : Single<Boolean>
+    fun validateSendAddress(address: String): Single<Boolean>
 
     fun getTransferFee(transfer: Transfer): Single<Fee>
 
