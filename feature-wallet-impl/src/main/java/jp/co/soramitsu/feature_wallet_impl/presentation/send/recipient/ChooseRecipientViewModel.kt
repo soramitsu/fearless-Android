@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 
+import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -17,7 +18,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.Con
 import java.util.concurrent.TimeUnit
 
 // TODO use dp
-private const val ICON_SIZE_IN_PX = 40
+private const val ICON_SIZE_IN_PX = 70
 
 enum class State {
     WELCOME, EMPTY, CONTENT
@@ -31,9 +32,7 @@ class ChooseRecipientViewModel(
 ) : BaseViewModel() {
     private val searchEventSubject = BehaviorSubject.create<String>()
 
-    private val isQueryEmptyLiveData = searchEventSubject
-        .map { it.isEmpty() }
-        .asLiveData()
+    private val isQueryEmptyLiveData = MutableLiveData<Boolean>()
 
     val searchResultLiveData = observeSearchResults().asLiveData()
 
@@ -60,7 +59,7 @@ class ChooseRecipientViewModel(
     private fun observeSearchResults(): Observable<List<Any>> {
         return searchEventSubject
             .subscribeOn(Schedulers.io())
-            .debounce(500, TimeUnit.MILLISECONDS)
+            .debounce(300, TimeUnit.MILLISECONDS)
             .map { address ->
                 val isValidAddress = interactor.validateSendAddress(address).blockingGet()
                 val searchResults = interactor.getContacts(address).blockingGet()
@@ -77,6 +76,8 @@ class ChooseRecipientViewModel(
                 } else {
                     contactsWithHeader
                 }
+
+                isQueryEmptyLiveData.postValue(address.isEmpty())
 
                 result
             }
@@ -97,5 +98,9 @@ class ChooseRecipientViewModel(
         val header = ContactsHeader(resourceManager.getString(R.string.wallet_contacts))
 
         return listOf(header) + content
+    }
+
+    fun queryChanged(query: String) {
+        searchEventSubject.onNext(query)
     }
 }

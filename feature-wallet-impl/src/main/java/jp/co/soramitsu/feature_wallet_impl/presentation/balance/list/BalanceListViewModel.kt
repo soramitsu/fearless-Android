@@ -108,4 +108,8 @@ class BalanceListViewModel(
             _hideRefreshEvent.value = Event(Unit)
         }
     }
+
+    fun sendClicked() {
+        router.openChooseRecipient()
+    }
 }

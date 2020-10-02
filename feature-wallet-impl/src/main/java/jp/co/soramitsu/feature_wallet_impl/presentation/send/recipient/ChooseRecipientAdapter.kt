@@ -23,11 +23,11 @@ class ChooseRecipientAdapter(
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
-        return RecipientGroupHolder(parent.inflateChild(R.layout.item_contact))
+        return RecipientGroupHolder(parent.inflateChild(R.layout.item_contact_group))
     }
 
     override fun createChildViewHolder(parent: ViewGroup): GroupedListHolder {
-        return RecipientHolder(parent.inflateChild(R.layout.item_contact_group))
+        return RecipientHolder(parent.inflateChild(R.layout.item_contact))
     }
 
     override fun bindGroup(holder: GroupedListHolder, group: ContactsHeader) {
@@ -40,8 +40,8 @@ class ChooseRecipientAdapter(
 }
 
 class RecipientGroupHolder(view: View) : GroupedListHolder(view) {
-    fun bind(nodeHeaderModel: ContactsHeader) = with(containerView) {
-        contactGroupTitle.text = nodeHeaderModel.title
+    fun bind(header: ContactsHeader) = with(containerView) {
+        contactGroupTitle.text = header.title
     }
 }
 

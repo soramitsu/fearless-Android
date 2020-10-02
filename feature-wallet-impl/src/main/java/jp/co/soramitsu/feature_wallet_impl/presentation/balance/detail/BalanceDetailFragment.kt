@@ -26,6 +26,7 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailDolla
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailDollarGroup
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRate
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRateChange
+import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailSend
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
 import kotlinx.android.synthetic.main.fragment_balance_detail.transfersContainer
@@ -67,6 +68,10 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         }
 
         balanceDetailBack.setOnClickListener { viewModel.backClicked() }
+
+        balanceDetailSend.setOnClickListener {
+            viewModel.sendClicked()
+        }
     }
 
     override fun inject() {
