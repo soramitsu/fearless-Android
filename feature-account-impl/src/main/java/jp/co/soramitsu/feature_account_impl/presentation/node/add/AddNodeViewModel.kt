@@ -48,17 +48,17 @@ class AddNodeViewModel(
     }
 
     fun addNodeClicked() {
-        nodeNameInputLiveData.value?.let { nodeName ->
-            nodeHostInputLiveData.value?.let { nodeHost ->
-                disposables += interactor.addNode(nodeName, nodeHost)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        router.back()
-                    }, {
-                        handleAddNodeError(it)
-                    })
-            }
+        if (nodeNameInputLiveData.value != null && nodeHostInputLiveData.value != null) {
+            val nodeName = nodeNameInputLiveData.value!!
+            val nodeHost = nodeHostInputLiveData.value!!
+            disposables += interactor.addNode(nodeName, nodeHost)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    router.back()
+                }, {
+                    handleAddNodeError(it)
+                })
         }
     }
 
@@ -78,8 +78,7 @@ class AddNodeViewModel(
     }
 
     private fun getUnsupportedNodeError(): String {
-        val supportedNodes = listOf(Node.NetworkType.KUSAMA.readableName, Node.NetworkType.POLKADOT.readableName, Node.NetworkType.WESTEND.readableName)
-            .joinToString(",")
+        val supportedNodes = Node.NetworkType.values().joinToString(",") { it.readableName }
         val unsupportedNodeErrorMsg = resourceManager.getString(R.string.connection_add_unsupported_error)
         return unsupportedNodeErrorMsg.format(supportedNodes)
     }
