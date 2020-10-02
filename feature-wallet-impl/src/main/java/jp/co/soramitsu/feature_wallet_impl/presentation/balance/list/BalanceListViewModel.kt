@@ -22,7 +22,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.Balan
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransactionHistoryUi
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.util.format
 import java.math.BigDecimal
 
 // TODO use dp
