@@ -56,8 +56,20 @@ class AccountRepositoryImpl(
                 true
             ),
             NodeLocal(
+                "Kusama, Web3 Foundation node",
+                "wss://cc3-5.kusama.network",
+                Node.NetworkType.KUSAMA.ordinal,
+                true
+            ),
+            NodeLocal(
                 "Polkadot Parity Node", "wss://rpc.polkadot.io",
                 Node.NetworkType.POLKADOT.ordinal,
+                true
+            ),
+            NodeLocal(
+                "Polkadot, Web3 Foundation node",
+                "wss://cc1-1.polkadot.network",
+                Node.NetworkType.KUSAMA.ordinal,
                 true
             ),
             NodeLocal(
