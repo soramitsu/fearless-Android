@@ -10,10 +10,10 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/extrinsicsFragment"
+        android:id="@+id/polkaswapFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_extrinsics_24"
-        android:title="@string/tabbar_extrinsics_title"
+        android:icon="@drawable/ic_polkaswap"
+        android:title="@string/tabbar_polkaswap_title"
         app:showAsAction="ifRoom" />
 
     <item
@@ -33,7 +33,7 @@
     <item
         android:id="@+id/profileFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_profile_24"
-        android:title="@string/tabbar_profile_title"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/profile_settings_title"
         app:showAsAction="ifRoom" />
 </menu>

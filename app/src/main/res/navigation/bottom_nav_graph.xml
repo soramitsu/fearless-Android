@@ -12,7 +12,7 @@
         android:label="ProfileFragment" />
 
     <fragment
-        android:id="@+id/extrinsicsFragment"
+        android:id="@+id/polkaswapFragment"
         tools:layout="@layout/fragment_placeholder"
         android:name="jp.co.soramitsu.app.root.presentation.PlaceholderFragment"
         android:label="ExtrinsicsFragment" />

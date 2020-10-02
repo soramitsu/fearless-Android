@@ -17,7 +17,6 @@
     <string name="tabbar_wallet_title">ウォレット</string>
     <string name="tabbar_staking_title">抵押</string>
     <string name="tabbar_governance_title">治理</string>
-    <string name="tabbar_extrinsics_title">外因剤</string>
     <string name="profile_settings_title">設定</string>
     <string name="profile_language_title">言語</string>
     <string name="about_contact_us">お問い合わせ</string>
