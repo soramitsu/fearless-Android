@@ -10,7 +10,6 @@ import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
-import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -27,10 +26,6 @@ class WalletFeatureModule {
     fun provideSubscanApi(networkApiCreator: NetworkApiCreator): SubscanNetworkApi {
         return networkApiCreator.create(SubscanNetworkApi::class.java)
     }
-
-    @Provides
-    @FeatureScope
-    fun provideRxWebSocket(mapper: Gson, logger: Logger) = RxWebSocket(mapper, logger)
 
     @Provides
     @FeatureScope

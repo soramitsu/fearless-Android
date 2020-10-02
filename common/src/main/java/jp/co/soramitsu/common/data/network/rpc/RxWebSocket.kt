@@ -2,6 +2,8 @@ package jp.co.soramitsu.common.data.network.rpc
 
 import com.google.gson.Gson
 import io.reactivex.Single
+import jp.co.soramitsu.common.base.errors.FearlessException
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.WebSocketResponseListener
 import jp.co.soramitsu.fearless_utils.wsrpc.WebSocketWrapper
@@ -10,7 +12,8 @@ import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
 
 class RxWebSocket(
     private val jsonMapper: Gson,
-    private val logger: Logger
+    private val logger: Logger,
+    private val resourceManager: ResourceManager
 ) {
     fun <R> executeRequest(
         request: RpcRequest,
@@ -31,15 +34,14 @@ class RxWebSocket(
     ): Single<RpcResponse> {
         var webSocket: WebSocketWrapper? = null
 
-        return Single.fromPublisher<RpcResponse> { publisher ->
+        return Single.create<RpcResponse> { emitter ->
             webSocket = WebSocketWrapper(url, object : WebSocketResponseListener {
                 override fun onError(error: Throwable) {
-                    publisher.onError(error)
+                    emitter.onError(error)
                 }
 
                 override fun onResponse(response: RpcResponse) {
-                    publisher.onNext(response)
-                    publisher.onComplete()
+                    emitter.onSuccess(response)
                 }
             }, logger = logger)
 
@@ -47,5 +49,9 @@ class RxWebSocket(
 
             webSocket!!.sendRpcRequest(request)
         }.doOnDispose { webSocket!!.disconnect() }
+            .onErrorResumeNext {
+                val errorWrapper = FearlessException.networkError(resourceManager, it)
+                Single.error(errorWrapper)
+            }
     }
 }
