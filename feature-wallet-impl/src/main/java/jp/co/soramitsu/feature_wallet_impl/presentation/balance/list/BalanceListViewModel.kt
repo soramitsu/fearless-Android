@@ -120,22 +120,22 @@ class BalanceListViewModel(
     }
 
     fun sendClicked() {
-        disposables += interactor.performTransfer(TEST_TRAINSFER)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                showMessage("Sent")
-
-                refresh()
-            }, errorHandler)
+//        disposables += interactor.performTransfer(TEST_TRAINSFER)
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe({
+//                showMessage("Sent")
+//
+//                refresh()
+//            }, errorHandler)
     }
 
     fun receiveClicked() {
-        disposables += interactor.getTransferFee(TEST_TRAINSFER)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                showMessage(it.amount.format())
-            }, errorHandler)
+//        disposables += interactor.getTransferFee(TEST_TRAINSFER)
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe({
+//                showMessage(it.amount.format())
+//            }, errorHandler)
     }
 }
