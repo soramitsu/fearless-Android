@@ -39,7 +39,7 @@ buildscript {
 
         spoungyCastleVersion = '1.58.0.0'
 
-        fearlessLibVersion = '1.0.6'
+        fearlessLibVersion = '1.0.13'
 
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
