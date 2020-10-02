@@ -16,11 +16,11 @@ class FearlessException(
     companion object {
 
         fun networkError(resourceManager: ResourceManager, throwable: Throwable): FearlessException {
-            return FearlessException(Kind.NETWORK, "", throwable) //TODO: add common error text to resources
+            return FearlessException(Kind.NETWORK, "", throwable) // TODO: add common error text to resources
         }
 
         fun unexpectedError(exception: Throwable): FearlessException {
-            return FearlessException(Kind.UNEXPECTED, exception.message ?: "", exception) //TODO: add common error text to resources
+            return FearlessException(Kind.UNEXPECTED, exception.message ?: "", exception) // TODO: add common error text to resources
         }
     }
 }
