@@ -254,7 +254,7 @@ class AccountInteractorImpl(
         return accountRepository.getNetworkName(nodeHost)
             .map { networkName ->
                 val supportedNetworks = mutableListOf(Node.NetworkType.POLKADOT, Node.NetworkType.KUSAMA, Node.NetworkType.WESTEND)
-                val networkType = supportedNetworks.firstOrNull { networkName == "kek" }
+                val networkType = supportedNetworks.firstOrNull { networkName == it.readableName }
                 networkType ?: throw UnsupportedNetworkException()
             }
     }
