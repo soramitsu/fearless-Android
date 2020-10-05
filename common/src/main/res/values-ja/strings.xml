@@ -104,4 +104,10 @@
     <string name="connection_add_invalid_error">ノードとの接続を確立できません。別のものを試してください。</string>
     <string name="connection_add_already_exists_error">ノードはすでに以前に追加されています。別のノードを試してください。</string>
     <string name="connection_add_unsupported_error">残念ながら、ネットワークはサポートされていません。次のいずれかを試してください： %s 。</string>
+
+    <string name="search_contacts">連絡先</string>
+    <string name="search_recipient_hint">アカウントのアドレスまたはアカウント名</string>
+    <string name="search_recipient_no_results">検索結果がありません</string>
+    <string name="search_recipient_welcome">送金先のアカウントと連絡先がここに表示されます</string>
+    <string name="search_result_header">検索結果</string>
 </resources>

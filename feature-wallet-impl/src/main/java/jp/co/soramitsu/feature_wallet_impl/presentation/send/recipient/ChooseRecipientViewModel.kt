@@ -96,7 +96,7 @@ class ChooseRecipientViewModel(
     private fun appendContactsHeader(content: List<Any>): List<Any> {
         if (content.isEmpty()) return emptyList()
 
-        val header = ContactsHeader(resourceManager.getString(R.string.wallet_contacts))
+        val header = ContactsHeader(resourceManager.getString(R.string.search_contacts))
 
         return listOf(header) + content
     }

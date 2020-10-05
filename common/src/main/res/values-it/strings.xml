@@ -104,4 +104,10 @@
     <string name="connection_add_invalid_error">Impossibile stabilire la connessione con il nodo. Per favore, provane un altro.</string>
     <string name="connection_add_already_exists_error">Il nodo è già stato aggiunto in precedenza. Per favore, prova un altro nodo.</string>
     <string name="connection_add_unsupported_error">Purtroppo la rete non è supportata. Per favore, prova uno dei seguenti: %s.</string>
+
+    <string name="search_contacts">Contatti</string>
+    <string name="search_recipient_hint">Indirizzo dell\'account o nome dell\'account</string>
+    <string name="search_recipient_no_results">Nessun risultato trovato</string>
+    <string name="search_recipient_welcome">I tuoi account e contatti a cui stavi inviando i trasferimenti verranno visualizzati qui</string>
+    <string name="search_result_header">Risultato della ricerca</string>
 </resources>

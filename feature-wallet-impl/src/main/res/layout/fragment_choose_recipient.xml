@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_arrow_back_24dp"
         app:iconRight="@drawable/ic_scan_qr"
-        app:titleText="@string/wallet_send" />
+        app:titleText="@string/wallet_asset_send" />
 
     <EditText
         android:id="@+id/searchRecipientField"
@@ -68,7 +68,7 @@
                 android:layout_marginTop="18dp"
                 android:layout_marginEnd="96dp"
                 android:gravity="center"
-                android:text="@string/choose_recipient_welcome"
+                android:text="@string/search_recipient_welcome"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -112,7 +112,7 @@
                 android:layout_marginTop="18dp"
                 android:layout_marginEnd="96dp"
                 android:gravity="center"
-                android:text="@string/choose_recipient_no_results"
+                android:text="@string/search_recipient_no_results"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"

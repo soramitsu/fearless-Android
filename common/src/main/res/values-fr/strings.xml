@@ -100,8 +100,15 @@
     <string name="wallet_balance_available">Disponible</string>
     <string name="wallet_balance_bonded">Collé</string>
     <string name="language_title">Langue</string>
+
     <string name="common_add">Ajouter</string>
     <string name="connection_add_invalid_error">Impossible d\'établir la connexion avec le nœud. Veuillez en essayer un autre.</string>
     <string name="connection_add_already_exists_error">Le nœud a déjà été ajouté précédemment. Veuillez essayer un autre nœud.</string>
     <string name="connection_add_unsupported_error">Malheureusement, le réseau n\'est pas pris en charge. Veuillez essayer l’une des méthodes suivantes: %s.</string>
+
+    <string name="search_contacts">Contacts</string>
+    <string name="search_recipient_hint">Adresse du compte ou nom du compte</string>
+    <string name="search_recipient_no_results">Aucun résultat trouvé</string>
+    <string name="search_recipient_welcome">Vos comptes et contacts auxquels vous envoyiez des transferts apparaîtront ici</string>
+    <string name="search_result_header">Résultat de la recherche</string>
 </resources>

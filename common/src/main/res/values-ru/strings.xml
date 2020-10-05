@@ -105,4 +105,10 @@
     <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
     <string name="connection_add_already_exists_error">Узел уже был добавлен ранее. Пожалуйста, попробуйте другой узел.</string>
     <string name="connection_add_unsupported_error">К сожалению, сеть не поддерживается. Пожалуйста, попробуйте одну из следующих: %s.</string>
+
+    <string name="search_contacts">Контакты</string>
+    <string name="search_recipient_hint">Адрес аккаунта или имя аккаунта</string>
+    <string name="search_recipient_no_results">Нет результатов</string>
+    <string name="search_recipient_welcome">Здесь появятся ваши аккаунты и контакты, которым вы отправляли переводы</string>
+    <string name="search_result_header">Результат поиска</string>
 </resources>
