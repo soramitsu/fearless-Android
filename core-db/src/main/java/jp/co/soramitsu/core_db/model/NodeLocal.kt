@@ -5,9 +5,10 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "nodes")
 data class NodeLocal(
-    @PrimaryKey val id: Int,
     val name: String,
     val link: String,
     val networkType: Int,
     val isDefault: Boolean
-)
+) {
+    @PrimaryKey(autoGenerate = true) var id: Int = 0
+}

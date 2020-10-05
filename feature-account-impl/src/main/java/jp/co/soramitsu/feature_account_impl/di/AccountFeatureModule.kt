@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
@@ -18,10 +19,13 @@ import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
+import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSourceImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
+import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.CryptoTypeChooser
@@ -55,10 +59,6 @@ class AccountFeatureModule {
     ) = JsonSeedDecoder(jsonMapper, sS58Encoder, keypairFactory)
 
     @Provides
-    @FeatureScope
-    fun provideJsonMapper() = Gson()
-
-    @Provides
     fun provideNetworkChooserMixin(interactor: AccountInteractor): NetworkChooserMixin =
         NetworkChooser(interactor)
 
@@ -80,6 +80,7 @@ class AccountFeatureModule {
         accountDao: AccountDao,
         nodeDao: NodeDao,
         jsonSeedDecoder: JsonSeedDecoder,
+        accountSubstrateSource: AccountSubstrateSource,
         languagesHolder: LanguagesHolder
     ): AccountRepository {
         return AccountRepositoryImpl(
@@ -92,7 +93,8 @@ class AccountFeatureModule {
             keypairFactory,
             appLinksProvider,
             jsonSeedDecoder,
-            languagesHolder
+            languagesHolder,
+            accountSubstrateSource
         )
     }
 
@@ -112,5 +114,14 @@ class AccountFeatureModule {
         jsonMapper: Gson
     ): AccountDataSource {
         return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper)
+    }
+
+    @Provides
+    fun provideNodeHostValidator() = NodeHostValidator()
+
+    @Provides
+    @FeatureScope
+    fun provideAccountSubstrateSource(rxWebSocket: RxWebSocket): AccountSubstrateSource {
+        return AccountSubstrateSourceImpl(rxWebSocket)
     }
 }

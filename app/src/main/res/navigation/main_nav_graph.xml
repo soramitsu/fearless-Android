@@ -109,6 +109,14 @@
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
 
+        <action
+            android:id="@+id/action_nodesFragment_to_addNodeFragment"
+            app:destination="@id/addNodeFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
     </fragment>
 
     <fragment
@@ -116,6 +124,12 @@
         android:name="jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment"
         android:label="NodeDetailsFragment"
         tools:layout="@layout/fragment_node_details" />
+
+    <fragment
+        android:id="@+id/addNodeFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.node.add.AddNodeFragment"
+        android:label="AddNodeFragment"
+        tools:layout="@layout/fragment_node_add" />
 
     <fragment
         android:id="@+id/languagesFragment"
