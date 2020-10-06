@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.util.format
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsChange
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
+import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailAmount
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailAvailableAmount
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailBack
@@ -109,7 +110,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
             asset.dollarAmount?.let { balanceDetailDollarAmount.text = it.formatAsCurrency() }
 
-            balanceDetailAmount.text = asset.formattedAmount
+            balanceDetailAmount.text = asset.balance.formatAsToken(asset.token)
 
             balanceDetailBondedAmount.text = asset.bonded.format()
             balanceDetailAvailableAmount.text = asset.available.format()

@@ -7,7 +7,7 @@ import jp.co.soramitsu.common.groupedList.GroupedListAdapter
 import jp.co.soramitsu.common.groupedList.GroupedListHolder
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.AddressModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import kotlinx.android.synthetic.main.item_contact.view.itemContactAddress
 import kotlinx.android.synthetic.main.item_contact.view.itemContactIcon
@@ -15,11 +15,11 @@ import kotlinx.android.synthetic.main.item_contact_group.view.contactGroupTitle
 
 class ChooseRecipientAdapter(
     private val nodeItemHandler: NodeItemHandler
-) : GroupedListAdapter<ContactsHeader, ContactModel>(NodesDiffCallback) {
+) : GroupedListAdapter<ContactsHeader, AddressModel>(NodesDiffCallback) {
 
     interface NodeItemHandler {
 
-        fun contactClicked(contactModel: ContactModel)
+        fun contactClicked(addressModel: AddressModel)
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
@@ -34,7 +34,7 @@ class ChooseRecipientAdapter(
         (holder as RecipientGroupHolder).bind(group)
     }
 
-    override fun bindChild(holder: GroupedListHolder, child: ContactModel) {
+    override fun bindChild(holder: GroupedListHolder, child: AddressModel) {
         (holder as RecipientHolder).bind(child, nodeItemHandler)
     }
 }
@@ -48,19 +48,19 @@ class RecipientGroupHolder(view: View) : GroupedListHolder(view) {
 class RecipientHolder(view: View) : GroupedListHolder(view) {
 
     fun bind(
-        contactModel: ContactModel,
+        addressModel: AddressModel,
         handler: ChooseRecipientAdapter.NodeItemHandler
     ) {
         with(containerView) {
-            itemContactAddress.text = contactModel.address
-            itemContactIcon.setImageDrawable(contactModel.image)
+            itemContactAddress.text = addressModel.address
+            itemContactIcon.setImageDrawable(addressModel.image)
 
-            setOnClickListener { handler.contactClicked(contactModel) }
+            setOnClickListener { handler.contactClicked(addressModel) }
         }
     }
 }
 
-private object NodesDiffCallback : BaseGroupedDiffCallback<ContactsHeader, ContactModel>(ContactsHeader::class.java) {
+private object NodesDiffCallback : BaseGroupedDiffCallback<ContactsHeader, AddressModel>(ContactsHeader::class.java) {
     override fun areGroupItemsTheSame(oldItem: ContactsHeader, newItem: ContactsHeader): Boolean {
         return oldItem.title == newItem.title
     }
@@ -69,11 +69,11 @@ private object NodesDiffCallback : BaseGroupedDiffCallback<ContactsHeader, Conta
         return true
     }
 
-    override fun areChildItemsTheSame(oldItem: ContactModel, newItem: ContactModel): Boolean {
+    override fun areChildItemsTheSame(oldItem: AddressModel, newItem: AddressModel): Boolean {
         return oldItem.address == newItem.address
     }
 
-    override fun areChildContentsTheSame(oldItem: ContactModel, newItem: ContactModel): Boolean {
+    override fun areChildContentsTheSame(oldItem: AddressModel, newItem: AddressModel): Boolean {
         return true
     }
 }

@@ -6,6 +6,9 @@ import io.reactivex.Completable
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.rpc.Mapped
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
+import jp.co.soramitsu.common.data.network.rpc.RxWebSocketCreator
+import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
+import jp.co.soramitsu.common.data.network.rpc.provideLifecycleFor
 import jp.co.soramitsu.common.data.network.rpc.pojo
 import jp.co.soramitsu.common.data.network.rpc.scale
 import jp.co.soramitsu.common.data.network.rpc.scaleCollection
@@ -53,34 +56,39 @@ import org.spongycastle.util.encoders.Hex
 import java.math.BigInteger
 
 class WssSubstrateSource(
-    private val rxWebSocket: RxWebSocket,
+    private val socketRequestExecutor: SocketSingleRequestExecutor,
+    private val rxWebSocketCreator: RxWebSocketCreator,
     private val signer: Signer,
     private val keypairFactory: KeypairFactory,
     private val sS58Encoder: SS58Encoder
 ) : SubstrateRemoteSource {
 
     override fun fetchAccountInfo(account: Account, node: Node): Single<EncodableStruct<AccountInfo>> {
-        val publicKey = account.publicKey
+       val socket = rxWebSocketCreator.createSocket(node.link)
 
-        val publicKeyBytes = Hex.decode(publicKey)
-        val request = AccountInfoRequest(publicKeyBytes)
-
-        return rxWebSocket.executeRequest(request, node.link, scale(AccountInfo))
-            .map { response -> response.result ?: emptyAccountInfo() }
+        return socket.connect()
+            .andThen(fetchAccountInfo(socket, account))
+            .provideLifecycleFor(socket)
     }
 
     override fun getTransferFee(account: Account, node: Node, transfer: Transfer): Single<FeeRemote> {
-        return Single.fromCallable {
+        val socket = rxWebSocketCreator.createSocket(node.link)
+
+        val calculateFee = Single.fromCallable {
             val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
             val emptySeed = ByteArray(32)
             val keypair = keypairFactory.generate(cryptoType, emptySeed, "")
 
-            val extrinsic = buildSubmittableExtrinsic(account, node, transfer, keypair)
+            val extrinsic = buildSubmittableExtrinsic(account, transfer, keypair, socket)
 
             FeeCalculationRequest(extrinsic)
         }
-            .flatMap { rxWebSocket.executeRequest(it, node.link, pojo<FeeRemote>()) }
+            .flatMap { socketRequestExecutor.executeRequest(it, node.link, pojo<FeeRemote>()) }
             .map { it.result }
+
+        return socket.connect()
+            .andThen(calculateFee)
+            .provideLifecycleFor(socket)
     }
 
     override fun performTransfer(
@@ -89,28 +97,33 @@ class WssSubstrateSource(
         transfer: Transfer,
         keypair: Keypair
     ): Completable {
+        val socket = rxWebSocketCreator.createSocket(node.link)
 
-        return Single.fromCallable {
-            val extrinsic = buildSubmittableExtrinsic(account, node, transfer, keypair)
+        val performTransfer = Single.fromCallable {
+            val extrinsic = buildSubmittableExtrinsic(account, transfer, keypair, socket)
 
             TransferRequest(extrinsic)
         }
-            .flatMap { rxWebSocket.executeRequest(it, node.link) }
+            .flatMap { socketRequestExecutor.executeRequest(it, node.link) }
             .doOnSuccess { if (it.result == null) throw BlockChainException() }
             .ignoreElement()
+
+        return socket.connect()
+            .andThen(performTransfer)
+            .provideLifecycleFor(socket)
     }
 
     private fun buildSubmittableExtrinsic(
         account: Account,
-        node: Node,
         transfer: Transfer,
-        keypair: Keypair
+        keypair: Keypair,
+        socket: RxWebSocket
     ): EncodableStruct<SubmittableExtrinsic> {
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
         val accountIdValue = Hex.decode(account.publicKey)
 
-        val runtimeInfo = getRuntimeVersion(node.link).blockingGet().result
-        val currentNonce = getNonce(account, node).blockingGet()
+        val runtimeInfo = getRuntimeVersion(socket).blockingGet().result
+        val currentNonce = getNonce(socket, account).blockingGet()
 
         val genesis = account.network.type.genesisHash
         val genesisBytes = Hex.decode(genesis)
@@ -146,6 +159,16 @@ class WssSubstrateSource(
         }
     }
 
+    private fun fetchAccountInfo(rxWebSocket: RxWebSocket, account: Account): Single<EncodableStruct<AccountInfo>> {
+        val publicKey = account.publicKey
+
+        val publicKeyBytes = Hex.decode(publicKey)
+        val request = AccountInfoRequest(publicKeyBytes)
+
+        return rxWebSocket.executeRequest(request, scale(AccountInfo))
+            .map { response -> response.result ?: emptyAccountInfo() }
+    }
+
     private fun createTransferCall(networkType: Node.NetworkType, recipientAddress: String, amount: BigInteger): EncodableStruct<Call> {
         val addressType = mapNetworkTypeToAddressType(networkType)
 
@@ -159,12 +182,12 @@ class WssSubstrateSource(
         }
     }
 
-    private fun getNonce(account: Account, node: Node): Single<BigInteger> {
+    private fun getNonce(socket: RxWebSocket, account: Account): Single<BigInteger> {
         return Single.fromCallable {
-            val accountInfo = fetchAccountInfo(account, node).blockingGet()
+            val accountInfo = fetchAccountInfo(socket, account).blockingGet()
             val accountNonce = accountInfo[nonce]
 
-            val pendingExtrinsics = getPendingExtrinsicsCount(account, node).blockingGet()
+            val pendingExtrinsics = getPendingExtrinsicsCount(socket, account).blockingGet()
 
             val result = accountNonce + pendingExtrinsics.toUInt()
 
@@ -172,10 +195,10 @@ class WssSubstrateSource(
         }
     }
 
-    private fun getPendingExtrinsicsCount(account: Account, node: Node): Single<Int> {
+    private fun getPendingExtrinsicsCount(socket: RxWebSocket, account: Account): Single<Int> {
         val request = PendingExtrinsicsRequest()
 
-        return rxWebSocket.executeRequest(request, node.link, scaleCollection(SubmittableExtrinsic))
+        return socket.executeRequest(request, scaleCollection(SubmittableExtrinsic))
             .map { it.result ?: throw IllegalArgumentException("Result is null") }
             .map { countUserExtrinsics(account, it) }
     }
@@ -186,10 +209,10 @@ class WssSubstrateSource(
         return list.count { it[signedExtrinsic][accountId].contentEquals(publicKeyBytes) }
     }
 
-    private fun getRuntimeVersion(url: String): Single<Mapped<RuntimeVersion>> {
+    private fun getRuntimeVersion(socket: RxWebSocket): Single<Mapped<RuntimeVersion>> {
         val request = RuntimeVersionRequest()
 
-        return rxWebSocket.executeRequest(request, url, pojo())
+        return socket.executeRequest(request, pojo())
     }
 
     private fun emptyAccountInfo() = AccountInfo { info ->

@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.rpc.scale
 import jp.co.soramitsu.common.data.network.rpc.scaleCollection
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.data.network.scale.invoke
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
@@ -34,9 +35,13 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SubmittableExtrin
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs.amount
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs.recipientId
-import org.junit.Ignore
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.BDDMockito.given
+import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import org.spongycastle.util.encoders.Hex
 import java.math.BigDecimal
@@ -48,14 +53,30 @@ private const val TO_ADDRESS = "5CDayXd3cDCWpBkSXVsVfhE5bWKyTZdD3D1XUinR1ezS1sGn
 private const val URL = "wss://westend-rpc.polkadot.io"
 
 @RunWith(MockitoJUnitRunner::class)
-@Ignore("Manual run only")
+//@Ignore("Manual run only")
 class SendIntegrationTest {
     private val sS58Encoder = SS58Encoder()
     private val signer = Signer()
 
     private val mapper = Gson()
 
-    private val rxWebSocket = RxWebSocket(mapper, StdoutLogger())
+    @Mock private lateinit var resourceManager: ResourceManager
+
+    private lateinit var rxWebSocket: RxWebSocket
+
+    @Before
+    fun setup() {
+        given(resourceManager.getString(anyInt())).willReturn("Mock")
+
+        rxWebSocket = RxWebSocket(mapper, StdoutLogger(), URL, resourceManager)
+
+        rxWebSocket.connect()
+    }
+
+    @After
+    fun tearDown() {
+        rxWebSocket.disconnect()
+    }
 
     @Test
     fun `should perform transfer`() {
@@ -65,7 +86,7 @@ class SendIntegrationTest {
 
         val feeRequest = TransferRequest(submittableExtrinsic)
 
-        val result = rxWebSocket.executeRequest(feeRequest, URL).blockingGet().result
+        val result = rxWebSocket.executeRequest(feeRequest).blockingGet().result
 
         assert(result != null)
     }
@@ -79,7 +100,7 @@ class SendIntegrationTest {
 
         val feeRequest = FeeCalculationRequest(submittableExtrinsic)
 
-        val result = rxWebSocket.executeRequest(feeRequest, URL).blockingGet().result
+        val result = rxWebSocket.executeRequest(feeRequest).blockingGet().result
 
         assert(result != null)
     }
@@ -93,20 +114,20 @@ class SendIntegrationTest {
         val transferAmount = BigDecimal("0.007").scaleByPowerOfTen(Asset.Token.WND.mantissa)
 
         val runtimeInfo = rxWebSocket
-            .executeRequest(RuntimeVersionRequest(), URL, pojo<RuntimeVersion>())
+            .executeRequest(RuntimeVersionRequest(), pojo<RuntimeVersion>())
             .blockingGet().result
 
         val specVersion = runtimeInfo.specVersion
         val transactionVersion = runtimeInfo.transactionVersion
 
         val pendingExtrinsics = rxWebSocket
-            .executeRequest(PendingExtrinsicsRequest(), URL, scaleCollection(SubmittableExtrinsic))
+            .executeRequest(PendingExtrinsicsRequest(), scaleCollection(SubmittableExtrinsic))
             .blockingGet().result!!
 
         val pendingForCurrent = pendingExtrinsics.count { it[signedExtrinsic][SignedExtrinsic.accountId].contentEquals(accountId) }
 
         val accountInfo = rxWebSocket
-            .executeRequest(AccountInfoRequest(accountId), URL, scale(AccountInfo))
+            .executeRequest(AccountInfoRequest(accountId), scale(AccountInfo))
             .blockingGet().result!!
 
         val nonce = accountInfo[nonce] + pendingForCurrent.toUInt()

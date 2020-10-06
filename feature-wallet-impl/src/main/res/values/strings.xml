@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="choose_amount_asset">Asset</string>
+    <string name="choose_amount_to">To</string>
+    <string name="free_balance">Free balance:</string>
+    <string name="choose_amount_hint">Amount</string>
+    <string name="choose_amount_fee">Transfer fee</string>
+    <string name="choose_amount_initial" translatable="false">0</string>
+    <string name="common_continue">Continue</string>
+</resources>

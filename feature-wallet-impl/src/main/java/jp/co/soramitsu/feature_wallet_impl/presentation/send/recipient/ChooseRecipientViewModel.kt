@@ -14,7 +14,7 @@ import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.AddressModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import java.util.concurrent.TimeUnit
 
@@ -85,12 +85,12 @@ class ChooseRecipientViewModel(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun generateModel(address: String): ContactModel {
+    private fun generateModel(address: String): AddressModel {
         val addressId = interactor.getAddressId(address).blockingGet()
 
         val icon = iconGenerator.getSvgImage(addressId, ICON_SIZE_IN_PX)
 
-        return ContactModel(address, icon)
+        return AddressModel(address, icon)
     }
 
     private fun appendContactsHeader(content: List<Any>): List<Any> {

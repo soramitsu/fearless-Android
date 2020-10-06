@@ -17,6 +17,8 @@ interface WalletInteractor {
 
     fun syncAsset(token: Asset.Token): Completable
 
+    fun observeCurrentAsset() : Observable<Asset>
+
     fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>>
 
     fun syncTransactionsFirstPage(pageSize: Int): Completable

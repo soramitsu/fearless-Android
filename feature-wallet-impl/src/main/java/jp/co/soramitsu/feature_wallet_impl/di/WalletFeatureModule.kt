@@ -3,7 +3,8 @@ package jp.co.soramitsu.feature_wallet_impl.di
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
+import jp.co.soramitsu.common.data.network.rpc.RxWebSocketCreator
+import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
@@ -30,11 +31,12 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideSubstrateSource(
-        rxWebSocket: RxWebSocket,
+        socketRequestExecutor: SocketSingleRequestExecutor,
+        rxWebSocketCreator: RxWebSocketCreator,
         keypairFactory: KeypairFactory,
         signer: Signer,
         sS58Encoder: SS58Encoder
-    ) = WssSubstrateSource(rxWebSocket, signer, keypairFactory, sS58Encoder)
+    ) = WssSubstrateSource(socketRequestExecutor, rxWebSocketCreator, signer, keypairFactory, sS58Encoder)
 
     @Provides
     @FeatureScope

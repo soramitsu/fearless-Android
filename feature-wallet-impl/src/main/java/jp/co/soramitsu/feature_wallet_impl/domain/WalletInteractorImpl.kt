@@ -32,6 +32,12 @@ class WalletInteractorImpl(
         return walletRepository.syncAsset(token)
     }
 
+    override fun observeCurrentAsset(): Observable<Asset> {
+        return accountRepository.observeSelectedAccount()
+            .map { Asset.Token.fromNetworkType(it.network.type) }
+            .switchMap(walletRepository::observeAsset)
+    }
+
     override fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>> {
         return walletRepository.observeTransactionsFirstPage(pageSize)
             .distinctUntilChanged { previous, new -> areTransactionPagesTheSame(previous, new) }

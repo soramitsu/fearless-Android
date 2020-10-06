@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.util
 import android.content.Context
 import android.text.format.DateUtils
 import jp.co.soramitsu.common.utils.isNonNegative
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -20,6 +21,10 @@ private const val DEFAULT_PRECISION = 4
 
 private const val GROUPING_SEPARATOR = ' '
 private const val DECIMAL_SEPARATOR = '.'
+
+fun BigDecimal.formatAsToken(token: Asset.Token) : String {
+    return "${format()} ${token.displayName}"
+}
 
 fun BigDecimal.formatAsCurrency(): String {
     val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
