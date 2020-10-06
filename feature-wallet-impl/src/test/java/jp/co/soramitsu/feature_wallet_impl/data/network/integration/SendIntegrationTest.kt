@@ -37,6 +37,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs.amou
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs.recipientId
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.anyInt
@@ -45,6 +46,7 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import org.spongycastle.util.encoders.Hex
 import java.math.BigDecimal
+import java.math.BigInteger
 
 private const val PUBLIC_KEY = "fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168"
 private const val PRIVATE_KEY = "f3923eea431177cd21906d4308aea61c037055fb00575cae687217c6d8b2397f"
@@ -53,7 +55,7 @@ private const val TO_ADDRESS = "5CDayXd3cDCWpBkSXVsVfhE5bWKyTZdD3D1XUinR1ezS1sGn
 private const val URL = "wss://westend-rpc.polkadot.io"
 
 @RunWith(MockitoJUnitRunner::class)
-//@Ignore("Manual run only")
+@Ignore("Manual run only")
 class SendIntegrationTest {
     private val sS58Encoder = SS58Encoder()
     private val signer = Signer()
@@ -70,7 +72,7 @@ class SendIntegrationTest {
 
         rxWebSocket = RxWebSocket(mapper, StdoutLogger(), URL, resourceManager)
 
-        rxWebSocket.connect()
+        rxWebSocket.connect().blockingGet()
     }
 
     @After
@@ -111,7 +113,9 @@ class SendIntegrationTest {
         val genesis = Node.NetworkType.WESTEND.genesisHash
         val genesisBytes = Hex.decode(genesis)
 
-        val transferAmount = BigDecimal("0.007").scaleByPowerOfTen(Asset.Token.WND.mantissa)
+
+
+        val transferAmount = BigDecimal("1.01").scaleByPowerOfTen(Asset.Token.WND.mantissa)
 
         val runtimeInfo = rxWebSocket
             .executeRequest(RuntimeVersionRequest(), pojo<RuntimeVersion>())

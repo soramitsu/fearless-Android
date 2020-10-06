@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragm
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
 import jp.co.soramitsu.splash.SplashRouter
 
 class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
@@ -114,6 +115,12 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
 
     override fun openChooseRecipient() {
         navController?.navigate(R.id.action_open_choose_recipient)
+    }
+
+    override fun openChooseAmount(recipientAddress: String) {
+        val bundle = ChooseAmountFragment.getBundle(recipientAddress)
+
+        navController?.navigate(R.id.action_chooseRecipientFragment_to_chooseAmountFragment, bundle)
     }
 
     override fun openAccounts() {

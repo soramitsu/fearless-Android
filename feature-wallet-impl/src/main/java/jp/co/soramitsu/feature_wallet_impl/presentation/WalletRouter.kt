@@ -8,4 +8,6 @@ interface WalletRouter {
     fun back()
 
     fun openChooseRecipient()
+
+    fun openChooseAmount(recipientAddress: String)
 }

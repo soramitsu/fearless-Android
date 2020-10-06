@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
@@ -11,12 +12,16 @@ import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalance
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFee
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeProgress
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountField
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountNext
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountRecipientView
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToken
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToolbar
 
 private const val KEY_ADDRESS = "KEY_ADDRESS"
 
@@ -36,6 +41,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
     override fun initViews() {
         chooseAmountRecipientView.setOnCopyClickListener { viewModel.copyRecipientAddressClicked() }
+
+        chooseAmountToolbar.setHomeButtonListener { viewModel.backClicked() }
     }
 
     override fun inject() {
@@ -52,7 +59,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
     override fun subscribe(viewModel: ChooseAmountViewModel) {
         viewModel.feeLiveData.observe {
-            chooseAmountFee.text = it.amount.formatAsToken(it.token)
+            chooseAmountFee.text = it.amount?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->
@@ -70,8 +77,29 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
         viewModel.assetLiveData.observe {
             chooseAmountBalance.text = it.balance.formatAsToken(it.token)
+
+            chooseAmountToken.setIcon(it.token.icon)
+            chooseAmountToken.setText(it.token.displayName)
+        }
+
+        viewModel.continueEnabledLiveData.observe {
+            chooseAmountNext.isEnabled = it
+        }
+
+        viewModel.feeErrorLiveData.observeEvent {
+            showFeeError()
         }
 
         chooseAmountField.onTextChanged(viewModel::amountChanged)
+    }
+
+    private fun showFeeError() {
+        AlertDialog.Builder(requireActivity())
+            .setTitle(R.string.common_error_general_title)
+            .setMessage(R.string.choose_amount_network_error)
+            .setCancelable(false)
+            .setPositiveButton(R.string.common_retry) { _, _ ->  viewModel.retry()}
+            .setNegativeButton(R.string.common_cancel) { _, _ ->  viewModel.backClicked()}
+            .show()
     }
 }

@@ -46,7 +46,7 @@ class ChooseRecipientViewModel(
     }
 
     fun recipientSelected(address: String) {
-        showMessage("Selected: $address")
+        router.openChooseAmount(address)
     }
 
     private fun determineState(queryEmpty: Boolean, searchResult: List<Any>): State {

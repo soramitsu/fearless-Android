@@ -21,7 +21,7 @@
             android:name="jp.co.soramitsu.app.root.presentation.RootActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Soramitsu.Fearless"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustPan">
             <intent-filter tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

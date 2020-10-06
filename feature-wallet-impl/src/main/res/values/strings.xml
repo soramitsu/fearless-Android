@@ -7,4 +7,6 @@
     <string name="choose_amount_fee">Transfer fee</string>
     <string name="choose_amount_initial" translatable="false">0</string>
     <string name="common_continue">Continue</string>
+    <string name="choose_amount_network_error">Network not responding</string>
+    <string name="common_retry">Retry</string>
 </resources>

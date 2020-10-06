@@ -3,11 +3,12 @@
     android:layout_width="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     tools:background="@color/black"
+    android:fitsSystemWindows="true"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <jp.co.soramitsu.common.base.Toolbar
-        android:id="@+id/toolbar"
+        android:id="@+id/chooseAmountToolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
@@ -24,21 +25,15 @@
         android:layout_marginTop="16dp"
         android:text="@string/choose_amount_asset"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountToolbar" />
 
-    <TextView
+    <jp.co.soramitsu.common.view.ElementChooserView
         android:id="@+id/chooseAmountToken"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:background="@drawable/bg_input_shape_selector"
-        android:drawablePadding="8dp"
-        android:drawableEnd="@drawable/ic_pin_white_24"
-        android:gravity="center_vertical"
-        android:includeFontPadding="false"
-        android:padding="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/chooseAmountAssetTitle"
