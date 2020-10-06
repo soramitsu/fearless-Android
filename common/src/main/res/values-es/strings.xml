@@ -104,4 +104,10 @@
     <string name="connection_add_invalid_error">No se puede establecer conexión con el nodo. Por favor, pruebe con otro.</string>
     <string name="connection_add_already_exists_error">El nodo ya se agregó anteriormente. Por favor, pruebe con otro nodo.</string>
     <string name="connection_add_unsupported_error">Desafortunadamente, la red no es compatible. Por favor, pruebe una de las siguientes %s.</string>
+
+    <string name="search_contacts">Contactos</string>
+    <string name="search_recipient_hint">Dirección de cuenta o nombre de cuenta</string>
+    <string name="search_recipient_no_results">Sin resultados de búsqueda</string>
+    <string name="search_recipient_welcome">Sus cuentas y contactos a los que estaba enviando transferencias aparecerán aquí.</string>
+    <string name="search_result_header">Resultado de búsqueda</string>
 </resources>

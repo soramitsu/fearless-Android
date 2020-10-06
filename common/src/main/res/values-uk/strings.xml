@@ -105,4 +105,10 @@
     <string name="connection_add_invalid_error">Не вдається встановити зв’язок з вузлом. Будь ласка, спробуйте інший.</string>
     <string name="connection_add_already_exists_error">Вузол вже додано раніше. Будь ласка, спробуйте інший вузол.</string>
     <string name="connection_add_unsupported_error">На жаль, мережа не підтримується. Спробуйте одне з наступного: %s.</string>
+
+    <string name="search_contacts">Контакти</string>
+    <string name="search_recipient_hint">Адреса рахунку або назва рахунку</string>
+    <string name="search_recipient_no_results">Немає результатів пошуку</string>
+    <string name="search_recipient_welcome">Тут з’являться ваші облікові записи та контакти, кому ви надсилали перекази</string>
+    <string name="search_result_header">Результат пошуку</string>
 </resources>

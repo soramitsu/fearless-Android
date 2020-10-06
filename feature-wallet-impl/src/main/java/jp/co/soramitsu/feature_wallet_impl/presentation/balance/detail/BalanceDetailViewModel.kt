@@ -95,6 +95,10 @@ class BalanceDetailViewModel(
         router.back()
     }
 
+    fun sendClicked() {
+        router.openChooseRecipient()
+    }
+
     private fun transactionsRefreshFinished() {
         transactionsRefreshed = true
 

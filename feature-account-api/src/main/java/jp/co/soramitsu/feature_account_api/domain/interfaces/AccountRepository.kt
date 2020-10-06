@@ -89,6 +89,8 @@ interface AccountRepository {
 
     fun getAddressId(account: Account): Single<ByteArray>
 
+    fun getAddressId(address: String): Single<ByteArray>
+
     fun isBiometricEnabled(): Single<Boolean>
 
     fun setBiometricOn(): Completable

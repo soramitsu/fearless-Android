@@ -105,8 +105,15 @@
     <string name="wallet_balance_bonded">Bonded</string>
     <string name="wallet_balance_available">Available</string>
     <string name="language_title">Language</string>
+
     <string name="common_add">Add</string>
     <string name="connection_add_invalid_error">Can\'t establish connection with node. Please, try another one.</string>
     <string name="connection_add_already_exists_error">The node has already been added previously. Please, try another node.</string>
     <string name="connection_add_unsupported_error">Unfortunately, the network is unsupported. Please, try one of the following: %s.</string>
+
+    <string name="search_contacts">Contacts</string>
+    <string name="search_recipient_hint">Account address or account name</string>
+    <string name="search_recipient_welcome">Your accounts and contacts to who you were sending transfers will appear here</string>
+    <string name="search_result_header">Search result</string>
+    <string name="search_recipient_no_results">No search results</string>
 </resources>

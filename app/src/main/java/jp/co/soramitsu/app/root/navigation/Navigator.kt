@@ -112,6 +112,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigateUp()
     }
 
+    override fun openChooseRecipient() {
+        navController?.navigate(R.id.action_open_choose_recipient)
+    }
+
     override fun openAccounts() {
         navController?.navigate(R.id.action_mainFragment_to_accountsFragment)
     }

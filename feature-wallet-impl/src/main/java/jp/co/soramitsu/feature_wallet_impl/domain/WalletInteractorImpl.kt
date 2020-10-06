@@ -56,6 +56,20 @@ class WalletInteractorImpl(
             .map { accountRepository.getAddressId(it).blockingGet() }
     }
 
+    override fun getAddressId(address: String): Single<ByteArray> {
+        return accountRepository.getAddressId(address)
+    }
+
+    override fun getContacts(query: String): Single<List<String>> {
+        return walletRepository.getContacts(query)
+    }
+
+    override fun validateSendAddress(address: String): Single<Boolean> {
+        return getAddressId(address)
+            .map { true }
+            .onErrorReturn { false }
+    }
+
     override fun getTransferFee(transfer: Transfer): Single<Fee> {
         return walletRepository.getTransferFee(transfer)
     }

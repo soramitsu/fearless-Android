@@ -6,4 +6,6 @@ interface WalletRouter {
     fun openAssetDetails(token: Asset.Token)
 
     fun back()
+
+    fun openChooseRecipient()
 }
