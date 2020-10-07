@@ -9,7 +9,7 @@ import java.math.BigInteger
 
 private val LONG_WRITER = CompactULongWriter()
 
-fun BigInteger.toUnsignedBytes() : ByteArray {
+fun BigInteger.toUnsignedBytes(): ByteArray {
     var bytes = toByteArray()
 
     if (bytes.first() == 0.toByte()) {

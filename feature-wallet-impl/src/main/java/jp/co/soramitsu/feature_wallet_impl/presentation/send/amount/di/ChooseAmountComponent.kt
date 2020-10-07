@@ -5,7 +5,6 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.ChooseRecipientFragment
 
 @Subcomponent(
     modules = [

@@ -8,8 +8,8 @@ import jp.co.soramitsu.common.data.network.rpc.Mapped
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocketCreator
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
-import jp.co.soramitsu.common.data.network.rpc.provideLifecycleFor
 import jp.co.soramitsu.common.data.network.rpc.pojo
+import jp.co.soramitsu.common.data.network.rpc.provideLifecycleFor
 import jp.co.soramitsu.common.data.network.rpc.scale
 import jp.co.soramitsu.common.data.network.rpc.scaleCollection
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
@@ -64,7 +64,7 @@ class WssSubstrateSource(
 ) : SubstrateRemoteSource {
 
     override fun fetchAccountInfo(account: Account, node: Node): Single<EncodableStruct<AccountInfo>> {
-       val socket = rxWebSocketCreator.createSocket(node.link)
+        val socket = rxWebSocketCreator.createSocket(node.link)
 
         return socket.connect()
             .andThen(fetchAccountInfo(socket, account))

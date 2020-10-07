@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.model
 import jp.co.soramitsu.common.utils.isNonNegative
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.util.format
 import java.math.BigDecimal
 
 data class AssetModel(

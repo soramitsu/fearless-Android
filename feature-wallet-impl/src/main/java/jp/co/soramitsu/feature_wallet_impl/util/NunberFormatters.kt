@@ -22,7 +22,7 @@ private const val DEFAULT_PRECISION = 4
 private const val GROUPING_SEPARATOR = ' '
 private const val DECIMAL_SEPARATOR = '.'
 
-fun BigDecimal.formatAsToken(token: Asset.Token) : String {
+fun BigDecimal.formatAsToken(token: Asset.Token): String {
     return "${format()} ${token.displayName}"
 }
 

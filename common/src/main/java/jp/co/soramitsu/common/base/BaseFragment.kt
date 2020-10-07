@@ -78,7 +78,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         })
     }
 
-    protected inline fun <reified T> argument(key: String) : T = arguments!![key] as T
+    protected inline fun <reified T> argument(key: String): T = arguments!![key] as T
 
     abstract fun initViews()
 

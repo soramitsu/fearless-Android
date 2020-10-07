@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.amount
 
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
-import io.reactivex.Scheduler
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiFunction
@@ -13,7 +12,6 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -24,7 +22,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.AddressModel
 import java.math.BigDecimal
-import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 
 // TODO use dp

@@ -59,7 +59,7 @@ interface CommonApi {
 
     fun provideSingleSocketExecutor(): SocketSingleRequestExecutor
 
-    fun provideRxWebSocketCreator() : RxWebSocketCreator
+    fun provideRxWebSocketCreator(): RxWebSocketCreator
 
     fun provideJsonMapper(): Gson
 }

@@ -43,7 +43,7 @@ class RxWebSocket(
         createSocket()
     }
 
-    fun connect() : Completable = Completable.fromAction(socket::connect)
+    fun connect(): Completable = Completable.fromAction(socket::connect)
 
     fun disconnect() {
         disposable.dispose()

@@ -98,8 +98,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
             .setTitle(R.string.common_error_general_title)
             .setMessage(R.string.choose_amount_network_error)
             .setCancelable(false)
-            .setPositiveButton(R.string.common_retry) { _, _ ->  viewModel.retry()}
-            .setNegativeButton(R.string.common_cancel) { _, _ ->  viewModel.backClicked()}
+            .setPositiveButton(R.string.common_retry) { _, _ -> viewModel.retry() }
+            .setNegativeButton(R.string.common_cancel) { _, _ -> viewModel.backClicked() }
             .show()
     }
 }

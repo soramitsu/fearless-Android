@@ -33,7 +33,7 @@ class AccountAddressView @JvmOverloads constructor(
             val iconVisible = typedArray.getBoolean(R.styleable.AccountAddressView_iconVisible, true)
             accountIcon.setVisible(iconVisible)
 
-           val labelVisible = typedArray.getBoolean(R.styleable.AccountAddressView_labelVisible, true)
+            val labelVisible = typedArray.getBoolean(R.styleable.AccountAddressView_labelVisible, true)
             accountTitle.setVisible(labelVisible)
 
             typedArray.recycle()

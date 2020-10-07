@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.R
 import kotlinx.android.synthetic.main.view_element_chooser.view.elementChooserIcon
 import kotlinx.android.synthetic.main.view_element_chooser.view.elementChooserText
 
-
 class ElementChooserView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
