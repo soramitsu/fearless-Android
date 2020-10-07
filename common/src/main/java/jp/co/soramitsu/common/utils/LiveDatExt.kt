@@ -20,6 +20,38 @@ fun <FROM, TO> LiveData<FROM>.mapMutable(mapper: (FROM) -> TO): MutableLiveData<
     }
 }
 
+@Suppress("UNCHECKED_CAST")
+class ComponentHolder(val values: List<*>) {
+    operator fun <T> component1() = values.first() as T
+    operator fun <T> component2() = values[1] as T
+    operator fun <T> component3() = values[2] as T
+    operator fun <T> component4() = values[3] as T
+    operator fun <T> component5() = values[4] as T
+}
+
+/**
+ * Supports up to N sources, where N is last componentN() in ComponentHolder
+ * @see ComponentHolder
+ */
+fun <R> combine(
+    vararg sources: LiveData<*>,
+    combiner: (ComponentHolder) -> R
+): LiveData<R> {
+    return MediatorLiveData<R>().apply {
+        for (source in sources) {
+            addSource(source) {
+                val values = sources.map { it.value }
+
+                val nonNull = values.filterNotNull()
+
+                if (nonNull.size == values.size) {
+                    value = combiner.invoke(ComponentHolder(nonNull))
+                }
+            }
+        }
+    }
+}
+
 fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(
     another: LiveData<SECOND>,
     zipper: (FIRST, SECOND) -> RESULT

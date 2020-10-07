@@ -31,6 +31,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.Tr
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.FeeRemote
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.FeeResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.feeFrozen
@@ -71,7 +72,7 @@ class WssSubstrateSource(
             .provideLifecycleFor(socket)
     }
 
-    override fun getTransferFee(account: Account, node: Node, transfer: Transfer): Single<FeeRemote> {
+    override fun getTransferFee(account: Account, node: Node, transfer: Transfer): Single<FeeResponse> {
         val socket = rxWebSocketCreator.createSocket(node.link)
 
         val calculateFee = Single.fromCallable {
@@ -79,12 +80,14 @@ class WssSubstrateSource(
             val emptySeed = ByteArray(32)
             val keypair = keypairFactory.generate(cryptoType, emptySeed, "")
 
-            val extrinsic = buildSubmittableExtrinsic(account, transfer, keypair, socket)
+            val (extrinsic, newAccountInfo) = buildSubmittableExtrinsic(account, transfer, keypair, socket)
 
-            FeeCalculationRequest(extrinsic)
+            val request = FeeCalculationRequest(extrinsic)
+
+            val resultHolder = socket.executeRequest(request, pojo<FeeRemote>()).blockingGet()
+
+            FeeResponse(resultHolder.result, newAccountInfo)
         }
-            .flatMap { socket.executeRequest(it, pojo<FeeRemote>()) }
-            .map { it.result }
 
         return socket.connect()
             .andThen(calculateFee)
@@ -100,7 +103,7 @@ class WssSubstrateSource(
         val socket = rxWebSocketCreator.createSocket(node.link)
 
         val performTransfer = Single.fromCallable {
-            val extrinsic = buildSubmittableExtrinsic(account, transfer, keypair, socket)
+            val (extrinsic, accountInfo) = buildSubmittableExtrinsic(account, transfer, keypair, socket)
 
             TransferRequest(extrinsic)
         }
@@ -118,12 +121,12 @@ class WssSubstrateSource(
         transfer: Transfer,
         keypair: Keypair,
         socket: RxWebSocket
-    ): EncodableStruct<SubmittableExtrinsic> {
+    ): Pair<EncodableStruct<SubmittableExtrinsic>, EncodableStruct<AccountInfo>> {
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
         val accountIdValue = Hex.decode(account.publicKey)
 
         val runtimeInfo = getRuntimeVersion(socket).blockingGet().result
-        val currentNonce = getNonce(socket, account).blockingGet()
+        val (currentNonce, newAccountInfo) = getNonce(socket, account).blockingGet()
 
         val genesis = account.network.type.genesisHash
         val genesisBytes = Hex.decode(genesis)
@@ -153,10 +156,12 @@ class WssSubstrateSource(
         val extrinsicBytes = SignedExtrinsic.toByteArray(extrinsic)
         val byteLengthValue = extrinsicBytes.size.toBigInteger()
 
-        return SubmittableExtrinsic { struct ->
+        val submittableExtrinsic = SubmittableExtrinsic { struct ->
             struct[byteLength] = byteLengthValue
             struct[signedExtrinsic] = extrinsic
         }
+
+        return submittableExtrinsic to newAccountInfo
     }
 
     private fun fetchAccountInfo(rxWebSocket: RxWebSocket, account: Account): Single<EncodableStruct<AccountInfo>> {
@@ -182,7 +187,7 @@ class WssSubstrateSource(
         }
     }
 
-    private fun getNonce(socket: RxWebSocket, account: Account): Single<BigInteger> {
+    private fun getNonce(socket: RxWebSocket, account: Account): Single<Pair<BigInteger, EncodableStruct<AccountInfo>>> {
         return Single.fromCallable {
             val accountInfo = fetchAccountInfo(socket, account).blockingGet()
             val accountNonce = accountInfo[nonce]
@@ -191,7 +196,7 @@ class WssSubstrateSource(
 
             val result = accountNonce + pendingExtrinsics.toUInt()
 
-            result.toLong().toBigInteger()
+            result.toLong().toBigInteger() to accountInfo
         }
     }
 

@@ -20,16 +20,16 @@ class WalletInteractorImpl(
         return walletRepository.observeAssets()
     }
 
-    override fun syncAssets(): Completable {
-        return walletRepository.syncAssets()
+    override fun syncAssets(withoutRates: Boolean): Completable {
+        return walletRepository.syncAssets(withoutRates)
     }
 
     override fun observeAsset(token: Asset.Token): Observable<Asset> {
         return walletRepository.observeAsset(token)
     }
 
-    override fun syncAsset(token: Asset.Token): Completable {
-        return walletRepository.syncAsset(token)
+    override fun syncAsset(token: Asset.Token, withoutRates: Boolean): Completable {
+        return walletRepository.syncAsset(token, withoutRates)
     }
 
     override fun observeCurrentAsset(): Observable<Asset> {
@@ -82,5 +82,9 @@ class WalletInteractorImpl(
 
     override fun performTransfer(transfer: Transfer): Completable {
         return walletRepository.performTransfer(transfer)
+    }
+
+    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {
+        return walletRepository.checkEnoughAmountForTransfer(transfer)
     }
 }

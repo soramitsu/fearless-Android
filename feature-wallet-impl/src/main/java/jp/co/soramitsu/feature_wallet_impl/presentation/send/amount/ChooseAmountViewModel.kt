@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -28,6 +29,11 @@ import java.util.concurrent.TimeUnit
 private const val ICON_SIZE_IN_PX = 70
 
 private const val RETRY_TIMES = 3L
+
+enum class RetryReason(val reasonRes: Int) {
+    CHECK_ENOUGH_FUNDS(R.string.choose_amount_error_balance),
+    LOAD_FEE(R.string.choose_amount_error_fee)
+}
 
 class ChooseAmountViewModel(
     private val interactor: WalletInteractor,
@@ -49,11 +55,18 @@ class ChooseAmountViewModel(
     private val _feeLoadingLiveData = MutableLiveData<Boolean>()
     val feeLoadingLiveData = _feeLoadingLiveData
 
-    private val _feeErrorLiveData = MutableLiveData<Event<Unit>>()
+    private val _feeErrorLiveData = MutableLiveData<Event<RetryReason>>()
     val feeErrorLiveData = _feeErrorLiveData
 
-    val continueEnabledLiveData = feeLoadingLiveData.combine(feeLiveData) { loading, fee ->
-        !loading && fee.amount != null
+    private val _checkingEnoughFundsLiveData = MutableLiveData<Boolean>(false)
+    val checkingEnoughFundsLiveData = _checkingEnoughFundsLiveData
+
+    val continueEnabledLiveData = combine(
+        feeLoadingLiveData,
+        feeLiveData,
+        checkingEnoughFundsLiveData
+    ) { (feeLoading: Boolean, fee: Fee, checkingFunds: Boolean) ->
+        !feeLoading && fee.fee != null && !checkingFunds
     }
 
     val assetLiveData = currentAssetObservable
@@ -61,6 +74,10 @@ class ChooseAmountViewModel(
         .map(::mapAssetToAssetModel)
         .observeOn(AndroidSchedulers.mainThread())
         .asLiveData()
+
+    fun nextClicked() {
+        checkEnoughFunds()
+    }
 
     fun amountChanged(newAmountRaw: String) {
         val newAmount = newAmountRaw.toBigDecimalOrNull() ?: return
@@ -72,8 +89,11 @@ class ChooseAmountViewModel(
         router.back()
     }
 
-    fun retry() {
-        amountEventsSubject.onNext(amountEventsSubject.value!!)
+    fun retry(retryReason: RetryReason) {
+        when (retryReason) {
+            RetryReason.LOAD_FEE -> retryLoadFee()
+            RetryReason.CHECK_ENOUGH_FUNDS -> checkEnoughFunds()
+        }
     }
 
     fun copyRecipientAddressClicked() {
@@ -96,7 +116,7 @@ class ChooseAmountViewModel(
             .switchMapSingle { transfer ->
                 interactor.getTransferFee(transfer)
                     .retry(RETRY_TIMES)
-                    .doOnError { _feeErrorLiveData.postValue(Event(Unit)) }
+                    .doOnError { _feeErrorLiveData.postValue(Event(RetryReason.LOAD_FEE)) }
                     .onErrorReturn { createFallbackFee(transfer.token) }
             }
             .observeOn(AndroidSchedulers.mainThread())
@@ -111,5 +131,39 @@ class ChooseAmountViewModel(
         return interactor.getAddressId(address)
             .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
             .map { AddressModel(address, it) }
+    }
+
+    private fun checkEnoughFunds() {
+        val currentAmount = amountEventsSubject.value!!
+
+        _checkingEnoughFundsLiveData.value = true
+
+        disposables += currentAssetObservable.firstOrError()
+            .subscribeOn(Schedulers.io())
+            .map { Transfer(recipientAddress, currentAmount, it.token) }
+            .flatMap(interactor::checkEnoughAmountForTransfer)
+            .observeOn(AndroidSchedulers.mainThread())
+            .doFinally { _checkingEnoughFundsLiveData.value = false }
+            .subscribe({
+                processHasEnoughFunds(it)
+            }, {
+                _feeErrorLiveData.value = Event(RetryReason.CHECK_ENOUGH_FUNDS)
+            })
+    }
+
+    private fun processHasEnoughFunds(isEnough: Boolean) {
+        if (isEnough) {
+            openConfirmationScreen()
+        } else {
+            showError(resourceManager.getString(R.string.choose_amount_error_too_big))
+        }
+    }
+
+    private fun openConfirmationScreen() {
+        showMessage("Ready to transfer") // TODO
+    }
+
+    private fun retryLoadFee() {
+        amountEventsSubject.onNext(amountEventsSubject.value!!)
     }
 }

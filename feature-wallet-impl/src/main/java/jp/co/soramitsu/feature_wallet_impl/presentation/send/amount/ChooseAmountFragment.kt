@@ -43,6 +43,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         chooseAmountRecipientView.setOnCopyClickListener { viewModel.copyRecipientAddressClicked() }
 
         chooseAmountToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        chooseAmountNext.setOnClickListener { viewModel.nextClicked() }
     }
 
     override fun inject() {
@@ -59,7 +61,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
     override fun subscribe(viewModel: ChooseAmountViewModel) {
         viewModel.feeLiveData.observe {
-            chooseAmountFee.text = it.amount?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
+            chooseAmountFee.text = it.fee?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->
@@ -87,18 +89,24 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.feeErrorLiveData.observeEvent {
-            showFeeError()
+            showRetry(it)
+        }
+
+        viewModel.checkingEnoughFundsLiveData.observe { checking ->
+            val textRes = if (checking) R.string.checking else R.string.common_continue
+
+            chooseAmountNext.setText(textRes)
         }
 
         chooseAmountField.onTextChanged(viewModel::amountChanged)
     }
 
-    private fun showFeeError() {
+    private fun showRetry(reason: RetryReason) {
         AlertDialog.Builder(requireActivity())
-            .setTitle(R.string.common_error_general_title)
-            .setMessage(R.string.choose_amount_network_error)
+            .setTitle(R.string.choose_amount_network_error)
+            .setMessage(reason.reasonRes)
             .setCancelable(false)
-            .setPositiveButton(R.string.common_retry) { _, _ -> viewModel.retry() }
+            .setPositiveButton(R.string.common_retry) { _, _ -> viewModel.retry(reason) }
             .setNegativeButton(R.string.common_cancel) { _, _ -> viewModel.backClicked() }
             .show()
     }
