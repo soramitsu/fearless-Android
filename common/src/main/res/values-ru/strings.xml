@@ -111,4 +111,13 @@
     <string name="search_recipient_no_results">Нет результатов</string>
     <string name="search_recipient_welcome">Здесь появятся ваши аккаунты и контакты, которым вы отправляли переводы</string>
     <string name="search_result_header">Результат поиска</string>
+    <string name="common_continue">Продолжить</string>
+    <string name="common_retry">Повторить</string>
+
+    <string name="choose_amount_asset">Токен</string>
+    <string name="choose_amount_fee">Комиссия</string>
+    <string name="choose_amount_free_balance">Свободный баланс:</string>
+    <string name="choose_amount_hint">Сумма</string>
+    <string name="choose_amount_network_error">Сеть недоступна</string>
+    <string name="choose_amount_to">Кому</string>
 </resources>

@@ -116,4 +116,15 @@
     <string name="search_recipient_welcome">Your accounts and contacts to who you were sending transfers will appear here</string>
     <string name="search_result_header">Search result</string>
     <string name="search_recipient_no_results">No search results</string>
+
+    <string name="choose_amount_asset">Asset</string>
+    <string name="choose_amount_to">To</string>
+    <string name="choose_amount_free_balance">Free balance:</string>
+    <string name="choose_amount_hint">Amount</string>
+    <string name="choose_amount_fee">Transfer fee</string>
+    <string name="choose_amount_network_error">Network not responding</string>
+<!--    <string name="choose_amount_network_error_description">Network not responding</string>-->
+    <string name="choose_amount_initial" translatable="false">0</string>
+    <string name="common_continue">Continue</string>
+    <string name="common_retry">Retry</string>
 </resources>

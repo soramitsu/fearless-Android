@@ -111,4 +111,13 @@
     <string name="search_recipient_no_results">Aucun résultat trouvé</string>
     <string name="search_recipient_welcome">Vos comptes et contacts auxquels vous envoyiez des transferts apparaîtront ici</string>
     <string name="search_result_header">Résultat de la recherche</string>
+    <string name="common_continue">Continuer</string>
+    <string name="common_retry">Recommencez</string>
+
+    <string name="choose_amount_asset">Atout</string>
+    <string name="choose_amount_fee">Frais de transfert</string>
+    <string name="choose_amount_free_balance">Solde libre:</string>
+    <string name="choose_amount_hint">Montant</string>
+    <string name="choose_amount_network_error">Le réseau ne répond pas</string>
+    <string name="choose_amount_to">À</string>
 </resources>
