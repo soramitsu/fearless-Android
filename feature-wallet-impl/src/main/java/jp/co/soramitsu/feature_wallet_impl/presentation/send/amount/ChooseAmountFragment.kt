@@ -93,7 +93,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.checkingEnoughFundsLiveData.observe { checking ->
-            val textRes = if (checking) R.string.checking else R.string.common_continue
+            val textRes = if (checking) R.string.choose_amount_checking else R.string.common_continue
 
             chooseAmountField.isEnabled = !checking
 

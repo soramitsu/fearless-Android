@@ -119,4 +119,9 @@
     <string name="choose_amount_hint">Quantità</string>
     <string name="choose_amount_network_error">La rete non risponde</string>
     <string name="choose_amount_to">Per</string>
+
+    <string name="choose_amount_checking">Controllo ...</string>
+    <string name="choose_amount_error_too_big">Spiacenti, non disponi di fondi sufficienti per trasferire l\'importo specificato.</string>
+    <string name="choose_amount_error_fee">Spiacenti, non è stato possibile contattare il fornitore di servizi di trasferimento. Per favore riprova più tardi.</string>
+    <string name="choose_amount_error_balance">Spiacenti, richiesta di controllo del saldo non riuscita. Per favore riprova più tardi.</string>
 </resources>

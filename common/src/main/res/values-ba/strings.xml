@@ -121,4 +121,9 @@
     <string name="choose_amount_hint">Сумма</string>
     <string name="choose_amount_network_error">Сеть недоступна</string>
     <string name="choose_amount_to">Кому</string>
+
+    <string name="choose_amount_checking">Проверка</string>
+    <string name="choose_amount_error_too_big">Ғәфү итегеҙ, кәрәккән сумманы ебәреү өсөн етерлек аҡса юҡ</string>
+    <string name="choose_amount_error_fee">Ғәфү итегеҙ, тәьмин итеүсе менән бәйләнеш юҡ. Һуңыраҡ ҡабатлап ҡарағыҙ.</string>
+    <string name="choose_amount_error_balance">К сожалению, запрос проверки баланса не выполнен. Пожалуйста, попробуйте позже.</string>
 </resources>

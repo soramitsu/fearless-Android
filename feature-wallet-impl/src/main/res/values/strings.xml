@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="choose_amount_error_balance">Sorry, balance checking request failed. Please, try again later.</string>
-    <string name="choose_amount_error_fee">Sorry, we couldn\'t contact transfer provider. Please, try again later.</string>
-    <string name="choose_amount_error_too_big">Sorry, you don\'t have enough funds to transfer specified amount.</string>
-    <string name="checking">Checking...</string>
+
 </resources>

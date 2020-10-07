@@ -123,8 +123,12 @@
     <string name="choose_amount_hint">Amount</string>
     <string name="choose_amount_fee">Transfer fee</string>
     <string name="choose_amount_network_error">Network not responding</string>
-<!--    <string name="choose_amount_network_error_description">Network not responding</string>-->
     <string name="choose_amount_initial" translatable="false">0</string>
     <string name="common_continue">Continue</string>
     <string name="common_retry">Retry</string>
+
+    <string name="choose_amount_error_balance">Sorry, balance checking request failed. Please, try again later.</string>
+    <string name="choose_amount_error_fee">Sorry, we couldn\'t contact transfer provider. Please, try again later.</string>
+    <string name="choose_amount_error_too_big">Sorry, you don\'t have enough funds to transfer specified amount.</string>
+    <string name="choose_amount_checking">Checking…</string>
 </resources>

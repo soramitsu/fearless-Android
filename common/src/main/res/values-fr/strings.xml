@@ -120,4 +120,9 @@
     <string name="choose_amount_hint">Montant</string>
     <string name="choose_amount_network_error">Le réseau ne répond pas</string>
     <string name="choose_amount_to">À</string>
+
+    <string name="choose_amount_checking">Vérification…</string>
+    <string name="choose_amount_error_too_big">Désolé, vous ne disposez pas de suffisamment de fonds pour transférer le montant spécifié.</string>
+    <string name="choose_amount_error_fee">Désolé, nous n\'avons pas pu contacter le fournisseur de transfert. Veuillez réessayer plus tard.</string>
+    <string name="choose_amount_error_balance">Désolé, la demande de vérification du solde a échoué. Veuillez réessayer plus tard.</string>
 </resources>

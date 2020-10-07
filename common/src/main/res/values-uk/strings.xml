@@ -120,4 +120,9 @@
     <string name="choose_amount_hint">Сума</string>
     <string name="choose_amount_network_error">Мережа не відповідає</string>
     <string name="choose_amount_to">До</string>
+
+    <string name="choose_amount_checking">Перевірка…</string>
+    <string name="choose_amount_error_too_big">На жаль, у вас недостатньо коштів для переказу зазначеної суми.</string>
+    <string name="choose_amount_error_fee">На жаль, нам не вдалося зв’язатися з постачальником передачі. Будь ласка спробуйте пізніше.</string>
+    <string name="choose_amount_error_balance">На жаль, запит на перевірку балансу не вдався. Будь-ласка спробуйте пізніше.</string>
 </resources>
