@@ -83,7 +83,7 @@ class WssSubstrateSource(
 
             FeeCalculationRequest(extrinsic)
         }
-            .flatMap { socketRequestExecutor.executeRequest(it, node.link, pojo<FeeRemote>()) }
+            .flatMap { socket.executeRequest(it, pojo<FeeRemote>()) }
             .map { it.result }
 
         return socket.connect()
@@ -104,7 +104,7 @@ class WssSubstrateSource(
 
             TransferRequest(extrinsic)
         }
-            .flatMap { socketRequestExecutor.executeRequest(it, node.link) }
+            .flatMap { socket.executeRequest(it) }
             .doOnSuccess { if (it.result == null) throw BlockChainException() }
             .ignoreElement()
 
