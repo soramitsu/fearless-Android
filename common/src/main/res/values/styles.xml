@@ -66,7 +66,6 @@
     <!-- Input -->
 
     <style name="Widget.Fearless.Input.Primary.External" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
-        <item name="android:background">@drawable/bg_input_shape_selector</item>
         <item name="android:textColorHint">@color/colorHint</item>
         <item name="hintTextColor">@color/colorHint</item>
         <item name="boxStrokeWidth">0dp</item>
@@ -75,9 +74,8 @@
     </style>
 
     <style name="Widget.Fearless.Input.Primary.Internal" parent="Base.Widget.AppCompat.EditText">
-        <item name="android:background">@null</item>
+        <item name="android:background">@drawable/bg_input_shape_selector</item>
         <item name="android:textAppearance">@style/TextAppearance.Soramitsu.Body1</item>
-        <item name="backgroundTint">@android:color/transparent</item>
         <item name="android:paddingStart">@dimen/x2</item>
         <item name="android:paddingEnd">@dimen/x2</item>
         <item name="android:paddingTop">@dimen/x3</item>

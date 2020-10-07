@@ -18,6 +18,7 @@ import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalance
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFee
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeProgress
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountField
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountInputLayout
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountNext
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountRecipientView
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToken
@@ -94,6 +95,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
         viewModel.checkingEnoughFundsLiveData.observe { checking ->
             val textRes = if (checking) R.string.checking else R.string.common_continue
+
+            chooseAmountField.isEnabled = !checking
 
             chooseAmountNext.setText(textRes)
         }

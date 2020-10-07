@@ -7,6 +7,8 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
 import jp.co.soramitsu.common.R
+import kotlinx.android.synthetic.main.view_account_address.view.accountIcon
+import kotlinx.android.synthetic.main.view_account_address.view.accountTitle
 import kotlinx.android.synthetic.main.view_element_chooser.view.elementChooserIcon
 import kotlinx.android.synthetic.main.view_element_chooser.view.elementChooserText
 
@@ -18,10 +20,28 @@ class ElementChooserView @JvmOverloads constructor(
 
     init {
         View.inflate(context, R.layout.view_element_chooser, this)
-        setBackgroundResource(R.drawable.bg_input_shape_selector)
 
         val padding = resources.getDimensionPixelOffset(R.dimen.element_chooser_padding)
         setPadding(padding, padding, padding, padding)
+
+        attrs?.let(this::applyAttributes)
+    }
+
+    private fun applyAttributes(attributeSet: AttributeSet) {
+        val typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.ElementChooserView)
+
+        val enabled = typedArray.getBoolean(R.styleable.ElementChooserView_enabled, true)
+        isEnabled = enabled
+
+        typedArray.recycle()
+    }
+
+    override fun setEnabled(enabled: Boolean) {
+        super.setEnabled(enabled)
+
+        val backgroundRes = if (enabled) R.drawable.bg_input_shape_filled_selector else R.drawable.bg_button_primary_disabled
+
+        setBackgroundResource(backgroundRes)
     }
 
     fun setIcon(@DrawableRes icon: Int) {

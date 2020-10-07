@@ -28,6 +28,7 @@
         app:layout_constraintTop_toBottomOf="@+id/chooseAmountToolbar" />
 
     <jp.co.soramitsu.common.view.ElementChooserView
+        app:enabled="false"
         android:id="@+id/chooseAmountToken"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
