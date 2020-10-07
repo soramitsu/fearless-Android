@@ -7,8 +7,6 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
 import jp.co.soramitsu.common.R
-import kotlinx.android.synthetic.main.view_account_address.view.accountIcon
-import kotlinx.android.synthetic.main.view_account_address.view.accountTitle
 import kotlinx.android.synthetic.main.view_element_chooser.view.elementChooserIcon
 import kotlinx.android.synthetic.main.view_element_chooser.view.elementChooserText
 

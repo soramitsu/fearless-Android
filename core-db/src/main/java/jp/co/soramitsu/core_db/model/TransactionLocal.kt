@@ -25,5 +25,4 @@ class TransactionLocal(
     val date: Long,
     val isIncome: Boolean,
     val networkType: Node.NetworkType = token.networkType
-) {
-}
+)

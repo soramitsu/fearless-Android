@@ -9,7 +9,6 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 
 @Dao
 abstract class TransactionDao {

@@ -18,7 +18,6 @@ import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalance
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFee
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeProgress
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountField
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountInputLayout
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountNext
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountRecipientView
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToken
