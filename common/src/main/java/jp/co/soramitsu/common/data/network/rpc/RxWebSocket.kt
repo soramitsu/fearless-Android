@@ -7,6 +7,8 @@ import io.reactivex.SingleEmitter
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.base.errors.FearlessException
+import jp.co.soramitsu.common.data.network.rpc.mappers.NullableContainer
+import jp.co.soramitsu.common.data.network.rpc.mappers.ResponseMapper
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.WebSocketResponseListener
@@ -53,14 +55,10 @@ class RxWebSocket(
 
     fun <R> executeRequest(
         request: RuntimeRequest,
-        mapper: ResponseMapper<R>
-    ): Single<Mapped<R>> {
+        responseType: ResponseMapper<R>
+    ): Single<R> {
         return executeRequest(request)
-            .map {
-                val mapped = mapper.map(it, jsonMapper)
-
-                Mapped(mapped)
-            }
+            .map { responseType.map(it, jsonMapper) }
     }
 
     fun executeRequest(

@@ -78,7 +78,7 @@
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:layout_marginTop="18dp"
-        android:background="@color/dividerGray"
+        android:background="@color/gray3"
         app:layout_constraintEnd_toEndOf="@+id/chooseAmountToken"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/chooseAmountBalanceLabel"
@@ -109,7 +109,7 @@
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:layout_marginTop="16dp"
-        android:background="@color/dividerGray"
+        android:background="@color/gray3"
         app:layout_constraintEnd_toEndOf="@+id/chooseAmountRecipientView"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/chooseAmountRecipientView"
@@ -169,6 +169,17 @@
         app:layout_constraintBottom_toBottomOf="@+id/chooseAmountFee"
         app:layout_constraintEnd_toEndOf="@+id/chooseAmountInputLayout"
         app:layout_constraintTop_toTopOf="@+id/chooseAmountFee" />
+
+    <View
+        android:id="@+id/chooseAmountDivider3"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/gray3"
+        android:layout_marginTop="15dp"
+        app:layout_constraintEnd_toEndOf="@+id/chooseAmountToken"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/chooseAmountBalanceLabel"
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountFeeLabel" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/chooseAmountNext"

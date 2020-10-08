@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.util
 
 import android.content.Context
 import android.text.format.DateUtils
+import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.isNonNegative
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -45,15 +46,19 @@ fun BigDecimal.formatAsChange(): String {
     return "$prefix$formatted%"
 }
 
-fun Long.formatPastDay(context: Context): String? {
-    val diffInMillis = System.currentTimeMillis() - this
+fun Long.formatDaysSinceEpoch(context: Context): String? {
+    val currentDays = System.currentTimeMillis().daysFromMillis()
+    val diff = currentDays - this
 
-    if (diffInMillis < 0) throw IllegalArgumentException("Past date should be less than current")
+    if (diff < 0) throw IllegalArgumentException("Past date should be less than current")
 
-    return when (TimeUnit.MILLISECONDS.toDays(diffInMillis)) {
+    return when (diff) {
         0L -> context.getString(R.string.today)
         1L -> context.getString(R.string.yesterday)
-        else -> DateUtils.formatDateTime(context, this, 0)
+        else -> {
+            val inMillis = TimeUnit.DAYS.toMillis(this)
+            DateUtils.formatDateTime(context, inMillis, 0)
+        }
     }
 }
 

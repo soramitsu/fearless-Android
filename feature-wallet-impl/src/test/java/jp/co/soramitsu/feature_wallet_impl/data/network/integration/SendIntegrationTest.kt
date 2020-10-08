@@ -2,9 +2,10 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.integration
 
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
-import jp.co.soramitsu.common.data.network.rpc.pojo
-import jp.co.soramitsu.common.data.network.rpc.scale
-import jp.co.soramitsu.common.data.network.rpc.scaleCollection
+import jp.co.soramitsu.common.data.network.rpc.mappers.nonNull
+import jp.co.soramitsu.common.data.network.rpc.mappers.pojo
+import jp.co.soramitsu.common.data.network.rpc.mappers.scale
+import jp.co.soramitsu.common.data.network.rpc.mappers.scaleCollection
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.data.network.scale.invoke
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -46,7 +47,6 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import org.spongycastle.util.encoders.Hex
 import java.math.BigDecimal
-import java.math.BigInteger
 
 private const val PUBLIC_KEY = "fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168"
 private const val PRIVATE_KEY = "f3923eea431177cd21906d4308aea61c037055fb00575cae687217c6d8b2397f"
@@ -118,8 +118,8 @@ class SendIntegrationTest {
         val transferAmount = BigDecimal("1.01").scaleByPowerOfTen(Asset.Token.WND.mantissa)
 
         val runtimeInfo = rxWebSocket
-            .executeRequest(RuntimeVersionRequest(), pojo<RuntimeVersion>())
-            .blockingGet().result
+            .executeRequest(RuntimeVersionRequest(), pojo<RuntimeVersion>().nonNull())
+            .blockingGet()
 
         val specVersion = runtimeInfo.specVersion
         val transactionVersion = runtimeInfo.transactionVersion

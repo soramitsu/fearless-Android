@@ -4,7 +4,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 
 class FearlessException(
     val kind: Kind,
-    message: String,
+    message: String?,
     exception: Throwable? = null
 ) : RuntimeException(message, exception) {
 
