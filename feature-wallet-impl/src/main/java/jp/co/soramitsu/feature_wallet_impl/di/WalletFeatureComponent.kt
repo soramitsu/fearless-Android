@@ -32,7 +32,7 @@ interface WalletFeatureComponent : AccountFeatureApi {
 
     fun chooseAmountComponentFactory(): ChooseAmountComponent.Factory
 
-    fun confirmTransferComponentFactory() : ConfirmTransferComponent.Factory
+    fun confirmTransferComponentFactory(): ConfirmTransferComponent.Factory
 
     @Component.Factory
     interface Factory {

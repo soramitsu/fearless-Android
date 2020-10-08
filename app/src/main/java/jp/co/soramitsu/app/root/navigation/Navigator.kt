@@ -132,7 +132,7 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
     }
 
     override fun finishSendFlow() {
-       navController?.navigate(R.id.finish_send_flow)
+        navController?.navigate(R.id.finish_send_flow)
     }
 
     override fun openAccounts() {

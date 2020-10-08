@@ -15,7 +15,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import java.util.concurrent.TimeUnit
 
 private const val PAGE_SIZE = 20
 

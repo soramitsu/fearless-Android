@@ -31,7 +31,7 @@ class ConfirmTransferViewModel(
     val recipientModel = generateAddressModel(transferDraft.recipientAddress).asLiveData()
 
     private val _transferSubmittingLiveData = MutableLiveData(false)
-    val transferSubmittingLiveData : LiveData<Boolean> = _transferSubmittingLiveData
+    val transferSubmittingLiveData: LiveData<Boolean> = _transferSubmittingLiveData
 
     fun backClicked() {
         router.back()
@@ -44,7 +44,7 @@ class ConfirmTransferViewModel(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doFinally { _transferSubmittingLiveData.value = false }
-            .subscribe ({
+            .subscribe({
                 router.finishSendFlow()
             }, {
                 showError(it.message!!)

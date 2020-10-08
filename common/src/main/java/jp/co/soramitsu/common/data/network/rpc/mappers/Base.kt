@@ -12,7 +12,7 @@ interface ResponseMapper<R> {
 
 abstract class NullableMapper<R> : ResponseMapper<NullableContainer<R>> {
 
-    abstract fun mapNullable(rpcResponse: RpcResponse, jsonMapper: Gson) : R?
+    abstract fun mapNullable(rpcResponse: RpcResponse, jsonMapper: Gson): R?
 
     override fun map(rpcResponse: RpcResponse, jsonMapper: Gson): NullableContainer<R> {
         val value = mapNullable(rpcResponse, jsonMapper)

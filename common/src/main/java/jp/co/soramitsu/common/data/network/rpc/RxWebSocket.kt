@@ -7,7 +7,6 @@ import io.reactivex.SingleEmitter
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.base.errors.FearlessException
-import jp.co.soramitsu.common.data.network.rpc.mappers.NullableContainer
 import jp.co.soramitsu.common.data.network.rpc.mappers.ResponseMapper
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.wsrpc.Logger

@@ -28,7 +28,7 @@ abstract class TransactionDao {
     abstract fun getContacts(query: String, networkType: Node.NetworkType): Single<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(transactions: TransactionLocal) : Completable
+    abstract fun insert(transactions: TransactionLocal): Completable
 
     @Transaction
     open fun insertFromSubscan(accountAddress: String, transactions: List<TransactionLocal>) {
