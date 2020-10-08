@@ -125,4 +125,8 @@
     <string name="choose_amount_error_too_big">На жаль, у вас недостатньо коштів для переказу зазначеної суми.</string>
     <string name="choose_amount_error_fee">На жаль, нам не вдалося зв’язатися з постачальником передачі. Будь ласка спробуйте пізніше.</string>
     <string name="choose_amount_error_balance">На жаль, запит на перевірку балансу не вдався. Будь-ласка спробуйте пізніше.</string>
+
+    <string name="wallet_send_total_title">Разом</string>
+    <string name="wallet_send_progress">Надсилання…</string>
+    <string name="wallet_send_confirm_transfer">Підтвердьте передачу</string>
 </resources>

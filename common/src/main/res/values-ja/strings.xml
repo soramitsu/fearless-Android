@@ -124,4 +124,8 @@
     <string name="choose_amount_error_too_big">申し訳ありませんが、指定された金額を送金するのに十分な資金がありません。</string>
     <string name="choose_amount_error_fee">申し訳ありませんが、転送プロバイダーに連絡できませんでした。しばらくしてからもう一度お試しください。</string>
     <string name="choose_amount_error_balance">申し訳ありませんが、残高確認リクエストは失敗しました。しばらくしてからもう一度お試しください。</string>
+
+    <string name="wallet_send_total_title">合計</string>
+    <string name="wallet_send_progress">送信…</string>
+    <string name="wallet_send_confirm_transfer">転送を確認</string>
 </resources>

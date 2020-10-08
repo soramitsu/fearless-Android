@@ -77,7 +77,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         }
 
         viewModel.transferSubmittingLiveData.observe { submitting ->
-            val text = if (submitting) R.string.wallet_send_sending else R.string.wallet_send_confirm_transfer
+            val text = if (submitting) R.string.wallet_send_progress else R.string.wallet_send_confirm_transfer
 
             confirmTransferSubmit.isEnabled = !submitting
             confirmTransferSubmit.setText(text)
