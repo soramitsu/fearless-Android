@@ -110,4 +110,18 @@
     <string name="search_recipient_no_results">検索結果がありません</string>
     <string name="search_recipient_welcome">送金先のアカウントと連絡先がここに表示されます</string>
     <string name="search_result_header">検索結果</string>
+    <string name="common_continue">継続する</string>
+    <string name="common_retry">リトライ</string>
+
+    <string name="choose_amount_asset">資産</string>
+    <string name="choose_amount_fee">転送料</string>
+    <string name="choose_amount_free_balance">フリーバランス：</string>
+    <string name="choose_amount_hint">量</string>
+    <string name="choose_amount_network_error">ネットワークが応答しない</string>
+    <string name="choose_amount_to">に</string>
+
+    <string name="choose_amount_checking">チェック中…</string>
+    <string name="choose_amount_error_too_big">申し訳ありませんが、指定された金額を送金するのに十分な資金がありません。</string>
+    <string name="choose_amount_error_fee">申し訳ありませんが、転送プロバイダーに連絡できませんでした。しばらくしてからもう一度お試しください。</string>
+    <string name="choose_amount_error_balance">申し訳ありませんが、残高確認リクエストは失敗しました。しばらくしてからもう一度お試しください。</string>
 </resources>

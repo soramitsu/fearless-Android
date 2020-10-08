@@ -20,16 +20,22 @@ class WalletInteractorImpl(
         return walletRepository.observeAssets()
     }
 
-    override fun syncAssets(): Completable {
-        return walletRepository.syncAssets()
+    override fun syncAssets(withoutRates: Boolean): Completable {
+        return walletRepository.syncAssets(withoutRates)
     }
 
     override fun observeAsset(token: Asset.Token): Observable<Asset> {
         return walletRepository.observeAsset(token)
     }
 
-    override fun syncAsset(token: Asset.Token): Completable {
-        return walletRepository.syncAsset(token)
+    override fun syncAsset(token: Asset.Token, withoutRates: Boolean): Completable {
+        return walletRepository.syncAsset(token, withoutRates)
+    }
+
+    override fun observeCurrentAsset(): Observable<Asset> {
+        return accountRepository.observeSelectedAccount()
+            .map { Asset.Token.fromNetworkType(it.network.type) }
+            .switchMap(walletRepository::observeAsset)
     }
 
     override fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>> {
@@ -61,7 +67,8 @@ class WalletInteractorImpl(
     }
 
     override fun getContacts(query: String): Single<List<String>> {
-        return walletRepository.getContacts(query)
+        return accountRepository.observeSelectedAccount().firstOrError()
+            .flatMap { walletRepository.getContacts(query, it.network.type) }
     }
 
     override fun validateSendAddress(address: String): Single<Boolean> {
@@ -76,5 +83,9 @@ class WalletInteractorImpl(
 
     override fun performTransfer(transfer: Transfer): Completable {
         return walletRepository.performTransfer(transfer)
+    }
+
+    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {
+        return walletRepository.checkEnoughAmountForTransfer(transfer)
     }
 }

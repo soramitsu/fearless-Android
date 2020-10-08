@@ -8,6 +8,7 @@ import androidx.room.Transaction
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.core_db.model.TransactionLocal
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 
 @Dao
 abstract class TransactionDao {
@@ -17,12 +18,12 @@ abstract class TransactionDao {
 
     @Query(
         """
-            SELECT DISTINCT recipientAddress FROM transactions WHERE (recipientAddress LIKE '%' || :query  || '%' AND recipientAddress != accountAddress)
+            SELECT DISTINCT recipientAddress FROM transactions WHERE (recipientAddress LIKE '%' || :query  || '%' AND recipientAddress != accountAddress) AND networkType = :networkType
             UNION
-            SELECT DISTINCT senderAddress FROM transactions WHERE (senderAddress LIKE '%' || :query  || '%' AND senderAddress != accountAddress)
+            SELECT DISTINCT senderAddress FROM transactions WHERE (senderAddress LIKE '%' || :query  || '%' AND senderAddress != accountAddress) AND networkType = :networkType
         """
     )
-    abstract fun getContacts(query: String): Single<List<String>>
+    abstract fun getContacts(query: String, networkType: Node.NetworkType): Single<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract fun insert(transactions: List<TransactionLocal>)

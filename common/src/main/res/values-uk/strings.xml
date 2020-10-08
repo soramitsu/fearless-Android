@@ -111,4 +111,18 @@
     <string name="search_recipient_no_results">Немає результатів пошуку</string>
     <string name="search_recipient_welcome">Тут з’являться ваші облікові записи та контакти, кому ви надсилали перекази</string>
     <string name="search_result_header">Результат пошуку</string>
+    <string name="common_continue">Продовжити</string>
+    <string name="common_retry">Повторіть спробу</string>
+
+    <string name="choose_amount_asset">Актив</string>
+    <string name="choose_amount_fee">Плата за переказ</string>
+    <string name="choose_amount_free_balance">Вільний баланс:</string>
+    <string name="choose_amount_hint">Сума</string>
+    <string name="choose_amount_network_error">Мережа не відповідає</string>
+    <string name="choose_amount_to">До</string>
+
+    <string name="choose_amount_checking">Перевірка…</string>
+    <string name="choose_amount_error_too_big">На жаль, у вас недостатньо коштів для переказу зазначеної суми.</string>
+    <string name="choose_amount_error_fee">На жаль, нам не вдалося зв’язатися з постачальником передачі. Будь ласка спробуйте пізніше.</string>
+    <string name="choose_amount_error_balance">На жаль, запит на перевірку балансу не вдався. Будь-ласка спробуйте пізніше.</string>
 </resources>

@@ -112,4 +112,18 @@
     <string name="search_recipient_no_results">Эҙләүгә һөҙөмтә юҡ</string>
     <string name="search_recipient_welcome">Здесь появятся ваши аккаунты и контакты, которым вы отправляли переводы</string>
     <string name="search_result_header">Эҙләү һөҙөмтәһе</string>
+    <string name="common_continue">Продолжить</string>
+    <string name="common_retry">Повторить</string>
+
+    <string name="choose_amount_asset">Токен</string>
+    <string name="choose_amount_fee">Комиссия</string>
+    <string name="choose_amount_free_balance">Свободный баланс:</string>
+    <string name="choose_amount_hint">Сумма</string>
+    <string name="choose_amount_network_error">Сеть недоступна</string>
+    <string name="choose_amount_to">Кому</string>
+
+    <string name="choose_amount_checking">Проверка</string>
+    <string name="choose_amount_error_too_big">Ғәфү итегеҙ, кәрәккән сумманы ебәреү өсөн етерлек аҡса юҡ</string>
+    <string name="choose_amount_error_fee">Ғәфү итегеҙ, тәьмин итеүсе менән бәйләнеш юҡ. Һуңыраҡ ҡабатлап ҡарағыҙ.</string>
+    <string name="choose_amount_error_balance">К сожалению, запрос проверки баланса не выполнен. Пожалуйста, попробуйте позже.</string>
 </resources>

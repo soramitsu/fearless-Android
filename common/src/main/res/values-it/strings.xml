@@ -110,4 +110,18 @@
     <string name="search_recipient_no_results">Nessun risultato trovato</string>
     <string name="search_recipient_welcome">I tuoi account e contatti a cui stavi inviando i trasferimenti verranno visualizzati qui</string>
     <string name="search_result_header">Risultato della ricerca</string>
+    <string name="common_continue">Continua</string>
+    <string name="common_retry">Riprova</string>
+
+    <string name="choose_amount_asset">Risorsa</string>
+    <string name="choose_amount_fee">Tassa di trasferimento</string>
+    <string name="choose_amount_free_balance">Saldo gratuito:</string>
+    <string name="choose_amount_hint">Quantità</string>
+    <string name="choose_amount_network_error">La rete non risponde</string>
+    <string name="choose_amount_to">Per</string>
+
+    <string name="choose_amount_checking">Controllo ...</string>
+    <string name="choose_amount_error_too_big">Spiacenti, non disponi di fondi sufficienti per trasferire l\'importo specificato.</string>
+    <string name="choose_amount_error_fee">Spiacenti, non è stato possibile contattare il fornitore di servizi di trasferimento. Per favore riprova più tardi.</string>
+    <string name="choose_amount_error_balance">Spiacenti, richiesta di controllo del saldo non riuscita. Per favore riprova più tardi.</string>
 </resources>

@@ -110,4 +110,18 @@
     <string name="search_recipient_no_results">Sin resultados de búsqueda</string>
     <string name="search_recipient_welcome">Sus cuentas y contactos a los que estaba enviando transferencias aparecerán aquí.</string>
     <string name="search_result_header">Resultado de búsqueda</string>
+    <string name="common_continue">Seguir</string>
+    <string name="common_retry">Rever</string>
+
+    <string name="choose_amount_asset">Activo</string>
+    <string name="choose_amount_fee">Tarifa de transferencia</string>
+    <string name="choose_amount_free_balance">Saldo libre:</string>
+    <string name="choose_amount_hint">Cantidad</string>
+    <string name="choose_amount_network_error">La red no responde</string>
+    <string name="choose_amount_to">A</string>
+
+    <string name="choose_amount_checking">Comprobación…</string>
+    <string name="choose_amount_error_too_big">Lo sentimos, no tienes fondos suficientes para transferir la cantidad especificada.</string>
+    <string name="choose_amount_error_fee">Lo sentimos, no pudimos comunicarnos con el proveedor de transferencias. Por favor, inténtelo de nuevo más tarde.</string>
+    <string name="choose_amount_error_balance">Lo sentimos, la solicitud de verificación de saldo falló. Por favor, inténtelo de nuevo más tarde.</string>
 </resources>

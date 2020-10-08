@@ -8,7 +8,7 @@ import io.emeraldpay.polkaj.scale.ScaleReader
 import io.emeraldpay.polkaj.scale.ScaleWriter
 import io.emeraldpay.polkaj.scale.reader.CompactBigIntReader
 import io.emeraldpay.polkaj.scale.writer.BoolWriter
-import io.emeraldpay.polkaj.scale.writer.CompactBigIntWriter
+import jp.co.soramitsu.common.data.network.scale.utils.CompactBigIntWriter
 import java.math.BigInteger
 
 sealed class DataType<T> : ScaleReader<T>, ScaleWriter<T>
@@ -99,7 +99,9 @@ object compactInt : DataType<BigInteger>() {
         return read
     }
 
-    override fun write(writer: ScaleCodecWriter, value: BigInteger) = compactIntWriter.write(writer, value)
+    override fun write(writer: ScaleCodecWriter, value: BigInteger) {
+        compactIntWriter.write(writer, value)
+    }
 }
 
 object byteArray : DataType<ByteArray>() {

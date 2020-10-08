@@ -18,4 +18,5 @@
     <dimen name="x2">16dp</dimen>
     <dimen name="x3">24dp</dimen>
 
+    <dimen name="element_chooser_padding">16dp</dimen>
 </resources>

@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import java.math.BigDecimal
 
@@ -22,5 +23,6 @@ class TransactionLocal(
     val recipientAddress: String,
     val amount: BigDecimal,
     val date: Long,
-    val isIncome: Boolean
+    val isIncome: Boolean,
+    val networkType: Node.NetworkType = token.networkType
 )

@@ -28,6 +28,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateS
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.FeeRemote
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubscanResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.feeFrozen
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.free
@@ -53,10 +54,9 @@ class WalletRepositoryImpl(
         }.mapList(::mapAssetLocalToAsset)
     }
 
-    override fun syncAssets(): Completable {
+    override fun syncAssets(withoutRates: Boolean): Completable {
         return getSelectedAccount()
-            .doOnSuccess(::syncAssets)
-            .ignoreElement()
+            .flatMapCompletable { syncAssets(it, withoutRates) }
     }
 
     override fun observeAsset(token: Asset.Token): Observable<Asset> {
@@ -65,8 +65,8 @@ class WalletRepositoryImpl(
         }.map(::mapAssetLocalToAsset)
     }
 
-    override fun syncAsset(token: Asset.Token): Completable {
-        return syncAssets()
+    override fun syncAsset(token: Asset.Token, withoutRates: Boolean): Completable {
+        return syncAssets(withoutRates)
     }
 
     override fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>> {
@@ -84,8 +84,8 @@ class WalletRepositoryImpl(
             .flatMap { getTransactionPage(pageSize, page, it) }
     }
 
-    override fun getContacts(query: String): Single<List<String>> {
-        return transactionsDao.getContacts(query)
+    override fun getContacts(query: String, networkType: Node.NetworkType): Single<List<String>> {
+        return transactionsDao.getContacts(query, networkType)
     }
 
     override fun getTransferFee(transfer: Transfer): Single<Fee> {
@@ -93,7 +93,7 @@ class WalletRepositoryImpl(
             val account = getSelectedAccount().blockingGet()
             val node = accountRepository.getSelectedNode().blockingGet()
 
-            substrateSource.getTransferFee(account, node, transfer).blockingGet()
+            getTransferFeeUpdatingBalance(account, node, transfer).blockingGet()
         }.map { mapFeeRemoteToFee(it, transfer.token) }
     }
 
@@ -108,6 +108,36 @@ class WalletRepositoryImpl(
         }
     }
 
+    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {
+        return Single.fromCallable {
+            val account = getSelectedAccount().blockingGet()
+            val node = accountRepository.getSelectedNode().blockingGet()
+
+            getTransferFeeUpdatingBalance(account, node, transfer).blockingGet()
+
+            val accountInfo = substrateSource.fetchAccountInfo(account, node).blockingGet()
+            val fee = getTransferFeeUpdatingBalance(account, node, transfer).blockingGet()
+
+            checkEnoughAmountForTransfer(transfer, accountInfo, fee)
+        }
+    }
+
+    private fun getTransferFeeUpdatingBalance(account: Account, node: Node, transfer: Transfer): Single<FeeRemote> {
+        return substrateSource.getTransferFee(account, node, transfer)
+            .doOnSuccess { updateLocalBalance(account, it.newAccountInfo) }
+            .map { it.feeRemote }
+    }
+
+    private fun checkEnoughAmountForTransfer(
+        transfer: Transfer,
+        accountInfo: EncodableStruct<AccountInfo>,
+        fee: FeeRemote
+    ): Boolean {
+        val balance = accountInfo[data][free]
+
+        return fee.partialFee + transfer.amountInPlanks <= balance
+    }
+
     private fun syncTransactionsFirstPage(pageSize: Int, account: Account): Completable {
         return getTransactionPage(pageSize, 0, account)
             .mapList { mapTransactionToTransactionLocal(it, account.address) }
@@ -115,14 +145,14 @@ class WalletRepositoryImpl(
             .ignoreElement()
     }
 
-    private fun syncAssets(account: Account) {
+    private fun syncAssets(account: Account, withoutRates: Boolean): Completable {
         val node = accountRepository.getSelectedNode().blockingGet()
 
-        val assets = zipSyncAssetRequests(account, node).blockingGet()
-
-        val assetsLocal = assets.map { mapAssetToAssetLocal(it, account.address) }
-
-        assetDao.insert(assetsLocal)
+        return if (withoutRates) {
+            balanceAssetSync(account, node)
+        } else {
+            fullAssetSync(account, node)
+        }
     }
 
     private fun getTransactionPage(pageSize: Int, page: Int, account: Account): Single<List<Transaction>> {
@@ -137,6 +167,44 @@ class WalletRepositoryImpl(
 
                 transfers.map { transfer -> mapTransferToTransaction(transfer, account) }
             }
+    }
+
+    private fun fullAssetSync(
+        account: Account,
+        node: Node
+    ): Completable {
+        return zipSyncAssetRequests(account, node)
+            .mapList { mapAssetToAssetLocal(it, account.address) }
+            .flatMapCompletable(assetDao::insert)
+    }
+
+    private fun balanceAssetSync(
+        account: Account,
+        node: Node
+    ): Completable {
+        return Completable.fromAction {
+            val accountInfo = substrateSource.fetchAccountInfo(account, node).blockingGet()
+
+            updateLocalBalance(account, accountInfo)
+        }
+    }
+
+    private fun updateLocalBalance(account: Account, accountInfo: EncodableStruct<AccountInfo>) {
+        val currentState = assetDao.observeAssets(account.address).blockingFirst()
+
+        val asset = currentState.first()
+        val accountData = accountInfo[data]
+
+        val newState = listOf(
+            asset.copy(
+                feeFrozenInPlanks = accountData[feeFrozen],
+                miscFrozenInPlanks = accountData[miscFrozen],
+                freeInPlanks = accountData[free],
+                reservedInPlanks = accountData[reserved]
+            )
+        )
+
+        assetDao.insert(newState)
     }
 
     private fun zipSyncAssetRequests(

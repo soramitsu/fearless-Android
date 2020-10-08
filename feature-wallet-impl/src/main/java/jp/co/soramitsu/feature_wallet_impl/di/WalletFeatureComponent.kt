@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.di.BalanceDetailComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.di.BalanceListComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.di.ChooseAmountComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.di.ChooseRecipientComponent
 
 @Component(
@@ -27,6 +28,8 @@ interface WalletFeatureComponent : AccountFeatureApi {
     fun balanceDetailComponentFactory(): BalanceDetailComponent.Factory
 
     fun chooseRecipientComponentFactory(): ChooseRecipientComponent.Factory
+
+    fun chooseAmountComponentFactory(): ChooseAmountComponent.Factory
 
     @Component.Factory
     interface Factory {
