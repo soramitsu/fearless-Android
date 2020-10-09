@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.core_db.converters.LongMathConverters
 import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
 import jp.co.soramitsu.core_db.converters.TokenConverters
@@ -17,6 +18,7 @@ import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
+import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Database(
     version = 9,
@@ -35,14 +37,21 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 abstract class AppDatabase : RoomDatabase() {
 
     companion object {
+
         private var instance: AppDatabase? = null
 
         @Synchronized
-        fun get(context: Context): AppDatabase {
+        fun get(context: Context, defaultNodes: DefaultNodes): AppDatabase {
             if (instance == null) {
                 instance = Room.databaseBuilder(context.applicationContext,
                     AppDatabase::class.java, "app.db")
                     .fallbackToDestructiveMigration()
+                    .addCallback(object : RoomDatabase.Callback() {
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            db.execSQL(defaultNodes.prepopulateQuery)
+                        }
+                    })
                     .build()
             }
             return instance!!
