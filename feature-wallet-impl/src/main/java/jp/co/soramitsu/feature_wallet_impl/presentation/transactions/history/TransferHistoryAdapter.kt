@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions
+package jp.co.soramitsu.feature_wallet_impl.presentation.transactions.history
 
 import android.view.View
 import android.view.ViewGroup

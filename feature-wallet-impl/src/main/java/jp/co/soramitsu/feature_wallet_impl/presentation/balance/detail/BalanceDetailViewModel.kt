@@ -15,9 +15,9 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransactionFilter
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransactionHistoryUi
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.transactions.history.mixin.TransactionFilter
+import jp.co.soramitsu.feature_wallet_impl.presentation.transactions.history.mixin.TransactionHistoryUi
+import jp.co.soramitsu.feature_wallet_impl.presentation.transactions.history.mixin.TransferHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 

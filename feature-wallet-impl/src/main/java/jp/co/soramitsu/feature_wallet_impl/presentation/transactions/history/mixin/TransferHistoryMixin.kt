@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin
+package jp.co.soramitsu.feature_wallet_impl.presentation.transactions.history.mixin
 
 import androidx.lifecycle.LiveData
 import io.reactivex.disposables.Disposable
