@@ -9,14 +9,19 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Module
 class DbModule {
 
     @Provides
     @ApplicationScope
-    fun provideAppDatabase(context: Context): AppDatabase {
-        return AppDatabase.get(context)
+    fun provideDefaultNodes() = DefaultNodes()
+
+    @Provides
+    @ApplicationScope
+    fun provideAppDatabase(context: Context, defaultNodes: DefaultNodes): AppDatabase {
+        return AppDatabase.get(context, defaultNodes)
     }
 
     @Provides

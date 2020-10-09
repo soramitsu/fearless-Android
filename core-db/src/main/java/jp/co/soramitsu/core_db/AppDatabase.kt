@@ -16,6 +16,7 @@ import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
+import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Database(
     version = 7,
@@ -30,17 +31,10 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
 
-        private const val defaultNodes = "insert into nodes (id, name, link, networkType, isDefault) values " +
-            "(1, 'Kusama Parity Node', 'wss://kusama-rpc.polkadot.io', 0, 1)," +
-            "(2, 'Kusama, Web3 Foundation node', 'wss://cc3-5.kusama.network', 0, 1)," +
-            "(3, 'Polkadot Parity Node', 'wss://rpc.polkadot.io', 1, 1)," +
-            "(4, 'Polkadot, Web3 Foundation node', 'wss://cc1-1.polkadot.network', 1, 1)," +
-            "(5, 'Westend Parity Node', 'wss://westend-rpc.polkadot.io', 2, 1)"
-
         private var instance: AppDatabase? = null
 
         @Synchronized
-        fun get(context: Context): AppDatabase {
+        fun get(context: Context, defaultNodes: DefaultNodes): AppDatabase {
             if (instance == null) {
                 instance = Room.databaseBuilder(context.applicationContext,
                     AppDatabase::class.java, "app.db")
@@ -48,7 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            db.execSQL(defaultNodes)
+                            db.execSQL(defaultNodes.prepopulateQuery)
                         }
                     })
                     .build()
