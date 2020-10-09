@@ -47,40 +47,6 @@ class AccountRepositoryImpl(
     private val accountSubstrateSource: AccountSubstrateSource
 ) : AccountRepository {
 
-    companion object {
-        val DEFAULT_NODES_LIST = listOf(
-            NodeLocal(
-                "Kusama Parity Node",
-                "wss://kusama-rpc.polkadot.io",
-                Node.NetworkType.KUSAMA.ordinal,
-                true
-            ),
-            NodeLocal(
-                "Kusama, Web3 Foundation node",
-                "wss://cc3-5.kusama.network",
-                Node.NetworkType.KUSAMA.ordinal,
-                true
-            ),
-            NodeLocal(
-                "Polkadot Parity Node", "wss://rpc.polkadot.io",
-                Node.NetworkType.POLKADOT.ordinal,
-                true
-            ),
-            NodeLocal(
-                "Polkadot, Web3 Foundation node",
-                "wss://cc1-1.polkadot.network",
-                Node.NetworkType.KUSAMA.ordinal,
-                true
-            ),
-            NodeLocal(
-                "Westend Parity Node",
-                "wss://westend-rpc.polkadot.io",
-                Node.NetworkType.WESTEND.ordinal,
-                true
-            )
-        )
-    }
-
     override fun getTermsAddress(): Single<String> {
         return Single.just(appLinksProvider.termsUrl)
     }
@@ -95,9 +61,7 @@ class AccountRepositoryImpl(
 
     override fun getNodes(): Observable<List<Node>> {
         return nodeDao.getNodes()
-            .doOnNext {
-                if (it.isEmpty()) nodeDao.insert(DEFAULT_NODES_LIST)
-            }.map { it.map(::mapNodeLocalToNode) }
+            .map { it.map(::mapNodeLocalToNode) }
     }
 
     override fun getNode(nodeId: Int): Single<Node> {
@@ -115,7 +79,7 @@ class AccountRepositoryImpl(
 
     override fun getSelectedNode(): Single<Node> {
         return Single.fromCallable {
-            accountDataSource.getSelectedNode() ?: mapNodeLocalToNode(DEFAULT_NODES_LIST.first())
+            accountDataSource.getSelectedNode() ?: mapNodeLocalToNode(nodeDao.getFirstNode())
         }
     }
 
