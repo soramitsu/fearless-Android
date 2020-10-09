@@ -125,4 +125,8 @@
     <string name="choose_amount_error_too_big">К сожалению, у вас недостаточно средств для перевода указанной суммы.</string>
     <string name="choose_amount_error_fee">К сожалению, нам не удалось связаться с поставщиком услуг трансфера. Пожалуйста, попробуйте позже.</string>
     <string name="choose_amount_error_balance">К сожалению, запрос проверки баланса не выполнен. Пожалуйста, попробуйте позже.</string>
+
+    <string name="wallet_send_total_title">Всего</string>
+    <string name="wallet_send_progress">Отправка…</string>
+    <string name="wallet_send_confirm_transfer">Подтвердить</string>
 </resources>

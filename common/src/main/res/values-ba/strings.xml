@@ -126,4 +126,8 @@
     <string name="choose_amount_error_too_big">Ғәфү итегеҙ, кәрәккән сумманы ебәреү өсөн етерлек аҡса юҡ</string>
     <string name="choose_amount_error_fee">Ғәфү итегеҙ, тәьмин итеүсе менән бәйләнеш юҡ. Һуңыраҡ ҡабатлап ҡарағыҙ.</string>
     <string name="choose_amount_error_balance">К сожалению, запрос проверки баланса не выполнен. Пожалуйста, попробуйте позже.</string>
+
+    <string name="wallet_send_total_title">Всего</string>
+    <string name="wallet_send_progress">Отправка…</string>
+    <string name="wallet_send_confirm_transfer">Подтвердить</string>
 </resources>

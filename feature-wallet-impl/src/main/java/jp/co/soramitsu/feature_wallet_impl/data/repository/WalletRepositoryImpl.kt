@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -98,13 +99,19 @@ class WalletRepositoryImpl(
     }
 
     override fun performTransfer(transfer: Transfer): Completable {
-        return Completable.fromAction {
+        return Single.fromCallable {
             val account = getSelectedAccount().blockingGet()
             val node = accountRepository.getSelectedNode().blockingGet()
             val signingData = accountRepository.getSigningData().blockingGet()
             val keys = mapSigningDataToKeypair(signingData)
 
-            substrateSource.performTransfer(account, node, transfer, keys).blockingAwait()
+            val hash = substrateSource.performTransfer(account, node, transfer, keys).blockingGet()
+
+            val transaction = createTransaction(hash, transfer, account.address)
+
+            mapTransactionToTransactionLocal(transaction, account.address, TransactionSource.APP)
+        }.flatMapCompletable {
+            transactionsDao.insert(it)
         }
     }
 
@@ -121,6 +128,17 @@ class WalletRepositoryImpl(
             checkEnoughAmountForTransfer(transfer, accountInfo, fee)
         }
     }
+
+    private fun createTransaction(hash: String, transfer: Transfer, accountAddress: String) =
+        Transaction(
+            hash,
+            transfer.token,
+            accountAddress,
+            transfer.recipient,
+            transfer.amount,
+            System.currentTimeMillis(),
+            isIncome = false
+        )
 
     private fun getTransferFeeUpdatingBalance(account: Account, node: Node, transfer: Transfer): Single<FeeRemote> {
         return substrateSource.getTransferFee(account, node, transfer)
@@ -140,8 +158,8 @@ class WalletRepositoryImpl(
 
     private fun syncTransactionsFirstPage(pageSize: Int, account: Account): Completable {
         return getTransactionPage(pageSize, 0, account)
-            .mapList { mapTransactionToTransactionLocal(it, account.address) }
-            .doOnSuccess { transactionsDao.clearAndInsert(account.address, it) }
+            .mapList { mapTransactionToTransactionLocal(it, account.address, TransactionSource.SUBSCAN) }
+            .doOnSuccess { transactionsDao.insertFromSubscan(account.address, it) }
             .ignoreElement()
     }
 

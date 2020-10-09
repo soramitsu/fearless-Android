@@ -124,4 +124,8 @@
     <string name="choose_amount_error_too_big">Lo sentimos, no tienes fondos suficientes para transferir la cantidad especificada.</string>
     <string name="choose_amount_error_fee">Lo sentimos, no pudimos comunicarnos con el proveedor de transferencias. Por favor, inténtelo de nuevo más tarde.</string>
     <string name="choose_amount_error_balance">Lo sentimos, la solicitud de verificación de saldo falló. Por favor, inténtelo de nuevo más tarde.</string>
+
+    <string name="wallet_send_total_title">Total</string>
+    <string name="wallet_send_progress">Enviando…</string>
+    <string name="wallet_send_confirm_transfer">Confirmar transferencia</string>
 </resources>

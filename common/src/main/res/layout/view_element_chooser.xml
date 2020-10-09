@@ -27,6 +27,7 @@
         tools:text="Kusama" />
 
     <ImageView
+        android:id="@+id/elementChooserDropdown"
         android:src="@drawable/ic_pin_white_24"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

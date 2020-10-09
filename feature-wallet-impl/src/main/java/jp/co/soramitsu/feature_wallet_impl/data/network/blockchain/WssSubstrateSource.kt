@@ -2,16 +2,16 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
-import io.reactivex.Completable
 import io.reactivex.Single
-import jp.co.soramitsu.common.data.network.rpc.Mapped
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocketCreator
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
-import jp.co.soramitsu.common.data.network.rpc.pojo
+import jp.co.soramitsu.common.data.network.rpc.mappers.nonNull
+import jp.co.soramitsu.common.data.network.rpc.mappers.pojo
+import jp.co.soramitsu.common.data.network.rpc.mappers.scale
+import jp.co.soramitsu.common.data.network.rpc.mappers.scaleCollection
+import jp.co.soramitsu.common.data.network.rpc.mappers.string
 import jp.co.soramitsu.common.data.network.rpc.provideLifecycleFor
-import jp.co.soramitsu.common.data.network.rpc.scale
-import jp.co.soramitsu.common.data.network.rpc.scaleCollection
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.data.network.scale.invoke
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -84,9 +84,9 @@ class WssSubstrateSource(
 
             val request = FeeCalculationRequest(extrinsic)
 
-            val resultHolder = socket.executeRequest(request, pojo<FeeRemote>()).blockingGet()
+            val feeRemote = socket.executeRequest(request, responseType = pojo<FeeRemote>().nonNull()).blockingGet()
 
-            FeeResponse(resultHolder.result, newAccountInfo)
+            FeeResponse(feeRemote, newAccountInfo)
         }
 
         return socket.connect()
@@ -99,7 +99,7 @@ class WssSubstrateSource(
         node: Node,
         transfer: Transfer,
         keypair: Keypair
-    ): Completable {
+    ): Single<String> {
         val socket = rxWebSocketCreator.createSocket(node.link)
 
         val performTransfer = Single.fromCallable {
@@ -107,9 +107,7 @@ class WssSubstrateSource(
 
             TransferRequest(extrinsic)
         }
-            .flatMap { socket.executeRequest(it) }
-            .doOnSuccess { if (it.result == null) throw BlockChainException() }
-            .ignoreElement()
+            .flatMap { socket.executeRequest(it, responseType = string().nonNull()) }
 
         return socket.connect()
             .andThen(performTransfer)
@@ -125,7 +123,7 @@ class WssSubstrateSource(
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
         val accountIdValue = Hex.decode(account.publicKey)
 
-        val runtimeInfo = getRuntimeVersion(socket).blockingGet().result
+        val runtimeInfo = getRuntimeVersion(socket).blockingGet()
         val (currentNonce, newAccountInfo) = getNonce(socket, account).blockingGet()
 
         val genesis = account.network.type.genesisHash
@@ -170,7 +168,7 @@ class WssSubstrateSource(
         val publicKeyBytes = Hex.decode(publicKey)
         val request = AccountInfoRequest(publicKeyBytes)
 
-        return rxWebSocket.executeRequest(request, scale(AccountInfo))
+        return rxWebSocket.executeRequest(request, responseType = scale(AccountInfo))
             .map { response -> response.result ?: emptyAccountInfo() }
     }
 
@@ -214,10 +212,10 @@ class WssSubstrateSource(
         return list.count { it[signedExtrinsic][accountId].contentEquals(publicKeyBytes) }
     }
 
-    private fun getRuntimeVersion(socket: RxWebSocket): Single<Mapped<RuntimeVersion>> {
+    private fun getRuntimeVersion(socket: RxWebSocket): Single<RuntimeVersion> {
         val request = RuntimeVersionRequest()
 
-        return socket.executeRequest(request, pojo())
+        return socket.executeRequest(request, pojo<RuntimeVersion>().nonNull())
     }
 
     private fun emptyAccountInfo() = AccountInfo { info ->

@@ -11,7 +11,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.util.formatDateTime
-import jp.co.soramitsu.feature_wallet_impl.util.formatPastDay
+import jp.co.soramitsu.feature_wallet_impl.util.formatDaysSinceEpoch
 import kotlinx.android.synthetic.main.item_day_header.view.itemDayHeader
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAddress
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAmount
@@ -53,14 +53,14 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
 class DayHolder(view: View) : GroupedListHolder(view) {
     fun bind(item: DayHeader) {
         with(containerView) {
-            itemDayHeader.text = item.date.formatPastDay(context)
+            itemDayHeader.text = item.daysSinceEpoch.formatDaysSinceEpoch(context)
         }
     }
 }
 
 object TransferHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, TransactionModel>(DayHeader::class.java) {
     override fun areGroupItemsTheSame(oldItem: DayHeader, newItem: DayHeader): Boolean {
-        return oldItem.date == oldItem.date
+        return oldItem.daysSinceEpoch == oldItem.daysSinceEpoch
     }
 
     override fun areGroupContentsTheSame(oldItem: DayHeader, newItem: DayHeader): Boolean {
