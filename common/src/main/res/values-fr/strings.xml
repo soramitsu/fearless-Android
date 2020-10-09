@@ -125,4 +125,8 @@
     <string name="choose_amount_error_too_big">Désolé, vous ne disposez pas de suffisamment de fonds pour transférer le montant spécifié.</string>
     <string name="choose_amount_error_fee">Désolé, nous n\'avons pas pu contacter le fournisseur de transfert. Veuillez réessayer plus tard.</string>
     <string name="choose_amount_error_balance">Désolé, la demande de vérification du solde a échoué. Veuillez réessayer plus tard.</string>
+
+    <string name="wallet_send_total_title">Total</string>
+    <string name="wallet_send_progress">Envoi en cours…</string>
+    <string name="wallet_send_confirm_transfer">Confirmer le transfert</string>
 </resources>

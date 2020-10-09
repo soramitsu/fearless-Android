@@ -131,4 +131,8 @@
     <string name="choose_amount_error_fee">Sorry, we couldn\'t contact transfer provider. Please, try again later.</string>
     <string name="choose_amount_error_too_big">Sorry, you don\'t have enough funds to transfer specified amount.</string>
     <string name="choose_amount_checking">Checking…</string>
+
+    <string name="wallet_send_total_title">Total</string>
+    <string name="wallet_send_confirm_transfer">Confirm Transfer</string>
+    <string name="wallet_send_progress">Sending…</string>
 </resources>

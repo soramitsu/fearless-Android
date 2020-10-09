@@ -14,7 +14,9 @@ import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragm
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment
 import jp.co.soramitsu.splash.SplashRouter
 
 class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
@@ -114,13 +116,23 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
     }
 
     override fun openChooseRecipient() {
-        navController?.navigate(R.id.action_open_choose_recipient)
+        navController?.navigate(R.id.action_open_send)
     }
 
     override fun openChooseAmount(recipientAddress: String) {
         val bundle = ChooseAmountFragment.getBundle(recipientAddress)
 
         navController?.navigate(R.id.action_chooseRecipientFragment_to_chooseAmountFragment, bundle)
+    }
+
+    override fun openConfirmTransfer(transferDraft: TransferDraft) {
+        val bundle = ConfirmTransferFragment.getBundle(transferDraft)
+
+        navController?.navigate(R.id.action_chooseAmountFragment_to_confirmTransferFragment, bundle)
+    }
+
+    override fun finishSendFlow() {
+        navController?.navigate(R.id.finish_send_flow)
     }
 
     override fun openAccounts() {

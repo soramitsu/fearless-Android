@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
 import jp.co.soramitsu.common.R
+import kotlinx.android.synthetic.main.view_element_chooser.view.elementChooserDropdown
 import kotlinx.android.synthetic.main.view_element_chooser.view.elementChooserIcon
 import kotlinx.android.synthetic.main.view_element_chooser.view.elementChooserText
 
@@ -38,8 +39,9 @@ class ElementChooserView @JvmOverloads constructor(
         super.setEnabled(enabled)
 
         val backgroundRes = if (enabled) R.drawable.bg_input_shape_filled_selector else R.drawable.bg_button_primary_disabled
-
         setBackgroundResource(backgroundRes)
+
+        elementChooserDropdown.visibility = if (enabled) View.VISIBLE else View.GONE
     }
 
     fun setIcon(@DrawableRes icon: Int) {

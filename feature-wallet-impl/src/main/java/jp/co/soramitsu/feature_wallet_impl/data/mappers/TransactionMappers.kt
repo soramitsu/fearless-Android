@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
 import jp.co.soramitsu.core_db.model.TransactionLocal
+import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
@@ -35,7 +36,11 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal): Transa
     }
 }
 
-fun mapTransactionToTransactionLocal(transaction: Transaction, accountAddress: String): TransactionLocal {
+fun mapTransactionToTransactionLocal(
+    transaction: Transaction,
+    accountAddress: String,
+    source: TransactionSource
+): TransactionLocal {
     return with(transaction) {
         TransactionLocal(
             accountAddress = accountAddress,
@@ -45,6 +50,7 @@ fun mapTransactionToTransactionLocal(transaction: Transaction, accountAddress: S
             senderAddress = senderAddress,
             amount = amount,
             date = date,
+            source = source,
             token = token
         )
     }

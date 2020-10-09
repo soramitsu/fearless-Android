@@ -8,6 +8,7 @@ import androidx.room.TypeConverters
 import jp.co.soramitsu.core_db.converters.LongMathConverters
 import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
 import jp.co.soramitsu.core_db.converters.TokenConverters
+import jp.co.soramitsu.core_db.converters.TransactionConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.NodeDao
@@ -18,14 +19,19 @@ import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
 
 @Database(
-    version = 8,
+    version = 9,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
         TransactionLocal::class,
         AssetLocal::class
     ])
-@TypeConverters(LongMathConverters::class, TokenConverters::class, NetworkTypeConverters::class)
+@TypeConverters(
+    LongMathConverters::class,
+    TokenConverters::class,
+    NetworkTypeConverters::class,
+    TransactionConverters::class
+)
 abstract class AppDatabase : RoomDatabase() {
 
     companion object {

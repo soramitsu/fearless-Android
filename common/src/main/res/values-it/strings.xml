@@ -124,4 +124,8 @@
     <string name="choose_amount_error_too_big">Spiacenti, non disponi di fondi sufficienti per trasferire l\'importo specificato.</string>
     <string name="choose_amount_error_fee">Spiacenti, non è stato possibile contattare il fornitore di servizi di trasferimento. Per favore riprova più tardi.</string>
     <string name="choose_amount_error_balance">Spiacenti, richiesta di controllo del saldo non riuscita. Per favore riprova più tardi.</string>
+
+    <string name="wallet_send_total_title">Totale</string>
+    <string name="wallet_send_progress">Invio ...</string>
+    <string name="wallet_send_confirm_transfer">Conferma il trasferimento</string>
 </resources>

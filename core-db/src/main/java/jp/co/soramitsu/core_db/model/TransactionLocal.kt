@@ -24,5 +24,10 @@ class TransactionLocal(
     val amount: BigDecimal,
     val date: Long,
     val isIncome: Boolean,
+    val source: TransactionSource,
     val networkType: Node.NetworkType = token.networkType
 )
+
+enum class TransactionSource {
+    BLOCKCHAIN, SUBSCAN, APP
+}

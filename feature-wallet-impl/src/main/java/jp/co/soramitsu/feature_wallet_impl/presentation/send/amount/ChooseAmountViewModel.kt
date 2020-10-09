@@ -22,6 +22,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.AddressModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
@@ -160,7 +161,13 @@ class ChooseAmountViewModel(
     }
 
     private fun openConfirmationScreen() {
-        showMessage("Ready to transfer") // TODO
+        val amount = amountEventsSubject.value!!
+        val fee = feeLiveData.value!!.fee!!
+        val asset = assetLiveData.value!!
+
+        val transferDraft = TransferDraft(amount, fee, asset.balance, asset.token, recipientAddress)
+
+        router.openConfirmTransfer(transferDraft)
     }
 
     private fun retryLoadFee() {

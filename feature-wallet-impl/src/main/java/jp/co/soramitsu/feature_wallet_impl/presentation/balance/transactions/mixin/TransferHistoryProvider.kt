@@ -8,13 +8,13 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.ErrorHandler
+import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import java.util.concurrent.TimeUnit
 
 private const val PAGE_SIZE = 20
 
@@ -90,6 +90,7 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
             .subscribe({
                 _transactionsLiveData.value = it
                 isLoading = false
+                currentPage = 0
             }, transactionsErrorHandler)
     }
 
@@ -117,18 +118,12 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
 
         currentTransactions = all
 
-        return all.groupBy { extractDay(it.date) }
-            .map { (_, transactions) ->
-                val millis = transactions.first().date
-
-                val header = DayHeader(millis)
+        return all.groupBy { it.date.daysFromMillis() }
+            .map { (daysSinceEpoch, transactions) ->
+                val header = DayHeader(daysSinceEpoch)
 
                 listOf(header) + transactions
             }.flatten()
-    }
-
-    private fun extractDay(millis: Long): Long {
-        return TimeUnit.MILLISECONDS.toDays(millis)
     }
 
     private fun List<TransactionModel>.filter(filters: List<TransactionFilter>): List<TransactionModel> {
