@@ -67,7 +67,7 @@ class ChooseAmountViewModel(
         feeLiveData,
         checkingEnoughFundsLiveData
     ) { (feeLoading: Boolean, fee: Fee, checkingFunds: Boolean) ->
-        !feeLoading && fee.fee != null && !checkingFunds
+        !feeLoading && fee.amount != null && !checkingFunds
     }
 
     val assetLiveData = currentAssetObservable
@@ -162,7 +162,7 @@ class ChooseAmountViewModel(
 
     private fun openConfirmationScreen() {
         val amount = amountEventsSubject.value!!
-        val fee = feeLiveData.value!!.fee!!
+        val fee = feeLiveData.value!!.amount!!
         val asset = assetLiveData.value!!
 
         val transferDraft = TransferDraft(amount, fee, asset.balance, asset.token, recipientAddress)

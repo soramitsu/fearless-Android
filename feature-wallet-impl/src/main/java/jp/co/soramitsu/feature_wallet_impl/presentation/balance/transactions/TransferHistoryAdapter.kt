@@ -6,7 +6,10 @@ import jp.co.soramitsu.common.groupedList.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.groupedList.GroupedListAdapter
 import jp.co.soramitsu.common.groupedList.GroupedListHolder
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
@@ -16,6 +19,7 @@ import kotlinx.android.synthetic.main.item_day_header.view.itemDayHeader
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAddress
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAmount
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionIcon
+import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionStatus
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionTime
 
 class TransferHistoryAdapter : GroupedListAdapter<DayHeader, TransactionModel>(TransferHistoryDiffCallback) {
@@ -46,6 +50,13 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
 
             itemTransactionIcon.setImageResource(item.token.icon)
             itemTransactionTime.text = item.date.formatDateTime(context)
+
+            if (item.status != Transaction.Status.COMPLETED) {
+                itemTransactionStatus.makeVisible()
+                itemTransactionStatus.setImageResource(item.statusIcon)
+            } else {
+                itemTransactionStatus.makeGone()
+            }
         }
     }
 }

@@ -9,5 +9,17 @@ class Transaction(
     val recipientAddress: String,
     val amount: BigDecimal,
     val date: Long,
+    val status: Status,
+    val fee: Fee,
     val isIncome: Boolean
-)
+) {
+    enum class Status {
+        PENDING, COMPLETED, FAILED;
+
+        companion object {
+            fun fromSuccess(success: Boolean) : Status {
+                return if (success) COMPLETED else FAILED
+            }
+        }
+    }
+}

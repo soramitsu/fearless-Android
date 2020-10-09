@@ -40,7 +40,7 @@ class ConfirmTransferViewModel(
     fun submitClicked() {
         _transferSubmittingLiveData.value = true
 
-        disposables += interactor.performTransfer(createTransfer())
+        disposables += interactor.performTransfer(createTransfer(), transferDraft.fee)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doFinally { _transferSubmittingLiveData.value = false }

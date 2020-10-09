@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import java.math.BigDecimal
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -81,8 +82,8 @@ class WalletInteractorImpl(
         return walletRepository.getTransferFee(transfer)
     }
 
-    override fun performTransfer(transfer: Transfer): Completable {
-        return walletRepository.performTransfer(transfer)
+    override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
+        return walletRepository.performTransfer(transfer, fee)
     }
 
     override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {

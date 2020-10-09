@@ -4,6 +4,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionRemote
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
@@ -17,7 +18,9 @@ fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel
             recipientAddress = recipientAddress,
             isIncome = isIncome,
             date = date,
-            amount = amount
+            amount = amount,
+            status = status,
+            fee = fee
         )
     }
 }
@@ -31,6 +34,8 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal): Transa
             senderAddress = senderAddress,
             amount = amount,
             date = date,
+            fee = Fee(feeInPlanks, token),
+            status = status,
             token = token
         )
     }
@@ -48,23 +53,29 @@ fun mapTransactionToTransactionLocal(
             isIncome = isIncome,
             recipientAddress = recipientAddress,
             senderAddress = senderAddress,
+            status = status,
             amount = amount,
             date = date,
             source = source,
-            token = token
+            token = token,
+            feeInPlanks = fee.amountInPlanks!!
         )
     }
 }
 
 fun mapTransferToTransaction(transfer: TransactionRemote, account: Account): Transaction {
+    val token = Asset.Token.fromNetworkType(account.network.type)
+
     return with(transfer) {
         Transaction(
             hash = hash,
-            token = Asset.Token.fromNetworkType(account.network.type),
+            token = token,
             date = timeInMillis,
             amount = amount,
+            status = Transaction.Status.fromSuccess(success),
             senderAddress = from,
             recipientAddress = to,
+            fee = Fee(feeInPlanks, token),
             isIncome = account.address == to
         )
     }

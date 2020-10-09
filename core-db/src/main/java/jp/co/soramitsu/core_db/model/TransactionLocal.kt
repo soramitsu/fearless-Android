@@ -6,7 +6,10 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
+import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import java.math.BigDecimal
+import java.math.BigInteger
 
 @Entity(
     tableName = "transactions",
@@ -23,6 +26,8 @@ class TransactionLocal(
     val recipientAddress: String,
     val amount: BigDecimal,
     val date: Long,
+    val feeInPlanks: BigInteger,
+    val status: Transaction.Status,
     val isIncome: Boolean,
     val source: TransactionSource,
     val networkType: Node.NetworkType = token.networkType
