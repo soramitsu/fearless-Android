@@ -42,7 +42,7 @@ class DefaultNodes {
 
     private val DEFAULT_NODES_LIST = listOf(KUSAMA_PARITY, KUSAMA_WEB3, POLKADOT_PARITY, POLKADOT_WEB3, WESTED_PARITY)
 
-    val prepopulateQuery = "insert into nodes (id, name, link, networkType, isDefault) values " +
-        DEFAULT_NODES_LIST.mapIndexed { index, node -> "(${index + 1}, '${node.name}', '${node.link}', ${node.networkType}, ${if (node.isDefault) 1 else 0})" }
+    val prepopulateQuery = "insert into nodes (name, link, networkType, isDefault) values " +
+        DEFAULT_NODES_LIST.map { node -> "('${node.name}', '${node.link}', ${node.networkType}, ${if (node.isDefault) 1 else 0})" }
             .joinToString()
 }
