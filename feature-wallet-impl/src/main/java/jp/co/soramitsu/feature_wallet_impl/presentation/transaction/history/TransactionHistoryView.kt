@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.transactions.history
+package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history
 
 import android.content.Context
 import android.util.AttributeSet
@@ -30,7 +30,7 @@ class TransferHistorySheet @JvmOverloads constructor(
     private var pageLoadListener: PageLoadListener? = null
     private var slidingStateListener: SlidingStateListener? = null
 
-    private val adapter = TransferHistoryAdapter()
+    private val adapter = TransactionHistoryAdapter()
 
     private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         anchor?.let {

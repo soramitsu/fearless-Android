@@ -13,16 +13,16 @@ import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.BalanceListViewModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transactions.history.mixin.TransferHistoryMixin
-import jp.co.soramitsu.feature_wallet_impl.presentation.transactions.history.mixin.TransferHistoryProvider
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 
 @Module(includes = [ViewModelModule::class])
 class BalanceListModule {
 
     @Provides
     @ScreenScope
-    fun provideTransferHistoryMixin(walletInteractor: WalletInteractor): TransferHistoryMixin {
-        return TransferHistoryProvider(walletInteractor)
+    fun provideTransferHistoryMixin(walletInteractor: WalletInteractor): TransactionHistoryMixin {
+        return TransactionHistoryProvider(walletInteractor)
     }
 
     @Provides
@@ -32,9 +32,9 @@ class BalanceListModule {
         interactor: WalletInteractor,
         router: WalletRouter,
         iconGenerator: IconGenerator,
-        transferHistoryMixin: TransferHistoryMixin
+        transactionHistoryMixin: TransactionHistoryMixin
     ): ViewModel {
-        return BalanceListViewModel(interactor, iconGenerator, router, transferHistoryMixin)
+        return BalanceListViewModel(interactor, iconGenerator, router, transactionHistoryMixin)
     }
 
     @Provides

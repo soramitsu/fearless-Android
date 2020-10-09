@@ -17,8 +17,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transactions.history.mixin.TransactionHistoryUi
-import jp.co.soramitsu.feature_wallet_impl.presentation.transactions.history.mixin.TransferHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 
 // TODO use dp
@@ -28,8 +28,8 @@ class BalanceListViewModel(
     private val interactor: WalletInteractor,
     private val iconGenerator: IconGenerator,
     private val router: WalletRouter,
-    private val transferHistoryMixin: TransferHistoryMixin
-) : BaseViewModel(), TransactionHistoryUi by transferHistoryMixin {
+    private val transactionHistoryMixin: TransactionHistoryMixin
+) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin {
     private var transactionsRefreshed: Boolean = false
     private var balanceRefreshed: Boolean = false
 
@@ -44,11 +44,11 @@ class BalanceListViewModel(
     }
 
     init {
-        disposables += transferHistoryMixin.transferHistoryDisposable
+        disposables += transactionHistoryMixin.transferHistoryDisposable
 
-        transferHistoryMixin.setTransactionErrorHandler(errorHandler)
+        transactionHistoryMixin.setTransactionErrorHandler(errorHandler)
 
-        transferHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
+        transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
     }
 
     val userIconLiveData = getUserIcon().asLiveData { showError(it.message!!) }
