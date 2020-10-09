@@ -43,7 +43,7 @@ class DefaultNodes {
     private val DEFAULT_NODES_LIST = listOf(KUSAMA_PARITY, KUSAMA_WEB3, POLKADOT_PARITY, POLKADOT_WEB3, WESTED_PARITY)
 
     val prepopulateQuery = "insert into nodes (id, name, link, networkType, isDefault) values " +
-        "(1, '${KUSAMA_PARITY.name}', '${KUSAMA_PARITY.link}', ${KUSAMA_PARITY.networkType}, ${if (KUSAMA_PARITY.isDefault) 1 else 0}," +
+        "(1, '${KUSAMA_PARITY.name}', '${KUSAMA_PARITY.link}', ${KUSAMA_PARITY.networkType}, ${if (KUSAMA_PARITY.isDefault) 1 else 0})," +
         "(2, '${KUSAMA_WEB3.name}', '${KUSAMA_WEB3.link}', ${KUSAMA_WEB3.networkType}, ${if (KUSAMA_WEB3.isDefault) 1 else 0})," +
         "(3, '${POLKADOT_PARITY.name}', '${POLKADOT_PARITY.link}', ${POLKADOT_PARITY.networkType}, ${if (POLKADOT_PARITY.isDefault) 1 else 0})," +
         "(4, '${POLKADOT_WEB3.name}', '${POLKADOT_WEB3.link}', ${POLKADOT_WEB3.networkType}, ${if (POLKADOT_WEB3.isDefault) 1 else 0})," +
