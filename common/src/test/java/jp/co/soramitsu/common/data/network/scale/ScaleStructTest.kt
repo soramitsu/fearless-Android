@@ -27,6 +27,9 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.MathContext
 
+object OnlyCompact : Schema<OnlyCompact>() {
+    val compact by compactInt()
+}
 
 object Address : Schema<Address>() {
     val publicKey by string().optional()
@@ -119,6 +122,18 @@ class ScaleStructTest {
         val balance = Balance()
 
         balance[value]
+    }
+
+    @Test
+    fun `should encode compact without sign bit`() {
+        val struct = OnlyCompact {
+            it[OnlyCompact.compact] = BigDecimal("1.01").scaleByPowerOfTen(12).toBigIntegerExact()
+        }
+
+        val expected = "0x0700f4b028eb"
+        val actual = OnlyCompact.toHexString(struct)
+
+        assertEquals(expected, actual)
     }
 
     @Test

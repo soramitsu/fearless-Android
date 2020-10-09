@@ -111,4 +111,18 @@
     <string name="search_recipient_no_results">Нет результатов</string>
     <string name="search_recipient_welcome">Здесь появятся ваши аккаунты и контакты, которым вы отправляли переводы</string>
     <string name="search_result_header">Результат поиска</string>
+    <string name="common_continue">Продолжить</string>
+    <string name="common_retry">Повторить</string>
+
+    <string name="choose_amount_asset">Токен</string>
+    <string name="choose_amount_fee">Комиссия</string>
+    <string name="choose_amount_free_balance">Свободный баланс:</string>
+    <string name="choose_amount_hint">Сумма</string>
+    <string name="choose_amount_network_error">Сеть недоступна</string>
+    <string name="choose_amount_to">Кому</string>
+
+    <string name="choose_amount_checking">Проверка…</string>
+    <string name="choose_amount_error_too_big">К сожалению, у вас недостаточно средств для перевода указанной суммы.</string>
+    <string name="choose_amount_error_fee">К сожалению, нам не удалось связаться с поставщиком услуг трансфера. Пожалуйста, попробуйте позже.</string>
+    <string name="choose_amount_error_balance">К сожалению, запрос проверки баланса не выполнен. Пожалуйста, попробуйте позже.</string>
 </resources>

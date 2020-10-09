@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:background="@color/black"
+    android:fitsSystemWindows="true"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <jp.co.soramitsu.common.base.Toolbar
+        android:id="@+id/chooseAmountToolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleText="@string/wallet_asset_send" />
+
+    <TextView
+        android:id="@+id/chooseAmountAssetTitle"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/choose_amount_asset"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountToolbar" />
+
+    <jp.co.soramitsu.common.view.ElementChooserView
+        app:enabled="false"
+        android:id="@+id/chooseAmountToken"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/chooseAmountAssetTitle"
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountAssetTitle"
+        tools:drawableStart="@drawable/ic_ksm_24"
+        tools:text="Kusama" />
+
+    <TextView
+        android:id="@+id/chooseAmountBalanceLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="17dp"
+        android:drawableStart="@drawable/ic_info_16"
+        android:drawablePadding="4dp"
+        android:fontFamily="@font/soramitsu_bold"
+        android:gravity="center_vertical"
+        android:text="@string/choose_amount_free_balance"
+        android:textAllCaps="true"
+        android:textColor="@color/white"
+        android:textSize="@dimen/text_size_b3"
+        app:layout_constraintStart_toStartOf="@+id/chooseAmountToken"
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountToken" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:fontFamily="@font/soramitsu_bold"
+        android:gravity="center_vertical"
+        android:textAllCaps="true"
+        android:textColor="@color/green"
+        android:id="@+id/chooseAmountBalance"
+        android:textSize="@dimen/text_size_b3"
+        app:layout_constraintBottom_toBottomOf="@+id/chooseAmountBalanceLabel"
+        app:layout_constraintStart_toEndOf="@+id/chooseAmountBalanceLabel"
+        app:layout_constraintTop_toTopOf="@+id/chooseAmountBalanceLabel"
+        tools:text="200.643 KSM" />
+
+    <View
+        android:id="@+id/chooseAmountDivider1"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="18dp"
+        android:background="@color/dividerGray"
+        app:layout_constraintEnd_toEndOf="@+id/chooseAmountToken"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/chooseAmountBalanceLabel"
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountBalanceLabel" />
+
+    <TextView
+        android:id="@+id/chooseAmountToLabel"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/choose_amount_to"
+        app:layout_constraintStart_toStartOf="@+id/chooseAmountDivider1"
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountDivider1" />
+
+    <jp.co.soramitsu.common.view.AccountAddressView
+        android:layout_width="0dp"
+        app:labelVisible="false"
+        android:id="@+id/chooseAmountRecipientView"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="@+id/chooseAmountDivider1"
+        app:layout_constraintStart_toStartOf="@+id/chooseAmountToLabel"
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountToLabel" />
+
+    <View
+        android:id="@+id/chooseAmountDivider2"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/dividerGray"
+        app:layout_constraintEnd_toEndOf="@+id/chooseAmountRecipientView"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/chooseAmountRecipientView"
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountRecipientView" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/chooseAmountInputLayout"
+        style="@style/Widget.Fearless.Input.Primary.External"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="@string/choose_amount_hint"
+        app:layout_constraintEnd_toEndOf="@+id/chooseAmountRecipientView"
+        app:layout_constraintStart_toStartOf="@+id/chooseAmountRecipientView"
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountDivider2">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/chooseAmountField"
+            style="@style/Widget.Fearless.Input.Primary.Internal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/choose_amount_initial"
+            android:inputType="numberDecimal"
+            android:maxLength="64" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/chooseAmountFeeLabel"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="@string/choose_amount_fee"
+        app:layout_constraintStart_toStartOf="@+id/chooseAmountInputLayout"
+        app:layout_constraintTop_toBottomOf="@+id/chooseAmountInputLayout" />
+
+    <TextView
+        android:id="@+id/chooseAmountFee"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        app:layout_constraintBottom_toBottomOf="@+id/chooseAmountFeeLabel"
+        app:layout_constraintEnd_toStartOf="@+id/chooseAmountFeeProgress"
+        app:layout_constraintTop_toTopOf="@+id/chooseAmountFeeLabel"
+        tools:text="0.001 KSM" />
+
+    <ProgressBar
+        android:id="@+id/chooseAmountFeeProgress"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:indeterminate="true"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:indeterminateTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/chooseAmountFee"
+        app:layout_constraintEnd_toEndOf="@+id/chooseAmountInputLayout"
+        app:layout_constraintTop_toTopOf="@+id/chooseAmountFee" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/chooseAmountNext"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        android:enabled="false"
+        android:text="@string/common_continue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -41,10 +41,11 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <jp.co.soramitsu.feature_account_impl.presentation.view.account.AccountAddressView
+    <jp.co.soramitsu.common.view.AccountAddressView
         android:id="@+id/accountDetailsAddressView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        app:iconVisible="false"
         android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="@+id/accountDetailsNameContainer"
         app:layout_constraintStart_toStartOf="@+id/accountDetailsNameContainer"

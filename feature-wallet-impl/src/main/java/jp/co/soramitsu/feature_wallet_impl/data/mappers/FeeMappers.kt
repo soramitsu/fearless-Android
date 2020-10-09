@@ -7,7 +7,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.FeeRemote
 fun mapFeeRemoteToFee(feeRemote: FeeRemote, token: Asset.Token): Fee {
     return with(feeRemote) {
         Fee(
-            amountInPlanks = partialFee,
+            feeInPlanks = partialFee,
             token = token
         )
     }

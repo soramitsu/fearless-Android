@@ -111,4 +111,18 @@
     <string name="search_recipient_no_results">Aucun résultat trouvé</string>
     <string name="search_recipient_welcome">Vos comptes et contacts auxquels vous envoyiez des transferts apparaîtront ici</string>
     <string name="search_result_header">Résultat de la recherche</string>
+    <string name="common_continue">Continuer</string>
+    <string name="common_retry">Recommencez</string>
+
+    <string name="choose_amount_asset">Atout</string>
+    <string name="choose_amount_fee">Frais de transfert</string>
+    <string name="choose_amount_free_balance">Solde libre:</string>
+    <string name="choose_amount_hint">Montant</string>
+    <string name="choose_amount_network_error">Le réseau ne répond pas</string>
+    <string name="choose_amount_to">À</string>
+
+    <string name="choose_amount_checking">Vérification…</string>
+    <string name="choose_amount_error_too_big">Désolé, vous ne disposez pas de suffisamment de fonds pour transférer le montant spécifié.</string>
+    <string name="choose_amount_error_fee">Désolé, nous n\'avons pas pu contacter le fournisseur de transfert. Veuillez réessayer plus tard.</string>
+    <string name="choose_amount_error_balance">Désolé, la demande de vérification du solde a échoué. Veuillez réessayer plus tard.</string>
 </resources>

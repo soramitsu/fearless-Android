@@ -37,8 +37,7 @@
         android:layout_gravity="center_vertical|end"
         android:padding="@dimen/x1"
         android:src="@drawable/ic_info_white_24"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/rightText"
@@ -53,7 +52,6 @@
         android:visibility="gone"
         android:background="@drawable/bg_primary_list_item"
         android:gravity="center_vertical"
-        tools:text="Action"
-        tools:visibility="visible" />
+        tools:text="Action" />
 
 </FrameLayout>

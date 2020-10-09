@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_account_impl.di
 import android.content.Context
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
+import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -38,7 +38,7 @@ interface AccountFeatureDependencies {
 
     fun languagesHolder(): LanguagesHolder
 
-    fun rxWebSocket(): RxWebSocket
+    fun socketSingleRequestExecutor(): SocketSingleRequestExecutor
 
     fun jsonMapper(): Gson
 }

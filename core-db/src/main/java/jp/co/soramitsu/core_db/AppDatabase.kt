@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.core_db.converters.LongMathConverters
+import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
 import jp.co.soramitsu.core_db.converters.TokenConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AssetDao
@@ -19,14 +20,14 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Database(
-    version = 7,
+    version = 8,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
         TransactionLocal::class,
         AssetLocal::class
     ])
-@TypeConverters(LongMathConverters::class, TokenConverters::class)
+@TypeConverters(LongMathConverters::class, TokenConverters::class, NetworkTypeConverters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     companion object {

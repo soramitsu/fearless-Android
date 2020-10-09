@@ -15,7 +15,7 @@ import java.math.BigInteger
         childColumns = ["accountAddress"],
         onDelete = ForeignKey.CASCADE)]
 )
-class AssetLocal(
+data class AssetLocal(
     val token: Asset.Token,
     @ColumnInfo(index = true) val accountAddress: String,
     val freeInPlanks: BigInteger,

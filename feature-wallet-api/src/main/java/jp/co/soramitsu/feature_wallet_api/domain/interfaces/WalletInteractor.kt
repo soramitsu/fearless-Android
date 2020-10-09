@@ -11,11 +11,13 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 interface WalletInteractor {
     fun observeAssets(): Observable<List<Asset>>
 
-    fun syncAssets(): Completable
+    fun syncAssets(withoutRates: Boolean = false): Completable
 
     fun observeAsset(token: Asset.Token): Observable<Asset>
 
-    fun syncAsset(token: Asset.Token): Completable
+    fun syncAsset(token: Asset.Token, withoutRates: Boolean = false): Completable
+
+    fun observeCurrentAsset(): Observable<Asset>
 
     fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>>
 
@@ -34,4 +36,6 @@ interface WalletInteractor {
     fun getTransferFee(transfer: Transfer): Single<Fee>
 
     fun performTransfer(transfer: Transfer): Completable
+
+    fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean>
 }
