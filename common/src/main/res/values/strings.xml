@@ -120,7 +120,7 @@
     <string name="choose_amount_asset">Asset</string>
     <string name="choose_amount_to">To</string>
     <string name="choose_amount_free_balance">Free balance:</string>
-    <string name="choose_amount_hint">Amount</string>
+    <string name="common_amount">Amount</string>
     <string name="choose_amount_fee">Transfer fee</string>
     <string name="choose_amount_network_error">Network not responding</string>
     <string name="choose_amount_initial" translatable="false">0</string>
@@ -135,4 +135,8 @@
     <string name="wallet_send_total_title">Total</string>
     <string name="wallet_send_confirm_transfer">Confirm Transfer</string>
     <string name="wallet_send_progress">Sending…</string>
+
+    <string name="transaction_status_completed">Completed</string>
+    <string name="transaction_status_failed">Failed</string>
+    <string name="transaction_status_pending">Pending</string>
 </resources>

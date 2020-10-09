@@ -33,12 +33,23 @@
         <attr name="drawable" format="reference|color" />
     </declare-styleable>
 
-    <declare-styleable name="AccountAddressView">
+    <declare-styleable name="AddressView">
         <attr name="labelVisible" format="boolean" />
         <attr name="iconVisible" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="ElementChooserView">
         <attr name="enabled" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="LabeledTextView">
+        <attr name="label" format="string" />
+        <attr name="actionIcon" format="reference|color" />
+        <attr name="textIcon" format="reference|color" />
+    </declare-styleable>
+
+    <declare-styleable name="AccountInfoView">
+        <attr name="accountActionIcon" format="reference|color" />
+        <attr name="textVisible" format="boolean" />
     </declare-styleable>
 </resources>

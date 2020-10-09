@@ -116,7 +116,7 @@
     <string name="choose_amount_asset">Activo</string>
     <string name="choose_amount_fee">Tarifa de transferencia</string>
     <string name="choose_amount_free_balance">Saldo libre:</string>
-    <string name="choose_amount_hint">Cantidad</string>
+    <string name="common_amount">Cantidad</string>
     <string name="choose_amount_network_error">La red no responde</string>
     <string name="choose_amount_to">A</string>
 

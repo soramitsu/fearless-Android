@@ -117,7 +117,7 @@
     <string name="choose_amount_asset">Актив</string>
     <string name="choose_amount_fee">Плата за переказ</string>
     <string name="choose_amount_free_balance">Вільний баланс:</string>
-    <string name="choose_amount_hint">Сума</string>
+    <string name="common_amount">Сума</string>
     <string name="choose_amount_network_error">Мережа не відповідає</string>
     <string name="choose_amount_to">До</string>
 

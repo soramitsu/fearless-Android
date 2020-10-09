@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.di
+package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.di
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -10,33 +10,36 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.AddressIconGenerator
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferViewModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailViewModel
 
 @Module(includes = [ViewModelModule::class])
-class ConfirmTransferModule {
+class TransactionDetailModule {
 
     @Provides
     @IntoMap
-    @ViewModelKey(ConfirmTransferViewModel::class)
+    @ViewModelKey(TransactionDetailViewModel::class)
     fun provideViewModel(
         interactor: WalletInteractor,
         router: WalletRouter,
         resourceManager: ResourceManager,
         addressIconGenerator: AddressIconGenerator,
         clipboardManager: ClipboardManager,
-        transferDraft: TransferDraft
+        transactionModel: TransactionModel
     ): ViewModel {
-        return ConfirmTransferViewModel(
+        return TransactionDetailViewModel(
             interactor,
             router,
             resourceManager,
             addressIconGenerator,
             clipboardManager,
-            transferDraft
+            transactionModel
         )
     }
 
@@ -44,7 +47,7 @@ class ConfirmTransferModule {
     fun provideViewModelCreator(
         fragment: Fragment,
         viewModelFactory: ViewModelProvider.Factory
-    ): ConfirmTransferViewModel {
-        return ViewModelProvider(fragment, viewModelFactory).get(ConfirmTransferViewModel::class.java)
+    ): TransactionDetailViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(TransactionDetailViewModel::class.java)
     }
 }

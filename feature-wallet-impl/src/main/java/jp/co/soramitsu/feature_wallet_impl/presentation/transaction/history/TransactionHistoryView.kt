@@ -11,17 +11,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import kotlinx.android.synthetic.main.view_transfer_history.view.placeholder
 import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryList
 
 typealias PageLoadListener = () -> Unit
 typealias SlidingStateListener = (Int) -> Unit
+typealias TransactionClickListener = (TransactionModel) -> Unit
 
 class TransferHistorySheet @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr) {
+) : ConstraintLayout(context, attrs, defStyleAttr), TransactionHistoryAdapter.Handler {
 
     private lateinit var bottomSheetBehavior: LockBottomSheetBehavior<View>
 
@@ -29,8 +31,9 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     private var pageLoadListener: PageLoadListener? = null
     private var slidingStateListener: SlidingStateListener? = null
+    private var transactionClickListener: TransactionClickListener? = null
 
-    private val adapter = TransactionHistoryAdapter()
+    private val adapter = TransactionHistoryAdapter(this)
 
     private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         anchor?.let {
@@ -60,6 +63,18 @@ class TransferHistorySheet @JvmOverloads constructor(
         anchor = newAnchor
     }
 
+    fun setPageLoadListener(listener: PageLoadListener) {
+        pageLoadListener = listener
+    }
+
+    fun setSlidingStateListener(listener: SlidingStateListener) {
+        slidingStateListener = listener
+    }
+
+    fun setTransactionClickListener(listener: TransactionClickListener) {
+        transactionClickListener = listener
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
 
@@ -83,12 +98,8 @@ class TransferHistorySheet @JvmOverloads constructor(
         super.onDetachedFromWindow()
     }
 
-    fun setPageLoadListener(listener: PageLoadListener) {
-        pageLoadListener = listener
-    }
-
-    fun setSlidingStateListener(listener: SlidingStateListener) {
-        slidingStateListener = listener
+    override fun transactionClicked(transactionModel: TransactionModel) {
+        transactionClickListener?.invoke(transactionModel)
     }
 
     private fun addScrollListener() {

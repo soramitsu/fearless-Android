@@ -117,7 +117,7 @@
     <string name="choose_amount_asset">Токен</string>
     <string name="choose_amount_fee">Комиссия</string>
     <string name="choose_amount_free_balance">Свободный баланс:</string>
-    <string name="choose_amount_hint">Сумма</string>
+    <string name="common_amount">Сумма</string>
     <string name="choose_amount_network_error">Сеть недоступна</string>
     <string name="choose_amount_to">Кому</string>
 

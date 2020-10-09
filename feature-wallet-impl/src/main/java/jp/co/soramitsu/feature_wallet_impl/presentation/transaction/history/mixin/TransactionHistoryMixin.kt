@@ -17,6 +17,8 @@ interface TransactionHistoryUi {
     fun shouldLoadPage()
 
     fun syncFirstTransactionsPage()
+
+    fun transactionClicked(transactionModel: TransactionModel)
 }
 
 interface TransactionHistoryMixin : TransactionHistoryUi {

@@ -116,7 +116,7 @@
     <string name="choose_amount_asset">Risorsa</string>
     <string name="choose_amount_fee">Tassa di trasferimento</string>
     <string name="choose_amount_free_balance">Saldo gratuito:</string>
-    <string name="choose_amount_hint">Quantità</string>
+    <string name="common_amount">Quantità</string>
     <string name="choose_amount_network_error">La rete non risponde</string>
     <string name="choose_amount_to">Per</string>
 

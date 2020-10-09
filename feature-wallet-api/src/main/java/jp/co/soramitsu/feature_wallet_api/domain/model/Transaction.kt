@@ -13,6 +13,8 @@ class Transaction(
     val fee: Fee,
     val isIncome: Boolean
 ) {
+    val total = amount + fee.amount!!
+
     enum class Status {
         PENDING, COMPLETED, FAILED;
 

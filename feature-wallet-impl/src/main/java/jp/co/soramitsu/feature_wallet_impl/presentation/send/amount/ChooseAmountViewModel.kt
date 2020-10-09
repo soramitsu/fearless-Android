@@ -21,7 +21,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.AddressModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.common.AddressModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit

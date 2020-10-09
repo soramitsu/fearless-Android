@@ -14,7 +14,7 @@ import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.AddressModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.common.AddressModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import java.util.concurrent.TimeUnit
 

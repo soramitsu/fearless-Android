@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:fitsSystemWindows="true"
+    android:layout_height="match_parent"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.base.Toolbar
+        android:id="@+id/transactionDetailToolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:homeButtonIcon="@drawable/ic_close"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleText="@string/transaction_details_title" />
+
+    <TextView
+        android:id="@+id/transactionDetailStatusLabel"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/transaction_detail_status"
+        android:textColor="@color/gray1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailToolbar" />
+
+    <TextView
+        android:id="@+id/transactionDetailStatus"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/transactionDetailStatusIcon"
+        app:layout_constraintEnd_toStartOf="@+id/transactionDetailStatusIcon"
+        app:layout_constraintTop_toTopOf="@+id/transactionDetailStatusIcon"
+        tools:text="@string/transaction_status_completed" />
+
+    <ImageView
+        android:id="@+id/transactionDetailStatusIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/transactionDetailStatusLabel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/transactionDetailStatusLabel"
+        tools:src="@drawable/ic_transaction_completed" />
+
+    <View
+        android:id="@+id/transactionDetailDivider1"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="14dp"
+        android:background="@color/gray3"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailStatusIcon"
+        app:layout_constraintStart_toStartOf="@+id/transactionDetailStatusLabel"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailStatusLabel" />
+
+    <TextView
+        android:id="@+id/transactionDetailDateLabel"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/transaction_detail_date"
+        android:textColor="@color/gray1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailDivider1" />
+
+    <TextView
+        android:id="@+id/transactionDetailDate"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/transactionDetailDateLabel"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider1"
+        app:layout_constraintTop_toTopOf="@+id/transactionDetailDateLabel"
+        tools:text="10 Apr 2020, 22:36:45" />
+
+    <View
+        android:id="@+id/transactionDetailDivider2"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="14dp"
+        android:background="@color/gray3"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailStatusIcon"
+        app:layout_constraintStart_toStartOf="@+id/transactionDetailStatusLabel"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailDateLabel" />
+
+    <TextView
+        android:id="@+id/transactionDetailAmountLabel"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/common_amount"
+        android:textColor="@color/gray1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailDivider2" />
+
+    <TextView
+        android:id="@+id/transactionDetailAmount"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/transactionDetailAmountLabel"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider1"
+        app:layout_constraintTop_toTopOf="@+id/transactionDetailAmountLabel"
+        tools:text="4.01 KSM" />
+
+    <View
+        android:id="@+id/transactionDetailDivider3"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="14dp"
+        android:background="@color/gray3"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailStatusIcon"
+        app:layout_constraintStart_toStartOf="@+id/transactionDetailStatusLabel"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailAmountLabel" />
+
+    <TextView
+        android:id="@+id/transactionDetailFeeLabel"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="14dp"
+        android:text="@string/choose_amount_fee"
+        android:textColor="@color/gray1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailDivider3" />
+
+    <TextView
+        android:id="@+id/transactionDetailFee"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/transactionDetailFeeLabel"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider1"
+        app:layout_constraintTop_toTopOf="@+id/transactionDetailFeeLabel"
+        tools:text="0.0001 KSM" />
+
+    <View
+        android:id="@+id/transactionDetailDivider4"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="15dp"
+        android:background="@color/gray3"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailStatusIcon"
+        app:layout_constraintStart_toStartOf="@+id/transactionDetailStatusLabel"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailFeeLabel" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/transactionDetailHash"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:actionIcon="@drawable/ic_more_vertical"
+        app:label="Extrinsic Hash"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider4"
+        app:layout_constraintStart_toStartOf="@+id/transactionDetailDivider4"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailDivider4" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/transactionDetailFrom"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:actionIcon="@drawable/ic_copy_24"
+        app:label="@string/transaction_details_from"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider4"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/transactionDetailDivider4"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailHash"
+        tools:textIcon="@color/colorAccent" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/transactionDetailTo"
+        android:layout_marginTop="16dp"
+        app:actionIcon="@drawable/ic_copy_24"
+        app:label="@string/choose_amount_to"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider4"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/transactionDetailDivider4"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDetailFrom"
+        tools:textIcon="@color/colorAccent" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/gray4_60"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/transactionDetailTotalLabel" />
+    
+    <View
+        android:id="@+id/transactionDetailDivider5"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginBottom="22dp"
+        android:background="@color/gray3"
+        app:layout_constraintBottom_toTopOf="@+id/transactionDetailRepeat"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider1"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/transactionDetailDivider1" />
+
+    <TextView
+        android:id="@+id/transactionDetailTotalLabel"
+        style="@style/TextAppearance.Soramitsu.Header5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:paddingTop="15dp"
+        android:text="@string/wallet_send_total_title"
+        app:layout_constraintBottom_toTopOf="@+id/transactionDetailDivider5"
+        app:layout_constraintStart_toStartOf="@+id/transactionDetailDivider5" />
+
+    <TextView
+        android:id="@+id/transactionDetailTotal"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/transactionDetailTotalLabel"
+        app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider5"
+        tools:text="1.001 KSM" />
+
+    <jp.co.soramitsu.common.view.AccountInfoView
+        android:id="@+id/transactionDetailRepeat"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        android:text="@string/wallet_send_confirm_transfer"
+        app:accountActionIcon="@drawable/ic_rotate"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:textVisible="false" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

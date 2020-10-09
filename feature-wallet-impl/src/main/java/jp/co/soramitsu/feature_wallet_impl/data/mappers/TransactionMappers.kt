@@ -20,7 +20,8 @@ fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel
             date = date,
             amount = amount,
             status = status,
-            fee = fee
+            fee = fee.amount!!,
+            total = total
         )
     }
 }

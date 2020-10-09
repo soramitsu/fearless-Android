@@ -116,7 +116,7 @@
     <string name="choose_amount_asset">資産</string>
     <string name="choose_amount_fee">転送料</string>
     <string name="choose_amount_free_balance">フリーバランス：</string>
-    <string name="choose_amount_hint">量</string>
+    <string name="common_amount">量</string>
     <string name="choose_amount_network_error">ネットワークが応答しない</string>
     <string name="choose_amount_to">に</string>
 

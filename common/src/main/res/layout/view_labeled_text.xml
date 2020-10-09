@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:background="@drawable/bg_input_shape_selector"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <ImageView
+        android:id="@+id/labeledTextIcon"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="16dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/labeledTextText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/labeledTextText"
+        tools:src="@color/colorAccent" />
+
+    <TextView
+        android:id="@+id/labeledTextLabel"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:includeFontPadding="false"
+        android:textColor="@color/colorHint"
+        app:layout_constraintEnd_toStartOf="@id/labeledTextAction"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="@string/account_address" />
+
+    <TextView
+        android:id="@+id/labeledTextText"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginEnd="64dp"
+        android:layout_marginBottom="8dp"
+        android:ellipsize="middle"
+        android:includeFontPadding="false"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/labeledTextAction"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/labeledTextIcon"
+        app:layout_constraintTop_toBottomOf="@id/labeledTextLabel"
+        app:layout_goneMarginStart="16dp"
+        tools:text="GybH55zsi5nAGybH55zsi5nAGybH55zsi5nAGybH55zsi5nA" />
+
+    <ImageView
+        android:id="@+id/labeledTextAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_primary_list_item"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="@dimen/x1"
+        android:src="@drawable/ic_copy_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</merge>

@@ -22,7 +22,14 @@ import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionIcon
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionStatus
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionTime
 
-class TransactionHistoryAdapter : GroupedListAdapter<DayHeader, TransactionModel>(TransactionHistoryDiffCallback) {
+class TransactionHistoryAdapter(
+    val handler: Handler
+) : GroupedListAdapter<DayHeader, TransactionModel>(TransactionHistoryDiffCallback) {
+
+    interface Handler {
+        fun transactionClicked(transactionModel: TransactionModel)
+    }
+
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
         return DayHolder(parent.inflateChild(R.layout.item_day_header))
     }
@@ -36,12 +43,12 @@ class TransactionHistoryAdapter : GroupedListAdapter<DayHeader, TransactionModel
     }
 
     override fun bindChild(holder: GroupedListHolder, child: TransactionModel) {
-        (holder as TransactionHolder).bind(child)
+        (holder as TransactionHolder).bind(child, handler)
     }
 }
 
 class TransactionHolder(view: View) : GroupedListHolder(view) {
-    fun bind(item: TransactionModel) {
+    fun bind(item: TransactionModel, handler: TransactionHistoryAdapter.Handler) {
         with(containerView) {
             itemTransactionAddress.text = item.displayAddress
 
@@ -53,10 +60,12 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
 
             if (item.status != Transaction.Status.COMPLETED) {
                 itemTransactionStatus.makeVisible()
-                itemTransactionStatus.setImageResource(item.statusIcon)
+                itemTransactionStatus.setImageResource(item.statusAppearance.icon)
             } else {
                 itemTransactionStatus.makeGone()
             }
+
+            setOnClickListener { handler.transactionClicked(item) }
         }
     }
 }

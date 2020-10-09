@@ -6,12 +6,20 @@
     app:startDestination="@id/mainFragment">
 
     <action
+        android:id="@+id/action_open_send"
+        app:destination="@id/chooseRecipientFragment"
         app:enterAnim="@anim/fragment_open_enter"
         app:exitAnim="@anim/fragment_open_exit"
         app:popEnterAnim="@anim/fragment_close_enter"
-        app:popExitAnim="@anim/fragment_close_exit"
-        android:id="@+id/action_open_send"
-        app:destination="@id/send_nav_graph" />
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <action
+        android:id="@+id/open_transaction_detail"
+        app:destination="@id/transactionDetailFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
 
     <fragment
         android:id="@+id/mainFragment"
@@ -44,12 +52,12 @@
             app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
+            android:id="@+id/action_mainFragment_to_balanceDetailFragment"
+            app:destination="@id/balanceDetailFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_mainFragment_to_balanceDetailFragment"
-            app:destination="@id/balanceDetailFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
             android:id="@+id/action_mainFragment_to_languagesFragment"
@@ -149,21 +157,79 @@
         tools:layout="@layout/fragment_edit_accounts">
 
         <action
-            app:popUpTo="@id/mainFragment"
-            app:popEnterAnim="@anim/fragment_open_enter"
-            app:popExitAnim="@anim/fragment_open_exit"
+            android:id="@+id/action_editAccountsFragment_to_mainFragment"
             app:enterAnim="@anim/fragment_close_enter"
             app:exitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_editAccountsFragment_to_mainFragment" />
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit"
+            app:popUpTo="@id/mainFragment" />
 
     </fragment>
 
     <fragment
-        tools:layout="@layout/fragment_balance_detail"
         android:id="@+id/balanceDetailFragment"
         android:name="jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment"
-        android:label="BalanceDetailFragment" />
+        android:label="BalanceDetailFragment"
+        tools:layout="@layout/fragment_balance_detail" />
 
-    <include app:graph="@navigation/send_nav_graph" />
+
+    <fragment
+        android:id="@+id/transactionDetailFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment"
+        android:label="TransactionDetailFragment"
+        tools:layout="@layout/fragment_transaction_details" />
+
+    <action
+        android:id="@+id/openSelectAmount"
+        app:destination="@id/chooseAmountFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <fragment
+        android:id="@+id/chooseRecipientFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.ChooseRecipientFragment"
+        android:label="ChooseRecipientFragment"
+        tools:layout="@layout/fragment_choose_recipient">
+
+        <action
+            android:id="@+id/action_chooseRecipientFragment_to_chooseAmountFragment"
+            app:destination="@id/chooseAmountFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/chooseAmountFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment"
+        android:label="ChooseAmountFragment"
+        tools:layout="@layout/fragment_choose_amount">
+
+        <action
+            android:id="@+id/action_chooseAmountFragment_to_confirmTransferFragment"
+            app:destination="@id/confirmTransferFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/confirmTransferFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment"
+        android:label="ConfirmTransferFragment"
+        tools:layout="@layout/fragment_confirm_transfer">
+
+        <action
+            android:id="@+id/finish_send_flow"
+            app:enterAnim="@anim/fragment_close_enter"
+            app:exitAnim="@anim/fragment_close_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit"
+            app:popUpTo="@id/mainFragment" />
+    </fragment>
 
 </navigation>

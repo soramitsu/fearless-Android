@@ -1,12 +1,17 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.model
 
+import android.os.Parcelable
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.util.format
+import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
+import kotlinx.android.parcel.IgnoredOnParcel
+import kotlinx.android.parcel.Parcelize
 import java.math.BigDecimal
 
+@Parcelize
 data class TransactionModel(
     val hash: String,
     val token: Asset.Token,
@@ -15,19 +20,24 @@ data class TransactionModel(
     val amount: BigDecimal,
     val date: Long,
     val status: Transaction.Status,
-    val fee: Fee,
-    val isIncome: Boolean
-) {
+    val fee: BigDecimal,
+    val isIncome: Boolean,
+    val total: BigDecimal
+) : Parcelable {
+    @IgnoredOnParcel
     val displayAddress = if (isIncome) senderAddress else recipientAddress
 
-    val statusIcon = when(status) {
-        Transaction.Status.COMPLETED -> R.drawable.ic_transaction_valid
-        Transaction.Status.FAILED -> R.drawable.ic_transaction_failed
-        Transaction.Status.PENDING -> R.drawable.ic_transaction_pending
+    @IgnoredOnParcel
+    val statusAppearance = when(status) {
+        Transaction.Status.COMPLETED ->StatusAppearance.COMPLETED
+        Transaction.Status.FAILED -> StatusAppearance.FAILED
+        Transaction.Status.PENDING -> StatusAppearance.PENDING
     }
 
+    @IgnoredOnParcel
     val formattedAmount = createFormattedAmount()
 
+    @IgnoredOnParcel
     val amountColorRes = when {
         status == Transaction.Status.FAILED -> R.color.gray2
         isIncome -> R.color.green
@@ -35,9 +45,18 @@ data class TransactionModel(
     }
 
     private fun createFormattedAmount(): String {
-        val withoutSign = "${amount.format()} ${token.displayName}"
+        val withoutSign = amount.formatAsToken(token)
         val sign = if (isIncome) '+' else '-'
 
         return sign + withoutSign
+    }
+
+    enum class StatusAppearance(
+        @DrawableRes val icon: Int,
+        @StringRes val labelRes: Int
+    ) {
+        COMPLETED(R.drawable.ic_transaction_completed, R.string.transaction_status_completed),
+        PENDING(R.drawable.ic_transaction_pending, R.string.transaction_status_pending),
+        FAILED(R.drawable.ic_transaction_failed, R.string.transaction_status_failed),
     }
 }
