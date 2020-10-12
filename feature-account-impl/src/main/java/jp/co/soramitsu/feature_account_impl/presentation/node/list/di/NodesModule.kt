@@ -9,6 +9,7 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.NodesViewModel
@@ -30,9 +31,10 @@ class NodesModule {
     fun provideViewModel(
         interactor: AccountInteractor,
         router: AccountRouter,
-        nodeListingMixin: NodeListingMixin
+        nodeListingMixin: NodeListingMixin,
+        iconGenerator: IconGenerator
     ): ViewModel {
-        return NodesViewModel(interactor, router, nodeListingMixin)
+        return NodesViewModel(interactor, router, nodeListingMixin, iconGenerator)
     }
 
     @Provides

@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_nodes.addConnectionTv
@@ -60,6 +61,12 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
         viewModel.noAccountsEvent.observeEvent {
             showNoAccountsDialog()
+        }
+
+        viewModel.showAccountChooserLiveData.observeEvent {
+            AccountChooserBottomSheetDialog(requireActivity(), it) {
+                viewModel.accountSelected(it)
+            }.show()
         }
     }
 
