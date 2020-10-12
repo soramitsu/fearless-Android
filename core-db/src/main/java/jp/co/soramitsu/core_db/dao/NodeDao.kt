@@ -37,4 +37,7 @@ abstract class NodeDao {
 
     @Query("SELECT * from nodes where isDefault = 1 AND networkType = :networkType")
     abstract fun getDefaultNodeFor(networkType: Int): NodeLocal
+
+    @Query("select * from nodes limit 1")
+    abstract fun getFirstNode(): NodeLocal
 }
