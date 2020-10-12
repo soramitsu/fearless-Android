@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation
 
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 

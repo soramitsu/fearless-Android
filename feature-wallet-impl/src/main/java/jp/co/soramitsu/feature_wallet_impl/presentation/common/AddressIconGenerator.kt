@@ -10,7 +10,7 @@ class AddressIconGenerator(
     private val iconGenerator: IconGenerator,
     private val resourceManager: ResourceManager
 ) {
-    fun createAddressIcon(accountAddress: String, sizeInDp: Int) : Single<AddressModel> {
+    fun createAddressIcon(accountAddress: String, sizeInDp: Int): Single<AddressModel> {
         val sizeInPx = resourceManager.measureInPx(sizeInDp)
 
         return interactor.getAddressId(accountAddress)

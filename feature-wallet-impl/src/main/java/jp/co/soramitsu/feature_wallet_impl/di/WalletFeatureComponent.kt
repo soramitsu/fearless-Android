@@ -35,7 +35,7 @@ interface WalletFeatureComponent : AccountFeatureApi {
 
     fun confirmTransferComponentFactory(): ConfirmTransferComponent.Factory
 
-    fun transactionDetailComponentFactory() : TransactionDetailComponent.Factory
+    fun transactionDetailComponentFactory(): TransactionDetailComponent.Factory
 
     @Component.Factory
     interface Factory {

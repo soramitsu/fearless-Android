@@ -19,7 +19,7 @@ class Transaction(
         PENDING, COMPLETED, FAILED;
 
         companion object {
-            fun fromSuccess(success: Boolean) : Status {
+            fun fromSuccess(success: Boolean): Status {
                 return if (success) COMPLETED else FAILED
             }
         }

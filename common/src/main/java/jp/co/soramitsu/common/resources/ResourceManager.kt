@@ -8,5 +8,5 @@ interface ResourceManager {
 
     fun getQuantityString(id: Int, quantity: Int): String
 
-    fun measureInPx(dp: Int) : Int
+    fun measureInPx(dp: Int): Int
 }

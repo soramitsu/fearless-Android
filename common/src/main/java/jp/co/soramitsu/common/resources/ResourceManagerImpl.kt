@@ -20,7 +20,7 @@ class ResourceManagerImpl(
         return contextManager.getContext().resources.getQuantityString(id, quantity)
     }
 
-    override fun measureInPx(dp: Int) : Int {
+    override fun measureInPx(dp: Int): Int {
         val px = contextManager.getContext().resources.displayMetrics.density * dp
 
         return px.toInt()

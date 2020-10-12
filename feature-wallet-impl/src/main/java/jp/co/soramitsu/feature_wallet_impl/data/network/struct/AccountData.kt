@@ -4,7 +4,6 @@ import jp.co.soramitsu.common.data.network.scale.Schema
 import jp.co.soramitsu.common.data.network.scale.schema
 import jp.co.soramitsu.common.data.network.scale.uint128
 import jp.co.soramitsu.common.data.network.scale.uint32
-import jp.co.soramitsu.common.data.network.scale.uint8
 
 object AccountData : Schema<AccountData>() {
     val free by uint128()

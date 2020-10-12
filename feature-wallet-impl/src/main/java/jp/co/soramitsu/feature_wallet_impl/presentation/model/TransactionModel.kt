@@ -28,8 +28,8 @@ data class TransactionModel(
     val displayAddress = if (isIncome) senderAddress else recipientAddress
 
     @IgnoredOnParcel
-    val statusAppearance = when(status) {
-        Transaction.Status.COMPLETED ->StatusAppearance.COMPLETED
+    val statusAppearance = when (status) {
+        Transaction.Status.COMPLETED -> StatusAppearance.COMPLETED
         Transaction.Status.FAILED -> StatusAppearance.FAILED
         Transaction.Status.PENDING -> StatusAppearance.PENDING
     }

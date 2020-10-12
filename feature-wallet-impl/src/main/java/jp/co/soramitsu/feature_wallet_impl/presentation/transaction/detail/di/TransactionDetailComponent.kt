@@ -5,7 +5,6 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment
 
 @Subcomponent(

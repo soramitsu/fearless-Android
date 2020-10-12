@@ -8,7 +8,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.makeVisible
-import kotlinx.android.synthetic.main.view_account_address.view.accountCopy
 import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextAction
 import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextIcon
 import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextLabel
