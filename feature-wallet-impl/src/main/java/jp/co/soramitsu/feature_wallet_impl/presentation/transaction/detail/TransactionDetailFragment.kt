@@ -70,14 +70,14 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             transactionDetailTotal.text = total.formatAsToken(token)
         }
 
-        viewModel.recipientAddressModelLiveData.observe { addressModel ->
+        viewModel.senderAddressModelLiveData.observe { addressModel ->
             transactionDetailFrom.setText(addressModel.address)
             transactionDetailFrom.setTextIcon(addressModel.image)
 
             transactionDetailFrom.setActionClickListener { viewModel.copyAddressClicked(addressModel.address) }
         }
 
-        viewModel.senderAddressModelLiveData.observe { addressModel ->
+        viewModel.recipientAddressModelLiveData.observe { addressModel ->
             transactionDetailTo.setText(addressModel.address)
             transactionDetailTo.setTextIcon(addressModel.image)
 
