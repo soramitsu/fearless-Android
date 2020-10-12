@@ -75,7 +75,10 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
             .setTitle(R.string.account_needed_title)
             .setMessage(R.string.account_needed_message)
-            .setPositiveButton(R.string.common_proceed) { dialog, _ -> dialog?.dismiss() }
+            .setPositiveButton(R.string.common_proceed) { dialog, _ ->
+                viewModel.createAccount()
+                dialog?.dismiss()
+            }
             .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
             .show()
     }

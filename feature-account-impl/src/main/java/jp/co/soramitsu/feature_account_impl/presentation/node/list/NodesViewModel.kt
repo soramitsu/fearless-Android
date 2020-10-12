@@ -70,4 +70,8 @@ class NodesViewModel(
     fun addNodeClicked() {
         router.openAddNode()
     }
+
+    fun createAccount() {
+        router.createAccountForNetworkType()
+    }
 }

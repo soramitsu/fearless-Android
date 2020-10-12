@@ -178,4 +178,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
     override fun openAddNode() {
         navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment)
     }
+
+    override fun createAccountForNetworkType() {
+        navController?.navigate(R.id.action_nodes_to_onboarding, WelcomeFragment.getBundle(true))
+    }
 }
