@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onDoneClicked
@@ -10,7 +11,6 @@ import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.common.AddressModel
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientField
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientFlipper
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientList
