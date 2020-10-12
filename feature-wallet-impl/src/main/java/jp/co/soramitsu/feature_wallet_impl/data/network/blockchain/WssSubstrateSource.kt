@@ -220,7 +220,7 @@ class WssSubstrateSource(
 
     private fun emptyAccountInfo() = AccountInfo { info ->
         info[nonce] = 0.toUInt()
-        info[refCount] = 0.toUByte()
+        info[refCount] = 0.toUInt()
 
         info[data] = AccountData { data ->
             data[free] = 0.toBigInteger()

@@ -15,9 +15,9 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransactionFilter
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransactionHistoryUi
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionFilter
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
@@ -35,8 +35,8 @@ class BalanceDetailViewModel(
     private val iconGenerator: IconGenerator,
     private val router: WalletRouter,
     private val token: Asset.Token,
-    private val transferHistoryMixin: TransferHistoryMixin
-) : BaseViewModel(), TransactionHistoryUi by transferHistoryMixin {
+    private val transactionHistoryMixin: TransactionHistoryMixin
+) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin {
     private var transactionsRefreshed: Boolean = false
     private var balanceRefreshed: Boolean = false
 
@@ -51,19 +51,19 @@ class BalanceDetailViewModel(
     }
 
     init {
-        disposables += transferHistoryMixin.transferHistoryDisposable
+        disposables += transactionHistoryMixin.transferHistoryDisposable
 
-        transferHistoryMixin.setTransactionErrorHandler(errorHandler)
+        transactionHistoryMixin.setTransactionErrorHandler(errorHandler)
 
-        transferHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
+        transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
 
-        transferHistoryMixin.addFilter(TokenFilter(token))
+        transactionHistoryMixin.addFilter(TokenFilter(token))
     }
 
     override fun onCleared() {
         super.onCleared()
 
-        transferHistoryMixin.clear()
+        transactionHistoryMixin.clear()
     }
 
     val assetLiveData = observeAssetModel().asLiveData()

@@ -41,7 +41,7 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <jp.co.soramitsu.common.view.AccountAddressView
+    <jp.co.soramitsu.common.view.AddressView
         android:id="@+id/accountDetailsAddressView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

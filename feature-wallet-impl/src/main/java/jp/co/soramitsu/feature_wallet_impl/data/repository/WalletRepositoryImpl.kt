@@ -39,6 +39,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.data
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanError
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
+import java.math.BigDecimal
 import java.util.Locale
 
 class WalletRepositoryImpl(
@@ -98,7 +99,7 @@ class WalletRepositoryImpl(
         }.map { mapFeeRemoteToFee(it, transfer.token) }
     }
 
-    override fun performTransfer(transfer: Transfer): Completable {
+    override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
         return Single.fromCallable {
             val account = getSelectedAccount().blockingGet()
             val node = accountRepository.getSelectedNode().blockingGet()
@@ -107,7 +108,7 @@ class WalletRepositoryImpl(
 
             val hash = substrateSource.performTransfer(account, node, transfer, keys).blockingGet()
 
-            val transaction = createTransaction(hash, transfer, account.address)
+            val transaction = createTransaction(hash, transfer, account.address, fee)
 
             mapTransactionToTransactionLocal(transaction, account.address, TransactionSource.APP)
         }.flatMapCompletable {
@@ -129,7 +130,7 @@ class WalletRepositoryImpl(
         }
     }
 
-    private fun createTransaction(hash: String, transfer: Transfer, accountAddress: String) =
+    private fun createTransaction(hash: String, transfer: Transfer, accountAddress: String, fee: BigDecimal) =
         Transaction(
             hash,
             transfer.token,
@@ -137,7 +138,9 @@ class WalletRepositoryImpl(
             transfer.recipient,
             transfer.amount,
             System.currentTimeMillis(),
-            isIncome = false
+            isIncome = false,
+            fee = Fee(fee, transfer.token),
+            status = Transaction.Status.PENDING
         )
 
     private fun getTransferFeeUpdatingBalance(account: Account, node: Node, transfer: Transfer): Single<FeeRemote> {

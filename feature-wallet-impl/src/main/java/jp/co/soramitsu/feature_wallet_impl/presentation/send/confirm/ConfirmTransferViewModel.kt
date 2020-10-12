@@ -2,33 +2,31 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.plusAssign
-import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.AddressModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.common.AddressIconGenerator
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 
-// TODO use dp
-private const val ICON_SIZE_IN_PX = 70
+private const val ICON_IN_DP = 24
 
 class ConfirmTransferViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
-    private val iconGenerator: IconGenerator,
+    addressIconGenerator: AddressIconGenerator,
     private val clipboardManager: ClipboardManager,
     val transferDraft: TransferDraft
 ) : BaseViewModel() {
-    val recipientModel = generateAddressModel(transferDraft.recipientAddress).asLiveData()
+    val recipientModel = addressIconGenerator.createAddressIcon(transferDraft.recipientAddress, ICON_IN_DP)
+        .asLiveData()
 
     private val _transferSubmittingLiveData = MutableLiveData(false)
     val transferSubmittingLiveData: LiveData<Boolean> = _transferSubmittingLiveData
@@ -40,7 +38,7 @@ class ConfirmTransferViewModel(
     fun submitClicked() {
         _transferSubmittingLiveData.value = true
 
-        disposables += interactor.performTransfer(createTransfer())
+        disposables += interactor.performTransfer(createTransfer(), transferDraft.fee)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doFinally { _transferSubmittingLiveData.value = false }
@@ -65,11 +63,5 @@ class ConfirmTransferViewModel(
                 token = token
             )
         }
-    }
-
-    private fun generateAddressModel(address: String): Single<AddressModel> {
-        return interactor.getAddressId(address)
-            .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
-            .map { AddressModel(address, it) }
     }
 }

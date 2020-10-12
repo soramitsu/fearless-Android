@@ -117,7 +117,7 @@
     <string name="choose_amount_asset">Актив</string>
     <string name="choose_amount_fee">Плата за переказ</string>
     <string name="choose_amount_free_balance">Вільний баланс:</string>
-    <string name="choose_amount_hint">Сума</string>
+    <string name="common_amount">Сума</string>
     <string name="choose_amount_network_error">Мережа не відповідає</string>
     <string name="choose_amount_to">До</string>
 
@@ -129,4 +129,12 @@
     <string name="wallet_send_total_title">Разом</string>
     <string name="wallet_send_progress">Надсилання…</string>
     <string name="wallet_send_confirm_transfer">Підтвердьте передачу</string>
+
+    <string name="transaction_status_pending">В очікуванні</string>
+    <string name="transaction_status_failed">Помилка</string>
+    <string name="transaction_status_completed">Завершено</string>
+    <string name="transaction_details_title">Деталі транзакції</string>
+    <string name="transaction_details_from">Від</string>
+    <string name="transaction_detail_status">Статус</string>
+    <string name="transaction_detail_date">Дата</string>
 </resources>

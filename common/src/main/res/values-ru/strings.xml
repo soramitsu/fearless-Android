@@ -117,7 +117,7 @@
     <string name="choose_amount_asset">Токен</string>
     <string name="choose_amount_fee">Комиссия</string>
     <string name="choose_amount_free_balance">Свободный баланс:</string>
-    <string name="choose_amount_hint">Сумма</string>
+    <string name="common_amount">Сумма</string>
     <string name="choose_amount_network_error">Сеть недоступна</string>
     <string name="choose_amount_to">Кому</string>
 
@@ -129,4 +129,12 @@
     <string name="wallet_send_total_title">Всего</string>
     <string name="wallet_send_progress">Отправка…</string>
     <string name="wallet_send_confirm_transfer">Подтвердить</string>
+
+    <string name="transaction_status_pending">В ожидании</string>
+    <string name="transaction_status_failed">Не смогли</string>
+    <string name="transaction_status_completed">Успешно</string>
+    <string name="transaction_details_title">Детали транзакции</string>
+    <string name="transaction_details_from">От</string>
+    <string name="transaction_detail_status">Статус</string>
+    <string name="transaction_detail_date">Дата</string>
 </resources>

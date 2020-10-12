@@ -10,9 +10,9 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.common.AddressIconGenerator
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferViewModel
 
@@ -26,7 +26,7 @@ class ConfirmTransferModule {
         interactor: WalletInteractor,
         router: WalletRouter,
         resourceManager: ResourceManager,
-        iconGenerator: IconGenerator,
+        addressIconGenerator: AddressIconGenerator,
         clipboardManager: ClipboardManager,
         transferDraft: TransferDraft
     ): ViewModel {
@@ -34,7 +34,7 @@ class ConfirmTransferModule {
             interactor,
             router,
             resourceManager,
-            iconGenerator,
+            addressIconGenerator,
             clipboardManager,
             transferDraft
         )

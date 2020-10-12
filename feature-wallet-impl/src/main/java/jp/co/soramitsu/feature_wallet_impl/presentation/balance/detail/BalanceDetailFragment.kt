@@ -64,6 +64,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
             balanceDetailContainer.isEnabled = !bottomSheetExpanded
         }
 
+        transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
+
         balanceDetailContainer.setOnRefreshListener {
             viewModel.refresh()
         }

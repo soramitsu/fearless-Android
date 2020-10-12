@@ -7,7 +7,7 @@ import jp.co.soramitsu.common.groupedList.GroupedListAdapter
 import jp.co.soramitsu.common.groupedList.GroupedListHolder
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.AddressModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.common.AddressModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import kotlinx.android.synthetic.main.item_contact.view.itemContactAddress
 import kotlinx.android.synthetic.main.item_contact.view.itemContactIcon

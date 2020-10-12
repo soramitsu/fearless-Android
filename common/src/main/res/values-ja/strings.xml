@@ -116,7 +116,7 @@
     <string name="choose_amount_asset">資産</string>
     <string name="choose_amount_fee">転送料</string>
     <string name="choose_amount_free_balance">フリーバランス：</string>
-    <string name="choose_amount_hint">量</string>
+    <string name="common_amount">量</string>
     <string name="choose_amount_network_error">ネットワークが応答しない</string>
     <string name="choose_amount_to">に</string>
 
@@ -128,4 +128,12 @@
     <string name="wallet_send_total_title">合計</string>
     <string name="wallet_send_progress">送信…</string>
     <string name="wallet_send_confirm_transfer">転送を確認</string>
+
+    <string name="transaction_status_pending">保留中</string>
+    <string name="transaction_status_failed">失敗しました</string>
+    <string name="transaction_status_completed">完了</string>
+    <string name="transaction_details_title">取引の詳細</string>
+    <string name="transaction_details_from">から</string>
+    <string name="transaction_detail_status">状態</string>
+    <string name="transaction_detail_date">日付</string>
 </resources>

@@ -48,6 +48,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
             walletContainer.isEnabled = !bottomSheetExpanded
         }
 
+        transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
+
         walletContainer.setOnRefreshListener {
             viewModel.refresh()
         }

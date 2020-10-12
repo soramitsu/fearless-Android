@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.view_account_address.view.accountCopy
 import kotlinx.android.synthetic.main.view_account_address.view.accountIcon
 import kotlinx.android.synthetic.main.view_account_address.view.accountTitle
 
-class AccountAddressView @JvmOverloads constructor(
+class AddressView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
@@ -28,12 +28,12 @@ class AccountAddressView @JvmOverloads constructor(
 
     private fun applyAttributes(attrs: AttributeSet?) {
         attrs?.let {
-            val typedArray = context.obtainStyledAttributes(attrs, R.styleable.AccountAddressView)
+            val typedArray = context.obtainStyledAttributes(attrs, R.styleable.AddressView)
 
-            val iconVisible = typedArray.getBoolean(R.styleable.AccountAddressView_iconVisible, true)
+            val iconVisible = typedArray.getBoolean(R.styleable.AddressView_iconVisible, true)
             accountIcon.setVisible(iconVisible)
 
-            val labelVisible = typedArray.getBoolean(R.styleable.AccountAddressView_labelVisible, true)
+            val labelVisible = typedArray.getBoolean(R.styleable.AddressView_labelVisible, true)
             accountTitle.setVisible(labelVisible)
 
             typedArray.recycle()

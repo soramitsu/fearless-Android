@@ -28,7 +28,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun initViews() {
-        accountView.setOnCopyClickListener { viewModel.addressCopyClicked() }
+        accountView.setActionListener { viewModel.addressCopyClicked() }
         accountView.setOnClickListener { viewModel.accountsClicked() }
 
         aboutTv.setOnClickListener { viewModel.aboutClicked() }
@@ -50,9 +50,9 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
     override fun subscribe(viewModel: ProfileViewModel) {
         viewModel.selectedAccount.observe { account ->
-            account.name?.let(accountView::setAccountName)
+            account.name?.let(accountView::setTitle)
 
-            accountView.setAccountAddress(account.address)
+            accountView.setText(account.address)
 
             selectedNetworkTv.text = account.network.name
         }

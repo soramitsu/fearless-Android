@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin
+package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,12 +13,16 @@ import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.DayHeader
+import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
 private const val PAGE_SIZE = 20
 
-class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : TransferHistoryMixin {
+class TransactionHistoryProvider(
+    private val walletInteractor: WalletInteractor,
+    private val router: WalletRouter
+) : TransactionHistoryMixin {
 
     override val transferHistoryDisposable = CompositeDisposable()
 
@@ -74,6 +78,10 @@ class TransferHistoryProvider(private val walletInteractor: WalletInteractor) : 
             .observeOn(AndroidSchedulers.mainThread())
             .doOnComplete { transactionsSyncedInterceptor?.invoke() }
             .subscribeToError(transactionsErrorHandler)
+    }
+
+    override fun transactionClicked(transactionModel: TransactionModel) {
+        router.openTransactionDetail(transactionModel)
     }
 
     private fun observeFirstPage() {

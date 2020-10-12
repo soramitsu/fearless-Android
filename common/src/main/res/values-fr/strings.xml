@@ -117,7 +117,7 @@
     <string name="choose_amount_asset">Atout</string>
     <string name="choose_amount_fee">Frais de transfert</string>
     <string name="choose_amount_free_balance">Solde libre:</string>
-    <string name="choose_amount_hint">Montant</string>
+    <string name="common_amount">Montant</string>
     <string name="choose_amount_network_error">Le réseau ne répond pas</string>
     <string name="choose_amount_to">À</string>
 
@@ -129,4 +129,12 @@
     <string name="wallet_send_total_title">Total</string>
     <string name="wallet_send_progress">Envoi en cours…</string>
     <string name="wallet_send_confirm_transfer">Confirmer le transfert</string>
+
+    <string name="transaction_status_pending">En attente</string>
+    <string name="transaction_status_failed">Échoué</string>
+    <string name="transaction_status_completed">Terminé</string>
+    <string name="transaction_details_title">Détails de la transaction</string>
+    <string name="transaction_details_from">De</string>
+    <string name="transaction_detail_status">Statut</string>
+    <string name="transaction_detail_date">Date</string>
 </resources>
