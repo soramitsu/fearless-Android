@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -12,7 +13,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.common.AddressIconGenerator
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 
 private const val ICON_IN_DP = 24
@@ -21,11 +21,12 @@ class ConfirmTransferViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
-    addressIconGenerator: AddressIconGenerator,
+    private val addressIconGenerator: AddressIconGenerator,
     private val clipboardManager: ClipboardManager,
     val transferDraft: TransferDraft
 ) : BaseViewModel() {
-    val recipientModel = addressIconGenerator.createAddressIcon(transferDraft.recipientAddress, ICON_IN_DP)
+
+    val recipientModel = getAddressIcon()
         .asLiveData()
 
     private val _transferSubmittingLiveData = MutableLiveData(false)
@@ -54,6 +55,9 @@ class ConfirmTransferViewModel(
 
         showMessage(resourceManager.getString(R.string.common_copied))
     }
+
+    private fun getAddressIcon() = interactor.getAddressId(transferDraft.recipientAddress)
+        .flatMap { addressIconGenerator.createAddressIcon(transferDraft.recipientAddress, it, ICON_IN_DP) }
 
     private fun createTransfer(): Transfer {
         return with(transferDraft) {

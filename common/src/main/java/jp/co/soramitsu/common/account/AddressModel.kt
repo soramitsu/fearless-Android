@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.common
+package jp.co.soramitsu.common.account
 
 import android.graphics.drawable.PictureDrawable
 
