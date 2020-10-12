@@ -10,12 +10,13 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_nodes.addConnectionTv
 import kotlinx.android.synthetic.main.fragment_nodes.connectionsList
 
-class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler {
+class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler, AccountChooserBottomSheetDialog.ClickHandler {
 
     private lateinit var adapter: NodesAdapter
 
@@ -64,9 +65,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         }
 
         viewModel.showAccountChooserLiveData.observeEvent {
-            AccountChooserBottomSheetDialog(requireActivity(), it) {
-                viewModel.accountSelected(it)
-            }.show()
+            AccountChooserBottomSheetDialog(requireActivity(), it, this).show()
         }
     }
 
@@ -88,5 +87,13 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
             }
             .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
             .show()
+    }
+
+    override fun accountClicked(account: AccountByNetworkModel) {
+        viewModel.accountSelected(account)
+    }
+
+    override fun addAccountClicked() {
+        viewModel.createAccount()
     }
 }
