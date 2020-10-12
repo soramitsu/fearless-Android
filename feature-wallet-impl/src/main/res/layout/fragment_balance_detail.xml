@@ -230,7 +230,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.TransferHistorySheet
+        <jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.TransferHistorySheet
             android:id="@+id/transfersContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

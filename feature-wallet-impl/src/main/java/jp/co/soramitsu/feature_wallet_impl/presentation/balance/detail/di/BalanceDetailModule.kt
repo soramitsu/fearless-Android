@@ -14,16 +14,19 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailViewModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryMixin
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin.TransferHistoryProvider
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 
 @Module(includes = [ViewModelModule::class])
 class BalanceDetailModule {
 
     @Provides
     @ScreenScope
-    fun provideTransferHistoryMixin(walletInteractor: WalletInteractor): TransferHistoryMixin {
-        return TransferHistoryProvider(walletInteractor)
+    fun provideTransferHistoryMixin(
+        walletInteractor: WalletInteractor,
+        walletRouter: WalletRouter
+    ): TransactionHistoryMixin {
+        return TransactionHistoryProvider(walletInteractor, walletRouter)
     }
 
     @Provides
@@ -33,10 +36,10 @@ class BalanceDetailModule {
         interactor: WalletInteractor,
         router: WalletRouter,
         iconGenerator: IconGenerator,
-        transferHistoryMixin: TransferHistoryMixin,
+        transactionHistoryMixin: TransactionHistoryMixin,
         token: Asset.Token
     ): ViewModel {
-        return BalanceDetailViewModel(interactor, iconGenerator, router, token, transferHistoryMixin)
+        return BalanceDetailViewModel(interactor, iconGenerator, router, token, transactionHistoryMixin)
     }
 
     @Provides

@@ -104,7 +104,7 @@
                 app:layout_constraintStart_toStartOf="@+id/chooseAmountDivider1"
                 app:layout_constraintTop_toBottomOf="@+id/chooseAmountDivider1" />
 
-            <jp.co.soramitsu.common.view.AccountAddressView
+            <jp.co.soramitsu.common.view.AddressView
                 android:id="@+id/chooseAmountRecipientView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -131,7 +131,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:hint="@string/choose_amount_hint"
+                android:hint="@string/common_amount"
                 app:layout_constraintEnd_toEndOf="@+id/chooseAmountRecipientView"
                 app:layout_constraintStart_toStartOf="@+id/chooseAmountRecipientView"
                 app:layout_constraintTop_toBottomOf="@+id/chooseAmountDivider2">

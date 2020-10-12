@@ -61,7 +61,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
     override fun subscribe(viewModel: ChooseAmountViewModel) {
         viewModel.feeLiveData.observe {
-            chooseAmountFee.text = it.fee?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
+            chooseAmountFee.text = it.amount?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->

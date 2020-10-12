@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.balance.transactions.mixin
+package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
 import androidx.lifecycle.LiveData
 import io.reactivex.disposables.Disposable
@@ -17,9 +17,11 @@ interface TransactionHistoryUi {
     fun shouldLoadPage()
 
     fun syncFirstTransactionsPage()
+
+    fun transactionClicked(transactionModel: TransactionModel)
 }
 
-interface TransferHistoryMixin : TransactionHistoryUi {
+interface TransactionHistoryMixin : TransactionHistoryUi {
     val transferHistoryDisposable: Disposable
 
     fun setTransactionErrorHandler(handler: ErrorHandler)

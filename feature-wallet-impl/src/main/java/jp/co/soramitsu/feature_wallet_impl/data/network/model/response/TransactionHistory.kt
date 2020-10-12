@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.model.response
 
 import com.google.gson.annotations.SerializedName
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 
 class TransactionHistory(
@@ -22,7 +23,8 @@ class TransactionRemote(
     val blockTimestamp: Long,
     val module: String,
     val amount: BigDecimal,
-    val fee: String
+    @SerializedName("fee")
+    val feeInPlanks: BigInteger
 ) {
     val timeInMillis: Long
         get() = TimeUnit.SECONDS.toMillis(blockTimestamp)
