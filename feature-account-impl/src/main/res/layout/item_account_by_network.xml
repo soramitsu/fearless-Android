@@ -6,6 +6,8 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_primary_list_item"
     android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingEnd="14dp"
     tools:background="@color/black">
 
     <ImageView
@@ -13,7 +15,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginStart="16dp"
+        android:layout_margin="16dp"
         app:layout_constraintBottom_toBottomOf="@+id/accountAddress"
         app:layout_constraintStart_toEndOf="@id/accountCheck"
         app:layout_constraintTop_toTopOf="@+id/accountTitle"
@@ -27,8 +29,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:textColor="@color/white"
         tools:text="Account Name" />
 

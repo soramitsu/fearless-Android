@@ -1,15 +1,15 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
-import android.graphics.drawable.PictureDrawable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
-import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
@@ -17,11 +17,13 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.mode
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 
+private const val ICON_IN_DP = 24
+
 class NodesViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val nodeListingMixin: NodeListingMixin,
-    private val iconGenerator: IconGenerator
+    private val addressIconGenerator: AddressIconGenerator
 ) : BaseViewModel(), NodeListingMixin by nodeListingMixin {
 
     private val _noAccountsEvent = MutableLiveData<Event<Unit>>()
@@ -67,7 +69,7 @@ class NodesViewModel(
     }
 
     private fun mapAccountToAccountModel(nodeId: Int, account: Account): AccountByNetworkModel {
-        return AccountByNetworkModel(nodeId, account.address, account.name, generateIcon(account))
+        return AccountByNetworkModel(nodeId, account.address, account.name, generateIconForAddress(account))
     }
 
     fun accountSelected(accountModel: AccountByNetworkModel) {
@@ -91,9 +93,9 @@ class NodesViewModel(
         router.createAccountForNetworkType()
     }
 
-    private fun generateIcon(account: Account): PictureDrawable {
+    private fun generateIconForAddress(account: Account): AddressModel {
         return interactor.getAddressId(account)
-            .map { iconGenerator.getSvgImage(it, 50) }
+            .flatMap { addressIconGenerator.createAddressIcon(account.address, it, ICON_IN_DP) }
             .blockingGet()
     }
 }

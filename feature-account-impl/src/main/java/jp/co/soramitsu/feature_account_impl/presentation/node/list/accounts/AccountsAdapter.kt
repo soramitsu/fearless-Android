@@ -36,7 +36,7 @@ class AccountHolder(view: View) : RecyclerView.ViewHolder(view) {
     ) {
         with(itemView) {
             accountTitle.text = accountModel.name ?: ""
-            accountIcon.setImageDrawable(accountModel.image)
+            accountIcon.setImageDrawable(accountModel.addressModel.image)
 
             setOnClickListener { handler.itemClicked(accountModel) }
         }
