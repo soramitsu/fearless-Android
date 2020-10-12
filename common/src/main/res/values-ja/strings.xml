@@ -128,4 +128,7 @@
     <string name="wallet_send_total_title">合計</string>
     <string name="wallet_send_progress">送信…</string>
     <string name="wallet_send_confirm_transfer">転送を確認</string>
+    <string name="account_needed_title">アカウントが必要</string>
+    <string name="account_needed_message">このネットワークのアカウントがありません。アカウントを作成またはインポートできます。</string>
+    <string name="common_proceed">続行</string>
 </resources>

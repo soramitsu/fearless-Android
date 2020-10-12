@@ -258,4 +258,19 @@ class AccountInteractorImpl(
                 networkType ?: throw UnsupportedNetworkException()
             }
     }
+
+    override fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>> {
+        return accountRepository.getAccountsByNetworkType(networkType)
+    }
+
+    override fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable {
+        return accountRepository.getAccount(accountAddress)
+            .flatMapCompletable { account ->
+                accountRepository.getNode(nodeId)
+                    .flatMapCompletable { node ->
+                        accountRepository.selectNode(node)
+                            .andThen(accountRepository.selectAccount(account))
+                    }
+            }
+    }
 }

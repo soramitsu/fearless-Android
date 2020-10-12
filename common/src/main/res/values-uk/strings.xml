@@ -129,4 +129,7 @@
     <string name="wallet_send_total_title">Разом</string>
     <string name="wallet_send_progress">Надсилання…</string>
     <string name="wallet_send_confirm_transfer">Підтвердьте передачу</string>
+    <string name="account_needed_title">Потрібен рахунок</string>
+    <string name="account_needed_message">У вас немає облікового запису для цієї мережі, ви можете створити або імпортувати обліковий запис.</string>
+    <string name="common_proceed">Продовжуйте</string>
 </resources>

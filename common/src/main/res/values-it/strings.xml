@@ -128,4 +128,7 @@
     <string name="wallet_send_total_title">Totale</string>
     <string name="wallet_send_progress">Invio ...</string>
     <string name="wallet_send_confirm_transfer">Conferma il trasferimento</string>
+    <string name="account_needed_title">Account necessario</string>
+    <string name="account_needed_message">Non hai un account per questa rete, puoi creare o importare un account.</string>
+    <string name="common_proceed">Procedere</string>
 </resources>

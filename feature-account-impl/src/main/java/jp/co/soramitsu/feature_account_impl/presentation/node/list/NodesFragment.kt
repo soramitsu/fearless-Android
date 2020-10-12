@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
@@ -56,6 +57,10 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.groupedNodeModelsLiveData.observe(adapter::submitList)
 
         viewModel.selectedNodeLiveData.observe(adapter::updateSelectedNode)
+
+        viewModel.noAccountsEvent.observeEvent {
+            showNoAccountsDialog()
+        }
     }
 
     override fun infoClicked(nodeModel: NodeModel) {
@@ -64,5 +69,14 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
     override fun checkClicked(nodeModel: NodeModel) {
         viewModel.selectNodeClicked(nodeModel)
+    }
+
+    private fun showNoAccountsDialog() {
+        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
+            .setTitle(R.string.account_needed_title)
+            .setMessage(R.string.account_needed_message)
+            .setPositiveButton(R.string.common_proceed) { dialog, _ -> dialog?.dismiss() }
+            .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
+            .show()
     }
 }
