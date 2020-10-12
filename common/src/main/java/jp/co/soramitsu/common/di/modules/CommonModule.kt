@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.os.Vibrator
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -116,4 +117,11 @@ class CommonModule {
     fun provideLanguagesHolder(): LanguagesHolder {
         return LanguagesHolder()
     }
+
+    @Provides
+    @ApplicationScope
+    fun provideAddressModelCreator(
+        resourceManager: ResourceManager,
+        iconGenerator: IconGenerator
+    ): AddressIconGenerator = AddressIconGenerator(iconGenerator, resourceManager)
 }

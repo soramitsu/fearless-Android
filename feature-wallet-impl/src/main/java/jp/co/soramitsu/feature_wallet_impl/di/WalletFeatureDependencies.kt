@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.di
 
 import android.content.Context
 import com.google.gson.Gson
+import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocketCreator
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
@@ -53,4 +54,6 @@ interface WalletFeatureDependencies {
     fun rxWebSocketCreator(): RxWebSocketCreator
 
     fun jsonMapper(): Gson
+
+    fun addressIconGenerator(): AddressIconGenerator
 }
