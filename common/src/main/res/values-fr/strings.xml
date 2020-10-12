@@ -129,4 +129,12 @@
     <string name="wallet_send_total_title">Total</string>
     <string name="wallet_send_progress">Envoi en cours…</string>
     <string name="wallet_send_confirm_transfer">Confirmer le transfert</string>
+
+    <string name="transaction_status_pending">En attente</string>
+    <string name="transaction_status_failed">Échoué</string>
+    <string name="transaction_status_completed">Terminé</string>
+    <string name="transaction_details_title">Détails de la transaction</string>
+    <string name="transaction_details_from">De</string>
+    <string name="transaction_detail_status">Statut</string>
+    <string name="transaction_detail_date">Date</string>
 </resources>

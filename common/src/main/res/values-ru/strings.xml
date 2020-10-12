@@ -129,4 +129,12 @@
     <string name="wallet_send_total_title">Всего</string>
     <string name="wallet_send_progress">Отправка…</string>
     <string name="wallet_send_confirm_transfer">Подтвердить</string>
+
+    <string name="transaction_status_pending">В ожидании</string>
+    <string name="transaction_status_failed">Не смогли</string>
+    <string name="transaction_status_completed">Успешно</string>
+    <string name="transaction_details_title">Детали транзакции</string>
+    <string name="transaction_details_from">От</string>
+    <string name="transaction_detail_status">Статус</string>
+    <string name="transaction_detail_date">Дата</string>
 </resources>

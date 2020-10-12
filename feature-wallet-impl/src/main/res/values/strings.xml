@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="transaction_details_title">Transaction details</string>
-    <string name="transaction_detail_status">Status</string>
-    <string name="transaction_detail_date">Date</string>
-
-    <string name="transaction_details_from">From</string>
-</resources>
