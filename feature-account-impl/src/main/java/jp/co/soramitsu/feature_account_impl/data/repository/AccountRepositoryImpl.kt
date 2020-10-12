@@ -533,8 +533,7 @@ class AccountRepositoryImpl(
 
     override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
         return Single.fromCallable {
-            val network = getNetworkForType(networkType)
-            network
+            getNetworkForType(networkType)
         }
     }
 }
