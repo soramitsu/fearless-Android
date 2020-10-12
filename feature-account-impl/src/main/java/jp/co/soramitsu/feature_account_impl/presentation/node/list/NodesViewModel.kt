@@ -12,10 +12,13 @@ import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 private const val ICON_IN_DP = 24
 
@@ -26,11 +29,11 @@ class NodesViewModel(
     private val addressIconGenerator: AddressIconGenerator
 ) : BaseViewModel(), NodeListingMixin by nodeListingMixin {
 
-    private val _noAccountsEvent = MutableLiveData<Event<Unit>>()
-    val noAccountsEvent: LiveData<Event<Unit>> = _noAccountsEvent
+    private val _noAccountsEvent = MutableLiveData<Event<Node.NetworkType>>()
+    val noAccountsEvent: LiveData<Event<Node.NetworkType>> = _noAccountsEvent
 
-    private val _showAccountChooserLiveData = MutableLiveData<Event<List<AccountByNetworkModel>>>()
-    val showAccountChooserLiveData: LiveData<Event<List<AccountByNetworkModel>>> = _showAccountChooserLiveData
+    private val _showAccountChooserLiveData = MutableLiveData<Event<AccountChooserPayload>>()
+    val showAccountChooserLiveData: LiveData<Event<AccountChooserPayload>> = _showAccountChooserLiveData
 
     fun editClicked() {
         // TODO
@@ -49,21 +52,26 @@ class NodesViewModel(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ accounts ->
-                handleAccountsForNetwork(nodeModel.id, accounts)
+                handleAccountsForNetwork(nodeModel.id, nodeModel.networkModelType.networkType, accounts)
             }, {
                 it.message?.let { showError(it) }
             })
     }
 
-    private fun handleAccountsForNetwork(nodeId: Int, accounts: List<Account>) {
+    private fun handleAccountsForNetwork(nodeId: Int, networkType: Node.NetworkType, accounts: List<Account>) {
         if (accounts.isEmpty()) {
-            _noAccountsEvent.value = Event(Unit)
+            _noAccountsEvent.value = Event(networkType)
         } else {
             if (accounts.size == 1) {
                 selectAccountForNode(nodeId, accounts.first().address)
             } else {
                 val accountModels = accounts.map { mapAccountToAccountModel(nodeId, it) }
-                _showAccountChooserLiveData.value = Event(accountModels)
+                val networkModel = when (networkType) {
+                    Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
+                    Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
+                    Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
+                }
+                _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, networkModel))
             }
         }
     }
@@ -89,8 +97,8 @@ class NodesViewModel(
         router.openAddNode()
     }
 
-    fun createAccount() {
-        router.createAccountForNetworkType()
+    fun createAccountForNetworkType(networkType: Node.NetworkType) {
+        router.createAccountForNetworkType(networkType)
     }
 
     private fun generateIconForAddress(account: Account): AddressModel {

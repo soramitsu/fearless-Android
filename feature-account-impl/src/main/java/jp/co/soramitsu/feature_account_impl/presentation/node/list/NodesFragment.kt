@@ -7,6 +7,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserBottomSheetDialog
@@ -61,7 +62,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.selectedNodeLiveData.observe(adapter::updateSelectedNode)
 
         viewModel.noAccountsEvent.observeEvent {
-            showNoAccountsDialog()
+            showNoAccountsDialog(it)
         }
 
         viewModel.showAccountChooserLiveData.observeEvent {
@@ -77,12 +78,12 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.selectNodeClicked(nodeModel)
     }
 
-    private fun showNoAccountsDialog() {
+    private fun showNoAccountsDialog(networkType: Node.NetworkType) {
         MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
             .setTitle(R.string.account_needed_title)
             .setMessage(R.string.account_needed_message)
             .setPositiveButton(R.string.common_proceed) { dialog, _ ->
-                viewModel.createAccount()
+                viewModel.createAccountForNetworkType(networkType)
                 dialog?.dismiss()
             }
             .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
@@ -93,7 +94,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.accountSelected(account)
     }
 
-    override fun addAccountClicked() {
-        viewModel.createAccount()
+    override fun addAccountClicked(networkType: Node.NetworkType) {
+        viewModel.createAccountForNetworkType(networkType)
     }
 }

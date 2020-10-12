@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceTypeChooserBottomSheetDialog
@@ -37,6 +38,14 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     companion object {
         private const val PICKFILE_RESULT_CODE = 101
+        private const val KEY_NETWORK_TYPE = "network_type"
+
+        fun getBundle(networkType: Node.NetworkType?): Bundle {
+
+            return Bundle().apply {
+                putSerializable(KEY_NETWORK_TYPE, networkType)
+            }
+        }
     }
 
     private lateinit var integrator: IntentIntegrator
@@ -79,12 +88,14 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun inject() {
+        val networkType = arguments!![KEY_NETWORK_TYPE] as Node.NetworkType?
+
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .importAccountComponentFactory()
-            .create(this)
+            .create(this, networkType)
             .inject(this)
     }
 
@@ -153,6 +164,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         viewModel.nextButtonEnabledLiveData.observe {
             nextBtn.isEnabled = it
+        }
+
+        viewModel.networkTypeChangeAvailable.observe {
+            advancedBlockView.setNetworkSelectorEnabled(it)
         }
 
         advancedBlockView.derivationPathField.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)

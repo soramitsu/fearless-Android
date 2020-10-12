@@ -51,5 +51,5 @@ interface AccountRouter {
 
     fun openAddNode()
 
-    fun createAccountForNetworkType()
+    fun createAccountForNetworkType(networkType: Node.NetworkType)
 }

@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.mnemonic.MnemonicWordsAdapter
@@ -26,10 +27,12 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
 
     companion object {
         private const val KEY_ACCOUNT_NAME = "account_name"
+        private const val KEY_NETWORK_TYPE = "network_type"
 
-        fun getBundle(accountName: String): Bundle {
+        fun getBundle(accountName: String, selectedNetworkType: Node.NetworkType?): Bundle {
             return Bundle().apply {
                 putString(KEY_ACCOUNT_NAME, accountName)
+                putSerializable(KEY_NETWORK_TYPE, selectedNetworkType)
             }
         }
     }
@@ -62,13 +65,19 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         nextBtn.setOnClickListener {
             viewModel.nextClicked(advancedBlockView.getDerivationPath())
         }
+
+        viewModel.networkTypeChangeAvailable.observe {
+            advancedBlockView.setNetworkSelectorEnabled(it)
+        }
     }
 
     override fun inject() {
         val accountName = arguments!!.getString(KEY_ACCOUNT_NAME, "")
+        val networkType = arguments!![KEY_NETWORK_TYPE] as Node.NetworkType?
+
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .backupMnemonicComponentFactory()
-            .create(this, accountName)
+            .create(this, accountName, networkType)
             .inject(this)
     }
 

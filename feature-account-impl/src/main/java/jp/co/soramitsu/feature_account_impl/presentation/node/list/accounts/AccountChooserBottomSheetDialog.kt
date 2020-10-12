@@ -5,15 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.android.synthetic.main.bottom_sheet_account_chooser.accountsRv
 import kotlinx.android.synthetic.main.bottom_sheet_account_chooser.addImg
 import kotlinx.android.synthetic.main.bottom_sheet_account_chooser.titleTv
 
+class AccountChooserPayload(val accountsByNetwork: List<AccountByNetworkModel>, val network: NetworkModel.NetworkTypeUI)
+
 class AccountChooserBottomSheetDialog(
     context: Activity,
-    accountsByNetwork: List<AccountByNetworkModel>,
+    accountChooserPayload: AccountChooserPayload,
     private val clickHandler: ClickHandler
 ) : BottomSheetDialog(context, R.style.BottomSheetDialog), AccountsAdapter.AccountItemHandler {
 
@@ -21,7 +25,7 @@ class AccountChooserBottomSheetDialog(
 
         fun accountClicked(account: AccountByNetworkModel)
 
-        fun addAccountClicked()
+        fun addAccountClicked(networkType: Node.NetworkType)
     }
 
     init {
@@ -40,13 +44,13 @@ class AccountChooserBottomSheetDialog(
         titleTv.text = context.getString(R.string.profile_accounts_title)
 
         addImg.setOnClickListener {
-            clickHandler.addAccountClicked()
+            clickHandler.addAccountClicked(accountChooserPayload.network.networkType)
             dismiss()
         }
 
         val adapter = AccountsAdapter(this)
 
-        adapter.submitList(accountsByNetwork)
+        adapter.submitList(accountChooserPayload.accountsByNetwork)
         accountsRv.adapter = adapter
     }
 

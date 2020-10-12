@@ -34,7 +34,8 @@ class ImportAccountViewModel(
     private val router: AccountRouter,
     private val resourceManager: ResourceManager,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
-    private val networkChooserMixin: NetworkChooserMixin
+    private val networkChooserMixin: NetworkChooserMixin,
+    private val selectedNetworkType: Node.NetworkType?
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin,
     NetworkChooserMixin by networkChooserMixin {
@@ -57,6 +58,9 @@ class ImportAccountViewModel(
 
     private val sourceTypeValid = _selectedSourceTypeLiveData.switchMap(ImportSource::validationLiveData)
 
+    private val _networkTypeChangeAvailable = MutableLiveData<Boolean>()
+    val networkTypeChangeAvailable: LiveData<Boolean> = _networkTypeChangeAvailable
+
     val nextButtonEnabledLiveData = sourceTypeValid.combine(nameLiveData) { sourceTypeValid, name ->
         sourceTypeValid && name.isNotEmpty()
     }
@@ -64,6 +68,8 @@ class ImportAccountViewModel(
     init {
         disposables += networkDisposable
         disposables += cryptoDisposable
+
+        _networkTypeChangeAvailable.value = selectedNetworkType == null
 
         _selectedSourceTypeLiveData.value = sourceTypes.first()
     }

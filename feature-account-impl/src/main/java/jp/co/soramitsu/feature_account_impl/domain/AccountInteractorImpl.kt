@@ -139,13 +139,10 @@ class AccountInteractorImpl(
 
     override fun getSelectedNetwork(): Single<Network> {
         return getNetworks()
-            .subscribeOn(Schedulers.io())
-            .zipWith<Node, Network>(
-                getSelectedNode(),
+            .zipWith(getSelectedNode(),
                 BiFunction { networks, selectedNode ->
                     networks.first { it.type == selectedNode.networkType }
                 })
-            .observeOn(AndroidSchedulers.mainThread())
     }
 
     override fun shouldOpenOnboarding(): Single<Boolean> {
@@ -272,5 +269,9 @@ class AccountInteractorImpl(
                             .andThen(accountRepository.selectAccount(account))
                     }
             }
+    }
+
+    override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
+        return accountRepository.getNetworkByNetworkType(networkType)
     }
 }

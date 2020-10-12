@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
@@ -18,7 +19,8 @@ class BackupMnemonicViewModel(
     private val router: AccountRouter,
     private val accountName: String,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
-    private val networkChooserMixin: NetworkChooserMixin
+    private val networkChooserMixin: NetworkChooserMixin,
+    private val selectedNetworkType: Node.NetworkType?
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin,
     NetworkChooserMixin by networkChooserMixin {
@@ -29,18 +31,21 @@ class BackupMnemonicViewModel(
     private val _showInfoEvent = MutableLiveData<Event<Unit>>()
     val showInfoEvent: LiveData<Event<Unit>> = _showInfoEvent
 
+    private val _networkTypeChangeAvailable = MutableLiveData<Boolean>()
+    val networkTypeChangeAvailable: LiveData<Boolean> = _networkTypeChangeAvailable
+
     private var mnemonic: String = ""
 
     init {
         disposables += networkDisposable
         disposables += cryptoDisposable
 
+        _networkTypeChangeAvailable.value = selectedNetworkType == null
+
         disposables.add(
             interactor.getMnemonic()
                 .subscribeOn(Schedulers.io())
-                .doOnSuccess {
-                    mnemonic = it.joinToString(" ")
-                }
+                .doOnSuccess { mnemonic = it.joinToString(" ") }
                 .map { mapMnemonicToMnemonicWords(it) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({

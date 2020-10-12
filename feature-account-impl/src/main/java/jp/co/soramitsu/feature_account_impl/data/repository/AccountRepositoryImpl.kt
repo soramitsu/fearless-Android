@@ -530,4 +530,11 @@ class AccountRepositoryImpl(
         return accountDao.getAccountsByNetworkType(networkType.ordinal)
             .map { it.map(::mapAccountLocalToAccount) }
     }
+
+    override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
+        return Single.fromCallable {
+            val network = getNetworkForType(networkType)
+            network
+        }
+    }
 }

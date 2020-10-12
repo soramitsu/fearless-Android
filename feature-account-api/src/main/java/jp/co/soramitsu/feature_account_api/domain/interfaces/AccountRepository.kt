@@ -124,4 +124,6 @@ interface AccountRepository {
     fun getNetworkName(nodeHost: String): Single<String>
 
     fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
+
+    fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
 }
