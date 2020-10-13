@@ -14,11 +14,11 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkTypeUI
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 private const val ICON_IN_DP = 24
 
@@ -66,12 +66,8 @@ class NodesViewModel(
                 selectAccountForNode(nodeId, accounts.first().address)
             } else {
                 val accountModels = accounts.map { mapAccountToAccountModel(nodeId, it) }
-                val networkModel = when (networkType) {
-                    Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
-                    Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
-                    Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
-                }
-                _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, networkModel))
+                val networkType = mapNetworkTypeToNetworkTypeUI(networkType)
+                _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, networkType))
             }
         }
     }
