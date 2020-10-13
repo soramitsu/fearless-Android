@@ -6,8 +6,8 @@ import android.view.View
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExternalAnalyzer.SUBSCAN
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExternalAnalyzer.POLKASCAN
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExternalAnalyzer.SUBSCAN
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import kotlinx.android.synthetic.main.bottom_sheet_external_transaction_view.externalTransactionSheetCopy
 import kotlinx.android.synthetic.main.bottom_sheet_external_transaction_view.externalTransactionSheetPolkascan
@@ -45,7 +45,7 @@ class TransactionExternalActionsSheet(
 
     private fun hideUnsupported() {
         val networkType = model.token.networkType
-        
+
         if (!SUBSCAN.isNetworkSupported(networkType)) {
             externalTransactionSheetSubscan.makeGone()
         }

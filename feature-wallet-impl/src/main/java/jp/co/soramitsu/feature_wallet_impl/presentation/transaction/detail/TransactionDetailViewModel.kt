@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail
 
-import android.util.EventLog
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.account.AddressIconGenerator
@@ -25,7 +24,7 @@ class TransactionDetailViewModel(
 ) : BaseViewModel() {
 
     private val _showExternalViewEvent = MutableLiveData<Event<Unit>>()
-    val showExternalActionsEvent : LiveData<Event<Unit>> = _showExternalViewEvent
+    val showExternalActionsEvent: LiveData<Event<Unit>> = _showExternalViewEvent
 
     val recipientAddressModelLiveData = getRecipientIcon()
         .asLiveData()
