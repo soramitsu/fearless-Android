@@ -10,6 +10,7 @@ import jp.co.soramitsu.app.root.di.RootApi
 import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
+import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import jp.co.soramitsu.splash.presentation.SplashFragment

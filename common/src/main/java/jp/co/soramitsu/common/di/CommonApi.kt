@@ -5,7 +5,8 @@ import com.google.gson.Gson
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.rpc.RxWebSocketCreator
+import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
+import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -58,11 +59,13 @@ interface CommonApi {
 
     fun languagesHolder(): LanguagesHolder
 
-    fun provideSingleSocketExecutor(): SocketSingleRequestExecutor
-
-    fun provideRxWebSocketCreator(): RxWebSocketCreator
-
     fun provideJsonMapper(): Gson
+
+    fun socketService() : SocketService
+
+    fun connectionManager() : ConnectionManager
+
+    fun provideSocketSingleRequestExecutor() : SocketSingleRequestExecutor
 
     fun addressIconGenerator(): AddressIconGenerator
 }

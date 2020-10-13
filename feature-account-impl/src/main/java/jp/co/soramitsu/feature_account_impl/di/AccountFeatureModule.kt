@@ -108,7 +108,7 @@ class AccountFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideAccountDatasource(
+    fun provideAccountDataSource(
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
         jsonMapper: Gson

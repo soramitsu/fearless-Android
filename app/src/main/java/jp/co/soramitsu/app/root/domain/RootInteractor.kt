@@ -1,3 +1,9 @@
 package jp.co.soramitsu.app.root.domain
 
-class RootInteractor
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+
+class RootInteractor(
+    private val accountRepository: AccountRepository
+) {
+    fun observeSelectedNode() = accountRepository.observeSelectedNode()
+}

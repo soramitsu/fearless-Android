@@ -8,7 +8,8 @@ import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.RxCallAdapterFactory
-import jp.co.soramitsu.common.data.network.rpc.RxWebSocketCreator
+import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
+import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -81,11 +82,24 @@ class NetworkModule {
 
     @Provides
     @ApplicationScope
-    fun provideSingleRequestExecutor(mapper: Gson, logger: Logger, resourceManager: ResourceManager) = SocketSingleRequestExecutor(mapper, logger, resourceManager)
+    fun provideSocketService(
+        mapper: Gson,
+        logger: Logger
+    ) : SocketService = SocketService(mapper, logger)
 
     @Provides
     @ApplicationScope
-    fun provideRxWebSocketCreator(mapper: Gson, logger: Logger, resourceManager: ResourceManager) = RxWebSocketCreator(mapper, logger, resourceManager)
+    fun provideConnectionManager(
+        socketService: SocketService
+    ) : ConnectionManager = socketService
+
+    @Provides
+    @ApplicationScope
+    fun provideSocketSingleRequestExecutor(
+        mapper: Gson,
+        logger: Logger,
+        resourceManager: ResourceManager
+    ) = SocketSingleRequestExecutor(mapper, logger, resourceManager)
 
     @Provides
     @ApplicationScope

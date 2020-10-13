@@ -10,20 +10,15 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.FeeRespon
 import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo
 
 interface SubstrateRemoteSource {
-    fun fetchAccountInfo(
-        account: Account,
-        node: Node
-    ): Single<EncodableStruct<AccountInfo>>
+    fun fetchAccountInfo(account: Account): Single<EncodableStruct<AccountInfo>>
 
     fun getTransferFee(
         account: Account,
-        node: Node,
         transfer: Transfer
     ): Single<FeeResponse>
 
     fun performTransfer(
         account: Account,
-        node: Node,
         transfer: Transfer,
         keypair: Keypair
     ): Single<String>

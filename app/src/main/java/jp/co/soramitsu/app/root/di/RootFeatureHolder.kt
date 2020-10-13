@@ -15,6 +15,7 @@ class RootFeatureHolder @Inject constructor(
 
     override fun initializeDependencies(): Any {
         val rootFeatureDependencies = DaggerRootComponent_RootFeatureDependenciesComponent.builder()
+            .commonApi(commonApi())
             .accountFeatureApi(getFeature(AccountFeatureApi::class.java))
             .build()
         return DaggerRootComponent.factory()

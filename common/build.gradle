@@ -68,6 +68,8 @@ dependencies {
     implementation rxCallAdapterDep
     implementation interceptorVersion
 
+    implementation wsDep
+
     testImplementation jUnitDep
     testImplementation mockitoDep
 }
