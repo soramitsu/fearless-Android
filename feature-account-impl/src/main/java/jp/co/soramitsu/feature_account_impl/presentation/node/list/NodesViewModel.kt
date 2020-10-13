@@ -14,7 +14,6 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkTypeUI
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
@@ -52,22 +51,21 @@ class NodesViewModel(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ accounts ->
-                handleAccountsForNetwork(nodeModel.id, nodeModel.networkModelType.networkType, accounts)
+                handleAccountsForNetwork(nodeModel, accounts)
             }, {
                 it.message?.let { showError(it) }
             })
     }
 
-    private fun handleAccountsForNetwork(nodeId: Int, networkType: Node.NetworkType, accounts: List<Account>) {
+    private fun handleAccountsForNetwork(nodeModel: NodeModel, accounts: List<Account>) {
         if (accounts.isEmpty()) {
-            _noAccountsEvent.value = Event(networkType)
+            _noAccountsEvent.value = Event(nodeModel.networkModelType.networkType)
         } else {
             if (accounts.size == 1) {
-                selectAccountForNode(nodeId, accounts.first().address)
+                selectAccountForNode(nodeModel.id, accounts.first().address)
             } else {
-                val accountModels = accounts.map { mapAccountToAccountModel(nodeId, it) }
-                val networkTypeUI = mapNetworkTypeToNetworkTypeUI(networkType)
-                _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, networkTypeUI))
+                val accountModels = accounts.map { mapAccountToAccountModel(nodeModel.id, it) }
+                _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, nodeModel.networkModelType))
             }
         }
     }

@@ -11,17 +11,13 @@ import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryptio
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 fun mapNetworkToNetworkModel(network: Network): NetworkModel {
-    val type = mapNetworkTypeToNetworkTypeUI(network.type)
-
-    return NetworkModel(network.name, type, network.defaultNode)
-}
-
-fun mapNetworkTypeToNetworkTypeUI(networkType: Node.NetworkType): NetworkModel.NetworkTypeUI {
-    return when (networkType) {
+    val type = when (network.type) {
         Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
         Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
         Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
     }
+
+    return NetworkModel(network.name, type, network.defaultNode)
 }
 
 fun mapCryptoTypeToCryptoTypeModel(
