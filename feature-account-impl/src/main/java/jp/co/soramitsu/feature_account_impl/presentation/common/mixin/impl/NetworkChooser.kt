@@ -25,6 +25,8 @@ class NetworkChooser(
 
     private val networkModelsLiveData = getNetworkModels().asLiveData(networkDisposable)
 
+    override val isNetworkTypeChangeAvailable = selectedNetworkType == null
+
     override val selectedNetworkLiveData = getSelectedNetwork()
         .subscribeOn(Schedulers.io())
         .map(::mapNetworkToNetworkModel)

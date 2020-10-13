@@ -32,16 +32,14 @@ class BackupMnemonicModule {
         router: AccountRouter,
         accountName: String,
         networkChooserMixin: NetworkChooserMixin,
-        cryptoTypeChooserMixin: CryptoTypeChooserMixin,
-        networkType: Node.NetworkType?
+        cryptoTypeChooserMixin: CryptoTypeChooserMixin
     ): ViewModel {
         return BackupMnemonicViewModel(
             interactor,
             router,
             accountName,
             cryptoTypeChooserMixin,
-            networkChooserMixin,
-            networkType
+            networkChooserMixin
         )
     }
 

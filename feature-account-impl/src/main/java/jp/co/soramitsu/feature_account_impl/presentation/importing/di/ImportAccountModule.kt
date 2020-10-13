@@ -48,8 +48,7 @@ class ImportAccountModule {
             router,
             resourceManager,
             cryptoChooserMixin,
-            networkChooserMixin,
-            networkType
+            networkChooserMixin
         )
     }
 

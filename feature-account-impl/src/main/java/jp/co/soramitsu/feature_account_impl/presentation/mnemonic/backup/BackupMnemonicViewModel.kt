@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
@@ -19,8 +18,7 @@ class BackupMnemonicViewModel(
     private val router: AccountRouter,
     private val accountName: String,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
-    private val networkChooserMixin: NetworkChooserMixin,
-    private val selectedNetworkType: Node.NetworkType?
+    private val networkChooserMixin: NetworkChooserMixin
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin,
     NetworkChooserMixin by networkChooserMixin {
@@ -30,8 +28,6 @@ class BackupMnemonicViewModel(
 
     private val _showInfoEvent = MutableLiveData<Event<Unit>>()
     val showInfoEvent: LiveData<Event<Unit>> = _showInfoEvent
-
-    val isNetworkTypeChangeAvailable = selectedNetworkType == null
 
     private var mnemonic: String = ""
 
