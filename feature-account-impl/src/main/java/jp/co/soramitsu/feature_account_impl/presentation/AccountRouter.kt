@@ -50,4 +50,6 @@ interface AccountRouter {
     fun openNodeDetails(nodeId: Int)
 
     fun openAddNode()
+
+    fun createAccountForNetworkType(networkType: Node.NetworkType)
 }

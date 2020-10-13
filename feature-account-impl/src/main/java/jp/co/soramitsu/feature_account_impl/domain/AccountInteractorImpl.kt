@@ -139,13 +139,10 @@ class AccountInteractorImpl(
 
     override fun getSelectedNetwork(): Single<Network> {
         return getNetworks()
-            .subscribeOn(Schedulers.io())
-            .zipWith<Node, Network>(
-                getSelectedNode(),
+            .zipWith(getSelectedNode(),
                 BiFunction { networks, selectedNode ->
                     networks.first { it.type == selectedNode.networkType }
                 })
-            .observeOn(AndroidSchedulers.mainThread())
     }
 
     override fun shouldOpenOnboarding(): Single<Boolean> {
@@ -257,5 +254,24 @@ class AccountInteractorImpl(
                 val networkType = supportedNetworks.firstOrNull { networkName == it.readableName }
                 networkType ?: throw UnsupportedNetworkException()
             }
+    }
+
+    override fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>> {
+        return accountRepository.getAccountsByNetworkType(networkType)
+    }
+
+    override fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable {
+        return accountRepository.getAccount(accountAddress)
+            .flatMapCompletable { account ->
+                accountRepository.getNode(nodeId)
+                    .flatMapCompletable { node ->
+                        accountRepository.selectNode(node)
+                            .andThen(accountRepository.selectAccount(account))
+                    }
+            }
+    }
+
+    override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
+        return accountRepository.getNetworkByNetworkType(networkType)
     }
 }

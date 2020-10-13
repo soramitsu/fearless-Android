@@ -27,9 +27,7 @@ import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDa
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.CryptoTypeChooser
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.NetworkChooser
 
 @Module
 class AccountFeatureModule {
@@ -57,10 +55,6 @@ class AccountFeatureModule {
         keypairFactory: KeypairFactory,
         jsonMapper: Gson
     ) = JsonSeedDecoder(jsonMapper, sS58Encoder, keypairFactory)
-
-    @Provides
-    fun provideNetworkChooserMixin(interactor: AccountInteractor): NetworkChooserMixin =
-        NetworkChooser(interactor)
 
     @Provides
     fun provideCryptoChooserMixin(

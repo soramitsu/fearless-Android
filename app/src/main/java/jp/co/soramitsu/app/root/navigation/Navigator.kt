@@ -6,10 +6,12 @@ import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
+import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -41,8 +43,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_splash_to_main)
     }
 
-    override fun openCreateAccount() {
-        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment)
+    override fun openCreateAccount(selectedNetworkType: Node.NetworkType?) {
+        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment, CreateAccountFragment.getBundle(selectedNetworkType))
     }
 
     override fun backToWelcomeScreen() {
@@ -92,12 +94,12 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.openPrivacy)
     }
 
-    override fun openImportAccountScreen() {
-        navController?.navigate(R.id.importAction)
+    override fun openImportAccountScreen(selectedNetworkType: Node.NetworkType?) {
+        navController?.navigate(R.id.importAction, ImportAccountFragment.getBundle(selectedNetworkType))
     }
 
-    override fun openMnemonicScreen(accountName: String) {
-        val bundle = BackupMnemonicFragment.getBundle(accountName)
+    override fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType?) {
+        val bundle = BackupMnemonicFragment.getBundle(accountName, selectedNetworkType)
         navController?.navigate(R.id.action_createAccountFragment_to_backupMnemonicFragment, bundle)
     }
 
@@ -191,5 +193,9 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
 
     override fun openAddNode() {
         navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment)
+    }
+
+    override fun createAccountForNetworkType(networkType: Node.NetworkType) {
+        navController?.navigate(R.id.action_nodes_to_onboarding, WelcomeFragment.getBundleWithNetworkType(true, networkType))
     }
 }
