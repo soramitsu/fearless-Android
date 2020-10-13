@@ -88,7 +88,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun inject() {
-        val networkType = arguments!![KEY_NETWORK_TYPE] as Node.NetworkType?
+        val networkType = argument<Node.NetworkType?>(KEY_NETWORK_TYPE)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
@@ -100,6 +100,8 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun subscribe(viewModel: ImportAccountViewModel) {
+        advancedBlockView.setNetworkSelectorEnabled(viewModel.isNetworkTypeChangeAvailable)
+
         sourceViews = viewModel.sourceTypes.map {
             val view = createSourceView(it)
 
@@ -164,10 +166,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         viewModel.nextButtonEnabledLiveData.observe {
             nextBtn.isEnabled = it
-        }
-
-        viewModel.networkTypeChangeAvailable.observe {
-            advancedBlockView.setNetworkSelectorEnabled(it)
         }
 
         advancedBlockView.derivationPathField.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)

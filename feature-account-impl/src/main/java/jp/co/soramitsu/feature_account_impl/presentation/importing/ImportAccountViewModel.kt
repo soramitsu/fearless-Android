@@ -58,8 +58,7 @@ class ImportAccountViewModel(
 
     private val sourceTypeValid = _selectedSourceTypeLiveData.switchMap(ImportSource::validationLiveData)
 
-    private val _networkTypeChangeAvailable = MutableLiveData<Boolean>()
-    val networkTypeChangeAvailable: LiveData<Boolean> = _networkTypeChangeAvailable
+    val isNetworkTypeChangeAvailable = selectedNetworkType == null
 
     val nextButtonEnabledLiveData = sourceTypeValid.combine(nameLiveData) { sourceTypeValid, name ->
         sourceTypeValid && name.isNotEmpty()
@@ -68,8 +67,6 @@ class ImportAccountViewModel(
     init {
         disposables += networkDisposable
         disposables += cryptoDisposable
-
-        _networkTypeChangeAvailable.value = selectedNetworkType == null
 
         _selectedSourceTypeLiveData.value = sourceTypes.first()
     }

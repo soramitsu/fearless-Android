@@ -31,16 +31,13 @@ class BackupMnemonicViewModel(
     private val _showInfoEvent = MutableLiveData<Event<Unit>>()
     val showInfoEvent: LiveData<Event<Unit>> = _showInfoEvent
 
-    private val _networkTypeChangeAvailable = MutableLiveData<Boolean>()
-    val networkTypeChangeAvailable: LiveData<Boolean> = _networkTypeChangeAvailable
+    val isNetworkTypeChangeAvailable = selectedNetworkType == null
 
     private var mnemonic: String = ""
 
     init {
         disposables += networkDisposable
         disposables += cryptoDisposable
-
-        _networkTypeChangeAvailable.value = selectedNetworkType == null
 
         disposables.add(
             interactor.getMnemonic()

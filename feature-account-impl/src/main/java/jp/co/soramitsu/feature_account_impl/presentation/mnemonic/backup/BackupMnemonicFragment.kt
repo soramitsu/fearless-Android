@@ -65,15 +65,11 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         nextBtn.setOnClickListener {
             viewModel.nextClicked(advancedBlockView.getDerivationPath())
         }
-
-        viewModel.networkTypeChangeAvailable.observe {
-            advancedBlockView.setNetworkSelectorEnabled(it)
-        }
     }
 
     override fun inject() {
         val accountName = arguments!!.getString(KEY_ACCOUNT_NAME, "")
-        val networkType = arguments!![KEY_NETWORK_TYPE] as Node.NetworkType?
+        val networkType = argument<Node.NetworkType?>(KEY_NETWORK_TYPE)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .backupMnemonicComponentFactory()
@@ -82,6 +78,8 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     }
 
     override fun subscribe(viewModel: BackupMnemonicViewModel) {
+        advancedBlockView.setNetworkSelectorEnabled(viewModel.isNetworkTypeChangeAvailable)
+
         observe(viewModel.mnemonicLiveData, Observer {
             if (mnemonicRv.adapter == null) {
                 mnemonicRv.layoutManager =

@@ -129,7 +129,7 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
 
     override fun inject() {
         val shouldShowBack = arguments!![KEY_DISPLAY_BACK] as Boolean
-        val networkType = arguments!![KEY_NETWORK_TYPE] as Node.NetworkType?
+        val networkType = argument<Node.NetworkType?>(KEY_NETWORK_TYPE)
 
         FeatureUtils.getFeature<OnboardingFeatureComponent>(context!!, OnboardingFeatureApi::class.java)
             .welcomeComponentFactory()
