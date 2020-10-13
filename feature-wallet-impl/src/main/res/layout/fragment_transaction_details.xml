@@ -162,7 +162,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:label="Extrinsic Hash"
+        app:label="@string/transaction_details_hash_title"
         app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider4"
         app:layout_constraintStart_toStartOf="@+id/transactionDetailDivider4"
         app:layout_constraintTop_toBottomOf="@+id/transactionDetailDivider4" />
