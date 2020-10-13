@@ -66,8 +66,8 @@ class NodesViewModel(
                 selectAccountForNode(nodeId, accounts.first().address)
             } else {
                 val accountModels = accounts.map { mapAccountToAccountModel(nodeId, it) }
-                val networkType = mapNetworkTypeToNetworkTypeUI(networkType)
-                _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, networkType))
+                val networkTypeUI = mapNetworkTypeToNetworkTypeUI(networkType)
+                _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, networkTypeUI))
             }
         }
     }
