@@ -137,4 +137,9 @@
     <string name="transaction_details_from">Від</string>
     <string name="transaction_detail_status">Статус</string>
     <string name="transaction_detail_date">Дата</string>
+
+    <string name="transaction_details_view_subscan">Переглянути в Subscan</string>
+    <string name="transaction_details_view_polkascan">Вид на Полькаскані</string>
+    <string name="transaction_details_copy_hash">Скопіювати хеш</string>
+    <string name="transaction_details_hash_title">Зовнішній хеш</string>
 </resources>

@@ -145,4 +145,9 @@
     <string name="transaction_detail_date">Date</string>
 
     <string name="transaction_details_from">From</string>
+
+    <string name="transaction_details_hash_title">Extrinsic Hash</string>
+    <string name="transaction_details_copy_hash">Copy hash</string>
+    <string name="transaction_details_view_polkascan">View in Polkascan</string>
+    <string name="transaction_details_view_subscan">View in Subscan</string>
 </resources>
