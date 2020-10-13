@@ -137,4 +137,7 @@
     <string name="transaction_details_from">Від</string>
     <string name="transaction_detail_status">Статус</string>
     <string name="transaction_detail_date">Дата</string>
+    <string name="account_needed_title">Потрібен рахунок</string>
+    <string name="account_needed_message">У вас немає облікового запису для цієї мережі, ви можете створити або імпортувати обліковий запис.</string>
+    <string name="common_proceed">Продовжуйте</string>
 </resources>

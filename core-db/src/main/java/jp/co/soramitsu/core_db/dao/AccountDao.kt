@@ -33,4 +33,7 @@ abstract class AccountDao {
 
     @Query("SELECT COALESCE(MAX(position), 0)  + 1 from users")
     abstract fun getNextPosition(): Int
+
+    @Query("select * from users where networkType = :networkType")
+    abstract fun getAccountsByNetworkType(networkType: Int): Single<List<AccountLocal>>
 }

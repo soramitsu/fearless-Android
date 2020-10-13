@@ -145,4 +145,7 @@
     <string name="transaction_detail_date">Date</string>
 
     <string name="transaction_details_from">From</string>
+    <string name="account_needed_title">Account needed</string>
+    <string name="account_needed_message">You don’t have account for this network, you can create or import account.</string>
+    <string name="common_proceed">Proceed</string>
 </resources>

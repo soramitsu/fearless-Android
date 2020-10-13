@@ -525,4 +525,15 @@ class AccountRepositoryImpl(
     override fun getNetworkName(nodeHost: String): Single<String> {
         return accountSubstrateSource.getNodeNetworkType(nodeHost)
     }
+
+    override fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>> {
+        return accountDao.getAccountsByNetworkType(networkType.ordinal)
+            .map { it.map(::mapAccountLocalToAccount) }
+    }
+
+    override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
+        return Single.fromCallable {
+            getNetworkForType(networkType)
+        }
+    }
 }
