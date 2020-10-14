@@ -18,6 +18,9 @@ abstract class TransactionDao {
     @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY date DESC")
     abstract fun observeTransactions(accountAddress: String): Observable<List<TransactionLocal>>
 
+    @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY date DESC")
+    abstract fun getTransactions(accountAddress: String) : List<TransactionLocal>
+
     @Query(
         """
             SELECT DISTINCT recipientAddress FROM transactions WHERE (recipientAddress LIKE '%' || :query  || '%' AND recipientAddress != accountAddress) AND networkType = :networkType

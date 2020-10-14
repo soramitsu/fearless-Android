@@ -7,6 +7,7 @@ import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.vibration.DeviceVibrator
@@ -20,7 +21,8 @@ class PinCodeViewModel(
     private val router: AccountRouter,
     private val maxPinCodeLength: Int,
     private val deviceVibrator: DeviceVibrator,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val connectionManager: ConnectionManager
 ) : BaseViewModel() {
 
     companion object {
@@ -157,7 +159,7 @@ class PinCodeViewModel(
                     if (fingerPrintAvailable) {
                         _biometricSwitchDialogLiveData.value = Event(Unit)
                     } else {
-                        router.openMain()
+                        processAuthSuccess()
                     }
                 }, {
                     it.printStackTrace()
@@ -170,7 +172,7 @@ class PinCodeViewModel(
             interactor.isPinCorrect(code)
                 .subscribe({
                     if (it) {
-                        router.openMain()
+                        processAuthSuccess()
                     } else {
                         inputCodeLiveData.value = ""
                         deviceVibrator.makeShortVibration()
@@ -212,7 +214,7 @@ class PinCodeViewModel(
     }
 
     fun onAuthenticationSucceeded() {
-        router.openMain()
+        processAuthSuccess()
     }
 
     fun onAuthenticationFailed() {
@@ -229,11 +231,17 @@ class PinCodeViewModel(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    router.openMain()
+                    processAuthSuccess()
                 }, {
                     it.printStackTrace()
                 })
         )
+    }
+
+    private fun processAuthSuccess() {
+        connectionManager.setAllowedToConnect(true)
+
+        router.openMain()
     }
 
     fun fingerprintSwitchDialogNoClicked() {

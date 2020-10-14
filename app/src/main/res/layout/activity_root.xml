@@ -13,4 +13,18 @@
         android:layout_height="match_parent"
         app:defaultNavHost="true" />
 
+    <TextView
+        android:id="@+id/rootNetworkBar"
+        android:layout_width="match_parent"
+        android:background="@color/colorAccent"
+        android:text="@string/common_connecting"
+        android:gravity="center"
+        android:paddingTop="25dp"
+        android:visibility="gone"
+        android:paddingBottom="2dp"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top" />
+
+
 </FrameLayout>

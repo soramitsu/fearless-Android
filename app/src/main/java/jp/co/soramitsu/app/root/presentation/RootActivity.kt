@@ -3,6 +3,8 @@ package jp.co.soramitsu.app.root.presentation
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import jp.co.soramitsu.app.R
@@ -15,6 +17,7 @@ import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import jp.co.soramitsu.splash.presentation.SplashFragment
 import kotlinx.android.synthetic.main.activity_root.mainView
 import kotlinx.android.synthetic.main.activity_root.navHost
+import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
 import javax.inject.Inject
 
 class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
@@ -59,6 +62,11 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
     }
 
     override fun subscribe(viewModel: RootViewModel) {
+        viewModel.showConnectingBarLiveData.observe(this, Observer { show ->
+            val visibility = if (show) View.VISIBLE else View.GONE
+
+            rootNetworkBar.visibility = visibility
+        })
     }
 
     override fun removeSplashBackground() {

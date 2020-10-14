@@ -12,6 +12,9 @@ import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.di.scope.ApplicationScope
+import jp.co.soramitsu.common.di.scope.ScreenScope
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import okhttp3.OkHttpClient
@@ -100,6 +103,11 @@ class NetworkModule {
         logger: Logger,
         resourceManager: ResourceManager
     ) = SocketSingleRequestExecutor(mapper, logger, resourceManager)
+
+    @Provides
+    fun provideNetworkStateMixin(
+        connectionManager: ConnectionManager
+    ) : NetworkStateMixin = NetworkStateProvider(connectionManager)
 
     @Provides
     @ApplicationScope

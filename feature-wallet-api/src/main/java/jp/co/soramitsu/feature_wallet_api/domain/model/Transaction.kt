@@ -25,3 +25,5 @@ class Transaction(
         }
     }
 }
+
+class TransactionsPage(val transactions: List<Transaction>?)
