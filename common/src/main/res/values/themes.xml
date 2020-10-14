@@ -3,7 +3,7 @@
 
     <style name="Theme.Soramitsu.Fearless" parent="Theme.MaterialComponents.NoActionBar">
 
-        <item name="android:windowTranslucentStatus">true</item>
+<!--        <item name="android:windowTranslucentStatus">true</item>-->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowTranslucentNavigation">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

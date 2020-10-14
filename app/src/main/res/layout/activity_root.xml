@@ -19,7 +19,7 @@
         android:background="@color/colorAccent"
         android:text="@string/common_connecting"
         android:gravity="center"
-        android:paddingTop="25dp"
+        android:paddingTop="16dp"
         android:visibility="gone"
         android:paddingBottom="2dp"
         style="@style/TextAppearance.Soramitsu.Body2"

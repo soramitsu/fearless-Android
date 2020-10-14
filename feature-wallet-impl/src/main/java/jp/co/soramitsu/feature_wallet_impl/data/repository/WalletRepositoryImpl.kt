@@ -268,7 +268,8 @@ class WalletRepositoryImpl(
 
         if (mostRecentPrice == null) {
             val cachedAsset = assetDao.getAsset(account.address, token)
-            mostRecentPrice = mapAssetLocalToAsset(cachedAsset).dollarRate
+
+            cachedAsset?.let { mostRecentPrice = mapAssetLocalToAsset(cachedAsset).dollarRate }
         }
 
         val change = todayStats?.calculateRateChange(yesterdayStats)

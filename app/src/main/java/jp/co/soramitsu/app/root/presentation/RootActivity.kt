@@ -13,6 +13,7 @@ import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import jp.co.soramitsu.splash.presentation.SplashFragment
 import kotlinx.android.synthetic.main.activity_root.mainView
@@ -50,6 +51,12 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
         val languageChanged = ACTION_CHANGE_LANGUAGE == intent.action
         navController.setGraph(R.navigation.root_nav_graph, SplashFragment.getBundle(languageChanged))
         navigator.attachNavController(navController)
+
+        rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
+            view.updatePadding(top = insets.systemWindowInsetTop)
+
+            insets
+        }
 
 //        processJsonOpenIntent()
     }

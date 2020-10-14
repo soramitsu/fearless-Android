@@ -18,7 +18,7 @@ abstract class AssetDao {
     abstract fun observeAsset(accountAddress: String, token: Asset.Token): Observable<AssetLocal>
 
     @Query("select * from assets where accountAddress = :accountAddress and token = :token")
-    abstract fun getAsset(accountAddress: String, token: Asset.Token): AssetLocal
+    abstract fun getAsset(accountAddress: String, token: Asset.Token): AssetLocal?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insert(assets: List<AssetLocal>): Completable
