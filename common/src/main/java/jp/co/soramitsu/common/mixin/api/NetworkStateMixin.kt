@@ -8,5 +8,5 @@ interface NetworkStateMixin : NetworkStateUi {
 }
 
 interface NetworkStateUi {
-    val showConnectingBarLiveData : LiveData<Boolean>
+    val showConnectingBarLiveData: LiveData<Boolean>
 }

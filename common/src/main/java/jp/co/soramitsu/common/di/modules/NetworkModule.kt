@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.di.scope.ApplicationScope
-import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -107,7 +106,7 @@ class NetworkModule {
     @Provides
     fun provideNetworkStateMixin(
         connectionManager: ConnectionManager
-    ) : NetworkStateMixin = NetworkStateProvider(connectionManager)
+    ): NetworkStateMixin = NetworkStateProvider(connectionManager)
 
     @Provides
     @ApplicationScope

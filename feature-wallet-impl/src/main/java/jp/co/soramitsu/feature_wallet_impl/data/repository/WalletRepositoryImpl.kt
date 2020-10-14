@@ -176,18 +176,19 @@ class WalletRepositoryImpl(
         return getTransactionHistory(subDomain, request)
             .map {
                 val transfers = it.content?.transfers
-                
+
                 val transactions = transfers?.map { transfer -> mapTransferToTransaction(transfer, account) }
-                
+
                 val withCachedFallback = transactions ?: getCachedTransactions(page, account)
-                
+
                 TransactionsPage(withCachedFallback)
             }
     }
 
     private fun getTransactionHistory(
         subDomain: String,
-        request: TransactionHistoryRequest) : Single<SubscanResponse<TransactionHistory>> {
+        request: TransactionHistoryRequest
+    ): Single<SubscanResponse<TransactionHistory>> {
         return subscanApi.getTransactionHistory(subDomain, request)
             .onErrorReturnItem(SubscanResponse.createEmptyResponse())
     }

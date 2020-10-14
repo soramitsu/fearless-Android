@@ -19,7 +19,7 @@ abstract class TransactionDao {
     abstract fun observeTransactions(accountAddress: String): Observable<List<TransactionLocal>>
 
     @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY date DESC")
-    abstract fun getTransactions(accountAddress: String) : List<TransactionLocal>
+    abstract fun getTransactions(accountAddress: String): List<TransactionLocal>
 
     @Query(
         """

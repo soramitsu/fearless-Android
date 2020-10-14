@@ -12,11 +12,10 @@ import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.TransactionsPage
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.DayHeader
 
 private const val PAGE_SIZE = 20
 
@@ -126,8 +125,8 @@ class TransactionHistoryProvider(
     }
 
     private fun rollbackPageLoading() {
-            currentPage--
-            isLoading = false
+        currentPage--
+        isLoading = false
     }
 
     private fun regroup(newPage: List<TransactionModel>, reset: Boolean): List<Any> {

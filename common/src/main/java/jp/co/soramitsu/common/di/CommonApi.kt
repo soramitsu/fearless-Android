@@ -70,5 +70,5 @@ interface CommonApi {
 
     fun addressIconGenerator(): AddressIconGenerator
 
-    fun networkStateMixin() : NetworkStateMixin
+    fun networkStateMixin(): NetworkStateMixin
 }

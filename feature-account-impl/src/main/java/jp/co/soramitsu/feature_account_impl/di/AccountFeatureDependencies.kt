@@ -46,5 +46,5 @@ interface AccountFeatureDependencies {
 
     fun addressIconGenerator(): AddressIconGenerator
 
-    fun connectionManager() : ConnectionManager
+    fun connectionManager(): ConnectionManager
 }

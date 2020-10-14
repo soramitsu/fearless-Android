@@ -5,7 +5,7 @@ import io.reactivex.Observable
 interface ConnectionManager {
     fun setAllowedToConnect(allowed: Boolean)
 
-    fun observeAllowedToConnect() : Observable<Boolean>
+    fun observeAllowedToConnect(): Observable<Boolean>
 
     fun start(url: String)
 
@@ -15,5 +15,5 @@ interface ConnectionManager {
 
     fun stop()
 
-    fun observeNetworkState() : Observable<State>
+    fun observeNetworkState(): Observable<State>
 }
