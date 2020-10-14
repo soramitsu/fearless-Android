@@ -141,4 +141,7 @@
     <string name="transaction_details_view_polkascan">Ver en Polkascan</string>
     <string name="transaction_details_copy_hash">Copiar hash</string>
     <string name="transaction_details_hash_title">Hachís extrínseco</string>
+    <string name="account_needed_title">Cuenta necesaria</string>
+    <string name="account_needed_message">No tiene una cuenta para esta red, puede crear o importar una cuenta.</string>
+    <string name="common_proceed">Continuar</string>
 </resources>

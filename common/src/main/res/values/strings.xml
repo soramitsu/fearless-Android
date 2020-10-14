@@ -150,4 +150,7 @@
     <string name="transaction_details_copy_hash">Copy hash</string>
     <string name="transaction_details_view_polkascan">View in Polkascan</string>
     <string name="transaction_details_view_subscan">View in Subscan</string>
+    <string name="account_needed_title">Account needed</string>
+    <string name="account_needed_message">You don’t have account for this network, you can create or import account.</string>
+    <string name="common_proceed">Proceed</string>
 </resources>

@@ -98,6 +98,12 @@ class AdvancedBlockView @JvmOverloads constructor(
         derivationPathInput.visibility = if (enabled) View.VISIBLE else View.GONE
     }
 
+    fun setNetworkSelectorEnabled(enabled: Boolean) {
+        updateSelectorState(networkInput, enabled)
+
+        networkInput.isEnabled = enabled
+    }
+
     private fun updateSelectorState(view: View, enabled: Boolean) {
         val background = if (enabled) R.drawable.bg_input_shape_selector else R.drawable.bg_button_primary_disabled
 

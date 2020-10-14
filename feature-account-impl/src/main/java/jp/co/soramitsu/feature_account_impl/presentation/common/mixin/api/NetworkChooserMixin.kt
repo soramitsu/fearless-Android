@@ -14,5 +14,7 @@ interface NetworkChooserMixin {
 
     val networkChooserEvent: LiveData<Event<NetworkChooserPayload>>
 
+    val isNetworkTypeChangeAvailable: Boolean
+
     fun chooseNetworkClicked()
 }

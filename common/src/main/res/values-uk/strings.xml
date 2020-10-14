@@ -142,4 +142,7 @@
     <string name="transaction_details_view_polkascan">Вид на Полькаскані</string>
     <string name="transaction_details_copy_hash">Скопіювати хеш</string>
     <string name="transaction_details_hash_title">Зовнішній хеш</string>
+    <string name="account_needed_title">Потрібен рахунок</string>
+    <string name="account_needed_message">У вас немає облікового запису для цієї мережі, ви можете створити або імпортувати обліковий запис.</string>
+    <string name="common_proceed">Продовжуйте</string>
 </resources>

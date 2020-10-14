@@ -3,17 +3,21 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_nodes.addConnectionTv
 import kotlinx.android.synthetic.main.fragment_nodes.connectionsList
 
-class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler {
+class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler, AccountChooserBottomSheetDialog.ClickHandler {
 
     private lateinit var adapter: NodesAdapter
 
@@ -56,6 +60,14 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.groupedNodeModelsLiveData.observe(adapter::submitList)
 
         viewModel.selectedNodeLiveData.observe(adapter::updateSelectedNode)
+
+        viewModel.noAccountsEvent.observeEvent {
+            showNoAccountsDialog(it)
+        }
+
+        viewModel.showAccountChooserLiveData.observeEvent {
+            AccountChooserBottomSheetDialog(requireActivity(), it, this).show()
+        }
     }
 
     override fun infoClicked(nodeModel: NodeModel) {
@@ -64,5 +76,25 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
     override fun checkClicked(nodeModel: NodeModel) {
         viewModel.selectNodeClicked(nodeModel)
+    }
+
+    private fun showNoAccountsDialog(networkType: Node.NetworkType) {
+        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
+            .setTitle(R.string.account_needed_title)
+            .setMessage(R.string.account_needed_message)
+            .setPositiveButton(R.string.common_proceed) { dialog, _ ->
+                viewModel.createAccountForNetworkType(networkType)
+                dialog?.dismiss()
+            }
+            .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
+            .show()
+    }
+
+    override fun accountClicked(account: AccountByNetworkModel) {
+        viewModel.accountSelected(account)
+    }
+
+    override fun addAccountClicked(networkType: Node.NetworkType) {
+        viewModel.createAccountForNetworkType(networkType)
     }
 }

@@ -122,4 +122,8 @@ interface AccountRepository {
     fun checkNodeExists(nodeHost: String): Single<Boolean>
 
     fun getNetworkName(nodeHost: String): Single<String>
+
+    fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
+
+    fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
 }

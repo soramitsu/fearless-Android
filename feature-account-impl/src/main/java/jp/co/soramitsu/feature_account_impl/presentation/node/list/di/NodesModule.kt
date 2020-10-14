@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -30,9 +31,10 @@ class NodesModule {
     fun provideViewModel(
         interactor: AccountInteractor,
         router: AccountRouter,
-        nodeListingMixin: NodeListingMixin
+        nodeListingMixin: NodeListingMixin,
+        addressIconGenerator: AddressIconGenerator
     ): ViewModel {
-        return NodesViewModel(interactor, router, nodeListingMixin)
+        return NodesViewModel(interactor, router, nodeListingMixin, addressIconGenerator)
     }
 
     @Provides

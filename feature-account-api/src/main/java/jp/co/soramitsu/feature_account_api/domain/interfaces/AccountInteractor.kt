@@ -94,4 +94,10 @@ interface AccountInteractor {
     fun changeSelectedLanguage(language: Language): Completable
 
     fun addNode(nodeName: String, nodeHost: String): Completable
+
+    fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
+
+    fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable
+
+    fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
 }

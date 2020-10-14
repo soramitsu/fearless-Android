@@ -12,14 +12,22 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
+import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.NetworkChooser
 import jp.co.soramitsu.feature_account_impl.presentation.importing.FileReader
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
 
 @Module(includes = [ViewModelModule::class])
 class ImportAccountModule {
+
+    @Provides
+    fun provideNetworkChooserMixin(interactor: AccountInteractor, networkType: Node.NetworkType?): NetworkChooserMixin {
+        return NetworkChooser(interactor, networkType)
+    }
+
     @Provides
     @ScreenScope
     fun provideFileReader(context: Context) = FileReader(context)
@@ -32,7 +40,8 @@ class ImportAccountModule {
         router: AccountRouter,
         resourceManager: ResourceManager,
         networkChooserMixin: NetworkChooserMixin,
-        cryptoChooserMixin: CryptoTypeChooserMixin
+        cryptoChooserMixin: CryptoTypeChooserMixin,
+        networkType: Node.NetworkType?
     ): ViewModel {
         return ImportAccountViewModel(
             interactor,
