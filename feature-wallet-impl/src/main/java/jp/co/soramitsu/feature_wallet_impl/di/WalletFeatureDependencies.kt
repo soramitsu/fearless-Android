@@ -48,7 +48,7 @@ interface WalletFeatureDependencies {
 
     fun logger(): Logger
 
-    fun socketService() : SocketService
+    fun socketService(): SocketService
 
     fun jsonMapper(): Gson
 

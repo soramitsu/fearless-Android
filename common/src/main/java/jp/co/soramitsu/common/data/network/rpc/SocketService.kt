@@ -9,7 +9,6 @@ import io.reactivex.SingleEmitter
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.data.network.rpc.mappers.ResponseMapper
-import jp.co.soramitsu.common.data.network.rpc.recovery.ConstantReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.recovery.ExponentialReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.recovery.ReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.socket.RpcSocket
@@ -214,7 +213,7 @@ class SocketService(
         }
             .doFinally { resendPendingDisposable = null }
             .subscribeToError {
-                //ignore
+                // suspend send errors
             }
     }
 

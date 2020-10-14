@@ -3,7 +3,6 @@ package jp.co.soramitsu.app
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
-import io.reactivex.android.plugins.RxAndroidPlugins
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.plugins.RxJavaPlugins
 import jp.co.soramitsu.app.di.app.AppComponent
@@ -13,7 +12,6 @@ import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
-import java.lang.RuntimeException
 import javax.inject.Inject
 
 open class App : Application(), FeatureContainer {

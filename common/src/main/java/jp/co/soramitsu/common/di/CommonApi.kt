@@ -61,11 +61,11 @@ interface CommonApi {
 
     fun provideJsonMapper(): Gson
 
-    fun socketService() : SocketService
+    fun socketService(): SocketService
 
-    fun connectionManager() : ConnectionManager
+    fun connectionManager(): ConnectionManager
 
-    fun provideSocketSingleRequestExecutor() : SocketSingleRequestExecutor
+    fun provideSocketSingleRequestExecutor(): SocketSingleRequestExecutor
 
     fun addressIconGenerator(): AddressIconGenerator
 }

@@ -22,10 +22,10 @@ class LinearReconnectStrategy(private val step: Long) : ReconnectStrategy {
 class ExponentialReconnectStrategy(
     private val initialTime: Long,
     private val base: Double
-): ReconnectStrategy {
+) : ReconnectStrategy {
 
     override fun getTimeForReconnect(attempt: Int): Long {
-        val time =  initialTime * base.pow(attempt - 1)
+        val time = initialTime * base.pow(attempt - 1)
 
         return time.toLong()
     }

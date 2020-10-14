@@ -3,7 +3,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
 import io.reactivex.Single
-import io.reactivex.functions.BiFunction
 import jp.co.soramitsu.common.data.network.rpc.DeliveryType
 import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.network.rpc.mappers.nonNull
@@ -83,7 +82,7 @@ class WssSubstrateSource(
         transfer: Transfer,
         keypair: Keypair
     ): Single<String> {
-       return Single.fromCallable {
+        return Single.fromCallable {
             val (extrinsic, _) = buildSubmittableExtrinsic(account, transfer, keypair)
 
             TransferRequest(extrinsic)

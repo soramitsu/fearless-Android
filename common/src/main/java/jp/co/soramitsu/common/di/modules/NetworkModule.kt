@@ -85,13 +85,13 @@ class NetworkModule {
     fun provideSocketService(
         mapper: Gson,
         logger: Logger
-    ) : SocketService = SocketService(mapper, logger)
+    ): SocketService = SocketService(mapper, logger)
 
     @Provides
     @ApplicationScope
     fun provideConnectionManager(
         socketService: SocketService
-    ) : ConnectionManager = socketService
+    ): ConnectionManager = socketService
 
     @Provides
     @ApplicationScope
