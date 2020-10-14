@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_connecting">Подключение…</string>
+
     <string name="common_next">Киләһе</string>
     <string name="common_cancel">Кире ҡағыу</string>
     <string name="common_skip">Үткэрергә</string>
