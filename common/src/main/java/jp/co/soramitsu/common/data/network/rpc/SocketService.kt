@@ -7,7 +7,9 @@ import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.SingleEmitter
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.data.network.rpc.mappers.ResponseMapper
+import jp.co.soramitsu.common.data.network.rpc.recovery.ConstantReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.recovery.ExponentialReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.recovery.ReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.socket.RpcSocket
@@ -17,12 +19,10 @@ import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.request.base.RpcRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
-import java.lang.Exception
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-
-val DEFAULT_RECONNECT_STRATEGY = ExponentialReconnectStrategy(initialTime = 300)
 
 enum class State {
     CONNECTED, WAITING_RECONNECT, CONNECTING, DISCONNECTED
@@ -47,6 +47,11 @@ class RequestMapEntry(
     val deliveryType: DeliveryType,
     val emitter: SingleEmitter<RpcResponse>
 )
+
+private val WAITING_EXECUTOR = ThreadPoolExecutor(1, 1, 5, TimeUnit.SECONDS, ArrayBlockingQueue(10))
+private val WAITING_SCHEDULER = Schedulers.from(WAITING_EXECUTOR)
+
+private val DEFAULT_RECONNECT_STRATEGY = ExponentialReconnectStrategy(initialTime = 300L, base = 2.0)
 
 class SocketService(
     private val jsonMapper: Gson,
@@ -74,6 +79,14 @@ class SocketService(
     @Volatile
     private var state: State = State.DISCONNECTED
 
+    override fun switchUrl(url: String) {
+        stop()
+
+        start(url)
+    }
+
+    override fun started() = state != State.DISCONNECTED
+
     @Synchronized
     override fun start(url: String) {
         if (state != State.DISCONNECTED) return
@@ -85,14 +98,6 @@ class SocketService(
         currentReconnectAttempt = 0
 
         socket!!.connectAsync()
-    }
-
-    override fun started() = state != State.DISCONNECTED
-
-    override fun switchUrl(url: String) {
-        stop()
-
-        start(url)
     }
 
     @Synchronized
@@ -115,7 +120,6 @@ class SocketService(
         state = State.DISCONNECTED
     }
 
-    @Synchronized
     fun <R> executeRequest(
         request: RuntimeRequest,
         responseType: ResponseMapper<R>,
@@ -125,33 +129,29 @@ class SocketService(
             .map { responseType.map(it, jsonMapper) }
     }
 
-    @Synchronized
     fun executeRequest(
         runtimeRequest: RuntimeRequest,
         deliveryType: DeliveryType = DeliveryType.AT_LEAST_ONCE
     ): Single<RpcResponse> {
         return Single.create<RpcResponse> {
-            requestsMap[runtimeRequest.id] = RequestMapEntry(runtimeRequest, deliveryType, it)
+            synchronized<Unit>(this) {
+                requestsMap[runtimeRequest.id] = RequestMapEntry(runtimeRequest, deliveryType, it)
 
-            if (state == State.CONNECTED) {
-                socket!!.sendRpcRequest(runtimeRequest)
-                waitingForResponseRequests.add(runtimeRequest)
-            } else {
-                logger.log("[PENDING REQUEST] ${runtimeRequest.method}")
+                if (state == State.CONNECTED) {
+                    socket!!.sendRpcRequest(runtimeRequest)
+                    waitingForResponseRequests.add(runtimeRequest)
+                } else {
+                    logger.log("[PENDING REQUEST] ${runtimeRequest.method}")
 
-                pendingRequests.add(runtimeRequest)
+                    pendingRequests.add(runtimeRequest)
 
-                if (state == State.WAITING_RECONNECT) reconnectNow()
+                    if (state == State.WAITING_RECONNECT) forceReconnect()
+                }
             }
-        }.doOnDispose {
-            requestsMap.remove(runtimeRequest.id)
-            waitingForResponseRequests.remove(runtimeRequest)
-            pendingRequests.remove(runtimeRequest)
-        }
+        }.doOnDispose { cancelRequest(runtimeRequest) }
     }
 
-    private fun createSocket(url: String) = RpcSocket(url, this, logger, socketFactory, jsonMapper)
-
+    @Synchronized
     override fun onResponse(rpcResponse: RpcResponse) {
         val requestMapEntry = requestsMap.remove(rpcResponse.id)
 
@@ -175,6 +175,12 @@ class SocketService(
 
     override fun onConnected() {
         connectionEstablished()
+    }
+
+    private fun cancelRequest(runtimeRequest: RuntimeRequest) = synchronized<Unit>(this) {
+        requestsMap.remove(runtimeRequest.id)
+        waitingForResponseRequests.remove(runtimeRequest)
+        pendingRequests.remove(runtimeRequest)
     }
 
     private fun moveWaitingResponseToPending() {
@@ -208,7 +214,7 @@ class SocketService(
         }
             .doFinally { resendPendingDisposable = null }
             .subscribeToError {
-               //ignore
+                //ignore
             }
     }
 
@@ -226,17 +232,36 @@ class SocketService(
 
         logger.log("[WAITING FOR RECONNECT] $waitTime ms")
 
-        reconnectWaitDisposable = Completable.timer(waitTime, TimeUnit.MILLISECONDS)
-            .doFinally { reconnectWaitDisposable = null }
-            .subscribe { reconnectNow() }
+        reconnectWaitDisposable = Completable.timer(waitTime, TimeUnit.MILLISECONDS, WAITING_SCHEDULER)
+            .subscribe {
+                reconnectNow()
+            }
     }
 
     @Synchronized
     private fun reconnectNow() {
+        if (state == State.CONNECTING) return
+
+        clearCurrentWaitingTask()
+
         state = State.CONNECTING
 
         socket = createSocket(socket!!.url)
 
         socket!!.connectAsync()
     }
+
+    private fun clearCurrentWaitingTask() {
+        if (reconnectWaitDisposable != null && !reconnectWaitDisposable!!.isDisposed) reconnectWaitDisposable!!.dispose()
+
+        reconnectWaitDisposable = null
+    }
+
+    private fun forceReconnect() {
+        currentReconnectAttempt = 0
+
+        reconnectNow()
+    }
+
+    private fun createSocket(url: String) = RpcSocket(url, this, logger, socketFactory, jsonMapper)
 }
