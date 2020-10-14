@@ -22,17 +22,15 @@ android {
             buildConfigField "String", "GITHUB_URL", "\"https://github.com/soramitsu/fearless-Android\""
             buildConfigField "String", "TELEGRAM_URL", "\"https://t.me/fearlesswallet\""
             buildConfigField "String", "EMAIL", "\"fearless@soramitsu.co.jp\""
+
+            buildConfigField "String", "SUBSCAN_TRANSACTION_TEMPLATE", "\"https://%1\$s.subscan.io/extrinsic/%2\$s\""
+            buildConfigField "String", "POLKSASCAN_TRANSACTION_TEMPLATE", "\"https://polkascan.io/%1\$s/extrinsic/%2\$s\""
         }
         release {
+            initWith debug
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-
-            buildConfigField "String", "WEBSITE_URL", "\"https://fearlesswallet.io\""
-            buildConfigField "String", "PRIVACY_URL", "\"https://sora.org/privacy\""
-            buildConfigField "String", "TERMS_URL", "\"https://sora.org/terms\""
-            buildConfigField "String", "GITHUB_URL", "\"https://github.com/soramitsu/fearless-Android\""
-            buildConfigField "String", "TELEGRAM_URL", "\"https://t.me/fearlesswallet\""
-            buildConfigField "String", "EMAIL", "\"fearless@soramitsu.co.jp\""
         }
     }
 }

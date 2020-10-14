@@ -4,10 +4,9 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExternalAnalyzer.POLKASCAN
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExternalAnalyzer.SUBSCAN
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import kotlinx.android.synthetic.main.bottom_sheet_external_transaction_view.externalTransactionSheetCopy
 import kotlinx.android.synthetic.main.bottom_sheet_external_transaction_view.externalTransactionSheetPolkascan
@@ -22,7 +21,7 @@ class TransactionExternalActionsSheet(
     interface Handler {
         fun copyHashClicked(hash: String)
 
-        fun externalViewClicked(link: String)
+        fun externalViewClicked(analyzer: ExternalAnalyzer)
     }
 
     init {
@@ -35,22 +34,22 @@ class TransactionExternalActionsSheet(
         }
 
         externalTransactionSheetSubscan.setDismissingClickListener {
-            handler.externalViewClicked(SUBSCAN.provideLink(model))
+            handler.externalViewClicked(ExternalAnalyzer.SUBSCAN)
         }
 
         externalTransactionSheetPolkascan.setDismissingClickListener {
-            handler.externalViewClicked(POLKASCAN.provideLink(model))
+            handler.externalViewClicked(ExternalAnalyzer.POLKASCAN)
         }
     }
 
     private fun hideUnsupported() {
         val networkType = model.token.networkType
 
-        if (!SUBSCAN.isNetworkSupported(networkType)) {
+        if (!ExternalAnalyzer.SUBSCAN.isNetworkSupported(networkType)) {
             externalTransactionSheetSubscan.makeGone()
         }
 
-        if (!POLKASCAN.isNetworkSupported(networkType)) {
+        if (!ExternalAnalyzer.POLKASCAN.isNetworkSupported(networkType)) {
             externalTransactionSheetPolkascan.makeGone()
         }
     }

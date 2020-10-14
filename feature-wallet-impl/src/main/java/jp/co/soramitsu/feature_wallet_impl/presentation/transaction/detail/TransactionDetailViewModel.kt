@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -20,11 +22,15 @@ class TransactionDetailViewModel(
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val clipboardManager: ClipboardManager,
+    private val appLinksProvider: AppLinksProvider,
     val transaction: TransactionModel
 ) : BaseViewModel() {
 
     private val _showExternalViewEvent = MutableLiveData<Event<Unit>>()
     val showExternalActionsEvent: LiveData<Event<Unit>> = _showExternalViewEvent
+
+    private val _openBrowserEvent = MutableLiveData<Event<String>>()
+    val openBrowserEvent: LiveData<Event<String>> = _openBrowserEvent
 
     val recipientAddressModelLiveData = getRecipientIcon()
         .asLiveData()
@@ -56,5 +62,11 @@ class TransactionDetailViewModel(
 
     fun showExternalActionsClicked() {
         _showExternalViewEvent.value = Event(Unit)
+    }
+
+    fun externalAnalyzerClicked(analyzer: ExternalAnalyzer) {
+        val url = appLinksProvider.getExternalTransactionUrl(analyzer, transaction.hash, transaction.token.networkType)
+
+        _openBrowserEvent.value = Event(url)
     }
 }

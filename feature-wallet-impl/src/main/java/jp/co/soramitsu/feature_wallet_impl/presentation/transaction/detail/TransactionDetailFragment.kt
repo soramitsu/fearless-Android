@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -98,6 +99,8 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>(), Tr
         viewModel.showExternalActionsEvent.observeEvent {
             showExternalActionsSheet()
         }
+
+        viewModel.openBrowserEvent.observeEvent(::showBrowser)
     }
 
     private fun showExternalActionsSheet() {
@@ -109,7 +112,7 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>(), Tr
         viewModel.copyStringClicked(hash)
     }
 
-    override fun externalViewClicked(link: String) {
-        showBrowser(link)
+    override fun externalViewClicked(analyzer: ExternalAnalyzer) {
+        viewModel.externalAnalyzerClicked(analyzer)
     }
 }
