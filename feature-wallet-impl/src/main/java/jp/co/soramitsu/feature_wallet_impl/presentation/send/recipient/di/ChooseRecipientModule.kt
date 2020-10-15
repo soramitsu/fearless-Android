@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -24,9 +25,9 @@ class ChooseRecipientModule {
         interactor: WalletInteractor,
         router: WalletRouter,
         resourceManager: ResourceManager,
-        iconGenerator: IconGenerator
+        addressIconGenerator: AddressIconGenerator
     ): ViewModel {
-        return ChooseRecipientViewModel(interactor, router, resourceManager, iconGenerator)
+        return ChooseRecipientViewModel(interactor, router, resourceManager, addressIconGenerator)
     }
 
     @Provides

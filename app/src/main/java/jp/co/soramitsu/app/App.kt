@@ -44,12 +44,6 @@ open class App : Application(), FeatureContainer {
             .build()
 
         appComponent.inject(this)
-
-        RxJavaPlugins.setErrorHandler {
-            if (!disposedBlockingGet(it)) {
-                throw it
-            }
-        }
     }
 
     override fun <T> getFeature(key: Class<*>): T {
@@ -63,7 +57,4 @@ open class App : Application(), FeatureContainer {
     override fun commonApi(): CommonApi {
         return appComponent
     }
-
-    private fun disposedBlockingGet(it: Throwable) =
-        it is UndeliverableException && it.cause is RuntimeException && it.cause!!.cause is InterruptedException
 }

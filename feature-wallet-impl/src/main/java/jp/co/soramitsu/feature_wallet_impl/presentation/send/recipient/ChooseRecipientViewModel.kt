@@ -1,25 +1,26 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.distinctUntilChanged
 import jp.co.soramitsu.common.utils.plusAssign
-import jp.co.soramitsu.fearless_utils.icon.IconGenerator
+import jp.co.soramitsu.common.utils.zipSimilar
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import java.util.concurrent.TimeUnit
 
-// TODO use dp
-private const val ICON_SIZE_IN_PX = 70
+private const val ICON_SIZE_IN_DP = 24
 
 enum class State {
     WELCOME, EMPTY, CONTENT
@@ -29,7 +30,7 @@ class ChooseRecipientViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
-    private val iconGenerator: IconGenerator
+    private val addressIconGenerator: AddressIconGenerator
 ) : BaseViewModel() {
     private val searchEventSubject = BehaviorSubject.create<String>()
 
@@ -61,42 +62,45 @@ class ChooseRecipientViewModel(
         return searchEventSubject
             .subscribeOn(Schedulers.io())
             .debounce(300, TimeUnit.MILLISECONDS)
-            .map { address ->
-                val isValidAddress = interactor.validateSendAddress(address).blockingGet()
-                val searchResults = interactor.getContacts(address).blockingGet()
+            .flatMapSingle { address ->
+                interactor.validateSendAddress(address).flatMap { isValidAddress ->
+                    interactor.getContacts(address).flatMap { searchResults ->
+                        val models = searchResults.map(this::generateModel)
+                        val contactsWithHeader = maybeAppendContactsHeader(models)
 
-                val models = searchResults.map(this::generateModel)
-                val contactsWithHeader = appendContactsHeader(models)
+                        val result = if (isValidAddress) {
+                            val searchHeader = getHeader(R.string.search_result_header)
 
-                val result = if (isValidAddress) {
-                    val searchHeader = ContactsHeader(resourceManager.getString(R.string.search_result_header))
+                            val model = generateModel(address)
 
-                    val model = generateModel(address)
+                            listOf(searchHeader, model) + contactsWithHeader
+                        } else {
+                            contactsWithHeader
+                        }
 
-                    listOf(searchHeader, model) + contactsWithHeader
-                } else {
-                    contactsWithHeader
+                        isQueryEmptyLiveData.postValue(address.isEmpty())
+
+                        result.zipSimilar()
+                    }
                 }
-
-                isQueryEmptyLiveData.postValue(address.isEmpty())
-
-                result
             }
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun generateModel(address: String): AddressModel {
-        val addressId = interactor.getAddressId(address).blockingGet()
+    private fun getHeader(@StringRes resId: Int): Single<Any> = Single.just(
+        ContactsHeader(resourceManager.getString(resId))
+    )
 
-        val icon = iconGenerator.getSvgImage(addressId, ICON_SIZE_IN_PX)
-
-        return AddressModel(address, icon)
+    private fun generateModel(address: String): Single<Any> {
+        return interactor.getAddressId(address).flatMap { addressId ->
+            addressIconGenerator.createAddressIcon(address, addressId, ICON_SIZE_IN_DP)
+        }
     }
 
-    private fun appendContactsHeader(content: List<Any>): List<Any> {
+    private fun maybeAppendContactsHeader(content: List<Single<Any>>): List<Single<Any>> {
         if (content.isEmpty()) return emptyList()
 
-        val header = ContactsHeader(resourceManager.getString(R.string.search_contacts))
+        val header = getHeader(R.string.search_contacts)
 
         return listOf(header) + content
     }

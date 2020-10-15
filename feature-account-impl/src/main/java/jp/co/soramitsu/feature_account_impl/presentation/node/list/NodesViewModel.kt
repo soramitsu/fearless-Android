@@ -2,7 +2,9 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
@@ -10,10 +12,12 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
+import jp.co.soramitsu.common.utils.zipSimilar
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
@@ -53,8 +57,20 @@ class NodesViewModel(
             .subscribe({ accounts ->
                 handleAccountsForNetwork(nodeModel, accounts)
             }, {
-                it.message?.let { showError(it) }
+                it.message?.let(this::showError)
             })
+    }
+
+    fun accountSelected(accountModel: AccountByNetworkModel) {
+        selectAccountForNode(accountModel.nodeId, accountModel.accountAddress)
+    }
+
+    fun addNodeClicked() {
+        router.openAddNode()
+    }
+
+    fun createAccountForNetworkType(networkType: Node.NetworkType) {
+        router.createAccountForNetworkType(networkType)
     }
 
     private fun handleAccountsForNetwork(nodeModel: NodeModel, accounts: List<Account>) {
@@ -64,18 +80,33 @@ class NodesViewModel(
             if (accounts.size == 1) {
                 selectAccountForNode(nodeModel.id, accounts.first().address)
             } else {
-                val accountModels = accounts.map { mapAccountToAccountModel(nodeModel.id, it) }
-                _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, nodeModel.networkModelType))
+                showAccountChooser(nodeModel, accounts)
             }
         }
     }
 
-    private fun mapAccountToAccountModel(nodeId: Int, account: Account): AccountByNetworkModel {
-        return AccountByNetworkModel(nodeId, account.address, account.name, generateIconForAddress(account))
+    private fun showAccountChooser(nodeModel: NodeModel, accounts: List<Account>) {
+        disposables += generateAccountModels(nodeModel, accounts)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe ({ accountModels ->
+                _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, nodeModel.networkModelType))
+            }, {
+                it.message?.let(this::showError)
+            })
     }
 
-    fun accountSelected(accountModel: AccountByNetworkModel) {
-        selectAccountForNode(accountModel.nodeId, accountModel.accountAddress)
+    @Suppress("UNCHECKED_CAST")
+    private fun generateAccountModels(nodeModel: NodeModel, accounts: List<Account>) : Single<List<AccountByNetworkModel>> {
+        val singles = accounts.map { mapAccountToAccountModel(nodeModel.id, it) }
+
+        return singles.zipSimilar()
+    }
+
+    private fun mapAccountToAccountModel(nodeId: Int, account: Account): Single<AccountByNetworkModel> {
+        return generateIconForAddress(account).map {
+            AccountByNetworkModel(nodeId, account.address, account.name, it)
+        }
     }
 
     private fun selectAccountForNode(nodeId: Int, accountAddress: String) {
@@ -87,17 +118,8 @@ class NodesViewModel(
             }
     }
 
-    fun addNodeClicked() {
-        router.openAddNode()
-    }
-
-    fun createAccountForNetworkType(networkType: Node.NetworkType) {
-        router.createAccountForNetworkType(networkType)
-    }
-
-    private fun generateIconForAddress(account: Account): AddressModel {
+    private fun generateIconForAddress(account: Account): Single<AddressModel> {
         return interactor.getAddressId(account)
             .flatMap { addressIconGenerator.createAddressIcon(account.address, it, ICON_IN_DP) }
-            .blockingGet()
     }
 }
