@@ -3,8 +3,6 @@ package jp.co.soramitsu.app
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.plugins.RxJavaPlugins
 import jp.co.soramitsu.app.di.app.AppComponent
 import jp.co.soramitsu.app.di.app.DaggerAppComponent
 import jp.co.soramitsu.app.di.deps.FeatureHolderManager

@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
@@ -17,7 +16,6 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
@@ -89,7 +87,7 @@ class NodesViewModel(
         disposables += generateAccountModels(nodeModel, accounts)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe ({ accountModels ->
+            .subscribe({ accountModels ->
                 _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, nodeModel.networkModelType))
             }, {
                 it.message?.let(this::showError)
@@ -97,7 +95,7 @@ class NodesViewModel(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun generateAccountModels(nodeModel: NodeModel, accounts: List<Account>) : Single<List<AccountByNetworkModel>> {
+    private fun generateAccountModels(nodeModel: NodeModel, accounts: List<Account>): Single<List<AccountByNetworkModel>> {
         val singles = accounts.map { mapAccountToAccountModel(nodeModel.id, it) }
 
         return singles.zipSimilar()

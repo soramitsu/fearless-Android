@@ -78,7 +78,7 @@ fun <T, R> Single<List<T>>.mapList(mapper: (T) -> R): Single<List<R>> {
     return map { list -> list.map(mapper) }
 }
 
-@Suppress("UNCHECKED_CAST") fun <R> List<Single<out R>>.zipSimilar() : Single<List<R>> = Single.zip(this) { values ->
+@Suppress("UNCHECKED_CAST") fun <R> List<Single<out R>>.zipSimilar(): Single<List<R>> = Single.zip(this) { values ->
     val casted = values as Array<out R>
 
     casted.toList()

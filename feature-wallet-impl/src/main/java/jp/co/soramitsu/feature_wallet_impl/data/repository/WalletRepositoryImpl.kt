@@ -186,7 +186,7 @@ class WalletRepositoryImpl(
         }
     }
 
-    private fun updateLocalBalance(account: Account, accountInfo: EncodableStruct<AccountInfo>) : Completable {
+    private fun updateLocalBalance(account: Account, accountInfo: EncodableStruct<AccountInfo>): Completable {
         return assetDao.observeAssets(account.address).firstOrError()
             .flatMapCompletable { currentState ->
                 val asset = currentState.first()
