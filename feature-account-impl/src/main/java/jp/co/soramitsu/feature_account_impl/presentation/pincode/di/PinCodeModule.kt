@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.io.MainThreadExecutor
@@ -37,16 +36,14 @@ class PinCodeModule {
         router: AccountRouter,
         maxPinCodeLength: Int,
         deviceVibrator: DeviceVibrator,
-        resourceManager: ResourceManager,
-        connectionManager: ConnectionManager
+        resourceManager: ResourceManager
     ): ViewModel {
         return PinCodeViewModel(
             interactor,
             router,
             maxPinCodeLength,
             deviceVibrator,
-            resourceManager,
-            connectionManager
+            resourceManager
         )
     }
 

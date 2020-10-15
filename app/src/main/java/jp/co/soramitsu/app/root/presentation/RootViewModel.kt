@@ -15,6 +15,8 @@ class RootViewModel(
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
     private var socketSourceDisposable: Disposable? = null
 
+    private var willBeClearedForLanguageChange = false
+
     init {
         observeAllowedToConnect()
 
@@ -55,6 +57,12 @@ class RootViewModel(
     override fun onCleared() {
         super.onCleared()
 
-        connectionManager.setAllowedToConnect(false)
+        if (!willBeClearedForLanguageChange) {
+            connectionManager.setAllowedToConnect(false)
+        }
+    }
+
+    fun noticeLanguageLanguage() {
+        willBeClearedForLanguageChange = true
     }
 }

@@ -81,6 +81,8 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
     }
 
     override fun changeLanguage() {
+        viewModel.noticeLanguageLanguage()
+
         restartAfterLanguageChange(this)
     }
 
