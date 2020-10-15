@@ -61,7 +61,7 @@ class WalletInteractorImpl(
 
     override fun observeSelectedAddressId(): Observable<ByteArray> {
         return accountRepository.observeSelectedAccount()
-            .map { accountRepository.getAddressId(it).blockingGet() }
+            .flatMapSingle { accountRepository.getAddressId(it) }
     }
 
     override fun getAddressId(address: String): Single<ByteArray> {

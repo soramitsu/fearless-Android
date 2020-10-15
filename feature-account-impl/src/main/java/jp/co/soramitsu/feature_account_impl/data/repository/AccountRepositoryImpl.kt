@@ -210,7 +210,7 @@ class AccountRepositoryImpl(
         password: String,
         name: String
     ): Completable {
-        return Completable.fromAction {
+        return Single.fromCallable {
             val importData = jsonSeedDecoder.decode(json, password)
 
             val publicKeyEncoded = Hex.toHexString(importData.keypair.publicKey)
@@ -228,7 +228,9 @@ class AccountRepositoryImpl(
 
             val node = account.network.defaultNode
 
-            maybeSelectInitial(account, node).blockingAwait()
+            account to node
+        }.flatMapCompletable { (account, node) ->
+            maybeSelectInitial(account, node)
         }
     }
 

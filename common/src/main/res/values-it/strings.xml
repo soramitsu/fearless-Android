@@ -138,6 +138,11 @@
     <string name="transaction_details_from">A partire dal</string>
     <string name="transaction_detail_status">Stato</string>
     <string name="transaction_detail_date">Data</string>
+
+    <string name="transaction_details_view_subscan">Visualizza in Subscan</string>
+    <string name="transaction_details_view_polkascan">Visualizza in Polkascan</string>
+    <string name="transaction_details_copy_hash">Copia hash</string>
+    <string name="transaction_details_hash_title">Hash estrinseco</string>
     <string name="account_needed_title">Account necessario</string>
     <string name="account_needed_message">Non hai un account per questa rete, puoi creare o importare un account.</string>
     <string name="common_proceed">Procedere</string>

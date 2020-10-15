@@ -138,6 +138,11 @@
     <string name="transaction_details_from">から</string>
     <string name="transaction_detail_status">状態</string>
     <string name="transaction_detail_date">日付</string>
+
+    <string name="transaction_details_view_subscan">サブスキャンで表示</string>
+    <string name="transaction_details_view_polkascan">ポルカスカンで見る</string>
+    <string name="transaction_details_copy_hash">ハッシュをコピーする</string>
+    <string name="transaction_details_hash_title">外因性ハッシュ</string>
     <string name="account_needed_title">アカウントが必要</string>
     <string name="account_needed_message">このネットワークのアカウントがありません。アカウントを作成またはインポートできます。</string>
     <string name="common_proceed">続行</string>

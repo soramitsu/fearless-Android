@@ -139,6 +139,11 @@
     <string name="transaction_details_from">От</string>
     <string name="transaction_detail_status">Статус</string>
     <string name="transaction_detail_date">Дата</string>
+
+    <string name="transaction_details_view_subscan">Просмотреть в Subscan</string>
+    <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
+    <string name="transaction_details_copy_hash">Копировать хеш</string>
+    <string name="transaction_details_hash_title">Хеш транзакции</string>
     <string name="account_needed_title">Необходим аккаунт</string>
     <string name="account_needed_message">У вас нет учетной записи в этой сети, вы можете создать или импортировать учетную запись.</string>
     <string name="common_proceed">Продолжить</string>

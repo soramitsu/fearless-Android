@@ -62,18 +62,14 @@ class WssSubstrateSource(
 ) : SubstrateRemoteSource {
 
     override fun getTransferFee(account: Account, transfer: Transfer): Single<FeeResponse> {
-        return Single.fromCallable {
-            val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-            val emptySeed = ByteArray(32)
-            val keypair = keypairFactory.generate(cryptoType, emptySeed, "")
-
-            val (extrinsic, newAccountInfo) = buildSubmittableExtrinsic(account, transfer, keypair)
-
+        return generateFakeKeyPair(account).flatMap { keypair ->
+            buildSubmittableExtrinsic(account, transfer, keypair)
+        }.flatMap { (extrinsic, newAccountInfo) ->
             val request = FeeCalculationRequest(extrinsic)
 
-            val feeRemote = socketService.executeRequest(request, responseType = pojo<FeeRemote>().nonNull()).blockingGet()
-
-            FeeResponse(feeRemote, newAccountInfo)
+            socketService.executeRequest(request, responseType = pojo<FeeRemote>().nonNull()).map { feeRemote ->
+                FeeResponse(feeRemote, newAccountInfo)
+            }
         }
     }
 
@@ -82,64 +78,62 @@ class WssSubstrateSource(
         transfer: Transfer,
         keypair: Keypair
     ): Single<String> {
-        return Single.fromCallable {
-            val (extrinsic, _) = buildSubmittableExtrinsic(account, transfer, keypair)
-
+        return buildSubmittableExtrinsic(account, transfer, keypair).map { (extrinsic, _) ->
             TransferRequest(extrinsic)
+        }.flatMap { transferRequest ->
+            socketService.executeRequest(transferRequest,
+                responseType = string().nonNull(),
+                deliveryType = DeliveryType.AT_MOST_ONCE
+            )
         }
-            .flatMap { transferRequest ->
-                socketService.executeRequest(transferRequest,
-                    responseType = string().nonNull(),
-                    deliveryType = DeliveryType.AT_MOST_ONCE
-                )
-            }
     }
 
     private fun buildSubmittableExtrinsic(
         account: Account,
         transfer: Transfer,
         keypair: Keypair
-    ): Pair<EncodableStruct<SubmittableExtrinsic>, EncodableStruct<AccountInfo>> {
-        val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-        val accountIdValue = Hex.decode(account.publicKey)
+    ): Single<Pair<EncodableStruct<SubmittableExtrinsic>, EncodableStruct<AccountInfo>>> {
+        return getRuntimeVersion().flatMap { runtimeInfo ->
+            val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
+            val accountIdValue = Hex.decode(account.publicKey)
 
-        val runtimeInfo = getRuntimeVersion().blockingGet()
-        val (currentNonce, newAccountInfo) = getNonce(account).blockingGet()
+            getNonce(account).map { (currentNonce, newAccountInfo) ->
+                val genesis = account.network.type.genesisHash
+                val genesisBytes = Hex.decode(genesis)
 
-        val genesis = account.network.type.genesisHash
-        val genesisBytes = Hex.decode(genesis)
+                val callStruct = createTransferCall(account.network.type, transfer.recipient, transfer.amountInPlanks)
 
-        val callStruct = createTransferCall(account.network.type, transfer.recipient, transfer.amountInPlanks)
+                val payload = ExtrinsicPayloadValue { payload ->
+                    payload[ExtrinsicPayloadValue.call] = callStruct
+                    payload[ExtrinsicPayloadValue.nonce] = currentNonce
+                    payload[ExtrinsicPayloadValue.specVersion] = runtimeInfo.specVersion.toUInt()
+                    payload[ExtrinsicPayloadValue.transactionVersion] = runtimeInfo.transactionVersion.toUInt()
 
-        val payload = ExtrinsicPayloadValue { payload ->
-            payload[ExtrinsicPayloadValue.call] = callStruct
-            payload[ExtrinsicPayloadValue.nonce] = currentNonce
-            payload[ExtrinsicPayloadValue.specVersion] = runtimeInfo.specVersion.toUInt()
-            payload[ExtrinsicPayloadValue.transactionVersion] = runtimeInfo.transactionVersion.toUInt()
+                    payload[ExtrinsicPayloadValue.genesis] = genesisBytes
+                    payload[ExtrinsicPayloadValue.blockHash] = genesisBytes
+                }
 
-            payload[ExtrinsicPayloadValue.genesis] = genesisBytes
-            payload[ExtrinsicPayloadValue.blockHash] = genesisBytes
+                val signatureValue = signer.signExtrinsic(payload, keypair, cryptoType)
+
+                val extrinsic = SignedExtrinsic { extrinsic ->
+                    extrinsic[accountId] = accountIdValue
+                    extrinsic[signature] = signatureValue
+                    extrinsic[signatureVersion] = cryptoType.signatureVersion.toUByte()
+                    extrinsic[SignedExtrinsic.nonce] = currentNonce
+                    extrinsic[call] = callStruct
+                }
+
+                val extrinsicBytes = SignedExtrinsic.toByteArray(extrinsic)
+                val byteLengthValue = extrinsicBytes.size.toBigInteger()
+
+                val submittableExtrinsic = SubmittableExtrinsic { struct ->
+                    struct[byteLength] = byteLengthValue
+                    struct[signedExtrinsic] = extrinsic
+                }
+
+                submittableExtrinsic to newAccountInfo
+            }
         }
-
-        val signatureValue = signer.signExtrinsic(payload, keypair, cryptoType)
-
-        val extrinsic = SignedExtrinsic { extrinsic ->
-            extrinsic[accountId] = accountIdValue
-            extrinsic[signature] = signatureValue
-            extrinsic[signatureVersion] = cryptoType.signatureVersion.toUByte()
-            extrinsic[SignedExtrinsic.nonce] = currentNonce
-            extrinsic[call] = callStruct
-        }
-
-        val extrinsicBytes = SignedExtrinsic.toByteArray(extrinsic)
-        val byteLengthValue = extrinsicBytes.size.toBigInteger()
-
-        val submittableExtrinsic = SubmittableExtrinsic { struct ->
-            struct[byteLength] = byteLengthValue
-            struct[signedExtrinsic] = extrinsic
-        }
-
-        return submittableExtrinsic to newAccountInfo
     }
 
     override fun fetchAccountInfo(account: Account): Single<EncodableStruct<AccountInfo>> {
@@ -152,7 +146,11 @@ class WssSubstrateSource(
             .map { response -> response.result ?: emptyAccountInfo() }
     }
 
-    private fun createTransferCall(networkType: Node.NetworkType, recipientAddress: String, amount: BigInteger): EncodableStruct<Call> {
+    private fun createTransferCall(
+        networkType: Node.NetworkType,
+        recipientAddress: String,
+        amount: BigInteger
+    ): EncodableStruct<Call> {
         val addressType = mapNetworkTypeToAddressType(networkType)
 
         return Call { call ->
@@ -166,16 +164,21 @@ class WssSubstrateSource(
     }
 
     private fun getNonce(account: Account): Single<Pair<BigInteger, EncodableStruct<AccountInfo>>> {
-        return Single.fromCallable {
-            val accountInfo = fetchAccountInfo(account).blockingGet()
+        return fetchAccountInfo(account).flatMap { accountInfo ->
             val accountNonce = accountInfo[nonce]
 
-            val pendingExtrinsics = getPendingExtrinsicsCount(account).blockingGet()
+            getPendingExtrinsicsCount(account).map { pendingExtrinsics ->
+                val result = accountNonce + pendingExtrinsics.toUInt()
 
-            val result = accountNonce + pendingExtrinsics.toUInt()
-
-            result.toLong().toBigInteger() to accountInfo
+                result.toLong().toBigInteger() to accountInfo
+            }
         }
+    }
+
+    private fun generateFakeKeyPair(account: Account) = Single.fromCallable {
+        val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
+        val emptySeed = ByteArray(32)
+        keypairFactory.generate(cryptoType, emptySeed, "")
     }
 
     private fun getPendingExtrinsicsCount(account: Account): Single<Int> {
