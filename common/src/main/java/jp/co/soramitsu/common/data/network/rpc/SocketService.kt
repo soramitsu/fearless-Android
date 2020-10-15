@@ -123,6 +123,9 @@ class SocketService(
         socket!!.disconnect()
 
         reconnectWaitDisposable?.dispose()
+        reconnectWaitDisposable = null
+
+        currentReconnectAttempt = 0
 
         socket = null
 
