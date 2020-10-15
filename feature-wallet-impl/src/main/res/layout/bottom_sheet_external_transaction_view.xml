@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_dialog_rounded">
+
+    <View
+        android:id="@+id/view2"
+        android:layout_width="35dp"
+        android:layout_height="2dp"
+        android:background="@color/gray_disabled"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/externalTransactionSheetTitle"
+        style="@style/TextAppearance.Soramitsu.Header3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="17dp"
+        android:text="@string/transaction_details_hash_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/externalTransactionSheetDivider1"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/dividerGray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/externalTransactionSheetTitle" />
+
+    <TextView
+        android:id="@+id/externalTransactionSheetCopy"
+        style="@style/TextAppearance.Soramitsu.Body0"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_primary_list_item"
+        android:drawableStart="@drawable/ic_copy_24"
+        android:drawablePadding="16dp"
+        android:padding="18dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:text="@string/transaction_details_copy_hash"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/externalTransactionSheetDivider1" />
+
+    <TextView
+        android:id="@+id/externalTransactionSheetPolkascan"
+        style="@style/TextAppearance.Soramitsu.Body0"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_primary_list_item"
+        android:drawableStart="@drawable/ic_globe_24"
+        android:drawablePadding="16dp"
+        android:padding="18dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:text="@string/transaction_details_view_polkascan"
+        app:drawableTint="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/externalTransactionSheetCopy" />
+
+    <TextView
+        android:id="@+id/externalTransactionSheetSubscan"
+        style="@style/TextAppearance.Soramitsu.Body0"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_primary_list_item"
+        android:drawableStart="@drawable/ic_globe_24"
+        android:drawablePadding="16dp"
+        android:padding="18dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:text="@string/transaction_details_view_subscan"
+        app:drawableTint="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/externalTransactionSheetPolkascan" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/externalTransactionSheetSubscan" />
+</androidx.constraintlayout.widget.ConstraintLayout>
