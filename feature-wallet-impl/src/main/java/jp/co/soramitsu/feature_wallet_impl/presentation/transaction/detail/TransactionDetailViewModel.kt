@@ -1,9 +1,14 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -17,8 +22,15 @@ class TransactionDetailViewModel(
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val clipboardManager: ClipboardManager,
+    private val appLinksProvider: AppLinksProvider,
     val transaction: TransactionModel
 ) : BaseViewModel() {
+
+    private val _showExternalViewEvent = MutableLiveData<Event<Unit>>()
+    val showExternalActionsEvent: LiveData<Event<Unit>> = _showExternalViewEvent
+
+    private val _openBrowserEvent = MutableLiveData<Event<String>>()
+    val openBrowserEvent: LiveData<Event<String>> = _openBrowserEvent
 
     val recipientAddressModelLiveData = getRecipientIcon()
         .asLiveData()
@@ -28,7 +40,7 @@ class TransactionDetailViewModel(
 
     val retryAddressModelLiveData = if (transaction.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
 
-    fun copyAddressClicked(address: String) {
+    fun copyStringClicked(address: String) {
         clipboardManager.addToClipboard(address)
 
         showMessage(resourceManager.getString(R.string.common_copied))
@@ -47,4 +59,14 @@ class TransactionDetailViewModel(
 
     private fun getSenderIcon() = interactor.getAddressId(transaction.senderAddress)
         .flatMap { addressIconGenerator.createAddressIcon(transaction.senderAddress, it, ICON_SIZE_DP) }
+
+    fun showExternalActionsClicked() {
+        _showExternalViewEvent.value = Event(Unit)
+    }
+
+    fun externalAnalyzerClicked(analyzer: ExternalAnalyzer) {
+        val url = appLinksProvider.getExternalTransactionUrl(analyzer, transaction.hash, transaction.token.networkType)
+
+        _openBrowserEvent.value = Event(url)
+    }
 }

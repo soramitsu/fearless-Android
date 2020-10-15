@@ -4,11 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.TransactionExternalActionsSheet
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import jp.co.soramitsu.feature_wallet_impl.util.formatDateTime
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailAmount
@@ -25,7 +28,7 @@ import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDe
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
 
-class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
+class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>(), TransactionExternalActionsSheet.Handler {
 
     companion object {
         fun getBundle(transaction: TransactionModel) = Bundle().apply {
@@ -41,6 +44,8 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     override fun initViews() {
         transactionDetailToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        transactionDetailHash.setActionClickListener { viewModel.showExternalActionsClicked() }
     }
 
     override fun inject() {
@@ -74,14 +79,14 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             transactionDetailFrom.setText(addressModel.address)
             transactionDetailFrom.setTextIcon(addressModel.image)
 
-            transactionDetailFrom.setActionClickListener { viewModel.copyAddressClicked(addressModel.address) }
+            transactionDetailFrom.setActionClickListener { viewModel.copyStringClicked(addressModel.address) }
         }
 
         viewModel.recipientAddressModelLiveData.observe { addressModel ->
             transactionDetailTo.setText(addressModel.address)
             transactionDetailTo.setTextIcon(addressModel.image)
 
-            transactionDetailTo.setActionClickListener { viewModel.copyAddressClicked(addressModel.address) }
+            transactionDetailTo.setActionClickListener { viewModel.copyStringClicked(addressModel.address) }
         }
 
         viewModel.retryAddressModelLiveData.observe {
@@ -90,5 +95,24 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
             transactionDetailRepeat.setActionListener { viewModel.repeatTransaction() }
         }
+
+        viewModel.showExternalActionsEvent.observeEvent {
+            showExternalActionsSheet()
+        }
+
+        viewModel.openBrowserEvent.observeEvent(::showBrowser)
+    }
+
+    private fun showExternalActionsSheet() {
+        TransactionExternalActionsSheet(requireContext(), viewModel.transaction, this)
+            .show()
+    }
+
+    override fun copyHashClicked(hash: String) {
+        viewModel.copyStringClicked(hash)
+    }
+
+    override fun externalViewClicked(analyzer: ExternalAnalyzer) {
+        viewModel.externalAnalyzerClicked(analyzer)
     }
 }
