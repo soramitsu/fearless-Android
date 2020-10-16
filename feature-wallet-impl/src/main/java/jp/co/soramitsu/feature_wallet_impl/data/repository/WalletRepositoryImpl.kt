@@ -27,18 +27,18 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTra
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.feeFrozen
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.free
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.miscFrozen
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.reserved
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.data
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.FeeRemote
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeRemote
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubscanResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionHistory
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.feeFrozen
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.free
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.miscFrozen
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.reserved
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.data
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import java.math.BigDecimal
 import java.util.Locale
@@ -115,6 +115,18 @@ class WalletRepositoryImpl(
                 }
             }
         }
+    }
+
+    override fun listenForUpdates(account: Account): Completable {
+        return substrateSource.listenForAccountUpdates(account)
+            .flatMapCompletable { change ->
+                updateLocalBalance(account, change.newAccountInfo)
+                    .andThen(fetchTransactions(account, change.block))
+            }
+    }
+
+    private fun fetchTransactions(account: Account, block: String) : Completable {
+        return Completable.complete() // TODO
     }
 
     private fun createTransaction(hash: String, transfer: Transfer, accountAddress: String, fee: BigDecimal) =

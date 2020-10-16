@@ -43,7 +43,14 @@ class RootViewModel(
                 } else {
                     connectionManager.start(it.link)
                 }
+
+                listenAccountUpdates()
             }
+    }
+
+    private fun listenAccountUpdates() {
+        disposables += interactor.listenForAccountUpdates()
+            .subscribe()
     }
 
     private fun unbindConnection() {

@@ -2,6 +2,7 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
+import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.rpc.DeliveryType
 import jp.co.soramitsu.common.data.network.rpc.SocketService
@@ -10,6 +11,7 @@ import jp.co.soramitsu.common.data.network.rpc.mappers.pojo
 import jp.co.soramitsu.common.data.network.rpc.mappers.scale
 import jp.co.soramitsu.common.data.network.rpc.mappers.scaleCollection
 import jp.co.soramitsu.common.data.network.rpc.mappers.string
+import jp.co.soramitsu.common.data.network.rpc.subscription.SubscriptionChange
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.data.network.scale.invoke
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -28,29 +30,39 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.FeeRemote
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.FeeResponse
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.RuntimeVersion
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.feeFrozen
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.free
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.miscFrozen
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.reserved
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.data
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.nonce
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.refCount
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.Call
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.ExtrinsicPayloadValue
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SignedExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SignedExtrinsic.accountId
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SignedExtrinsic.call
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SignedExtrinsic.signature
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SignedExtrinsic.signatureVersion
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SubmittableExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SubmittableExtrinsic.byteLength
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SubmittableExtrinsic.signedExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetBlockRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.SubscribeStorageRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeRemote
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.StorageChange
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.feeFrozen
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.free
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.miscFrozen
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.reserved
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.data
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.nonce
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.refCount
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.args
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.CallStub
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ExtrinsicPayloadValue
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ExtrinsicStub
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.accountId
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.call
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.signature
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.signatureVersion
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsicStub
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.byteLength
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.signedExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SupportedCall
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
 import org.spongycastle.util.encoders.Hex
 import java.math.BigInteger
 
@@ -60,6 +72,14 @@ class WssSubstrateSource(
     private val keypairFactory: KeypairFactory,
     private val sS58Encoder: SS58Encoder
 ) : SubstrateRemoteSource {
+
+    override fun fetchAccountInfo(account: Account): Single<EncodableStruct<AccountInfo>> {
+        val publicKeyBytes = extractPublicKeyBytes(account)
+        val request = AccountInfoRequest(publicKeyBytes)
+
+        return socketService.executeRequest(request, responseType = scale(AccountInfo))
+            .map { response -> response.result ?: emptyAccountInfo() }
+    }
 
     override fun getTransferFee(account: Account, transfer: Transfer): Single<FeeResponse> {
         return generateFakeKeyPair(account).flatMap { keypair ->
@@ -86,6 +106,40 @@ class WssSubstrateSource(
                 deliveryType = DeliveryType.AT_MOST_ONCE
             )
         }
+    }
+
+    override fun listenForAccountUpdates(account: Account): Observable<StorageChange> {
+        val request = SubscribeStorageRequest(extractPublicKeyBytes(account))
+
+        return socketService.subscribe(request)
+            .map(::buildStorageChange)
+    }
+
+    override fun fetchAccountTransactionInBlock(blockHash: String, account: Account) : Single<List<EncodableStruct<SubmittableExtrinsic>>> {
+        val request = GetBlockRequest(blockHash)
+
+        return socketService.executeRequest(request, responseType = pojo<SignedBlock>().nonNull())
+            .map { block -> filterAccountTransactions(account, block.block.extrinsics) }
+    }
+
+    private fun buildStorageChange(subscriptionChange: SubscriptionChange): StorageChange {
+        val block = subscriptionChange.params.result.block
+
+        // changes are in format [[storage key, account info], [..], ..]
+        val changes = subscriptionChange.params.result.changes as List<List<String?>>
+
+        // only interested in one account
+        val encodedAccountInfo = changes.first()[1]
+
+        val accountInfo = if (encodedAccountInfo != null) AccountInfo.read(encodedAccountInfo) else emptyAccountInfo()
+
+        return StorageChange(block, accountInfo)
+    }
+
+    private fun extractPublicKeyBytes(account: Account): ByteArray {
+        val publicKey = account.publicKey
+
+        return Hex.decode(publicKey)
     }
 
     private fun buildSubmittableExtrinsic(
@@ -134,16 +188,6 @@ class WssSubstrateSource(
                 submittableExtrinsic to newAccountInfo
             }
         }
-    }
-
-    override fun fetchAccountInfo(account: Account): Single<EncodableStruct<AccountInfo>> {
-        val publicKey = account.publicKey
-
-        val publicKeyBytes = Hex.decode(publicKey)
-        val request = AccountInfoRequest(publicKeyBytes)
-
-        return socketService.executeRequest(request, responseType = scale(AccountInfo))
-            .map { response -> response.result ?: emptyAccountInfo() }
     }
 
     private fun createTransferCall(
@@ -227,5 +271,26 @@ class WssSubstrateSource(
             Node.NetworkType.POLKADOT -> AddressType.POLKADOT
             Node.NetworkType.WESTEND -> AddressType.WESTEND
         }
+    }
+
+    private fun filterAccountTransactions(account: Account, extrinsics: List<String>): List<EncodableStruct<SubmittableExtrinsic>> {
+        val currentPublicKey = extractPublicKeyBytes(account)
+
+        return extrinsics.filter { hex ->
+            val stub = ExtrinsicStub.read(hex)
+
+            val callIndex = stub[ExtrinsicStub.signedExtrinsic][SignedExtrinsicStub.call][CallStub.callIndex]
+            val call = SupportedCall.from(callIndex)
+
+            call != null && call == SupportedCall.TRANSFER
+        }
+            .map(SubmittableExtrinsic::read)
+            .filter { transfer ->
+                val signed = transfer[signedExtrinsic]
+                val sender = signed[accountId]
+                val receiver = signed[call][args][recipientId]
+
+                sender.contentEquals(currentPublicKey) || receiver.contentEquals(currentPublicKey)
+            }
     }
 }

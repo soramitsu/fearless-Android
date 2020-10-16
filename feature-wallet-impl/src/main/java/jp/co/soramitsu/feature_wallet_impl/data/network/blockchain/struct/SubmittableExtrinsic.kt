@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.struct
+package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
 import jp.co.soramitsu.common.data.network.scale.Schema
 import jp.co.soramitsu.common.data.network.scale.byte
@@ -40,6 +40,17 @@ object Call : Schema<Call>() {
     val callIndex by pair(uint8, uint8)
 
     val args by schema(TransferArgs)
+}
+
+@Suppress("EXPERIMENTAL_API_USAGE")
+enum class SupportedCall(val index: Pair<UByte, UByte>) {
+    TRANSFER(0.toUByte() to 4.toUByte());
+
+    companion object {
+        fun from(callIndex: Pair<UByte, UByte>) : SupportedCall? {
+            return values().firstOrNull { it.index == callIndex }
+        }
+    }
 }
 
 object TransferArgs : Schema<TransferArgs>() {

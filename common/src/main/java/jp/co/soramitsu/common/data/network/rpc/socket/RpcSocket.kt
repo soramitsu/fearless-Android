@@ -6,12 +6,15 @@ import com.neovisionaries.ws.client.WebSocketAdapter
 import com.neovisionaries.ws.client.WebSocketException
 import com.neovisionaries.ws.client.WebSocketFactory
 import com.neovisionaries.ws.client.WebSocketState
+import jp.co.soramitsu.common.data.network.rpc.subscription.SubscriptionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.request.base.RpcRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
 
 interface RpcSocketListener {
     fun onResponse(rpcResponse: RpcResponse)
+
+    fun onResponse(subscriptionChange: SubscriptionChange)
 
     fun onStateChanged(newState: WebSocketState)
 
@@ -60,7 +63,11 @@ class RpcSocket(
             override fun onTextMessage(websocket: WebSocket, text: String) {
                 logger?.log("[RECEIVED] $text")
 
-                listener.onResponse(gson.fromJson(text, RpcResponse::class.java))
+                if (isSubscriptionChange(text)) {
+                    listener.onResponse(gson.fromJson(text, SubscriptionChange::class.java))
+                } else {
+                    listener.onResponse(gson.fromJson(text, RpcResponse::class.java))
+                }
             }
 
             override fun onError(websocket: WebSocket, cause: WebSocketException) {
@@ -86,5 +93,9 @@ class RpcSocket(
                 listener.onConnected()
             }
         })
+    }
+
+    private fun isSubscriptionChange(string: String): Boolean {
+        return string.contains("change")
     }
 }

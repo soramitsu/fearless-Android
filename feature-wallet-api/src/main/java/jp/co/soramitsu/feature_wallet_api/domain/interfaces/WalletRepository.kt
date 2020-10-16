@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.disposables.Disposable
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
@@ -33,4 +35,6 @@ interface WalletRepository {
     fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable
 
     fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean>
+
+    fun listenForUpdates(account: Account): Completable
 }

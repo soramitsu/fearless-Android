@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteConstraintException
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.disposables.Disposable
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.core_db.dao.AccountDao

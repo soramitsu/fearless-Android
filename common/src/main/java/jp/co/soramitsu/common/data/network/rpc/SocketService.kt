@@ -4,16 +4,21 @@ import com.google.gson.Gson
 import com.neovisionaries.ws.client.WebSocketFactory
 import com.neovisionaries.ws.client.WebSocketState
 import io.reactivex.Completable
+import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
 import io.reactivex.Single
 import io.reactivex.SingleEmitter
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.data.network.rpc.mappers.ResponseMapper
+import jp.co.soramitsu.common.data.network.rpc.mappers.nonNull
+import jp.co.soramitsu.common.data.network.rpc.mappers.string
 import jp.co.soramitsu.common.data.network.rpc.recovery.ExponentialReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.recovery.ReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.socket.RpcSocket
 import jp.co.soramitsu.common.data.network.rpc.socket.RpcSocketListener
+import jp.co.soramitsu.common.data.network.rpc.subscription.SubscriptionChange
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.request.base.RpcRequest
@@ -48,6 +53,11 @@ class RequestMapEntry(
     val emitter: SingleEmitter<RpcResponse>
 )
 
+class SubscriptionMapEntry(
+    val request: RuntimeRequest,
+    val emitter: ObservableEmitter<SubscriptionChange>
+)
+
 private val WAITING_EXECUTOR = ThreadPoolExecutor(1, 1, 5, TimeUnit.SECONDS, ArrayBlockingQueue(10))
 private val WAITING_SCHEDULER = Schedulers.from(WAITING_EXECUTOR)
 
@@ -64,6 +74,8 @@ class SocketService(
 
     private val pendingRequests = ArrayBlockingQueue<RpcRequest>(10)
     private val waitingForResponseRequests = ArrayBlockingQueue<RpcRequest>(10)
+
+    private val subscriptions = ConcurrentHashMap<String, SubscriptionMapEntry>()
 
     private val socketFactory = WebSocketFactory()
 
@@ -125,6 +137,9 @@ class SocketService(
         reconnectWaitDisposable?.dispose()
         reconnectWaitDisposable = null
 
+        subscriptions.values.forEach { entry -> entry.emitter.onComplete() }
+        subscriptions.clear()
+
         currentReconnectAttempt = 0
 
         socket = null
@@ -133,6 +148,17 @@ class SocketService(
     }
 
     override fun observeNetworkState() = stateSubject
+
+    fun subscribe(request: RuntimeRequest): Observable<SubscriptionChange> {
+        return executeRequest(request, string().nonNull())
+            .flatMapObservable { subscriptionId ->
+               Observable.create<SubscriptionChange> { emitter ->
+                   subscriptions[subscriptionId] = SubscriptionMapEntry(request, emitter)
+               }.doOnDispose {
+                   subscriptions.remove(subscriptionId)
+               }
+            }
+    }
 
     fun <R> executeRequest(
         request: RuntimeRequest,
@@ -176,6 +202,12 @@ class SocketService(
         }
     }
 
+    override fun onResponse(subscriptionChange: SubscriptionChange) {
+        val subscriptionEntry = subscriptions[subscriptionChange.params.subscription]
+
+        subscriptionEntry?.emitter?.onNext(subscriptionChange)
+    }
+
     @Synchronized
     override fun onStateChanged(newState: WebSocketState) {
         if (newState == WebSocketState.CLOSED) {
@@ -184,7 +216,15 @@ class SocketService(
             reportErrorToAtMostOnceAndForget()
 
             moveWaitingResponseToPending()
+
+            scheduleSubscriptionsResubscribe()
         }
+    }
+
+    private fun scheduleSubscriptionsResubscribe() {
+        val requests = subscriptions.values.map { it.request }
+        pendingRequests.addAll(requests)
+        subscriptions.clear()
     }
 
     override fun onConnected() {

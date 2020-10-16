@@ -21,14 +21,11 @@ abstract class NullableMapper<R> : ResponseMapper<NullableContainer<R>> {
     }
 }
 
-private const val ERROR_KEY = "ERROR_KEY"
-
 object ErrorMapper : ResponseMapper<FearlessException> {
     override fun map(rpcResponse: RpcResponse, jsonMapper: Gson): FearlessException {
-        val raw = rpcResponse.result as Map<*, *>
-        val message = raw[ERROR_KEY] as? String
+        val error = rpcResponse.error?.message
 
-        return FearlessException(FearlessException.Kind.NETWORK, message)
+        return FearlessException(FearlessException.Kind.NETWORK, error)
     }
 }
 

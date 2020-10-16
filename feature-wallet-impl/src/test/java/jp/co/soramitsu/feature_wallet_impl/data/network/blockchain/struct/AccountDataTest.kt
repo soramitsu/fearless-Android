@@ -1,11 +1,10 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.struct
+package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.free
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.data
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.nonce
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.free
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.data
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.nonce
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
