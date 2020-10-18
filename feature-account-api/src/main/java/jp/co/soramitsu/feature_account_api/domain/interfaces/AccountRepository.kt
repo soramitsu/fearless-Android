@@ -126,4 +126,6 @@ interface AccountRepository {
     fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
 
     fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
+
+    fun deleteNode(nodeId: Int): Completable
 }

@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeHeaderModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import kotlinx.android.synthetic.main.item_node.view.nodeCheck
+import kotlinx.android.synthetic.main.item_node.view.nodeDelete
 import kotlinx.android.synthetic.main.item_node.view.nodeHost
 import kotlinx.android.synthetic.main.item_node.view.nodeIcon
 import kotlinx.android.synthetic.main.item_node.view.nodeInfo
@@ -25,9 +26,12 @@ class NodesAdapter(
         fun infoClicked(nodeModel: NodeModel)
 
         fun checkClicked(nodeModel: NodeModel)
+
+        fun deleteClicked(nodeModel: NodeModel)
     }
 
     private var selectedItem: NodeModel? = null
+    private var editMode = false
 
     fun updateSelectedNode(newSelection: NodeModel) {
         val positionToHide = selectedItem?.let { selected ->
@@ -42,6 +46,11 @@ class NodesAdapter(
 
         positionToHide?.let { notifyItemChanged(it) }
         notifyItemChanged(positionToShow)
+    }
+
+    fun switchToEdit(editable: Boolean) {
+        editMode = editable
+        notifyDataSetChanged()
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
@@ -59,7 +68,7 @@ class NodesAdapter(
     override fun bindChild(holder: GroupedListHolder, child: NodeModel) {
         val isChecked = child.id == selectedItem?.id
 
-        (holder as NodeHolder).bind(child, nodeItemHandler, isChecked)
+        (holder as NodeHolder).bind(child, nodeItemHandler, isChecked, editMode)
     }
 }
 
@@ -74,7 +83,8 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
     fun bind(
         nodeModel: NodeModel,
         handler: NodesAdapter.NodeItemHandler,
-        isChecked: Boolean
+        isChecked: Boolean,
+        editMode: Boolean
     ) {
         with(containerView) {
             nodeTitle.text = nodeModel.name
@@ -82,11 +92,19 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
 
             nodeCheck.visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
 
+            if (!isChecked && !nodeModel.isDefault && editMode) {
+                nodeDelete.visibility = View.VISIBLE
+            } else {
+                nodeDelete.visibility = View.GONE
+            }
+
             nodeIcon.setImageResource(nodeModel.networkModelType.icon)
 
             setOnClickListener { handler.checkClicked(nodeModel) }
 
             nodeInfo.setOnClickListener { handler.infoClicked(nodeModel) }
+
+            nodeDelete.setOnClickListener { handler.deleteClicked(nodeModel) }
         }
     }
 }

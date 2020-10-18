@@ -34,8 +34,12 @@ class NodesViewModel(
     private val _showAccountChooserLiveData = MutableLiveData<Event<AccountChooserPayload>>()
     val showAccountChooserLiveData: LiveData<Event<AccountChooserPayload>> = _showAccountChooserLiveData
 
+    private val _editMode = MutableLiveData<Boolean>()
+    val editMode: LiveData<Boolean> = _editMode
+
     fun editClicked() {
-        // TODO
+        val edit = editMode.value ?: false
+        _editMode.value = !edit
     }
 
     fun backClicked() {
@@ -99,5 +103,14 @@ class NodesViewModel(
         return interactor.getAddressId(account)
             .flatMap { addressIconGenerator.createAddressIcon(account.address, it, ICON_IN_DP) }
             .blockingGet()
+    }
+
+    fun deleteNodeClicked(nodeModel: NodeModel) {
+        disposables += interactor.deleteNode(nodeModel.id)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeToError {
+                it.message?.let { showError(it) }
+            }
     }
 }

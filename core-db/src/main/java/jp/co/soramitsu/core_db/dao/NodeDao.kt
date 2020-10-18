@@ -40,4 +40,7 @@ abstract class NodeDao {
 
     @Query("select * from nodes limit 1")
     abstract fun getFirstNode(): NodeLocal
+
+    @Query("delete from nodes where id = :nodeId")
+    abstract fun deleteNode(nodeId: Int)
 }

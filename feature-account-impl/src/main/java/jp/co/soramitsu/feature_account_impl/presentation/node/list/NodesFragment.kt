@@ -68,6 +68,8 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.showAccountChooserLiveData.observeEvent {
             AccountChooserBottomSheetDialog(requireActivity(), it, this).show()
         }
+
+        viewModel.editMode.observe(adapter::switchToEdit)
     }
 
     override fun infoClicked(nodeModel: NodeModel) {
@@ -76,6 +78,10 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
     override fun checkClicked(nodeModel: NodeModel) {
         viewModel.selectNodeClicked(nodeModel)
+    }
+
+    override fun deleteClicked(nodeModel: NodeModel) {
+        viewModel.deleteNodeClicked(nodeModel)
     }
 
     private fun showNoAccountsDialog(networkType: Node.NetworkType) {
