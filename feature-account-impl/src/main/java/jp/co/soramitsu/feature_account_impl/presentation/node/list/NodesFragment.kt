@@ -71,9 +71,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
         viewModel.editMode.observe(adapter::switchToEdit)
 
-        viewModel.toolbarAction.observe {
-            fearlessToolbar.setTextRight(it)
-        }
+        viewModel.toolbarAction.observe(fearlessToolbar::setTextRight)
     }
 
     override fun infoClicked(nodeModel: NodeModel) {
