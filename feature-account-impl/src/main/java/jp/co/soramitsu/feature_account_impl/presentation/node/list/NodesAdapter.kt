@@ -94,17 +94,19 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
 
             if (!isChecked && !nodeModel.isDefault && editMode) {
                 nodeDelete.visibility = View.VISIBLE
+                nodeDelete.setOnClickListener { handler.deleteClicked(nodeModel) }
+                nodeInfo.visibility = View.INVISIBLE
+                nodeInfo.setOnClickListener { }
+                setOnClickListener { }
             } else {
                 nodeDelete.visibility = View.GONE
+                nodeDelete.setOnClickListener { }
+                nodeInfo.visibility = View.VISIBLE
+                nodeInfo.setOnClickListener { handler.infoClicked(nodeModel) }
+                setOnClickListener { handler.checkClicked(nodeModel) }
             }
 
             nodeIcon.setImageResource(nodeModel.networkModelType.icon)
-
-            setOnClickListener { handler.checkClicked(nodeModel) }
-
-            nodeInfo.setOnClickListener { handler.infoClicked(nodeModel) }
-
-            nodeDelete.setOnClickListener { handler.deleteClicked(nodeModel) }
         }
     }
 }
