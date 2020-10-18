@@ -13,9 +13,9 @@ import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
-import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_nodes.addConnectionTv
 import kotlinx.android.synthetic.main.fragment_nodes.connectionsList
+import kotlinx.android.synthetic.main.fragment_nodes.fearlessToolbar
 
 class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler, AccountChooserBottomSheetDialog.ClickHandler {
 
@@ -70,6 +70,10 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         }
 
         viewModel.editMode.observe(adapter::switchToEdit)
+
+        viewModel.toolbarAction.observe {
+            fearlessToolbar.setTextRight(it)
+        }
     }
 
     override fun infoClicked(nodeModel: NodeModel) {

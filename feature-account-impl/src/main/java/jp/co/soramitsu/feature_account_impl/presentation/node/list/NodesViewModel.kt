@@ -7,12 +7,15 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
@@ -25,7 +28,8 @@ class NodesViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val nodeListingMixin: NodeListingMixin,
-    private val addressIconGenerator: AddressIconGenerator
+    private val addressIconGenerator: AddressIconGenerator,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), NodeListingMixin by nodeListingMixin {
 
     private val _noAccountsEvent = MutableLiveData<Event<Node.NetworkType>>()
@@ -36,6 +40,14 @@ class NodesViewModel(
 
     private val _editMode = MutableLiveData<Boolean>()
     val editMode: LiveData<Boolean> = _editMode
+
+    val toolbarAction = editMode.map {
+        if (it) {
+            resourceManager.getString(R.string.common_done)
+        } else {
+            resourceManager.getString(R.string.common_edit)
+        }
+    }
 
     fun editClicked() {
         val edit = editMode.value ?: false
