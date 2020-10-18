@@ -6,6 +6,7 @@ import dagger.Provides
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.RxCallAdapterFactory
 import jp.co.soramitsu.common.data.network.rpc.RxWebSocketCreator
@@ -16,32 +17,23 @@ import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
-import javax.inject.Named
 
 @Module
 class NetworkModule {
 
     @Provides
     @ApplicationScope
-    @Named("TERMS_URL")
-    fun provideTermsUrl(): String {
-        return BuildConfig.TERMS_URL
-    }
+    fun provideAppLinksProvider(): AppLinksProvider {
+        val externalAnalyzerTemplates = mapOf(
+            ExternalAnalyzer.POLKASCAN to BuildConfig.POLKSASCAN_TRANSACTION_TEMPLATE,
+            ExternalAnalyzer.SUBSCAN to BuildConfig.SUBSCAN_TRANSACTION_TEMPLATE
+        )
 
-    @Provides
-    @ApplicationScope
-    @Named("PRIVACY_URL")
-    fun providePrivacyUrl(): String {
-        return BuildConfig.PRIVACY_URL
-    }
-
-    @Provides
-    @ApplicationScope
-    fun provideAppLinksProvider(
-        @Named("TERMS_URL") termsUrl: String,
-        @Named("PRIVACY_URL") privacyUrl: String
-    ): AppLinksProvider {
-        return AppLinksProvider(termsUrl, privacyUrl)
+        return AppLinksProvider(
+            BuildConfig.TERMS_URL,
+            BuildConfig.PRIVACY_URL,
+            externalAnalyzerTemplates
+        )
     }
 
     @Provides

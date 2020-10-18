@@ -7,3 +7,5 @@ val BigDecimal.isNonNegative: Boolean
     get() = signum() >= 0
 
 fun Long.daysFromMillis() = TimeUnit.MILLISECONDS.toDays(this)
+
+fun String.requirePrefix(prefix: String) = if (startsWith(prefix)) this else prefix + this

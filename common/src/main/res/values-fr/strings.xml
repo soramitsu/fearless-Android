@@ -137,6 +137,11 @@
     <string name="transaction_details_from">De</string>
     <string name="transaction_detail_status">Statut</string>
     <string name="transaction_detail_date">Date</string>
+
+    <string name="transaction_details_view_subscan">Afficher dans Subscan</string>
+    <string name="transaction_details_view_polkascan">Voir à Polkascan</string>
+    <string name="transaction_details_copy_hash">Copier le hachage</string>
+    <string name="transaction_details_hash_title">Hash extrinsèque</string>
     <string name="account_needed_title">Compte nécessaire</string>
     <string name="account_needed_message">Vous n\'avez pas de compte pour ce réseau, vous pouvez créer ou importer un compte.</string>
     <string name="common_proceed">Procéder</string>
