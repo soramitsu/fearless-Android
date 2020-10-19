@@ -36,6 +36,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Submit
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.amount
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
+import org.bouncycastle.util.encoders.Hex
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -45,7 +46,6 @@ import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.BDDMockito.given
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import org.spongycastle.util.encoders.Hex
 import java.math.BigDecimal
 
 private const val PUBLIC_KEY = "fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168"
