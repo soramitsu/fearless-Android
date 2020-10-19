@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_connecting">接続中…</string>
+
     <string name="common_next">次へ</string>
     <string name="common_cancel">キャンセル</string>
     <string name="common_skip">スキップ</string>

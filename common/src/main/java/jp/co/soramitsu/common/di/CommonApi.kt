@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -68,4 +69,6 @@ interface CommonApi {
     fun provideSocketSingleRequestExecutor(): SocketSingleRequestExecutor
 
     fun addressIconGenerator(): AddressIconGenerator
+
+    fun networkStateMixin(): NetworkStateMixin
 }

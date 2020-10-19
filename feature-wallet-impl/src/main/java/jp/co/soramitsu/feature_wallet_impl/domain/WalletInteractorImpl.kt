@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransactionsPage
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import java.math.BigDecimal
 
@@ -54,7 +55,7 @@ class WalletInteractorImpl(
         return walletRepository.syncTransactionsFirstPage(pageSize)
     }
 
-    override fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>> {
+    override fun getTransactionPage(pageSize: Int, page: Int): Single<TransactionsPage> {
         return walletRepository.getTransactionPage(pageSize, page)
     }
 

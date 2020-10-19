@@ -1,11 +1,10 @@
 package jp.co.soramitsu.common.base
 
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import jp.co.soramitsu.common.di.FeatureContainer
-import jp.co.soramitsu.common.utils.setBarColorBackground
 import javax.inject.Inject
 
 abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
@@ -21,10 +20,12 @@ abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val decorView = window.decorView
+        decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+
         setContentView(layoutResource())
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            setBarColorBackground(android.R.color.black)
-        }
 
         inject()
         initViews()

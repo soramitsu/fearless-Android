@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_connecting">Підключення…</string>
+
     <string name="common_next">Далі</string>
     <string name="common_cancel">Скасувати</string>
     <string name="common_skip">Пропустити</string>

@@ -6,7 +6,6 @@ import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
@@ -32,13 +31,25 @@ class PinCodeModule {
     @Provides
     @IntoMap
     @ViewModelKey(PinCodeViewModel::class)
-    fun provideViewModel(interactor: AccountInteractor, router: AccountRouter, maxPinCodeLength: Int, deviceVibrator: DeviceVibrator, resourceManager: ResourceManager): ViewModel {
-        return PinCodeViewModel(interactor, router, maxPinCodeLength, deviceVibrator, resourceManager)
+    fun provideViewModel(
+        interactor: AccountInteractor,
+        router: AccountRouter,
+        maxPinCodeLength: Int,
+        deviceVibrator: DeviceVibrator,
+        resourceManager: ResourceManager
+    ): ViewModel {
+        return PinCodeViewModel(
+            interactor,
+            router,
+            maxPinCodeLength,
+            deviceVibrator,
+            resourceManager
+        )
     }
 
     @Provides
     fun provideViewModelCreator(fragment: Fragment, viewModelFactory: ViewModelProvider.Factory): PinCodeViewModel {
-        return ViewModelProviders.of(fragment, viewModelFactory).get(PinCodeViewModel::class.java)
+        return ViewModelProvider(fragment, viewModelFactory).get(PinCodeViewModel::class.java)
     }
 
     @Provides

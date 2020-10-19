@@ -37,7 +37,7 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         anchor?.let {
-            bottomSheetBehavior.peekHeight = parentView.measuredHeight - it.measuredHeight - coordinatorParams.topMargin
+            bottomSheetBehavior.peekHeight = parentView.measuredHeight - it.bottom - coordinatorParams.topMargin
         }
     }
 

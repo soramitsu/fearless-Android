@@ -53,6 +53,7 @@ dependencies {
     implementation fearlessLibDep
 
     implementation rxJavaDep
+    implementation rxAndroidDep
 
     implementation daggerDep
     kapt daggerKapt

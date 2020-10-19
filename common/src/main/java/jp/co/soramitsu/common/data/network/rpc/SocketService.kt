@@ -8,6 +8,7 @@ import io.reactivex.Single
 import io.reactivex.SingleEmitter
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.data.network.rpc.mappers.ResponseMapper
 import jp.co.soramitsu.common.data.network.rpc.recovery.ExponentialReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.recovery.ReconnectStrategy
@@ -66,6 +67,9 @@ class SocketService(
 
     private val socketFactory = WebSocketFactory()
 
+    private val stateSubject = BehaviorSubject.create<State>()
+    private val allowedToConnectSubject = BehaviorSubject.createDefault(false)
+
     @Volatile
     private var currentReconnectAttempt = 0
 
@@ -86,13 +90,19 @@ class SocketService(
 
     override fun started() = state != State.DISCONNECTED
 
+    override fun setAllowedToConnect(allowed: Boolean) {
+        allowedToConnectSubject.onNext(allowed)
+    }
+
+    override fun observeAllowedToConnect() = allowedToConnectSubject
+
     @Synchronized
     override fun start(url: String) {
         if (state != State.DISCONNECTED) return
 
         socket = createSocket(url)
 
-        state = State.CONNECTING
+        updateState(State.CONNECTING)
 
         currentReconnectAttempt = 0
 
@@ -113,11 +123,16 @@ class SocketService(
         socket!!.disconnect()
 
         reconnectWaitDisposable?.dispose()
+        reconnectWaitDisposable = null
+
+        currentReconnectAttempt = 0
 
         socket = null
 
-        state = State.DISCONNECTED
+        updateState(State.DISCONNECTED)
     }
+
+    override fun observeNetworkState() = stateSubject
 
     fun <R> executeRequest(
         request: RuntimeRequest,
@@ -201,7 +216,7 @@ class SocketService(
     private fun connectionEstablished() {
         currentReconnectAttempt = 0
 
-        state = State.CONNECTED
+        updateState(State.CONNECTED)
 
         resendPendingDisposable = Completable.fromAction {
             pendingRequests.forEach {
@@ -225,7 +240,7 @@ class SocketService(
 
         currentReconnectAttempt++
 
-        state = State.WAITING_RECONNECT
+        updateState(State.WAITING_RECONNECT)
 
         val waitTime = reconnectStrategy.getTimeForReconnect(currentReconnectAttempt)
 
@@ -243,7 +258,7 @@ class SocketService(
 
         clearCurrentWaitingTask()
 
-        state = State.CONNECTING
+        updateState(State.CONNECTING)
 
         socket = createSocket(socket!!.url)
 
@@ -263,4 +278,10 @@ class SocketService(
     }
 
     private fun createSocket(url: String) = RpcSocket(url, this, logger, socketFactory, jsonMapper)
+
+    private fun updateState(newState: State) {
+        state = newState
+
+        stateSubject.onNext(newState)
+    }
 }

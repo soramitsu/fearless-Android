@@ -12,6 +12,15 @@ import androidx.annotation.ColorRes
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
 
+fun View.updatePadding(
+    top: Int = paddingTop,
+    bottom: Int = paddingBottom,
+    start: Int = paddingStart,
+    end: Int = paddingEnd
+) {
+    setPadding(start, top, end, bottom)
+}
+
 inline fun EditText.onTextChanged(crossinline listener: (String) -> Unit) {
     addTextChangedListener(object : TextWatcher {
         override fun afterTextChanged(s: Editable?) {

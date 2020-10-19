@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_connecting">Conectando…</string>
+
     <string name="common_next">Siguiente</string>
     <string name="common_cancel">Cancelar</string>
     <string name="common_skip">Omitir</string>
