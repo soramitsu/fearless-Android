@@ -43,6 +43,9 @@ class NodesViewModel(
     private val _editMode = MutableLiveData<Boolean>()
     val editMode: LiveData<Boolean> = _editMode
 
+    private val _deleteNodeEvent = MutableLiveData<Event<NodeModel>>()
+    val deleteNodeEvent: LiveData<Event<NodeModel>> = _deleteNodeEvent
+
     val toolbarAction = editMode.map {
         if (it) {
             resourceManager.getString(R.string.common_done)
@@ -138,6 +141,10 @@ class NodesViewModel(
     }
 
     fun deleteNodeClicked(nodeModel: NodeModel) {
+        _deleteNodeEvent.value = Event(nodeModel)
+    }
+
+    fun confirmNodeDeletion(nodeModel: NodeModel) {
         disposables += interactor.deleteNode(nodeModel.id)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())

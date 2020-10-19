@@ -72,6 +72,8 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.editMode.observe(adapter::switchToEdit)
 
         viewModel.toolbarAction.observe(fearlessToolbar::setTextRight)
+
+        viewModel.deleteNodeEvent.observeEvent(::showDeleteNodeDialog)
     }
 
     override fun infoClicked(nodeModel: NodeModel) {
@@ -84,6 +86,19 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
     override fun deleteClicked(nodeModel: NodeModel) {
         viewModel.deleteNodeClicked(nodeModel)
+    }
+
+    private fun showDeleteNodeDialog(nodeModel: NodeModel) {
+        val message = getString(R.string.connection_delete_description, nodeModel.name)
+        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
+            .setTitle(R.string.connection_delete_title)
+            .setMessage(message)
+            .setPositiveButton(R.string.connection_delete_confirm) { dialog, _ ->
+                viewModel.confirmNodeDeletion(nodeModel)
+                dialog?.dismiss()
+            }
+            .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
+            .show()
     }
 
     private fun showNoAccountsDialog(networkType: Node.NetworkType) {
