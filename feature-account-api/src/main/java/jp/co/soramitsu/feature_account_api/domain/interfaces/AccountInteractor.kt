@@ -100,4 +100,6 @@ interface AccountInteractor {
     fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable
 
     fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
+
+    fun deleteNode(nodeId: Int): Completable
 }

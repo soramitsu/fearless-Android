@@ -32,9 +32,10 @@ class NodesModule {
         interactor: AccountInteractor,
         router: AccountRouter,
         nodeListingMixin: NodeListingMixin,
-        addressIconGenerator: AddressIconGenerator
+        addressIconGenerator: AddressIconGenerator,
+        resourceManager: ResourceManager
     ): ViewModel {
-        return NodesViewModel(interactor, router, nodeListingMixin, addressIconGenerator)
+        return NodesViewModel(interactor, router, nodeListingMixin, addressIconGenerator, resourceManager)
     }
 
     @Provides

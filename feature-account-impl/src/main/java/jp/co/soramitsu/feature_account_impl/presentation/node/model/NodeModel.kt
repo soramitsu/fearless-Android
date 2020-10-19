@@ -6,5 +6,6 @@ data class NodeModel(
     val id: Int,
     val name: String,
     val link: String,
-    val networkModelType: NetworkModel.NetworkTypeUI
+    val networkModelType: NetworkModel.NetworkTypeUI,
+    val isDefault: Boolean
 )

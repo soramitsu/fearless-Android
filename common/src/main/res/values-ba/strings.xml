@@ -148,4 +148,7 @@
     <string name="account_needed_title">Необходим аккаунт</string>
     <string name="account_needed_message">У вас нет учетной записи в этой сети, вы можете создать или импортировать учетную запись.</string>
     <string name="common_proceed">Продолжить</string>
+    <string name="connection_delete_title">Delete network?</string>
+    <string name="connection_delete_description">Confirm %s deletion.</string>
+    <string name="connection_delete_confirm">Delete</string>
 </resources>

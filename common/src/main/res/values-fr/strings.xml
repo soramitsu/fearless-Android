@@ -147,4 +147,7 @@
     <string name="account_needed_title">Compte nécessaire</string>
     <string name="account_needed_message">Vous n\'avez pas de compte pour ce réseau, vous pouvez créer ou importer un compte.</string>
     <string name="common_proceed">Procéder</string>
+    <string name="connection_delete_title">Delete network?</string>
+    <string name="connection_delete_description">Confirm %s deletion.</string>
+    <string name="connection_delete_confirm">Delete</string>
 </resources>
