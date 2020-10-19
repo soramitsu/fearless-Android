@@ -47,8 +47,7 @@ dependencies {
     implementation materialDep
     implementation constraintDep
 
-    implementation spoungyCastleBcPixDep
-    implementation spoungyCastleBcPgDep
+    implementation bouncyCastleDep
 
     implementation fearlessLibDep
 

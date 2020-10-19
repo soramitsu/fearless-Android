@@ -50,7 +50,7 @@ class WalletInteractorImpl(
     private fun areTransactionPagesTheSame(previous: List<Transaction>, new: List<Transaction>): Boolean {
         if (previous.size != new.size) return false
 
-        return previous.zip(new).all { (previousElement, currentElement) -> previousElement.hash == currentElement.hash }
+        return previous.zip(new).all { (previousElement, currentElement) -> previousElement == currentElement }
     }
 
     override fun syncTransactionsFirstPage(pageSize: Int): Completable {

@@ -48,22 +48,20 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Accoun
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.refCount
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.args
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.CallStub
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.callIndex
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ExtrinsicPayloadValue
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ExtrinsicStub
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.accountId
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.call
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.signature
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.signatureVersion
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsicStub
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.byteLength
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.signedExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SupportedCall
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
-import org.spongycastle.util.encoders.Hex
+import org.bouncycastle.util.encoders.Hex
 import java.math.BigInteger
 
 class WssSubstrateSource(
@@ -115,7 +113,7 @@ class WssSubstrateSource(
             .map(::buildStorageChange)
     }
 
-    override fun fetchAccountTransactionInBlock(blockHash: String, account: Account) : Single<List<EncodableStruct<SubmittableExtrinsic>>> {
+    override fun fetchAccountTransactionInBlock(blockHash: String, account: Account): Single<List<EncodableStruct<SubmittableExtrinsic>>> {
         val request = GetBlockRequest(blockHash)
 
         return socketService.executeRequest(request, responseType = pojo<SignedBlock>().nonNull())
@@ -277,9 +275,9 @@ class WssSubstrateSource(
         val currentPublicKey = extractPublicKeyBytes(account)
 
         return extrinsics.filter { hex ->
-            val stub = ExtrinsicStub.read(hex)
+            val stub = SubmittableExtrinsic.readOrNull(hex) ?: return@filter false
 
-            val callIndex = stub[ExtrinsicStub.signedExtrinsic][SignedExtrinsicStub.call][CallStub.callIndex]
+            val callIndex = stub[signedExtrinsic][call][callIndex]
             val call = SupportedCall.from(callIndex)
 
             call != null && call == SupportedCall.TRANSFER

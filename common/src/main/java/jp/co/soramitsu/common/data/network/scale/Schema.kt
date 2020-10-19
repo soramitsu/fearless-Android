@@ -4,8 +4,9 @@ import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import io.emeraldpay.polkaj.scale.ScaleReader
 import io.emeraldpay.polkaj.scale.ScaleWriter
-import org.spongycastle.util.encoders.Hex
+import org.bouncycastle.util.encoders.Hex
 import java.io.ByteArrayOutputStream
+import java.lang.IndexOutOfBoundsException
 
 @Suppress("UNCHECKED_CAST")
 abstract class Schema<S : Schema<S>> : ScaleReader<EncodableStruct<S>>,
@@ -28,6 +29,14 @@ abstract class Schema<S : Schema<S>> : ScaleReader<EncodableStruct<S>>,
         fields += field
 
         return field
+    }
+
+    fun readOrNull(source: String): EncodableStruct<S>? {
+        return try {
+            read(source)
+        } catch (e: IndexOutOfBoundsException) {
+            return null
+        }
     }
 
     fun read(source: String): EncodableStruct<S> {

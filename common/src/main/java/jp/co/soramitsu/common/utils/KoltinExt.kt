@@ -10,6 +10,6 @@ val BigDecimal.isNonNegative: Boolean
 
 fun Long.daysFromMillis() = TimeUnit.MILLISECONDS.toDays(this)
 
-fun <T> concurrentHashSet() : Set<T> = Collections.newSetFromMap(ConcurrentHashMap<T, Boolean>())
+fun <T> concurrentHashSet() : MutableSet<T> = Collections.newSetFromMap(ConcurrentHashMap<T, Boolean>())
 
 fun String.requirePrefix(prefix: String) = if (startsWith(prefix)) this else prefix + this

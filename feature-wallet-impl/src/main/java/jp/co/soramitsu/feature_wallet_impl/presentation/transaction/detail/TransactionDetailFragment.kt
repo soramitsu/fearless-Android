@@ -68,11 +68,11 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>(), Tr
             transactionDetailDate.text = date.formatDateTime(requireContext())
 
             transactionDetailAmount.text = amount.formatAsToken(token)
-            transactionDetailFee.text = fee.formatAsToken(token)
+            transactionDetailFee.text = fee?.formatAsToken(token) ?: getString(R.string.common_unknown)
 
             transactionDetailHash.setText(hash)
 
-            transactionDetailTotal.text = total.formatAsToken(token)
+            transactionDetailTotal.text = total?.formatAsToken(token) ?: getString(R.string.common_unknown)
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->

@@ -5,8 +5,8 @@ import android.os.Build
 import android.security.KeyPairGeneratorSpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import org.spongycastle.util.Arrays
-import org.spongycastle.util.encoders.Base64
+import org.bouncycastle.util.Arrays
+import org.bouncycastle.util.encoders.Base64
 import java.math.BigInteger
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException

@@ -45,7 +45,7 @@ dependencies {
     implementation zXingEmbeddedDep
     implementation rxPermissionsDep
 
-    implementation spoungyCastleBcPgDep
+    implementation bouncyCastleDep
 
     implementation fearlessLibDep
 

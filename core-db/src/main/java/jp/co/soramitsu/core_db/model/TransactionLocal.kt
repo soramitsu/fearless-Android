@@ -25,9 +25,8 @@ class TransactionLocal(
     val recipientAddress: String,
     val amount: BigDecimal,
     val date: Long,
-    val feeInPlanks: BigInteger,
+    val feeInPlanks: BigInteger?,
     val status: Transaction.Status,
-    val isIncome: Boolean,
     val source: TransactionSource,
     val networkType: Node.NetworkType = token.networkType
 )

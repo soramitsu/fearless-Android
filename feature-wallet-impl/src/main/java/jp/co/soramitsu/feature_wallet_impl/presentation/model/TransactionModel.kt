@@ -20,9 +20,9 @@ data class TransactionModel(
     val amount: BigDecimal,
     val date: Long,
     val status: Transaction.Status,
-    val fee: BigDecimal,
+    val fee: BigDecimal?,
     val isIncome: Boolean,
-    val total: BigDecimal
+    val total: BigDecimal?
 ) : Parcelable {
     @IgnoredOnParcel
     val displayAddress = if (isIncome) senderAddress else recipientAddress
