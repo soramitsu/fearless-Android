@@ -50,7 +50,13 @@ class NodesAdapter(
 
     fun switchToEdit(editable: Boolean) {
         editMode = editable
-        notifyDataSetChanged()
+
+        val firstCustomNodeIndex = currentList.indexOfFirst { it is NodeModel && !it.isDefault }
+
+        if (firstCustomNodeIndex == -1) return
+
+        val customNodesCount = currentList.size - firstCustomNodeIndex
+        notifyItemRangeChanged(firstCustomNodeIndex, customNodesCount)
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
