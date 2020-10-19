@@ -146,4 +146,5 @@
     <string name="account_needed_title">Account necessario</string>
     <string name="account_needed_message">Non hai un account per questa rete, puoi creare o importare un account.</string>
     <string name="common_proceed">Procedere</string>
+    <string name="common_unknown">Sconosciuto</string>
 </resources>

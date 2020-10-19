@@ -146,4 +146,5 @@
     <string name="account_needed_title">Cuenta necesaria</string>
     <string name="account_needed_message">No tiene una cuenta para esta red, puede crear o importar una cuenta.</string>
     <string name="common_proceed">Continuar</string>
+    <string name="common_unknown">Desconocido</string>
 </resources>

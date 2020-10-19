@@ -146,4 +146,5 @@
     <string name="account_needed_title">アカウントが必要</string>
     <string name="account_needed_message">このネットワークのアカウントがありません。アカウントを作成またはインポートできます。</string>
     <string name="common_proceed">続行</string>
+    <string name="common_unknown">わからない</string>
 </resources>

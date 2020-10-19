@@ -147,4 +147,5 @@
     <string name="account_needed_title">Необходим аккаунт</string>
     <string name="account_needed_message">У вас нет учетной записи в этой сети, вы можете создать или импортировать учетную запись.</string>
     <string name="common_proceed">Продолжить</string>
+    <string name="common_unknown">Неизвестно</string>
 </resources>
