@@ -50,6 +50,8 @@ buildscript {
         firebaseAppDistrVersion = '2.0.1'
         playPublisherVersion = '2.5.0'
 
+        wsVersion = "2.10"
+
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
         androidDep = "androidx.appcompat:appcompat:$supportVersion"
@@ -88,6 +90,8 @@ buildscript {
         rxPermissionsDep = "com.github.tbruyelle:rxpermissions:$rxPermssionVersion"
 
         fearlessLibDep = "jp.co.soramitsu.fearless-utils:fearless-utils:$fearlessLibVersion"
+
+        wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"

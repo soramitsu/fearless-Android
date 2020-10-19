@@ -5,8 +5,7 @@ import com.google.gson.Gson
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.rpc.RxWebSocketCreator
-import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
+import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -50,9 +49,7 @@ interface WalletFeatureDependencies {
 
     fun logger(): Logger
 
-    fun socketSingleRequestExecutor(): SocketSingleRequestExecutor
-
-    fun rxWebSocketCreator(): RxWebSocketCreator
+    fun socketService(): SocketService
 
     fun jsonMapper(): Gson
 

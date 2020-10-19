@@ -91,42 +91,28 @@ class WalletRepositoryImpl(
     }
 
     override fun getTransferFee(transfer: Transfer): Single<Fee> {
-        return Single.fromCallable {
-            val account = getSelectedAccount().blockingGet()
-            val node = accountRepository.getSelectedNode().blockingGet()
-
-            getTransferFeeUpdatingBalance(account, node, transfer).blockingGet()
-        }.map { mapFeeRemoteToFee(it, transfer.token) }
+        return getSelectedAccount()
+            .flatMap { getTransferFeeUpdatingBalance(it, transfer) }
+            .map { mapFeeRemoteToFee(it, transfer.token) }
     }
 
     override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
-        return Single.fromCallable {
-            val account = getSelectedAccount().blockingGet()
-            val node = accountRepository.getSelectedNode().blockingGet()
-            val signingData = accountRepository.getSigningData().blockingGet()
-            val keys = mapSigningDataToKeypair(signingData)
-
-            val hash = substrateSource.performTransfer(account, node, transfer, keys).blockingGet()
-
-            val transaction = createTransaction(hash, transfer, account.address, fee)
-
-            mapTransactionToTransactionLocal(transaction, account.address, TransactionSource.APP)
-        }.flatMapCompletable {
-            transactionsDao.insert(it)
-        }
+        return getSelectedAccount().flatMap { account ->
+            accountRepository.getSigningData()
+                .map(this::mapSigningDataToKeypair)
+                .flatMap { keys -> substrateSource.performTransfer(account, transfer, keys) }
+                .map { hash -> createTransaction(hash, transfer, account.address, fee) }
+                .map { transaction -> mapTransactionToTransactionLocal(transaction, account.address, TransactionSource.APP) }
+        }.flatMapCompletable { transactionsDao.insert(it) }
     }
 
     override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {
-        return Single.fromCallable {
-            val account = getSelectedAccount().blockingGet()
-            val node = accountRepository.getSelectedNode().blockingGet()
-
-            getTransferFeeUpdatingBalance(account, node, transfer).blockingGet()
-
-            val accountInfo = substrateSource.fetchAccountInfo(account, node).blockingGet()
-            val fee = getTransferFeeUpdatingBalance(account, node, transfer).blockingGet()
-
-            checkEnoughAmountForTransfer(transfer, accountInfo, fee)
+        return getSelectedAccount().flatMap { account ->
+            substrateSource.fetchAccountInfo(account).flatMap { accountInfo ->
+                getTransferFeeUpdatingBalance(account, transfer).map { fee ->
+                    checkEnoughAmountForTransfer(transfer, accountInfo, fee)
+                }
+            }
         }
     }
 
@@ -143,8 +129,8 @@ class WalletRepositoryImpl(
             status = Transaction.Status.PENDING
         )
 
-    private fun getTransferFeeUpdatingBalance(account: Account, node: Node, transfer: Transfer): Single<FeeRemote> {
-        return substrateSource.getTransferFee(account, node, transfer)
+    private fun getTransferFeeUpdatingBalance(account: Account, transfer: Transfer): Single<FeeRemote> {
+        return substrateSource.getTransferFee(account, transfer)
             .doOnSuccess { updateLocalBalance(account, it.newAccountInfo) }
             .map { it.feeRemote }
     }
@@ -167,12 +153,10 @@ class WalletRepositoryImpl(
     }
 
     private fun syncAssets(account: Account, withoutRates: Boolean): Completable {
-        val node = accountRepository.getSelectedNode().blockingGet()
-
         return if (withoutRates) {
-            balanceAssetSync(account, node)
+            balanceAssetSync(account)
         } else {
-            fullAssetSync(account, node)
+            fullAssetSync(account)
         }
     }
 
@@ -190,49 +174,39 @@ class WalletRepositoryImpl(
             }
     }
 
-    private fun fullAssetSync(
-        account: Account,
-        node: Node
-    ): Completable {
-        return zipSyncAssetRequests(account, node)
+    private fun fullAssetSync(account: Account): Completable {
+        return zipSyncAssetRequests(account)
             .mapList { mapAssetToAssetLocal(it, account.address) }
             .flatMapCompletable(assetDao::insert)
     }
 
-    private fun balanceAssetSync(
-        account: Account,
-        node: Node
-    ): Completable {
-        return Completable.fromAction {
-            val accountInfo = substrateSource.fetchAccountInfo(account, node).blockingGet()
-
+    private fun balanceAssetSync(account: Account): Completable {
+        return substrateSource.fetchAccountInfo(account).flatMapCompletable { accountInfo ->
             updateLocalBalance(account, accountInfo)
         }
     }
 
-    private fun updateLocalBalance(account: Account, accountInfo: EncodableStruct<AccountInfo>) {
-        val currentState = assetDao.observeAssets(account.address).blockingFirst()
+    private fun updateLocalBalance(account: Account, accountInfo: EncodableStruct<AccountInfo>): Completable {
+        return assetDao.observeAssets(account.address).firstOrError()
+            .flatMapCompletable { currentState ->
+                val asset = currentState.first()
+                val accountData = accountInfo[data]
 
-        val asset = currentState.first()
-        val accountData = accountInfo[data]
+                val newState = listOf(
+                    asset.copy(
+                        feeFrozenInPlanks = accountData[feeFrozen],
+                        miscFrozenInPlanks = accountData[miscFrozen],
+                        freeInPlanks = accountData[free],
+                        reservedInPlanks = accountData[reserved]
+                    )
+                )
 
-        val newState = listOf(
-            asset.copy(
-                feeFrozenInPlanks = accountData[feeFrozen],
-                miscFrozenInPlanks = accountData[miscFrozen],
-                freeInPlanks = accountData[free],
-                reservedInPlanks = accountData[reserved]
-            )
-        )
-
-        assetDao.insert(newState)
+                assetDao.insert(newState)
+            }
     }
 
-    private fun zipSyncAssetRequests(
-        account: Account,
-        node: Node
-    ): Single<List<Asset>> {
-        val accountInfoSingle = substrateSource.fetchAccountInfo(account, node)
+    private fun zipSyncAssetRequests(account: Account): Single<List<Asset>> {
+        val accountInfoSingle = substrateSource.fetchAccountInfo(account)
 
         val networkType = account.network.type
 
@@ -244,7 +218,7 @@ class WalletRepositoryImpl(
             yesterdayPriceStatsSingle,
             Function3<EncodableStruct<AccountInfo>, SubscanResponse<AssetPriceStatistics>, SubscanResponse<AssetPriceStatistics>, List<Asset>> { accountInfo, nowStats, yesterdayStats ->
                 listOf(
-                    createAsset(account.network.type, accountInfo, nowStats, yesterdayStats)
+                    createAsset(networkType, accountInfo, nowStats, yesterdayStats)
                 )
             })
     }

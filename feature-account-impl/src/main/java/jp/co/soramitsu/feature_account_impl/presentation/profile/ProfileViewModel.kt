@@ -49,8 +49,8 @@ class ProfileViewModel(
 
     private fun observeIcon(accountObservable: Observable<Account>): Observable<PictureDrawable> {
         return accountObservable
-            .map { interactor.getAddressId(it).blockingGet() }
             .subscribeOn(Schedulers.io())
+            .flatMapSingle { interactor.getAddressId(it) }
             .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
             .observeOn(AndroidSchedulers.mainThread())
     }

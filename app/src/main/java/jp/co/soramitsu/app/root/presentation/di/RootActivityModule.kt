@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.app.root.presentation.RootViewModel
+import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 
@@ -21,8 +22,11 @@ class RootActivityModule {
     @Provides
     @IntoMap
     @ViewModelKey(RootViewModel::class)
-    fun provideViewModel(interactor: RootInteractor): ViewModel {
-        return RootViewModel(interactor)
+    fun provideViewModel(
+        interactor: RootInteractor,
+        connectionManager: ConnectionManager
+    ): ViewModel {
+        return RootViewModel(interactor, connectionManager)
     }
 
     @Provides
