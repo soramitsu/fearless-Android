@@ -132,9 +132,9 @@ class TransactionHistoryProvider(
     private fun regroup(newPage: List<TransactionModel>, reset: Boolean): List<Any> {
         val all = if (reset) newPage else currentTransactions + newPage
 
-        currentTransactions = all
+        currentTransactions = all.distinctBy { it.hash }
 
-        return all.groupBy { it.date.daysFromMillis() }
+        return currentTransactions.groupBy { it.date.daysFromMillis() }
             .map { (daysSinceEpoch, transactions) ->
                 val header = DayHeader(daysSinceEpoch)
 
