@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.integration
 
 import com.google.gson.Gson
-import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
+import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.network.rpc.mappers.nonNull
 import jp.co.soramitsu.common.data.network.rpc.mappers.pojo
 import jp.co.soramitsu.common.data.network.rpc.mappers.scale
@@ -64,20 +64,20 @@ class SendIntegrationTest {
 
     @Mock private lateinit var resourceManager: ResourceManager
 
-    private lateinit var rxWebSocket: RxWebSocket
+    private lateinit var rxWebSocket: SocketService
 
     @Before
     fun setup() {
         given(resourceManager.getString(anyInt())).willReturn("Mock")
 
-        rxWebSocket = RxWebSocket(mapper, StdoutLogger(), URL, resourceManager)
+        rxWebSocket = SocketService(mapper, StdoutLogger())
 
-        rxWebSocket.connect().blockingGet()
+        rxWebSocket.start(URL)
     }
 
     @After
     fun tearDown() {
-        rxWebSocket.disconnect()
+        rxWebSocket.stop()
     }
 
     @Test

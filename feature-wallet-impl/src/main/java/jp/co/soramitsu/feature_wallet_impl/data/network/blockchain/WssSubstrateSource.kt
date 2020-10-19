@@ -3,15 +3,13 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
 import io.reactivex.Single
-import jp.co.soramitsu.common.data.network.rpc.RxWebSocket
-import jp.co.soramitsu.common.data.network.rpc.RxWebSocketCreator
-import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
+import jp.co.soramitsu.common.data.network.rpc.DeliveryType
+import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.network.rpc.mappers.nonNull
 import jp.co.soramitsu.common.data.network.rpc.mappers.pojo
 import jp.co.soramitsu.common.data.network.rpc.mappers.scale
 import jp.co.soramitsu.common.data.network.rpc.mappers.scaleCollection
 import jp.co.soramitsu.common.data.network.rpc.mappers.string
-import jp.co.soramitsu.common.data.network.rpc.provideLifecycleFor
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.data.network.scale.invoke
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -57,122 +55,102 @@ import org.spongycastle.util.encoders.Hex
 import java.math.BigInteger
 
 class WssSubstrateSource(
-    private val socketRequestExecutor: SocketSingleRequestExecutor,
-    private val rxWebSocketCreator: RxWebSocketCreator,
+    private val socketService: SocketService,
     private val signer: Signer,
     private val keypairFactory: KeypairFactory,
     private val sS58Encoder: SS58Encoder
 ) : SubstrateRemoteSource {
 
-    override fun fetchAccountInfo(account: Account, node: Node): Single<EncodableStruct<AccountInfo>> {
-        val socket = rxWebSocketCreator.createSocket(node.link)
-
-        return socket.connect()
-            .andThen(fetchAccountInfo(socket, account))
-            .provideLifecycleFor(socket)
-    }
-
-    override fun getTransferFee(account: Account, node: Node, transfer: Transfer): Single<FeeResponse> {
-        val socket = rxWebSocketCreator.createSocket(node.link)
-
-        val calculateFee = Single.fromCallable {
-            val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-            val emptySeed = ByteArray(32)
-            val keypair = keypairFactory.generate(cryptoType, emptySeed, "")
-
-            val (extrinsic, newAccountInfo) = buildSubmittableExtrinsic(account, transfer, keypair, socket)
-
+    override fun getTransferFee(account: Account, transfer: Transfer): Single<FeeResponse> {
+        return generateFakeKeyPair(account).flatMap { keypair ->
+            buildSubmittableExtrinsic(account, transfer, keypair)
+        }.flatMap { (extrinsic, newAccountInfo) ->
             val request = FeeCalculationRequest(extrinsic)
 
-            val feeRemote = socket.executeRequest(request, responseType = pojo<FeeRemote>().nonNull()).blockingGet()
-
-            FeeResponse(feeRemote, newAccountInfo)
+            socketService.executeRequest(request, responseType = pojo<FeeRemote>().nonNull()).map { feeRemote ->
+                FeeResponse(feeRemote, newAccountInfo)
+            }
         }
-
-        return socket.connect()
-            .andThen(calculateFee)
-            .provideLifecycleFor(socket)
     }
 
     override fun performTransfer(
         account: Account,
-        node: Node,
         transfer: Transfer,
         keypair: Keypair
     ): Single<String> {
-        val socket = rxWebSocketCreator.createSocket(node.link)
-
-        val performTransfer = Single.fromCallable {
-            val (extrinsic, accountInfo) = buildSubmittableExtrinsic(account, transfer, keypair, socket)
-
+        return buildSubmittableExtrinsic(account, transfer, keypair).map { (extrinsic, _) ->
             TransferRequest(extrinsic)
+        }.flatMap { transferRequest ->
+            socketService.executeRequest(transferRequest,
+                responseType = string().nonNull(),
+                deliveryType = DeliveryType.AT_MOST_ONCE
+            )
         }
-            .flatMap { socket.executeRequest(it, responseType = string().nonNull()) }
-
-        return socket.connect()
-            .andThen(performTransfer)
-            .provideLifecycleFor(socket)
     }
 
     private fun buildSubmittableExtrinsic(
         account: Account,
         transfer: Transfer,
-        keypair: Keypair,
-        socket: RxWebSocket
-    ): Pair<EncodableStruct<SubmittableExtrinsic>, EncodableStruct<AccountInfo>> {
-        val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-        val accountIdValue = Hex.decode(account.publicKey)
+        keypair: Keypair
+    ): Single<Pair<EncodableStruct<SubmittableExtrinsic>, EncodableStruct<AccountInfo>>> {
+        return getRuntimeVersion().flatMap { runtimeInfo ->
+            val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
+            val accountIdValue = Hex.decode(account.publicKey)
 
-        val runtimeInfo = getRuntimeVersion(socket).blockingGet()
-        val (currentNonce, newAccountInfo) = getNonce(socket, account).blockingGet()
+            getNonce(account).map { (currentNonce, newAccountInfo) ->
+                val genesis = account.network.type.genesisHash
+                val genesisBytes = Hex.decode(genesis)
 
-        val genesis = account.network.type.genesisHash
-        val genesisBytes = Hex.decode(genesis)
+                val callStruct = createTransferCall(account.network.type, transfer.recipient, transfer.amountInPlanks)
 
-        val callStruct = createTransferCall(account.network.type, transfer.recipient, transfer.amountInPlanks)
+                val payload = ExtrinsicPayloadValue { payload ->
+                    payload[ExtrinsicPayloadValue.call] = callStruct
+                    payload[ExtrinsicPayloadValue.nonce] = currentNonce
+                    payload[ExtrinsicPayloadValue.specVersion] = runtimeInfo.specVersion.toUInt()
+                    payload[ExtrinsicPayloadValue.transactionVersion] = runtimeInfo.transactionVersion.toUInt()
 
-        val payload = ExtrinsicPayloadValue { payload ->
-            payload[ExtrinsicPayloadValue.call] = callStruct
-            payload[ExtrinsicPayloadValue.nonce] = currentNonce
-            payload[ExtrinsicPayloadValue.specVersion] = runtimeInfo.specVersion.toUInt()
-            payload[ExtrinsicPayloadValue.transactionVersion] = runtimeInfo.transactionVersion.toUInt()
+                    payload[ExtrinsicPayloadValue.genesis] = genesisBytes
+                    payload[ExtrinsicPayloadValue.blockHash] = genesisBytes
+                }
 
-            payload[ExtrinsicPayloadValue.genesis] = genesisBytes
-            payload[ExtrinsicPayloadValue.blockHash] = genesisBytes
+                val signatureValue = signer.signExtrinsic(payload, keypair, cryptoType)
+
+                val extrinsic = SignedExtrinsic { extrinsic ->
+                    extrinsic[accountId] = accountIdValue
+                    extrinsic[signature] = signatureValue
+                    extrinsic[signatureVersion] = cryptoType.signatureVersion.toUByte()
+                    extrinsic[SignedExtrinsic.nonce] = currentNonce
+                    extrinsic[call] = callStruct
+                }
+
+                val extrinsicBytes = SignedExtrinsic.toByteArray(extrinsic)
+                val byteLengthValue = extrinsicBytes.size.toBigInteger()
+
+                val submittableExtrinsic = SubmittableExtrinsic { struct ->
+                    struct[byteLength] = byteLengthValue
+                    struct[signedExtrinsic] = extrinsic
+                }
+
+                submittableExtrinsic to newAccountInfo
+            }
         }
-
-        val signatureValue = signer.signExtrinsic(payload, keypair, cryptoType)
-
-        val extrinsic = SignedExtrinsic { extrinsic ->
-            extrinsic[accountId] = accountIdValue
-            extrinsic[signature] = signatureValue
-            extrinsic[signatureVersion] = cryptoType.signatureVersion.toUByte()
-            extrinsic[SignedExtrinsic.nonce] = currentNonce
-            extrinsic[call] = callStruct
-        }
-
-        val extrinsicBytes = SignedExtrinsic.toByteArray(extrinsic)
-        val byteLengthValue = extrinsicBytes.size.toBigInteger()
-
-        val submittableExtrinsic = SubmittableExtrinsic { struct ->
-            struct[byteLength] = byteLengthValue
-            struct[signedExtrinsic] = extrinsic
-        }
-
-        return submittableExtrinsic to newAccountInfo
     }
 
-    private fun fetchAccountInfo(rxWebSocket: RxWebSocket, account: Account): Single<EncodableStruct<AccountInfo>> {
+    override fun fetchAccountInfo(account: Account): Single<EncodableStruct<AccountInfo>> {
         val publicKey = account.publicKey
 
         val publicKeyBytes = Hex.decode(publicKey)
         val request = AccountInfoRequest(publicKeyBytes)
 
-        return rxWebSocket.executeRequest(request, responseType = scale(AccountInfo))
+        return socketService.executeRequest(request, responseType = scale(AccountInfo))
             .map { response -> response.result ?: emptyAccountInfo() }
     }
 
-    private fun createTransferCall(networkType: Node.NetworkType, recipientAddress: String, amount: BigInteger): EncodableStruct<Call> {
+    private fun createTransferCall(
+        networkType: Node.NetworkType,
+        recipientAddress: String,
+        amount: BigInteger
+    ): EncodableStruct<Call> {
         val addressType = mapNetworkTypeToAddressType(networkType)
 
         return Call { call ->
@@ -185,23 +163,28 @@ class WssSubstrateSource(
         }
     }
 
-    private fun getNonce(socket: RxWebSocket, account: Account): Single<Pair<BigInteger, EncodableStruct<AccountInfo>>> {
-        return Single.fromCallable {
-            val accountInfo = fetchAccountInfo(socket, account).blockingGet()
+    private fun getNonce(account: Account): Single<Pair<BigInteger, EncodableStruct<AccountInfo>>> {
+        return fetchAccountInfo(account).flatMap { accountInfo ->
             val accountNonce = accountInfo[nonce]
 
-            val pendingExtrinsics = getPendingExtrinsicsCount(socket, account).blockingGet()
+            getPendingExtrinsicsCount(account).map { pendingExtrinsics ->
+                val result = accountNonce + pendingExtrinsics.toUInt()
 
-            val result = accountNonce + pendingExtrinsics.toUInt()
-
-            result.toLong().toBigInteger() to accountInfo
+                result.toLong().toBigInteger() to accountInfo
+            }
         }
     }
 
-    private fun getPendingExtrinsicsCount(socket: RxWebSocket, account: Account): Single<Int> {
+    private fun generateFakeKeyPair(account: Account) = Single.fromCallable {
+        val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
+        val emptySeed = ByteArray(32)
+        keypairFactory.generate(cryptoType, emptySeed, "")
+    }
+
+    private fun getPendingExtrinsicsCount(account: Account): Single<Int> {
         val request = PendingExtrinsicsRequest()
 
-        return socket.executeRequest(request, scaleCollection(SubmittableExtrinsic))
+        return socketService.executeRequest(request, scaleCollection(SubmittableExtrinsic))
             .map { it.result ?: throw IllegalArgumentException("Result is null") }
             .map { countUserExtrinsics(account, it) }
     }
@@ -212,10 +195,10 @@ class WssSubstrateSource(
         return list.count { it[signedExtrinsic][accountId].contentEquals(publicKeyBytes) }
     }
 
-    private fun getRuntimeVersion(socket: RxWebSocket): Single<RuntimeVersion> {
+    private fun getRuntimeVersion(): Single<RuntimeVersion> {
         val request = RuntimeVersionRequest()
 
-        return socket.executeRequest(request, pojo<RuntimeVersion>().nonNull())
+        return socketService.executeRequest(request, pojo<RuntimeVersion>().nonNull())
     }
 
     private fun emptyAccountInfo() = AccountInfo { info ->

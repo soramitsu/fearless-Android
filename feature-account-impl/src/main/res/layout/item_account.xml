@@ -30,6 +30,7 @@
         tools:src="@color/colorAccent" />
 
     <TextView
+        android:includeFontPadding="false"
         android:id="@+id/accountTitle"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
@@ -52,6 +53,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/item_account_address_margin"
         android:ellipsize="middle"
+        android:includeFontPadding="false"
         android:singleLine="true"
         android:textColor="@color/colorHint"
         app:layout_constraintEnd_toEndOf="@+id/accountTitle"
