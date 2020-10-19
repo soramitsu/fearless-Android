@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/x1_5"
+    android:paddingEnd="@dimen/x1_5"
+    android:paddingTop="@dimen/x2"
+    android:paddingBottom="@dimen/x2" >
+    <TextView
+        android:id="@+id/chooserText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_gravity="center_vertical"
+        android:includeFontPadding="false"
+        android:gravity="center_vertical"
+        android:layout_marginEnd="@dimen/x1_2"
+        android:drawablePadding="@dimen/x2"
+        style="@style/TextAppearance.Soramitsu.Body0"
+        android:textColor="@color/white" />
+
+    <ImageView
+        android:id="@+id/rightIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_checkmark_white_24" />
+</LinearLayout>

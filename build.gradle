@@ -5,22 +5,25 @@ buildscript {
         versionCode = 1
 
         // SDK and tools
-        compileSdkVersion = 28
+        compileSdkVersion = 29
         minSdkVersion = 21
-        targetSdkVersion = 28
+        targetSdkVersion = 29
 
         kotlinVersion = '1.3.61'
 
-        supportVersion = '1.0.0'
+        supportVersion = '1.1.0'
+        cardViewVersion = '1.0.0'
         constraintVersion = '1.1.3'
 
         rxJavaVersion = '2.2.7'
         rxAndroidVersion = '2.1.0'
 
+        biometricVersion = '1.0.1'
+
         daggerVersion = '2.25.2'
         javaxInjectVersion = '1'
 
-        architectureComponentVersion = '2.0.0'
+        architectureComponentVersion = '2.2.0'
 
         retrofitVersion = '2.4.0'
         okhttpVersion = '3.8.0'
@@ -34,10 +37,25 @@ buildscript {
         mockitoVersion = '2.23.0'
         robolectricVersion = '4.1'
 
+        spoungyCastleVersion = '1.58.0.0'
+
+        fearlessLibVersion = '1.0.13'
+
+        zXingVersion = '3.4.0'
+        zXingEmbeddedVersion = '3.5.0@aar'
+        rxPermssionVersion = '0.10.2'
+
+        biometricDep = "androidx.biometric:biometric:$biometricVersion"
+
+        firebaseAppDistrVersion = '2.0.1'
+        playPublisherVersion = '2.5.0'
+
+        wsVersion = "2.10"
+
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
         androidDep = "androidx.appcompat:appcompat:$supportVersion"
-        cardViewDep = "androidx.cardview:cardview:$supportVersion"
+        cardViewDep = "androidx.cardview:cardview:$cardViewVersion"
         recyclerViewDep = "androidx.recyclerview:recyclerview:$supportVersion"
         constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
         materialDep = "com.google.android.material:material:$supportVersion"
@@ -55,40 +73,60 @@ buildscript {
         rxRoomDep = "androidx.room:room-rxjava2:$architectureComponentVersion"
         roomKapt = "androidx.room:room-compiler:$architectureComponentVersion"
 
-        navigationFragmentDep = "androidx.navigation:navigation-fragment:$navControllerVersion"
-        navigationUiDep = "androidx.navigation:navigation-ui:$navControllerVersion"
+        navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
+        navigationUiDep = "androidx.navigation:navigation-ui-ktx:$navControllerVersion"
+
+        spoungyCastleBcPixDep = "com.madgag.spongycastle:bcpkix-jdk15on:$spoungyCastleVersion"
+        spoungyCastleBcPgDep = "com.madgag.spongycastle:bcpg-jdk15on:$spoungyCastleVersion"
 
         retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
+        interceptorVersion = "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
         rxCallAdapterDep = "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
         gsonConvertedDep = "com.squareup.retrofit2:converter-gson:$retrofitVersion"
         gsonDep = "com.google.code.gson:gson:$gsonVersion"
+
+        zXingCoreDep = "com.google.zxing:core:$zXingVersion"
+        zXingEmbeddedDep = "com.journeyapps:zxing-android-embedded:$zXingEmbeddedVersion"
+        rxPermissionsDep = "com.github.tbruyelle:rxpermissions:$rxPermssionVersion"
+
+        fearlessLibDep = "jp.co.soramitsu.fearless-utils:fearless-utils:$fearlessLibVersion"
+
+        wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"
         robolectricDep = "org.robolectric:robolectric:$robolectricVersion"
         robolectricMultidexDep = "org.robolectric:shadows-multidex:$robolectricVersion"
         archCoreTestDep = "androidx.arch.core:core-testing:$architectureComponentVersion"
+
         kotlin_version = '1.3.61'
     }
     repositories {
         google()
         jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath 'com.google.gms:google-services:4.3.3'
+        classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
+        classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
     }
-}
-
-configurations {
-    ktlint
 }
 
 allprojects {
     repositories {
         google()
         jcenter()
+        maven { url "https://jitpack.io" }
+        maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
+        mavenCentral()
     }
+}
+
+configurations {
+    ktlint
 }
 
 task clean(type: Delete) {
@@ -99,25 +137,13 @@ dependencies {
     ktlint 'com.github.shyiko:ktlint:0.31.0'
 }
 
-task ktlint(type: Exec, group: "verification") {
-    commandLine 'java', '-cp', configurations.ktlint.join(System.getProperty('path.separator')),
-            'com.github.shyiko.ktlint.Main', '--reporter=checkstyle', "$project.rootDir/**/src/main/**/*.kt"
+task ktlint(type: JavaExec, group: "verification") {
+    description = "Check Kotlin code style."
+    classpath = configurations.ktlint
+    main = "com.github.shyiko.ktlint.Main"
+    args "$project.rootDir/**/src/main/**/*.kt", "--reporter=plain", "--reporter=checkstyle,output=${buildDir}/reports/checkstyle/kotlin-checkstyle-report.xml"
+}
 
-    File file = new File("$buildDir\\reports\\checkstyle\\", "kotlin-checkstyle-report.xml")
-
-    if (file.exists()) {
-        file.delete()
-    } else {
-        file.getParentFile().mkdirs()
-    }
-
-    file.createNewFile()
-
-    ignoreExitValue = true
-    doLast {
-        if (execResult.exitValue > 0) {
-            def reportPath = "$project.buildDir\\reports\\checkstyle\\kotlin-checkstyle-report.xml"
-            ant.fail("Checkstyle rule violations were found. See the report at: $reportPath")
-        }
-    }
+task runTest(type: GradleBuild) {
+  tasks = ['clean', 'ktlint']
 }

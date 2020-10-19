@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/colorPrimary">
+
+    <item android:id="@android:id/mask" android:drawable="@drawable/bg_input_shape_filled_focused" android:state_focused="true" />
+    <item android:drawable="@drawable/bg_input_shape" />
+
+</ripple>

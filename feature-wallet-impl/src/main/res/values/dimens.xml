@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="avatar_size">40dp</dimen>
+    <dimen name="asset_image_width">64dp</dimen>
+    <dimen name="asset_image_height">80dp</dimen>
+</resources>

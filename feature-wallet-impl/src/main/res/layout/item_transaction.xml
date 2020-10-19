@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/itemTransactionIcon"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/itemTransactionTime"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/itemTransactionAddress"
+        tools:src="@drawable/ic_token_ksm" />
+
+    <TextView
+        android:id="@+id/itemTransactionAddress"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="48dp"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        app:layout_constraintEnd_toStartOf="@+id/itemTransactionAmount"
+        app:layout_constraintStart_toEndOf="@+id/itemTransactionIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="F2dMuaCik4Ackmo9hoMMV79ETtVNvKSZMVK5sue9q1syPrW" />
+
+    <TextView
+        android:id="@+id/itemTransactionTime"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textColor="@color/colorGreyText"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/itemTransactionAddress"
+        app:layout_constraintTop_toBottomOf="@+id/itemTransactionAddress"
+        tools:text="10/04/20, 22:36:45" />
+
+    <TextView
+        android:id="@+id/itemTransactionAmount"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_goneMarginEnd="12dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        app:layout_constraintBottom_toBottomOf="@+id/itemTransactionTime"
+        app:layout_constraintEnd_toStartOf="@+id/itemTransactionStatus"
+        app:layout_constraintTop_toTopOf="@+id/itemTransactionAddress"
+        tools:text="4.01 KSM" />
+
+    <ImageView
+        android:visibility="gone"
+        android:id="@+id/itemTransactionStatus"
+        tools:visibility="visible"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        app:layout_constraintBottom_toBottomOf="@+id/itemTransactionAmount"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/itemTransactionAmount"
+        tools:src="@drawable/ic_transaction_pending" />
+</androidx.constraintlayout.widget.ConstraintLayout>

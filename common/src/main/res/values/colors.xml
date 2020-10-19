@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#FF8A00</color>
-    <color name="colorPrimaryDark">#DD6800</color>
-    <color name="colorAccent">#FF8A00</color>
+    <color name="colorPrimary">#004CB7</color>
+    <color name="colorPrimaryDark">#80004CB7</color>
+    <color name="colorAccent">#FF009A</color>
     <color name="white">#fff</color>
-    <color name="lightGrey">#c4c4c4</color>
-    <color name="colorBackground">#f7f7f7</color>
-    <color name="colorError">#F44336</color>
-    <color name="colorTextPrimary">#e6000000</color>
-    <color name="colorTextSecondary">#88000000</color>
-
+    <color name="colorHint">#ccc</color>
+    <color name="black">#000</color>
+    <color name="gray1">#CCCCCC</color>
+    <color name="gray2">#888888</color>
+    <color name="gray3">#444444</color>
+    <color name="gray4">#181818</color>
+    <color name="gray_disabled">#D0D0D0</color>
+    <color name="colorGreyText">#888888</color>
+    <color name="green">#0ED33B</color>
+    <color name="dividerGray">#88888888</color>
+    <color name="bottomSheetBackground">#80004CB7</color>
+    <color name="red">#F00004</color>
+    <color name="blurColor">#66000000</color>
 </resources>

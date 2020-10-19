@@ -1,14 +1,14 @@
 package jp.co.soramitsu.splash.presentation.di
 
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.splash.presentation.SplashViewModel
 
@@ -16,14 +16,14 @@ import jp.co.soramitsu.splash.presentation.SplashViewModel
 class SplashModule {
 
     @Provides
-    internal fun provideScannerViewModel(activity: AppCompatActivity, factory: ViewModelProvider.Factory): SplashViewModel {
-        return ViewModelProviders.of(activity, factory).get(SplashViewModel::class.java)
+    internal fun provideScannerViewModel(fragment: Fragment, factory: ViewModelProvider.Factory): SplashViewModel {
+        return ViewModelProvider(fragment, factory).get(SplashViewModel::class.java)
     }
 
     @Provides
     @IntoMap
     @ViewModelKey(SplashViewModel::class)
-    fun provideSignInViewModel(router: SplashRouter): ViewModel {
-        return SplashViewModel(router)
+    fun provideSignInViewModel(accountRepository: AccountRepository, router: SplashRouter, languageChanged: Boolean): ViewModel {
+        return SplashViewModel(router, accountRepository, languageChanged)
     }
 }

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <string name="common_connecting">Подключение…</string>
+
+    <string name="common_next">Далее</string>
+    <string name="common_cancel">Отмена</string>
+    <string name="common_skip">Пропустить</string>
+    <string name="common_use">Использовать</string>
+    <string name="common_error_general_title">Ошибка</string>
+    <string name="connection_error_message">Пожалуйста, проверьте подключение к Интернету и повторите попытку.</string>
+    <string name="onboarding_restore_account">Восстановить</string>
+    <string name="onboarding_terms_and_conditions_1">Я подтверждаю, что прочитал и согласен с Условиями использования и Политикой конфиденциальности</string>
+    <string name="onboarding_terms_and_conditions_2">Условиями использования</string>
+    <string name="onboarding_privacy_policy">Политикой конфиденциальности</string>
+    <string name="pincode_enter_pin_code">Введите PIN-код</string>
+    <string name="pincode_confirm_your_pin_code">Подтвердите свой PIN-код</string>
+    <string name="access_restore_phrase_error_message">Ваша мнемоника недействительна. Пожалуйста, попробуйте другую</string>
+    <string name="recovery_passphrase">Мнемоника</string>
+    <string name="tabbar_wallet_title">Кошелек</string>
+    <string name="tabbar_staking_title">Стекинг</string>
+    <string name="tabbar_governance_title">Управление</string>
+    <string name="profile_settings_title">Настройки</string>
+    <string name="profile_language_title">Язык</string>
+    <string name="about_title">О приложении</string>
+    <string name="about_contact_us">Свяжитесь с нами</string>
+    <string name="about_privacy">Политика конфиденциальности</string>
+    <string name="about_terms">Условия использования</string>
+    <string name="onboarding_create_account">Создать аккаунт</string>
+    <string name="username_setup_choose_title">Выберите имя</string>
+    <string name="username_setup_hint">Имя аккаунта и его отображение рядом с адресом. Используя хранение идентификационных данных в блокчейне, имя можно сделать доступных для остальных.</string>
+    <string name="common_no_screenshot_title">Не делайте скриншоты</string>
+    <string name="common_no_screenshot_message">Не делайте скриншоты, которые могут быть собраны сторонними вредоносными программами</string>
+    <string name="common_ok">OK</string>
+    <string name="account_create_title">Мнемоника</string>
+    <string name="account_create_details">Используйте нецифровой носитель для сохранения, например, выпишите слова на бумагу.</string>
+    <string name="common_advanced">Продвинутый</string>
+    <string name="common_crypto_type">Тип ключевой пары</string>
+    <string name="common_secret_derivation_path">Последовательность для вывода секрета</string>
+    <string name="common_choose_network">Выберите сеть</string>
+    <string name="sr25519_selection_subtitle">sr25519 (рекомендованный)</string>
+    <string name="ed25519_selection_subtitle">ed25519 (альтернативный)</string>
+    <string name="ecdsa_selection_subtitle">(BTC/ETH совместимый)</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="account_creation_info">Мнемоническая фраза используется для восстановления доступа к аккаунту. Запишите ее, мы не сможем восстановить доступ к аккаунту без нее!</string>
+    <string name="common_info">Информация</string>
+    <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
+    <string name="recovery_source_type">Тип источника</string>
+    <string name="recovery_raw_seed">Сид</string>
+    <string name="recovery_json">JSON для восстановления</string>
+    <string name="account_import_password_placeholder">Пароль</string>
+    <string name="common_error_general_message">Мы уже решаем проблему. Пожалуйста, попробуйте позже.</string>
+    <string name="recover_json_hint">Вставьте json строку или загрузите из файла файл ...</string>
+    <string name="account_confirmation_title">Подтверждение</string>
+    <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
+    <string name="pincode_create_top_title">Новый пинкод</string>
+    <string name="pincode_fingerprint_error">Вы не авторизованы. Попробуйте другой палец.</string>
+    <string name="pincode_touch_fingerprint_scanner">Коснитесь сканера отпечатков пальцев</string>
+    <string name="pincode_fingerprint_switch_dialog_title">Использовать биометрию для авторизации</string>
+    <string name="profile_title">Аккаунт</string>
+    <string name="profile_accounts_title">Аккаунты</string>
+    <string name="profile_network_title">Сеть</string>
+    <string name="profile_pincode_change_title">Изменить пин-код</string>
+    <string name="tabbar_profile_title">Профиль</string>
+    <string name="pincode_biometry_dialog_title">Биометрия</string>
+    <string name="common_edit">Редактировать</string>
+    <string name="common_done">Готово</string>
+    <string name="accounts_add_account">Добавить аккаунт</string>
+    <string name="account_add_already_exists_message">Аккаунт уже существует. Пожалуйста, попробуйте другой.</string>
+    <string name="about_website">Официальный сайт</string>
+    <string name="about_github">Исходный код на Github</string>
+    <string name="about_version">Версия приложения</string>
+    <string name="about_telegram">Присоединяйтесь к группе Telegram</string>
+    <string name="common_email_chooser_title">Выберите приложение для работы с почтой</string>
+
+    <string name="account_address">Адрес аккаунта</string>
+    <string name="account_export">Экспорт аккаунта</string>
+    <string name="common_copied">Скопировано в буфер обмена</string>
+    <string name="connections_add_connection">Добавить соединение</string>
+    <string name="connection_management_title">Сети</string>
+    <string name="connection_management_default_title">По умолчанию</string>
+    <string name="connection_management_custom_title">Добавленные</string>
+    <string name="account_delete_confirmation_title">Забыли аккаунт?</string>
+    <string name="account_delete_confirmation_description">Прежде чем продолжить, убедитесь, что вы создали резервную копию своей учетной записи.</string>
+    <string name="account_delete_confirm">Забыть</string>
+
+    <string name="wallet_asset_send">Отправить</string>
+    <string name="wallet_asset_receive">Получить</string>
+    <string name="wallet_assets_total_title">Стоимость активов</string>
+    <string name="import_json_invalid_format">Неверный формат данных восстановления. Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
+    <string name="import_json_invalid_password">Пожалуйста, проверьте корректность пароля и попробуйте снова.</string>
+    <string name="node_info_title">Информация об узле</string>
+    <string name="network_info_name">Название узла</string>
+    <string name="common_update">Обновить</string>
+    <string name="network_info_address">Адрес узла</string>
+
+    <string name="transfers">Переводы</string>
+    <string name="yesterday">Вчера</string>
+    <string name="today">Сегодня</string>
+    <string name="transfers_empty">Входящие и исходящие транзакции будут отображаться здесь</string>
+
+    <string name="wallet_balance_available">Доступно</string>
+    <string name="wallet_balance_bonded">Заморожено</string>
+    <string name="language_title">Язык</string>
+    <string name="common_add">Добавить</string>
+    <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
+    <string name="connection_add_already_exists_error">Узел уже был добавлен ранее. Пожалуйста, попробуйте другой узел.</string>
+    <string name="connection_add_unsupported_error">К сожалению, сеть не поддерживается. Пожалуйста, попробуйте одну из следующих: %s.</string>
+
+    <string name="search_contacts">Контакты</string>
+    <string name="search_recipient_hint">Адрес аккаунта или имя аккаунта</string>
+    <string name="search_recipient_no_results">Нет результатов</string>
+    <string name="search_recipient_welcome">Здесь появятся ваши аккаунты и контакты, которым вы отправляли переводы</string>
+    <string name="search_result_header">Результат поиска</string>
+    <string name="common_continue">Продолжить</string>
+    <string name="common_retry">Повторить</string>
+
+    <string name="choose_amount_asset">Токен</string>
+    <string name="choose_amount_fee">Комиссия</string>
+    <string name="choose_amount_free_balance">Свободный баланс:</string>
+    <string name="common_amount">Сумма</string>
+    <string name="choose_amount_network_error">Сеть недоступна</string>
+    <string name="choose_amount_to">Кому</string>
+
+    <string name="choose_amount_checking">Проверка…</string>
+    <string name="choose_amount_error_too_big">К сожалению, у вас недостаточно средств для перевода указанной суммы.</string>
+    <string name="choose_amount_error_fee">К сожалению, нам не удалось связаться с поставщиком услуг трансфера. Пожалуйста, попробуйте позже.</string>
+    <string name="choose_amount_error_balance">К сожалению, запрос проверки баланса не выполнен. Пожалуйста, попробуйте позже.</string>
+
+    <string name="wallet_send_total_title">Всего</string>
+    <string name="wallet_send_progress">Отправка…</string>
+    <string name="wallet_send_confirm_transfer">Подтвердить</string>
+
+    <string name="transaction_status_pending">В ожидании</string>
+    <string name="transaction_status_failed">Не смогли</string>
+    <string name="transaction_status_completed">Успешно</string>
+    <string name="transaction_details_title">Детали транзакции</string>
+    <string name="transaction_details_from">От</string>
+    <string name="transaction_detail_status">Статус</string>
+    <string name="transaction_detail_date">Дата</string>
+
+    <string name="transaction_details_view_subscan">Просмотреть в Subscan</string>
+    <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
+    <string name="transaction_details_copy_hash">Копировать хеш</string>
+    <string name="transaction_details_hash_title">Хеш транзакции</string>
+    <string name="account_needed_title">Необходим аккаунт</string>
+    <string name="account_needed_message">У вас нет учетной записи в этой сети, вы можете создать или импортировать учетную запись.</string>
+    <string name="common_proceed">Продолжить</string>
+    <string name="connection_delete_title">Удалить сеть?</string>
+    <string name="connection_delete_description">Подтвердите удаление %s.</string>
+    <string name="connection_delete_confirm">Удалить</string>
+</resources>

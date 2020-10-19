@@ -1,0 +1,8 @@
+apply plugin: 'java-library'
+apply plugin: 'kotlin'
+
+dependencies {
+    implementation project(':feature-account-api')
+    implementation kotlinDep
+    implementation rxJavaDep
+}

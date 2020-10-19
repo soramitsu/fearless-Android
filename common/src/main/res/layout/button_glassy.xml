@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    tools:background="@drawable/bg_button_solid_small"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <TextView
+        android:id="@+id/buttonGlassyContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:drawablePadding="10dp"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:textAppearance="@style/TextAppearance.Soramitsu.Header5"
+        android:textColor="@color/white"
+        tools:drawableStart="@drawable/ic_key"
+        tools:text="Receive" />
+
+</merge>

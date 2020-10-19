@@ -1,10 +1,10 @@
 package jp.co.soramitsu.splash.presentation.di
 
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
-import jp.co.soramitsu.splash.presentation.SplashActivity
+import jp.co.soramitsu.splash.presentation.SplashFragment
 
 @Subcomponent(
     modules = [
@@ -18,9 +18,10 @@ interface SplashComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance activity: AppCompatActivity
+            @BindsInstance fragment: Fragment,
+            @BindsInstance languageChanged: Boolean
         ): SplashComponent
     }
 
-    fun inject(activity: SplashActivity)
+    fun inject(fragment: SplashFragment)
 }

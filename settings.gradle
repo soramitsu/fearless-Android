@@ -1,1 +1,7 @@
-include ':app', ':test-shared', ':feature-user-impl', ':common', ':feature-splash', ':feature-user-api', ':core-db', ':core'
+include ':feature-wallet-impl'
+include ':feature-wallet-api'
+include ':feature-onboarding-impl'
+include ':feature-onboarding-api'
+include ':app', ':test-shared', ':common', ':feature-splash', ':core-db'
+include ':feature-account-api'
+include ':feature-account-impl'
