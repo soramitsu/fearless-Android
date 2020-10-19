@@ -96,12 +96,12 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
                 nodeDelete.visibility = View.VISIBLE
                 nodeDelete.setOnClickListener { handler.deleteClicked(nodeModel) }
                 nodeInfo.visibility = View.INVISIBLE
-                nodeInfo.setOnClickListener { }
+                nodeInfo.setOnClickListener(null)
                 isEnabled = false
-                setOnClickListener { }
+                setOnClickListener(null)
             } else {
                 nodeDelete.visibility = View.GONE
-                nodeDelete.setOnClickListener { }
+                nodeDelete.setOnClickListener(null)
                 nodeInfo.visibility = View.VISIBLE
                 nodeInfo.setOnClickListener { handler.infoClicked(nodeModel) }
                 isEnabled = true

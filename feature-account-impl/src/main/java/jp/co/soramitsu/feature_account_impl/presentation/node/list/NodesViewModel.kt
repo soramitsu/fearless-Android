@@ -38,7 +38,7 @@ class NodesViewModel(
     private val _showAccountChooserLiveData = MutableLiveData<Event<AccountChooserPayload>>()
     val showAccountChooserLiveData: LiveData<Event<AccountChooserPayload>> = _showAccountChooserLiveData
 
-    private val _editMode = MutableLiveData<Boolean>()
+    private val _editMode = MutableLiveData<Boolean>(false)
     val editMode: LiveData<Boolean> = _editMode
 
     val toolbarAction = editMode.map {
@@ -50,7 +50,7 @@ class NodesViewModel(
     }
 
     fun editClicked() {
-        val edit = editMode.value ?: false
+        val edit = editMode.value!!
         _editMode.value = !edit
     }
 

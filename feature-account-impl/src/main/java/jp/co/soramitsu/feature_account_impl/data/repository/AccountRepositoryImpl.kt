@@ -538,8 +538,6 @@ class AccountRepositoryImpl(
     }
 
     override fun deleteNode(nodeId: Int): Completable {
-        return Completable.fromAction {
-            nodeDao.deleteNode(nodeId)
-        }
+        return nodeDao.deleteNode(nodeId)
     }
 }
