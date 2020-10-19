@@ -7,6 +7,7 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
@@ -290,6 +291,7 @@ class SocketService(
                 pendingRequests.remove(it)
             }
         }
+            .subscribeOn(Schedulers.io())
             .doFinally { resendPendingDisposable = null }
             .subscribeToError {
                 // suspend send errors
