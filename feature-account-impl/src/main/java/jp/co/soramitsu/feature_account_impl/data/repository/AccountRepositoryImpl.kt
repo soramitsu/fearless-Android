@@ -538,4 +538,8 @@ class AccountRepositoryImpl(
             getNetworkForType(networkType)
         }
     }
+
+    override fun deleteNode(nodeId: Int): Completable {
+        return nodeDao.deleteNode(nodeId)
+    }
 }
