@@ -16,7 +16,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction.Status
 @Dao
 abstract class TransactionDao {
 
-    @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY (case when status = :statusUp then 1 else 0 end), date DESC")
+    @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY (case when status = :statusUp then 0 else 1 end), date DESC")
     abstract fun observeTransactions(
         accountAddress: String,
         statusUp: Status = Status.PENDING
