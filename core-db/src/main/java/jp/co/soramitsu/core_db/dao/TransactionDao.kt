@@ -22,7 +22,7 @@ abstract class TransactionDao {
     abstract fun getTransactions(accountAddress: String): List<TransactionLocal>
 
     @Query("SELECT * FROM transactions WHERE hash = :hash")
-    abstract fun getTransaction(hash: String) : TransactionLocal?
+    abstract fun getTransaction(hash: String): TransactionLocal?
 
     @Query(
         """

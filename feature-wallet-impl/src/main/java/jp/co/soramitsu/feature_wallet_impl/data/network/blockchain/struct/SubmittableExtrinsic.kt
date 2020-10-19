@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.data.network.scale.uint8
 import jp.co.soramitsu.common.utils.requirePrefix
 import org.bouncycastle.crypto.digests.Blake2bDigest
 import org.bouncycastle.jcajce.provider.digest.BCMessageDigest
-import org.bouncycastle.jcajce.provider.digest.Blake2b
 import org.bouncycastle.util.encoders.Hex
 
 private val VERSION = "84".toUByte(radix = 16)
@@ -53,7 +52,7 @@ enum class SupportedCall(val index: Pair<UByte, UByte>) {
     TRANSFER(4.toUByte() to 0.toUByte());
 
     companion object {
-        fun from(callIndex: Pair<UByte, UByte>) : SupportedCall? {
+        fun from(callIndex: Pair<UByte, UByte>): SupportedCall? {
             return values().firstOrNull { it.index == callIndex }
         }
     }

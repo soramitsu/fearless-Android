@@ -233,8 +233,8 @@ class WalletRepositoryImpl(
 
     private fun updateLocalBalance(account: Account, accountInfo: EncodableStruct<AccountInfo>): Completable {
         return Single.fromCallable {
-               listOf(createAsset(account, accountInfo, null, null))
-            }
+            listOf(createAsset(account, accountInfo, null, null))
+        }
             .mapList { mapAssetToAssetLocal(it, account.address) }
             .flatMapCompletable(assetDao::insert)
     }

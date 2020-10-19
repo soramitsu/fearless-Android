@@ -157,11 +157,11 @@ class SocketService(
         return executeRequestMultiResponse(request, DeliveryType.ON_RECONNECT)
             .map { string().nonNull().map(it, jsonMapper) }
             .switchMap { subscriptionId ->
-               Observable.create<SubscriptionChange> { emitter ->
-                   subscriptions[subscriptionId] = SubscriptionMapEntry(request, emitter)
-               }.doOnDispose {
-                   subscriptions.remove(subscriptionId)
-               }
+                Observable.create<SubscriptionChange> { emitter ->
+                    subscriptions[subscriptionId] = SubscriptionMapEntry(request, emitter)
+                }.doOnDispose {
+                    subscriptions.remove(subscriptionId)
+                }
             }
     }
 
@@ -178,14 +178,14 @@ class SocketService(
         runtimeRequest: RuntimeRequest,
         deliveryType: DeliveryType = DeliveryType.AT_LEAST_ONCE
     ): Single<RpcResponse> {
-       return executeRequestMultiResponse(runtimeRequest, deliveryType)
-           .firstOrError()
+        return executeRequestMultiResponse(runtimeRequest, deliveryType)
+            .firstOrError()
     }
 
     private fun executeRequestMultiResponse(
         runtimeRequest: RuntimeRequest,
         deliveryType: DeliveryType = DeliveryType.AT_LEAST_ONCE
-    ) : Observable<RpcResponse> {
+    ): Observable<RpcResponse> {
         return Observable.create<RpcResponse> {
             synchronized<Unit>(this) {
                 requestsMap[runtimeRequest.id] = RequestMapEntry(runtimeRequest, deliveryType, it)
@@ -245,8 +245,8 @@ class SocketService(
     }
 
     private fun addOnReconnectToPending() {
-       val requests = requestsMap.values.filter { it.deliveryType == DeliveryType.ON_RECONNECT }
-           .map { it.request }
+        val requests = requestsMap.values.filter { it.deliveryType == DeliveryType.ON_RECONNECT }
+            .map { it.request }
 
         pendingRequests.addAll(requests)
     }

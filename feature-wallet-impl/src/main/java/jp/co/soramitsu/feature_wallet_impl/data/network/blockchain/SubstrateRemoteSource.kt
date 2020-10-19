@@ -6,8 +6,8 @@ import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.StorageChange
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.StorageChange
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
 
@@ -27,7 +27,7 @@ interface SubstrateRemoteSource {
 
     fun listenForAccountUpdates(
         account: Account
-    ) : Observable<StorageChange>
+    ): Observable<StorageChange>
 
     fun fetchAccountTransactionInBlock(
         blockHash: String,
