@@ -1,5 +1,8 @@
 package jp.co.soramitsu.common.data.network.scale
 
+import jp.co.soramitsu.common.data.network.scale.dataType.DataType
+import jp.co.soramitsu.common.data.network.scale.dataType.optional
+
 class Field<T>(val dataType: DataType<T>, val defaultValue: T? = null)
 
 @Suppress("UNCHECKED_CAST", "unused")

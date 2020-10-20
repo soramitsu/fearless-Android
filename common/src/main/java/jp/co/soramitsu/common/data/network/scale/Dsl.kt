@@ -2,6 +2,19 @@
 
 package jp.co.soramitsu.common.data.network.scale
 
+import jp.co.soramitsu.common.data.network.scale.dataType.DataType
+import jp.co.soramitsu.common.data.network.scale.dataType.byteArraySized
+import jp.co.soramitsu.common.data.network.scale.dataType.list
+import jp.co.soramitsu.common.data.network.scale.dataType.scalable
+import jp.co.soramitsu.common.data.network.scale.dataType.tuple
+import jp.co.soramitsu.common.data.network.scale.dataType.long
+import jp.co.soramitsu.common.data.network.scale.dataType.byteArray
+import jp.co.soramitsu.common.data.network.scale.dataType.string
+import jp.co.soramitsu.common.data.network.scale.dataType.uint32
+import jp.co.soramitsu.common.data.network.scale.dataType.uint8
+import jp.co.soramitsu.common.data.network.scale.dataType.uint128
+import jp.co.soramitsu.common.data.network.scale.dataType.byte
+import jp.co.soramitsu.common.data.network.scale.dataType.compactInt
 import java.math.BigInteger
 
 typealias StructBuilder<SCHEMA> = (EncodableStruct<SCHEMA>) -> Unit
@@ -24,6 +37,16 @@ fun <S : Schema<S>> S.uint128(default: BigInteger? = null) = NonNullFieldDelegat
 
 fun <S : Schema<S>, T : Schema<T>> S.schema(schema: T, default: EncodableStruct<T>? = null) =
     NonNullFieldDelegate(scalable(schema), this, default)
+
+fun <S : Schema<S>, T, D : DataType<T>> S.vector(
+    type: D,
+    default: List<T>? = null
+) = NonNullFieldDelegate(list(type), this, default)
+
+fun <S : Schema<S>, T : Schema<T>> S.vector(
+    schema: T,
+    default: List<EncodableStruct<T>>? = null
+) = NonNullFieldDelegate(list(scalable(schema)), this, default)
 
 fun <S : Schema<S>> S.byte(default: Byte? = null) = NonNullFieldDelegate(byte, this, default)
 

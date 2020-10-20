@@ -196,7 +196,7 @@ class WssSubstrateSource(
         val addressType = mapNetworkTypeToAddressType(networkType)
 
         return Call { call ->
-            call[Call.callIndex] = Pair(4.toUByte(), 0.toUByte())
+            call[Call.callIndex] = SupportedCall.TRANSFER.index
 
             call[Call.args] = TransferArgs { args ->
                 args[TransferArgs.recipientId] = sS58Encoder.decode(recipientAddress, addressType)
