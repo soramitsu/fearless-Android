@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests
 
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SubmittableExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
 
 class FeeCalculationRequest(submittableExtrinsic: EncodableStruct<SubmittableExtrinsic>) : RuntimeRequest(
     method = "payment_queryInfo",

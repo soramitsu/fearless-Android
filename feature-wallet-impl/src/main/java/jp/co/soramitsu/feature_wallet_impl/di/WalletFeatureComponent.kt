@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.di.BalanceDetailComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.di.BalanceListComponent
@@ -23,7 +24,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.di.Tr
     ]
 )
 @FeatureScope
-interface WalletFeatureComponent : AccountFeatureApi {
+interface WalletFeatureComponent : WalletFeatureApi {
 
     fun balanceListComponentFactory(): BalanceListComponent.Factory
 

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.struct
+package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
 import jp.co.soramitsu.common.data.network.scale.Schema
 import jp.co.soramitsu.common.data.network.scale.schema

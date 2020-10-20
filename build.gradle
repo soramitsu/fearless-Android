@@ -37,9 +37,9 @@ buildscript {
         mockitoVersion = '2.23.0'
         robolectricVersion = '4.1'
 
-        spoungyCastleVersion = '1.58.0.0'
+        bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.13'
+        fearlessLibVersion = '1.0.17'
 
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
@@ -76,8 +76,7 @@ buildscript {
         navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
         navigationUiDep = "androidx.navigation:navigation-ui-ktx:$navControllerVersion"
 
-        spoungyCastleBcPixDep = "com.madgag.spongycastle:bcpkix-jdk15on:$spoungyCastleVersion"
-        spoungyCastleBcPgDep = "com.madgag.spongycastle:bcpg-jdk15on:$spoungyCastleVersion"
+        bouncyCastleDep = "org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion"
 
         retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
         interceptorVersion = "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"

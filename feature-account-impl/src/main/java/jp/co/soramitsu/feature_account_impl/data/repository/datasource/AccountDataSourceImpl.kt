@@ -18,7 +18,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.ScaleSigningData.Nonce
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.ScaleSigningData.PrivateKey
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.ScaleSigningData.PublicKey
-import org.spongycastle.util.encoders.Hex
+import org.bouncycastle.util.encoders.Hex
 
 private const val PREFS_AUTH_TYPE = "auth_type"
 private const val PREFS_PIN_CODE = "pin_code"

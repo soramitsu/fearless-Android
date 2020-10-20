@@ -146,6 +146,7 @@
     <string name="account_needed_title">アカウントが必要</string>
     <string name="account_needed_message">このネットワークのアカウントがありません。アカウントを作成またはインポートできます。</string>
     <string name="common_proceed">続行</string>
+    <string name="common_unknown">わからない</string>
     <string name="connection_delete_title">Delete network?</string>
     <string name="connection_delete_description">Confirm %s deletion.</string>
     <string name="connection_delete_confirm">Delete</string>

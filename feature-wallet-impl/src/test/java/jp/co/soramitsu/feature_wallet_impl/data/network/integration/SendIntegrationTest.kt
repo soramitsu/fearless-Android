@@ -23,19 +23,20 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.RuntimeVersion
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.nonce
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.Call
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.Call.args
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.Call.callIndex
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.ExtrinsicPayloadValue
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SignedExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SubmittableExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.SubmittableExtrinsic.signedExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs.amount
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.TransferArgs.recipientId
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.nonce
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.args
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.callIndex
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ExtrinsicPayloadValue
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.signedExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.amount
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
+import org.bouncycastle.util.encoders.Hex
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -45,7 +46,6 @@ import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.BDDMockito.given
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import org.spongycastle.util.encoders.Hex
 import java.math.BigDecimal
 
 private const val PUBLIC_KEY = "fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168"

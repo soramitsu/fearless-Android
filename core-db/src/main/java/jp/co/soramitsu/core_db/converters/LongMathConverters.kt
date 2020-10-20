@@ -17,12 +17,12 @@ class LongMathConverters {
     }
 
     @TypeConverter
-    fun fromBigInteger(balance: BigInteger): String {
-        return balance.toString()
+    fun fromBigInteger(balance: BigInteger?): String? {
+        return balance?.toString()
     }
 
     @TypeConverter
-    fun toBigInteger(balance: String): BigInteger {
-        return BigInteger(balance)
+    fun toBigInteger(balance: String?): BigInteger? {
+        return balance?.let { BigInteger(it) }
     }
 }

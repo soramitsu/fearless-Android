@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.struct
+package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

@@ -20,7 +20,7 @@ fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel
             date = date,
             amount = amount,
             status = status,
-            fee = fee.amount!!,
+            fee = fee.amount,
             total = total
         )
     }
@@ -30,7 +30,7 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal): Transa
     return with(transactionLocal) {
         Transaction(
             hash = hash,
-            isIncome = isIncome,
+            isIncome = recipientAddress == accountAddress,
             recipientAddress = recipientAddress,
             senderAddress = senderAddress,
             amount = amount,
@@ -51,7 +51,6 @@ fun mapTransactionToTransactionLocal(
         TransactionLocal(
             accountAddress = accountAddress,
             hash = hash,
-            isIncome = isIncome,
             recipientAddress = recipientAddress,
             senderAddress = senderAddress,
             status = status,

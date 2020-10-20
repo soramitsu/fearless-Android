@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_wallet_api.domain.model
 
 import java.math.BigDecimal
 
-class Transaction(
+data class Transaction(
     val hash: String,
     val token: Asset.Token,
     val senderAddress: String,
@@ -13,7 +13,7 @@ class Transaction(
     val fee: Fee,
     val isIncome: Boolean
 ) {
-    val total = amount + fee.amount!!
+    val total = fee.amount?.plus(amount)
 
     enum class Status {
         PENDING, COMPLETED, FAILED;

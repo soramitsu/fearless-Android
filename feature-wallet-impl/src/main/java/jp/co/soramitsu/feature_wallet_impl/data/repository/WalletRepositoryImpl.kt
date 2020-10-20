@@ -8,8 +8,11 @@ import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.ss58.AddressType
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -20,6 +23,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransactionsPage
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
@@ -27,18 +31,23 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTra
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeRemote
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.feeFrozen
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.free
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.miscFrozen
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.reserved
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.data
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.hash
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.FeeRemote
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubscanResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionHistory
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.feeFrozen
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.free
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.miscFrozen
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountData.reserved
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo
-import jp.co.soramitsu.feature_wallet_impl.data.network.struct.AccountInfo.data
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import java.math.BigDecimal
 import java.util.Locale
@@ -48,7 +57,8 @@ class WalletRepositoryImpl(
     private val accountRepository: AccountRepository,
     private val assetDao: AssetDao,
     private val transactionsDao: TransactionDao,
-    private val subscanApi: SubscanNetworkApi
+    private val subscanApi: SubscanNetworkApi,
+    private val sS58Encoder: SS58Encoder
 ) : WalletRepository {
 
     override fun observeAssets(): Observable<List<Asset>> {
@@ -115,6 +125,21 @@ class WalletRepositoryImpl(
                 }
             }
         }
+    }
+
+    override fun listenForUpdates(account: Account): Completable {
+        return substrateSource.listenForAccountUpdates(account)
+            .flatMapCompletable { change ->
+                updateLocalBalance(account, change.newAccountInfo)
+                    .andThen(fetchTransactions(account, change.block))
+            }
+    }
+
+    private fun fetchTransactions(account: Account, blockHash: String): Completable {
+        return substrateSource.fetchAccountTransactionInBlock(blockHash, account)
+            .mapList { submittableExtrinsic ->
+                createTransactionLocal(submittableExtrinsic, account)
+            }.flatMapCompletable(transactionsDao::insert)
     }
 
     private fun createTransaction(hash: String, transfer: Transfer, accountAddress: String, fee: BigDecimal) =
@@ -207,22 +232,11 @@ class WalletRepositoryImpl(
     }
 
     private fun updateLocalBalance(account: Account, accountInfo: EncodableStruct<AccountInfo>): Completable {
-        return assetDao.observeAssets(account.address).firstOrError()
-            .flatMapCompletable { currentState ->
-                val asset = currentState.first()
-                val accountData = accountInfo[data]
-
-                val newState = listOf(
-                    asset.copy(
-                        feeFrozenInPlanks = accountData[feeFrozen],
-                        miscFrozenInPlanks = accountData[miscFrozen],
-                        freeInPlanks = accountData[free],
-                        reservedInPlanks = accountData[reserved]
-                    )
-                )
-
-                assetDao.insert(newState)
-            }
+        return Single.fromCallable {
+            listOf(createAsset(account, accountInfo, null, null))
+        }
+            .mapList { mapAssetToAssetLocal(it, account.address) }
+            .flatMapCompletable(assetDao::insert)
     }
 
     private fun zipSyncAssetRequests(account: Account): Single<List<Asset>> {
@@ -246,13 +260,13 @@ class WalletRepositoryImpl(
     private fun createAsset(
         account: Account,
         accountInfo: EncodableStruct<AccountInfo>,
-        todayResponse: SubscanResponse<AssetPriceStatistics>,
-        yesterdayResponse: SubscanResponse<AssetPriceStatistics>
+        todayResponse: SubscanResponse<AssetPriceStatistics>?,
+        yesterdayResponse: SubscanResponse<AssetPriceStatistics>?
     ): Asset {
         val token = Asset.Token.fromNetworkType(account.network.type)
 
-        val todayStats = todayResponse.content
-        val yesterdayStats = yesterdayResponse.content
+        val todayStats = todayResponse?.content
+        val yesterdayStats = yesterdayResponse?.content
 
         val data = accountInfo[data]
 
@@ -274,6 +288,43 @@ class WalletRepositoryImpl(
             data[feeFrozen],
             mostRecentPrice,
             change
+        )
+    }
+
+    private fun createTransactionLocal(
+        extrinsic: EncodableStruct<SubmittableExtrinsic>,
+        account: Account
+    ): TransactionLocal {
+        val hash = extrinsic.hash()
+
+        val localCopy = transactionsDao.getTransaction(hash)
+
+        val fee = localCopy?.feeInPlanks
+
+        val networkType = account.network.type
+        val token = Asset.Token.fromNetworkType(networkType)
+        val addressType = AddressType.valueOf(networkType.toString())
+
+        val signed = extrinsic[SubmittableExtrinsic.signedExtrinsic]
+        val transferArgs = signed[SignedExtrinsic.call][Call.args]
+
+        val senderAddress = sS58Encoder.encode(signed[SignedExtrinsic.accountId], addressType)
+        val recipientAddress = sS58Encoder.encode(transferArgs[TransferArgs.recipientId], addressType)
+
+        val amountInPlanks = transferArgs[TransferArgs.amount]
+
+        return TransactionLocal(
+            hash = hash,
+            accountAddress = account.address,
+            senderAddress = senderAddress,
+            recipientAddress = recipientAddress,
+            source = TransactionSource.BLOCKCHAIN,
+            status = Transaction.Status.COMPLETED,
+            feeInPlanks = fee,
+            token = token,
+            amount = token.amountFromPlanks(amountInPlanks),
+            date = System.currentTimeMillis(),
+            networkType = networkType
         )
     }
 

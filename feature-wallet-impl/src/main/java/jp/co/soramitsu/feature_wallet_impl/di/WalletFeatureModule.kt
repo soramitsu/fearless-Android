@@ -43,8 +43,16 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         assetDao: AssetDao,
         transactionDao: TransactionDao,
-        subscanNetworkApi: SubscanNetworkApi
-    ): WalletRepository = WalletRepositoryImpl(substrateSource, accountRepository, assetDao, transactionDao, subscanNetworkApi)
+        subscanNetworkApi: SubscanNetworkApi,
+        sS58Encoder: SS58Encoder
+    ): WalletRepository = WalletRepositoryImpl(
+        substrateSource,
+        accountRepository,
+        assetDao,
+        transactionDao,
+        subscanNetworkApi,
+        sS58Encoder
+    )
 
     @Provides
     @FeatureScope

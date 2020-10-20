@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_wallet_api.domain.model
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import java.math.BigDecimal
 import java.math.BigInteger
-import kotlin.math.max
 
 private const val DEFAULT_MANTISSA = 12
 
@@ -16,10 +15,10 @@ class Asset(
     val dollarRate: BigDecimal?,
     val recentRateChange: BigDecimal?
 ) {
-    val free = freeInPlanks.toBigDecimal(scale = token.mantissa)
-    val reserved = reservedInPlanks.toBigDecimal(scale = token.mantissa)
-    val miscFrozen = miscFrozenInPlanks.toBigDecimal(scale = token.mantissa)
-    val feeFrozen = feeFrozenInPlanks.toBigDecimal(scale = token.mantissa)
+    val free = token.amountFromPlanks(freeInPlanks)
+    val reserved = token.amountFromPlanks(reservedInPlanks)
+    val miscFrozen = token.amountFromPlanks(miscFrozenInPlanks)
+    val feeFrozen = token.amountFromPlanks(feeFrozenInPlanks)
 
     val transferable = free - (reserved + miscFrozen.max(feeFrozen))
 
@@ -46,3 +45,5 @@ class Asset(
         }
     }
 }
+
+fun Asset.Token.amountFromPlanks(amountInPlanks: BigInteger) = amountInPlanks.toBigDecimal(scale = mantissa)

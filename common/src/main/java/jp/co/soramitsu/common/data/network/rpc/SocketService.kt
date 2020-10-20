@@ -4,19 +4,23 @@ import com.google.gson.Gson
 import com.neovisionaries.ws.client.WebSocketFactory
 import com.neovisionaries.ws.client.WebSocketState
 import io.reactivex.Completable
+import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
 import io.reactivex.Single
-import io.reactivex.SingleEmitter
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.data.network.rpc.mappers.ResponseMapper
+import jp.co.soramitsu.common.data.network.rpc.mappers.nonNull
+import jp.co.soramitsu.common.data.network.rpc.mappers.string
 import jp.co.soramitsu.common.data.network.rpc.recovery.ExponentialReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.recovery.ReconnectStrategy
 import jp.co.soramitsu.common.data.network.rpc.socket.RpcSocket
 import jp.co.soramitsu.common.data.network.rpc.socket.RpcSocketListener
+import jp.co.soramitsu.common.data.network.rpc.subscription.SubscriptionChange
+import jp.co.soramitsu.common.utils.concurrentHashSet
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.fearless_utils.wsrpc.Logger
-import jp.co.soramitsu.fearless_utils.wsrpc.request.base.RpcRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
 import java.util.concurrent.ArrayBlockingQueue
@@ -39,13 +43,23 @@ enum class DeliveryType {
     /**
      * For non-idempotent requests, will produce an error if fails to deliver/get response
      */
-    AT_MOST_ONCE
+    AT_MOST_ONCE,
+
+    /**
+     * Similar to AT_LEAST_ONCE, but resend request on each reconnect regardless of success
+     */
+    ON_RECONNECT
 }
 
 class RequestMapEntry(
     val request: RuntimeRequest,
     val deliveryType: DeliveryType,
-    val emitter: SingleEmitter<RpcResponse>
+    val emitter: ObservableEmitter<RpcResponse>
+)
+
+class SubscriptionMapEntry(
+    val request: RuntimeRequest,
+    val emitter: ObservableEmitter<SubscriptionChange>
 )
 
 private val WAITING_EXECUTOR = ThreadPoolExecutor(1, 1, 5, TimeUnit.SECONDS, ArrayBlockingQueue(10))
@@ -62,8 +76,10 @@ class SocketService(
 
     private val requestsMap = ConcurrentHashMap<Int, RequestMapEntry>()
 
-    private val pendingRequests = ArrayBlockingQueue<RpcRequest>(10)
-    private val waitingForResponseRequests = ArrayBlockingQueue<RpcRequest>(10)
+    private val pendingRequests = concurrentHashSet<RuntimeRequest>()
+    private val waitingForResponseRequests = concurrentHashSet<RuntimeRequest>()
+
+    private val subscriptions = ConcurrentHashMap<String, SubscriptionMapEntry>()
 
     private val socketFactory = WebSocketFactory()
 
@@ -125,6 +141,9 @@ class SocketService(
         reconnectWaitDisposable?.dispose()
         reconnectWaitDisposable = null
 
+        subscriptions.values.forEach { entry -> entry.emitter.onComplete() }
+        subscriptions.clear()
+
         currentReconnectAttempt = 0
 
         socket = null
@@ -133,6 +152,18 @@ class SocketService(
     }
 
     override fun observeNetworkState() = stateSubject
+
+    fun subscribe(request: RuntimeRequest): Observable<SubscriptionChange> {
+        return executeRequestMultiResponse(request, DeliveryType.ON_RECONNECT)
+            .map { string().nonNull().map(it, jsonMapper) }
+            .switchMap { subscriptionId ->
+                Observable.create<SubscriptionChange> { emitter ->
+                    subscriptions[subscriptionId] = SubscriptionMapEntry(request, emitter)
+                }.doOnDispose {
+                    subscriptions.remove(subscriptionId)
+                }
+            }
+    }
 
     fun <R> executeRequest(
         request: RuntimeRequest,
@@ -147,7 +178,15 @@ class SocketService(
         runtimeRequest: RuntimeRequest,
         deliveryType: DeliveryType = DeliveryType.AT_LEAST_ONCE
     ): Single<RpcResponse> {
-        return Single.create<RpcResponse> {
+        return executeRequestMultiResponse(runtimeRequest, deliveryType)
+            .firstOrError()
+    }
+
+    private fun executeRequestMultiResponse(
+        runtimeRequest: RuntimeRequest,
+        deliveryType: DeliveryType = DeliveryType.AT_LEAST_ONCE
+    ): Observable<RpcResponse> {
+        return Observable.create<RpcResponse> {
             synchronized<Unit>(this) {
                 requestsMap[runtimeRequest.id] = RequestMapEntry(runtimeRequest, deliveryType, it)
 
@@ -155,6 +194,12 @@ class SocketService(
                     socket!!.sendRpcRequest(runtimeRequest)
                     waitingForResponseRequests.add(runtimeRequest)
                 } else {
+                    if (deliveryType == DeliveryType.AT_MOST_ONCE) {
+                        it.tryOnError(ConnectionClosedException())
+                        requestsMap.remove(runtimeRequest.id)
+                        return@create
+                    }
+
                     logger.log("[PENDING REQUEST] ${runtimeRequest.method}")
 
                     pendingRequests.add(runtimeRequest)
@@ -167,13 +212,21 @@ class SocketService(
 
     @Synchronized
     override fun onResponse(rpcResponse: RpcResponse) {
-        val requestMapEntry = requestsMap.remove(rpcResponse.id)
+        val requestMapEntry = requestsMap[rpcResponse.id]
 
         requestMapEntry?.let {
+            if (it.deliveryType != DeliveryType.ON_RECONNECT) requestsMap.remove(rpcResponse.id)
+
             waitingForResponseRequests.remove(it.request)
 
-            it.emitter.onSuccess(rpcResponse)
+            it.emitter.onNext(rpcResponse)
         }
+    }
+
+    override fun onResponse(subscriptionChange: SubscriptionChange) {
+        val subscriptionEntry = subscriptions[subscriptionChange.params.subscription]
+
+        subscriptionEntry?.emitter?.onNext(subscriptionChange)
     }
 
     @Synchronized
@@ -184,7 +237,18 @@ class SocketService(
             reportErrorToAtMostOnceAndForget()
 
             moveWaitingResponseToPending()
+
+            addOnReconnectToPending()
+
+            subscriptions.clear()
         }
+    }
+
+    private fun addOnReconnectToPending() {
+        val requests = requestsMap.values.filter { it.deliveryType == DeliveryType.ON_RECONNECT }
+            .map { it.request }
+
+        pendingRequests.addAll(requests)
     }
 
     override fun onConnected() {
@@ -226,6 +290,7 @@ class SocketService(
                 pendingRequests.remove(it)
             }
         }
+            .subscribeOn(Schedulers.io())
             .doFinally { resendPendingDisposable = null }
             .subscribeToError {
                 // suspend send errors

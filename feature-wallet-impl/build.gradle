@@ -52,7 +52,7 @@ dependencies {
     implementation lifecycleDep
     kapt lifecycleKapt
 
-    implementation spoungyCastleBcPgDep
+    implementation bouncyCastleDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep
