@@ -148,4 +148,7 @@
     <string name="account_needed_message">У вас немає облікового запису для цієї мережі, ви можете створити або імпортувати обліковий запис.</string>
     <string name="common_proceed">Продовжуйте</string>
     <string name="common_unknown">Невідомо</string>
+    <string name="connection_delete_title">Delete network?</string>
+    <string name="connection_delete_description">Confirm %s deletion.</string>
+    <string name="connection_delete_confirm">Delete</string>
 </resources>

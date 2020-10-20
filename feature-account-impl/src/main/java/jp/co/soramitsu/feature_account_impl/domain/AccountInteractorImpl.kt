@@ -274,4 +274,8 @@ class AccountInteractorImpl(
     override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
         return accountRepository.getNetworkByNetworkType(networkType)
     }
+
+    override fun deleteNode(nodeId: Int): Completable {
+        return accountRepository.deleteNode(nodeId)
+    }
 }

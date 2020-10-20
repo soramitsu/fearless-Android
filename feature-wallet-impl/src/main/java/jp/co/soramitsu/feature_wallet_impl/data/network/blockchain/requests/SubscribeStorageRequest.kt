@@ -9,7 +9,6 @@ class SubscribeStorageRequest(publicKey: ByteArray) : RuntimeRequest(
     listOf(
         listOf(
             StorageUtils.createStorageKey(Module.System.id, "Account", publicKey)
-
         )
     )
 )

@@ -60,6 +60,6 @@ class NodeListingProvider(
             Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
             Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
         }
-        return NodeModel(node.id, node.name, node.link, networkModelType)
+        return NodeModel(node.id, node.name, node.link, networkModelType, node.isDefault)
     }
 }

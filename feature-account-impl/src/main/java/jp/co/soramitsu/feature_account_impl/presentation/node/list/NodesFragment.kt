@@ -13,9 +13,9 @@ import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
-import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_nodes.addConnectionTv
 import kotlinx.android.synthetic.main.fragment_nodes.connectionsList
+import kotlinx.android.synthetic.main.fragment_nodes.fearlessToolbar
 
 class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler, AccountChooserBottomSheetDialog.ClickHandler {
 
@@ -68,6 +68,12 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.showAccountChooserLiveData.observeEvent {
             AccountChooserBottomSheetDialog(requireActivity(), it, this).show()
         }
+
+        viewModel.editMode.observe(adapter::switchToEdit)
+
+        viewModel.toolbarAction.observe(fearlessToolbar::setTextRight)
+
+        viewModel.deleteNodeEvent.observeEvent(::showDeleteNodeDialog)
     }
 
     override fun infoClicked(nodeModel: NodeModel) {
@@ -76,6 +82,23 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
     override fun checkClicked(nodeModel: NodeModel) {
         viewModel.selectNodeClicked(nodeModel)
+    }
+
+    override fun deleteClicked(nodeModel: NodeModel) {
+        viewModel.deleteNodeClicked(nodeModel)
+    }
+
+    private fun showDeleteNodeDialog(nodeModel: NodeModel) {
+        val message = getString(R.string.connection_delete_description, nodeModel.name)
+        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
+            .setTitle(R.string.connection_delete_title)
+            .setMessage(message)
+            .setPositiveButton(R.string.connection_delete_confirm) { dialog, _ ->
+                viewModel.confirmNodeDeletion(nodeModel)
+                dialog?.dismiss()
+            }
+            .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
+            .show()
     }
 
     private fun showNoAccountsDialog(networkType: Node.NetworkType) {
