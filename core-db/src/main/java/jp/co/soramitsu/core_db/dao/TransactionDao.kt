@@ -11,12 +11,16 @@ import io.reactivex.Single
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction.Status
 
 @Dao
 abstract class TransactionDao {
 
-    @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY date DESC")
-    abstract fun observeTransactions(accountAddress: String): Observable<List<TransactionLocal>>
+    @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY (case when status = :statusUp then 0 else 1 end), date DESC")
+    abstract fun observeTransactions(
+        accountAddress: String,
+        statusUp: Status = Status.PENDING
+    ): Observable<List<TransactionLocal>>
 
     @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY date DESC")
     abstract fun getTransactions(accountAddress: String): List<TransactionLocal>
@@ -42,6 +46,13 @@ abstract class TransactionDao {
     @Transaction
     open fun insertFromSubscan(accountAddress: String, transactions: List<TransactionLocal>) {
         clear(accountAddress, TransactionSource.SUBSCAN)
+
+        if (transactions.isNotEmpty()) {
+            val oldest = transactions.minBy(TransactionLocal::date)!!
+
+            clearOld(accountAddress, oldest.date)
+        }
+
         insertBlocking(transactions)
     }
 
@@ -50,4 +61,7 @@ abstract class TransactionDao {
 
     @Query("DELETE FROM transactions WHERE accountAddress = :accountAddress AND source = :source")
     protected abstract fun clear(accountAddress: String, source: TransactionSource)
+
+    @Query("DELETE FROM transactions WHERE date < :minDate AND accountAddress = :accountAddress")
+    protected abstract fun clearOld(accountAddress: String, minDate: Long)
 }
