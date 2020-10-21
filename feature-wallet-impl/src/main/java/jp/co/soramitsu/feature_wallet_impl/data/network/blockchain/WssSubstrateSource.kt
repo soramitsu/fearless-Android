@@ -2,7 +2,6 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
-import android.util.Log
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.rpc.DeliveryType
@@ -36,11 +35,11 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeC
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetBlockRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetStorageRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.SubscribeStorageRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.BalanceChange
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeRemote
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.BalanceChange
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.feeFrozen
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.free
@@ -69,7 +68,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Suppor
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
 import org.bouncycastle.util.encoders.Hex
-import java.math.BigDecimal
 import java.math.BigInteger
 
 class WssSubstrateSource(
@@ -129,13 +127,12 @@ class WssSubstrateSource(
             .map { block -> filterAccountTransactions(account, block.block.extrinsics) }
     }
 
-    override fun listenStakingLedger(account: Account) : Observable<EncodableStruct<StakingLedger>> {
+    override fun listenStakingLedger(account: Account): Observable<EncodableStruct<StakingLedger>> {
         val key = Module.Staking.Bonded.storageKey(extractPublicKeyBytes(account))
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscribe(request)
             .map { it.params.result.getSingleChange() }
-            .doOnDispose { Log.d("RX", "Disposed listen ledger") }
             .distinctUntilChanged()
             .switchMap { change ->
                 val controllerId = change.value
@@ -173,7 +170,7 @@ class WssSubstrateSource(
             }
     }
 
-    private fun createEmptyLedger(account: Account) : EncodableStruct<StakingLedger> {
+    private fun createEmptyLedger(account: Account): EncodableStruct<StakingLedger> {
         return StakingLedger { ledger ->
             ledger[StakingLedger.stash] = sS58Encoder.decode(account.address, mapNetworkTypeToAddressType(account.network.type))
             ledger[StakingLedger.active] = BigInteger.ZERO

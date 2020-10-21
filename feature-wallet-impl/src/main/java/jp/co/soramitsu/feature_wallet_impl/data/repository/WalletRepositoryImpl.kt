@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
-import android.util.Log
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -136,15 +135,12 @@ class WalletRepositoryImpl(
 
     override fun listenForUpdates(account: Account): Completable {
         val balanceUpdates = substrateSource.listenForAccountUpdates(account)
-            .doOnDispose { Log.d("RX", "Disposed balance updates") }
             .flatMapCompletable { change ->
                 updateAssetBalance(account, change.newAccountInfo)
                     .andThen(fetchTransactions(account, change.block))
             }
 
-
         val stakingUpdates = substrateSource.listenStakingLedger(account)
-            .doOnDispose { Log.d("RX", "Disposed staking updates") }
             .flatMapCompletable { stakingLedger ->
                 substrateSource.getActiveEra().flatMapCompletable { era ->
                     updateAssetStaking(account, stakingLedger, era)
@@ -152,19 +148,18 @@ class WalletRepositoryImpl(
             }
 
         return Completable.merge(listOf(balanceUpdates, stakingUpdates))
-            .doOnDispose { Log.d("RX", "Disposed all") }
     }
 
     private fun updateAssetStaking(
         account: Account,
         stakingLedger: EncodableStruct<StakingLedger>,
-        era: EncodableStruct<ActiveEraInfo>): Completable {
+        era: EncodableStruct<ActiveEraInfo>
+    ): Completable {
         return updateLocalAssetCopy(account) { cached ->
             val eraIndex = era[ActiveEraInfo.index].toLong()
 
             val redeemable = sumStaking(stakingLedger) { it <= eraIndex }
             val unbonding = sumStaking(stakingLedger) { it > eraIndex }
-
 
             cached.copy(
                 redeemableInPlanks = redeemable,

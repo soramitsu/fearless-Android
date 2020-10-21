@@ -10,16 +10,15 @@ import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
-import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionFilter
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionFilter
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
 
 private class TokenFilter(private val token: Asset.Token) : TransactionFilter {
     override fun shouldInclude(model: TransactionModel): Boolean {

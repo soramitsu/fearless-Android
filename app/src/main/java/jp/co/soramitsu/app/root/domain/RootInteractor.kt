@@ -2,7 +2,6 @@ package jp.co.soramitsu.app.root.domain
 
 import io.reactivex.Completable
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 

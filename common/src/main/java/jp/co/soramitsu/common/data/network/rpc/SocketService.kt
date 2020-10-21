@@ -1,6 +1,5 @@
 package jp.co.soramitsu.common.data.network.rpc
 
-import android.util.Log
 import com.google.gson.Gson
 import com.neovisionaries.ws.client.WebSocketFactory
 import com.neovisionaries.ws.client.WebSocketState
@@ -161,7 +160,6 @@ class SocketService(
                 Observable.create<SubscriptionChange> { emitter ->
                     subscriptions[subscriptionId] = SubscriptionMapEntry(request, emitter)
                 }.doOnComplete {
-                    Log.d("RX", "Removed subscription")
                     subscriptions.remove(subscriptionId)
                 }
             }
