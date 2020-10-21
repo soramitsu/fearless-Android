@@ -4,11 +4,15 @@ import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.data.network.scale.Schema
 import jp.co.soramitsu.common.data.network.scale.byte
 import jp.co.soramitsu.common.data.network.scale.compactInt
+import jp.co.soramitsu.common.data.network.scale.dataType.scalable
 import jp.co.soramitsu.common.data.network.scale.pair
 import jp.co.soramitsu.common.data.network.scale.schema
 import jp.co.soramitsu.common.data.network.scale.sizedByteArray
 import jp.co.soramitsu.common.data.network.scale.uint32
 import jp.co.soramitsu.common.data.network.scale.dataType.uint8
+import jp.co.soramitsu.common.data.network.scale.enum
+import jp.co.soramitsu.common.data.network.scale.invoke
+import jp.co.soramitsu.common.data.network.scale.uint64
 import jp.co.soramitsu.common.data.network.scale.uint8
 import jp.co.soramitsu.common.utils.requirePrefix
 import org.bouncycastle.crypto.digests.Blake2bDigest
@@ -33,13 +37,24 @@ object SignedExtrinsic : Schema<SignedExtrinsic>() {
     val signatureVersion by uint8()
     val signature by sizedByteArray(64)
 
-    val era by byte(default = ERA)
+    val era by enum(
+        scalable(EraImmortal),
+        scalable(EraMortal),
+        default = EraImmortal()
+    )
 
     val nonce by compactInt()
 
     val tip by compactInt(default = TIP)
 
     val call by schema(Call)
+}
+
+object EraImmortal : Schema<EraImmortal>()
+
+object EraMortal : Schema<EraMortal>() {
+    val period by uint64()
+    val phase by uint64()
 }
 
 object Call : Schema<Call>() {
@@ -50,7 +65,8 @@ object Call : Schema<Call>() {
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 enum class SupportedCall(val index: Pair<UByte, UByte>) {
-    TRANSFER(4.toUByte() to 0.toUByte());
+    TRANSFER(4.toUByte() to 0.toUByte()),
+    TRANSFER_KEEP_ALIVE(4.toUByte() to 3.toUByte());
 
     companion object {
         fun from(callIndex: Pair<UByte, UByte>): SupportedCall? {

@@ -1,4 +1,4 @@
-@file:Suppress("ClassName")
+@file:Suppress("ClassName", "UNCHECKED_CAST")
 
 package jp.co.soramitsu.common.data.network.scale.dataType
 
@@ -23,6 +23,9 @@ class tuple<A, B>(
         a.write(writer, value.first)
         b.write(writer, value.second)
     }
+
+    override fun conformsType(value: Any?) =
+        value is Pair<*, *> && a.conformsType(value.first) && b.conformsType(value.second)
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -49,6 +52,8 @@ class optional<T>(private val dataType: DataType<T>) : DataType<T?>() {
             writer.writeOptional(dataType, value)
         }
     }
+
+    override fun conformsType(value: Any?) = value == null || dataType.conformsType(value)
 }
 
 class list<T>(private val dataType: DataType<T>) : DataType<List<T>>() {
@@ -72,6 +77,10 @@ class list<T>(private val dataType: DataType<T>) : DataType<List<T>>() {
             dataType.write(writer, it)
         }
     }
+
+    override fun conformsType(value: Any?): Boolean {
+        return value is List<*> && value.all(dataType::conformsType)
+    }
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -82,5 +91,35 @@ class scalable<S : Schema<S>>(private val schema: Schema<S>) : DataType<Encodabl
 
     override fun write(writer: ScaleCodecWriter, struct: EncodableStruct<S>) {
         schema.write(writer, struct)
+    }
+
+    override fun conformsType(value: Any?): Boolean {
+        return value is EncodableStruct<*> && value.schema == schema
+    }
+}
+
+class union(val dataTypes: Array<out DataType<*>>) : DataType<Any?>() {
+    override fun read(reader: ScaleCodecReader): Any? {
+        val typeIndex = reader.readByte()
+        val type = dataTypes[typeIndex.toInt()]
+
+        return type.read(reader)
+    }
+
+    override fun write(writer: ScaleCodecWriter, value: Any?) {
+        val typeIndex = dataTypes.indexOfFirst { it.conformsType(value) }
+
+        if (typeIndex == -1) {
+            throw java.lang.IllegalArgumentException("Unknown type ${value?.javaClass} for this enum. Supported: ${dataTypes.joinToString(", ")}")
+        }
+
+        val type = dataTypes[typeIndex] as DataType<Any?>
+
+        writer.write(uint8, typeIndex.toUByte())
+        writer.write(type, value)
+    }
+
+    override fun conformsType(value: Any?): Boolean {
+        return dataTypes.any { it.conformsType(value) }
     }
 }

@@ -336,7 +336,7 @@ class WssSubstrateSource(
             val callIndex = stub[signedExtrinsic][call][callIndex]
             val call = SupportedCall.from(callIndex)
 
-            call != null && call == SupportedCall.TRANSFER
+            call != null
         }
             .map(SubmittableExtrinsic::read)
             .filter { transfer ->

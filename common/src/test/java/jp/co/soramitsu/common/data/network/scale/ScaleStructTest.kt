@@ -19,9 +19,12 @@ import jp.co.soramitsu.common.data.network.scale.DefaultValues.bytes
 import jp.co.soramitsu.common.data.network.scale.DefaultValues.text
 import jp.co.soramitsu.common.data.network.scale.Vector.numbers
 import jp.co.soramitsu.common.data.network.scale.dataType.compactInt
+import jp.co.soramitsu.common.data.network.scale.dataType.scalable
 import jp.co.soramitsu.common.data.network.scale.dataType.string
 import jp.co.soramitsu.common.data.network.scale.dataType.uint16
 import jp.co.soramitsu.common.data.network.scale.dataType.uint32
+import jp.co.soramitsu.common.data.network.scale.dataType.uint8 as Uint8
+import jp.co.soramitsu.common.data.network.scale.dataType.boolean as Bool
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -68,6 +71,26 @@ object Account : Schema<Account>() {
 
 object Vector : Schema<Vector>() {
     val numbers by vector(uint16)
+}
+
+object EnumTest : Schema<EnumTest>() {
+    val intOrBool by enum(
+        Uint8, Bool
+    )
+}
+
+private object EraImmortal : Schema<EraImmortal>()
+
+private object EraMortal : Schema<EraMortal>() {
+    val period by uint64()
+    val phase by uint64()
+}
+
+object EnumTest2 : Schema<EnumTest2>() {
+    val era by enum(
+        scalable(EraImmortal),
+        scalable(EraMortal)
+    )
 }
 
 private val BYTES_DEFAULT = ByteArray(10) { it.toByte() }
@@ -198,5 +221,36 @@ class ScaleStructTest {
         val afterIO = Vector.read(encoded)
 
         assertEquals(data, afterIO[numbers])
+    }
+
+    @Test
+    fun `should handle enum`() {
+        val enum1 = EnumTest {
+            it[EnumTest.intOrBool] = true
+        }
+
+        val enum2 = EnumTest {
+            it[EnumTest.intOrBool] = 42.toUByte()
+        }
+
+        assertEquals(EnumTest.toHexString(enum1), "0x0101")
+        assertEquals(EnumTest.toHexString(enum2), "0x002a")
+    }
+
+    @Test
+    fun `should handle enum with structs`() {
+        val enum1 = EnumTest2 {
+            it[EnumTest2.era] = EraImmortal()
+        }
+
+        val enum2 = EnumTest2 {
+            it[EnumTest2.era] = EraMortal { era ->
+                era[EraMortal.period] = BigInteger.ONE
+                era[EraMortal.phase] = BigInteger("3")
+            }
+        }
+
+        assertEquals(EnumTest2.toHexString(enum1), "0x00")
+        assertEquals(EnumTest2.toHexString(enum2), "0x0101000000000000000300000000000000")
     }
 }
