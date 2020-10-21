@@ -51,7 +51,7 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
         asset.recentRateChange?.let { showRateChange(it, asset.rateChangeColorRes!!) }
         asset.dollarAmount?.let { itemAssetDollarAmount.text = it.formatAsCurrency() }
 
-        itemAssetBalance.text = asset.balance.format()
+        itemAssetBalance.text = asset.total.format()
 
         itemAssetToken.text = asset.token.displayName
 

@@ -41,6 +41,4 @@ interface WalletInteractor {
     fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable
 
     fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean>
-
-    fun listenForAccountUpdates(account: Account): Completable
 }

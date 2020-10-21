@@ -2,6 +2,7 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
+import android.util.Log
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.common.data.network.rpc.DeliveryType
@@ -18,6 +19,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.runtime.Module
+import jp.co.soramitsu.fearless_utils.runtime.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
@@ -31,21 +34,24 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.Tr
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetBlockRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetStorageRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.SubscribeStorageRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeRemote
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.StorageChange
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.BalanceChange
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.feeFrozen
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.free
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.miscFrozen
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.reserved
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountId
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.data
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.nonce
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.refCount
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ActiveEraInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.args
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.callIndex
@@ -55,6 +61,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Signed
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.call
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.signature
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.signatureVersion
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.StakingLedger
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.byteLength
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.signedExtrinsic
@@ -62,6 +69,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Suppor
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
 import org.bouncycastle.util.encoders.Hex
+import java.math.BigDecimal
 import java.math.BigInteger
 
 class WssSubstrateSource(
@@ -106,11 +114,12 @@ class WssSubstrateSource(
         }
     }
 
-    override fun listenForAccountUpdates(account: Account): Observable<StorageChange> {
-        val request = SubscribeStorageRequest(extractPublicKeyBytes(account))
+    override fun listenForAccountUpdates(account: Account): Observable<BalanceChange> {
+        val key = Module.System.Account.storageKey(extractPublicKeyBytes(account))
+        val request = SubscribeStorageRequest(key)
 
         return socketService.subscribe(request)
-            .map(::buildStorageChange)
+            .map(::buildBalanceChange)
     }
 
     override fun fetchAccountTransactionInBlock(blockHash: String, account: Account): Single<List<EncodableStruct<SubmittableExtrinsic>>> {
@@ -120,18 +129,68 @@ class WssSubstrateSource(
             .map { block -> filterAccountTransactions(account, block.block.extrinsics) }
     }
 
-    private fun buildStorageChange(subscriptionChange: SubscriptionChange): StorageChange {
+    override fun listenStakingLedger(account: Account) : Observable<EncodableStruct<StakingLedger>> {
+        val key = Module.Staking.Bonded.storageKey(extractPublicKeyBytes(account))
+        val request = SubscribeStorageRequest(key)
+
+        return socketService.subscribe(request)
+            .map { it.params.result.getSingleChange() }
+            .doOnDispose { Log.d("RX", "Disposed listen ledger") }
+            .distinctUntilChanged()
+            .switchMap { change ->
+                val controllerId = change.value
+
+                if (controllerId != null) {
+                    subscribeToLedger(account, controllerId)
+                } else {
+                    Observable.just(createEmptyLedger(account))
+                }
+            }
+    }
+
+    override fun getActiveEra(): Single<EncodableStruct<ActiveEraInfo>> {
+        val key = Module.Staking.ActiveEra.storageKey()
+        val request = GetStorageRequest(key)
+
+        return socketService.executeRequest(request, responseType = scale(ActiveEraInfo).nonNull())
+    }
+
+    private fun subscribeToLedger(account: Account, controllerId: String): Observable<EncodableStruct<StakingLedger>> {
+        val accountId = AccountId.read(controllerId)
+        val bytes = AccountId.toByteArray(accountId)
+
+        val key = Module.Staking.Ledger.storageKey(bytes)
+        val request = SubscribeStorageRequest(key)
+
+        return socketService.subscribe(request)
+            .map { it.params.result.getSingleChange() }
+            .map { change ->
+                if (change.value.isNullOrBlank()) {
+                    createEmptyLedger(account)
+                } else {
+                    StakingLedger.read(change.value!!)
+                }
+            }
+    }
+
+    private fun createEmptyLedger(account: Account) : EncodableStruct<StakingLedger> {
+        return StakingLedger { ledger ->
+            ledger[StakingLedger.stash] = sS58Encoder.decode(account.address, mapNetworkTypeToAddressType(account.network.type))
+            ledger[StakingLedger.active] = BigInteger.ZERO
+            ledger[StakingLedger.claimedRewards] = emptyList()
+            ledger[StakingLedger.total] = BigInteger.ZERO
+            ledger[StakingLedger.unlocking] = emptyList()
+        }
+    }
+
+    private fun buildBalanceChange(subscriptionChange: SubscriptionChange): BalanceChange {
         val block = subscriptionChange.params.result.block
 
-        // changes are in format [[storage key, account info], [..], ..]
-        val changes = subscriptionChange.params.result.changes as List<List<String?>>
+        val change = subscriptionChange.params.result.getSingleChange()
 
-        // only interested in one account
-        val encodedAccountInfo = changes.first()[1]
+        val accountInfo = if (change.value != null) AccountInfo.read(change.value!!) else emptyAccountInfo()
 
-        val accountInfo = if (encodedAccountInfo != null) AccountInfo.read(encodedAccountInfo) else emptyAccountInfo()
-
-        return StorageChange(block, accountInfo)
+        return BalanceChange(block, accountInfo)
     }
 
     private fun extractPublicKeyBytes(account: Account): ByteArray {

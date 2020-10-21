@@ -56,7 +56,10 @@ class list<T>(private val dataType: DataType<T>) : DataType<List<T>>() {
         val size = compactInt.read(reader)
         val result = mutableListOf<T>()
 
-        repeat(size.toInt()) { result.add(dataType.read(reader)) }
+        repeat(size.toInt()) {
+            val element = dataType.read(reader)
+            result.add(element)
+        }
 
         return result
     }

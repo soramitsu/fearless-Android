@@ -6,10 +6,10 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Accoun
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.data
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.nonce
 import junit.framework.Assert.assertEquals
+import org.bouncycastle.util.encoders.Hex
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner
-import org.spongycastle.util.encoders.Hex
 import java.io.ByteArrayOutputStream
 
 @RunWith(MockitoJUnitRunner::class)

@@ -105,7 +105,7 @@
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>
 
-    <string name="wallet_balance_bonded">Bonded</string>
+    <string name="wallet_balance_bonded">Frozen</string>
     <string name="wallet_balance_available">Available</string>
     <string name="language_title">Language</string>
 

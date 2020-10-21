@@ -91,8 +91,4 @@ class WalletInteractorImpl(
     override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {
         return walletRepository.checkEnoughAmountForTransfer(transfer)
     }
-
-    override fun listenForAccountUpdates(account: Account): Completable {
-        return walletRepository.listenForUpdates(account)
-    }
 }

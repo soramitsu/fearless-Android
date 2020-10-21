@@ -56,7 +56,8 @@ abstract class Schema<S : Schema<S>> : ScaleReader<EncodableStruct<S>>,
         val struct = EncodableStruct(this)
 
         for (field in fields) {
-            struct[field as Field<Any?>] = field.dataType.read(reader)
+            val value = field.dataType.read(reader)
+            struct[field as Field<Any?>] = value
         }
 
         return struct

@@ -35,11 +35,10 @@ class BalanceDetailModule {
     fun provideViewModel(
         interactor: WalletInteractor,
         router: WalletRouter,
-        iconGenerator: IconGenerator,
         transactionHistoryMixin: TransactionHistoryMixin,
         token: Asset.Token
     ): ViewModel {
-        return BalanceDetailViewModel(interactor, iconGenerator, router, token, transactionHistoryMixin)
+        return BalanceDetailViewModel(interactor, router, token, transactionHistoryMixin)
     }
 
     @Provides

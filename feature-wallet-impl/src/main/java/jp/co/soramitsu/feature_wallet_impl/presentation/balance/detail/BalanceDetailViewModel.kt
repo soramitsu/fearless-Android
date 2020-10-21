@@ -21,9 +21,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixi
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
-// TODO use dp
-private const val ICON_SIZE_IN_PX = 40
-
 private class TokenFilter(private val token: Asset.Token) : TransactionFilter {
     override fun shouldInclude(model: TransactionModel): Boolean {
         return token == model.token
@@ -32,16 +29,19 @@ private class TokenFilter(private val token: Asset.Token) : TransactionFilter {
 
 class BalanceDetailViewModel(
     private val interactor: WalletInteractor,
-    private val iconGenerator: IconGenerator,
     private val router: WalletRouter,
     private val token: Asset.Token,
     private val transactionHistoryMixin: TransactionHistoryMixin
 ) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin {
+
     private var transactionsRefreshed: Boolean = false
     private var balanceRefreshed: Boolean = false
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
+
+    private val _showFrozenDetailsEvent = MutableLiveData<Event<AssetModel>>()
+    val showFrozenDetailsEvent: LiveData<Event<AssetModel>> = _showFrozenDetailsEvent
 
     private val errorHandler: ErrorHandler = {
         showError(it.message!!)
@@ -68,13 +68,6 @@ class BalanceDetailViewModel(
 
     val assetLiveData = observeAssetModel().asLiveData()
 
-    private fun observeAssetModel(): Observable<AssetModel> {
-        return interactor.observeAsset(token)
-            .subscribeOn(Schedulers.io())
-            .map(::mapAssetToAssetModel)
-            .observeOn(AndroidSchedulers.mainThread())
-    }
-
     fun syncAsset() {
         disposables += interactor.syncAsset(token)
             .subscribeOn(Schedulers.io())
@@ -97,6 +90,19 @@ class BalanceDetailViewModel(
 
     fun sendClicked() {
         router.openChooseRecipient()
+    }
+
+    fun frozenInfoClicked() {
+        assetLiveData.value?.let {
+            _showFrozenDetailsEvent.value = Event(it)
+        }
+    }
+
+    private fun observeAssetModel(): Observable<AssetModel> {
+        return interactor.observeAsset(token)
+            .subscribeOn(Schedulers.io())
+            .map(::mapAssetToAssetModel)
+            .observeOn(AndroidSchedulers.mainThread())
     }
 
     private fun transactionsRefreshFinished() {

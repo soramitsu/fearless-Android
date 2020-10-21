@@ -13,7 +13,10 @@ fun mapAssetLocalToAsset(assetLocal: AssetLocal): Asset {
             feeFrozenInPlanks = feeFrozenInPlanks,
             miscFrozenInPlanks = miscFrozenInPlanks,
             dollarRate = dollarRate,
-            recentRateChange = recentRateChange
+            recentRateChange = recentRateChange,
+            bondedInPlanks = bondedInPlanks,
+            unbondingInPlanks = unbondingInPlanks,
+            redeemableInPlanks = redeemableInPlanks
         )
     }
 }
@@ -27,7 +30,10 @@ fun mapAssetToAssetLocal(asset: Asset, accountAddress: String): AssetLocal {
             feeFrozenInPlanks = feeFrozenInPlanks,
             miscFrozenInPlanks = miscFrozenInPlanks,
             dollarRate = dollarRate,
-            recentRateChange = recentRateChange
+            recentRateChange = recentRateChange,
+            redeemableInPlanks = redeemableInPlanks,
+            unbondingInPlanks = unbondingInPlanks,
+            bondedInPlanks = bondedInPlanks
         )
     }
 }
@@ -36,9 +42,14 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
     return with(asset) {
         AssetModel(
             token = token,
-            balance = free,
-            bonded = reserved,
+            total = total,
+            bonded = bonded,
+            locked = locked,
             available = transferable,
+            reserved = reserved,
+            frozen = frozen,
+            redeemable = redeemable,
+            unbonding = unbonding,
             dollarRate = dollarRate,
             recentRateChange = recentRateChange,
             dollarAmount = dollarAmount
