@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_balance_locked">Locked</string>
+    <string name="wallet_balance_reserved">Reserved</string>
+    <string name="wallet_balance_redeemable">Redeemable</string>
+    <string name="wallet_balance_unbonding">Unbonding</string>
+
+    <string name="wallet_balance_frozen_template">Frozen %s</string>
+
     <string name="common_unknown">Unknown</string>
     <string name="common_connecting">Connecting…</string>
 
