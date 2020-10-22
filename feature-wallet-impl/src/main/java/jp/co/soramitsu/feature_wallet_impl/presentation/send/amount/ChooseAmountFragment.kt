@@ -108,7 +108,21 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
             BalanceDetailsBottomSheet(requireContext(), it).show()
         }
 
+        viewModel.showAccountRemovalWarning.observeEvent {
+            showAccountRemovalWarning()
+        }
+
         chooseAmountField.onTextChanged(viewModel::amountChanged)
+    }
+
+    private fun showAccountRemovalWarning() {
+        AlertDialog.Builder(requireActivity())
+            .setTitle(R.string.wallet_send_existential_warning_title)
+            .setMessage(R.string.wallet_send_existential_warning_message)
+            .setCancelable(false)
+            .setPositiveButton(R.string.common_continue) { _, _ -> viewModel.transferRemovingAccountConfirmed() }
+            .setNegativeButton(R.string.common_cancel, null)
+            .show()
     }
 
     private fun showRetry(reason: RetryReason) {

@@ -7,6 +7,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransactionsPage
@@ -87,7 +88,7 @@ class WalletInteractorImpl(
         return walletRepository.performTransfer(transfer, fee)
     }
 
-    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {
+    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<CheckFundsStatus> {
         return walletRepository.checkEnoughAmountForTransfer(transfer)
     }
 }

@@ -5,4 +5,6 @@
     <string name="wallet_balance_details_total">Total balance</string>
     <string name="wallet_balance_details_total_after">Total after transfer</string>
     <string name="wallet_balance_details_existential_deposit">Existential deposit</string>
+    <string name="wallet_send_existential_warning_title">Transfer will remove account</string>
+    <string name="wallet_send_existential_warning_message">Your transfer will remove account from blockstore since it will make total balance lower than existential deposit.</string>
 </resources>
