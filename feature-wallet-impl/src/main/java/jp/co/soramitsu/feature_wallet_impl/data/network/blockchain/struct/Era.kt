@@ -26,7 +26,7 @@ object EraType : DataType<Era>() {
     }
 
     override fun write(writer: ScaleCodecWriter, value: Era) {
-        when(value) {
+        when (value) {
             is Era.Immortal -> writer.writeByte(0)
             is Era.Mortal -> {
                 writer.writeByte(value.period)
@@ -34,5 +34,4 @@ object EraType : DataType<Era>() {
             }
         }
     }
-
 }

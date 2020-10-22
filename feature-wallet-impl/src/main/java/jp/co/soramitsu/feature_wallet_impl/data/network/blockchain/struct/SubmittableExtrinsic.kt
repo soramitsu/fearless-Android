@@ -2,18 +2,13 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.data.network.scale.Schema
-import jp.co.soramitsu.common.data.network.scale.byte
 import jp.co.soramitsu.common.data.network.scale.compactInt
 import jp.co.soramitsu.common.data.network.scale.custom
-import jp.co.soramitsu.common.data.network.scale.dataType.scalable
+import jp.co.soramitsu.common.data.network.scale.dataType.uint8
 import jp.co.soramitsu.common.data.network.scale.pair
 import jp.co.soramitsu.common.data.network.scale.schema
 import jp.co.soramitsu.common.data.network.scale.sizedByteArray
 import jp.co.soramitsu.common.data.network.scale.uint32
-import jp.co.soramitsu.common.data.network.scale.dataType.uint8
-import jp.co.soramitsu.common.data.network.scale.enum
-import jp.co.soramitsu.common.data.network.scale.invoke
-import jp.co.soramitsu.common.data.network.scale.uint64
 import jp.co.soramitsu.common.data.network.scale.uint8
 import jp.co.soramitsu.common.utils.requirePrefix
 import org.bouncycastle.crypto.digests.Blake2bDigest
