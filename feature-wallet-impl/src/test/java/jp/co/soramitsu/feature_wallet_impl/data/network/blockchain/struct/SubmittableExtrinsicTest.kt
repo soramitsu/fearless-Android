@@ -26,5 +26,10 @@ class SubmittableExtrinsicTest {
         val data = "310284fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168003a8eb7f3be70d98d86a9ba66f29d8aae0fea70a820a66f38272044811b21f2e7d5e16c73375a3ac775b98177ff0e125a109f0c58f7d7dc1a507b37879250060ec50238000403340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c6302286bee"
 
         val decoded = SubmittableExtrinsic.read(data)
+
+        val callIndex = decoded[SubmittableExtrinsic.signedExtrinsic][SignedExtrinsic.call][Call.callIndex]
+        val expectedCallIndex = SupportedCall.TRANSFER_KEEP_ALIVE.index
+
+        assertEquals(expectedCallIndex, callIndex)
     }
 }

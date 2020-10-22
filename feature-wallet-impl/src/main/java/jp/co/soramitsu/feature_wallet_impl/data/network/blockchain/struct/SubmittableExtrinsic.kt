@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.data.network.scale.Schema
 import jp.co.soramitsu.common.data.network.scale.byte
 import jp.co.soramitsu.common.data.network.scale.compactInt
+import jp.co.soramitsu.common.data.network.scale.custom
 import jp.co.soramitsu.common.data.network.scale.dataType.scalable
 import jp.co.soramitsu.common.data.network.scale.pair
 import jp.co.soramitsu.common.data.network.scale.schema
@@ -20,7 +21,6 @@ import org.bouncycastle.jcajce.provider.digest.BCMessageDigest
 import org.bouncycastle.util.encoders.Hex
 
 private val VERSION = "84".toUByte(radix = 16)
-private const val ERA = 0.toByte()
 private val TIP = 0.toBigInteger()
 
 object SubmittableExtrinsic : Schema<SubmittableExtrinsic>() {
@@ -37,24 +37,13 @@ object SignedExtrinsic : Schema<SignedExtrinsic>() {
     val signatureVersion by uint8()
     val signature by sizedByteArray(64)
 
-    val era by enum(
-        scalable(EraImmortal),
-        scalable(EraMortal),
-        default = EraImmortal()
-    )
+    val era by custom(EraType, default = Era.Immortal)
 
     val nonce by compactInt()
 
     val tip by compactInt(default = TIP)
 
     val call by schema(Call)
-}
-
-object EraImmortal : Schema<EraImmortal>()
-
-object EraMortal : Schema<EraMortal>() {
-    val period by uint64()
-    val phase by uint64()
 }
 
 object Call : Schema<Call>() {
@@ -84,7 +73,7 @@ object TransferArgs : Schema<TransferArgs>() {
 object ExtrinsicPayloadValue : Schema<ExtrinsicPayloadValue>() {
     val call by schema(Call)
 
-    val era by byte(default = ERA)
+    val era by custom(EraType, default = Era.Immortal)
 
     val nonce by compactInt()
 
