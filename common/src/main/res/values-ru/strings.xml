@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_send_existential_warning_title">Перевод удалит аккаунт</string>
+    <string name="wallet_send_existential_warning_message">Ваш перевод удалит учетную запись, так как общий баланс будет ниже, чем существующий депозит.</string>
+    <string name="wallet_balance_details_existential_deposit">Экзистенциальный депозит</string>
+    <string name="wallet_balance_details_total_after">Общий после перевода</string>
+    <string name="wallet_balance_details_total">Общий баланс</string>
+    <string name="wallet_balance_details_title">Детали баланса</string>
+
     <string name="wallet_balance_unbonding">Несвязанность</string>
     <string name="wallet_balance_reserved">Резерв</string>
     <string name="wallet_balance_redeemable">Погашаемый</string>
@@ -124,7 +131,7 @@
 
     <string name="choose_amount_asset">Токен</string>
     <string name="choose_amount_fee">Комиссия</string>
-    <string name="choose_amount_free_balance">Свободный баланс:</string>
+    <string name="choose_amount_available_balance">Свободный баланс</string>
     <string name="common_amount">Сумма</string>
     <string name="choose_amount_network_error">Сеть недоступна</string>
     <string name="choose_amount_to">Кому</string>

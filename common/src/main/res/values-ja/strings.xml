@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_send_existential_warning_title">転送するとアカウントが削除されます</string>
+    <string name="wallet_send_existential_warning_message">送金により、合計残高が既存の預金よりも少なくなるため、ブロックストアからアカウントが削除されます</string>
+    <string name="wallet_balance_details_existential_deposit">実存的預金</string>
+    <string name="wallet_balance_details_total_after">転送後の合計</string>
+    <string name="wallet_balance_details_total">総合収支</string>
+    <string name="wallet_balance_details_title">残高の詳細</string>
+
     <string name="wallet_balance_unbonding">接着解除</string>
     <string name="wallet_balance_reserved">予約済み</string>
     <string name="wallet_balance_redeemable">償還可能</string>
@@ -123,7 +130,7 @@
 
     <string name="choose_amount_asset">資産</string>
     <string name="choose_amount_fee">転送料</string>
-    <string name="choose_amount_free_balance">フリーバランス：</string>
+    <string name="choose_amount_available_balance">フリーバランス</string>
     <string name="common_amount">量</string>
     <string name="choose_amount_network_error">ネットワークが応答しない</string>
     <string name="choose_amount_to">に</string>
