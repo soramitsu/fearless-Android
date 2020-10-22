@@ -33,6 +33,8 @@ interface WalletInteractor {
 
     fun getContacts(query: String): Single<List<String>>
 
+    fun getMyAddresses(query: String): Single<List<String>>
+
     fun validateSendAddress(address: String): Single<Boolean>
 
     fun getTransferFee(transfer: Transfer): Single<Fee>

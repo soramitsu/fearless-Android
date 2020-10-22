@@ -59,6 +59,8 @@ interface AccountRepository {
 
     fun getAccount(address: String): Single<Account>
 
+    fun getMyAccounts(query: String, networkType: Node.NetworkType): Single<List<String>>
+
     fun importFromMnemonic(
         keyString: String,
         username: String,

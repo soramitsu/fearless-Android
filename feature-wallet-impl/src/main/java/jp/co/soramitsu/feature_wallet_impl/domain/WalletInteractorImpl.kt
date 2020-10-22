@@ -73,6 +73,11 @@ class WalletInteractorImpl(
             .flatMap { walletRepository.getContacts(query, it.network.type) }
     }
 
+    override fun getMyAddresses(query: String): Single<List<String>> {
+        return accountRepository.observeSelectedAccount().firstOrError()
+            .flatMap { accountRepository.getMyAccounts(query, it.network.type) }
+    }
+
     override fun validateSendAddress(address: String): Single<Boolean> {
         return getAddressId(address)
             .map { true }
