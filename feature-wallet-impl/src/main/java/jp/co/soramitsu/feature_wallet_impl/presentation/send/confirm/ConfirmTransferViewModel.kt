@@ -57,7 +57,7 @@ class ConfirmTransferViewModel(
     }
 
     private fun getAddressIcon() = interactor.getAddressId(transferDraft.recipientAddress)
-        .flatMap { addressIconGenerator.createAddressIcon(transferDraft.recipientAddress, it, ICON_IN_DP) }
+        .flatMap { addressIconGenerator.createAddressModel(transferDraft.recipientAddress, it, ICON_IN_DP) }
 
     private fun createTransfer(): Transfer {
         return with(transferDraft) {

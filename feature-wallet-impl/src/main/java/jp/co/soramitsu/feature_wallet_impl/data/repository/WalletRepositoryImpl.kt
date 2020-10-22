@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
+import android.util.Log
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single

@@ -4,6 +4,7 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -59,9 +60,8 @@ class WalletInteractorImpl(
         return walletRepository.getTransactionPage(pageSize, page)
     }
 
-    override fun observeSelectedAddressId(): Observable<ByteArray> {
+    override fun observeSelectedAccount(): Observable<Account> {
         return accountRepository.observeSelectedAccount()
-            .flatMapSingle { accountRepository.getAddressId(it) }
     }
 
     override fun getAddressId(address: String): Single<ByteArray> {
@@ -89,5 +89,17 @@ class WalletInteractorImpl(
 
     override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {
         return walletRepository.checkEnoughAmountForTransfer(transfer)
+    }
+
+    override fun getAccountsInCurrentNetwork(): Single<List<Account>> {
+        return accountRepository.observeSelectedAccount().firstOrError()
+            .flatMap {
+                accountRepository.getAccountsByNetworkType(it.network.type)
+            }
+    }
+
+    override fun selectAccount(address: String) : Completable {
+        return accountRepository.getAccount(address)
+            .flatMapCompletable(accountRepository::selectAccount)
     }
 }
