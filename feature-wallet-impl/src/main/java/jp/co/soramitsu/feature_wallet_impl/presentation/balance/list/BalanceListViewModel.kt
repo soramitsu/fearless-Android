@@ -107,7 +107,7 @@ class BalanceListViewModel(
     }
 
     fun avatarClicked() {
-       val currentAddressModel = currentAddressModelLiveData.value ?: return
+        val currentAddressModel = currentAddressModelLiveData.value ?: return
 
         disposables += interactor.getAccountsInCurrentNetwork()
             .subscribeOn(Schedulers.io())

@@ -98,7 +98,7 @@ class WalletInteractorImpl(
             }
     }
 
-    override fun selectAccount(address: String) : Completable {
+    override fun selectAccount(address: String): Completable {
         return accountRepository.getAccount(address)
             .flatMapCompletable(accountRepository::selectAccount)
     }

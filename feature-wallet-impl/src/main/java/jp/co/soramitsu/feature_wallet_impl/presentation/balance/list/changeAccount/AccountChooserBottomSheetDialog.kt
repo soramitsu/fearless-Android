@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount
 
 import android.app.Activity
-import android.os.Bundle
 import android.view.LayoutInflater
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.account.AddressModel
