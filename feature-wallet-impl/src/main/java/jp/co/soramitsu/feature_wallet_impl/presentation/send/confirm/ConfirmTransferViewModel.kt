@@ -28,7 +28,7 @@ class ConfirmTransferViewModel(
 ) : BaseViewModel() {
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<Unit>>()
-    val showBalanceDetailsEvent : LiveData<Event<Unit>> = _showBalanceDetailsEvent
+    val showBalanceDetailsEvent: LiveData<Event<Unit>> = _showBalanceDetailsEvent
 
     val recipientModel = getAddressIcon()
         .asLiveData()

@@ -55,11 +55,7 @@ class Asset(
                 }
             }
         }
-
-         val exestentialDepositInPlanks = planksFromAmount(networkType.existentialDeposit)
     }
 }
 
 fun Asset.Token.amountFromPlanks(amountInPlanks: BigInteger) = amountInPlanks.toBigDecimal(scale = mantissa)
-
-fun Asset.Token.planksFromAmount(amount: BigDecimal): BigInteger = amount.scaleByPowerOfTen(mantissa).toBigIntegerExact()
