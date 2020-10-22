@@ -165,7 +165,7 @@ class ChooseAmountViewModel(
         val fee = feeLiveData.value!!.amount!!
         val asset = assetLiveData.value!!
 
-        val transferDraft = TransferDraft(amount, fee, asset.balance, asset.token, recipientAddress)
+        val transferDraft = TransferDraft(amount, fee, asset.total, asset.token, recipientAddress)
 
         router.openConfirmTransfer(transferDraft)
     }

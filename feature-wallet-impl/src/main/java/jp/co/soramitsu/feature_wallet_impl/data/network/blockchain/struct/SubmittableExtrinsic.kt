@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.data.network.scale.pair
 import jp.co.soramitsu.common.data.network.scale.schema
 import jp.co.soramitsu.common.data.network.scale.sizedByteArray
 import jp.co.soramitsu.common.data.network.scale.uint32
+import jp.co.soramitsu.common.data.network.scale.dataType.uint8
 import jp.co.soramitsu.common.data.network.scale.uint8
 import jp.co.soramitsu.common.utils.requirePrefix
 import org.bouncycastle.crypto.digests.Blake2bDigest

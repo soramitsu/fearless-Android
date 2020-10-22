@@ -4,6 +4,9 @@ import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import io.emeraldpay.polkaj.scale.ScaleReader
 import io.emeraldpay.polkaj.scale.ScaleWriter
+import jp.co.soramitsu.common.data.network.scale.dataType.DataType
+import jp.co.soramitsu.common.data.network.scale.dataType.optional
+import jp.co.soramitsu.common.utils.requirePrefix
 import org.bouncycastle.util.encoders.Hex
 import java.io.ByteArrayOutputStream
 import java.lang.IndexOutOfBoundsException
@@ -53,7 +56,8 @@ abstract class Schema<S : Schema<S>> : ScaleReader<EncodableStruct<S>>,
         val struct = EncodableStruct(this)
 
         for (field in fields) {
-            struct[field as Field<Any?>] = field.dataType.read(reader)
+            val value = field.dataType.read(reader)
+            struct[field as Field<Any?>] = value
         }
 
         return struct
@@ -69,7 +73,7 @@ abstract class Schema<S : Schema<S>> : ScaleReader<EncodableStruct<S>>,
         return outputStream.toByteArray()
     }
 
-    fun toHexString(struct: EncodableStruct<S>): String = "0x${Hex.toHexString(toByteArray(struct))}"
+    fun toHexString(struct: EncodableStruct<S>): String = Hex.toHexString(toByteArray(struct)).requirePrefix("0x")
 
     override fun write(writer: ScaleCodecWriter, struct: EncodableStruct<S>) {
         for (field in fields) {

@@ -4,7 +4,6 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -90,9 +89,5 @@ class WalletInteractorImpl(
 
     override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {
         return walletRepository.checkEnoughAmountForTransfer(transfer)
-    }
-
-    override fun listenForAccountUpdates(account: Account): Completable {
-        return walletRepository.listenForUpdates(account)
     }
 }

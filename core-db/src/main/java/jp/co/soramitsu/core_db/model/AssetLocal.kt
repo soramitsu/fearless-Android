@@ -22,6 +22,28 @@ data class AssetLocal(
     val reservedInPlanks: BigInteger,
     val miscFrozenInPlanks: BigInteger,
     val feeFrozenInPlanks: BigInteger,
+    val bondedInPlanks: BigInteger,
+    val redeemableInPlanks: BigInteger,
+    val unbondingInPlanks: BigInteger,
     val dollarRate: BigDecimal?,
     val recentRateChange: BigDecimal?
-)
+) {
+    companion object {
+        fun createEmpty(
+            token: Asset.Token,
+            accountAddress: String
+        ) = AssetLocal(
+            token = token,
+            accountAddress = accountAddress,
+            freeInPlanks = BigInteger.ZERO,
+            reservedInPlanks = BigInteger.ZERO,
+            miscFrozenInPlanks = BigInteger.ZERO,
+            feeFrozenInPlanks = BigInteger.ZERO,
+            bondedInPlanks = BigInteger.ZERO,
+            redeemableInPlanks = BigInteger.ZERO,
+            unbondingInPlanks = BigInteger.ZERO,
+            dollarRate = null,
+            recentRateChange = null
+        )
+    }
+}

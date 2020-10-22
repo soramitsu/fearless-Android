@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_balance_unbonding">Несвязанность</string>
+    <string name="wallet_balance_reserved">Резерв</string>
+    <string name="wallet_balance_redeemable">Погашаемый</string>
+    <string name="wallet_balance_locked">Заблокировано</string>
+    <string name="wallet_balance_frozen_template">Замороженные %s</string>
+
     <string name="common_connecting">Подключение…</string>
 
     <string name="common_next">Киләһе</string>

@@ -1,5 +1,7 @@
 package jp.co.soramitsu.common.data.network.scale
 
+import jp.co.soramitsu.common.data.network.scale.dataType.DataType
+import jp.co.soramitsu.common.data.network.scale.dataType.optional
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 

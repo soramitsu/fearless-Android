@@ -12,24 +12,26 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.util.format
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsChange
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
-import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailAmount
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailAvailableAmount
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailBack
-import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailBondedAmount
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailContainer
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailContent
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailDollarAmount
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailDollarGroup
+import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailFrozenAmount
+import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailFrozenTitle
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRate
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRateChange
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailSend
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
+import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTotal
 import kotlinx.android.synthetic.main.fragment_balance_detail.transfersContainer
 
 private const val KEY_TOKEN = "KEY_TOKEN"
@@ -75,6 +77,10 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         balanceDetailSend.setOnClickListener {
             viewModel.sendClicked()
         }
+
+        balanceDetailFrozenTitle.setOnClickListener {
+            viewModel.frozenInfoClicked()
+        }
     }
 
     override fun inject() {
@@ -112,14 +118,20 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
             asset.dollarAmount?.let { balanceDetailDollarAmount.text = it.formatAsCurrency() }
 
-            balanceDetailAmount.text = asset.balance.formatAsToken(asset.token)
+            balanceDetailTotal.text = asset.total.formatAsToken(asset.token)
 
-            balanceDetailBondedAmount.text = asset.bonded.format()
+            balanceDetailFrozenAmount.text = asset.frozen.format()
             balanceDetailAvailableAmount.text = asset.available.format()
         }
 
         viewModel.hideRefreshEvent.observeEvent {
             balanceDetailContainer.isRefreshing = false
         }
+
+        viewModel.showFrozenDetailsEvent.observeEvent(::showFrozenDetails)
+    }
+
+    private fun showFrozenDetails(model: AssetModel) {
+        FrozenTokensBottomSheet(requireContext(), model).show()
     }
 }

@@ -1,6 +1,8 @@
 package jp.co.soramitsu.app.root.presentation
 
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
@@ -37,19 +39,18 @@ class RootViewModel(
 
     private fun bindConnectionToNode() {
         socketSourceDisposable = interactor.observeSelectedNode()
-            .subscribe {
+            .subscribeOn(Schedulers.io())
+            .distinctUntilChanged()
+            .doOnNext {
                 if (connectionManager.started()) {
                     connectionManager.switchUrl(it.link)
                 } else {
                     connectionManager.start(it.link)
                 }
-
-                listenAccountUpdates()
+            }.switchMapCompletable {
+                interactor.listenForAccountUpdates(it.networkType)
             }
-    }
-
-    private fun listenAccountUpdates() {
-        disposables += interactor.listenForAccountUpdates()
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe()
     }
 

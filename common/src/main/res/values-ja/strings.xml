@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_balance_unbonding">接着解除</string>
+    <string name="wallet_balance_reserved">予約済み</string>
+    <string name="wallet_balance_redeemable">償還可能</string>
+    <string name="wallet_balance_locked">ロック済み</string>
+    <string name="wallet_balance_frozen_template">冷凍%s</string>
+
     <string name="common_connecting">接続中…</string>
 
     <string name="common_next">次へ</string>

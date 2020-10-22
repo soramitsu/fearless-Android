@@ -3,11 +3,13 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.functions.Function3
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.common.utils.sumBy
+import jp.co.soramitsu.common.utils.zip
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
@@ -25,7 +27,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.TransactionsPage
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
@@ -38,10 +39,13 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Accoun
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.reserved
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.data
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ActiveEraInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.StakingLedger
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.UnlockChunk
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.hash
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
@@ -50,8 +54,10 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubscanRe
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionHistory
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.Locale
 
+@Suppress("EXPERIMENTAL_API_USAGE")
 class WalletRepositoryImpl(
     private val substrateSource: WssSubstrateSource,
     private val accountRepository: AccountRepository,
@@ -128,11 +134,48 @@ class WalletRepositoryImpl(
     }
 
     override fun listenForUpdates(account: Account): Completable {
-        return substrateSource.listenForAccountUpdates(account)
+        val balanceUpdates = substrateSource.listenForAccountUpdates(account)
             .flatMapCompletable { change ->
-                updateLocalBalance(account, change.newAccountInfo)
+                updateAssetBalance(account, change.newAccountInfo)
                     .andThen(fetchTransactions(account, change.block))
             }
+
+        val stakingUpdates = substrateSource.listenStakingLedger(account)
+            .flatMapCompletable { stakingLedger ->
+                substrateSource.getActiveEra().flatMapCompletable { era ->
+                    updateAssetStaking(account, stakingLedger, era)
+                }
+            }
+
+        return Completable.merge(listOf(balanceUpdates, stakingUpdates))
+    }
+
+    private fun updateAssetStaking(
+        account: Account,
+        stakingLedger: EncodableStruct<StakingLedger>,
+        era: EncodableStruct<ActiveEraInfo>
+    ): Completable {
+        return updateLocalAssetCopy(account) { cached ->
+            val eraIndex = era[ActiveEraInfo.index].toLong()
+
+            val redeemable = sumStaking(stakingLedger) { it <= eraIndex }
+            val unbonding = sumStaking(stakingLedger) { it > eraIndex }
+
+            cached.copy(
+                redeemableInPlanks = redeemable,
+                unbondingInPlanks = unbonding,
+                bondedInPlanks = stakingLedger[StakingLedger.active]
+            )
+        }
+    }
+
+    private fun sumStaking(
+        stakingLedger: EncodableStruct<StakingLedger>,
+        condition: (chunkEra: Long) -> Boolean
+    ): BigInteger {
+        return stakingLedger[StakingLedger.unlocking]
+            .filter { condition(it[UnlockChunk.era].toLong()) }
+            .sumBy { it[UnlockChunk.value] }
     }
 
     private fun fetchTransactions(account: Account, blockHash: String): Completable {
@@ -157,7 +200,7 @@ class WalletRepositoryImpl(
 
     private fun getTransferFeeUpdatingBalance(account: Account, transfer: Transfer): Single<FeeRemote> {
         return substrateSource.getTransferFee(account, transfer)
-            .doOnSuccess { updateLocalBalance(account, it.newAccountInfo) }
+            .doOnSuccess { updateAssetBalance(account, it.newAccountInfo) }
             .map { it.feeRemote }
     }
 
@@ -181,9 +224,9 @@ class WalletRepositoryImpl(
 
     private fun syncAssets(account: Account, withoutRates: Boolean): Completable {
         return if (withoutRates) {
-            balanceAssetSync(account)
+            syncBalance(account)
         } else {
-            fullAssetSync(account)
+            syncBalanceWithRates(account)
         }
     }
 
@@ -219,27 +262,13 @@ class WalletRepositoryImpl(
         }
     }
 
-    private fun fullAssetSync(account: Account): Completable {
-        return zipSyncAssetRequests(account)
-            .mapList { mapAssetToAssetLocal(it, account.address) }
-            .flatMapCompletable(assetDao::insert)
-    }
-
-    private fun balanceAssetSync(account: Account): Completable {
+    private fun syncBalance(account: Account): Completable {
         return substrateSource.fetchAccountInfo(account).flatMapCompletable { accountInfo ->
-            updateLocalBalance(account, accountInfo)
+            updateAssetBalance(account, accountInfo)
         }
     }
 
-    private fun updateLocalBalance(account: Account, accountInfo: EncodableStruct<AccountInfo>): Completable {
-        return Single.fromCallable {
-            listOf(createAsset(account, accountInfo, null, null))
-        }
-            .mapList { mapAssetToAssetLocal(it, account.address) }
-            .flatMapCompletable(assetDao::insert)
-    }
-
-    private fun zipSyncAssetRequests(account: Account): Single<List<Asset>> {
+    private fun syncBalanceWithRates(account: Account): Completable {
         val accountInfoSingle = substrateSource.fetchAccountInfo(account)
 
         val networkType = account.network.type
@@ -247,24 +276,24 @@ class WalletRepositoryImpl(
         val currentPriceStatsSingle = getAssetPrice(networkType, AssetPriceRequest.createForNow())
         val yesterdayPriceStatsSingle = getAssetPrice(networkType, AssetPriceRequest.createForYesterday())
 
-        return Single.zip(accountInfoSingle,
-            currentPriceStatsSingle,
-            yesterdayPriceStatsSingle,
-            Function3<EncodableStruct<AccountInfo>, SubscanResponse<AssetPriceStatistics>, SubscanResponse<AssetPriceStatistics>, List<Asset>> { accountInfo, nowStats, yesterdayStats ->
-                listOf(
-                    createAsset(account, accountInfo, nowStats, yesterdayStats)
-                )
-            })
+        val requests = listOf(accountInfoSingle, currentPriceStatsSingle, yesterdayPriceStatsSingle)
+
+        return requests.zip()
+            .flatMapCompletable { (
+                accountInfo: EncodableStruct<AccountInfo>,
+                nowStats: SubscanResponse<AssetPriceStatistics>,
+                yesterdayStats: SubscanResponse<AssetPriceStatistics>) ->
+
+                updateAssetBalance(account, accountInfo, nowStats, yesterdayStats)
+            }
     }
 
-    private fun createAsset(
+    private fun updateAssetBalance(
         account: Account,
         accountInfo: EncodableStruct<AccountInfo>,
-        todayResponse: SubscanResponse<AssetPriceStatistics>?,
-        yesterdayResponse: SubscanResponse<AssetPriceStatistics>?
-    ): Asset {
-        val token = Asset.Token.fromNetworkType(account.network.type)
-
+        todayResponse: SubscanResponse<AssetPriceStatistics>? = null,
+        yesterdayResponse: SubscanResponse<AssetPriceStatistics>? = null
+    ) = updateLocalAssetCopy(account) { cached ->
         val todayStats = todayResponse?.content
         val yesterdayStats = yesterdayResponse?.content
 
@@ -273,22 +302,33 @@ class WalletRepositoryImpl(
         var mostRecentPrice = todayStats?.price
 
         if (mostRecentPrice == null) {
-            val cachedAsset = assetDao.getAsset(account.address, token)
-
-            cachedAsset?.let { mostRecentPrice = mapAssetLocalToAsset(cachedAsset).dollarRate }
+            mostRecentPrice = cached.dollarRate
         }
 
         val change = todayStats?.calculateRateChange(yesterdayStats)
 
-        return Asset(
-            token,
-            data[free],
-            data[reserved],
-            data[miscFrozen],
-            data[feeFrozen],
-            mostRecentPrice,
-            change
+        cached.copy(
+            freeInPlanks = data[free],
+            redeemableInPlanks = data[reserved],
+            miscFrozenInPlanks = data[miscFrozen],
+            feeFrozenInPlanks = data[feeFrozen],
+            dollarRate = mostRecentPrice,
+            recentRateChange = change
         )
+    }
+
+    private fun updateLocalAssetCopy(
+        account: Account,
+        builder: (localSource: AssetLocal) -> AssetLocal
+    ) = Completable.fromAction {
+        synchronized(this) {
+            val token = Asset.Token.fromNetworkType(account.network.type)
+            val cachedAsset = assetDao.getAsset(account.address, token) ?: AssetLocal.createEmpty(token, account.address)
+
+            val newAsset = builder.invoke(cachedAsset)
+
+            assetDao.insertBlocking(newAsset)
+        }
     }
 
     private fun createTransactionLocal(

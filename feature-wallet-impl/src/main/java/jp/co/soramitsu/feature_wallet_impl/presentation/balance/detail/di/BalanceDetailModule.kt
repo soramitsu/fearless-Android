@@ -9,7 +9,6 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
-import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -35,11 +34,10 @@ class BalanceDetailModule {
     fun provideViewModel(
         interactor: WalletInteractor,
         router: WalletRouter,
-        iconGenerator: IconGenerator,
         transactionHistoryMixin: TransactionHistoryMixin,
         token: Asset.Token
     ): ViewModel {
-        return BalanceDetailViewModel(interactor, iconGenerator, router, token, transactionHistoryMixin)
+        return BalanceDetailViewModel(interactor, router, token, transactionHistoryMixin)
     }
 
     @Provides

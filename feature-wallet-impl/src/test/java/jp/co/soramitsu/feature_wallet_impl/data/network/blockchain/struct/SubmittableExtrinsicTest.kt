@@ -1,10 +1,10 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
+import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner
-import org.spongycastle.util.encoders.Hex
 
 @RunWith(MockitoJUnitRunner::class)
 class SubmittableExtrinsicTest {

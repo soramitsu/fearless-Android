@@ -17,12 +17,16 @@ import jp.co.soramitsu.common.data.network.scale.Balance.value
 import jp.co.soramitsu.common.data.network.scale.DefaultValues.bigInteger
 import jp.co.soramitsu.common.data.network.scale.DefaultValues.bytes
 import jp.co.soramitsu.common.data.network.scale.DefaultValues.text
+import jp.co.soramitsu.common.data.network.scale.Vector.numbers
+import jp.co.soramitsu.common.data.network.scale.dataType.compactInt
+import jp.co.soramitsu.common.data.network.scale.dataType.string
+import jp.co.soramitsu.common.data.network.scale.dataType.uint16
+import jp.co.soramitsu.common.data.network.scale.dataType.uint32
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner
-import org.spongycastle.util.encoders.Hex
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.MathContext
@@ -60,6 +64,10 @@ object Account : Schema<Account>() {
     val balance by schema(Balance)
 
     val something by pair(string, compactInt)
+}
+
+object Vector : Schema<Vector>() {
+    val numbers by vector(uint16)
 }
 
 private val BYTES_DEFAULT = ByteArray(10) { it.toByte() }
@@ -167,13 +175,28 @@ class ScaleStructTest {
     }
 
     private fun <S : Schema<S>> writeAndRead(schema: S, struct: EncodableStruct<S>): EncodableStruct<S> {
-        val bytes = schema.toByteArray(struct)
+        val hex = schema.toHexString(struct)
 
-        println(bytes.toHexString())
+        println(hex)
 
-        return schema.read(bytes.toHexString())
+        return schema.read(hex)
     }
 
-    private fun ByteArray.toHexString() = Hex.toHexString(this)
+    @Test
+    fun `should encode and decode vector`() {
+        val data = listOf(4, 8, 15, 16, 23, 42)
 
+        val struct = Vector {
+            it[numbers] = data
+        }
+
+        val encoded = Vector.toHexString(struct)
+        val expected = "0x18040008000f00100017002a00"
+
+        assertEquals(expected, encoded)
+
+        val afterIO = Vector.read(encoded)
+
+        assertEquals(data, afterIO[numbers])
+    }
 }
