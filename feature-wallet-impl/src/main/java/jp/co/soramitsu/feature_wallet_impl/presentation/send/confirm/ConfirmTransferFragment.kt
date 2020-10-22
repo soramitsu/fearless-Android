@@ -10,10 +10,12 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferAmount
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferBalance
+import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferBalanceLabel
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferFee
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferRecipientView
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferSubmit
@@ -43,6 +45,8 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         confirmTransferToolbar.setHomeButtonListener { viewModel.backClicked() }
 
         confirmTransferSubmit.setOnClickListener { viewModel.submitClicked() }
+
+        confirmTransferBalanceLabel.setOnClickListener { viewModel.availableBalanceClicked() }
     }
 
     override fun inject() {
@@ -59,14 +63,14 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
 
     override fun subscribe(viewModel: ConfirmTransferViewModel) {
         with(viewModel.transferDraft) {
-            confirmTransferBalance.text = balance.formatAsToken(token)
+            confirmTransferBalance.text = available.formatAsToken(token)
 
             confirmTransferToken.setIcon(token.icon)
             confirmTransferToken.setText(token.displayName)
 
             confirmTransferFee.text = fee.formatAsToken(token)
 
-            confirmTransferTotal.text = total.formatAsToken(token)
+            confirmTransferTotal.text = totalTransaction.formatAsToken(token)
 
             confirmTransferAmount.setText(amount.toPlainString(), TextView.BufferType.NORMAL)
         }
@@ -82,5 +86,15 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
             confirmTransferSubmit.isEnabled = !submitting
             confirmTransferSubmit.setText(text)
         }
+
+        viewModel.showBalanceDetailsEvent.observeEvent {
+            val transfer = viewModel.transferDraft
+
+            showBalanceDetails(transfer)
+        }
+    }
+
+    private fun showBalanceDetails(transfer: TransferDraft) {
+        BalanceDetailsBottomSheet(requireContext(), transfer).show()
     }
 }

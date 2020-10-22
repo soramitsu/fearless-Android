@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send.amount
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -62,6 +63,9 @@ class ChooseAmountViewModel(
     private val _checkingEnoughFundsLiveData = MutableLiveData<Boolean>(false)
     val checkingEnoughFundsLiveData = _checkingEnoughFundsLiveData
 
+    private val _showBalanceDetailsEvent = MutableLiveData<Event<TransferDraft>>()
+    val showBalanceDetailsEvent : LiveData<Event<TransferDraft>> = _showBalanceDetailsEvent
+
     val continueEnabledLiveData = combine(
         feeLoadingLiveData,
         feeLiveData,
@@ -103,6 +107,12 @@ class ChooseAmountViewModel(
 
             showMessage(resourceManager.getString(R.string.common_copied))
         }
+    }
+
+    fun availableBalanceClicked() {
+        val transferDraft = buildTransferDraft() ?: return
+
+        _showBalanceDetailsEvent.value = Event(transferDraft)
     }
 
     private fun observeFee(): Observable<Fee> {
@@ -161,13 +171,17 @@ class ChooseAmountViewModel(
     }
 
     private fun openConfirmationScreen() {
-        val amount = amountEventsSubject.value!!
-        val fee = feeLiveData.value!!.amount!!
-        val asset = assetLiveData.value!!
-
-        val transferDraft = TransferDraft(amount, fee, asset.total, asset.token, recipientAddress)
+        val transferDraft = buildTransferDraft() ?: return
 
         router.openConfirmTransfer(transferDraft)
+    }
+
+    private fun buildTransferDraft() : TransferDraft? {
+        val amount = amountEventsSubject.value ?: return null
+        val fee = feeLiveData.value!!.amount ?: return null
+        val asset = assetLiveData.value ?: return null
+
+        return TransferDraft(amount, fee, asset.available, asset.total, asset.token, recipientAddress)
     }
 
     private fun retryLoadFee() {

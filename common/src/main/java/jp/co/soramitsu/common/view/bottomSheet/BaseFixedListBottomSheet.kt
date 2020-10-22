@@ -12,6 +12,7 @@ import kotlinx.android.synthetic.main.bottom_sheeet_fixed_list.fixedListSheetIte
 import kotlinx.android.synthetic.main.bottom_sheeet_fixed_list.fixedListSheetTitle
 import kotlinx.android.synthetic.main.item_fixed_list_sheet.view.itemFixedListLabel
 import kotlinx.android.synthetic.main.item_fixed_list_sheet.view.itemFixedListValue
+import java.math.BigDecimal
 
 abstract class BaseFixedListBottomSheet(context: Context) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
 
@@ -41,4 +42,6 @@ abstract class BaseFixedListBottomSheet(context: Context) : BottomSheetDialog(co
 
         fixedListSheetItemContainer.addView(view)
     }
+
+
 }

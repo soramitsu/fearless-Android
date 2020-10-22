@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.view.bottomSheet.BaseFixedListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.presentation.common.addCurrencyItem
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.util.format
 import java.math.BigDecimal
@@ -25,9 +26,5 @@ class FrozenTokensBottomSheet(
         addCurrencyItem(R.string.wallet_balance_reserved, payload.reserved)
         addCurrencyItem(R.string.wallet_balance_redeemable, payload.redeemable)
         addCurrencyItem(R.string.wallet_balance_unbonding, payload.unbonding)
-    }
-
-    private fun addCurrencyItem(@StringRes label: Int, value: BigDecimal) {
-        addItem(label, value.format())
     }
 }
