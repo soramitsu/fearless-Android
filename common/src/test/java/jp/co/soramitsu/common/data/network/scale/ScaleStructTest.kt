@@ -2,6 +2,8 @@
 
 package jp.co.soramitsu.common.data.network.scale
 
+import io.emeraldpay.polkaj.scale.ScaleCodecReader
+import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import jp.co.soramitsu.common.data.network.scale.Account.address
 import jp.co.soramitsu.common.data.network.scale.Account.balance
 import jp.co.soramitsu.common.data.network.scale.Account.something
@@ -18,11 +20,11 @@ import jp.co.soramitsu.common.data.network.scale.DefaultValues.bigInteger
 import jp.co.soramitsu.common.data.network.scale.DefaultValues.bytes
 import jp.co.soramitsu.common.data.network.scale.DefaultValues.text
 import jp.co.soramitsu.common.data.network.scale.Vector.numbers
+import jp.co.soramitsu.common.data.network.scale.dataType.DataType
 import jp.co.soramitsu.common.data.network.scale.dataType.compactInt
 import jp.co.soramitsu.common.data.network.scale.dataType.scalable
 import jp.co.soramitsu.common.data.network.scale.dataType.string
 import jp.co.soramitsu.common.data.network.scale.dataType.uint16
-import jp.co.soramitsu.common.data.network.scale.dataType.uint32
 import jp.co.soramitsu.common.data.network.scale.dataType.uint8 as Uint8
 import jp.co.soramitsu.common.data.network.scale.dataType.boolean as Bool
 import org.junit.Assert.assertEquals
@@ -91,6 +93,28 @@ object EnumTest2 : Schema<EnumTest2>() {
         scalable(EraImmortal),
         scalable(EraMortal)
     )
+}
+
+object Delimiter : DataType<Byte>() {
+    override fun conformsType(value: Any?): Boolean {
+        return value is Byte && value == 0
+    }
+
+    override fun read(reader: ScaleCodecReader): Byte {
+        val read = reader.readByte()
+
+        if (read != 0.toByte()) throw java.lang.IllegalArgumentException("Delimiter is not 0")
+
+        return 0
+    }
+
+    override fun write(writer: ScaleCodecWriter, ignored: Byte) {
+        writer.writeByte(0)
+    }
+}
+
+object CustomTypeTest : Schema<CustomTypeTest>() {
+    val delimiter by custom(Delimiter, default = 0)
 }
 
 private val BYTES_DEFAULT = ByteArray(10) { it.toByte() }
@@ -252,5 +276,18 @@ class ScaleStructTest {
 
         assertEquals(EnumTest2.toHexString(enum1), "0x00")
         assertEquals(EnumTest2.toHexString(enum2), "0x0101000000000000000300000000000000")
+    }
+
+    @Test
+    fun `should handle custom types`() {
+        val struct = CustomTypeTest()
+
+        val expected = "0x00"
+
+        assertEquals(expected, CustomTypeTest.toHexString(struct))
+
+        val afterIo = CustomTypeTest.read(expected)
+
+        assertEquals(struct[CustomTypeTest.delimiter], afterIo[CustomTypeTest.delimiter])
     }
 }

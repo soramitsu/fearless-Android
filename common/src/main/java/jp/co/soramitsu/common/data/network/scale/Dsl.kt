@@ -77,3 +77,5 @@ fun <S : Schema<S>> S.byteArray(default: ByteArray? = null): NonNullFieldDelegat
 fun <S : Schema<S>> S.long(default: Long? = null) = NonNullFieldDelegate(long, this, default)
 
 fun <S : Schema<S>> S.enum(vararg types: DataType<*>, default: Any? = null) = NonNullFieldDelegate(union(types), this, default)
+
+fun <S : Schema<S>, T> S.custom(type: DataType<T>, default: T? = null) = NonNullFieldDelegate(type, this, default)
