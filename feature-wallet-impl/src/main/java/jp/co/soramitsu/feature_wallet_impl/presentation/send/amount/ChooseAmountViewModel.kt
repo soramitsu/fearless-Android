@@ -7,6 +7,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
+import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -14,7 +15,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.plusAssign
-import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
@@ -26,8 +26,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
-// TODO use dp
-private const val ICON_SIZE_IN_PX = 70
+private const val AVATAR_SIZE_DP = 24
 
 private const val RETRY_TIMES = 3L
 
@@ -40,7 +39,7 @@ class ChooseAmountViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
-    private val iconGenerator: IconGenerator,
+    private val addressIconGenerator: AddressIconGenerator,
     private val clipboardManager: ClipboardManager,
     private val recipientAddress: String
 ) : BaseViewModel() {
@@ -130,8 +129,7 @@ class ChooseAmountViewModel(
 
     private fun generateAddressModel(address: String): Single<AddressModel> {
         return interactor.getAddressId(address)
-            .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
-            .map { AddressModel(address, it) }
+            .flatMap { addressIconGenerator.createAddressModel(address, it, AVATAR_SIZE_DP) }
     }
 
     private fun checkEnoughFunds() {

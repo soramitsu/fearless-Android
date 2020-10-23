@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -25,7 +27,7 @@ class ChooseAmountModule {
         interactor: WalletInteractor,
         router: WalletRouter,
         resourceManager: ResourceManager,
-        iconGenerator: IconGenerator,
+        addressModelGenerator: AddressIconGenerator,
         clipboardManager: ClipboardManager,
         recipientAddress: String
     ): ViewModel {
@@ -33,7 +35,7 @@ class ChooseAmountModule {
             interactor,
             router,
             resourceManager,
-            iconGenerator,
+            addressModelGenerator,
             clipboardManager,
             recipientAddress
         )
