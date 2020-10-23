@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_send_existential_warning_title">Le transfert supprimera le compte</string>
+    <string name="wallet_send_existential_warning_message">Votre transfert supprimera le compte du blockstore car il rendra le solde total inférieur au dépôt existentiel</string>
+    <string name="wallet_balance_details_existential_deposit">Dépôt existentiel</string>
+    <string name="wallet_balance_details_total_after">Total après transfert</string>
+    <string name="wallet_balance_details_total">Solde total</string>
+    <string name="wallet_balance_details_title">Détails du solde</string>
+
     <string name="wallet_balance_unbonding">Délier</string>
     <string name="wallet_balance_reserved">Réservé</string>
     <string name="wallet_balance_redeemable">Rachetable</string>
@@ -124,7 +131,7 @@
 
     <string name="choose_amount_asset">Atout</string>
     <string name="choose_amount_fee">Frais de transfert</string>
-    <string name="choose_amount_free_balance">Solde libre:</string>
+    <string name="choose_amount_available_balance">Solde libre</string>
     <string name="common_amount">Montant</string>
     <string name="choose_amount_network_error">Le réseau ne répond pas</string>
     <string name="choose_amount_to">À</string>

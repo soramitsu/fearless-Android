@@ -10,10 +10,14 @@ import java.math.BigDecimal
 class TransferDraft(
     val amount: BigDecimal,
     val fee: BigDecimal,
-    val balance: BigDecimal,
+    val available: BigDecimal,
+    val totalBalance: BigDecimal,
     val token: Asset.Token,
     val recipientAddress: String
 ) : Parcelable {
     @IgnoredOnParcel
-    val total = amount + fee
+    val totalTransaction = amount + fee
+
+    @IgnoredOnParcel
+    val totalBalanceAfterTransfer = totalBalance - totalTransaction
 }

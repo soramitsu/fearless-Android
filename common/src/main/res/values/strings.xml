@@ -2,6 +2,13 @@
 <resources>
     <string name="coming_soon">Coming soon…</string>
 
+    <string name="wallet_balance_details_title">Balance details</string>
+    <string name="wallet_balance_details_total">Total balance</string>
+    <string name="wallet_balance_details_total_after">Total after transfer</string>
+    <string name="wallet_balance_details_existential_deposit">Existential deposit</string>
+    <string name="wallet_send_existential_warning_title">Transfer will remove account</string>
+    <string name="wallet_send_existential_warning_message">Your transfer will remove account from blockstore since it will make total balance lower than existential deposit.</string>
+
     <string name="search_header_my_accounts">my accounts</string>
 
     <string name="wallet_balance_locked">Locked</string>
@@ -133,7 +140,7 @@
 
     <string name="choose_amount_asset">Asset</string>
     <string name="choose_amount_to">To</string>
-    <string name="choose_amount_free_balance">Free balance:</string>
+    <string name="choose_amount_available_balance">Available balance</string>
     <string name="common_amount">Amount</string>
     <string name="choose_amount_fee">Transfer fee</string>
     <string name="choose_amount_network_error">Network not responding</string>

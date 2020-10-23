@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_send_existential_warning_title">La transferencia eliminará la cuenta</string>
+    <string name="wallet_send_existential_warning_message">Su transferencia eliminará la cuenta de la tienda de bloques, ya que hará que el saldo total sea menor que el depósito existencial</string>
+    <string name="wallet_balance_details_existential_deposit">Depósito existencial</string>
+    <string name="wallet_balance_details_total_after">Total después de la transferencia</string>
+    <string name="wallet_balance_details_total">Balance total</string>
+    <string name="wallet_balance_details_title">Detalles del saldo</string>
+
     <string name="wallet_balance_unbonding">Desunir</string>
     <string name="wallet_balance_reserved">Reservado</string>
     <string name="wallet_balance_redeemable">Redimible</string>
@@ -123,7 +130,7 @@
 
     <string name="choose_amount_asset">Activo</string>
     <string name="choose_amount_fee">Tarifa de transferencia</string>
-    <string name="choose_amount_free_balance">Saldo libre:</string>
+    <string name="choose_amount_available_balance">Saldo libre</string>
     <string name="common_amount">Cantidad</string>
     <string name="choose_amount_network_error">La red no responde</string>
     <string name="choose_amount_to">A</string>

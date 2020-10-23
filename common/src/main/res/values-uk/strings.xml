@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_send_existential_warning_title">Переказ видалить рахунок</string>
+    <string name="wallet_send_existential_warning_message">Ваш переказ видалить рахунок із магазину, оскільки загальний залишок буде нижчим за екзистенційний депозит</string>
+    <string name="wallet_balance_details_existential_deposit">Екзистенційний депозит</string>
+    <string name="wallet_balance_details_total_after">Разом після передачі</string>
+    <string name="wallet_balance_details_total">Загальний залишок</string>
+    <string name="wallet_balance_details_title">Деталі балансу</string>
+
     <string name="wallet_balance_unbonding">Розв’язування</string>
     <string name="wallet_balance_reserved">Зарезервований</string>
     <string name="wallet_balance_redeemable">Викупний</string>
@@ -124,7 +131,7 @@
 
     <string name="choose_amount_asset">Актив</string>
     <string name="choose_amount_fee">Плата за переказ</string>
-    <string name="choose_amount_free_balance">Вільний баланс:</string>
+    <string name="choose_amount_available_balance">Вільний баланс</string>
     <string name="common_amount">Сума</string>
     <string name="choose_amount_network_error">Мережа не відповідає</string>
     <string name="choose_amount_to">До</string>

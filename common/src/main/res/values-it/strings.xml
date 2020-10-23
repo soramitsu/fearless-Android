@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_send_existential_warning_title">Il trasferimento rimuoverà l\'account</string>
+    <string name="wallet_send_existential_warning_message">Il tuo trasferimento rimuoverà l\'account dal blockstore poiché renderà il saldo totale inferiore al deposito esistenziale</string>
+    <string name="wallet_balance_details_existential_deposit">Deposito esistenziale</string>
+    <string name="wallet_balance_details_total_after">Totale dopo il trasferimento</string>
+    <string name="wallet_balance_details_total">Saldo totale</string>
+    <string name="wallet_balance_details_title">Dettagli dell\'equilibrio</string>
+
     <string name="wallet_balance_unbonding">Unbonding</string>
     <string name="wallet_balance_reserved">Riservato</string>
     <string name="wallet_balance_redeemable">Riscattabile</string>
@@ -123,7 +130,7 @@
 
     <string name="choose_amount_asset">Risorsa</string>
     <string name="choose_amount_fee">Tassa di trasferimento</string>
-    <string name="choose_amount_free_balance">Saldo gratuito:</string>
+    <string name="choose_amount_available_balance">Saldo gratuito</string>
     <string name="common_amount">Quantità</string>
     <string name="choose_amount_network_error">La rete non risponde</string>
     <string name="choose_amount_to">Per</string>
