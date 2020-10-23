@@ -58,7 +58,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         }
 
         viewModel.accountIconLiveData.observe {
-            accountView.setAccountIcon(it)
+            accountView.setAccountIcon(it.image)
         }
 
         viewModel.selectedLanguageLiveData.observe {
