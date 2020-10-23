@@ -51,9 +51,9 @@
 
     <!-- Buttons -->
 
-    <style name="Widget.Fearless.Button.Primary" parent="Widget.AppCompat.Button">
+    <style name="Widget.Fearless.Button.Primary" parent="Widget.AppCompat.Button.Colored">
         <item name="android:textColor">@android:color/white</item>
-        <item name="textAllCaps">false</item>
+        <item name="android:textAllCaps">false</item>
         <item name="android:letterSpacing">0.02</item>
         <item name="android:textSize">?attr/textSizeB1</item>
         <item name="android:fontFamily">?attr/fontBold</item>
