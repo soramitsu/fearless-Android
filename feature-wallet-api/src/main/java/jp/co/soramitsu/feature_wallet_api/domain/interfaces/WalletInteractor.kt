@@ -5,6 +5,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -41,7 +42,7 @@ interface WalletInteractor {
 
     fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable
 
-    fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean>
+    fun checkEnoughAmountForTransfer(transfer: Transfer): Single<CheckFundsStatus>
 
     fun getAccountsInCurrentNetwork(): Single<List<Account>>
 

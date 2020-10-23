@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send.amount
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -11,12 +12,14 @@ import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -62,6 +65,12 @@ class ChooseAmountViewModel(
     private val _checkingEnoughFundsLiveData = MutableLiveData<Boolean>(false)
     val checkingEnoughFundsLiveData = _checkingEnoughFundsLiveData
 
+    private val _showBalanceDetailsEvent = MutableLiveData<Event<TransferDraft>>()
+    val showBalanceDetailsEvent: LiveData<Event<TransferDraft>> = _showBalanceDetailsEvent
+
+    private val _showAccountRemovalWarning = MutableLiveData<Event<Unit>>()
+    val showAccountRemovalWarning: LiveData<Event<Unit>> = _showAccountRemovalWarning
+
     val continueEnabledLiveData = combine(
         feeLoadingLiveData,
         feeLiveData,
@@ -105,6 +114,16 @@ class ChooseAmountViewModel(
         }
     }
 
+    fun availableBalanceClicked() {
+        val transferDraft = buildTransferDraft() ?: return
+
+        _showBalanceDetailsEvent.value = Event(transferDraft)
+    }
+
+    fun transferRemovingAccountConfirmed() {
+        openConfirmationScreen()
+    }
+
     private fun observeFee(): Observable<Fee> {
         val debouncedAmountEvents = amountEventsSubject
             .subscribeOn(Schedulers.io())
@@ -117,7 +136,10 @@ class ChooseAmountViewModel(
             .switchMapSingle { transfer ->
                 interactor.getTransferFee(transfer)
                     .retry(RETRY_TIMES)
-                    .doOnError { _feeErrorLiveData.postValue(Event(RetryReason.LOAD_FEE)) }
+                    .doOnError {
+                        _feeErrorLiveData.postValue(Event(RetryReason.LOAD_FEE))
+                        DEFAULT_ERROR_HANDLER(it)
+                    }
                     .onErrorReturn { createFallbackFee(transfer.token) }
             }
             .observeOn(AndroidSchedulers.mainThread())
@@ -152,22 +174,26 @@ class ChooseAmountViewModel(
             })
     }
 
-    private fun processHasEnoughFunds(isEnough: Boolean) {
-        if (isEnough) {
-            openConfirmationScreen()
-        } else {
-            showError(resourceManager.getString(R.string.choose_amount_error_too_big))
+    private fun processHasEnoughFunds(status: CheckFundsStatus) {
+        when (status) {
+            CheckFundsStatus.OK -> openConfirmationScreen()
+            CheckFundsStatus.WILL_DESTROY_ACCOUNT -> _showAccountRemovalWarning.value = Event(Unit)
+            CheckFundsStatus.NOT_ENOUGH_FUNDS -> showError(resourceManager.getString(R.string.choose_amount_error_too_big))
         }
     }
 
     private fun openConfirmationScreen() {
-        val amount = amountEventsSubject.value!!
-        val fee = feeLiveData.value!!.amount!!
-        val asset = assetLiveData.value!!
-
-        val transferDraft = TransferDraft(amount, fee, asset.total, asset.token, recipientAddress)
+        val transferDraft = buildTransferDraft() ?: return
 
         router.openConfirmTransfer(transferDraft)
+    }
+
+    private fun buildTransferDraft(): TransferDraft? {
+        val amount = amountEventsSubject.value ?: return null
+        val fee = feeLiveData.value!!.amount ?: return null
+        val asset = assetLiveData.value ?: return null
+
+        return TransferDraft(amount, fee, asset.available, asset.total, asset.token, recipientAddress)
     }
 
     private fun retryLoadFee() {

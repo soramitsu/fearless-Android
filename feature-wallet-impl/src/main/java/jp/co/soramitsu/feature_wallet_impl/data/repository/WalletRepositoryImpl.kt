@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -122,12 +123,12 @@ class WalletRepositoryImpl(
         }.flatMapCompletable { transactionsDao.insert(it) }
     }
 
-    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {
+    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<CheckFundsStatus> {
         return getSelectedAccount().flatMap { account ->
-            substrateSource.fetchAccountInfo(account).flatMap { accountInfo ->
-                getTransferFeeUpdatingBalance(account, transfer).map { fee ->
-                    checkEnoughAmountForTransfer(transfer, accountInfo, fee)
-                }
+            getTransferFeeUpdatingBalance(account, transfer).map { fee ->
+                val assetLocal = assetDao.getAsset(account.address, transfer.token)!!
+
+                checkEnoughAmountForTransfer(transfer, mapAssetLocalToAsset(assetLocal), fee)
             }
         }
     }
@@ -205,12 +206,19 @@ class WalletRepositoryImpl(
 
     private fun checkEnoughAmountForTransfer(
         transfer: Transfer,
-        accountInfo: EncodableStruct<AccountInfo>,
+        asset: Asset,
         fee: FeeRemote
-    ): Boolean {
-        val balance = accountInfo[data][free]
+    ): CheckFundsStatus {
+        val transactionTotalInPlanks = fee.partialFee + transfer.amountInPlanks
+        val transactionTotal = transfer.token.amountFromPlanks(transactionTotalInPlanks)
 
-        return fee.partialFee + transfer.amountInPlanks <= balance
+        val existentialDeposit = transfer.token.networkType.existentialDeposit
+
+        return when {
+            transactionTotal > asset.transferable -> CheckFundsStatus.NOT_ENOUGH_FUNDS
+            asset.total - transactionTotal < existentialDeposit -> CheckFundsStatus.WILL_DESTROY_ACCOUNT
+            else -> CheckFundsStatus.OK
+        }
     }
 
     private fun syncTransactionsFirstPage(pageSize: Int, account: Account): Completable {
