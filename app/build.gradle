@@ -105,6 +105,8 @@ dependencies {
     implementation retrofitDep
     implementation gsonConvertedDep
     implementation rxCallAdapterDep
+
+    implementation gifDep
 }
 
 task printVersion {

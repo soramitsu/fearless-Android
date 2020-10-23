@@ -41,6 +41,8 @@ buildscript {
 
         fearlessLibVersion = '1.0.19'
 
+        gifVersion = '1.2.19'
+
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
         rxPermssionVersion = '0.10.2'
@@ -89,6 +91,8 @@ buildscript {
         rxPermissionsDep = "com.github.tbruyelle:rxpermissions:$rxPermssionVersion"
 
         fearlessLibDep = "jp.co.soramitsu.fearless-utils:fearless-utils:$fearlessLibVersion"
+
+        gifDep = "pl.droidsonroids.gif:android-gif-drawable:$gifVersion"
 
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
 

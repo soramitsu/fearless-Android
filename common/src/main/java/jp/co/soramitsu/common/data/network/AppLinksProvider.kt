@@ -6,7 +6,11 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 class AppLinksProvider(
     val termsUrl: String,
     val privacyUrl: String,
-    private val externalAnalyzerTemplates: Map<ExternalAnalyzer, String>
+
+    private val externalAnalyzerTemplates: Map<ExternalAnalyzer, String>,
+
+    val roadMapUrl: String,
+    val devStatusUrl: String
 ) {
 
     fun getExternalTransactionUrl(
