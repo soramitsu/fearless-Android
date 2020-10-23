@@ -55,10 +55,10 @@ class TransactionDetailViewModel(
     }
 
     private fun getRecipientIcon() = interactor.getAddressId(transaction.recipientAddress)
-        .flatMap { addressIconGenerator.createAddressIcon(transaction.recipientAddress, it, ICON_SIZE_DP) }
+        .flatMap { addressIconGenerator.createAddressModel(transaction.recipientAddress, it, ICON_SIZE_DP) }
 
     private fun getSenderIcon() = interactor.getAddressId(transaction.senderAddress)
-        .flatMap { addressIconGenerator.createAddressIcon(transaction.senderAddress, it, ICON_SIZE_DP) }
+        .flatMap { addressIconGenerator.createAddressModel(transaction.senderAddress, it, ICON_SIZE_DP) }
 
     fun showExternalActionsClicked() {
         _showExternalViewEvent.value = Event(Unit)

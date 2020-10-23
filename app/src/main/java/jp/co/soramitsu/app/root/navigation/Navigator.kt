@@ -164,7 +164,7 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
     }
 
     override fun openAddAccount() {
-        navController?.navigate(R.id.action_accounts_to_onboarding, WelcomeFragment.getBundle(true))
+        navController?.navigate(R.id.action_open_onboarding, WelcomeFragment.getBundle(true))
     }
 
     override fun openAccountDetails(address: String) {

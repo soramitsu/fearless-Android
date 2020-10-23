@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewTreeObserver
+import android.view.WindowInsets
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -37,8 +38,14 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         anchor?.let {
-            bottomSheetBehavior.peekHeight = parentView.measuredHeight - it.bottom - coordinatorParams.topMargin
+            bottomSheetBehavior.peekHeight = parentView.measuredHeight - it.bottom
         }
+    }
+
+    override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
+        coordinatorParams.topMargin = insets.systemWindowInsetTop
+
+        return insets
     }
 
     init {

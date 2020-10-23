@@ -23,7 +23,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_api.domain.model.TransactionsPage
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
@@ -98,7 +97,7 @@ class WalletRepositoryImpl(
             .flatMapCompletable { syncTransactionsFirstPage(pageSize, it) }
     }
 
-    override fun getTransactionPage(pageSize: Int, page: Int): Single<TransactionsPage> {
+    override fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>> {
         return getSelectedAccount()
             .flatMap { getTransactionPage(pageSize, page, it) }
     }
@@ -216,7 +215,6 @@ class WalletRepositoryImpl(
 
     private fun syncTransactionsFirstPage(pageSize: Int, account: Account): Completable {
         return getTransactionPage(pageSize, 0, account)
-            .map { it.transactions ?: emptyList() }
             .mapList { mapTransactionToTransactionLocal(it, account.address, TransactionSource.SUBSCAN) }
             .doOnSuccess { transactionsDao.insertFromSubscan(account.address, it) }
             .ignoreElement()
@@ -230,7 +228,7 @@ class WalletRepositoryImpl(
         }
     }
 
-    private fun getTransactionPage(pageSize: Int, page: Int, account: Account): Single<TransactionsPage> {
+    private fun getTransactionPage(pageSize: Int, page: Int, account: Account): Single<List<Transaction>> {
         val subDomain = subDomainFor(account.network.type)
         val request = TransactionHistoryRequest(account.address, pageSize, page)
 
@@ -240,9 +238,7 @@ class WalletRepositoryImpl(
 
                 val transactions = transfers?.map { transfer -> mapTransferToTransaction(transfer, account) }
 
-                val withCachedFallback = transactions ?: getCachedTransactions(page, account)
-
-                TransactionsPage(withCachedFallback)
+                transactions ?: getCachedTransactions(page, account)
             }
     }
 
@@ -251,14 +247,13 @@ class WalletRepositoryImpl(
         request: TransactionHistoryRequest
     ): Single<SubscanResponse<TransactionHistory>> {
         return subscanApi.getTransactionHistory(subDomain, request)
-            .onErrorReturnItem(SubscanResponse.createEmptyResponse())
     }
 
     private fun getCachedTransactions(page: Int, account: Account): List<Transaction>? {
         return if (page == 0) {
             transactionsDao.getTransactions(account.address).map(::mapTransactionLocalToTransaction)
         } else {
-            null
+            emptyList()
         }
     }
 

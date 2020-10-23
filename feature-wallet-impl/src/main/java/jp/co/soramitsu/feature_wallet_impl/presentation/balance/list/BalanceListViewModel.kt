@@ -1,40 +1,48 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 
-import android.graphics.drawable.PictureDrawable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
-import jp.co.soramitsu.fearless_utils.icon.IconGenerator
+import jp.co.soramitsu.common.utils.zipSimilar
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount.AccountChooserPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
 
-// TODO use dp
-private const val ICON_SIZE_IN_PX = 40
+private const val CURRENT_ICON_SIZE = 40
+private const val CHOOSER_ICON_SIZE = 24
 
 class BalanceListViewModel(
     private val interactor: WalletInteractor,
-    private val iconGenerator: IconGenerator,
+    private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
     private val transactionHistoryMixin: TransactionHistoryMixin
 ) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin {
+
     private var transactionsRefreshed: Boolean = false
     private var balanceRefreshed: Boolean = false
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
+
+    private val _showAccountChooser = MutableLiveData<Event<AccountChooserPayload>>()
+    val showAccountChooser: LiveData<Event<AccountChooserPayload>> = _showAccountChooser
 
     private val errorHandler: ErrorHandler = {
         showError(it.message!!)
@@ -51,25 +59,9 @@ class BalanceListViewModel(
         transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
     }
 
-    val userIconLiveData = getUserIcon().asLiveData { showError(it.message!!) }
-
-    // TODO repeating code
-    private fun getUserIcon(): Observable<PictureDrawable> {
-        return interactor.observeSelectedAddressId()
-            .subscribeOn(Schedulers.io())
-            .map { iconGenerator.getSvgImage(it, ICON_SIZE_IN_PX) }
-            .observeOn(AndroidSchedulers.mainThread())
-    }
+    val currentAddressModelLiveData = getCurrentAddressModel().asLiveData { showError(it.message!!) }
 
     val balanceLiveData = getBalance().asLiveData()
-
-    private fun getBalance(): Observable<BalanceModel> {
-        return interactor.observeAssets()
-            .subscribeOn(Schedulers.io())
-            .mapList(::mapAssetToAssetModel)
-            .map(::BalanceModel)
-            .observeOn(AndroidSchedulers.mainThread())
-    }
 
     fun syncAssets() {
         disposables += interactor.syncAssets()
@@ -91,6 +83,51 @@ class BalanceListViewModel(
         router.openAssetDetails(asset.token)
     }
 
+    fun sendClicked() {
+        router.openChooseRecipient()
+    }
+
+    fun receiveClicked() {
+        // TODO
+    }
+
+    fun accountSelected(addressModel: AddressModel) {
+        disposables += interactor.selectAccount(addressModel.address)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                syncFirstTransactionsPage()
+            }, {
+                showError(it.message!!)
+            })
+    }
+
+    fun addAccountClicked() {
+        router.openAddAccount()
+    }
+
+    fun avatarClicked() {
+        val currentAddressModel = currentAddressModelLiveData.value ?: return
+
+        disposables += interactor.getAccountsInCurrentNetwork()
+            .subscribeOn(Schedulers.io())
+            .flatMap { accounts ->
+                accounts.map { account -> generateAddressModel(account, CHOOSER_ICON_SIZE) }
+                    .zipSimilar()
+            }
+            .map { models ->
+                val selected = models.first { it.address == currentAddressModel.address }
+
+                AccountChooserPayload(models, selected)
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                _showAccountChooser.value = Event(it)
+            }, {
+                showError(it.message!!)
+            })
+    }
+
     private fun transactionsRefreshFinished() {
         transactionsRefreshed = true
 
@@ -109,11 +146,24 @@ class BalanceListViewModel(
         }
     }
 
-    fun sendClicked() {
-        router.openChooseRecipient()
+    private fun getCurrentAddressModel(): Observable<AddressModel> {
+        return interactor.observeSelectedAccount()
+            .subscribeOn(Schedulers.io())
+            .flatMapSingle { generateAddressModel(it, CURRENT_ICON_SIZE) }
+            .observeOn(AndroidSchedulers.mainThread())
     }
 
-    fun receiveClicked() {
-        // TODO
+    private fun generateAddressModel(account: Account, sizeInDp: Int): Single<AddressModel> {
+        return interactor.getAddressId(account.address).flatMap { id ->
+            addressIconGenerator.createAddressModel(account.address, id, sizeInDp)
+        }
+    }
+
+    private fun getBalance(): Observable<BalanceModel> {
+        return interactor.observeAssets()
+            .subscribeOn(Schedulers.io())
+            .mapList(::mapAssetToAssetModel)
+            .map(::BalanceModel)
+            .observeOn(AndroidSchedulers.mainThread())
     }
 }
