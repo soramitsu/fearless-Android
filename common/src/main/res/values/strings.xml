@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="coming_soon">Coming soon…</string>
+
     <string name="wallet_balance_details_title">Balance details</string>
     <string name="wallet_balance_details_total">Total balance</string>
     <string name="wallet_balance_details_total_after">Total after transfer</string>
