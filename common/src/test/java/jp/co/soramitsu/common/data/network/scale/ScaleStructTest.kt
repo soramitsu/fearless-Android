@@ -2,6 +2,8 @@
 
 package jp.co.soramitsu.common.data.network.scale
 
+import io.emeraldpay.polkaj.scale.ScaleCodecReader
+import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import jp.co.soramitsu.common.data.network.scale.Account.address
 import jp.co.soramitsu.common.data.network.scale.Account.balance
 import jp.co.soramitsu.common.data.network.scale.Account.something
@@ -18,10 +20,13 @@ import jp.co.soramitsu.common.data.network.scale.DefaultValues.bigInteger
 import jp.co.soramitsu.common.data.network.scale.DefaultValues.bytes
 import jp.co.soramitsu.common.data.network.scale.DefaultValues.text
 import jp.co.soramitsu.common.data.network.scale.Vector.numbers
+import jp.co.soramitsu.common.data.network.scale.dataType.DataType
 import jp.co.soramitsu.common.data.network.scale.dataType.compactInt
+import jp.co.soramitsu.common.data.network.scale.dataType.scalable
 import jp.co.soramitsu.common.data.network.scale.dataType.string
 import jp.co.soramitsu.common.data.network.scale.dataType.uint16
-import jp.co.soramitsu.common.data.network.scale.dataType.uint32
+import jp.co.soramitsu.common.data.network.scale.dataType.uint8 as Uint8
+import jp.co.soramitsu.common.data.network.scale.dataType.boolean as Bool
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -68,6 +73,48 @@ object Account : Schema<Account>() {
 
 object Vector : Schema<Vector>() {
     val numbers by vector(uint16)
+}
+
+object EnumTest : Schema<EnumTest>() {
+    val intOrBool by enum(
+        Uint8, Bool
+    )
+}
+
+private object EraImmortal : Schema<EraImmortal>()
+
+private object EraMortal : Schema<EraMortal>() {
+    val period by uint64()
+    val phase by uint64()
+}
+
+object EnumTest2 : Schema<EnumTest2>() {
+    val era by enum(
+        scalable(EraImmortal),
+        scalable(EraMortal)
+    )
+}
+
+object Delimiter : DataType<Byte>() {
+    override fun conformsType(value: Any?): Boolean {
+        return value is Byte && value == 0
+    }
+
+    override fun read(reader: ScaleCodecReader): Byte {
+        val read = reader.readByte()
+
+        if (read != 0.toByte()) throw java.lang.IllegalArgumentException("Delimiter is not 0")
+
+        return 0
+    }
+
+    override fun write(writer: ScaleCodecWriter, ignored: Byte) {
+        writer.writeByte(0)
+    }
+}
+
+object CustomTypeTest : Schema<CustomTypeTest>() {
+    val delimiter by custom(Delimiter, default = 0)
 }
 
 private val BYTES_DEFAULT = ByteArray(10) { it.toByte() }
@@ -198,5 +245,49 @@ class ScaleStructTest {
         val afterIO = Vector.read(encoded)
 
         assertEquals(data, afterIO[numbers])
+    }
+
+    @Test
+    fun `should handle enum`() {
+        val enum1 = EnumTest {
+            it[EnumTest.intOrBool] = true
+        }
+
+        val enum2 = EnumTest {
+            it[EnumTest.intOrBool] = 42.toUByte()
+        }
+
+        assertEquals(EnumTest.toHexString(enum1), "0x0101")
+        assertEquals(EnumTest.toHexString(enum2), "0x002a")
+    }
+
+    @Test
+    fun `should handle enum with structs`() {
+        val enum1 = EnumTest2 {
+            it[EnumTest2.era] = EraImmortal()
+        }
+
+        val enum2 = EnumTest2 {
+            it[EnumTest2.era] = EraMortal { era ->
+                era[EraMortal.period] = BigInteger.ONE
+                era[EraMortal.phase] = BigInteger("3")
+            }
+        }
+
+        assertEquals(EnumTest2.toHexString(enum1), "0x00")
+        assertEquals(EnumTest2.toHexString(enum2), "0x0101000000000000000300000000000000")
+    }
+
+    @Test
+    fun `should handle custom types`() {
+        val struct = CustomTypeTest()
+
+        val expected = "0x00"
+
+        assertEquals(expected, CustomTypeTest.toHexString(struct))
+
+        val afterIo = CustomTypeTest.read(expected)
+
+        assertEquals(struct[CustomTypeTest.delimiter], afterIo[CustomTypeTest.delimiter])
     }
 }

@@ -7,6 +7,8 @@
     <string name="wallet_send_existential_warning_title">Transfer will remove account</string>
     <string name="wallet_send_existential_warning_message">Your transfer will remove account from blockstore since it will make total balance lower than existential deposit.</string>
 
+    <string name="search_header_my_accounts">my accounts</string>
+
     <string name="wallet_balance_locked">Locked</string>
     <string name="wallet_balance_reserved">Reserved</string>
     <string name="wallet_balance_redeemable">Redeemable</string>

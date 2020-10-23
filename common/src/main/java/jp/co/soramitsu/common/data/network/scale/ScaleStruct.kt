@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.data.network.scale.dataType.optional
 class Field<T>(val dataType: DataType<T>, val defaultValue: T? = null)
 
 @Suppress("UNCHECKED_CAST", "unused")
-class EncodableStruct<S : Schema<S>>(schema: Schema<S>) {
+class EncodableStruct<S : Schema<S>>(val schema: Schema<S>) {
     internal val fieldsWithValues: MutableMap<Field<*>, Any?> = mutableMapOf()
 
     private val fields = schema.fields

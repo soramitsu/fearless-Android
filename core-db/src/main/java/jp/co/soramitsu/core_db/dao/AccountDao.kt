@@ -9,6 +9,7 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.core_db.model.AccountLocal
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 
 @Dao
 abstract class AccountDao {
@@ -36,4 +37,7 @@ abstract class AccountDao {
 
     @Query("select * from users where networkType = :networkType")
     abstract fun getAccountsByNetworkType(networkType: Int): Single<List<AccountLocal>>
+
+    @Query("select address from users where (address LIKE '%' || :query  || '%') AND networkType = :networkType")
+    abstract fun getAddresses(query: String, networkType: Node.NetworkType): Single<List<String>>
 }

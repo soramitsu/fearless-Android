@@ -15,6 +15,8 @@ object byte : DataType<Byte>() {
     }
 
     override fun write(writer: ScaleCodecWriter, value: Byte) = writer.writeByte(value)
+
+    override fun conformsType(value: Any?) = value is Byte
 }
 
 object uint8 : DataType<UByte>() {
@@ -24,6 +26,8 @@ object uint8 : DataType<UByte>() {
     }
 
     override fun write(writer: ScaleCodecWriter, value: UByte) = writer.writeByte(value.toInt())
+
+    override fun conformsType(value: Any?) = value is UByte
 }
 
 object uint16 : DataType<Int>() {
@@ -32,6 +36,8 @@ object uint16 : DataType<Int>() {
     }
 
     override fun write(writer: ScaleCodecWriter, value: Int) = writer.writeUint16(value)
+
+    override fun conformsType(value: Any?) = value is Int
 }
 
 object uint32 : DataType<UInt>() {
@@ -40,6 +46,8 @@ object uint32 : DataType<UInt>() {
     }
 
     override fun write(writer: ScaleCodecWriter, value: UInt) = writer.writeUint32(value.toLong())
+
+    override fun conformsType(value: Any?) = value is UInt
 }
 
 object long : DataType<Long>() {
@@ -48,26 +56,34 @@ object long : DataType<Long>() {
     override fun write(writer: ScaleCodecWriter, value: Long) {
         writer.writeLong(value)
     }
+
+    override fun conformsType(value: Any?) = value is Long
 }
 
-object uint128 : DataType<BigInteger>() {
+open class uint(val size: Int) : DataType<BigInteger>() {
     override fun read(reader: ScaleCodecReader): BigInteger {
-        val bytes = reader.readByteArray(16)
+        val bytes = reader.readByteArray(size)
 
         return BigInteger(bytes.reversedArray())
     }
 
     override fun write(writer: ScaleCodecWriter, value: BigInteger) {
         val array = value.toByteArray()
-        val padded = ByteArray(16)
+        val padded = ByteArray(size)
 
         val startAt = padded.size - array.size
 
         array.copyInto(padded, startAt)
 
-        writer.directWrite(padded.reversedArray(), 0, 16)
+        writer.directWrite(padded.reversedArray(), 0, size)
     }
+
+    override fun conformsType(value: Any?) = value is BigInteger
 }
+
+object uint128 : uint(16)
+
+object uint64 : uint(8)
 
 private val compactIntReader = CompactBigIntReader()
 private val compactIntWriter = CompactBigIntWriter()
@@ -81,4 +97,6 @@ object compactInt : DataType<BigInteger>() {
     override fun write(writer: ScaleCodecWriter, value: BigInteger) {
         compactIntWriter.write(writer, value)
     }
+
+    override fun conformsType(value: Any?) = value is BigInteger
 }

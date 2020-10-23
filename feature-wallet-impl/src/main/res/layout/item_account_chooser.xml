@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_primary_list_item"
+    android:orientation="horizontal"
+    tools:background="@color/black">
+
+    <ImageView
+        android:id="@+id/accountIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        tools:layout_height="24dp"
+        tools:layout_width="24dp"
+        tools:src="@color/colorAccent" />
+
+    <TextView
+        android:id="@+id/accountTitle"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginEnd="16dp"
+        android:layout_weight="1"
+        android:ellipsize="middle"
+        android:includeFontPadding="false"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        tools:text="Account Name" />
+
+    <ImageView
+        android:id="@+id/accountChecked"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="20dp"
+        android:src="@drawable/ic_checkmark_white_24"
+        android:visibility="gone"
+        tools:visibility="invisible" />
+
+</LinearLayout>

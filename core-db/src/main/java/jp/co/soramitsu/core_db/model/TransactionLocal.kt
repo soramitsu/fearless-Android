@@ -3,7 +3,6 @@ package jp.co.soramitsu.core_db.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
@@ -15,11 +14,12 @@ import java.math.BigInteger
     foreignKeys = [ForeignKey(entity = AccountLocal::class,
         parentColumns = ["address"],
         childColumns = ["accountAddress"],
-        onDelete = ForeignKey.CASCADE)]
+        onDelete = ForeignKey.CASCADE)],
+    primaryKeys = ["hash", "accountAddress"]
 )
 class TransactionLocal(
     @ColumnInfo(index = true) val accountAddress: String,
-    @PrimaryKey val hash: String,
+    val hash: String,
     val token: Asset.Token,
     val senderAddress: String,
     val recipientAddress: String,
