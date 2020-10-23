@@ -33,9 +33,11 @@ class NetworkModule {
         )
 
         return AppLinksProvider(
-            BuildConfig.TERMS_URL,
-            BuildConfig.PRIVACY_URL,
-            externalAnalyzerTemplates
+            termsUrl = BuildConfig.TERMS_URL,
+            privacyUrl = BuildConfig.PRIVACY_URL,
+            externalAnalyzerTemplates = externalAnalyzerTemplates,
+            roadMapUrl = BuildConfig.ROADMAP_URL,
+            devStatusUrl = BuildConfig.DEV_STATUS_URL
         )
     }
 
