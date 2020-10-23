@@ -20,4 +20,6 @@ interface WalletRouter {
     fun openRepeatTransaction(recipientAddress: String)
 
     fun openTransactionDetail(transaction: TransactionModel)
+
+    fun openAddAccount()
 }

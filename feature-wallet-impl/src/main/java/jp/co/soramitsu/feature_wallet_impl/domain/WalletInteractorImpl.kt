@@ -4,12 +4,12 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_api.domain.model.TransactionsPage
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import java.math.BigDecimal
 
@@ -55,13 +55,12 @@ class WalletInteractorImpl(
         return walletRepository.syncTransactionsFirstPage(pageSize)
     }
 
-    override fun getTransactionPage(pageSize: Int, page: Int): Single<TransactionsPage> {
+    override fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>> {
         return walletRepository.getTransactionPage(pageSize, page)
     }
 
-    override fun observeSelectedAddressId(): Observable<ByteArray> {
+    override fun observeSelectedAccount(): Observable<Account> {
         return accountRepository.observeSelectedAccount()
-            .flatMapSingle { accountRepository.getAddressId(it) }
     }
 
     override fun getAddressId(address: String): Single<ByteArray> {
@@ -71,6 +70,11 @@ class WalletInteractorImpl(
     override fun getContacts(query: String): Single<List<String>> {
         return accountRepository.observeSelectedAccount().firstOrError()
             .flatMap { walletRepository.getContacts(query, it.network.type) }
+    }
+
+    override fun getMyAddresses(query: String): Single<List<String>> {
+        return accountRepository.observeSelectedAccount().firstOrError()
+            .flatMap { accountRepository.getMyAccounts(query, it.network.type) }
     }
 
     override fun validateSendAddress(address: String): Single<Boolean> {
@@ -89,5 +93,17 @@ class WalletInteractorImpl(
 
     override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<Boolean> {
         return walletRepository.checkEnoughAmountForTransfer(transfer)
+    }
+
+    override fun getAccountsInCurrentNetwork(): Single<List<Account>> {
+        return accountRepository.observeSelectedAccount().firstOrError()
+            .flatMap {
+                accountRepository.getAccountsByNetworkType(it.network.type)
+            }
+    }
+
+    override fun selectAccount(address: String): Completable {
+        return accountRepository.getAccount(address)
+            .flatMapCompletable(accountRepository::selectAccount)
     }
 }

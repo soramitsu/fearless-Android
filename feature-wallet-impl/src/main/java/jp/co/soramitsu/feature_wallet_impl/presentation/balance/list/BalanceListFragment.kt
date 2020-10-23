@@ -5,11 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
@@ -21,7 +23,7 @@ import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmou
 import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
 
-class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
+class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler, AccountChooserBottomSheetDialog.ClickHandler {
 
     private lateinit var adapter: BalanceListAdapter
 
@@ -61,6 +63,10 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         balanceListReceive.setOnClickListener {
             viewModel.receiveClicked()
         }
+
+        balanceListAvatar.setOnClickListener {
+            viewModel.avatarClicked()
+        }
     }
 
     override fun inject() {
@@ -85,16 +91,28 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
             balanceListTotalAmount.text = it.totalBalance.formatAsCurrency()
         }
 
-        viewModel.userIconLiveData.observe {
-            balanceListAvatar.setImageDrawable(it)
+        viewModel.currentAddressModelLiveData.observe {
+            balanceListAvatar.setImageDrawable(it.image)
         }
 
         viewModel.hideRefreshEvent.observeEvent {
             walletContainer.isRefreshing = false
         }
+
+        viewModel.showAccountChooser.observeEvent {
+            AccountChooserBottomSheetDialog(requireActivity(), it, this).show()
+        }
     }
 
     override fun assetClicked(asset: AssetModel) {
         viewModel.assetClicked(asset)
+    }
+
+    override fun accountClicked(addressModel: AddressModel) {
+        viewModel.accountSelected(addressModel)
+    }
+
+    override fun addAccountClicked() {
+        viewModel.addAccountClicked()
     }
 }
