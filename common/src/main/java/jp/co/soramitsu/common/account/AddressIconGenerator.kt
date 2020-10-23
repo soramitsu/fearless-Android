@@ -8,7 +8,7 @@ class AddressIconGenerator(
     private val iconGenerator: IconGenerator,
     private val resourceManager: ResourceManager
 ) {
-    fun createAddressIcon(accountAddress: String, addressId: ByteArray, sizeInDp: Int): Single<AddressModel> {
+    fun createAddressModel(accountAddress: String, addressId: ByteArray, sizeInDp: Int): Single<AddressModel> {
         return Single.fromCallable {
             val sizeInPx = resourceManager.measureInPx(sizeInDp)
             val icon = iconGenerator.getSvgImage(addressId, sizeInPx)

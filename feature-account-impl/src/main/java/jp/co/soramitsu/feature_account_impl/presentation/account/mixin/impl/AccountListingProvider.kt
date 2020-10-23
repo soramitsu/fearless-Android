@@ -71,7 +71,7 @@ class AccountListingProvider(
     private fun generateIcon(account: Account): Single<AddressModel> {
         return accountInteractor.getAddressId(account)
             .flatMap { addressId ->
-                addressIconGenerator.createAddressIcon(account.address, addressId, ICON_SIZE_IN_DP)
+                addressIconGenerator.createAddressModel(account.address, addressId, ICON_SIZE_IN_DP)
             }
     }
 }

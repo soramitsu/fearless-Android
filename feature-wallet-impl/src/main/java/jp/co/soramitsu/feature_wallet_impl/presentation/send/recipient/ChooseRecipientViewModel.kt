@@ -126,7 +126,7 @@ class ChooseRecipientViewModel(
 
     private fun generateModel(address: String): Single<Any> {
         return interactor.getAddressId(address).flatMap { addressId ->
-            addressIconGenerator.createAddressIcon(address, addressId, ICON_SIZE_IN_DP)
+            addressIconGenerator.createAddressModel(address, addressId, ICON_SIZE_IN_DP)
         }
     }
 }
