@@ -82,8 +82,12 @@ fun List<Single<*>>.zip() = Single.zip(this) { values ->
     ComponentHolder(values.toList())
 }
 
-@Suppress("UNCHECKED_CAST") fun <R> List<Single<out R>>.zipSimilar(): Single<List<R>> = Single.zip(this) { values ->
-    val casted = values as Array<out R>
+@Suppress("UNCHECKED_CAST") fun <R> List<Single<out R>>.zipSimilar(): Single<List<R>> {
+    if (isEmpty()) return Single.just(emptyList())
 
-    casted.toList()
+    return Single.zip(this) { values ->
+        val casted = values as Array<out R>
+
+        casted.toList()
+    }
 }

@@ -58,53 +58,6 @@ class ChooseRecipientViewModel(
         }
     }
 
-    private fun observeSearchResults(): Observable<List<Any>> {
-        return searchEventSubject
-            .subscribeOn(Schedulers.io())
-            .debounce(300, TimeUnit.MILLISECONDS)
-            .flatMapSingle { address ->
-                interactor.validateSendAddress(address).flatMap { isValidAddress ->
-                    interactor.getContacts(address).flatMap { searchResults ->
-                        val models = searchResults.map(this::generateModel)
-                        val contactsWithHeader = maybeAppendContactsHeader(models)
-
-                        val result = if (isValidAddress) {
-                            val searchHeader = getHeader(R.string.search_result_header)
-
-                            val model = generateModel(address)
-
-                            listOf(searchHeader, model) + contactsWithHeader
-                        } else {
-                            contactsWithHeader
-                        }
-
-                        isQueryEmptyLiveData.postValue(address.isEmpty())
-
-                        result.zipSimilar()
-                    }
-                }
-            }
-            .observeOn(AndroidSchedulers.mainThread())
-    }
-
-    private fun getHeader(@StringRes resId: Int): Single<Any> = Single.just(
-        ContactsHeader(resourceManager.getString(resId))
-    )
-
-    private fun generateModel(address: String): Single<Any> {
-        return interactor.getAddressId(address).flatMap { addressId ->
-            addressIconGenerator.createAddressModel(address, addressId, ICON_SIZE_IN_DP)
-        }
-    }
-
-    private fun maybeAppendContactsHeader(content: List<Single<Any>>): List<Single<Any>> {
-        if (content.isEmpty()) return emptyList()
-
-        val header = getHeader(R.string.search_contacts)
-
-        return listOf(header) + content
-    }
-
     fun queryChanged(query: String) {
         searchEventSubject.onNext(query)
     }
@@ -116,5 +69,64 @@ class ChooseRecipientViewModel(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { valid -> if (valid) recipientSelected(value) }
+    }
+
+    private fun observeSearchResults(): Observable<List<Any>> {
+        return searchEventSubject
+            .subscribeOn(Schedulers.io())
+            .debounce(300, TimeUnit.MILLISECONDS)
+            .doOnNext { isQueryEmptyLiveData.postValue(it.isEmpty()) }
+            .flatMapSingle(this::formSearchResults)
+            .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    private fun formSearchResults(address: String): Single<List<Any>> {
+        return interactor.validateSendAddress(address).flatMap { isValidAddress ->
+            interactor.getContacts(address).flatMap { contacts ->
+                interactor.getMyAddresses(address).flatMap { myAccounts ->
+                    val resultWithHeader = maybeAppendResultHeader(isValidAddress, address)
+                    val myAccountsWithHeader = generateModelsWithHeader(R.string.search_header_my_accounts, myAccounts)
+                    val contactsWithHeader = generateModelsWithHeader(R.string.search_contacts, contacts)
+
+                    val result = myAccountsWithHeader + contactsWithHeader + resultWithHeader
+
+                    result.zipSimilar()
+                }
+            }
+        }
+    }
+
+    private fun maybeAppendResultHeader(validAddress: Boolean, address: String): List<Single<Any>> {
+        if (!validAddress) return emptyList()
+
+        return generateModelsWithHeader(R.string.search_header_my_accounts, listOf(address))
+    }
+
+    private fun generateModelsWithHeader(@StringRes headerRes: Int, addresses: List<String>): List<Single<Any>> {
+        val models = addresses.map(this::generateModel)
+
+        return maybeAppendHeader(headerRes, models)
+    }
+
+    private fun maybeAppendHeader(@StringRes headerRes: Int, content: List<Single<Any>>): List<Single<Any>> {
+        if (content.isEmpty()) return emptyList()
+
+        return appendHeader(headerRes, content)
+    }
+
+    private fun appendHeader(@StringRes headerRes: Int, content: List<Single<Any>>): List<Single<Any>> {
+        val header = getHeader(headerRes)
+
+        return listOf(header) + content
+    }
+
+    private fun getHeader(@StringRes resId: Int): Single<Any> = Single.just(
+        ContactsHeader(resourceManager.getString(resId))
+    )
+
+    private fun generateModel(address: String): Single<Any> {
+        return interactor.getAddressId(address).flatMap { addressId ->
+            addressIconGenerator.createAddressModel(address, addressId, ICON_SIZE_IN_DP)
+        }
     }
 }

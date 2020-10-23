@@ -7,7 +7,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_api.domain.model.TransactionsPage
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import java.math.BigDecimal
 
@@ -26,13 +25,15 @@ interface WalletInteractor {
 
     fun syncTransactionsFirstPage(pageSize: Int): Completable
 
-    fun getTransactionPage(pageSize: Int, page: Int): Single<TransactionsPage>
+    fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>>
 
     fun observeSelectedAccount(): Observable<Account>
 
     fun getAddressId(address: String): Single<ByteArray>
 
     fun getContacts(query: String): Single<List<String>>
+
+    fun getMyAddresses(query: String): Single<List<String>>
 
     fun validateSendAddress(address: String): Single<Boolean>
 

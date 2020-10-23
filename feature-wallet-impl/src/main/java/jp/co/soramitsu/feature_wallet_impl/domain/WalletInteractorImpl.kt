@@ -10,7 +10,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_api.domain.model.TransactionsPage
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import java.math.BigDecimal
 
@@ -56,7 +55,7 @@ class WalletInteractorImpl(
         return walletRepository.syncTransactionsFirstPage(pageSize)
     }
 
-    override fun getTransactionPage(pageSize: Int, page: Int): Single<TransactionsPage> {
+    override fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>> {
         return walletRepository.getTransactionPage(pageSize, page)
     }
 
@@ -71,6 +70,11 @@ class WalletInteractorImpl(
     override fun getContacts(query: String): Single<List<String>> {
         return accountRepository.observeSelectedAccount().firstOrError()
             .flatMap { walletRepository.getContacts(query, it.network.type) }
+    }
+
+    override fun getMyAddresses(query: String): Single<List<String>> {
+        return accountRepository.observeSelectedAccount().firstOrError()
+            .flatMap { accountRepository.getMyAccounts(query, it.network.type) }
     }
 
     override fun validateSendAddress(address: String): Single<Boolean> {

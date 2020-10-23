@@ -23,9 +23,10 @@ class BalanceListModule {
     @ScreenScope
     fun provideTransferHistoryMixin(
         walletInteractor: WalletInteractor,
+        addressIconGenerator: AddressIconGenerator,
         walletRouter: WalletRouter
     ): TransactionHistoryMixin {
-        return TransactionHistoryProvider(walletInteractor, walletRouter)
+        return TransactionHistoryProvider(walletInteractor, addressIconGenerator, walletRouter)
     }
 
     @Provides

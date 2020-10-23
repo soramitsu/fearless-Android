@@ -157,6 +157,10 @@ class AccountRepositoryImpl(
             .map(::mapAccountLocalToAccount)
     }
 
+    override fun getMyAccounts(query: String, networkType: Node.NetworkType): Single<List<String>> {
+        return accountDao.getAddresses(query, networkType)
+    }
+
     override fun importFromMnemonic(
         keyString: String,
         username: String,
@@ -405,8 +409,7 @@ class AccountRepositoryImpl(
     }
 
     private fun mapAccountLocalToAccount(accountLocal: AccountLocal): Account {
-        val networkType = Node.NetworkType.values()[accountLocal.networkType]
-        val network = getNetworkForType(networkType)
+        val network = getNetworkForType(accountLocal.networkType)
 
         return with(accountLocal) {
             Account(
@@ -428,7 +431,7 @@ class AccountRepositoryImpl(
                 address = address,
                 username = nameLocal,
                 cryptoType = cryptoType.ordinal,
-                networkType = network.type.ordinal,
+                networkType = network.type,
                 publicKey = publicKey,
                 position = position
             )
@@ -453,7 +456,6 @@ class AccountRepositoryImpl(
         cryptoType: CryptoType,
         networkType: Node.NetworkType
     ) = try {
-        val networkTypeLocal = networkType.ordinal
         val cryptoTypeLocal = cryptoType.ordinal
 
         val positionInGroup = accountDao.getNextPosition()
@@ -463,7 +465,7 @@ class AccountRepositoryImpl(
             username = accountName,
             publicKey = publicKeyEncoded,
             cryptoType = cryptoTypeLocal,
-            networkType = networkTypeLocal,
+            networkType = networkType,
             position = positionInGroup
         )
 
