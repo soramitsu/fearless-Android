@@ -4,11 +4,12 @@ import androidx.lifecycle.LiveData
 import io.reactivex.disposables.Disposable
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 
 typealias Interceptor = () -> Unit
 
 interface TransactionFilter {
-    fun shouldInclude(model: TransactionModel): Boolean
+    fun shouldInclude(model: TransactionHistoryElement): Boolean
 }
 
 interface TransactionHistoryUi {

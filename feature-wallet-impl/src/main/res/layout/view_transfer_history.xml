@@ -7,6 +7,15 @@
     tools:background="@drawable/bg_transfers"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/ic_bottom_sheet_pin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/transactionHistoryTitle"
         style="@style/TextAppearance.Soramitsu.Body0"
