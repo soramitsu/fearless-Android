@@ -9,6 +9,8 @@ object string : DataType<String>() {
         return reader.readString()
     }
     override fun write(writer: ScaleCodecWriter, value: String) = writer.writeString(value)
+
+    override fun conformsType(value: Any?) = value is String
 }
 
 object boolean : DataType<Boolean>() {
@@ -17,6 +19,8 @@ object boolean : DataType<Boolean>() {
     }
 
     override fun write(writer: ScaleCodecWriter, value: Boolean) = writer.write(BoolWriter(), value)
+
+    override fun conformsType(value: Any?) = value is Boolean
 }
 
 object byteArray : DataType<ByteArray>() {
@@ -28,6 +32,8 @@ object byteArray : DataType<ByteArray>() {
     override fun write(writer: ScaleCodecWriter, value: ByteArray) {
         writer.writeByteArray(value)
     }
+
+    override fun conformsType(value: Any?) = value is ByteArray
 }
 
 class byteArraySized(private val length: Int) : DataType<ByteArray>() {
@@ -37,4 +43,6 @@ class byteArraySized(private val length: Int) : DataType<ByteArray>() {
     }
 
     override fun write(writer: ScaleCodecWriter, value: ByteArray) = writer.directWrite(value, 0, length)
+
+    override fun conformsType(value: Any?) = value is ByteArray
 }

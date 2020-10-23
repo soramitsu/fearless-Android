@@ -2,13 +2,13 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
 import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.data.network.scale.Schema
-import jp.co.soramitsu.common.data.network.scale.byte
 import jp.co.soramitsu.common.data.network.scale.compactInt
+import jp.co.soramitsu.common.data.network.scale.custom
+import jp.co.soramitsu.common.data.network.scale.dataType.uint8
 import jp.co.soramitsu.common.data.network.scale.pair
 import jp.co.soramitsu.common.data.network.scale.schema
 import jp.co.soramitsu.common.data.network.scale.sizedByteArray
 import jp.co.soramitsu.common.data.network.scale.uint32
-import jp.co.soramitsu.common.data.network.scale.dataType.uint8
 import jp.co.soramitsu.common.data.network.scale.uint8
 import jp.co.soramitsu.common.utils.requirePrefix
 import org.bouncycastle.crypto.digests.Blake2bDigest
@@ -16,7 +16,6 @@ import org.bouncycastle.jcajce.provider.digest.BCMessageDigest
 import org.bouncycastle.util.encoders.Hex
 
 private val VERSION = "84".toUByte(radix = 16)
-private const val ERA = 0.toByte()
 private val TIP = 0.toBigInteger()
 
 object SubmittableExtrinsic : Schema<SubmittableExtrinsic>() {
@@ -33,7 +32,7 @@ object SignedExtrinsic : Schema<SignedExtrinsic>() {
     val signatureVersion by uint8()
     val signature by sizedByteArray(64)
 
-    val era by byte(default = ERA)
+    val era by custom(EraType, default = Era.Immortal)
 
     val nonce by compactInt()
 
@@ -50,7 +49,8 @@ object Call : Schema<Call>() {
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 enum class SupportedCall(val index: Pair<UByte, UByte>) {
-    TRANSFER(4.toUByte() to 0.toUByte());
+    TRANSFER(4.toUByte() to 0.toUByte()),
+    TRANSFER_KEEP_ALIVE(4.toUByte() to 3.toUByte());
 
     companion object {
         fun from(callIndex: Pair<UByte, UByte>): SupportedCall? {
@@ -68,7 +68,7 @@ object TransferArgs : Schema<TransferArgs>() {
 object ExtrinsicPayloadValue : Schema<ExtrinsicPayloadValue>() {
     val call by schema(Call)
 
-    val era by byte(default = ERA)
+    val era by custom(EraType, default = Era.Immortal)
 
     val nonce by compactInt()
 
