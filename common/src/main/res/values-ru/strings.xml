@@ -158,4 +158,5 @@
     <string name="connection_delete_description">Подтвердите удаление %s.</string>
     <string name="connection_delete_confirm">Удалить</string>
     <string name="search_header_my_accounts">мои аккаунты</string>
+    <string name="coming_soon">Скоро будет…</string>
 </resources>

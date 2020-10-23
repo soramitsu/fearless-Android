@@ -158,4 +158,5 @@
     <string name="connection_delete_description">Confirm %s deletion.</string>
     <string name="connection_delete_confirm">Delete</string>
     <string name="search_header_my_accounts">мої рахунки</string>
+    <string name="coming_soon">Незабаром…</string>
 </resources>
