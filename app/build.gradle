@@ -1,7 +1,11 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.firebase.appdistribution'
+apply plugin: "com.github.triplet.play"
+apply from: "../scripts/versions.gradle"
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -9,39 +13,88 @@ android {
         applicationId "jp.co.soramitsu.fearless"
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
-        versionCode rootProject.versionCode
-        versionName rootProject.versionName
+        versionCode computeVersionCode()
+        versionName computeVersionName()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+      ci {
+          storeFile file(System.env.CI_KEYSTORE_PATH ?: "stub")
+          storePassword System.env.CI_KEYSTORE_PASS ?: ""
+          keyAlias System.env.CI_KEYSTORE_KEY_ALIAS ?: ""
+          keyPassword System.env.CI_KEYSTORE_KEY_PASS ?: ""
+      }
     }
     buildTypes {
         debug {
+            applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.ci
+        }
+        develop {
+            signingConfig signingConfigs.ci
+            matchingFallbacks = ['debug']
+            versionNameSuffix '-develop'
+            applicationIdSuffix '.dev'
+            //Init firebase
+            def localReleaseNotes = releaseNotes()
+            def localFirebaseGroup = firebaseGroup()
+            firebaseAppDistribution {
+              releaseNotes = localReleaseNotes
+              groups = localFirebaseGroup
+            }
+        }
+    }
+
+    android {
+        compileOptions {
+            sourceCompatibility 1.8
+            targetCompatibility 1.8
         }
     }
 }
 
+play {
+    serviceAccountCredentials = file(System.env.CI_PLAY_KEY ?: "../key/fake.json")
+    track = "beta"
+    releaseStatus = "completed"
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':core')
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-splash')
-    implementation project(':feature-user-api')
-    implementation project(':feature-user-impl')
+
+    implementation project(':feature-onboarding-api')
+    implementation project(':feature-onboarding-impl')
+
+    implementation project(':feature-account-api')
+    implementation project(':feature-account-impl')
+
+    implementation project(':feature-wallet-api')
+    implementation project(':feature-wallet-impl')
 
     implementation kotlinDep
 
     implementation androidDep
     implementation constraintDep
 
+    implementation zXingEmbeddedDep
+
     implementation navigationFragmentDep
     implementation navigationUiDep
 
+    implementation rxJavaDep
+    implementation rxAndroidDep
+
     implementation roomDep
+
+    implementation fearlessLibDep
 
     implementation daggerDep
     kapt daggerKapt
@@ -52,4 +105,12 @@ dependencies {
     implementation retrofitDep
     implementation gsonConvertedDep
     implementation rxCallAdapterDep
+
+    implementation gifDep
+}
+
+task printVersion {
+  doLast {
+    println "versionName:${computeVersionName()}"
+  }
 }

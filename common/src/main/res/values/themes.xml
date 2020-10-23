@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Soramitsu.Fearless" parent="Theme.MaterialComponents.NoActionBar">
+
+<!--        <item name="android:windowTranslucentStatus">true</item>-->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@drawable/bg_splash</item>
+        <item name="android:navigationBarColor">@color/black</item>
+
+        <!--text sizes-->
+        <item name="textSizeH1">@dimen/text_size_h1</item>
+        <item name="textSizeH2">@dimen/text_size_h2</item>
+        <item name="textSizeH3">@dimen/text_size_h3</item>
+        <item name="textSizeH4">@dimen/text_size_h4</item>
+        <item name="textSizeH5">@dimen/text_size_h5</item>
+
+        <item name="textSizeB0">@dimen/text_size_b0</item>
+        <item name="textSizeB1">@dimen/text_size_b1</item>
+        <item name="textSizeB2">@dimen/text_size_b2</item>
+        <item name="textSizeB3">@dimen/text_size_b3</item>
+        <!--text sizes-->
+
+        <!--fonts-->
+        <item name="fontSemiBold">@font/soramitsu_semibold</item>
+        <item name="fontBold">@font/soramitsu_bold</item>
+        <item name="fontExtraBold">@font/soramitsu_extrabold</item>
+        <item name="fontRegular">@font/soramitsu_regular</item>
+        <!--fonts-->
+
+    </style>
+
+</resources>

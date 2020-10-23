@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottom_nav_graph"
+    app:startDestination="@id/walletFragment">
+
+    <fragment
+        android:id="@+id/profileFragment"
+        tools:layout="@layout/fragment_profile"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.profile.ProfileFragment"
+        android:label="ProfileFragment" />
+
+    <fragment
+        android:id="@+id/polkaswapFragment"
+        tools:layout="@layout/fragment_coming_soon"
+        android:name="jp.co.soramitsu.app.root.presentation.main.coming_soon.ComingSoonFragment"
+        android:label="ExtrinsicsFragment" />
+
+    <fragment
+        android:id="@+id/stackingFragment"
+        tools:layout="@layout/fragment_coming_soon"
+        android:name="jp.co.soramitsu.app.root.presentation.main.coming_soon.ComingSoonFragment"
+        android:label="StackingFragment" />
+
+    <fragment
+        android:id="@+id/governanceFragment"
+        tools:layout="@layout/fragment_coming_soon"
+        android:name="jp.co.soramitsu.app.root.presentation.main.coming_soon.ComingSoonFragment"
+        android:label="GovernanceFragment" />
+
+    <fragment
+        android:id="@+id/walletFragment"
+        tools:layout="@layout/fragment_balance_list"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.BalanceListFragment"
+        android:label="WalletFragment" />
+</navigation>

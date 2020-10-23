@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nodeGroupTitle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:fontFamily="@font/soramitsu_semibold"
+    android:includeFontPadding="false"
+    android:paddingStart="@dimen/x2"
+    android:paddingTop="@dimen/x1"
+    android:paddingEnd="@dimen/x2"
+    android:paddingBottom="@dimen/x1"
+    android:textAllCaps="true"
+    android:textColor="@color/white"
+    android:textSize="@dimen/text_size_b1"
+    tools:background="@color/black"
+    tools:text="Polcadot" />

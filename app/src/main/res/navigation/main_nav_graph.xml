@@ -3,18 +3,242 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_nav_graph"
-    app:startDestination="@id/usersFragment">
+    app:startDestination="@id/mainFragment">
+
+    <action
+        android:id="@+id/action_open_send"
+        app:destination="@id/chooseRecipientFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <action
+        android:id="@+id/open_transaction_detail"
+        app:destination="@id/transactionDetailFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <action
+        android:id="@+id/action_open_onboarding"
+        app:destination="@+id/onboarding_nav_graph"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
 
     <fragment
-        android:id="@+id/usersFragment"
-        android:name="jp.co.soramitsu.users.presentation.list.UsersFragment"
-        android:label="fragment_users"
-        tools:layout="@layout/fragment_users" />
+        android:id="@+id/mainFragment"
+        android:name="jp.co.soramitsu.app.root.presentation.main.MainFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_main">
+
+        <action
+            android:id="@+id/action_profileFragment_to_aboutFragment"
+            app:destination="@id/aboutFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_mainFragment_to_accountsFragment"
+            app:destination="@id/accountsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_mainFragment_to_nodesFragment"
+            app:destination="@id/nodesFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_mainFragment_to_balanceDetailFragment"
+            app:destination="@id/balanceDetailFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_mainFragment_to_languagesFragment"
+            app:destination="@id/languagesFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+    </fragment>
 
     <fragment
-        android:id="@+id/userFragment"
-        android:name="jp.co.soramitsu.users.presentation.details.UserFragment"
-        android:label="fragment_user"
-        tools:layout="@layout/fragment_user" />
+        android:id="@+id/aboutFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.about.AboutFragment"
+        android:label="fragment_about"
+        tools:layout="@layout/fragment_about" />
+
+    <fragment
+        android:id="@+id/accountsFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListFragment"
+        android:label="AccountsFragment"
+        tools:layout="@layout/fragment_accounts">
+
+        <action
+            android:id="@+id/action_accountsFragment_to_accountDetailsFragment"
+            app:destination="@id/accountDetailsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_accountsFragment_to_editAccountsFragment"
+            app:destination="@id/editAccountsFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/nodesFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.node.list.NodesFragment"
+        android:label="NodesFragment"
+        tools:layout="@layout/fragment_nodes">
+
+        <action
+            android:id="@+id/action_nodesFragment_to_nodeDetailsFragment"
+            app:destination="@id/nodeDetailsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_nodesFragment_to_addNodeFragment"
+            app:destination="@id/addNodeFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_nodes_to_onboarding"
+            app:destination="@+id/onboarding_nav_graph"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/nodeDetailsFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment"
+        android:label="NodeDetailsFragment"
+        tools:layout="@layout/fragment_node_details" />
+
+    <fragment
+        android:id="@+id/addNodeFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.node.add.AddNodeFragment"
+        android:label="AddNodeFragment"
+        tools:layout="@layout/fragment_node_add" />
+
+    <fragment
+        android:id="@+id/languagesFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.language.LanguagesFragment"
+        android:label="LanguagesFragment"
+        tools:layout="@layout/fragment_languages" />
+
+    <fragment
+        android:id="@+id/accountDetailsFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment"
+        android:label="AccountDetailsFragment"
+        tools:layout="@layout/fragment_account_details" />
+
+    <fragment
+        android:id="@+id/editAccountsFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.edit.AccountEditFragment"
+        android:label="EditAccountsFragment"
+        tools:layout="@layout/fragment_edit_accounts">
+
+        <action
+            android:id="@+id/action_editAccountsFragment_to_mainFragment"
+            app:enterAnim="@anim/fragment_close_enter"
+            app:exitAnim="@anim/fragment_close_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit"
+            app:popUpTo="@id/mainFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/balanceDetailFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment"
+        android:label="BalanceDetailFragment"
+        tools:layout="@layout/fragment_balance_detail" />
+
+
+    <fragment
+        android:id="@+id/transactionDetailFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment"
+        android:label="TransactionDetailFragment"
+        tools:layout="@layout/fragment_transaction_details" />
+
+    <action
+        android:id="@+id/openSelectAmount"
+        app:destination="@id/chooseAmountFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <fragment
+        android:id="@+id/chooseRecipientFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.ChooseRecipientFragment"
+        android:label="ChooseRecipientFragment"
+        tools:layout="@layout/fragment_choose_recipient">
+
+        <action
+            android:id="@+id/action_chooseRecipientFragment_to_chooseAmountFragment"
+            app:destination="@id/chooseAmountFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/chooseAmountFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment"
+        android:label="ChooseAmountFragment"
+        tools:layout="@layout/fragment_choose_amount">
+
+        <action
+            android:id="@+id/action_chooseAmountFragment_to_confirmTransferFragment"
+            app:destination="@id/confirmTransferFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/confirmTransferFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment"
+        android:label="ConfirmTransferFragment"
+        tools:layout="@layout/fragment_confirm_transfer">
+
+        <action
+            android:id="@+id/finish_send_flow"
+            app:enterAnim="@anim/fragment_close_enter"
+            app:exitAnim="@anim/fragment_close_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit"
+            app:popUpTo="@id/mainFragment" />
+    </fragment>
 
 </navigation>

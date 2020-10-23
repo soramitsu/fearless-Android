@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="pin_code_view_spacing">14dp</dimen>
+    <dimen name="dot_progress_view_dot_size_default">12dp</dimen>
+    <dimen name="dot_progress_view_dot_margin_default">14dp</dimen>
+    <dimen name="dot_stroke_width">2dp</dimen>
+    <dimen name="pin_code_button_text_size">25sp</dimen>
+    <dimen name="pin_code_button_elevation">2dp</dimen>
+    <dimen name="item_account_address_margin">64dp</dimen>
+</resources>

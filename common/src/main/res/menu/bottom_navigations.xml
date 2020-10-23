@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/walletFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_wallet_24"
+        android:title="@string/tabbar_wallet_title"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/polkaswapFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_polkaswap"
+        android:title="@string/tabbar_polkaswap_title"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/stackingFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_stacking_24"
+        android:title="@string/tabbar_staking_title"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/governanceFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_governance_24"
+        android:title="@string/tabbar_governance_title"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/profileFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/profile_settings_title"
+        app:showAsAction="ifRoom" />
+</menu>

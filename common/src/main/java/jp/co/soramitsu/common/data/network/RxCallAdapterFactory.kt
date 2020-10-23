@@ -2,8 +2,8 @@ package jp.co.soramitsu.common.data.network
 
 import io.reactivex.Single
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.core.ResourceManager
-import jp.co.soramitsu.core.exceptions.BaseException
+import jp.co.soramitsu.common.base.BaseException
+import jp.co.soramitsu.common.resources.ResourceManager
 import retrofit2.Call
 import retrofit2.CallAdapter
 import retrofit2.HttpException
@@ -47,7 +47,7 @@ class RxCallAdapterFactory(
                     throwable.response().errorBody()?.close()
                     BaseException.httpError(errorCode, resourceManager.getString(R.string.common_error_general_message))
                 }
-                is IOException -> BaseException.networkError(resourceManager.getString(R.string.common_error_network), throwable)
+                is IOException -> BaseException.networkError(resourceManager.getString(R.string.connection_error_message), throwable)
                 else -> BaseException.unexpectedError(throwable)
             }
         }

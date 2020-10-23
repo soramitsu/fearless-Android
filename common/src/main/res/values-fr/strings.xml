@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <string name="wallet_send_existential_warning_title">Le transfert supprimera le compte</string>
+    <string name="wallet_send_existential_warning_message">Votre transfert supprimera le compte du blockstore car il rendra le solde total inférieur au dépôt existentiel</string>
+    <string name="wallet_balance_details_existential_deposit">Dépôt existentiel</string>
+    <string name="wallet_balance_details_total_after">Total après transfert</string>
+    <string name="wallet_balance_details_total">Solde total</string>
+    <string name="wallet_balance_details_title">Détails du solde</string>
+
+    <string name="wallet_balance_unbonding">Délier</string>
+    <string name="wallet_balance_reserved">Réservé</string>
+    <string name="wallet_balance_redeemable">Rachetable</string>
+    <string name="wallet_balance_locked">Fermé à clé</string>
+    <string name="wallet_balance_frozen_template">Gelé %s</string>
+
+    <string name="common_connecting">De liaison…</string>
+
+    <string name="common_next">Suivant</string>
+    <string name="common_cancel">Annuler</string>
+    <string name="common_skip">Passer</string>
+    <string name="common_use">Utiliser</string>
+    <string name="common_error_general_title">Erreur</string>
+    <string name="connection_error_message">Veuillez vérifier votre connexion Internet et réessayer plus tard.</string>
+    <string name="onboarding_restore_account">Importer un compte</string>
+    <string name="onboarding_terms_and_conditions_1">J\'ai lu et j\'accepte les Termes et Conditions et la Politique de confidentialité</string>
+    <string name="onboarding_terms_and_conditions_2">Termes et Conditions</string>
+    <string name="onboarding_privacy_policy">Politique de confidentialité</string>
+    <string name="pincode_enter_pin_code">Entrez le code PIN</string>
+    <string name="pincode_confirm_your_pin_code">Confirmez votre code PIN</string>
+    <string name="access_restore_phrase_error_message">Votre mnémonique n’est pas valide. S’ll vous plaît, essayez un autre.</string>
+    <string name="recovery_passphrase">Mnémonique</string>
+    <string name="tabbar_wallet_title">Portefeuille</string>
+    <string name="tabbar_staking_title">Staking</string>
+    <string name="tabbar_governance_title">Gouvernance</string>
+    <string name="profile_settings_title">Paramètres</string>
+    <string name="profile_language_title">Langue</string>
+    <string name="about_contact_us">Nous contacter</string>
+    <string name="about_title">À propos</string>
+    <string name="about_privacy">Respect de la vie privée</string>
+    <string name="about_terms">Termes et conditions</string>
+    <string name="onboarding_create_account">Créer un compte</string>
+    <string name="username_setup_choose_title">Choisissez le nom</string>
+    <string name="username_setup_hint">Le nom de ce compte et comment il apparaîtra sous vos adresses. Avec une identité en chaîne, il peut être mis à la disposition des autres.</string>
+    <string name="common_no_screenshot_title">Ne prenez pas de captures d\'écran</string>
+    <string name="common_no_screenshot_message">Ne prenez pas de captures d\'écran, qui pourraient être collectées par des logiciels malveillants tiers</string>
+    <string name="common_ok">OK</string>
+    <string name="account_create_title">Mnémonique de sauvegarde</string>
+    <string name="account_create_details">Utilisez un moyen non numérique de sauvegarder, comme l\'écrire sur papier.</string>
+    <string name="common_advanced">Avancée</string>
+    <string name="common_crypto_type">Type de crypto Keypair</string>
+    <string name="common_secret_derivation_path">Chemin de dérivation secret</string>
+    <string name="common_choose_network">Choisissez un réseau</string>
+    <string name="sr25519_selection_subtitle">sr25519 (recommandé)</string>
+    <string name="ed25519_selection_subtitle">ed25519 (alternative)</string>
+    <string name="ecdsa_selection_subtitle">(Compatible BTC / ETH)</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="account_creation_info">Mnemonic est utilisé pour récupérer l\'accès au compte. Notez-le, nous ne pourrons pas récupérer votre compte sans lui!</string>
+    <string name="common_info">Info</string>
+    <string name="common_undefined_error_message">Veuillez réessayer avec une autre entrée. Si l\'erreur réapparaît, veuillez contacter l\'assistance.</string>
+    <string name="recovery_source_type">Type de Source</string>
+    <string name="recovery_raw_seed">Graine crue</string>
+    <string name="recovery_json">Récupération JSON</string>
+    <string name="account_import_password_placeholder">Mot de passe</string>
+    <string name="common_error_general_message">Nous faisons tout notre possible pour résoudre ce problème. Merci de réessayer ultérieurement. </string>
+    <string name="recover_json_hint">Coller json ou télécharger un fichier ...</string>
+    <string name="account_confirmation_title">Confirmer la mnémonique</string>
+    <string name="account_confirmation_details">Choisissez les mots dans le bon ordre</string>
+    <string name="pincode_create_top_title">Créer un code PIN</string>
+    <string name="pincode_fingerprint_error">Autorisation refusée. Essayez avec un autre doigt.</string>
+    <string name="pincode_touch_fingerprint_scanner">Touchez le scanner d\'empreintes digitales</string>
+    <string name="pincode_fingerprint_switch_dialog_title">Utilisez la biométrie pour autoriser</string>
+    <string name="profile_title">Compte</string>
+    <string name="profile_accounts_title">Comptes</string>
+    <string name="profile_network_title">Réseau</string>
+    <string name="profile_pincode_change_title">Changer le code PIN</string>
+    <string name="tabbar_profile_title">Profil</string>
+    <string name="pincode_biometry_dialog_title">Biométrie</string>
+    <string name="common_edit">Éditer</string>
+    <string name="common_done">Terminé</string>
+    <string name="accounts_add_account">Ajouter un compte</string>
+    <string name="account_add_already_exists_message">Le compte existe déjà. Veuillez en essayer un autre.</string>
+    <string name="about_website">Site officiel</string>
+    <string name="about_github">Code source Github</string>
+    <string name="about_version">Version de l\'application</string>
+    <string name="about_telegram">Rejoignez le groupe Telegram</string>
+    <string name="common_email_chooser_title">Sélectionnez l\'application de messagerie</string>
+    <string name="account_address">Adresse du compte</string>
+    <string name="account_export">Compte d\'exportation</string>
+    <string name="common_copied">Copié dans le presse-papier</string>
+    <string name="connections_add_connection">Ajouter une connexion</string>
+    <string name="connection_management_title">Réseaux</string>
+    <string name="connection_management_default_title">Défaut</string>
+    <string name="connection_management_custom_title">Douane</string>
+    <string name="account_delete_confirmation_title">Oubliez le compte?</string>
+    <string name="account_delete_confirmation_description">Assurez-vous d\'avoir sauvegardé votre compte avant de continuer.</string>
+    <string name="account_delete_confirm">Oublier</string>
+
+    <string name="wallet_asset_send">Envoyer</string>
+    <string name="wallet_asset_receive">Recevoir</string>
+    <string name="wallet_assets_total_title">Valeur des actifs</string>
+    <string name="import_json_invalid_format">Json de récupération non valide. Veuillez vous assurer que l\'entrée contient un json valide.</string>
+    <string name="import_json_invalid_password">Veuillez vérifier l\'exactitude du mot de passe et réessayer.</string>
+    <string name="node_info_title">Informations sur le nœud</string>
+    <string name="network_info_name">Nom du nœud</string>
+    <string name="common_update">Mettre à jour</string>
+    <string name="network_info_address">Adresse de nœud</string>
+
+    <string name="transfers">Transferts</string>
+    <string name="yesterday">Hier</string>
+    <string name="today">Aujourd\'hui</string>
+    <string name="transfers_empty">Les transactions entrantes et sortantes apparaitront ici</string>
+
+    <string name="wallet_balance_available">Disponible</string>
+    <string name="wallet_balance_bonded">Collé</string>
+    <string name="language_title">Langue</string>
+
+    <string name="common_add">Ajouter</string>
+    <string name="connection_add_invalid_error">Impossible d\'établir la connexion avec le nœud. Veuillez en essayer un autre.</string>
+    <string name="connection_add_already_exists_error">Le nœud a déjà été ajouté précédemment. Veuillez essayer un autre nœud.</string>
+    <string name="connection_add_unsupported_error">Malheureusement, le réseau n\'est pas pris en charge. Veuillez essayer l’une des méthodes suivantes: %s.</string>
+
+    <string name="search_contacts">Contacts</string>
+    <string name="search_recipient_hint">Adresse du compte ou nom du compte</string>
+    <string name="search_recipient_no_results">Aucun résultat trouvé</string>
+    <string name="search_recipient_welcome">Vos comptes et contacts auxquels vous envoyiez des transferts apparaîtront ici</string>
+    <string name="search_result_header">Résultat de la recherche</string>
+    <string name="common_continue">Continuer</string>
+    <string name="common_retry">Recommencez</string>
+
+    <string name="choose_amount_asset">Atout</string>
+    <string name="choose_amount_fee">Frais de transfert</string>
+    <string name="choose_amount_available_balance">Solde libre</string>
+    <string name="common_amount">Montant</string>
+    <string name="choose_amount_network_error">Le réseau ne répond pas</string>
+    <string name="choose_amount_to">À</string>
+
+    <string name="choose_amount_checking">Vérification…</string>
+    <string name="choose_amount_error_too_big">Désolé, vous ne disposez pas de suffisamment de fonds pour transférer le montant spécifié.</string>
+    <string name="choose_amount_error_fee">Désolé, nous n\'avons pas pu contacter le fournisseur de transfert. Veuillez réessayer plus tard.</string>
+    <string name="choose_amount_error_balance">Désolé, la demande de vérification du solde a échoué. Veuillez réessayer plus tard.</string>
+
+    <string name="wallet_send_total_title">Total</string>
+    <string name="wallet_send_progress">Envoi en cours…</string>
+    <string name="wallet_send_confirm_transfer">Confirmer le transfert</string>
+
+    <string name="transaction_status_pending">En attente</string>
+    <string name="transaction_status_failed">Échoué</string>
+    <string name="transaction_status_completed">Terminé</string>
+    <string name="transaction_details_title">Détails de la transaction</string>
+    <string name="transaction_details_from">De</string>
+    <string name="transaction_detail_status">Statut</string>
+    <string name="transaction_detail_date">Date</string>
+
+    <string name="transaction_details_view_subscan">Afficher dans Subscan</string>
+    <string name="transaction_details_view_polkascan">Voir à Polkascan</string>
+    <string name="transaction_details_copy_hash">Copier le hachage</string>
+    <string name="transaction_details_hash_title">Hash extrinsèque</string>
+    <string name="account_needed_title">Compte nécessaire</string>
+    <string name="account_needed_message">Vous n\'avez pas de compte pour ce réseau, vous pouvez créer ou importer un compte.</string>
+    <string name="common_proceed">Procéder</string>
+    <string name="common_unknown">Inconnue</string>
+    <string name="connection_delete_title">Delete network?</string>
+    <string name="connection_delete_description">Confirm %s deletion.</string>
+    <string name="connection_delete_confirm">Delete</string>
+    <string name="search_header_my_accounts">Mes comptes</string>
+    <string name="coming_soon">Bientôt disponible…</string>
+</resources>

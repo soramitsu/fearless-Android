@@ -2,10 +2,12 @@ package jp.co.soramitsu.app.di.app
 
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.app.navigation.Navigator
+import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.di.scope.ApplicationScope
+import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.splash.SplashRouter
-import jp.co.soramitsu.users.UsersRouter
 
 @Module
 class NavigationModule {
@@ -16,9 +18,17 @@ class NavigationModule {
 
     @ApplicationScope
     @Provides
-    fun provideMainRouter(navigator: Navigator): UsersRouter = navigator
+    fun provideSplashRouter(navigator: Navigator): SplashRouter = navigator
 
     @ApplicationScope
     @Provides
-    fun provideSplashRouter(navigator: Navigator): SplashRouter = navigator
+    fun provideOnboardingRouter(navigator: Navigator): OnboardingRouter = navigator
+
+    @ApplicationScope
+    @Provides
+    fun provideAccountRouter(navigator: Navigator): AccountRouter = navigator
+
+    @ApplicationScope
+    @Provides
+    fun provideWalletRouter(navigator: Navigator): WalletRouter = navigator
 }

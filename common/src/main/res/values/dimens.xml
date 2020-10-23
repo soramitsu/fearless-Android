@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <item name="text_line_spacing" format="float" type="dimen">1.2</item>
+    <dimen name="text_size_h1">30sp</dimen>
+    <dimen name="text_size_h2">22sp</dimen>
+    <dimen name="text_size_h3">18sp</dimen>
+    <dimen name="text_size_h4">16sp</dimen>
+    <dimen name="text_size_h5">14sp</dimen>
+
+    <dimen name="text_size_b0">16sp</dimen>
+    <dimen name="text_size_b1">14sp</dimen>
+    <dimen name="text_size_b2">12sp</dimen>
+    <dimen name="text_size_b3">10sp</dimen>
 
     <dimen name="x1_2">4dp</dimen>
     <dimen name="x1">8dp</dimen>
+    <dimen name="x1_5">12dp</dimen>
     <dimen name="x2">16dp</dimen>
-    <dimen name="x2_5">20dp</dimen>
     <dimen name="x3">24dp</dimen>
 
+    <dimen name="element_chooser_padding">16dp</dimen>
 </resources>

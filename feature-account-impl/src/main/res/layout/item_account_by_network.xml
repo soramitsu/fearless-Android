@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_primary_list_item"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingEnd="14dp"
+    tools:background="@color/black">
+
+    <ImageView
+        android:id="@+id/accountIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/accountAddress"
+        app:layout_constraintStart_toEndOf="@id/accountCheck"
+        app:layout_constraintTop_toTopOf="@+id/accountTitle"
+        tools:layout_height="24dp"
+        tools:layout_width="24dp"
+        tools:src="@color/colorAccent" />
+
+    <TextView
+        android:id="@+id/accountTitle"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="@color/white"
+        tools:text="Account Name" />
+
+</LinearLayout>

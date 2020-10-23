@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:fitsSystemWindows="true"
+    android:layout_height="match_parent"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.base.Toolbar
+        app:textRight="@string/common_done"
+        app:homeButtonIcon="@drawable/ic_close"
+        app:titleText="@string/profile_title"
+        android:id="@+id/fearlessToolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/accountDetailsNameContainer"
+        style="@style/Widget.Fearless.Input.Primary.External"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:hint="@string/username_setup_choose_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fearlessToolbar">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/accountDetailsName"
+            style="@style/Widget.Fearless.Input.Primary.Internal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLength="64" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <jp.co.soramitsu.common.view.AddressView
+        android:id="@+id/accountDetailsAddressView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:iconVisible="false"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="@+id/accountDetailsNameContainer"
+        app:layout_constraintStart_toStartOf="@+id/accountDetailsNameContainer"
+        app:layout_constraintTop_toBottomOf="@+id/accountDetailsNameContainer" />
+
+    <TextView
+        android:id="@+id/accountDetailsNode"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_button_primary_disabled"
+        android:drawablePadding="8dp"
+        android:gravity="center_vertical"
+        android:includeFontPadding="false"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="@+id/accountDetailsAddressView"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/accountDetailsAddressView"
+        app:layout_constraintTop_toBottomOf="@+id/accountDetailsAddressView"
+        tools:drawableStart="@drawable/ic_ksm_24"
+        tools:text="Kusama, Parity Node" />
+
+    <TextView
+        android:id="@+id/addAccount"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/gray4"
+        android:drawableStart="@drawable/ic_key"
+        android:drawableEnd="@drawable/ic_arrow_right_24"
+        android:drawablePadding="16dp"
+        android:padding="16dp"
+        android:text="@string/account_export"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <string name="wallet_send_existential_warning_title">Переказ видалить рахунок</string>
+    <string name="wallet_send_existential_warning_message">Ваш переказ видалить рахунок із магазину, оскільки загальний залишок буде нижчим за екзистенційний депозит</string>
+    <string name="wallet_balance_details_existential_deposit">Екзистенційний депозит</string>
+    <string name="wallet_balance_details_total_after">Разом після передачі</string>
+    <string name="wallet_balance_details_total">Загальний залишок</string>
+    <string name="wallet_balance_details_title">Деталі балансу</string>
+
+    <string name="wallet_balance_unbonding">Розв’язування</string>
+    <string name="wallet_balance_reserved">Зарезервований</string>
+    <string name="wallet_balance_redeemable">Викупний</string>
+    <string name="wallet_balance_locked">Заблоковано</string>
+    <string name="wallet_balance_frozen_template">Заморожений %s</string>
+
+    <string name="common_connecting">Підключення…</string>
+
+    <string name="common_next">Далі</string>
+    <string name="common_cancel">Скасувати</string>
+    <string name="common_skip">Пропустити</string>
+    <string name="common_use">Використати</string>
+    <string name="common_error_general_title">Помилка</string>
+    <string name="connection_error_message">Будь ласка, перевірте підключення до Інтернету та повторіть спробу пізніше.</string>
+    <string name="onboarding_restore_account">Імпорт рахунку</string>
+    <string name="onboarding_terms_and_conditions_1">Я підтверджую, що прочитав і згоден з Умовами користування та Політикою конфіденційності</string>
+    <string name="onboarding_terms_and_conditions_2">Умови користування</string>
+    <string name="onboarding_privacy_policy">Політикою конфіденційності</string>
+    <string name="pincode_enter_pin_code">Введіть PIN-код</string>
+    <string name="pincode_confirm_your_pin_code">Підтвердьте свій PIN-код</string>
+    <string name="access_restore_phrase_error_message">Ваш мнемонічний недійсний. Будь ласка, спробуйте ще один.</string>
+    <string name="recovery_passphrase">Мнемонічний</string>
+    <string name="tabbar_wallet_title">Гаманець</string>
+    <string name="tabbar_staking_title">Стекiнг</string>
+    <string name="tabbar_governance_title">Управління</string>
+    <string name="profile_settings_title">Параметри</string>
+    <string name="profile_language_title">Мова</string>
+    <string name="about_contact_us">Зв\'яжіться з нами</string>
+    <string name="about_title">Про додаток</string>
+    <string name="about_privacy">Політика конфіденційності</string>
+    <string name="about_terms">Умови користування</string>
+    <string name="onboarding_create_account">Створити рахунок</string>
+    <string name="username_setup_choose_title">Виберіть ім\'я</string>
+    <string name="username_setup_hint">Назва цього облікового запису та спосіб відображення під вашими адресами. Завдяки ланцюговій ідентичності він може бути доступний для інших.</string>
+    <string name="common_no_screenshot_title">Не робити знімки екрана</string>
+    <string name="common_no_screenshot_message">Не робіть знімки екрана, які можуть збирати сторонні зловмисні програми</string>
+    <string name="common_ok">OK</string>
+    <string name="account_create_title">Мнемонічний</string>
+    <string name="account_create_details">Використовуйте не цифровий спосіб резервного копіювання, наприклад запису на папері.</string>
+    <string name="common_advanced">Розширений</string>
+    <string name="common_crypto_type">Тип ключевой пары</string>
+    <string name="common_secret_derivation_path">Таємний шлях виведення</string>
+    <string name="common_choose_network">Виберіть мережу</string>
+    <string name="sr25519_selection_subtitle">sr25519 (рекомендується)</string>
+    <string name="ed25519_selection_subtitle">ed25519 (альтернатива)</string>
+    <string name="ecdsa_selection_subtitle">(Сумісний з BTC / ETH)</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+    <string name="ed25519_selection_title">Edwards</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+    <string name="account_creation_info">Mnemonic використовується для відновлення доступу до рахунку. Запишіть це, ми не зможемо відновити ваш рахунок без нього!</string>
+    <string name="common_info">Інформація</string>
+    <string name="common_undefined_error_message">Спробуйте ще раз з іншим вкладом. Якщо помилка з’явиться знову, зверніться до служби підтримки.</string>
+    <string name="recovery_source_type">Тип джерела</string>
+    <string name="recovery_raw_seed">Сире насіння</string>
+    <string name="recovery_json">Відновлення JSON</string>
+    <string name="account_import_password_placeholder">Пароль</string>
+    <string name="common_error_general_message">Ми працюємо над проблемою. Будь ласка, спробуйте пізніше.</string>
+    <string name="recover_json_hint">Вставити json або завантажити файл ...</string>
+    <string name="account_confirmation_title">Підтвердіть мнемонічне</string>
+    <string name="account_confirmation_details">Вибирайте слова в потрібному порядку</string>
+    <string name="pincode_create_top_title">Створення пін-коду</string>
+    <string name="pincode_fingerprint_error">Ви не авторизовані. Спробуйте інший палець.</string>
+    <string name="pincode_touch_fingerprint_scanner">Торкніться сканера відбитків пальців</string>
+    <string name="pincode_fingerprint_switch_dialog_title">Використовуйте біометричні для авторизації</string>
+    <string name="profile_title">Рахунок</string>
+    <string name="profile_accounts_title">Рахунки</string>
+    <string name="profile_network_title">Мережа</string>
+    <string name="profile_pincode_change_title">Зміна пін-коду</string>
+    <string name="tabbar_profile_title">Профіль</string>
+    <string name="pincode_biometry_dialog_title">Біометрія</string>
+    <string name="common_edit">Редагувати</string>
+    <string name="common_done">Завершено</string>
+    <string name="accounts_add_account">Додати обліковий запис</string>
+    <string name="account_add_already_exists_message">Рахунок вже існує. Спробуйте інший.</string>
+    <string name="about_website">Офіційний веб-сайт</string>
+    <string name="about_github">Вихідний код Github</string>
+    <string name="about_version">Версія програми</string>
+    <string name="about_telegram">Приєднуйтесь до Telegram Group</string>
+    <string name="common_email_chooser_title">Виберіть додаток для електронної пошти</string>
+
+    <string name="account_address">Адреса рахунку</string>
+    <string name="account_export">Експортний рахунок</string>
+    <string name="common_copied">Скопійовано в буфер обміну</string>
+    <string name="connections_add_connection">Додати підключення</string>
+    <string name="connection_management_title">Мережі</string>
+    <string name="connection_management_default_title">За замовчуванням</string>
+    <string name="connection_management_custom_title">На замовлення</string>
+    <string name="account_delete_confirmation_title">Забути рахунок?</string>
+    <string name="account_delete_confirmation_description">Перш ніж продовжувати, переконайтеся, що ви створили резервну копію свого облікового запису.</string>
+    <string name="account_delete_confirm">Забути</string>
+
+    <string name="wallet_asset_send">Надіслати</string>
+    <string name="wallet_asset_receive">Отримати</string>
+    <string name="wallet_assets_total_title">Вартість активів</string>
+    <string name="import_json_invalid_format">Недійсний json для відновлення. Переконайтеся, що вхід містить дійсний json.</string>
+    <string name="import_json_invalid_password">Перевірте правильність пароля і повторіть спробу.</string>
+    <string name="node_info_title">Інформація про вузол</string>
+    <string name="network_info_name">Ім\'я вузла</string>
+    <string name="common_update">Оновлення</string>
+    <string name="network_info_address">Адреса вузла</string>
+
+    <string name="transfers">Трансфери</string>
+    <string name="yesterday">Вчора</string>
+    <string name="today">Сьогодні</string>
+    <string name="transfers_empty">Вхідні й вихідні транзакції з\'являтимуться тут</string>
+
+    <string name="wallet_balance_available">Доступні</string>
+    <string name="wallet_balance_bonded">Кабальний</string>
+    <string name="language_title">Мова</string>
+    <string name="common_add">Додати</string>
+    <string name="connection_add_invalid_error">Не вдається встановити зв’язок з вузлом. Будь ласка, спробуйте інший.</string>
+    <string name="connection_add_already_exists_error">Вузол вже додано раніше. Будь ласка, спробуйте інший вузол.</string>
+    <string name="connection_add_unsupported_error">На жаль, мережа не підтримується. Спробуйте одне з наступного: %s.</string>
+
+    <string name="search_contacts">Контакти</string>
+    <string name="search_recipient_hint">Адреса рахунку або назва рахунку</string>
+    <string name="search_recipient_no_results">Немає результатів пошуку</string>
+    <string name="search_recipient_welcome">Тут з’являться ваші облікові записи та контакти, кому ви надсилали перекази</string>
+    <string name="search_result_header">Результат пошуку</string>
+    <string name="common_continue">Продовжити</string>
+    <string name="common_retry">Повторіть спробу</string>
+
+    <string name="choose_amount_asset">Актив</string>
+    <string name="choose_amount_fee">Плата за переказ</string>
+    <string name="choose_amount_available_balance">Вільний баланс</string>
+    <string name="common_amount">Сума</string>
+    <string name="choose_amount_network_error">Мережа не відповідає</string>
+    <string name="choose_amount_to">До</string>
+
+    <string name="choose_amount_checking">Перевірка…</string>
+    <string name="choose_amount_error_too_big">На жаль, у вас недостатньо коштів для переказу зазначеної суми.</string>
+    <string name="choose_amount_error_fee">На жаль, нам не вдалося зв’язатися з постачальником передачі. Будь ласка спробуйте пізніше.</string>
+    <string name="choose_amount_error_balance">На жаль, запит на перевірку балансу не вдався. Будь-ласка спробуйте пізніше.</string>
+
+    <string name="wallet_send_total_title">Разом</string>
+    <string name="wallet_send_progress">Надсилання…</string>
+    <string name="wallet_send_confirm_transfer">Підтвердьте передачу</string>
+
+    <string name="transaction_status_pending">В очікуванні</string>
+    <string name="transaction_status_failed">Помилка</string>
+    <string name="transaction_status_completed">Завершено</string>
+    <string name="transaction_details_title">Деталі транзакції</string>
+    <string name="transaction_details_from">Від</string>
+    <string name="transaction_detail_status">Статус</string>
+    <string name="transaction_detail_date">Дата</string>
+
+    <string name="transaction_details_view_subscan">Переглянути в Subscan</string>
+    <string name="transaction_details_view_polkascan">Вид на Полькаскані</string>
+    <string name="transaction_details_copy_hash">Скопіювати хеш</string>
+    <string name="transaction_details_hash_title">Зовнішній хеш</string>
+    <string name="account_needed_title">Потрібен рахунок</string>
+    <string name="account_needed_message">У вас немає облікового запису для цієї мережі, ви можете створити або імпортувати обліковий запис.</string>
+    <string name="common_proceed">Продовжуйте</string>
+    <string name="common_unknown">Невідомо</string>
+    <string name="connection_delete_title">Delete network?</string>
+    <string name="connection_delete_description">Confirm %s deletion.</string>
+    <string name="connection_delete_confirm">Delete</string>
+    <string name="search_header_my_accounts">мої рахунки</string>
+    <string name="coming_soon">Незабаром…</string>
+</resources>

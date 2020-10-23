@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainView"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/drawable_background_image">
+
+    <fragment
+        android:id="@+id/navHost"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:defaultNavHost="true" />
+
+    <TextView
+        android:id="@+id/rootNetworkBar"
+        android:layout_width="match_parent"
+        android:background="@color/colorAccent"
+        android:text="@string/common_connecting"
+        android:gravity="center"
+        android:paddingTop="16dp"
+        android:visibility="gone"
+        android:paddingBottom="2dp"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top" />
+
+
+</FrameLayout>

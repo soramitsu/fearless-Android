@@ -1,25 +1,28 @@
 package jp.co.soramitsu.common.resources
 
-import android.content.Context
 import androidx.core.content.ContextCompat
-import jp.co.soramitsu.core.ResourceManager
-import javax.inject.Inject
-import javax.inject.Singleton
+import jp.co.soramitsu.common.di.scope.ApplicationScope
 
-@Singleton
-class ResourceManagerImpl @Inject constructor(
-    private val context: Context
+@ApplicationScope
+class ResourceManagerImpl(
+    private val contextManager: ContextManager
 ) : ResourceManager {
 
     override fun getString(res: Int): String {
-        return context.getString(res)
+        return contextManager.getContext().getString(res)
     }
 
     override fun getColor(res: Int): Int {
-        return ContextCompat.getColor(context, res)
+        return ContextCompat.getColor(contextManager.getContext(), res)
     }
 
     override fun getQuantityString(id: Int, quantity: Int): String {
-        return context.resources.getQuantityString(id, quantity)
+        return contextManager.getContext().resources.getQuantityString(id, quantity)
+    }
+
+    override fun measureInPx(dp: Int): Int {
+        val px = contextManager.getContext().resources.displayMetrics.density * dp
+
+        return px.toInt()
     }
 }

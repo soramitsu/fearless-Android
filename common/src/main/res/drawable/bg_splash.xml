@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:opacity="opaque">
+
+    <item android:drawable="@drawable/drawable_background_image" />
+
+    <item
+        android:gravity="center"
+        android:drawable="@drawable/drawable_fearless_logo" />
+
+    <item
+        android:bottom="60dp"
+        android:gravity="center_horizontal|bottom"
+        android:drawable="@drawable/drawable_soramitsu_brand" />
+
+</layer-list>
