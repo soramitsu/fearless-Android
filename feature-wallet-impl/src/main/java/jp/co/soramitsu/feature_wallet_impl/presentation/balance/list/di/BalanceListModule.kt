@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
@@ -23,9 +24,10 @@ class BalanceListModule {
     @ScreenScope
     fun provideTransferHistoryMixin(
         walletInteractor: WalletInteractor,
+        addressIconGenerator: AddressIconGenerator,
         walletRouter: WalletRouter
     ): TransactionHistoryMixin {
-        return TransactionHistoryProvider(walletInteractor, walletRouter)
+        return TransactionHistoryProvider(walletInteractor, addressIconGenerator, walletRouter)
     }
 
     @Provides

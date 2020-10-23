@@ -55,7 +55,7 @@ class WalletInteractorImpl(
         return walletRepository.syncTransactionsFirstPage(pageSize)
     }
 
-    override fun getTransactionPage(pageSize: Int, page: Int): Single<TransactionsPage> {
+    override fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>> {
         return walletRepository.getTransactionPage(pageSize, page)
     }
 

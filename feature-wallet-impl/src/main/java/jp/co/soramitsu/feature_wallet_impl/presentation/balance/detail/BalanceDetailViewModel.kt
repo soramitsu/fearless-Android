@@ -19,10 +19,11 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 
 private class TokenFilter(private val token: Asset.Token) : TransactionFilter {
-    override fun shouldInclude(model: TransactionModel): Boolean {
-        return token == model.token
+    override fun shouldInclude(model: TransactionHistoryElement): Boolean {
+        return token == model.transactionModel.token
     }
 }
 

@@ -4,11 +4,13 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewTreeObserver
+import android.view.WindowInsets
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
@@ -37,8 +39,14 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         anchor?.let {
-            bottomSheetBehavior.peekHeight = parentView.measuredHeight - it.bottom - coordinatorParams.topMargin
+            bottomSheetBehavior.peekHeight = parentView.measuredHeight - it.bottom
         }
+    }
+
+    override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
+        coordinatorParams.topMargin = insets.systemWindowInsetTop
+
+        return insets
     }
 
     init {

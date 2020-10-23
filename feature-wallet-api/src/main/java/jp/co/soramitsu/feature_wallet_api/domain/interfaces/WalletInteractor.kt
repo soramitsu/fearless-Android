@@ -25,7 +25,7 @@ interface WalletInteractor {
 
     fun syncTransactionsFirstPage(pageSize: Int): Completable
 
-    fun getTransactionPage(pageSize: Int, page: Int): Single<TransactionsPage>
+    fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>>
 
     fun observeSelectedAddressId(): Observable<ByteArray>
 
