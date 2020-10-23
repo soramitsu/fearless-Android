@@ -13,6 +13,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 import jp.co.soramitsu.feature_wallet_impl.util.formatDateTime
 import jp.co.soramitsu.feature_wallet_impl.util.formatDaysSinceEpoch
 import kotlinx.android.synthetic.main.item_day_header.view.itemDayHeader
@@ -24,7 +26,7 @@ import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionTime
 
 class TransactionHistoryAdapter(
     val handler: Handler
-) : GroupedListAdapter<DayHeader, TransactionModel>(TransactionHistoryDiffCallback) {
+) : GroupedListAdapter<DayHeader, TransactionHistoryElement>(TransactionHistoryDiffCallback) {
 
     interface Handler {
         fun transactionClicked(transactionModel: TransactionModel)
@@ -42,30 +44,33 @@ class TransactionHistoryAdapter(
         (holder as DayHolder).bind(group)
     }
 
-    override fun bindChild(holder: GroupedListHolder, child: TransactionModel) {
+    override fun bindChild(holder: GroupedListHolder, child: TransactionHistoryElement) {
         (holder as TransactionHolder).bind(child, handler)
     }
 }
 
 class TransactionHolder(view: View) : GroupedListHolder(view) {
-    fun bind(item: TransactionModel, handler: TransactionHistoryAdapter.Handler) {
+    fun bind(item: TransactionHistoryElement, handler: TransactionHistoryAdapter.Handler) {
         with(containerView) {
-            itemTransactionAddress.text = item.displayAddress
+            with(item.transactionModel) {
+                itemTransactionAddress.text = displayAddress
 
-            itemTransactionAmount.setTextColorRes(item.amountColorRes)
-            itemTransactionAmount.text = item.formattedAmount
+                itemTransactionAmount.setTextColorRes(amountColorRes)
+                itemTransactionAmount.text = formattedAmount
 
-            itemTransactionIcon.setImageResource(item.token.icon)
-            itemTransactionTime.text = item.date.formatDateTime(context)
+                itemTransactionTime.text = date.formatDateTime(context)
 
-            if (item.status != Transaction.Status.COMPLETED) {
-                itemTransactionStatus.makeVisible()
-                itemTransactionStatus.setImageResource(item.statusAppearance.icon)
-            } else {
-                itemTransactionStatus.makeGone()
+                if (status != Transaction.Status.COMPLETED) {
+                    itemTransactionStatus.makeVisible()
+                    itemTransactionStatus.setImageResource(statusAppearance.icon)
+                } else {
+                    itemTransactionStatus.makeGone()
+                }
+
+                setOnClickListener { handler.transactionClicked(this) }
             }
 
-            setOnClickListener { handler.transactionClicked(item) }
+            itemTransactionIcon.setImageDrawable(item.displayAddressModel.image)
         }
     }
 }
@@ -78,7 +83,7 @@ class DayHolder(view: View) : GroupedListHolder(view) {
     }
 }
 
-object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, TransactionModel>(DayHeader::class.java) {
+object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, TransactionHistoryElement>(DayHeader::class.java) {
     override fun areGroupItemsTheSame(oldItem: DayHeader, newItem: DayHeader): Boolean {
         return oldItem.daysSinceEpoch == oldItem.daysSinceEpoch
     }
@@ -87,11 +92,11 @@ object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, Trans
         return true
     }
 
-    override fun areChildItemsTheSame(oldItem: TransactionModel, newItem: TransactionModel): Boolean {
-        return oldItem.hash == newItem.hash
+    override fun areChildItemsTheSame(oldItem: TransactionHistoryElement, newItem: TransactionHistoryElement): Boolean {
+        return oldItem.transactionModel.hash == newItem.transactionModel.hash
     }
 
-    override fun areChildContentsTheSame(oldItem: TransactionModel, newItem: TransactionModel): Boolean {
-        return oldItem == newItem
+    override fun areChildContentsTheSame(oldItem: TransactionHistoryElement, newItem: TransactionHistoryElement): Boolean {
+        return oldItem.transactionModel == newItem.transactionModel
     }
 }
