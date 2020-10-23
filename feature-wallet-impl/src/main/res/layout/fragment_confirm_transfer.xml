@@ -51,7 +51,7 @@
         android:drawablePadding="4dp"
         android:fontFamily="@font/soramitsu_bold"
         android:gravity="center_vertical"
-        android:text="@string/choose_amount_free_balance"
+        android:text="@string/choose_amount_available_balance"
         android:textAllCaps="true"
         android:textColor="@color/white"
         android:textSize="@dimen/text_size_b3"

@@ -13,8 +13,10 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalance
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalanceLabel
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFee
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeProgress
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountField
@@ -45,6 +47,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         chooseAmountToolbar.setHomeButtonListener { viewModel.backClicked() }
 
         chooseAmountNext.setOnClickListener { viewModel.nextClicked() }
+
+        chooseAmountBalanceLabel.setOnClickListener { viewModel.availableBalanceClicked() }
     }
 
     override fun inject() {
@@ -100,7 +104,25 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
             chooseAmountNext.setText(textRes)
         }
 
+        viewModel.showBalanceDetailsEvent.observeEvent {
+            BalanceDetailsBottomSheet(requireContext(), it).show()
+        }
+
+        viewModel.showAccountRemovalWarning.observeEvent {
+            showAccountRemovalWarning()
+        }
+
         chooseAmountField.onTextChanged(viewModel::amountChanged)
+    }
+
+    private fun showAccountRemovalWarning() {
+        AlertDialog.Builder(requireActivity())
+            .setTitle(R.string.wallet_send_existential_warning_title)
+            .setMessage(R.string.wallet_send_existential_warning_message)
+            .setCancelable(false)
+            .setPositiveButton(R.string.common_continue) { _, _ -> viewModel.transferRemovingAccountConfirmed() }
+            .setNegativeButton(R.string.common_cancel, null)
+            .show()
     }
 
     private fun showRetry(reason: RetryReason) {
