@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_account_impl.presentation.profile
 
-import android.graphics.drawable.PictureDrawable
 import androidx.lifecycle.LiveData
 import io.reactivex.Observable
 import io.reactivex.Single
