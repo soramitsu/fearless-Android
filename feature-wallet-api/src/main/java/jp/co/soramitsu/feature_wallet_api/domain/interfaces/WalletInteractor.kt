@@ -47,4 +47,6 @@ interface WalletInteractor {
     fun getAccountsInCurrentNetwork(): Single<List<Account>>
 
     fun selectAccount(address: String): Completable
+
+    fun getQrCodeSharingString(): Single<String>
 }

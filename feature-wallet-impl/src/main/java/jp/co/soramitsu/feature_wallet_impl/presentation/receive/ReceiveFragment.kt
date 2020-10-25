@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import kotlinx.android.synthetic.main.fragment_receive.accountView
 import kotlinx.android.synthetic.main.fragment_receive.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_receive.qrImg
 
@@ -20,6 +21,12 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_receive, container, false)
 
     override fun initViews() {
+        accountView.setActionListener { viewModel.addressCopyClicked() }
+
+        fearlessToolbar.setHomeButtonListener {
+            viewModel.backClicked()
+        }
+
         fearlessToolbar.setRightActionClickListener {
 
         }
@@ -38,6 +45,15 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
     override fun subscribe(viewModel: ReceiveViewModel) {
         viewModel.qrBitmapLiveData.observe {
             qrImg.setImageBitmap(it)
+        }
+
+        viewModel.accountLiveData.observe { account ->
+            account.name?.let(accountView::setTitle)
+            accountView.setText(account.address)
+        }
+
+        viewModel.accountIconLiveData.observe {
+            accountView.setAccountIcon(it.image)
         }
     }
 }

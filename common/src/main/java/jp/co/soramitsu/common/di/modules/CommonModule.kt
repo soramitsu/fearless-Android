@@ -26,7 +26,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
-import javax.inject.Singleton
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
@@ -128,8 +127,8 @@ class CommonModule {
         iconGenerator: IconGenerator
     ): AddressIconGenerator = AddressIconGenerator(iconGenerator, resourceManager)
 
-    @Singleton
     @Provides
+    @ApplicationScope
     fun provideQrCodeGenerator(resourceManager: ResourceManager): QrCodeGenerator {
         return QrCodeGenerator(Color.BLACK, Color.WHITE)
     }

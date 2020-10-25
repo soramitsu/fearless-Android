@@ -107,4 +107,16 @@ class WalletInteractorImpl(
         return accountRepository.getAccount(address)
             .flatMapCompletable(accountRepository::selectAccount)
     }
+
+    override fun getQrCodeSharingString(): Single<String> {
+        return accountRepository.observeSelectedAccount()
+            .firstOrError()
+            .map(::formatQrAccountData)
+    }
+
+    private fun formatQrAccountData(account: Account): String {
+        return with(account) {
+            "substrate:$address:$publicKey:$name"
+        }
+    }
 }

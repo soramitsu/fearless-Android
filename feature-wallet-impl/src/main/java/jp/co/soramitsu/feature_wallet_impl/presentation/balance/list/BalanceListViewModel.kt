@@ -88,7 +88,7 @@ class BalanceListViewModel(
     }
 
     fun receiveClicked() {
-        // TODO
+        router.openReceive()
     }
 
     fun accountSelected(addressModel: AddressModel) {
