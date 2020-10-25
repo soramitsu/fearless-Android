@@ -28,6 +28,7 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailFroze
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailFrozenTitle
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRate
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRateChange
+import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailReceive
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailSend
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
@@ -76,6 +77,10 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
         balanceDetailSend.setOnClickListener {
             viewModel.sendClicked()
+        }
+
+        balanceDetailReceive.setOnClickListener {
+            viewModel.receiveClicked()
         }
 
         balanceDetailFrozenTitle.setOnClickListener {
