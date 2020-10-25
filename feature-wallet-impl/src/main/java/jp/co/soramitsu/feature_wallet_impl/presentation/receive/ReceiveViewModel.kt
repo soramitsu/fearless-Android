@@ -49,6 +49,10 @@ class ReceiveViewModel(
         router.back()
     }
 
+    fun shareButtonClicked() {
+
+    }
+
     private fun getQrCodeSharingString() = interactor.getQrCodeSharingString()
         .subscribeOn(Schedulers.io())
         .map { qrCodeGenerator.generateQrBitmap(it) }

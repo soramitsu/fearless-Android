@@ -28,7 +28,7 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
         }
 
         fearlessToolbar.setRightActionClickListener {
-
+            viewModel.shareButtonClicked()
         }
     }
 

@@ -19,6 +19,10 @@ class WalletInteractorImpl(
     private val accountRepository: AccountRepository
 ) : WalletInteractor {
 
+    companion object {
+        private const val QR_SHARE_PREFIX = "substrate"
+    }
+
     override fun observeAssets(): Observable<List<Asset>> {
         return walletRepository.observeAssets()
     }
@@ -116,7 +120,7 @@ class WalletInteractorImpl(
 
     private fun formatQrAccountData(account: Account): String {
         return with(account) {
-            "substrate:$address:$publicKey:$name"
+            "$QR_SHARE_PREFIX:$address:$publicKey:$name"
         }
     }
 }
