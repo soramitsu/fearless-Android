@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
@@ -71,4 +72,6 @@ interface CommonApi {
     fun addressIconGenerator(): AddressIconGenerator
 
     fun networkStateMixin(): NetworkStateMixin
+
+    fun qrCodeGenerator(): QrCodeGenerator
 }

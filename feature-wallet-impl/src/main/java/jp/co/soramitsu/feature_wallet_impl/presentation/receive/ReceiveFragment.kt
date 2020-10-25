@@ -8,6 +8,8 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import kotlinx.android.synthetic.main.fragment_receive.fearlessToolbar
+import kotlinx.android.synthetic.main.fragment_receive.qrImg
 
 class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
 
@@ -18,7 +20,9 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_receive, container, false)
 
     override fun initViews() {
+        fearlessToolbar.setRightActionClickListener {
 
+        }
     }
 
     override fun inject() {
@@ -32,6 +36,8 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
     }
 
     override fun subscribe(viewModel: ReceiveViewModel) {
-        TODO("Not yet implemented")
+        viewModel.qrBitmapLiveData.observe {
+            qrImg.setImageBitmap(it)
+        }
     }
 }

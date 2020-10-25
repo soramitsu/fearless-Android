@@ -151,4 +151,5 @@
     <string name="connection_delete_title">Удалить сеть?</string>
     <string name="connection_delete_description">Подтвердите удаление %s.</string>
     <string name="connection_delete_confirm">Удалить</string>
+    <string name="wallet_receive_description">Share this QR to sender</string>
 </resources>
