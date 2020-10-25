@@ -165,5 +165,5 @@
     <string name="connection_delete_confirm">Delete</string>
     <string name="search_header_my_accounts">私のアカウント</string>
     <string name="coming_soon">近日公開…</string>
-    <string name="wallet_receive_description">Share this QR to sender</string>
+    <string name="wallet_receive_description">このQRを送信者に共有する</string>
 </resources>

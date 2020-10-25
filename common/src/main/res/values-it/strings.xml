@@ -165,5 +165,5 @@
     <string name="connection_delete_confirm">Delete</string>
     <string name="search_header_my_accounts">i miei conti</string>
     <string name="coming_soon">Prossimamente…</string>
-    <string name="wallet_receive_description">Share this QR to sender</string>
+    <string name="wallet_receive_description">Condividi questo QR con il mittente</string>
 </resources>
