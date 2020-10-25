@@ -13,20 +13,20 @@
 
     <fragment
         android:id="@+id/polkaswapFragment"
-        tools:layout="@layout/fragment_placeholder"
-        android:name="jp.co.soramitsu.app.root.presentation.PlaceholderFragment"
+        tools:layout="@layout/fragment_coming_soon"
+        android:name="jp.co.soramitsu.app.root.presentation.main.coming_soon.ComingSoonFragment"
         android:label="ExtrinsicsFragment" />
 
     <fragment
         android:id="@+id/stackingFragment"
-        tools:layout="@layout/fragment_placeholder"
-        android:name="jp.co.soramitsu.app.root.presentation.PlaceholderFragment"
+        tools:layout="@layout/fragment_coming_soon"
+        android:name="jp.co.soramitsu.app.root.presentation.main.coming_soon.ComingSoonFragment"
         android:label="StackingFragment" />
 
     <fragment
         android:id="@+id/governanceFragment"
-        tools:layout="@layout/fragment_placeholder"
-        android:name="jp.co.soramitsu.app.root.presentation.PlaceholderFragment"
+        tools:layout="@layout/fragment_coming_soon"
+        android:name="jp.co.soramitsu.app.root.presentation.main.coming_soon.ComingSoonFragment"
         android:label="GovernanceFragment" />
 
     <fragment

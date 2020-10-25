@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -25,6 +26,9 @@ class ConfirmTransferViewModel(
     private val clipboardManager: ClipboardManager,
     val transferDraft: TransferDraft
 ) : BaseViewModel() {
+
+    private val _showBalanceDetailsEvent = MutableLiveData<Event<Unit>>()
+    val showBalanceDetailsEvent: LiveData<Event<Unit>> = _showBalanceDetailsEvent
 
     val recipientModel = getAddressIcon()
         .asLiveData()
@@ -56,8 +60,12 @@ class ConfirmTransferViewModel(
         showMessage(resourceManager.getString(R.string.common_copied))
     }
 
+    fun availableBalanceClicked() {
+        _showBalanceDetailsEvent.value = Event(Unit)
+    }
+
     private fun getAddressIcon() = interactor.getAddressId(transferDraft.recipientAddress)
-        .flatMap { addressIconGenerator.createAddressIcon(transferDraft.recipientAddress, it, ICON_IN_DP) }
+        .flatMap { addressIconGenerator.createAddressModel(transferDraft.recipientAddress, it, ICON_IN_DP) }
 
     private fun createTransfer(): Transfer {
         return with(transferDraft) {

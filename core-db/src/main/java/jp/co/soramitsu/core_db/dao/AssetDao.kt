@@ -22,4 +22,7 @@ abstract class AssetDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insert(assets: List<AssetLocal>): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract fun insertBlocking(asset: AssetLocal)
 }

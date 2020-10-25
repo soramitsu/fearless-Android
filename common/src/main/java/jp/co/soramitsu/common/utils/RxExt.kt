@@ -78,8 +78,16 @@ fun <T, R> Single<List<T>>.mapList(mapper: (T) -> R): Single<List<R>> {
     return map { list -> list.map(mapper) }
 }
 
-@Suppress("UNCHECKED_CAST") fun <R> List<Single<out R>>.zipSimilar(): Single<List<R>> = Single.zip(this) { values ->
-    val casted = values as Array<out R>
+fun List<Single<*>>.zip() = Single.zip(this) { values ->
+    ComponentHolder(values.toList())
+}
 
-    casted.toList()
+@Suppress("UNCHECKED_CAST") fun <R> List<Single<out R>>.zipSimilar(): Single<List<R>> {
+    if (isEmpty()) return Single.just(emptyList())
+
+    return Single.zip(this) { values ->
+        val casted = values as Array<out R>
+
+        casted.toList()
+    }
 }

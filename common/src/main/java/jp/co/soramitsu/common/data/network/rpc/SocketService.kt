@@ -159,7 +159,7 @@ class SocketService(
             .switchMap { subscriptionId ->
                 Observable.create<SubscriptionChange> { emitter ->
                     subscriptions[subscriptionId] = SubscriptionMapEntry(request, emitter)
-                }.doOnDispose {
+                }.doOnComplete {
                     subscriptions.remove(subscriptionId)
                 }
             }

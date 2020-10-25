@@ -12,6 +12,9 @@ class Asset(
     val reservedInPlanks: BigInteger,
     val miscFrozenInPlanks: BigInteger,
     val feeFrozenInPlanks: BigInteger,
+    val bondedInPlanks: BigInteger,
+    val redeemableInPlanks: BigInteger,
+    val unbondingInPlanks: BigInteger,
     val dollarRate: BigDecimal?,
     val recentRateChange: BigDecimal?
 ) {
@@ -20,9 +23,18 @@ class Asset(
     val miscFrozen = token.amountFromPlanks(miscFrozenInPlanks)
     val feeFrozen = token.amountFromPlanks(feeFrozenInPlanks)
 
-    val transferable = free - (reserved + miscFrozen.max(feeFrozen))
+    val locked = miscFrozen.max(feeFrozen)
+    val frozen = locked + reserved
 
-    val dollarAmount = dollarRate?.multiply(free)
+    val total = free + reserved
+
+    val transferable = free - locked
+
+    val bonded = token.amountFromPlanks(bondedInPlanks)
+    val redeemable = token.amountFromPlanks(redeemableInPlanks)
+    val unbonding = token.amountFromPlanks(unbondingInPlanks)
+
+    val dollarAmount = dollarRate?.multiply(total)
 
     enum class Token(
         val displayName: String,

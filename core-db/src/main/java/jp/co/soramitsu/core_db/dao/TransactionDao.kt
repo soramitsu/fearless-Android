@@ -60,8 +60,8 @@ abstract class TransactionDao {
     protected abstract fun insertBlocking(transactions: List<TransactionLocal>)
 
     @Query("DELETE FROM transactions WHERE accountAddress = :accountAddress AND source = :source")
-    protected abstract fun clear(accountAddress: String, source: TransactionSource)
+    protected abstract fun clear(accountAddress: String, source: TransactionSource): Int
 
     @Query("DELETE FROM transactions WHERE date < :minDate AND accountAddress = :accountAddress")
-    protected abstract fun clearOld(accountAddress: String, minDate: Long)
+    protected abstract fun clearOld(accountAddress: String, minDate: Long): Int
 }
