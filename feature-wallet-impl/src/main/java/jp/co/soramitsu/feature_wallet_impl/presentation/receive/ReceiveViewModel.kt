@@ -50,7 +50,7 @@ class ReceiveViewModel(
     }
 
     fun shareButtonClicked() {
-
+        // TODO: implement sharing here
     }
 
     private fun getQrCodeSharingString() = interactor.getQrCodeSharingString()
