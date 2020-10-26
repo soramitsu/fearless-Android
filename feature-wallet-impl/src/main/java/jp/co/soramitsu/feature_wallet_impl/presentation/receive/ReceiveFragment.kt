@@ -21,7 +21,8 @@ import java.io.FileOutputStream
 class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
 
     companion object {
-        private const val IMAGE_NAME = "image.png"
+        private const val QR_TEMP_IMAGE_NAME = "address.png"
+        private const val QR_TEMP_IMAGE_QUALITY = 100
     }
 
     override fun onCreateView(
@@ -86,10 +87,10 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
     }
 
     private fun saveToTempFile(context: Context, bitmap: Bitmap): File? {
-        val mediaStorageDir = File(context.externalCacheDir!!.absolutePath + IMAGE_NAME)
+        val mediaStorageDir = File(context.externalCacheDir!!.absolutePath + QR_TEMP_IMAGE_NAME)
 
         val outputStream = FileOutputStream(mediaStorageDir)
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, QR_TEMP_IMAGE_QUALITY, outputStream)
         outputStream.close()
         return mediaStorageDir
     }

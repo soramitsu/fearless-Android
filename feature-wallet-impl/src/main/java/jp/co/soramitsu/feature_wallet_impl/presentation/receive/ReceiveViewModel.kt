@@ -56,17 +56,20 @@ class ReceiveViewModel(
     }
 
     fun shareButtonClicked() {
-        qrBitmapLiveData.value?.let { qrBitmap ->
-            disposables += interactor.observeCurrentAsset()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    val message = generateMessage(it.token.displayName, it.token.networkType.readableName)
-                    shareEvent.value = Event(Pair(qrBitmap, message))
-                }, {
-
-                })
+        if (qrBitmapLiveData.value == null || accountIconLiveData.value == null) {
+            return
         }
+        val qrBitmap = qrBitmapLiveData.value!!
+        val address = accountIconLiveData.value!!.address
+        disposables += interactor.observeCurrentAsset()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                val message = generateMessage(it.token.networkType.readableName, it.token.displayName, address)
+                shareEvent.value = Event(Pair(qrBitmap, message))
+            }, {
+                it.message?.let { showError(it) }
+            })
     }
 
     private fun getQrCodeSharingString() = interactor.getQrCodeSharingString()
@@ -89,7 +92,7 @@ class ReceiveViewModel(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun generateMessage(network: String, token: String, address: String = ""): String {
-        return resourceManager.getString(R.string.wallet_receive_share_message).format(network, token) + address
+    private fun generateMessage(network: String, token: String, address: String): String {
+        return resourceManager.getString(R.string.wallet_receive_share_message).format(network, token) + " " + address
     }
 }
