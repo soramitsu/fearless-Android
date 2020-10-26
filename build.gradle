@@ -148,5 +148,5 @@ task ktlint(type: JavaExec, group: "verification") {
 }
 
 task runTest(type: GradleBuild) {
-  tasks = ['clean', 'ktlint']
+  tasks = ['clean', 'ktlint', 'runModuleTests']
 }
