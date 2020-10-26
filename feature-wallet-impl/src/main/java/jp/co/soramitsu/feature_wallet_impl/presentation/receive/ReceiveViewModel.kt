@@ -62,6 +62,7 @@ class ReceiveViewModel(
         val qrBitmap = qrBitmapLiveData.value!!
         val address = accountIconLiveData.value!!.address
         disposables += interactor.observeCurrentAsset()
+            .firstOrError()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
@@ -74,7 +75,7 @@ class ReceiveViewModel(
 
     private fun getQrCodeSharingString() = interactor.getQrCodeSharingString()
         .subscribeOn(Schedulers.io())
-        .map { qrCodeGenerator.generateQrBitmap(it) }
+        .map(qrCodeGenerator::generateQrBitmap)
         .observeOn(AndroidSchedulers.mainThread())
 
     private fun getAccountAddress() = selectedAccountObservable

@@ -223,16 +223,7 @@
         android:id="@+id/receiveFragment"
         android:name="jp.co.soramitsu.feature_wallet_impl.presentation.receive.ReceiveFragment"
         android:label="ReceiveFragment"
-        tools:layout="@layout/fragment_receive">
-
-        <action
-            android:id="@+id/action_chooseRecipientFragment_to_chooseAmountFragment"
-            app:destination="@id/chooseAmountFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
-    </fragment>
+        tools:layout="@layout/fragment_receive" />
 
     <fragment
         android:id="@+id/chooseAmountFragment"
