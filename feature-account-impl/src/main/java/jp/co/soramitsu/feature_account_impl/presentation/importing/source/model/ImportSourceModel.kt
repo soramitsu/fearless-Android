@@ -9,6 +9,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.Incorrec
 import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.InvalidJsonException
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_impl.R
+import org.bouncycastle.util.encoders.DecoderException
 import java.lang.IllegalArgumentException
 
 class ImportError(
@@ -95,7 +96,7 @@ class RawSeedImportSource : ImportSource(R.string.recovery_raw_seed) {
 
     override fun handleError(throwable: Throwable): ImportError? {
         return when(throwable) {
-            is IllegalArgumentException ->  ImportError(
+            is IllegalArgumentException, is DecoderException ->  ImportError(
                 titleRes = R.string.import_seed_invalid_title,
                 messageRes = R.string.import_seed_invalid_message
             )
