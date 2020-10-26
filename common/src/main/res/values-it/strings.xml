@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="import_account_exists_title">L\'account esiste già</string>
+    <string name="import_mnemonic_invalid_title">Il mnemonico non è valido</string>
+    <string name="error_try_another_one">Per favore, provane un altro.</string>
+    <string name="import_seed_invalid_message">Assicurati che il tuo input contenga 64 simboli esadecimali.</string>
+    <string name="import_seed_invalid_title">Il seme non è valido</string>
+    <string name="import_json_invalid_password_title">Decrittografia del keystore non riuscita</string>
+    <string name="import_json_invalid_format_message">Per favore, assicurati che il tuo input contenga json valido.</string>
+    <string name="import_json_invalid_format_title">Il JSON di ripristino non è valido</string>
+
     <string name="wallet_send_existential_warning_title">Il trasferimento rimuoverà l\'account</string>
     <string name="wallet_send_existential_warning_message">Il tuo trasferimento rimuoverà l\'account dal blockstore poiché renderà il saldo totale inferiore al deposito esistenziale</string>
     <string name="wallet_balance_details_existential_deposit">Deposito esistenziale</string>

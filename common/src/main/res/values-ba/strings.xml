@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="import_account_exists_title">Аккаунт уже существует</string>
+    <string name="import_mnemonic_invalid_title">Мнемоника недействительна</string>
+    <string name="error_try_another_one">Пожалуйста, попробуйте другой.</string>
+    <string name="import_seed_invalid_message"/>
+    <string name="import_seed_invalid_title">Сид недействителен</string>
+    <string name="import_json_invalid_password_title">Не удалось расшифровать хранилище ключей</string>
+    <string name="import_json_invalid_format_message">Пожалуйста, убедитесь, что введённые данные содержат действительный json.</string>
+    <string name="import_json_invalid_format_title">JSON для восстановления недействителен</string>
+
     <string name="wallet_send_existential_warning_title">Перевод удалит аккаунт</string>
     <string name="wallet_send_existential_warning_message">Ваш перевод удалит учетную запись, так как общий баланс будет ниже, чем существующий депозит.</string>
     <string name="wallet_balance_details_existential_deposit">Экзистенциальный депозит</string>

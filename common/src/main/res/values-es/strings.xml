@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="import_account_exists_title">la cuenta ya existe</string>
+    <string name="import_mnemonic_invalid_title">El mnemónico no es válido</string>
+    <string name="error_try_another_one">Por favor, pruebe con otro.</string>
+    <string name="import_seed_invalid_message">Por favor, asegúrese de que su entrada contenga 64 símbolos hexadecimales.</string>
+    <string name="import_seed_invalid_title">La semilla no es válida</string>
+    <string name="import_json_invalid_password_title">Falló el descifrado del almacén de claves</string>
+    <string name="import_json_invalid_format_message">Por favor, asegúrese de que su entrada contenga un json válido.</string>
+    <string name="import_json_invalid_format_title">El JSON de recuperación no es válido</string>
+
     <string name="wallet_send_existential_warning_title">La transferencia eliminará la cuenta</string>
     <string name="wallet_send_existential_warning_message">Su transferencia eliminará la cuenta de la tienda de bloques, ya que hará que el saldo total sea menor que el depósito existencial</string>
     <string name="wallet_balance_details_existential_deposit">Depósito existencial</string>

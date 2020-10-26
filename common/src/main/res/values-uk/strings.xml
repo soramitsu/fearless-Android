@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="import_account_exists_title">Обліковий запис уже існує</string>
+    <string name="import_mnemonic_invalid_title">Мнемоніка недійсна</string>
+    <string name="error_try_another_one">Будь ласка, спробуйте інший.</string>
+    <string name="import_seed_invalid_message">Будь ласка, переконайтесь, що введені дані містять 64 шістнадцяткові символи.</string>
+    <string name="import_seed_invalid_title">Насіння недійсне</string>
+    <string name="import_json_invalid_password_title">Помилка розшифрування магазину ключів</string>
+    <string name="import_json_invalid_format_message">Переконайтесь, що ваші дані містять дійсний json.</string>
+    <string name="import_json_invalid_format_title">JSON для відновлення недійсний</string>
+
     <string name="wallet_send_existential_warning_title">Переказ видалить рахунок</string>
     <string name="wallet_send_existential_warning_message">Ваш переказ видалить рахунок із магазину, оскільки загальний залишок буде нижчим за екзистенційний депозит</string>
     <string name="wallet_balance_details_existential_deposit">Екзистенційний депозит</string>
