@@ -47,6 +47,7 @@
             android:layout_marginBottom="8dp"
             android:background="@null"
             android:gravity="top"
+            android:textCursorDrawable="@null"
             android:textAppearance="@style/TextAppearance.Soramitsu.Body1"
             android:hint="@string/recover_json_hint"
             android:textColorHint="@color/colorHint"
