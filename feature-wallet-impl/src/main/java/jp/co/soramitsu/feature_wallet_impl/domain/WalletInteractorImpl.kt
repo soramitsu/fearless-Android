@@ -123,7 +123,7 @@ class WalletInteractorImpl(
             if (name.isNullOrEmpty()) {
                 "$QR_SHARE_PREFIX:$address:$publicKey"
             } else {
-                "$QR_SHARE_PREFIX:$address:$publicKey:${name.orEmpty()}"
+                "$QR_SHARE_PREFIX:$address:$publicKey:$name"
             }
         }
     }
