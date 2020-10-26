@@ -10,7 +10,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.InvalidJ
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_impl.R
 import org.bouncycastle.util.encoders.DecoderException
-import java.lang.IllegalArgumentException
 
 class ImportError(
     @StringRes val titleRes: Int = R.string.common_error_general_title,
@@ -95,8 +94,8 @@ class RawSeedImportSource : ImportSource(R.string.recovery_raw_seed) {
     override fun isFieldsValid() = rawSeedLiveData.isNotEmpty()
 
     override fun handleError(throwable: Throwable): ImportError? {
-        return when(throwable) {
-            is IllegalArgumentException, is DecoderException ->  ImportError(
+        return when (throwable) {
+            is IllegalArgumentException, is DecoderException -> ImportError(
                 titleRes = R.string.import_seed_invalid_title,
                 messageRes = R.string.import_seed_invalid_message
             )
