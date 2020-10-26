@@ -27,7 +27,6 @@
     <string name="onboarding_privacy_policy">politica della privacy</string>
     <string name="pincode_enter_pin_code">Inserisci il codice PIN</string>
     <string name="pincode_confirm_your_pin_code">Conferma il tuo codice PIN</string>
-    <string name="access_restore_phrase_error_message">Il tuo mnemonico non è valido. Per favore, provane un altro.</string>
     <string name="recovery_passphrase">Mnemonico</string>
     <string name="tabbar_wallet_title">Portafoglio</string>
     <string name="tabbar_staking_title">Staking</string>
@@ -80,7 +79,6 @@
     <string name="common_edit">Modifica</string>
     <string name="common_done">Fatto</string>
     <string name="accounts_add_account">Aggiungi account</string>
-    <string name="account_add_already_exists_message">L\'account esiste già. Per favore, provane un altro.</string>
     <string name="about_website">Sito ufficiale</string>
     <string name="about_github">Codice sorgente Github</string>
     <string name="about_version">Versione dell\'app</string>
@@ -100,7 +98,6 @@
     <string name="wallet_asset_send">Spedire</string>
     <string name="wallet_asset_receive">Ricevere</string>
     <string name="wallet_assets_total_title">Valore delle attività</string>
-    <string name="import_json_invalid_format">Json di ripristino non valido. Per favore, assicurati che l\'input contenga json valido.</string>
     <string name="import_json_invalid_password">Per favore, controlla la correttezza della password e riprova.</string>
     <string name="node_info_title">Informazioni sul nodo</string>
     <string name="network_info_name">Nome nodo</string>

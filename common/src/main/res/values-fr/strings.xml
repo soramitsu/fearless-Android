@@ -27,7 +27,6 @@
     <string name="onboarding_privacy_policy">Politique de confidentialité</string>
     <string name="pincode_enter_pin_code">Entrez le code PIN</string>
     <string name="pincode_confirm_your_pin_code">Confirmez votre code PIN</string>
-    <string name="access_restore_phrase_error_message">Votre mnémonique n’est pas valide. S’ll vous plaît, essayez un autre.</string>
     <string name="recovery_passphrase">Mnémonique</string>
     <string name="tabbar_wallet_title">Portefeuille</string>
     <string name="tabbar_staking_title">Staking</string>
@@ -80,7 +79,6 @@
     <string name="common_edit">Éditer</string>
     <string name="common_done">Terminé</string>
     <string name="accounts_add_account">Ajouter un compte</string>
-    <string name="account_add_already_exists_message">Le compte existe déjà. Veuillez en essayer un autre.</string>
     <string name="about_website">Site officiel</string>
     <string name="about_github">Code source Github</string>
     <string name="about_version">Version de l\'application</string>
@@ -100,7 +98,6 @@
     <string name="wallet_asset_send">Envoyer</string>
     <string name="wallet_asset_receive">Recevoir</string>
     <string name="wallet_assets_total_title">Valeur des actifs</string>
-    <string name="import_json_invalid_format">Json de récupération non valide. Veuillez vous assurer que l\'entrée contient un json valide.</string>
     <string name="import_json_invalid_password">Veuillez vérifier l\'exactitude du mot de passe et réessayer.</string>
     <string name="node_info_title">Informations sur le nœud</string>
     <string name="network_info_name">Nom du nœud</string>

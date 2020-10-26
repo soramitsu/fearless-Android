@@ -27,7 +27,6 @@
     <string name="onboarding_privacy_policy">Política de privacidad</string>
     <string name="pincode_enter_pin_code">Ingrese su código PIN</string>
     <string name="pincode_confirm_your_pin_code">Confirme su nuevo código pin</string>
-    <string name="access_restore_phrase_error_message">Tu mnemotécnico no es válido. Por favor, prueba con otro.</string>
     <string name="recovery_passphrase">Mnemónica</string>
     <string name="tabbar_wallet_title">Billetera</string>
     <string name="tabbar_staking_title">Staking</string>
@@ -80,7 +79,6 @@
     <string name="common_edit">Editar</string>
     <string name="common_done">Hecho</string>
     <string name="accounts_add_account">Añadir cuenta</string>
-    <string name="account_add_already_exists_message">La cuenta ya existe. Por favor, pruebe con otro.</string>
     <string name="about_website">Página web oficial</string>
     <string name="about_github">Código fuente de Github</string>
     <string name="about_version">Version de aplicacion</string>
@@ -100,7 +98,6 @@
     <string name="wallet_asset_send">Enviar</string>
     <string name="wallet_asset_receive">Recibir</string>
     <string name="wallet_assets_total_title">Valor de los activos</string>
-    <string name="import_json_invalid_format">JSON de recuperación no válido. Por favor, asegúrese de que la entrada contenga un json válido.</string>
     <string name="import_json_invalid_password">Por favor, verifique que la contraseña sea correcta e intente nuevamente.</string>
     <string name="node_info_title">Información de nodo</string>
     <string name="network_info_name">Nombre del nodo</string>

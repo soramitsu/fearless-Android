@@ -24,6 +24,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetw
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceSelectorPayload
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
@@ -118,12 +119,18 @@ class ImportAccountViewModel(
 
         if (errorMessage == null) {
             errorMessage = when (throwable) {
-                is AccountAlreadyExistsException -> R.string.account_add_already_exists_message
-                else -> R.string.common_undefined_error_message
+                is AccountAlreadyExistsException -> ImportError(
+                    titleRes = R.string.import_account_exists_title,
+                    messageRes = R.string.error_try_another_one
+                )
+                else -> ImportError()
             }
         }
 
-        showError(resourceManager.getString(errorMessage))
+        val title = resourceManager.getString(errorMessage.titleRes)
+        val message = resourceManager.getString(errorMessage.messageRes)
+
+        showError(title, message)
     }
 
     private fun provideSourceType(): List<ImportSource> {
