@@ -166,4 +166,5 @@
     <string name="connection_delete_confirm">Удалить</string>
     <string name="search_header_my_accounts">мои аккаунты</string>
     <string name="coming_soon">Скоро будет…</string>
+    <string name="common_skip_process">Пропустить</string>
 </resources>
