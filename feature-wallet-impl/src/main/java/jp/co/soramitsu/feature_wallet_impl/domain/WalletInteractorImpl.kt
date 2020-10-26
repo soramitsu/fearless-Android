@@ -120,7 +120,11 @@ class WalletInteractorImpl(
 
     private fun formatQrAccountData(account: Account): String {
         return with(account) {
-            "$QR_SHARE_PREFIX:$address:$publicKey:${name.orEmpty()}"
+            if (name.isNullOrEmpty()) {
+                "$QR_SHARE_PREFIX:$address:$publicKey"
+            } else {
+                "$QR_SHARE_PREFIX:$address:$publicKey:${name.orEmpty()}"
+            }
         }
     }
 }
