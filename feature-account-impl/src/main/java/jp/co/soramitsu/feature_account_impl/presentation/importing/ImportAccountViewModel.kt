@@ -135,8 +135,8 @@ class ImportAccountViewModel(
 
     private fun provideSourceType(): List<ImportSource> {
         return listOf(
-            JsonImportSource(),
             MnemonicImportSource(),
+            JsonImportSource(),
             RawSeedImportSource()
         )
     }
