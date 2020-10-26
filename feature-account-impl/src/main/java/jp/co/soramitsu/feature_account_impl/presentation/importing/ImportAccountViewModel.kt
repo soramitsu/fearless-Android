@@ -40,9 +40,6 @@ class ImportAccountViewModel(
     CryptoTypeChooserMixin by cryptoTypeChooserMixin,
     NetworkChooserMixin by networkChooserMixin {
 
-    private val _qrScanStartLiveData = MutableLiveData<Event<Unit>>()
-    val qrScanStartLiveData: LiveData<Event<Unit>> = _qrScanStartLiveData
-
     val sourceTypes = provideSourceType()
 
     val nameLiveData = MutableLiveData<String>()
@@ -81,10 +78,6 @@ class ImportAccountViewModel(
 
     fun sourceTypeChanged(it: ImportSource) {
         _selectedSourceTypeLiveData.value = it
-    }
-
-    fun qrScanClicked() {
-        _qrScanStartLiveData.value = Event(Unit)
     }
 
     fun nextClicked() {
