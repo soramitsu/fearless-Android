@@ -168,4 +168,5 @@
     <string name="search_header_my_accounts">мои аккаунты</string>
     <string name="coming_soon">Скоро будет…</string>
     <string name="wallet_receive_description">Поделиться этим QR-кодом c отправителем</string>
+    <string name="wallet_receive_share_message">Мой %s адрес для получения %s:</string>
 </resources>
