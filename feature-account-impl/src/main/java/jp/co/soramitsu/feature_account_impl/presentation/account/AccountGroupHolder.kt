@@ -11,7 +11,7 @@ import kotlinx.android.synthetic.main.item_account_group.view.accountGroupName
 class AccountGroupHolder(parent: ViewGroup) : GroupedListHolder(inflate(parent)) {
 
     fun bind(networkModel: NetworkModel) = with(containerView) {
-        accountGroupIcon.setImageResource(networkModel.networkTypeUI.smallIcon)
+        accountGroupIcon.setImageResource(networkModel.networkTypeUI.icon)
         accountGroupName.text = networkModel.name
     }
 }
