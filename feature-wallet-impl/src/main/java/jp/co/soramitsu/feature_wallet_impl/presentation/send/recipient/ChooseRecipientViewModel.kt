@@ -88,7 +88,7 @@ class ChooseRecipientViewModel(
                     val myAccountsWithHeader = generateModelsWithHeader(R.string.search_header_my_accounts, myAccounts)
                     val contactsWithHeader = generateModelsWithHeader(R.string.search_contacts, contacts)
 
-                    val result = myAccountsWithHeader + contactsWithHeader + resultWithHeader
+                    val result = resultWithHeader + myAccountsWithHeader + contactsWithHeader
 
                     result.zipSimilar()
                 }
