@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.receive.model.QrSharingPayload
 import java.io.File
 import java.io.FileOutputStream
 
@@ -48,7 +49,8 @@ class ReceiveViewModel(
     val accountIconLiveData: LiveData<AddressModel> = observeIcon(selectedAccountObservable)
         .asLiveData()
 
-    val shareEvent = MutableLiveData<Event<Pair<File, String>>>()
+    private val _shareEvent = MutableLiveData<Event<QrSharingPayload>>()
+    val shareEvent: LiveData<Event<QrSharingPayload>> = _shareEvent
 
     fun addressCopyClicked() {
         accountLiveData.value?.let {
@@ -78,7 +80,7 @@ class ReceiveViewModel(
                 val file = it.first
                 val asset = it.second
                 val message = generateMessage(asset.token.networkType.readableName, asset.token.displayName, address)
-                shareEvent.value = Event(Pair(file, message))
+                _shareEvent.value = Event(QrSharingPayload(file, message))
             }, {
                 it.message?.let(::showError)
             })

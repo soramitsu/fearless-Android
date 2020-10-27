@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.receive.model.QrSharingPayload
 import kotlinx.android.synthetic.main.fragment_receive.accountView
 import kotlinx.android.synthetic.main.fragment_receive.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_receive.qrImg
@@ -63,20 +64,20 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
             accountView.setAccountIcon(it.image)
         }
 
-        viewModel.shareEvent.observeEvent {
-            val qrFile = it.first
-            val shareMessage = it.second
-            val imageUri = FileProvider.getUriForFile(activity!!, "${activity!!.packageName}.provider", qrFile)
+        viewModel.shareEvent.observeEvent(::startQrSharingIntent)
+    }
 
-            if (imageUri != null) {
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "image/*"
-                    putExtra(Intent.EXTRA_STREAM, imageUri)
-                    putExtra(Intent.EXTRA_TEXT, shareMessage)
-                }
+    private fun startQrSharingIntent(qrSharingPayload: QrSharingPayload) {
+        val imageUri = FileProvider.getUriForFile(activity!!, "${activity!!.packageName}.provider", qrSharingPayload.qrFile)
 
-                startActivity(Intent.createChooser(intent, getString(R.string.wallet_receive_description)))
+        if (imageUri != null) {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_STREAM, imageUri)
+                putExtra(Intent.EXTRA_TEXT, qrSharingPayload.shareMessage)
             }
+
+            startActivity(Intent.createChooser(intent, getString(R.string.wallet_receive_description)))
         }
     }
 }
