@@ -312,7 +312,7 @@ class WalletRepositoryImpl(
 
         cached.copy(
             freeInPlanks = data[free],
-            redeemableInPlanks = data[reserved],
+            reservedInPlanks = data[reserved],
             miscFrozenInPlanks = data[miscFrozen],
             feeFrozenInPlanks = data[feeFrozen],
             dollarRate = mostRecentPrice,

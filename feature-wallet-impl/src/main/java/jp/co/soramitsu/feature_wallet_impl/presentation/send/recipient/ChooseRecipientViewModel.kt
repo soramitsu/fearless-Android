@@ -88,7 +88,7 @@ class ChooseRecipientViewModel(
                     val myAccountsWithHeader = generateModelsWithHeader(R.string.search_header_my_accounts, myAccounts)
                     val contactsWithHeader = generateModelsWithHeader(R.string.search_contacts, contacts)
 
-                    val result = myAccountsWithHeader + contactsWithHeader + resultWithHeader
+                    val result = resultWithHeader + myAccountsWithHeader + contactsWithHeader
 
                     result.zipSimilar()
                 }
@@ -99,7 +99,7 @@ class ChooseRecipientViewModel(
     private fun maybeAppendResultHeader(validAddress: Boolean, address: String): List<Single<Any>> {
         if (!validAddress) return emptyList()
 
-        return generateModelsWithHeader(R.string.search_header_my_accounts, listOf(address))
+        return generateModelsWithHeader(R.string.search_result_header, listOf(address))
     }
 
     private fun generateModelsWithHeader(@StringRes headerRes: Int, addresses: List<String>): List<Single<Any>> {
