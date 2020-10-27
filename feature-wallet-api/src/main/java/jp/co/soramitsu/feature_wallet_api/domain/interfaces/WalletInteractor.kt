@@ -51,5 +51,5 @@ interface WalletInteractor {
 
     fun getQrCodeSharingString(): Single<String>
 
-    fun createFileInTempStorage(fileName: String): Single<File>
+    fun createFileInTempStorageAndRetrieveAsset(fileName: String): Single<Pair<File, Asset>>
 }

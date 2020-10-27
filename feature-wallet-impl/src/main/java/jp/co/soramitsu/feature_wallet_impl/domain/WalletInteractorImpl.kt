@@ -131,7 +131,12 @@ class WalletInteractorImpl(
         }
     }
 
-    override fun createFileInTempStorage(fileName: String): Single<File> {
+    override fun createFileInTempStorageAndRetrieveAsset(fileName: String): Single<Pair<File, Asset>> {
         return fileProvider.createFileInTempStorage(fileName)
+            .flatMap { file ->
+                observeCurrentAsset()
+                    .firstOrError()
+                    .map { Pair(file, it) }
+            }
     }
 }

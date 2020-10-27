@@ -67,17 +67,15 @@ class ReceiveViewModel(
     fun shareButtonClicked() {
         val qrBitmap = qrBitmapLiveData.value ?: return
         val address = accountIconLiveData.value?.address ?: return
-        disposables += interactor.createFileInTempStorage(QR_TEMP_IMAGE_NAME)
+        disposables += interactor.createFileInTempStorageAndRetrieveAsset(QR_TEMP_IMAGE_NAME)
             .subscribeOn(Schedulers.io())
-            .map { compressBitmapToFile(qrBitmap, it) }
-            .flatMap { file ->
-                interactor.observeCurrentAsset()
-                    .firstOrError()
-                    .map { Pair(file, it) }
+            .map { (file, asset) ->
+                val qrFile = compressBitmapToFile(qrBitmap, file)
+                val message = generateMessage(asset.token.networkType.readableName, asset.token.displayName, address)
+                Pair(qrFile, message)
             }
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ (file, asset) ->
-                val message = generateMessage(asset.token.networkType.readableName, asset.token.displayName, address)
+            .subscribe({ (file, message) ->
                 _shareEvent.value = Event(QrSharingPayload(file, message))
             }, {
                 it.message?.let(::showError)
