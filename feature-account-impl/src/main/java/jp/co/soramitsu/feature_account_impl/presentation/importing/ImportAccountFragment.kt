@@ -1,13 +1,10 @@
 package jp.co.soramitsu.feature_account_impl.presentation.importing
 
-import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.google.zxing.integration.android.IntentIntegrator
-import com.tbruyelle.rxpermissions2.RxPermissions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
@@ -37,7 +34,7 @@ import javax.inject.Inject
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     companion object {
-        private const val PICKFILE_RESULT_CODE = 101
+        private const val PICK_FILE_RESULT_CODE = 101
         private const val KEY_NETWORK_TYPE = "network_type"
 
         fun getBundle(networkType: Node.NetworkType?): Bundle {
@@ -47,8 +44,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             }
         }
     }
-
-    private lateinit var integrator: IntentIntegrator
 
     @Inject
     lateinit var externalFileReader: FileReader
@@ -64,15 +59,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun initViews() {
-        integrator = IntentIntegrator.forSupportFragment(this).apply {
-            setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES)
-            setPrompt("")
-            setBeepEnabled(false)
-            setOrientationLocked(true)
-        }
-
         toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
-        toolbar.setRightActionClickListener { viewModel.qrScanClicked() }
 
         sourceTypeInput.setOnClickListener { viewModel.openSourceChooserClicked() }
 
@@ -156,14 +143,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             advancedBlockView.setNetworkName(it.name)
         }
 
-        viewModel.qrScanStartLiveData.observeEvent {
-            RxPermissions(this@ImportAccountFragment)
-                .request(Manifest.permission.CAMERA)
-                .subscribe {
-                    if (it) integrator.initiateScan()
-                }
-        }
-
         viewModel.nextButtonEnabledLiveData.observe {
             nextBtn.isEnabled = it
         }
@@ -174,7 +153,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         data?.let {
-            if (requestCode == PICKFILE_RESULT_CODE) {
+            if (requestCode == PICK_FILE_RESULT_CODE) {
                 processJsonOpenIntent(it)
             }
         }
@@ -189,7 +168,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     private fun openFilePicker() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "application/json"
-        startActivityForResult(intent, PICKFILE_RESULT_CODE)
+        startActivityForResult(intent, PICK_FILE_RESULT_CODE)
     }
 
     private fun createSourceView(source: ImportSource): ImportSourceView {

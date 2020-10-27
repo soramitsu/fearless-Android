@@ -73,6 +73,7 @@
             android:inputType="textMultiLine|textVisiblePassword"
             android:minLines="5"
             android:padding="0dp"
+            android:textCursorDrawable="@null"
             android:textColor="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/importSeedTitle"

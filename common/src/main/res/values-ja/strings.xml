@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="import_account_exists_title">アカウントはすでに存在しています</string>
+    <string name="import_mnemonic_invalid_title">ニーモニックが無効です</string>
+    <string name="error_try_another_one">別のものを試してください。</string>
+    <string name="import_seed_invalid_message">入力に64個の16進記号が含まれていることを確認してください。</string>
+    <string name="import_seed_invalid_title">シードが無効です</string>
+    <string name="import_json_invalid_password_title">キーストアの復号化に失敗しました</string>
+    <string name="import_json_invalid_format_message">入力に有効なjsonが含まれていることを確認してください。</string>
+    <string name="import_json_invalid_format_title">リカバリJSONが無効です</string>
+
     <string name="wallet_send_existential_warning_title">転送するとアカウントが削除されます</string>
     <string name="wallet_send_existential_warning_message">送金により、合計残高が既存の預金よりも少なくなるため、ブロックストアからアカウントが削除されます</string>
     <string name="wallet_balance_details_existential_deposit">実存的預金</string>
@@ -27,7 +36,6 @@
     <string name="onboarding_privacy_policy">個人情報保護方針</string>
     <string name="pincode_enter_pin_code">PINコードを入力する</string>
     <string name="pincode_confirm_your_pin_code">pinコードの確認</string>
-    <string name="access_restore_phrase_error_message">Your mnemonic is invalid. Please, try another one.</string>
     <string name="recovery_passphrase">ニモニック</string>
     <string name="tabbar_wallet_title">ウォレット</string>
     <string name="tabbar_staking_title">抵押</string>
@@ -80,7 +88,6 @@
     <string name="common_edit">編集する</string>
     <string name="common_done">完了</string>
     <string name="accounts_add_account">アカウントを追加する</string>
-    <string name="account_add_already_exists_message">アカウントはすでに存在しています。別のものを試してください。</string>
     <string name="about_website">公式サイト</string>
     <string name="about_github">Githubソースコード</string>
     <string name="about_version">アプリのバージョン</string>
@@ -100,7 +107,6 @@
     <string name="wallet_asset_send">送る</string>
     <string name="wallet_asset_receive">受け取る</string>
     <string name="wallet_assets_total_title">資産価値</string>
-    <string name="import_json_invalid_format">無効なリカバリーJSON。入力に有効なjsonが含まれていることを確認してください。</string>
     <string name="import_json_invalid_password">パスワードが正しいことを確認して、もう一度お試しください。</string>
     <string name="node_info_title">ノード情報</string>
     <string name="network_info_name">ノード名</string>

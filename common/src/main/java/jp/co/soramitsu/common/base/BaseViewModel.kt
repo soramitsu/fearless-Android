@@ -34,6 +34,10 @@ open class BaseViewModel : ViewModel() {
         _messageLiveData.value = Event(text)
     }
 
+    fun showError(title: String, text: String) {
+        _errorWithTitleLiveData.value = Event(title to text)
+    }
+
     fun showError(text: String) {
         _errorLiveData.value = Event(text)
     }

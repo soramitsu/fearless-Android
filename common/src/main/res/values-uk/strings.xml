@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="import_account_exists_title">Обліковий запис уже існує</string>
+    <string name="import_mnemonic_invalid_title">Мнемоніка недійсна</string>
+    <string name="error_try_another_one">Будь ласка, спробуйте інший.</string>
+    <string name="import_seed_invalid_message">Будь ласка, переконайтесь, що введені дані містять 64 шістнадцяткові символи.</string>
+    <string name="import_seed_invalid_title">Насіння недійсне</string>
+    <string name="import_json_invalid_password_title">Помилка розшифрування магазину ключів</string>
+    <string name="import_json_invalid_format_message">Переконайтесь, що ваші дані містять дійсний json.</string>
+    <string name="import_json_invalid_format_title">JSON для відновлення недійсний</string>
+
     <string name="wallet_send_existential_warning_title">Переказ видалить рахунок</string>
     <string name="wallet_send_existential_warning_message">Ваш переказ видалить рахунок із магазину, оскільки загальний залишок буде нижчим за екзистенційний депозит</string>
     <string name="wallet_balance_details_existential_deposit">Екзистенційний депозит</string>
@@ -27,7 +36,6 @@
     <string name="onboarding_privacy_policy">Політикою конфіденційності</string>
     <string name="pincode_enter_pin_code">Введіть PIN-код</string>
     <string name="pincode_confirm_your_pin_code">Підтвердьте свій PIN-код</string>
-    <string name="access_restore_phrase_error_message">Ваш мнемонічний недійсний. Будь ласка, спробуйте ще один.</string>
     <string name="recovery_passphrase">Мнемонічний</string>
     <string name="tabbar_wallet_title">Гаманець</string>
     <string name="tabbar_staking_title">Стекiнг</string>
@@ -80,7 +88,6 @@
     <string name="common_edit">Редагувати</string>
     <string name="common_done">Завершено</string>
     <string name="accounts_add_account">Додати обліковий запис</string>
-    <string name="account_add_already_exists_message">Рахунок вже існує. Спробуйте інший.</string>
     <string name="about_website">Офіційний веб-сайт</string>
     <string name="about_github">Вихідний код Github</string>
     <string name="about_version">Версія програми</string>
@@ -101,7 +108,6 @@
     <string name="wallet_asset_send">Надіслати</string>
     <string name="wallet_asset_receive">Отримати</string>
     <string name="wallet_assets_total_title">Вартість активів</string>
-    <string name="import_json_invalid_format">Недійсний json для відновлення. Переконайтеся, що вхід містить дійсний json.</string>
     <string name="import_json_invalid_password">Перевірте правильність пароля і повторіть спробу.</string>
     <string name="node_info_title">Інформація про вузол</string>
     <string name="network_info_name">Ім\'я вузла</string>
