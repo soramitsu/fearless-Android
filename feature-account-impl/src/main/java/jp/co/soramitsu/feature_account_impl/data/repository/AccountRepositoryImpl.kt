@@ -178,16 +178,18 @@ class AccountRepositoryImpl(
     }
 
     override fun importFromSeed(
-        keyString: String,
+        seed: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         node: Node
     ): Completable {
         return Single.fromCallable {
+            val seedBytes = Hex.decode(seed.removePrefix("0x"))
+
             val keys = keypairFactory.generate(
                 mapCryptoTypeToEncryption(selectedEncryptionType),
-                Hex.decode(keyString),
+                seedBytes,
                 derivationPath
             )
 
@@ -195,7 +197,7 @@ class AccountRepositoryImpl(
             val address = sS58Encoder.encode(keys.publicKey, addressType)
 
             accountDataSource.saveDerivationPath(derivationPath, address)
-            accountDataSource.saveSeed(Hex.decode(keyString), address)
+            accountDataSource.saveSeed(seedBytes, address)
             accountDataSource.saveSigningData(address, mapKeyPairToSigningData(keys))
             accountDataSource.setMnemonicIsBackedUp(true)
 
