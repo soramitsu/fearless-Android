@@ -138,6 +138,6 @@ class CommonModule {
     @Provides
     @ApplicationScope
     fun provideFileProvider(contextManager: ContextManager): FileProvider {
-        return FileProviderImpl(contextManager.getContext().externalCacheDir!!.absolutePath)
+        return FileProviderImpl(contextManager.getContext())
     }
 }
