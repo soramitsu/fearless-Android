@@ -12,7 +12,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.request.base.RpcRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
 import java.util.concurrent.TimeUnit
-import kotlin.time.seconds
 
 interface RpcSocketListener {
     fun onResponse(rpcResponse: RpcResponse)
