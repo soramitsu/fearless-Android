@@ -22,22 +22,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/accountAddress"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/accountCheck"
-        app:layout_constraintTop_toTopOf="@+id/accountTitle"
+        app:layout_constraintTop_toTopOf="parent"
         tools:layout_height="24dp"
         tools:layout_width="24dp"
         tools:src="@color/colorAccent" />
 
     <TextView
-        android:includeFontPadding="false"
         android:id="@+id/accountTitle"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="@dimen/x1"
         android:layout_marginEnd="16dp"
+        android:includeFontPadding="false"
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/accountAddress"
         app:layout_constraintEnd_toStartOf="@+id/accountInfo"
@@ -51,33 +50,35 @@
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/item_account_address_margin"
+        android:layout_marginEnd="48dp"
         android:ellipsize="middle"
         android:includeFontPadding="false"
         android:singleLine="true"
         android:textColor="@color/colorHint"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/accountTitle"
         app:layout_constraintStart_toStartOf="@+id/accountTitle"
         app:layout_constraintTop_toBottomOf="@+id/accountTitle"
         tools:text="GybH55zsi5nAGybH55zsi5nAGybH55zsi5nAGybH55zsi5nA" />
 
     <ImageView
+        android:background="@drawable/bg_primary_list_item"
         android:id="@+id/accountInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:padding="16dp"
         android:src="@drawable/ic_info_24"
         android:tint="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/accountAddress"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/accountTitle" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="8dp"
         android:background="@color/dividerGray"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/accountAddress" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -9,6 +9,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
 import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
 
@@ -54,3 +55,23 @@ fun ViewGroup.inflateChild(@LayoutRes id: Int): View {
 }
 
 fun TextView.setTextColorRes(@ColorRes colorRes: Int) = setTextColor(ContextCompat.getColor(context, colorRes))
+
+fun TextView.setDrawableStart(
+    @DrawableRes start: Int? = null,
+    widthInDp: Int? = null,
+    heightInDp: Int? = widthInDp
+) {
+    if (start == null) {
+        setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
+        return
+    }
+
+    val drawable = context.getDrawableCompat(start)
+
+    val widthInPx = if (widthInDp != null) (resources.displayMetrics.density * widthInDp).toInt() else drawable.intrinsicWidth
+    val heightInPx = if (heightInDp != null) (resources.displayMetrics.density * heightInDp).toInt() else drawable.intrinsicHeight
+
+    drawable.setBounds(0, 0, widthInPx, heightInPx)
+
+    setCompoundDrawablesRelative(drawable, null, null, null)
+}
