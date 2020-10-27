@@ -76,9 +76,7 @@ class ReceiveViewModel(
                     .map { Pair(file, it) }
             }
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                val file = it.first
-                val asset = it.second
+            .subscribe({ (file, asset) ->
                 val message = generateMessage(asset.token.networkType.readableName, asset.token.displayName, address)
                 _shareEvent.value = Event(QrSharingPayload(file, message))
             }, {
