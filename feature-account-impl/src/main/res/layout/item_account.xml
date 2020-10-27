@@ -51,7 +51,7 @@
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/item_account_address_margin"
+        android:layout_marginEnd="48dp"
         android:ellipsize="middle"
         android:includeFontPadding="false"
         android:singleLine="true"
@@ -62,15 +62,16 @@
         tools:text="GybH55zsi5nAGybH55zsi5nAGybH55zsi5nAGybH55zsi5nA" />
 
     <ImageView
+        android:background="@drawable/bg_primary_list_item"
         android:id="@+id/accountInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:padding="16dp"
         android:src="@drawable/ic_info_24"
         android:tint="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/accountAddress"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/accountTitle" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <View
         android:layout_width="match_parent"
