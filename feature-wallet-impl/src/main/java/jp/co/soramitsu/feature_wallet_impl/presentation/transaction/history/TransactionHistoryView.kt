@@ -36,6 +36,9 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     private val adapter = TransactionHistoryAdapter(this)
 
+    val slidingState: Int
+        get() = bottomSheetBehavior.state
+
     private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         anchor?.let {
             bottomSheetBehavior.peekHeight = parentView.measuredHeight - it.bottom

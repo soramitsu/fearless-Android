@@ -35,6 +35,13 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         return inflater.inflate(R.layout.fragment_balance_list, container, false)
     }
 
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+
+        val initialState = transfersContainer.slidingState
+        setRefreshEnabled(initialState)
+    }
+
     override fun initViews() {
         adapter = BalanceListAdapter(this)
         balanceListAssets.adapter = adapter
@@ -45,10 +52,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
             viewModel.shouldLoadPage()
         }
 
-        transfersContainer.setSlidingStateListener {
-            val bottomSheetExpanded = BottomSheetBehavior.STATE_EXPANDED == it
-            walletContainer.isEnabled = !bottomSheetExpanded
-        }
+        transfersContainer.setSlidingStateListener(this::setRefreshEnabled)
 
         transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
 
@@ -67,6 +71,11 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         balanceListAvatar.setOnClickListener {
             viewModel.avatarClicked()
         }
+    }
+
+    private fun setRefreshEnabled(bottomSheetState: Int) {
+        val bottomSheetCollapsed = BottomSheetBehavior.STATE_COLLAPSED == bottomSheetState
+        walletContainer.isEnabled = bottomSheetCollapsed
     }
 
     override fun inject() {
