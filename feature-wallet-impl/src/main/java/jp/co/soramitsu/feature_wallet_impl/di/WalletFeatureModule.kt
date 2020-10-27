@@ -5,6 +5,7 @@ import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
@@ -58,6 +59,7 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideWalletInteractor(
         walletRepository: WalletRepository,
-        accountRepository: AccountRepository
-    ): WalletInteractor = WalletInteractorImpl(walletRepository, accountRepository)
+        accountRepository: AccountRepository,
+        fileProvider: FileProvider
+    ): WalletInteractor = WalletInteractorImpl(walletRepository, accountRepository, fileProvider)
 }

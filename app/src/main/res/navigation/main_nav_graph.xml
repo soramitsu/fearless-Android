@@ -14,6 +14,14 @@
         app:popExitAnim="@anim/fragment_close_exit" />
 
     <action
+        android:id="@+id/action_open_receive"
+        app:destination="@id/receiveFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <action
         android:id="@+id/open_transaction_detail"
         app:destination="@id/transactionDetailFragment"
         app:enterAnim="@anim/fragment_open_enter"
@@ -210,6 +218,12 @@
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
+
+    <fragment
+        android:id="@+id/receiveFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.receive.ReceiveFragment"
+        android:label="ReceiveFragment"
+        tools:layout="@layout/fragment_receive" />
 
     <fragment
         android:id="@+id/chooseAmountFragment"

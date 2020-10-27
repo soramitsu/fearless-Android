@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.base.Toolbar
+        android:id="@+id/fearlessToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:homeButtonIcon="@drawable/ic_close"
+        app:iconRight="@drawable/ic_share_arrow_white_24"
+        app:titleText="@string/wallet_asset_receive" />
+
+    <jp.co.soramitsu.common.view.AccountInfoView
+        android:id="@+id/accountView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/x2" />
+
+    <View
+        android:id="@+id/chooseAmountDivider1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/gray3" />
+
+    <TextView
+        style="@style/TextAppearance.AppCompat.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:drawableStart="@drawable/ic_info_grey_24"
+        android:drawablePadding="8dp"
+        android:gravity="center_vertical"
+        android:text="@string/wallet_receive_description"
+        android:textColor="@color/white" />
+
+    <ImageView
+        android:id="@+id/qrImg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="48dp"
+        android:scaleType="centerInside" />
+
+</LinearLayout>

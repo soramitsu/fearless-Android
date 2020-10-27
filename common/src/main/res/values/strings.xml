@@ -185,4 +185,6 @@
     <string name="connection_delete_title">Delete network?</string>
     <string name="connection_delete_description">Confirm %s deletion.</string>
     <string name="connection_delete_confirm">Delete</string>
+    <string name="wallet_receive_description">Share this QR to sender</string>
+    <string name="wallet_receive_share_message">My %s address to receive %s:</string>
 </resources>

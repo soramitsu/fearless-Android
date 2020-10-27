@@ -10,11 +10,13 @@ import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
@@ -71,4 +73,8 @@ interface CommonApi {
     fun addressIconGenerator(): AddressIconGenerator
 
     fun networkStateMixin(): NetworkStateMixin
+
+    fun qrCodeGenerator(): QrCodeGenerator
+
+    fun fileProvider(): FileProvider
 }
