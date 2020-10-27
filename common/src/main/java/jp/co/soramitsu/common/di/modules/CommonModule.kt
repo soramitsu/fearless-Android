@@ -7,12 +7,14 @@ import android.os.Vibrator
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.data.FileProviderImpl
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import jp.co.soramitsu.common.di.scope.ApplicationScope
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -131,5 +133,11 @@ class CommonModule {
     @ApplicationScope
     fun provideQrCodeGenerator(resourceManager: ResourceManager): QrCodeGenerator {
         return QrCodeGenerator(Color.BLACK, Color.WHITE)
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideFileProvider(contextManager: ContextManager): FileProvider {
+        return FileProviderImpl(contextManager.getContext().externalCacheDir!!.absolutePath)
     }
 }

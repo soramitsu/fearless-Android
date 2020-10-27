@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import java.io.File
 import java.math.BigDecimal
 
 interface WalletInteractor {
@@ -49,4 +50,6 @@ interface WalletInteractor {
     fun selectAccount(address: String): Completable
 
     fun getQrCodeSharingString(): Single<String>
+
+    fun createFileInTempStorage(fileName: String): Single<File>
 }

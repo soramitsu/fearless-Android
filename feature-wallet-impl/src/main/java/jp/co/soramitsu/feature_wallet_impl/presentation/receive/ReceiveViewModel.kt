@@ -18,6 +18,8 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import java.io.File
+import java.io.FileOutputStream
 
 private const val AVATAR_SIZE_DP = 32
 
@@ -30,6 +32,11 @@ class ReceiveViewModel(
     private val router: WalletRouter
 ) : BaseViewModel() {
 
+    companion object {
+        private const val QR_TEMP_IMAGE_NAME = "address.png"
+        private const val QR_TEMP_IMAGE_QUALITY = 100
+    }
+
     private val selectedAccountObservable = interactor.observeSelectedAccount()
 
     val qrBitmapLiveData = getQrCodeSharingString()
@@ -41,7 +48,7 @@ class ReceiveViewModel(
     val accountIconLiveData: LiveData<AddressModel> = observeIcon(selectedAccountObservable)
         .asLiveData()
 
-    val shareEvent = MutableLiveData<Event<Pair<Bitmap, String>>>()
+    val shareEvent = MutableLiveData<Event<Pair<File, String>>>()
 
     fun addressCopyClicked() {
         accountLiveData.value?.let {
@@ -56,21 +63,32 @@ class ReceiveViewModel(
     }
 
     fun shareButtonClicked() {
-        if (qrBitmapLiveData.value == null || accountIconLiveData.value == null) {
-            return
-        }
-        val qrBitmap = qrBitmapLiveData.value!!
-        val address = accountIconLiveData.value!!.address
-        disposables += interactor.observeCurrentAsset()
-            .firstOrError()
+        val qrBitmap = qrBitmapLiveData.value ?: return
+        val address = accountIconLiveData.value?.address ?: return
+        disposables += interactor.createFileInTempStorage(QR_TEMP_IMAGE_NAME)
             .subscribeOn(Schedulers.io())
+            .map { compressBitmapToFile(qrBitmap, it) }
+            .flatMap { file ->
+                interactor.observeCurrentAsset()
+                    .firstOrError()
+                    .map { Pair(file, it) }
+            }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                val message = generateMessage(it.token.networkType.readableName, it.token.displayName, address)
-                shareEvent.value = Event(Pair(qrBitmap, message))
+                val file = it.first
+                val asset = it.second
+                val message = generateMessage(asset.token.networkType.readableName, asset.token.displayName, address)
+                shareEvent.value = Event(Pair(file, message))
             }, {
-                it.message?.let { showError(it) }
+                it.message?.let(::showError)
             })
+    }
+
+    private fun compressBitmapToFile(bitmap: Bitmap, file: File): File {
+        val outputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, QR_TEMP_IMAGE_QUALITY, outputStream)
+        outputStream.close()
+        return file
     }
 
     private fun getQrCodeSharingString() = interactor.getQrCodeSharingString()

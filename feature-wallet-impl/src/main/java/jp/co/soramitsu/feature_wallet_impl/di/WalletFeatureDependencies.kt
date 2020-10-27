@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrCodeGenerator
@@ -59,4 +60,6 @@ interface WalletFeatureDependencies {
     fun appLinksProvider(): AppLinksProvider
 
     fun qrCodeGenerator(): QrCodeGenerator
+
+    fun fileProvider(): FileProvider
 }

@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.domain
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -12,11 +13,13 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import java.io.File
 import java.math.BigDecimal
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val fileProvider: FileProvider
 ) : WalletInteractor {
 
     companion object {
@@ -126,5 +129,9 @@ class WalletInteractorImpl(
                 "$QR_SHARE_PREFIX:$address:$publicKey:$name"
             }
         }
+    }
+
+    override fun createFileInTempStorage(fileName: String): Single<File> {
+        return fileProvider.createFileInTempStorage(fileName)
     }
 }

@@ -1,8 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.receive
 
-import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -15,8 +13,6 @@ import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import kotlinx.android.synthetic.main.fragment_receive.accountView
 import kotlinx.android.synthetic.main.fragment_receive.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_receive.qrImg
-import java.io.File
-import java.io.FileOutputStream
 
 class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
 
@@ -68,30 +64,19 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
         }
 
         viewModel.shareEvent.observeEvent {
-            val mediaStorageDir: File? = saveToTempFile(activity!!, it.first)
+            val qrFile = it.first
+            val shareMessage = it.second
+            val imageUri = FileProvider.getUriForFile(activity!!, "${activity!!.packageName}.provider", qrFile)
 
-            if (mediaStorageDir != null) {
-                val imageUri = FileProvider.getUriForFile(activity!!, "${activity!!.packageName}.provider", mediaStorageDir)
-
-                if (imageUri != null) {
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "image/*"
-                        putExtra(Intent.EXTRA_STREAM, imageUri)
-                        putExtra(Intent.EXTRA_TEXT, it.second)
-                    }
-
-                    startActivity(Intent.createChooser(intent, getString(R.string.wallet_receive_description)))
+            if (imageUri != null) {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/*"
+                    putExtra(Intent.EXTRA_STREAM, imageUri)
+                    putExtra(Intent.EXTRA_TEXT, shareMessage)
                 }
+
+                startActivity(Intent.createChooser(intent, getString(R.string.wallet_receive_description)))
             }
         }
-    }
-
-    private fun saveToTempFile(context: Context, bitmap: Bitmap): File? {
-        val mediaStorageDir = File(context.externalCacheDir!!.absolutePath + QR_TEMP_IMAGE_NAME)
-
-        val outputStream = FileOutputStream(mediaStorageDir)
-        bitmap.compress(Bitmap.CompressFormat.JPEG, QR_TEMP_IMAGE_QUALITY, outputStream)
-        outputStream.close()
-        return mediaStorageDir
     }
 }
