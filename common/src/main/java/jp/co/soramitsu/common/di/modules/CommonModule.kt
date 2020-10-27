@@ -131,7 +131,7 @@ class CommonModule {
 
     @Provides
     @ApplicationScope
-    fun provideQrCodeGenerator(resourceManager: ResourceManager): QrCodeGenerator {
+    fun provideQrCodeGenerator(): QrCodeGenerator {
         return QrCodeGenerator(Color.BLACK, Color.WHITE)
     }
 
