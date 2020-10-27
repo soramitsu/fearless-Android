@@ -2,6 +2,15 @@
 <resources>
     <string name="common_skip_process">Skip process</string>
 
+    <string name="import_json_invalid_format_title">Recovery JSON is invalid</string>
+    <string name="import_json_invalid_format_message">Please, make sure that your input contains valid json.</string>
+    <string name="import_json_invalid_password_title">Keystore decryption failed</string>
+    <string name="import_seed_invalid_title">Seed is invalid</string>
+    <string name="import_seed_invalid_message">Please, make sure that your input contains 64 hex symbols.</string>
+    <string name="error_try_another_one">Please, try another one.</string>
+    <string name="import_mnemonic_invalid_title">Mnemonic is invalid</string>
+    <string name="import_account_exists_title">Account already exists</string>
+
     <string name="coming_soon">Coming soon…</string>
 
     <string name="wallet_balance_details_title">Balance details</string>
@@ -35,7 +44,6 @@
     <string name="onboarding_privacy_policy">Privacy Policy</string>
     <string name="pincode_enter_pin_code">Enter pin code</string>
     <string name="pincode_confirm_your_pin_code">Confirm your pin code</string>
-    <string name="access_restore_phrase_error_message">Your mnemonic is invalid. Please, try another one.</string>
     <string name="recovery_passphrase">Mnemonic</string>
     <string name="tabbar_wallet_title">Wallet</string>
     <string name="tabbar_staking_title">Staking</string>
@@ -89,7 +97,6 @@
     <string name="common_edit">Edit</string>
     <string name="common_done">Done</string>
     <string name="accounts_add_account">Add account</string>
-    <string name="account_add_already_exists_message">Account already exists. Please, try another one.</string>
     <string name="about_website">Official Website</string>
     <string name="about_github">Github Source Code</string>
     <string name="about_version">App version</string>
@@ -113,7 +120,6 @@
     <string name="wallet_asset_receive">Receive</string>
     <string name="wallet_asset_send">Send</string>
 
-    <string name="import_json_invalid_format">Invalid recovery json. Please, make sure that input contains valid json.</string>
     <string name="import_json_invalid_password">Please, check password correctness and try again.</string>
     <string name="node_info_title">Node Info</string>
     <string name="network_info_name">Node name</string>

@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="import_account_exists_title">Аккаунт уже существует</string>
+    <string name="import_mnemonic_invalid_title">Мнемоника недействительна</string>
+    <string name="error_try_another_one">Пожалуйста, попробуйте другой.</string>
+    <string name="import_seed_invalid_message"/>
+    <string name="import_seed_invalid_title">Сид недействителен</string>
+    <string name="import_json_invalid_password_title">Не удалось расшифровать хранилище ключей</string>
+    <string name="import_json_invalid_format_message">Пожалуйста, убедитесь, что введённые данные содержат действительный json.</string>
+    <string name="import_json_invalid_format_title">JSON для восстановления недействителен</string>
+
     <string name="wallet_send_existential_warning_title">Перевод удалит аккаунт</string>
     <string name="wallet_send_existential_warning_message">Ваш перевод удалит учетную запись, так как общий баланс будет ниже, чем существующий депозит.</string>
     <string name="wallet_balance_details_existential_deposit">Экзистенциальный депозит</string>
@@ -27,7 +36,6 @@
     <string name="onboarding_privacy_policy">Хосусил сәйәсәтен</string>
     <string name="pincode_enter_pin_code">Пин кодты индерегеҙ</string>
     <string name="pincode_confirm_your_pin_code">Пин кодты раҫлаһыҙ</string>
-    <string name="access_restore_phrase_error_message">Һеҙҙең мнемоника яраҡһыҙ. Зинһар, икенсене ҡулланып ҡарағыҙ.</string>
     <string name="recovery_passphrase">Мнемоника</string>
     <string name="tabbar_wallet_title">Янсыҡ</string>
     <string name="tabbar_staking_title">Стейкинг</string>
@@ -80,7 +88,6 @@
     <string name="common_edit">Шымартыу</string>
     <string name="common_done">Эшләй</string>
     <string name="accounts_add_account">Добавить аккаунт</string>
-    <string name="account_add_already_exists_message">Аккаунт уже существует. Пожалуйста, попробуйте другой.</string>
     <string name="about_website">Официальный Сайт</string>
     <string name="about_github">Исходным Коды Github</string>
     <string name="about_version">Версия ҡушымта</string>
@@ -101,7 +108,6 @@
     <string name="wallet_asset_receive">Получить</string>
     <string name="wallet_assets_total_title">Стоимость активов</string>
 
-    <string name="import_json_invalid_format">Неверный формат данных восстановления. Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
     <string name="import_json_invalid_password">Пожалуйста, проверьте корректность пароля и попробуйте снова.</string>
     <string name="node_info_title">Информация об узле</string>
     <string name="network_info_name">Название узла</string>

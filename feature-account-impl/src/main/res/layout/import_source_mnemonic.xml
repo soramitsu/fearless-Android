@@ -69,6 +69,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:background="@null"
+            android:textCursorDrawable="@null"
             android:gravity="top"
             android:inputType="textMultiLine|textVisiblePassword"
             android:minLines="5"
