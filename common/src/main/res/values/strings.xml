@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_skip_process">Skip process</string>
+
     <string name="import_json_invalid_format_title">Recovery JSON is invalid</string>
     <string name="import_json_invalid_format_message">Please, make sure that your input contains valid json.</string>
     <string name="import_json_invalid_password_title">Keystore decryption failed</string>

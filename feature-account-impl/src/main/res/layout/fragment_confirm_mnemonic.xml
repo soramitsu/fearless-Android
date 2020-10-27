@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,53 +7,70 @@
     android:background="@color/black"
     android:fitsSystemWindows="true">
 
-    <LinearLayout
+
+    <jp.co.soramitsu.common.base.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:paddingStart="@dimen/x1"
+        android:paddingEnd="@dimen/x1"
+        app:iconRight="@drawable/ic_refresh_white_24"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleText="@string/account_confirmation_title" />
 
-        <jp.co.soramitsu.common.base.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="@dimen/x1"
-            android:paddingEnd="@dimen/x1"
-            app:iconRight="@drawable/ic_refresh_white_24"
-            app:titleText="@string/account_confirmation_title" />
+    <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicContainerView
+        android:id="@+id/confirmationMnemonicView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:animateLayoutChanges="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        tools:layout_height="144dp" />
 
-        <LinearLayout
-            android:id="@+id/mnemonicViewsContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+    <TextView
+        android:id="@+id/textView2"
+        style="@style/TextAppearance.Soramitsu.Body0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:text="@string/account_confirmation_details"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="@+id/confirmationMnemonicView"
+        app:layout_constraintStart_toStartOf="@+id/confirmationMnemonicView"
+        app:layout_constraintTop_toBottomOf="@+id/confirmationMnemonicView" />
 
-            <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicContainerView
-                android:id="@+id/confirmationMnemonicView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/x2"
-                android:animateLayoutChanges="true"
-                tools:layout_height="144dp" />
+    <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicContainerView
+        android:id="@+id/wordsMnemonicView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/x2"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:animateLayoutChanges="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView2"
+        tools:layout_height="144dp" />
 
-            <TextView
-                style="@style/TextAppearance.Soramitsu.Body0"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/account_confirmation_details"
-                android:textColor="@color/white" />
-
-            <jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicContainerView
-                android:id="@+id/wordsMnemonicView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/x2"
-                android:animateLayoutChanges="true"
-                tools:layout_height="144dp" />
-
-        </LinearLayout>
-
-    </LinearLayout>
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/conformMnemonicSkip"
+        style="@style/Widget.Fearless.Button.Outline"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="16dp"
+        android:text="@string/common_skip_process"
+        app:layout_constraintBottom_toTopOf="@+id/nextBtn"
+        app:layout_constraintEnd_toEndOf="@+id/nextBtn"
+        app:layout_constraintStart_toStartOf="@+id/nextBtn" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/nextBtn"
@@ -61,11 +78,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginTop="@dimen/x3"
-        android:layout_marginEnd="@dimen/x2"
-        android:layout_marginBottom="@dimen/x3"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
         android:enabled="false"
-        android:text="@string/common_next" />
+        android:text="@string/common_next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-</FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

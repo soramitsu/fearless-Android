@@ -19,7 +19,7 @@ import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.confirmationMnemonicView
-import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.mnemonicViewsContainer
+import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.conformMnemonicSkip
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.nextBtn
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.wordsMnemonicView
 
@@ -79,6 +79,10 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
         nextBtn.setOnClickListener {
             viewModel.nextButtonClicked()
+        }
+
+        conformMnemonicSkip.setOnClickListener {
+            viewModel.skipClicked()
         }
     }
 
@@ -171,6 +175,6 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
                 viewModel.matchingErrorAnimationCompleted()
             }
         })
-        mnemonicViewsContainer.startAnimation(animation)
+        confirmationMnemonicView.startAnimation(animation)
     }
 }

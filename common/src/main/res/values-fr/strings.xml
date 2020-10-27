@@ -172,4 +172,5 @@
     <string name="connection_delete_confirm">Delete</string>
     <string name="search_header_my_accounts">Mes comptes</string>
     <string name="coming_soon">Bientôt disponible…</string>
+    <string name="common_skip_process">Ignorer le processus</string>
 </resources>

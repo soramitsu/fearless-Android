@@ -131,4 +131,8 @@ class ConfirmMnemonicViewModel(
             router.openCreatePincode()
         }
     }
+
+    fun skipClicked() {
+        createAccount()
+    }
 }
