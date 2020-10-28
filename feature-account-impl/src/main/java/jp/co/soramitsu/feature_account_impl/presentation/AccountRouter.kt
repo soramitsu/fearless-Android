@@ -53,5 +53,5 @@ interface AccountRouter {
 
     fun createAccountForNetworkType(networkType: Node.NetworkType)
 
-    fun openExportMnemonic()
+    fun openExportMnemonic(accountAddress: String)
 }

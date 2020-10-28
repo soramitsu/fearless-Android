@@ -9,7 +9,7 @@
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <jp.co.soramitsu.common.base.Toolbar
+    <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

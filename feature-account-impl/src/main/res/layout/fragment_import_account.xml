@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/black"
     android:fitsSystemWindows="true">
 
-    <jp.co.soramitsu.common.base.Toolbar
+    <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -39,32 +39,29 @@
                 android:id="@+id/sourceTypeInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:label="@string/recovery_source_type"
-                app:actionIcon="@drawable/ic_pin_white_24"
-                tools:message="Mnemonic"
                 android:layout_marginStart="@dimen/x2"
                 android:layout_marginTop="@dimen/x2"
-                android:layout_marginEnd="@dimen/x2" />
+                android:layout_marginEnd="@dimen/x2"
+                app:actionIcon="@drawable/ic_pin_white_24"
+                app:label="@string/recovery_source_type"
+                tools:message="Mnemonic" />
 
             <FrameLayout
-                tools:layout_height="200dp"
+                android:id="@+id/sourceTypeContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/x2"
                 android:layout_marginTop="@dimen/x2"
                 android:layout_marginEnd="@dimen/x2"
                 android:animateLayoutChanges="true"
                 tools:background="@drawable/bg_big_input_shape"
-                android:id="@+id/sourceTypeContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                tools:layout_height="200dp" />
 
-            r<jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
+            <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/advancedBlockView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/x2"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/mnemonicRv" />
+                android:layout_marginTop="@dimen/x2" />
 
         </LinearLayout>
 

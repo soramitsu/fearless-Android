@@ -165,11 +165,15 @@
         android:id="@+id/accountDetailsFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment"
         android:label="AccountDetailsFragment"
-        tools:layout="@layout/fragment_account_details" >
+        tools:layout="@layout/fragment_account_details">
 
         <action
             android:id="@+id/action_accountDetailsFragment_to_exportMnemonicFragment"
-            app:destination="@id/exportMnemonicFragment" />
+            app:destination="@id/exportMnemonicFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <fragment

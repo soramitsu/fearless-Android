@@ -9,5 +9,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewMod
 class ExportMnemonicViewModel(
     private val router: AccountRouter,
     private val context: Context,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    accountAddress: String
 ) : ExportViewModel(ExportSource.Mnemonic)

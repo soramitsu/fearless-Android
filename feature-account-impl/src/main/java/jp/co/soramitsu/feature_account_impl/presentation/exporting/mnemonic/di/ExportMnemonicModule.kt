@@ -19,8 +19,13 @@ class ExportMnemonicModule {
     @Provides
     @IntoMap
     @ViewModelKey(ExportMnemonicViewModel::class)
-    fun provideViewModel(router: AccountRouter, context: Context, resourceManager: ResourceManager): ViewModel {
-        return ExportMnemonicViewModel(router, context, resourceManager)
+    fun provideViewModel(
+        router: AccountRouter,
+        context: Context,
+        resourceManager: ResourceManager,
+        accountAddress: String
+    ): ViewModel {
+        return ExportMnemonicViewModel(router, context, resourceManager, accountAddress)
     }
 
     @Provides

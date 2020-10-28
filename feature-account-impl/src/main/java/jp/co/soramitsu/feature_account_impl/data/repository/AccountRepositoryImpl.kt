@@ -334,9 +334,15 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun getSecuritySource(): Single<SecuritySource> {
+    override fun getCurrentSecuritySource(): Single<SecuritySource> {
         return observeSelectedAccount().firstOrError()
             .map { accountDataSource.getSecuritySource(it.address) }
+    }
+
+    override fun getSecuritySource(accountAddress: String): Single<SecuritySource> {
+        return Single.fromCallable {
+            accountDataSource.getSecuritySource(accountAddress)
+        }
     }
 
     private fun saveFromMnemonic(

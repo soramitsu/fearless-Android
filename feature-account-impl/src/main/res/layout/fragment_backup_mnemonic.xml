@@ -8,12 +8,10 @@
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <jp.co.soramitsu.common.base.Toolbar
+    <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingStart="@dimen/x1"
-        android:paddingEnd="@dimen/x1"
         app:iconRight="@drawable/ic_info_white_24"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -35,55 +33,18 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <LinearLayout
-                android:id="@+id/hintView"
+            <jp.co.soramitsu.common.account.mnemonicViewer.MnemonicViewer
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingStart="@dimen/x2"
-                android:paddingTop="@dimen/x1"
-                android:paddingEnd="@dimen/x2"
-                android:paddingBottom="@dimen/x1">
-
-                <ImageView
-                    android:id="@+id/alertImg"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_alert_triangle_yellow_24" />
-
-                <Space
-                    android:layout_width="@dimen/x1"
-                    android:layout_height="wrap_content" />
-
-                <TextView
-                    style="@style/TextAppearance.Soramitsu.Body1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:includeFontPadding="false"
-                    android:text="@string/account_create_details"
-                    android:textColor="@color/colorHint" />
-
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/mnemonicRv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/x1"
-                android:visibility="gone"
-                tools:itemCount="6"
-                tools:listitem="@layout/item_mnemonic_word"
-                tools:visibility="visible" />
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:id="@+id/backupMnemonicViewer"
+                android:layout_height="wrap_content" />
 
             <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/advancedBlockView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/x3"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/mnemonicRv" />
+                android:layout_marginTop="@dimen/x3" />
 
         </LinearLayout>
 

@@ -9,9 +9,12 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 
 interface AccountInteractor {
-    fun getMnemonic(): Single<List<String>>
+    fun getSecuritySource(accountAddress: String) : Single<SecuritySource>
+
+    fun generateMnemonic(): Single<List<String>>
 
     fun getCryptoTypes(): Single<List<CryptoType>>
 

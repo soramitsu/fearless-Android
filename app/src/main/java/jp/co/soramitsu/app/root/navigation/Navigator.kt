@@ -6,6 +6,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
@@ -203,7 +204,9 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_nodes_to_onboarding, WelcomeFragment.getBundleWithNetworkType(true, networkType))
     }
 
-    override fun openExportMnemonic() {
-        TODO("Not yet implemented")
+    override fun openExportMnemonic(accountAddress: String) {
+        val extras = ExportMnemonicFragment.getBundle(accountAddress)
+
+        navController?.navigate(R.id.action_accountDetailsFragment_to_exportMnemonicFragment, extras)
     }
 }

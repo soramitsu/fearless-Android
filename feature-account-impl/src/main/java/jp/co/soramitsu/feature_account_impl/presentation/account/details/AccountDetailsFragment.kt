@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsAddressView
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsExport
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsName
@@ -78,19 +79,16 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
             accountDetailsNode.setCompoundDrawablesWithIntrinsicBounds(networkModel.networkTypeUI.icon, 0, 0, 0)
         }
 
-        viewModel.showExportSourceChooser.observeEvent {
-            showExportSourceChooser()
-        }
+        viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
 
         accountDetailsName.onTextChanged(viewModel::nameChanged)
     }
 
-    private fun showExportSourceChooser() {
-        val sourceTypes = viewModel.exportSourceTypes
-        val chooserPayload = SourceTypeChooserPayload(sourceTypes)
+    private fun showExportSourceChooser(sources: List<ExportSource>) {
+        val chooserPayload = SourceTypeChooserPayload(sources)
 
         SourceTypeChooserBottomSheetDialog(requireActivity(), chooserPayload) { selected ->
             viewModel.exportTypeSelected(selected)
-        }
+        }.show()
     }
 }
