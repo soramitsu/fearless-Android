@@ -229,7 +229,7 @@ class AccountRepositoryImpl(
 
             val signingData = mapKeyPairToSigningData(importData.keypair)
 
-            val seed = null // TODO
+            val seed = importData.seed
 
             val securitySource = SecuritySource.Json(seed, signingData)
 
