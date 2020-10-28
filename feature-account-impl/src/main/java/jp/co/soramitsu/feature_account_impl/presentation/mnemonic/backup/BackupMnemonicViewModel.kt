@@ -6,6 +6,7 @@ import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.mnemonicViewer.MnemonicWordModel
+import jp.co.soramitsu.common.account.mnemonicViewer.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
@@ -63,16 +64,7 @@ class BackupMnemonicViewModel(
     private fun generateMnemonic(): Single<List<MnemonicWordModel>> {
         return interactor.generateMnemonic()
             .subscribeOn(Schedulers.io())
-            .map { mapMnemonicToMnemonicWords(it) }
+            .map(::mapMnemonicToMnemonicWords)
             .observeOn(AndroidSchedulers.mainThread())
-    }
-
-    private fun mapMnemonicToMnemonicWords(mnemonic: List<String>): List<MnemonicWordModel> {
-        return mnemonic.mapIndexed { index: Int, word: String ->
-            MnemonicWordModel(
-                (index + 1).toString(),
-                word
-            )
-        }
     }
 }

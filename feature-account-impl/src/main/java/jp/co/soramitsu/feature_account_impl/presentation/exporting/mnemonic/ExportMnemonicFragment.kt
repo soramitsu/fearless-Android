@@ -9,6 +9,11 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
+import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicAdvanced
+import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicToolbar
+import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicType
+import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicViewer
 
 private const val ACCOUNT_ADDRESS_KEY = "ACCOUNT_ADDRESS_KEY"
 
@@ -27,6 +32,15 @@ class ExportMnemonicFragment : BaseFragment<ExportMnemonicViewModel>() {
     }
 
     override fun initViews() {
+        exportMnemonicToolbar.setHomeButtonListener { viewModel.back() }
+
+        configureAdvancedBlock()
+    }
+
+    private fun configureAdvancedBlock() {
+        with(exportMnemonicAdvanced) {
+            configure(FieldState.DISABLED)
+        }
     }
 
     override fun inject() {
@@ -39,5 +53,27 @@ class ExportMnemonicFragment : BaseFragment<ExportMnemonicViewModel>() {
     }
 
     override fun subscribe(viewModel: ExportMnemonicViewModel) {
+        val typeNameRes = viewModel.exportSource.nameRes
+
+        exportMnemonicType.setMessage(typeNameRes)
+
+        viewModel.mnemonic.observe {
+            exportMnemonicViewer.submitList(it)
+        }
+
+        viewModel.derivationPath.observe {
+            val state = if (it.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
+
+            with(exportMnemonicAdvanced) { configure(derivationPathField, state) }
+        }
+
+        viewModel.cryptoTypeLiveData.observe {
+            exportMnemonicAdvanced.setEncryption(it.name)
+        }
+
+        viewModel.networkTypeLiveData.observe {
+            exportMnemonicAdvanced.setNetworkName(it.name)
+            exportMnemonicAdvanced.setNetworkIconResource(it.networkTypeUI.icon)
+        }
     }
 }

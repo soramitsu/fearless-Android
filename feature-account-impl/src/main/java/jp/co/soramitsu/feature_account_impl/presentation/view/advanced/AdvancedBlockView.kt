@@ -113,14 +113,14 @@ class AdvancedBlockView @JvmOverloads constructor(
         networkInput.setTextIcon(iconRes)
     }
 
-    fun configureField(field: View, fieldState: FieldState) {
+    fun configure(field: View, fieldState: FieldState) {
         fieldState.applyTo(field)
     }
 
     fun configure(fieldState: FieldState) {
-        configureField(encryptionTypeField, fieldState)
-        configureField(networkTypeField, fieldState)
-        configureField(derivationPathField, fieldState)
+        configure(encryptionTypeField, fieldState)
+        configure(networkTypeField, fieldState)
+        configure(derivationPathField, fieldState)
     }
 
     fun setNetworkSelectorEnabled(enabled: Boolean) {

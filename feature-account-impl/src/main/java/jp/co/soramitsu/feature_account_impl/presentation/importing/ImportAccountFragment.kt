@@ -151,9 +151,9 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         val derivationPathState = if (selectorsEnabled) FieldState.NORMAL else FieldState.HIDDEN
 
         with(advancedBlockView) {
-            configureField(encryptionTypeField, chooserState)
-            configureField(networkTypeField, chooserState)
-            configureField(derivationPathField, derivationPathState)
+            configure(encryptionTypeField, chooserState)
+            configure(networkTypeField, chooserState)
+            configure(derivationPathField, derivationPathState)
         }
     }
 
