@@ -172,4 +172,6 @@
     <string name="search_header_my_accounts">私のアカウント</string>
     <string name="coming_soon">近日公開…</string>
     <string name="common_skip_process">プロセスをスキップ</string>
+    <string name="wallet_receive_description">このQRを送信者に共有する</string>
+    <string name="wallet_receive_share_message">マイ%s受信するためのアドレス%s:</string>
 </resources>

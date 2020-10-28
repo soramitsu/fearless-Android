@@ -172,4 +172,6 @@
     <string name="search_header_my_accounts">mis cuentas</string>
     <string name="coming_soon">Próximamente…</string>
     <string name="common_skip_process">Omitir proceso</string>
+    <string name="wallet_receive_description">Comparte este QR con el remitente</string>
+    <string name="wallet_receive_share_message">Mi %s dirección para recibir %s:</string>
 </resources>

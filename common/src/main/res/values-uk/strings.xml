@@ -173,4 +173,6 @@
     <string name="search_header_my_accounts">мої рахунки</string>
     <string name="coming_soon">Незабаром…</string>
     <string name="common_skip_process">Пропустити процес</string>
+    <string name="wallet_receive_description">Поділіться цим QR-кодом відправника</string>
+    <string name="wallet_receive_share_message">Мою %s адресу для отримання %s:</string>
 </resources>

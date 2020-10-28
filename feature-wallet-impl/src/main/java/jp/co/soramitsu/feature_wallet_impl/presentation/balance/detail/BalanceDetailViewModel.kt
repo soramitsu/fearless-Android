@@ -91,6 +91,10 @@ class BalanceDetailViewModel(
         router.openChooseRecipient()
     }
 
+    fun receiveClicked() {
+        router.openReceive()
+    }
+
     fun frozenInfoClicked() {
         assetLiveData.value?.let {
             _showFrozenDetailsEvent.value = Event(it)
