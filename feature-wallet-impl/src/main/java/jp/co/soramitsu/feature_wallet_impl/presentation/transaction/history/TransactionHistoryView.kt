@@ -1,10 +1,10 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history
 
 import android.content.Context
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewTreeObserver
-import android.view.WindowInsets
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -45,12 +45,6 @@ class TransferHistorySheet @JvmOverloads constructor(
         }
     }
 
-    override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
-        coordinatorParams.topMargin = insets.systemWindowInsetTop
-
-        return insets
-    }
-
     init {
         View.inflate(context, R.layout.view_transfer_history, this)
 
@@ -83,6 +77,12 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     fun setTransactionClickListener(listener: TransactionClickListener) {
         transactionClickListener = listener
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        super.onRestoreInstanceState(state)
+
+        slidingStateListener?.invoke(bottomSheetBehavior.state)
     }
 
     override fun onAttachedToWindow() {

@@ -35,13 +35,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         return inflater.inflate(R.layout.fragment_balance_list, container, false)
     }
 
-    override fun onViewStateRestored(savedInstanceState: Bundle?) {
-        super.onViewStateRestored(savedInstanceState)
-
-        val initialState = transfersContainer.slidingState
-        setRefreshEnabled(initialState)
-    }
-
     override fun initViews() {
         adapter = BalanceListAdapter(this)
         balanceListAssets.adapter = adapter

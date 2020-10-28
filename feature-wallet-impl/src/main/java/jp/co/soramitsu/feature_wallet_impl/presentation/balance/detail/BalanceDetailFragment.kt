@@ -61,10 +61,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
             viewModel.shouldLoadPage()
         }
 
-        transfersContainer.setSlidingStateListener {
-            val bottomSheetExpanded = BottomSheetBehavior.STATE_EXPANDED == it
-            balanceDetailContainer.isEnabled = !bottomSheetExpanded
-        }
+        transfersContainer.setSlidingStateListener(::setRefreshEnabled)
 
         transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
 
@@ -129,6 +126,11 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         }
 
         viewModel.showFrozenDetailsEvent.observeEvent(::showFrozenDetails)
+    }
+
+    private fun setRefreshEnabled(bottomSheetState: Int) {
+        val bottomSheetCollapsed = BottomSheetBehavior.STATE_COLLAPSED == bottomSheetState
+        balanceDetailContainer.isEnabled = bottomSheetCollapsed
     }
 
     private fun showFrozenDetails(model: AssetModel) {
