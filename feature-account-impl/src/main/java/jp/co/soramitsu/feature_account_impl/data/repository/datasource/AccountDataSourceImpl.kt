@@ -7,6 +7,7 @@ import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.data.network.scale.Schema
 import jp.co.soramitsu.common.data.network.scale.byteArray
 import jp.co.soramitsu.common.data.network.scale.invoke
+import jp.co.soramitsu.common.data.network.scale.string
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -14,11 +15,10 @@ import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
-import jp.co.soramitsu.feature_account_impl.data.repository.datasource.ScaleSigningData.Nonce
-import jp.co.soramitsu.feature_account_impl.data.repository.datasource.ScaleSigningData.PrivateKey
-import jp.co.soramitsu.feature_account_impl.data.repository.datasource.ScaleSigningData.PublicKey
-import org.bouncycastle.util.encoders.Hex
+import jp.co.soramitsu.feature_account_api.domain.model.WithDerivationPath
+import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
 
 private const val PREFS_AUTH_TYPE = "auth_type"
 private const val PREFS_PIN_CODE = "pin_code"
@@ -27,19 +27,26 @@ private const val PREFS_SELECTED_ACCOUNT = "selected_address"
 
 private const val PREFS_SELECTED_NODE = "node"
 
-private const val PREFS_MNEMONIC_IS_BACKED_UP = "mnemonic_backed_up"
-private const val PREFS_SEED_MASK = "seed_%s"
-private const val PREFS_ENTROPY_MASK = "entropy_%s"
-private const val PREFS_DERIVATION_MASK = "derivation_%s"
-private const val PREFS_PRIVATE_KEY = "private_%s"
+private const val PREFS_SECURITY_SOURCE_MASK = "security_source_%s"
 
 private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 
-private object ScaleSigningData : Schema<ScaleSigningData>() {
+private enum class SourceType {
+    CREATE, SEED, MNEMONIC, JSON
+}
+
+private object SourceInternal : Schema<SourceInternal>() {
+    val Type by string()
+
     val PrivateKey by byteArray()
     val PublicKey by byteArray()
 
     val Nonce by byteArray().optional()
+
+    val Seed by byteArray().optional()
+    val Mnemonic by string().optional()
+
+    val DerivationPath by string().optional()
 }
 
 class AccountDataSourceImpl(
@@ -85,72 +92,54 @@ class AccountDataSourceImpl(
         return jsonMapper.fromJson(raw, Node::class.java)
     }
 
-    override fun setMnemonicIsBackedUp(backedUp: Boolean) {
-        preferences.putBoolean(PREFS_MNEMONIC_IS_BACKED_UP, backedUp)
-    }
+    override fun saveSecuritySource(accountAddress: String, source: SecuritySource) {
+        val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
-    override fun getMnemonicIsBackedUp(): Boolean {
-        return preferences.getBoolean(PREFS_MNEMONIC_IS_BACKED_UP, false)
-    }
+        val signingData = source.signingData
+        val seed = source.seed
+        val mnemonic = (source as? WithMnemonic)?.mnemonic
+        val derivationPath = (source as? WithDerivationPath)?.derivationPath
 
-    override fun saveSeed(seed: ByteArray, address: String) {
-        val seedKey = PREFS_SEED_MASK.format(address)
-        val seedStr = Hex.toHexString(seed)
-        encryptedPreferences.putEncryptedString(seedKey, seedStr)
-    }
+        val toSave = SourceInternal {
+            it[SourceInternal.Type] = getSourceType(source).name
 
-    override fun saveSigningData(address: String, signingData: SigningData) {
-        val key = PREFS_PRIVATE_KEY.format(address)
+            it[SourceInternal.PrivateKey] = signingData.privateKey
+            it[SourceInternal.PublicKey] = signingData.publicKey
+            it[SourceInternal.Nonce] = signingData.nonce
 
-        val toSave = ScaleSigningData {
-            it[PrivateKey] = signingData.privateKey
-            it[PublicKey] = signingData.publicKey
-            it[Nonce] = signingData.nonce
+            it[SourceInternal.Seed] = seed
+            it[SourceInternal.Mnemonic] = mnemonic
+            it[SourceInternal.DerivationPath] = derivationPath
         }
 
-        encryptedPreferences.putEncryptedString(key, ScaleSigningData.toHexString(toSave))
+        val raw = SourceInternal.toHexString(toSave)
+
+        encryptedPreferences.putEncryptedString(key, raw)
     }
 
-    override fun getSigningData(address: String): SigningData? {
-        val key = PREFS_PRIVATE_KEY.format(address)
+    override fun getSecuritySource(accountAddress: String): SecuritySource? {
+        val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
         val raw = encryptedPreferences.getDecryptedString(key) ?: return null
 
-        val data = ScaleSigningData.read(raw)
+        val internalSource = SourceInternal.read(raw)
 
-        return SigningData(
-            publicKey = data[PublicKey],
-            privateKey = data[PrivateKey],
-            nonce = data[Nonce]
+        val signingData = SigningData(
+            publicKey = internalSource[SourceInternal.PublicKey],
+            privateKey = internalSource[SourceInternal.PrivateKey],
+            nonce = internalSource[SourceInternal.Nonce]
         )
-    }
 
-    override fun getSeed(address: String): ByteArray? {
-        val seedKey = PREFS_SEED_MASK.format(address)
-        val seedValue = encryptedPreferences.getDecryptedString(seedKey)
-        return seedValue?.let { Hex.decode(it) }
-    }
+        val seed = internalSource[SourceInternal.Nonce]
+        val mnemonic = internalSource[SourceInternal.Mnemonic]
+        val derivationPath = internalSource[SourceInternal.DerivationPath]
 
-    override fun saveEntropy(entropy: ByteArray, address: String) {
-        val entropyKey = PREFS_ENTROPY_MASK.format(address)
-        val entropyStr = Hex.toHexString(entropy)
-        encryptedPreferences.putEncryptedString(entropyKey, entropyStr)
-    }
-
-    override fun getEntropy(address: String): ByteArray? {
-        val entropyKey = PREFS_ENTROPY_MASK.format(address)
-        val entropyValue = encryptedPreferences.getDecryptedString(entropyKey)
-        return entropyValue?.let { Hex.decode(it) }
-    }
-
-    override fun saveDerivationPath(derivationPath: String, address: String) {
-        val derivationKey = PREFS_DERIVATION_MASK.format(address)
-        encryptedPreferences.putEncryptedString(derivationKey, derivationPath)
-    }
-
-    override fun getDerivationPath(address: String): String? {
-        val derivationKey = PREFS_DERIVATION_MASK.format(address)
-        return encryptedPreferences.getDecryptedString(derivationKey)
+        return when (SourceType.valueOf(internalSource[SourceInternal.Type])) {
+            SourceType.CREATE -> SecuritySource.Create(seed, signingData, mnemonic!!, derivationPath)
+            SourceType.SEED -> SecuritySource.Seed(seed, signingData, derivationPath)
+            SourceType.JSON -> SecuritySource.Json(seed, signingData)
+            SourceType.MNEMONIC -> SecuritySource.Mnemonic(seed, signingData, mnemonic!!, derivationPath)
+        }
     }
 
     override fun anyAccountSelected(): Boolean {
@@ -217,5 +206,14 @@ class AccountDataSourceImpl(
 
     override fun changeSelectedLanguage(language: Language) {
         preferences.saveCurrentLanguage(language.iso)
+    }
+
+    private fun getSourceType(securitySource: SecuritySource): SourceType {
+        return when (securitySource) {
+            is SecuritySource.Create -> SourceType.CREATE
+            is SecuritySource.Mnemonic -> SourceType.MNEMONIC
+            is SecuritySource.Json -> SourceType.JSON
+            is SecuritySource.Seed -> SourceType.SEED
+        }
     }
 }

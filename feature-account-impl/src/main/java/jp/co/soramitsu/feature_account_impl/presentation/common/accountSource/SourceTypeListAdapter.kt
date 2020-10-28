@@ -14,11 +14,11 @@ import kotlinx.android.synthetic.main.item_source.view.rightIcon
 import kotlinx.android.synthetic.main.item_source.view.sourceTv
 
 class SourceTypeListAdapter<T : AccountSource>(
-    private val selectedSource: T,
+    private val selectedSource: T?,
     private val itemClickListener: SourceItemHandler<T>
 ) : ListAdapter<T, SourceTypeViewHolder<T>>(DiffCallback()) {
 
-    interface SourceItemHandler<T: AccountSource> {
+    interface SourceItemHandler<T : AccountSource> {
         fun onSourceSelected(source: T)
     }
 
@@ -29,13 +29,13 @@ class SourceTypeListAdapter<T : AccountSource>(
     override fun onBindViewHolder(sourceTypeViewHolder: SourceTypeViewHolder<T>, position: Int) {
         val currentSourceType = getItem(position)
 
-        val isSelected = selectedSource.nameRes == currentSourceType.nameRes
+        val isSelected = selectedSource?.nameRes == currentSourceType.nameRes
 
         sourceTypeViewHolder.bind(currentSourceType, itemClickListener, isSelected)
     }
 }
 
-class SourceTypeViewHolder<T: AccountSource>(itemView: View) : RecyclerView.ViewHolder(itemView) {
+class SourceTypeViewHolder<T : AccountSource>(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     fun bind(sourceType: T, typeClickListener: SourceItemHandler<T>, isSelected: Boolean) {
         with(itemView) {

@@ -7,15 +7,14 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeListAdapter.SourceItemHandler
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.sourceRv
 import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.titleTv
 
-class SourceSelectorPayload<T: AccountSource>(val allSources: List<T>, val selected: T)
+class SourceTypeChooserPayload<T : AccountSource>(val allSources: List<T>, val selected: T? = null)
 
-class SourceTypeChooserBottomSheetDialog<T: AccountSource>(
+class SourceTypeChooserBottomSheetDialog<T : AccountSource>(
     context: Activity,
-    payload: SourceSelectorPayload<T>,
+    payload: SourceTypeChooserPayload<T>,
     private val itemTypeClickListener: (T) -> Unit
 ) : BottomSheetDialog(context, R.style.BottomSheetDialog), SourceItemHandler<T> {
 

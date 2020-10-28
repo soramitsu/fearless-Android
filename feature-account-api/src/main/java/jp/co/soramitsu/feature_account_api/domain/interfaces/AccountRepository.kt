@@ -9,7 +9,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.SigningData
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 
 class AccountAlreadyExistsException : Exception()
 
@@ -70,14 +70,14 @@ interface AccountRepository {
     ): Completable
 
     fun importFromSeed(
-        keyString: String,
+        seed: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         node: Node
     ): Completable
 
-    fun importFromJson(json: String, password: String, name: String): Completable
+    fun importFromJson(json: String, password: String, name: String, node: Node): Completable
 
     fun isCodeSet(): Single<Boolean>
 
@@ -117,7 +117,7 @@ interface AccountRepository {
 
     fun changeLanguage(language: Language): Completable
 
-    fun getSigningData(): Single<SigningData>
+    fun getSecuritySource(): Single<SecuritySource>
 
     fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable
 

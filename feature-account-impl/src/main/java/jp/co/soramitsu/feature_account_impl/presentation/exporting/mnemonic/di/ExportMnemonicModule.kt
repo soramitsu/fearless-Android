@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.about.AboutViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicViewModel
 
 @Module(includes = [ViewModelModule::class])
