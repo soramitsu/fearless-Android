@@ -246,7 +246,7 @@ class PinCodeViewModel(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    // TODO: 8/12/20 show next registration screen
+                    router.openMain()
                 }, {
                     it.printStackTrace()
                 })
