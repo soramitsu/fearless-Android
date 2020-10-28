@@ -3,11 +3,11 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 
 interface AccountDataSource {
 
@@ -25,7 +25,7 @@ interface AccountDataSource {
 
     fun saveSecuritySource(accountAddress: String, source: SecuritySource)
 
-    fun getSecuritySource(accountAddress: String) : SecuritySource?
+    fun getSecuritySource(accountAddress: String): SecuritySource?
 
     fun anyAccountSelected(): Boolean
 

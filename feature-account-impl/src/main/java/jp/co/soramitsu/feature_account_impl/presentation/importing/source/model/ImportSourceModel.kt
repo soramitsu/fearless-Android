@@ -17,7 +17,7 @@ class ImportError(
     @StringRes val messageRes: Int = R.string.common_undefined_error_message
 )
 
-sealed class ImportSource(@StringRes nameRes: Int): AccountSource(nameRes) {
+sealed class ImportSource(@StringRes nameRes: Int) : AccountSource(nameRes) {
 
     private val _validationLiveData = MediatorLiveData<Boolean>()
     val validationLiveData = _validationLiveData

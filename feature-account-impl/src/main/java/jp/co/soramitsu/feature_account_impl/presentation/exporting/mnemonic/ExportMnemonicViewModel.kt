@@ -10,5 +10,4 @@ class ExportMnemonicViewModel(
     private val router: AccountRouter,
     private val context: Context,
     private val resourceManager: ResourceManager
-) : ExportViewModel(ExportSource.Mnemonic) {
-}
+) : ExportViewModel(ExportSource.Mnemonic)

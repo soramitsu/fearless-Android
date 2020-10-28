@@ -11,7 +11,6 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsAddressView
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsExport
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsName

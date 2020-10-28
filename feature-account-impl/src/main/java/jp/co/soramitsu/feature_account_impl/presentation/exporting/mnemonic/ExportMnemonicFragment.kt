@@ -17,7 +17,6 @@ class ExportMnemonicFragment : BaseFragment<ExportMnemonicViewModel>() {
     }
 
     override fun initViews() {
-
     }
 
     override fun inject() {
@@ -28,6 +27,5 @@ class ExportMnemonicFragment : BaseFragment<ExportMnemonicViewModel>() {
     }
 
     override fun subscribe(viewModel: ExportMnemonicViewModel) {
-
     }
 }

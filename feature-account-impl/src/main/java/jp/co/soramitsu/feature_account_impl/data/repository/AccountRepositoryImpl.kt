@@ -227,7 +227,7 @@ class AccountRepositoryImpl(
             val cryptoType = mapEncryptionToCryptoType(importData.encryptionType)
             val networkType = mapAddressTypeToNetworkType(importData.networType)
 
-            val signingData =  mapKeyPairToSigningData(importData.keypair)
+            val signingData = mapKeyPairToSigningData(importData.keypair)
 
             val seed = null // TODO
 
