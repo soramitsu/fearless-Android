@@ -70,20 +70,20 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>(), Tr
             transactionDetailAmount.text = amount.formatAsToken(token)
             transactionDetailFee.text = fee?.formatAsToken(token) ?: getString(R.string.common_unknown)
 
-            transactionDetailHash.setText(hash)
+            transactionDetailHash.setMessage(hash)
 
             transactionDetailTotal.text = total?.formatAsToken(token) ?: getString(R.string.common_unknown)
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->
-            transactionDetailFrom.setText(addressModel.address)
+            transactionDetailFrom.setMessage(addressModel.address)
             transactionDetailFrom.setTextIcon(addressModel.image)
 
             transactionDetailFrom.setActionClickListener { viewModel.copyStringClicked(addressModel.address) }
         }
 
         viewModel.recipientAddressModelLiveData.observe { addressModel ->
-            transactionDetailTo.setText(addressModel.address)
+            transactionDetailTo.setMessage(addressModel.address)
             transactionDetailTo.setTextIcon(addressModel.image)
 
             transactionDetailTo.setActionClickListener { viewModel.copyStringClicked(addressModel.address) }

@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
@@ -21,13 +21,13 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.I
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.JsonImportView
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.MnemonicImportView
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.SeedImportView
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserBottomSheetDialog
 import kotlinx.android.synthetic.main.fragment_import_account.advancedBlockView
 import kotlinx.android.synthetic.main.fragment_import_account.nextBtn
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeContainer
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
-import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeText
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
 import javax.inject.Inject
 
@@ -98,11 +98,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             view
         }
 
-        viewModel.showSourceChooserLiveData.observeEvent {
-            SourceTypeChooserBottomSheetDialog(requireActivity(), it) {
-                viewModel.sourceTypeChanged(it)
-            }.show()
-        }
+        viewModel.showSourceSelectorChooserLiveData.observeEvent(::showTypeChooser)
 
         viewModel.selectedSourceTypeLiveData.observe {
             val index = viewModel.sourceTypes.indexOf(it)
@@ -110,11 +106,11 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             sourceTypeContainer.removeAllViews()
             sourceTypeContainer.addView(sourceViews!![index])
 
-            sourceTypeText.setText(it.nameRes)
+            sourceTypeInput.setMessage(it.nameRes)
 
             val isSelectorsEnabled = it !is JsonImportSource
 
-            advancedBlockView.setSelectorsEnabled(isSelectorsEnabled)
+            setSelectorsEnabled(isSelectorsEnabled)
         }
 
         viewModel.encryptionTypeChooserEvent.observeEvent {
@@ -147,7 +143,18 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             nextBtn.isEnabled = it
         }
 
-        advancedBlockView.derivationPathField.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)
+        advancedBlockView.derivationPathEditText.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)
+    }
+
+    private fun setSelectorsEnabled(selectorsEnabled: Boolean) {
+        val chooserState = if (selectorsEnabled) FieldState.NORMAL else FieldState.DISABLED
+        val derivationPathState = if (selectorsEnabled) FieldState.NORMAL else FieldState.HIDDEN
+
+        with(advancedBlockView) {
+            configureField(encryptionTypeField, chooserState)
+            configureField(networkTypeField, chooserState)
+            configureField(derivationPathField, derivationPathState)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -157,6 +164,11 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
                 processJsonOpenIntent(it)
             }
         }
+    }
+
+    private fun showTypeChooser(it: ImportSourceSelectorPayload) {
+        SourceTypeChooserBottomSheetDialog(requireActivity(), it, viewModel::sourceTypeChanged)
+            .show()
     }
 
     private fun processJsonOpenIntent(intent: Intent) {

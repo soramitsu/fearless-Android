@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.importing.source
+package jp.co.soramitsu.feature_account_impl.presentation.common.accountSource
 
 import android.app.Activity
 import android.view.LayoutInflater
@@ -6,18 +6,18 @@ import android.view.View
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceTypeListAdapter.SourceItemHandler
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeListAdapter.SourceItemHandler
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.sourceRv
 import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.titleTv
 
-class SourceSelectorPayload(val allSources: List<ImportSource>, val selected: ImportSource)
+class SourceSelectorPayload<T: AccountSource>(val allSources: List<T>, val selected: T)
 
-class SourceTypeChooserBottomSheetDialog(
+class SourceTypeChooserBottomSheetDialog<T: AccountSource>(
     context: Activity,
-    payload: SourceSelectorPayload,
-    private val itemTypeClickListener: (ImportSource) -> Unit
-) : BottomSheetDialog(context, R.style.BottomSheetDialog), SourceItemHandler {
+    payload: SourceSelectorPayload<T>,
+    private val itemTypeClickListener: (T) -> Unit
+) : BottomSheetDialog(context, R.style.BottomSheetDialog), SourceItemHandler<T> {
 
     init {
         setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheet_source_chooser, null))
@@ -40,7 +40,7 @@ class SourceTypeChooserBottomSheetDialog(
         sourceRv.adapter = adapter
     }
 
-    override fun onSourceSelected(source: ImportSource) {
+    override fun onSourceSelected(source: T) {
         itemTypeClickListener.invoke(source)
 
         dismiss()

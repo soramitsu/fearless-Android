@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.getDrawableCompat
@@ -36,6 +38,9 @@ class LabeledTextView @JvmOverloads constructor(
             val label = typedArray.getString(R.styleable.LabeledTextView_label)
             label?.let(::setLabel)
 
+            val message = typedArray.getString(R.styleable.LabeledTextView_message)
+            message?.let(::setMessage)
+
             val textIcon = typedArray.getDrawable(R.styleable.LabeledTextView_textIcon)
             textIcon?.let(::setTextIcon)
 
@@ -51,9 +56,13 @@ class LabeledTextView @JvmOverloads constructor(
         labeledTextAction.setImageDrawable(icon)
     }
 
-    fun setText(text: String) {
+    fun setMessage(@StringRes messageRes: Int) = setMessage(context.getString(messageRes))
+
+    fun setMessage(text: String) {
         labeledTextText.text = text
     }
+
+    fun setTextIcon(@DrawableRes iconRes: Int) = setTextIcon(context.getDrawableCompat(iconRes))
 
     fun setTextIcon(icon: Drawable) {
         labeledTextIcon.makeVisible()
@@ -62,5 +71,11 @@ class LabeledTextView @JvmOverloads constructor(
 
     fun setActionClickListener(listener: (View) -> Unit) {
         labeledTextAction.setOnClickListener(listener)
+    }
+
+    fun setWholeClickListener(listener: (View) -> Unit) {
+        setOnClickListener(listener)
+
+        setActionClickListener(listener)
     }
 }

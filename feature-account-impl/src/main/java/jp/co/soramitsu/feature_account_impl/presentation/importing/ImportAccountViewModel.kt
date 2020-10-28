@@ -23,12 +23,14 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToC
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceSelectorPayload
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceSelectorPayload
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
+
+typealias ImportSourceSelectorPayload = SourceSelectorPayload<ImportSource>
 
 class ImportAccountViewModel(
     private val interactor: AccountInteractor,
@@ -47,9 +49,9 @@ class ImportAccountViewModel(
     private val _selectedSourceTypeLiveData = MutableLiveData<ImportSource>()
 
     val selectedSourceTypeLiveData: LiveData<ImportSource> = _selectedSourceTypeLiveData
-    private val _showSourceChooserLiveData = MutableLiveData<Event<SourceSelectorPayload>>()
 
-    val showSourceChooserLiveData: LiveData<Event<SourceSelectorPayload>> = _showSourceChooserLiveData
+    private val _showSourceChooserLiveData = MutableLiveData<Event<ImportSourceSelectorPayload>>()
+    val showSourceSelectorChooserLiveData: LiveData<Event<ImportSourceSelectorPayload>> = _showSourceChooserLiveData
 
     val derivationPathLiveData = MutableLiveData<String>()
 

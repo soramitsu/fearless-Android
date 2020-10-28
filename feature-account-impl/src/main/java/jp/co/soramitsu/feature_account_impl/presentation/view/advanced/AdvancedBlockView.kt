@@ -8,22 +8,44 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.common.utils.setDrawableStart
+import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
 import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathEt
 import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeInput
-import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeText
 import kotlinx.android.synthetic.main.view_advanced_block.view.networkInput
-import kotlinx.android.synthetic.main.view_advanced_block.view.networkText
 
 class AdvancedBlockView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
+
+    enum class FieldState {
+        NORMAL {
+            override fun applyTo(field: View) {
+                field.isEnabled = true
+                field.makeVisible()
+            }
+        },
+
+        DISABLED {
+            override fun applyTo(field: View) {
+                field.isEnabled = false
+                field.makeVisible()
+            }
+        },
+
+        HIDDEN {
+            override fun applyTo(field: View) {
+                field.makeGone()
+            }
+        };
+
+        abstract fun applyTo(field: View)
+    }
 
     private var areSelectorsEnabled: Boolean = true
 
@@ -39,18 +61,20 @@ class AdvancedBlockView @JvmOverloads constructor(
         View.inflate(context, R.layout.view_advanced_block, this)
         orientation = VERTICAL
 
-        applyAttributes(attrs)
-
         advancedTv.setOnClickListener(showClickListener)
     }
 
-    private fun applyAttributes(attrs: AttributeSet?) {
-        attrs?.let {
-        }
-    }
-
-    val derivationPathField: EditText
+    val derivationPathEditText: EditText
         get() = derivationPathEt
+
+    val derivationPathField: View
+        get() = derivationPathInput
+
+    val encryptionTypeField: View
+        get() = encryptionTypeInput
+
+    val networkTypeField: View
+        get() = networkInput
 
     private fun showAdvanced() {
         advancedView.makeVisible()
@@ -63,14 +87,14 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     fun setOnEncryptionTypeClickListener(clickListener: () -> Unit) {
-        encryptionTypeInput.setOnClickListener {
-            maybeCallSelectorListener(clickListener)
+        encryptionTypeInput.setWholeClickListener {
+            maybeCallSelectorListener(encryptionTypeInput, clickListener)
         }
     }
 
     fun setOnNetworkClickListener(clickListener: () -> Unit) {
-        networkInput.setOnClickListener {
-            maybeCallSelectorListener(clickListener)
+        networkInput.setWholeClickListener {
+            maybeCallSelectorListener(networkInput, clickListener)
         }
     }
 
@@ -79,24 +103,25 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     fun setEncryption(encryption: String) {
-        encryptionTypeText.text = encryption
+        encryptionTypeInput.setMessage(encryption)
     }
 
     fun setNetworkName(network: String) {
-        networkText.text = network
+        networkInput.setMessage(network)
     }
 
-    fun setNetworkIconResource(icon: Int) {
-        networkText.setDrawableStart(icon, 18)
+    fun setNetworkIconResource(iconRes: Int) {
+        networkInput.setTextIcon(iconRes)
     }
 
-    fun setSelectorsEnabled(enabled: Boolean) {
-        areSelectorsEnabled = enabled
+    fun configureField(field: View, fieldState: FieldState) {
+        fieldState.applyTo(field)
+    }
 
-        updateSelectorState(encryptionTypeInput, enabled)
-        updateSelectorState(networkInput, enabled)
-
-        derivationPathInput.visibility = if (enabled) View.VISIBLE else View.GONE
+    fun configure(fieldState: FieldState) {
+        configureField(encryptionTypeField, fieldState)
+        configureField(networkTypeField, fieldState)
+        configureField(derivationPathField, fieldState)
     }
 
     fun setNetworkSelectorEnabled(enabled: Boolean) {
@@ -111,8 +136,8 @@ class AdvancedBlockView @JvmOverloads constructor(
         view.setBackgroundResource(background)
     }
 
-    private fun maybeCallSelectorListener(clickListener: () -> Unit) {
-        if (areSelectorsEnabled) {
+    private fun maybeCallSelectorListener(view: View, clickListener: () -> Unit) {
+        if (view.isEnabled) {
             clickListener.invoke()
         }
     }

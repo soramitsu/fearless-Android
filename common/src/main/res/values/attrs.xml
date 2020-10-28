@@ -44,6 +44,7 @@
 
     <declare-styleable name="LabeledTextView">
         <attr name="label" format="string" />
+        <attr name="message" format="string" />
         <attr name="actionIcon" format="reference|color" />
         <attr name="textIcon" format="reference|color" />
     </declare-styleable>
