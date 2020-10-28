@@ -9,6 +9,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.Incorrec
 import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.InvalidJsonException
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.AccountSource
 import org.bouncycastle.util.encoders.DecoderException
 
 class ImportError(
@@ -16,7 +17,7 @@ class ImportError(
     @StringRes val messageRes: Int = R.string.common_undefined_error_message
 )
 
-sealed class ImportSource(@StringRes val nameRes: Int) {
+sealed class ImportSource(@StringRes nameRes: Int) : AccountSource(nameRes) {
 
     private val _validationLiveData = MediatorLiveData<Boolean>()
     val validationLiveData = _validationLiveData

@@ -67,10 +67,10 @@
         app:layout_constraintStart_toStartOf="@+id/accountDetailsAddressView"
         app:layout_constraintTop_toBottomOf="@+id/accountDetailsAddressView"
         tools:drawableStart="@drawable/ic_ksm_24"
-        tools:text="Kusama, Parity Node" />
+        tools:text="Kusama" />
 
     <TextView
-        android:id="@+id/addAccount"
+        android:id="@+id/accountDetailsExport"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

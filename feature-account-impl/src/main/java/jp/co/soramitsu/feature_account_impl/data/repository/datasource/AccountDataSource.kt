@@ -7,7 +7,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.SigningData
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 
 interface AccountDataSource {
 
@@ -23,25 +23,9 @@ interface AccountDataSource {
 
     fun getSelectedNode(): Node?
 
-    fun setMnemonicIsBackedUp(backedUp: Boolean)
+    fun saveSecuritySource(accountAddress: String, source: SecuritySource)
 
-    fun getMnemonicIsBackedUp(): Boolean
-
-    fun saveSeed(seed: ByteArray, address: String)
-
-    fun saveSigningData(address: String, signingData: SigningData)
-
-    fun getSigningData(address: String): SigningData?
-
-    fun getSeed(address: String): ByteArray?
-
-    fun saveEntropy(entropy: ByteArray, address: String)
-
-    fun getEntropy(address: String): ByteArray?
-
-    fun saveDerivationPath(derivationPath: String, address: String)
-
-    fun getDerivationPath(address: String): String?
+    fun getSecuritySource(accountAddress: String): SecuritySource?
 
     fun anyAccountSelected(): Boolean
 

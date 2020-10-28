@@ -8,6 +8,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.Transformations
 
+fun MutableLiveData<Event<Unit>>.sendEvent() {
+    this.value = Event(Unit)
+}
+
 fun <FROM, TO> LiveData<FROM>.map(mapper: (FROM) -> TO): LiveData<TO> {
     return Transformations.map(this, mapper)
 }

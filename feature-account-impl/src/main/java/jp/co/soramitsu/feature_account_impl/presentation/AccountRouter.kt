@@ -52,4 +52,6 @@ interface AccountRouter {
     fun openAddNode()
 
     fun createAccountForNetworkType(networkType: Node.NetworkType)
+
+    fun openExportMnemonic()
 }

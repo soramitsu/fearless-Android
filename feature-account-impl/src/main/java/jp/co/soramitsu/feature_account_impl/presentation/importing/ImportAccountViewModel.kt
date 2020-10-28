@@ -23,12 +23,14 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToC
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.SourceSelectorPayload
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
+
+typealias ImportSourceSelectorPayload = SourceTypeChooserPayload<ImportSource>
 
 class ImportAccountViewModel(
     private val interactor: AccountInteractor,
@@ -47,9 +49,9 @@ class ImportAccountViewModel(
     private val _selectedSourceTypeLiveData = MutableLiveData<ImportSource>()
 
     val selectedSourceTypeLiveData: LiveData<ImportSource> = _selectedSourceTypeLiveData
-    private val _showSourceChooserLiveData = MutableLiveData<Event<SourceSelectorPayload>>()
 
-    val showSourceChooserLiveData: LiveData<Event<SourceSelectorPayload>> = _showSourceChooserLiveData
+    private val _showSourceChooserLiveData = MutableLiveData<Event<ImportSourceSelectorPayload>>()
+    val showSourceSelectorChooserLiveData: LiveData<Event<ImportSourceSelectorPayload>> = _showSourceChooserLiveData
 
     val derivationPathLiveData = MutableLiveData<String>()
 
@@ -72,7 +74,7 @@ class ImportAccountViewModel(
 
     fun openSourceChooserClicked() {
         selectedSourceTypeLiveData.value?.let {
-            _showSourceChooserLiveData.value = Event(SourceSelectorPayload(sourceTypes, it))
+            _showSourceChooserLiveData.value = Event(SourceTypeChooserPayload(sourceTypes, it))
         }
     }
 
@@ -153,7 +155,8 @@ class ImportAccountViewModel(
             is JsonImportSource -> interactor.importFromJson(
                 sourceType.jsonContentLiveData.value!!,
                 sourceType.passwordLiveData.value!!,
-                name
+                name,
+                node
             )
         }
     }

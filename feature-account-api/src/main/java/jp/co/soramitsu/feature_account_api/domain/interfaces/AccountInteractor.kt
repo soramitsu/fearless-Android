@@ -41,7 +41,7 @@ interface AccountInteractor {
         node: Node
     ): Completable
 
-    fun importFromJson(json: String, password: String, name: String): Completable
+    fun importFromJson(json: String, password: String, name: String, node: Node): Completable
 
     fun getAddressId(account: Account): Single<ByteArray>
 

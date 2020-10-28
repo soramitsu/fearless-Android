@@ -28,6 +28,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
@@ -138,12 +139,13 @@ class AccountRepositoryImpl(
         derivationPath: String,
         node: Node
     ): Completable {
-        return saveAccountData(
+        return saveFromMnemonic(
             accountName,
             mnemonic,
             derivationPath,
             encryptionType,
-            node
+            node,
+            isImport = false
         ).flatMapCompletable { maybeSelectInitial(it, node) }
     }
 
@@ -168,12 +170,13 @@ class AccountRepositoryImpl(
         selectedEncryptionType: CryptoType,
         node: Node
     ): Completable {
-        return saveAccountData(
+        return saveFromMnemonic(
             username,
             keyString,
             derivationPath,
             selectedEncryptionType,
-            node
+            node,
+            isImport = true
         ).flatMapCompletable { maybeSelectInitial(it, node) }
     }
 
@@ -193,28 +196,28 @@ class AccountRepositoryImpl(
                 derivationPath
             )
 
+            val signingData = mapKeyPairToSigningData(keys)
+
             val addressType = mapNetworkTypeToAddressType(node.networkType)
             val address = sS58Encoder.encode(keys.publicKey, addressType)
 
-            accountDataSource.saveDerivationPath(derivationPath, address)
-            accountDataSource.saveSeed(seedBytes, address)
-            accountDataSource.saveSigningData(address, mapKeyPairToSigningData(keys))
-            accountDataSource.setMnemonicIsBackedUp(true)
+            val securitySource = SecuritySource.Seed(seedBytes, signingData, derivationPath)
+
+            accountDataSource.saveSecuritySource(address, securitySource)
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
             val accountLocal = insertAccount(address, username, publicKeyEncoded, selectedEncryptionType, node.networkType)
 
-            val network = getNetworkForType(node.networkType)
-
-            Account(address, username, publicKeyEncoded, selectedEncryptionType, accountLocal.position, network)
+            mapAccountLocalToAccount(accountLocal)
         }.flatMapCompletable { maybeSelectInitial(it, node) }
     }
 
     override fun importFromJson(
         json: String,
         password: String,
-        name: String
+        name: String,
+        node: Node
     ): Completable {
         return Single.fromCallable {
             val importData = jsonSeedDecoder.decode(json, password)
@@ -224,18 +227,18 @@ class AccountRepositoryImpl(
             val cryptoType = mapEncryptionToCryptoType(importData.encryptionType)
             val networkType = mapAddressTypeToNetworkType(importData.networType)
 
-            accountDataSource.saveSigningData(importData.address, mapKeyPairToSigningData(importData.keypair))
+            val signingData = mapKeyPairToSigningData(importData.keypair)
+
+            val seed = importData.seed
+
+            val securitySource = SecuritySource.Json(seed, signingData)
+
+            accountDataSource.saveSecuritySource(importData.address, securitySource)
 
             val accountLocal = insertAccount(importData.address, name, publicKeyEncoded, cryptoType, networkType)
 
-            val network = getNetworkForType(networkType)
-
-            val account = Account(accountLocal.address, name, publicKeyEncoded, cryptoType, accountLocal.position, network)
-
-            val node = account.network.defaultNode
-
-            account to node
-        }.flatMapCompletable { (account, node) ->
+            mapAccountLocalToAccount(accountLocal)
+        }.flatMapCompletable { account ->
             maybeSelectInitial(account, node)
         }
     }
@@ -331,17 +334,18 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun getSigningData(): Single<SigningData> {
+    override fun getSecuritySource(): Single<SecuritySource> {
         return observeSelectedAccount().firstOrError()
-            .map { accountDataSource.getSigningData(it.address)!! }
+            .map { accountDataSource.getSecuritySource(it.address) }
     }
 
-    private fun saveAccountData(
+    private fun saveFromMnemonic(
         accountName: String,
         mnemonic: String,
         derivationPath: String,
         cryptoType: CryptoType,
-        node: Node
+        node: Node,
+        isImport: Boolean
     ): Single<Account> {
         return Single.fromCallable {
             val entropy = bip39.generateEntropy(mnemonic)
@@ -351,12 +355,15 @@ class AccountRepositoryImpl(
                 keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
             val addressType = mapNetworkTypeToAddressType(node.networkType)
             val address = sS58Encoder.encode(keys.publicKey, addressType)
+            val signingData = mapKeyPairToSigningData(keys)
 
-            accountDataSource.saveDerivationPath(derivationPath, address)
-            accountDataSource.saveSeed(seed, address)
-            accountDataSource.saveEntropy(entropy, address)
-            accountDataSource.saveSigningData(address, mapKeyPairToSigningData(keys))
-            accountDataSource.setMnemonicIsBackedUp(true)
+            val securitySource: SecuritySource = if (isImport) {
+                SecuritySource.Mnemonic(seed, signingData, mnemonic, derivationPath)
+            } else {
+                SecuritySource.Create(seed, signingData, mnemonic, derivationPath)
+            }
+
+            accountDataSource.saveSecuritySource(address, securitySource)
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 

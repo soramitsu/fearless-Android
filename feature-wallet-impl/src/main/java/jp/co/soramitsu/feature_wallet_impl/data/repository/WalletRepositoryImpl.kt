@@ -18,6 +18,7 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -115,7 +116,8 @@ class WalletRepositoryImpl(
 
     override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
         return getSelectedAccount().flatMap { account ->
-            accountRepository.getSigningData()
+            accountRepository.getSecuritySource()
+                .map(SecuritySource::signingData)
                 .map(this::mapSigningDataToKeypair)
                 .flatMap { keys -> substrateSource.performTransfer(account, transfer, keys) }
                 .map { hash -> createTransaction(hash, transfer, account.address, fee) }

@@ -165,7 +165,12 @@
         android:id="@+id/accountDetailsFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment"
         android:label="AccountDetailsFragment"
-        tools:layout="@layout/fragment_account_details" />
+        tools:layout="@layout/fragment_account_details" >
+
+        <action
+            android:id="@+id/action_accountDetailsFragment_to_exportMnemonicFragment"
+            app:destination="@id/exportMnemonicFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/editAccountsFragment"
@@ -254,5 +259,9 @@
             app:popExitAnim="@anim/fragment_open_exit"
             app:popUpTo="@id/mainFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/exportMnemonicFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment"
+        android:label="ExportMnemonicFragment" />
 
 </navigation>

@@ -202,4 +202,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
     override fun createAccountForNetworkType(networkType: Node.NetworkType) {
         navController?.navigate(R.id.action_nodes_to_onboarding, WelcomeFragment.getBundleWithNetworkType(true, networkType))
     }
+
+    override fun openExportMnemonic() {
+        TODO("Not yet implemented")
+    }
 }

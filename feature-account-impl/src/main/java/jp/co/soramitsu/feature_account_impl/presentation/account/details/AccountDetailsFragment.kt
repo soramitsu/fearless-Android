@@ -9,7 +9,10 @@ import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsAddressView
+import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsExport
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsName
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNode
 import kotlinx.android.synthetic.main.fragment_account_details.fearlessToolbar
@@ -44,6 +47,10 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
         accountDetailsAddressView.setOnCopyClickListener {
             viewModel.copyAddressClicked()
         }
+
+        accountDetailsExport.setOnClickListener {
+            viewModel.exportClicked()
+        }
     }
 
     override fun inject() {
@@ -71,6 +78,19 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
             accountDetailsNode.setCompoundDrawablesWithIntrinsicBounds(networkModel.networkTypeUI.icon, 0, 0, 0)
         }
 
+        viewModel.showExportSourceChooser.observeEvent {
+            showExportSourceChooser()
+        }
+
         accountDetailsName.onTextChanged(viewModel::nameChanged)
+    }
+
+    private fun showExportSourceChooser() {
+        val sourceTypes = viewModel.exportSourceTypes
+        val chooserPayload = SourceTypeChooserPayload(sourceTypes)
+
+        SourceTypeChooserBottomSheetDialog(requireActivity(), chooserPayload) { selected ->
+            viewModel.exportTypeSelected(selected)
+        }
     }
 }
