@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="account_export_warning_title">Ten cuidado</string>
+    <string name="account_export_warning_message">Compartir o copiar su secreto es una operación de alto riesgo, no se la envíe a nadie. ¿Le gustaría continuar con el proceso de compartir / copiar?</string>
+    <string name="account_export_action">Exportar</string>
+
     <string name="import_account_exists_title">la cuenta ya existe</string>
     <string name="import_mnemonic_invalid_title">El mnemónico no es válido</string>
     <string name="error_try_another_one">Por favor, pruebe con otro.</string>
