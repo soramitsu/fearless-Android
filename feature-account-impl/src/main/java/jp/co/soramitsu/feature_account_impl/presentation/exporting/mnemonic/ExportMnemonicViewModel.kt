@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic
 
-import jp.co.soramitsu.common.account.mnemonicViewer.MnemonicWordModel
 import jp.co.soramitsu.common.account.mnemonicViewer.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
@@ -18,10 +17,10 @@ class ExportMnemonicViewModel(
     accountAddress: String
 ) : ExportViewModel(accountInteractor, accountAddress, resourceManager, ExportSource.Mnemonic) {
 
-    val mnemonicLiveData = securityTypeLiveData.map {
-        val words = (it as WithMnemonic).mnemonicWords()
+    private val mnemonicSourceLiveData = securityTypeLiveData.map { it as WithMnemonic }
 
-        mapMnemonicToMnemonicWords(words)
+    val mnemonicWordsLiveData = mnemonicSourceLiveData.map {
+        mapMnemonicToMnemonicWords(it.mnemonicWords())
     }
 
     val derivationPath = securityTypeLiveData.map {
@@ -32,11 +31,19 @@ class ExportMnemonicViewModel(
         router.back()
     }
 
+    fun exportClicked() {
+        showSecurityWarning()
+    }
+
+    override fun securityWarningConfirmed() {
+        val mnemonicSource = mnemonicSourceLiveData.value ?: return
+
+        exportText(mnemonicSource.mnemonic)
+    }
+
     fun openConfirmMnemonic() {
-        val mnemonicWords = mnemonicLiveData.value ?: return
+        val mnemonicSource = mnemonicSourceLiveData.value ?: return
 
-        val mnemonic = mnemonicWords.map(MnemonicWordModel::word)
-
-        router.openConfirmMnemonicOnExport(mnemonic)
+        router.openConfirmMnemonicOnExport(mnemonicSource.mnemonicWords())
     }
 }

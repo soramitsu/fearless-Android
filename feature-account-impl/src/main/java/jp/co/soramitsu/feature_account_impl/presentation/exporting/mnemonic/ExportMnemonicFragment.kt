@@ -4,21 +4,22 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicAdvanced
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicConfirm
+import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicExport
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicToolbar
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicType
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicViewer
 
 private const val ACCOUNT_ADDRESS_KEY = "ACCOUNT_ADDRESS_KEY"
 
-class ExportMnemonicFragment : BaseFragment<ExportMnemonicViewModel>() {
+class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
 
     companion object {
         fun getBundle(accountAddress: String): Bundle {
@@ -38,6 +39,8 @@ class ExportMnemonicFragment : BaseFragment<ExportMnemonicViewModel>() {
         configureAdvancedBlock()
 
         exportMnemonicConfirm.setOnClickListener { viewModel.openConfirmMnemonic() }
+
+        exportMnemonicExport.setOnClickListener { viewModel.exportClicked() }
     }
 
     private fun configureAdvancedBlock() {
@@ -56,11 +59,13 @@ class ExportMnemonicFragment : BaseFragment<ExportMnemonicViewModel>() {
     }
 
     override fun subscribe(viewModel: ExportMnemonicViewModel) {
+        super.subscribe(viewModel)
+
         val typeNameRes = viewModel.exportSource.nameRes
 
         exportMnemonicType.setMessage(typeNameRes)
 
-        viewModel.mnemonicLiveData.observe {
+        viewModel.mnemonicWordsLiveData.observe {
             exportMnemonicViewer.submitList(it)
         }
 
