@@ -98,9 +98,11 @@ interface AccountInteractor {
 
     fun addNode(nodeName: String, nodeHost: String): Completable
 
-    fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
+    fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Single<Pair<List<Account>, Node>>
 
     fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable
+
+    fun selectNode(nodeId: Int): Completable
 
     fun getNetwork(networkType: Node.NetworkType): Single<Network>
 
