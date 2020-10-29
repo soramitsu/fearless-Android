@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic
 
+import jp.co.soramitsu.common.account.mnemonicViewer.MnemonicWordModel
 import jp.co.soramitsu.common.account.mnemonicViewer.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
@@ -17,7 +18,7 @@ class ExportMnemonicViewModel(
     accountAddress: String
 ) : ExportViewModel(accountInteractor, accountAddress, resourceManager, ExportSource.Mnemonic) {
 
-    val mnemonic = securityTypeLiveData.map {
+    val mnemonicLiveData = securityTypeLiveData.map {
         val words = (it as WithMnemonic).mnemonicWords()
 
         mapMnemonicToMnemonicWords(words)
@@ -29,5 +30,13 @@ class ExportMnemonicViewModel(
 
     fun back() {
         router.back()
+    }
+
+    fun openConfirmMnemonic() {
+        val mnemonicWords = mnemonicLiveData.value ?: return
+
+        val mnemonic = mnemonicWords.map(MnemonicWordModel::word)
+
+        router.openConfirmMnemonicOnExport(mnemonic)
     }
 }

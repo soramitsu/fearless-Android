@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.Expo
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment
@@ -63,20 +64,9 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         }
     }
 
-    override fun openConfirmMnemonicScreen(
-        accountName: String,
-        mnemonic: List<String>,
-        cryptoType: CryptoType,
-        node: Node,
-        derivationPath: String
-    ) {
-        val bundle = ConfirmMnemonicFragment.getBundle(
-            accountName,
-            mnemonic,
-            cryptoType,
-            node,
-            derivationPath
-        )
+    override fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload) {
+        val bundle = ConfirmMnemonicFragment.getBundle(confirmMnemonicPayload)
+
         navController?.navigate(
             R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment,
             bundle
@@ -208,5 +198,11 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         val extras = ExportMnemonicFragment.getBundle(accountAddress)
 
         navController?.navigate(R.id.action_accountDetailsFragment_to_exportMnemonicFragment, extras)
+    }
+
+    override fun openConfirmMnemonicOnExport(mnemonic: List<String>) {
+        val extras = ConfirmMnemonicFragment.getBundle(ConfirmMnemonicPayload(mnemonic, null))
+
+        navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
     }
 }

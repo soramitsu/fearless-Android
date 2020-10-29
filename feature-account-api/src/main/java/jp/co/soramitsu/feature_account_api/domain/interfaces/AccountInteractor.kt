@@ -25,7 +25,7 @@ interface AccountInteractor {
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
     fun importFromMnemonic(
@@ -102,7 +102,7 @@ interface AccountInteractor {
 
     fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable
 
-    fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
+    fun getNetwork(networkType: Node.NetworkType): Single<Network>
 
     fun deleteNode(nodeId: Int): Completable
 }

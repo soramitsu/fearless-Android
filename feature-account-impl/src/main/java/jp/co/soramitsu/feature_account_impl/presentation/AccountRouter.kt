@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation
 
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 
 interface AccountRouter {
 
@@ -13,13 +13,7 @@ interface AccountRouter {
 
     fun openCreatePincode()
 
-    fun openConfirmMnemonicScreen(
-        accountName: String,
-        mnemonic: List<String>,
-        cryptoType: CryptoType,
-        node: Node,
-        derivationPath: String
-    )
+    fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
 
     fun openAboutScreen()
 
@@ -54,4 +48,6 @@ interface AccountRouter {
     fun createAccountForNetworkType(networkType: Node.NetworkType)
 
     fun openExportMnemonic(accountAddress: String)
+
+    fun openConfirmMnemonicOnExport(mnemonic: List<String>)
 }

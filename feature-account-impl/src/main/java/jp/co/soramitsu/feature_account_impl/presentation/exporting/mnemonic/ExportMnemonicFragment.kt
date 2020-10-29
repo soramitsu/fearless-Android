@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicAdvanced
+import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicConfirm
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicToolbar
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicType
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicViewer
@@ -35,6 +36,8 @@ class ExportMnemonicFragment : BaseFragment<ExportMnemonicViewModel>() {
         exportMnemonicToolbar.setHomeButtonListener { viewModel.back() }
 
         configureAdvancedBlock()
+
+        exportMnemonicConfirm.setOnClickListener { viewModel.openConfirmMnemonic() }
     }
 
     private fun configureAdvancedBlock() {
@@ -57,14 +60,18 @@ class ExportMnemonicFragment : BaseFragment<ExportMnemonicViewModel>() {
 
         exportMnemonicType.setMessage(typeNameRes)
 
-        viewModel.mnemonic.observe {
+        viewModel.mnemonicLiveData.observe {
             exportMnemonicViewer.submitList(it)
         }
 
         viewModel.derivationPath.observe {
             val state = if (it.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
-            with(exportMnemonicAdvanced) { configure(derivationPathField, state) }
+            with(exportMnemonicAdvanced) {
+                configure(derivationPathField, state)
+
+                setDerivationPath(it)
+            }
         }
 
         viewModel.cryptoTypeLiveData.observe {

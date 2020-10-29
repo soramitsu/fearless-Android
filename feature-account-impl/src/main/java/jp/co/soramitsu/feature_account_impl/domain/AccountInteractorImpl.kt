@@ -46,15 +46,17 @@ class AccountInteractorImpl(
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable {
-        return accountRepository.createAccount(
-            accountName,
-            mnemonic,
-            encryptionType,
-            derivationPath,
-            node
-        )
+        return getNetwork(networkType).flatMapCompletable { network ->
+            accountRepository.createAccount(
+                accountName,
+                mnemonic,
+                encryptionType,
+                derivationPath,
+                network.defaultNode
+            )
+        }
     }
 
     override fun importFromMnemonic(
@@ -277,7 +279,7 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
+    override fun getNetwork(networkType: Node.NetworkType): Single<Network> {
         return accountRepository.getNetworkByNetworkType(networkType)
     }
 

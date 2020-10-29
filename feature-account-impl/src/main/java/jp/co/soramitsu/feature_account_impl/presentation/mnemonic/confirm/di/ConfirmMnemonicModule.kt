@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicViewModel
 import javax.inject.Named
 
@@ -28,14 +29,9 @@ class ConfirmMnemonicModule {
         router: AccountRouter,
         resourceManager: ResourceManager,
         deviceVibrator: DeviceVibrator,
-        mnemonic: List<String>,
-        accountName: String,
-        cryptoType: CryptoType,
-        node: Node,
-        @Named("derivation_path") derivationPath: String
+        payload: ConfirmMnemonicPayload
     ): ViewModel {
-        return ConfirmMnemonicViewModel(interactor, router, resourceManager, deviceVibrator, mnemonic, accountName,
-            cryptoType, node, derivationPath)
+        return ConfirmMnemonicViewModel(interactor, router, resourceManager, deviceVibrator, payload)
     }
 
     @Provides

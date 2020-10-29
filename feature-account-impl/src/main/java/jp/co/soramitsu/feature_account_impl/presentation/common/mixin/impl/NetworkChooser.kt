@@ -55,6 +55,6 @@ class NetworkChooser(
     private fun getSelectedNetwork() = if (selectedNetworkType == null) {
         interactor.getSelectedNetwork()
     } else {
-        interactor.getNetworkByNetworkType(selectedNetworkType)
+        interactor.getNetwork(selectedNetworkType)
     }
 }

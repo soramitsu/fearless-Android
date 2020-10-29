@@ -266,6 +266,22 @@
     <fragment
         android:id="@+id/exportMnemonicFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment"
-        android:label="ExportMnemonicFragment" />
+        android:label="ExportMnemonicFragment"
+        tools:layout="@layout/fragment_export_mnemonic">
+
+        <action
+            android:id="@+id/action_exportMnemonicFragment_to_confirmExportMnemonicFragment"
+            app:destination="@id/confirmExportMnemonicFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/confirmExportMnemonicFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment"
+        android:label="ConfirmMnemonicFragment"
+        tools:layout="@layout/fragment_confirm_mnemonic" />
 
 </navigation>

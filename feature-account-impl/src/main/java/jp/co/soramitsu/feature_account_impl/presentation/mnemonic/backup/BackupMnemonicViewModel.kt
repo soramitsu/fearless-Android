@@ -14,6 +14,8 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload.*
 
 class BackupMnemonicViewModel(
     private val interactor: AccountInteractor,
@@ -48,17 +50,19 @@ class BackupMnemonicViewModel(
         val selectedNetwork = selectedNetworkLiveData.value ?: return
         val mnemonicWords = mnemonicLiveData.value ?: return
 
-        val node = selectedNetwork.defaultNode
-
         val mnemonic = mnemonicWords.map(MnemonicWordModel::word)
 
-        router.openConfirmMnemonicScreen(
-            accountName,
+        val payload = ConfirmMnemonicPayload(
             mnemonic,
-            cryptoTypeModel.cryptoType,
-            node,
-            derivationPath
+            CreateExtras(
+                accountName,
+                cryptoTypeModel.cryptoType,
+                selectedNetwork.networkTypeUI.networkType,
+                derivationPath
+            )
         )
+
+        router.openConfirmMnemonicOnCreate(payload)
     }
 
     private fun generateMnemonic(): Single<List<MnemonicWordModel>> {
