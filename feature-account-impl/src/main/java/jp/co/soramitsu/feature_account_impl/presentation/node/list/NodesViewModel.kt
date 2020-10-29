@@ -140,7 +140,7 @@ class NodesViewModel(
     }
 
     private fun selectNodeWithCurrentAccount(nodeId: Int) {
-        disposables += interactor.selectNodeWithCurrentAccount(nodeId)
+        disposables += interactor.selectNode(nodeId)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeToError {

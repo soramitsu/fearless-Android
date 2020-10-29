@@ -99,7 +99,7 @@ interface AccountInteractor {
 
     fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable
 
-    fun selectNodeWithCurrentAccount(nodeId: Int): Completable
+    fun selectNode(nodeId: Int): Completable
 
     fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
 

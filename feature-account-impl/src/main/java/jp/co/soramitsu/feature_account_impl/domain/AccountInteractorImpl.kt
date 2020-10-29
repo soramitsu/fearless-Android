@@ -277,7 +277,7 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun selectNodeWithCurrentAccount(nodeId: Int): Completable {
+    override fun selectNode(nodeId: Int): Completable {
         return accountRepository.getNode(nodeId)
             .flatMapCompletable(accountRepository::selectNode)
     }
