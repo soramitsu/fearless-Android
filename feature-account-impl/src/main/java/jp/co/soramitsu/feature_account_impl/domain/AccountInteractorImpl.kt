@@ -257,8 +257,13 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>> {
+    override fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Single<Pair<List<Account>, Node>> {
         return accountRepository.getAccountsByNetworkType(networkType)
+            .flatMap { accounts ->
+                accountRepository.observeSelectedNode()
+                    .firstOrError()
+                    .map { Pair(accounts, it) }
+            }
     }
 
     override fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable {
@@ -270,6 +275,11 @@ class AccountInteractorImpl(
                             .andThen(accountRepository.selectAccount(account))
                     }
             }
+    }
+
+    override fun selectNode(nodeId: Int): Completable {
+        return accountRepository.getNode(nodeId)
+            .flatMapCompletable(accountRepository::selectNode)
     }
 
     override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
