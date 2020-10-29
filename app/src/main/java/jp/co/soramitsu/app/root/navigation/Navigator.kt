@@ -167,6 +167,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_open_onboarding, WelcomeFragment.getBundle(true))
     }
 
+    override fun openReceive() {
+        navController?.navigate(R.id.action_open_receive)
+    }
+
     override fun openAccountDetails(address: String) {
         val extras = AccountDetailsFragment.getBundle(address)
 

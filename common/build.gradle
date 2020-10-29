@@ -68,6 +68,9 @@ dependencies {
     implementation rxCallAdapterDep
     implementation interceptorVersion
 
+    implementation zXingCoreDep
+    implementation zXingEmbeddedDep
+
     implementation wsDep
 
     testImplementation jUnitDep

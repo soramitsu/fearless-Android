@@ -9,6 +9,12 @@ import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.Incorrec
 import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.InvalidJsonException
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_impl.R
+import org.bouncycastle.util.encoders.DecoderException
+
+class ImportError(
+    @StringRes val titleRes: Int = R.string.common_error_general_title,
+    @StringRes val messageRes: Int = R.string.common_undefined_error_message
+)
 
 sealed class ImportSource(@StringRes val nameRes: Int) {
 
@@ -21,8 +27,7 @@ sealed class ImportSource(@StringRes val nameRes: Int) {
 
     abstract fun isFieldsValid(): Boolean
 
-    @StringRes
-    open fun handleError(throwable: Throwable): Int? = null
+    open fun handleError(throwable: Throwable): ImportError? = null
 
     protected fun addValidationSource(liveData: LiveData<*>) {
         _validationLiveData.addSource(liveData) {
@@ -40,10 +45,16 @@ class JsonImportSource : ImportSource(R.string.recovery_json) {
         return jsonContentLiveData.isNotEmpty() && passwordLiveData.isNotEmpty()
     }
 
-    override fun handleError(throwable: Throwable): Int? {
+    override fun handleError(throwable: Throwable): ImportError? {
         return when (throwable) {
-            is IncorrectPasswordException -> R.string.import_json_invalid_password
-            is InvalidJsonException -> R.string.import_json_invalid_format
+            is IncorrectPasswordException -> ImportError(
+                titleRes = R.string.import_json_invalid_password_title,
+                messageRes = R.string.import_json_invalid_password
+            )
+            is InvalidJsonException -> ImportError(
+                titleRes = R.string.import_json_invalid_format_title,
+                messageRes = R.string.import_json_invalid_format_message
+            )
             else -> null
         }
     }
@@ -65,9 +76,12 @@ class MnemonicImportSource : ImportSource(R.string.recovery_passphrase) {
         addValidationSource(mnemonicContentLiveData)
     }
 
-    override fun handleError(throwable: Throwable): Int? {
+    override fun handleError(throwable: Throwable): ImportError? {
         return when (throwable) {
-            is Bip39Exception -> R.string.access_restore_phrase_error_message
+            is Bip39Exception -> ImportError(
+                titleRes = R.string.import_mnemonic_invalid_title,
+                messageRes = R.string.error_try_another_one
+            )
             else -> null
         }
     }
@@ -78,6 +92,16 @@ class RawSeedImportSource : ImportSource(R.string.recovery_raw_seed) {
     val rawSeedLiveData = MutableLiveData<String>()
 
     override fun isFieldsValid() = rawSeedLiveData.isNotEmpty()
+
+    override fun handleError(throwable: Throwable): ImportError? {
+        return when (throwable) {
+            is IllegalArgumentException, is DecoderException -> ImportError(
+                titleRes = R.string.import_seed_invalid_title,
+                messageRes = R.string.import_seed_invalid_message
+            )
+            else -> null
+        }
+    }
 
     init {
         addValidationSource(rawSeedLiveData)

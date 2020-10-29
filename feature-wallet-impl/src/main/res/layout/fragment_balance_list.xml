@@ -2,118 +2,124 @@
 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/walletContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/walletContainer"
     android:background="@drawable/wallet_background">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:id="@+id/container"
-        android:fitsSystemWindows="true"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/balanceListContent"
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:context=".presentation.balance.list.BalanceListFragment">
+            android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/balanceListTotalTitle"
-                style="@style/TextAppearance.Soramitsu.Body1"
-                android:layout_width="wrap_content"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/balanceListContent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:text="@string/wallet_assets_total_title"
-                android:textColor="@color/colorAccent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                tools:context=".presentation.balance.list.BalanceListFragment">
 
-            <TextView
-                android:id="@+id/balanceListTotalAmount"
-                style="@style/TextAppearance.Soramitsu.Header1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:ellipsize="end"
-                android:singleLine="true"
-                app:layout_constraintEnd_toStartOf="@+id/balanceListAvatar"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="@+id/balanceListTotalTitle"
-                app:layout_constraintTop_toBottomOf="@+id/balanceListTotalTitle"
-                tools:text="$21,000.43" />
+                <TextView
+                    android:id="@+id/balanceListTotalTitle"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/wallet_assets_total_title"
+                    android:textColor="@color/colorAccent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
-                android:id="@+id/balanceListAvatar"
-                android:layout_width="@dimen/avatar_size"
-                android:layout_height="@dimen/avatar_size"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="8dp"
-                android:src="@color/white"
-                app:layout_constraintBottom_toBottomOf="@+id/balanceListTotalAmount"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/balanceListTotalTitle" />
+                <TextView
+                    android:id="@+id/balanceListTotalAmount"
+                    style="@style/TextAppearance.Soramitsu.Header1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    app:layout_constraintEnd_toStartOf="@+id/balanceListAvatar"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="@+id/balanceListTotalTitle"
+                    app:layout_constraintTop_toBottomOf="@+id/balanceListTotalTitle"
+                    tools:text="$21,000.43" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/balanceListAssets"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:overScrollMode="never"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/balanceListTotalAmount"
-                tools:itemCount="2"
-                tools:listitem="@layout/item_asset" />
+                <ImageView
+                    android:id="@+id/balanceListAvatar"
+                    android:layout_width="@dimen/avatar_size"
+                    android:layout_height="@dimen/avatar_size"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:src="@color/white"
+                    app:layout_constraintBottom_toBottomOf="@+id/balanceListTotalAmount"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/balanceListTotalTitle" />
 
-            <jp.co.soramitsu.common.view.GlassyButton
-                android:id="@+id/balanceListSend"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="4dp"
-                app:drawable="@drawable/ic_send"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_marginBottom="16dp"
-                app:layout_constraintEnd_toStartOf="@+id/guideline"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toStartOf="@+id/balanceListAssets"
-                app:layout_constraintTop_toBottomOf="@+id/balanceListAssets"
-                app:text="@string/wallet_asset_send" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/balanceListAssets"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:overScrollMode="never"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/balanceListTotalAmount"
+                    tools:itemCount="2"
+                    tools:listitem="@layout/item_asset" />
 
-            <jp.co.soramitsu.common.view.GlassyButton
-                android:id="@+id/balanceListReceive"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="8dp"
-                app:drawable="@drawable/ic_receive"
-                app:layout_constraintEnd_toEndOf="@+id/balanceListAssets"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toStartOf="@+id/guideline"
-                app:layout_constraintTop_toBottomOf="@+id/balanceListAssets"
-                app:text="@string/wallet_asset_receive" />
+                <jp.co.soramitsu.common.view.GlassyButton
+                    android:id="@+id/balanceListSend"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginBottom="16dp"
+                    app:drawable="@drawable/ic_send"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/guideline"
+                    app:layout_constraintHorizontal_bias="1.0"
+                    app:layout_constraintStart_toStartOf="@+id/balanceListAssets"
+                    app:layout_constraintTop_toBottomOf="@+id/balanceListAssets"
+                    app:text="@string/wallet_asset_send" />
+
+                <jp.co.soramitsu.common.view.GlassyButton
+                    android:id="@+id/balanceListReceive"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="8dp"
+                    app:drawable="@drawable/ic_receive"
+                    app:layout_constraintEnd_toEndOf="@+id/balanceListAssets"
+                    app:layout_constraintHorizontal_bias="1.0"
+                    app:layout_constraintStart_toStartOf="@+id/guideline"
+                    app:layout_constraintTop_toBottomOf="@+id/balanceListAssets"
+                    app:text="@string/wallet_asset_receive" />
 
 
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.5" />
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.5" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.TransferHistorySheet
-            android:id="@+id/transfersContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior" />
+            <jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.TransferHistorySheet
+                android:id="@+id/transfersContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_behavior="jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior" />
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    </FrameLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

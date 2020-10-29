@@ -28,6 +28,7 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailFroze
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailFrozenTitle
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRate
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRateChange
+import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailReceive
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailSend
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
@@ -61,10 +62,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
             viewModel.shouldLoadPage()
         }
 
-        transfersContainer.setSlidingStateListener {
-            val bottomSheetExpanded = BottomSheetBehavior.STATE_EXPANDED == it
-            balanceDetailContainer.isEnabled = !bottomSheetExpanded
-        }
+        transfersContainer.setSlidingStateListener(::setRefreshEnabled)
 
         transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
 
@@ -76,6 +74,10 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
         balanceDetailSend.setOnClickListener {
             viewModel.sendClicked()
+        }
+
+        balanceDetailReceive.setOnClickListener {
+            viewModel.receiveClicked()
         }
 
         balanceDetailFrozenTitle.setOnClickListener {
@@ -129,6 +131,11 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         }
 
         viewModel.showFrozenDetailsEvent.observeEvent(::showFrozenDetails)
+    }
+
+    private fun setRefreshEnabled(bottomSheetState: Int) {
+        val bottomSheetCollapsed = BottomSheetBehavior.STATE_COLLAPSED == bottomSheetState
+        balanceDetailContainer.isEnabled = bottomSheetCollapsed
     }
 
     private fun showFrozenDetails(model: AssetModel) {

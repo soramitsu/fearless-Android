@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="import_account_exists_title">L\'account esiste già</string>
+    <string name="import_mnemonic_invalid_title">Il mnemonico non è valido</string>
+    <string name="error_try_another_one">Per favore, provane un altro.</string>
+    <string name="import_seed_invalid_message">Assicurati che il tuo input contenga 64 simboli esadecimali.</string>
+    <string name="import_seed_invalid_title">Il seme non è valido</string>
+    <string name="import_json_invalid_password_title">Decrittografia del keystore non riuscita</string>
+    <string name="import_json_invalid_format_message">Per favore, assicurati che il tuo input contenga json valido.</string>
+    <string name="import_json_invalid_format_title">Il JSON di ripristino non è valido</string>
+
     <string name="wallet_send_existential_warning_title">Il trasferimento rimuoverà l\'account</string>
     <string name="wallet_send_existential_warning_message">Il tuo trasferimento rimuoverà l\'account dal blockstore poiché renderà il saldo totale inferiore al deposito esistenziale</string>
     <string name="wallet_balance_details_existential_deposit">Deposito esistenziale</string>
@@ -27,7 +36,6 @@
     <string name="onboarding_privacy_policy">politica della privacy</string>
     <string name="pincode_enter_pin_code">Inserisci il codice PIN</string>
     <string name="pincode_confirm_your_pin_code">Conferma il tuo codice PIN</string>
-    <string name="access_restore_phrase_error_message">Il tuo mnemonico non è valido. Per favore, provane un altro.</string>
     <string name="recovery_passphrase">Mnemonico</string>
     <string name="tabbar_wallet_title">Portafoglio</string>
     <string name="tabbar_staking_title">Staking</string>
@@ -80,7 +88,6 @@
     <string name="common_edit">Modifica</string>
     <string name="common_done">Fatto</string>
     <string name="accounts_add_account">Aggiungi account</string>
-    <string name="account_add_already_exists_message">L\'account esiste già. Per favore, provane un altro.</string>
     <string name="about_website">Sito ufficiale</string>
     <string name="about_github">Codice sorgente Github</string>
     <string name="about_version">Versione dell\'app</string>
@@ -100,7 +107,6 @@
     <string name="wallet_asset_send">Spedire</string>
     <string name="wallet_asset_receive">Ricevere</string>
     <string name="wallet_assets_total_title">Valore delle attività</string>
-    <string name="import_json_invalid_format">Json di ripristino non valido. Per favore, assicurati che l\'input contenga json valido.</string>
     <string name="import_json_invalid_password">Per favore, controlla la correttezza della password e riprova.</string>
     <string name="node_info_title">Informazioni sul nodo</string>
     <string name="network_info_name">Nome nodo</string>
@@ -165,4 +171,7 @@
     <string name="connection_delete_confirm">Delete</string>
     <string name="search_header_my_accounts">i miei conti</string>
     <string name="coming_soon">Prossimamente…</string>
+    <string name="common_skip_process">Salta processo</string>
+    <string name="wallet_receive_description">Condividi questo QR con il mittente</string>
+    <string name="wallet_receive_share_message">Il mio %s indirizzo per ricevere %s:</string>
 </resources>

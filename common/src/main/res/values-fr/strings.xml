@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="import_account_exists_title">Le compte existe déjà</string>
+    <string name="import_mnemonic_invalid_title">Mnemonic est invalide</string>
+    <string name="error_try_another_one">Veuillez en essayer un autre.</string>
+    <string name="import_seed_invalid_message">Veuillez vous assurer que votre entrée contient 64 symboles hexadécimaux.</string>
+    <string name="import_seed_invalid_title">La semence n\'est pas valide</string>
+    <string name="import_json_invalid_password_title">Échec du déchiffrement du magasin de clés</string>
+    <string name="import_json_invalid_format_message">Veuillez vous assurer que votre entrée contient un json valide.</string>
+    <string name="import_json_invalid_format_title">Le JSON de récupération n\'est pas valide</string>
+
     <string name="wallet_send_existential_warning_title">Le transfert supprimera le compte</string>
     <string name="wallet_send_existential_warning_message">Votre transfert supprimera le compte du blockstore car il rendra le solde total inférieur au dépôt existentiel</string>
     <string name="wallet_balance_details_existential_deposit">Dépôt existentiel</string>
@@ -27,7 +36,6 @@
     <string name="onboarding_privacy_policy">Politique de confidentialité</string>
     <string name="pincode_enter_pin_code">Entrez le code PIN</string>
     <string name="pincode_confirm_your_pin_code">Confirmez votre code PIN</string>
-    <string name="access_restore_phrase_error_message">Votre mnémonique n’est pas valide. S’ll vous plaît, essayez un autre.</string>
     <string name="recovery_passphrase">Mnémonique</string>
     <string name="tabbar_wallet_title">Portefeuille</string>
     <string name="tabbar_staking_title">Staking</string>
@@ -80,7 +88,6 @@
     <string name="common_edit">Éditer</string>
     <string name="common_done">Terminé</string>
     <string name="accounts_add_account">Ajouter un compte</string>
-    <string name="account_add_already_exists_message">Le compte existe déjà. Veuillez en essayer un autre.</string>
     <string name="about_website">Site officiel</string>
     <string name="about_github">Code source Github</string>
     <string name="about_version">Version de l\'application</string>
@@ -100,7 +107,6 @@
     <string name="wallet_asset_send">Envoyer</string>
     <string name="wallet_asset_receive">Recevoir</string>
     <string name="wallet_assets_total_title">Valeur des actifs</string>
-    <string name="import_json_invalid_format">Json de récupération non valide. Veuillez vous assurer que l\'entrée contient un json valide.</string>
     <string name="import_json_invalid_password">Veuillez vérifier l\'exactitude du mot de passe et réessayer.</string>
     <string name="node_info_title">Informations sur le nœud</string>
     <string name="network_info_name">Nom du nœud</string>
@@ -166,4 +172,7 @@
     <string name="connection_delete_confirm">Delete</string>
     <string name="search_header_my_accounts">Mes comptes</string>
     <string name="coming_soon">Bientôt disponible…</string>
+    <string name="common_skip_process">Ignorer le processus</string>
+    <string name="wallet_receive_description">Partagez ce QR avec l\'expéditeur</string>
+    <string name="wallet_receive_share_message">Mon adresse %s pour recevoir %s:</string>
 </resources>

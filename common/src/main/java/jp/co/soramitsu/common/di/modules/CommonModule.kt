@@ -2,21 +2,25 @@ package jp.co.soramitsu.common.di.modules
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Vibrator
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.data.FileProviderImpl
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import jp.co.soramitsu.common.di.scope.ApplicationScope
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.ResourceManagerImpl
+import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
@@ -124,4 +128,16 @@ class CommonModule {
         resourceManager: ResourceManager,
         iconGenerator: IconGenerator
     ): AddressIconGenerator = AddressIconGenerator(iconGenerator, resourceManager)
+
+    @Provides
+    @ApplicationScope
+    fun provideQrCodeGenerator(): QrCodeGenerator {
+        return QrCodeGenerator(Color.BLACK, Color.WHITE)
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideFileProvider(contextManager: ContextManager): FileProvider {
+        return FileProviderImpl(contextManager.getContext())
+    }
 }

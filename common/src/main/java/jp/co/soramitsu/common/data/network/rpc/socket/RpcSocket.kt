@@ -5,11 +5,13 @@ import com.neovisionaries.ws.client.WebSocket
 import com.neovisionaries.ws.client.WebSocketAdapter
 import com.neovisionaries.ws.client.WebSocketException
 import com.neovisionaries.ws.client.WebSocketFactory
+import com.neovisionaries.ws.client.WebSocketFrame
 import com.neovisionaries.ws.client.WebSocketState
 import jp.co.soramitsu.common.data.network.rpc.subscription.SubscriptionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.request.base.RpcRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
+import java.util.concurrent.TimeUnit
 
 interface RpcSocketListener {
     fun onResponse(rpcResponse: RpcResponse)
@@ -20,6 +22,8 @@ interface RpcSocketListener {
 
     fun onConnected()
 }
+
+private const val PING_INTERVAL_SECONDS = 30L
 
 class RpcSocket(
     val url: String,
@@ -32,6 +36,8 @@ class RpcSocket(
 
     init {
         setupListener(listener)
+
+        ws.pingInterval = TimeUnit.SECONDS.toMillis(PING_INTERVAL_SECONDS)
     }
 
     fun connectAsync() {
@@ -68,6 +74,10 @@ class RpcSocket(
                 } else {
                     listener.onResponse(gson.fromJson(text, RpcResponse::class.java))
                 }
+            }
+
+            override fun onPongFrame(websocket: WebSocket?, frame: WebSocketFrame?) {
+                logger?.log("[RECEIVED] PONG")
             }
 
             override fun onError(websocket: WebSocket, cause: WebSocketException) {
