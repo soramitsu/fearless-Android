@@ -105,7 +105,7 @@ class AccountDetailsViewModel(
             if (it.seed != null) sources += ExportSource.Seed
             sources += ExportSource.Json
 
-           sources
+            sources
         }
     }
 

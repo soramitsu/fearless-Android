@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 
 interface AccountInteractor {
-    fun getSecuritySource(accountAddress: String) : Single<SecuritySource>
+    fun getSecuritySource(accountAddress: String): Single<SecuritySource>
 
     fun generateMnemonic(): Single<List<String>>
 

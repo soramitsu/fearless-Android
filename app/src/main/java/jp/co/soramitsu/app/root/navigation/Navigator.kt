@@ -2,7 +2,6 @@ package jp.co.soramitsu.app.root.navigation
 
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment

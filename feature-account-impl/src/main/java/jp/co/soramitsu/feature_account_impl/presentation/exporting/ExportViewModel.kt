@@ -25,7 +25,7 @@ abstract class ExportViewModel(
     protected val securityTypeLiveData = loadSecuritySource().asLiveData()
 
     private val _exportEvent = MutableLiveData<Event<String>>()
-    val exportEvent : LiveData<Event<String>> = _exportEvent
+    val exportEvent: LiveData<Event<String>> = _exportEvent
 
     private val account = loadAccount().asLiveData()
 

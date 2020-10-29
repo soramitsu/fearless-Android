@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.shareText
 
-abstract class ExportFragment<V: ExportViewModel> : BaseFragment<V>() {
+abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
 
     @CallSuper
     override fun subscribe(viewModel: V) {

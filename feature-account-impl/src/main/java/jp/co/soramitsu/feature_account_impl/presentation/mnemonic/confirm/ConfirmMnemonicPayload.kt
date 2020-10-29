@@ -10,7 +10,6 @@ class ConfirmMnemonicPayload(
     val mnemonic: List<String>,
     val createExtras: CreateExtras?
 ) : Parcelable {
-    
     @Parcelize
     class CreateExtras(
         val accountName: String,
