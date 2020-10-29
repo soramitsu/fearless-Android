@@ -204,7 +204,7 @@ class PinCodeViewModel(
 
     fun onResume() {
         if (action != PinCodeAction.CREATE_PIN_CODE) {
-            disposables += interactor.isCodeSet()
+            disposables += interactor.isBiometricEnabled()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
