@@ -9,6 +9,7 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
@@ -203,7 +204,16 @@ class PinCodeViewModel(
 
     fun onResume() {
         if (action != PinCodeAction.CREATE_PIN_CODE) {
-            _startFingerprintScannerEventLiveData.value = Event(Unit)
+            disposables += interactor.isBiometricEnabled()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    if (it) {
+                        _startFingerprintScannerEventLiveData.value = Event(Unit)
+                    }
+                }, {
+                    it.message?.let(this::showError)
+                })
         }
     }
 
