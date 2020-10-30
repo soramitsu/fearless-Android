@@ -127,6 +127,12 @@ class AdvancedBlockView @JvmOverloads constructor(
         configure(derivationPathField, fieldState)
     }
 
+    fun setEnabled(field: View, enabled: Boolean) {
+        val state = if (enabled) FieldState.NORMAL else FieldState.DISABLED
+
+        configure(field, state)
+    }
+
     fun setNetworkSelectorEnabled(enabled: Boolean) {
         updateSelectorState(networkInput, enabled)
 

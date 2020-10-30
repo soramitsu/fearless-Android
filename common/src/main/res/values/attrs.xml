@@ -48,6 +48,7 @@
         <attr name="actionIcon" format="reference|color" />
         <attr name="textIcon" format="reference|color" />
         <attr name="enabled" />
+        <attr name="android:singleLine" />
     </declare-styleable>
 
     <declare-styleable name="AccountInfoView">

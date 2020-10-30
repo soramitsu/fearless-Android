@@ -8,7 +8,7 @@
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout"
+        android:id="@+id/importJsonContentContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_big_input_shape_selector"
@@ -70,7 +70,7 @@
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/constraintLayout">
+        app:layout_constraintTop_toBottomOf="@id/importJsonContentContainer">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/importJsonUsernameField"

@@ -10,6 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
 import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextAction
 import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextIcon
 import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextLabel
@@ -23,10 +24,12 @@ class LabeledTextView @JvmOverloads constructor(
     init {
         View.inflate(context, R.layout.view_labeled_text, this)
 
-        background = context.getDrawableCompat(R.drawable.bg_input_shape_selector)
+        background = context.getCutCornersStateDrawable()
 
         applyAttributes(attrs)
     }
+
+    private var singleLine : Boolean = true
 
     private fun applyAttributes(attrs: AttributeSet?) {
         attrs?.let {
@@ -47,15 +50,15 @@ class LabeledTextView @JvmOverloads constructor(
             val enabled = typedArray.getBoolean(R.styleable.LabeledTextView_enabled, true)
             isEnabled = enabled
 
+            singleLine = typedArray.getBoolean(R.styleable.LabeledTextView_android_singleLine, true)
+            labeledTextText.isSingleLine = singleLine
+
             typedArray.recycle()
         }
     }
 
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
-
-        val backgroundRes = if (enabled) R.drawable.bg_input_shape_selector else R.drawable.bg_button_primary_disabled
-        setBackgroundResource(backgroundRes)
 
         labeledTextAction.visibility = if (enabled) View.VISIBLE else View.GONE
     }

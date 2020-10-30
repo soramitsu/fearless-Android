@@ -49,5 +49,7 @@ interface AccountRouter {
 
     fun openExportMnemonic(accountAddress: String)
 
+    fun openExportSeed(accountAddress: String)
+
     fun openConfirmMnemonicOnExport(mnemonic: List<String>)
 }

@@ -174,6 +174,14 @@
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_accountDetailsFragment_to_exportSeedFragment"
+            app:destination="@id/exportSeedFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <fragment
@@ -263,6 +271,7 @@
             app:popExitAnim="@anim/fragment_open_exit"
             app:popUpTo="@id/mainFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/exportMnemonicFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment"
@@ -283,5 +292,11 @@
         android:name="jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment"
         android:label="ConfirmMnemonicFragment"
         tools:layout="@layout/fragment_confirm_mnemonic" />
+
+    <fragment
+        android:id="@+id/exportSeedFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment"
+        android:label="ExportSeedFragment"
+        tools:layout="@layout/fragment_export_seed" />
 
 </navigation>
