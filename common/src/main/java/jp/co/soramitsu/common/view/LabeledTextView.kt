@@ -29,7 +29,7 @@ class LabeledTextView @JvmOverloads constructor(
         applyAttributes(attrs)
     }
 
-    private var singleLine : Boolean = true
+    private var singleLine: Boolean = true
 
     private fun applyAttributes(attrs: AttributeSet?) {
         attrs?.let {

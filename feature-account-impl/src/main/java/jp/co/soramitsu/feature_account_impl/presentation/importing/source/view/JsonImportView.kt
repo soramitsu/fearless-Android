@@ -15,7 +15,6 @@ import kotlinx.android.synthetic.main.import_source_json.view.importJsonContentC
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonFile
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonPasswordField
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsernameField
-import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicContentContainer
 
 class JsonImportView @JvmOverloads constructor(
     context: Context,
