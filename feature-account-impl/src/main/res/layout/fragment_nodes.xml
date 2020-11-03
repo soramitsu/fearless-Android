@@ -7,7 +7,7 @@
     android:fitsSystemWindows="true"
     tools:background="@color/black">
 
-    <jp.co.soramitsu.common.base.Toolbar
+    <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/fearlessToolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

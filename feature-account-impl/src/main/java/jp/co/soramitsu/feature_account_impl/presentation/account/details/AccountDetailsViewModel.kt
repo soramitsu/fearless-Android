@@ -14,9 +14,9 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
-import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
@@ -30,7 +30,7 @@ class AccountDetailsViewModel(
     private val accountRouter: AccountRouter,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
-    accountAddress: String
+    val accountAddress: String
 ) : BaseViewModel() {
     private val accountNameChanges = BehaviorSubject.create<String>()
 
@@ -38,10 +38,10 @@ class AccountDetailsViewModel(
 
     val networkModel = accountLiveData.map { mapNetworkToNetworkModel(it.network) }
 
-    private val _showExportSourceChooser = MutableLiveData<Event<Unit>>()
-    val showExportSourceChooser: LiveData<Event<Unit>> = _showExportSourceChooser
+    private val _showExportSourceChooser = MutableLiveData<Event<List<ExportSource>>>()
+    val showExportSourceChooser: LiveData<Event<List<ExportSource>>> = _showExportSourceChooser
 
-    val exportSourceTypes = buildExportSourceTypes()
+    val exportSourceTypesLiveData = buildExportSourceTypes().asLiveData()
 
     init {
         disposables += observeNameChanges()
@@ -70,7 +70,9 @@ class AccountDetailsViewModel(
     }
 
     fun exportClicked() {
-        _showExportSourceChooser.sendEvent()
+        val sources = exportSourceTypesLiveData.value ?: return
+
+        _showExportSourceChooser.value = Event(sources)
     }
 
     private fun observeNameChanges(): Disposable {
@@ -95,19 +97,23 @@ class AccountDetailsViewModel(
         return account == null || account.name == name
     }
 
-    private fun buildExportSourceTypes(): List<ExportSource> {
-        return listOf(
-            ExportSource.Mnemonic,
-            ExportSource.Seed,
-            ExportSource.Json
-        )
+    private fun buildExportSourceTypes(): Single<List<ExportSource>> {
+        return accountInteractor.getSecuritySource(accountAddress).map {
+            val sources = mutableListOf<ExportSource>()
+
+            if (it is WithMnemonic) sources += ExportSource.Mnemonic
+            if (it.seed != null) sources += ExportSource.Seed
+            sources += ExportSource.Json
+
+            sources
+        }
     }
 
     fun exportTypeSelected(selected: ExportSource) {
         when (selected) {
             is ExportSource.Json -> return // TODO
             is ExportSource.Seed -> return // TODO
-            is ExportSource.Mnemonic -> accountRouter.openExportMnemonic()
+            is ExportSource.Mnemonic -> accountRouter.openExportMnemonic(accountAddress)
         }
     }
 }

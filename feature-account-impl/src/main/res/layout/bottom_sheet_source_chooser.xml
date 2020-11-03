@@ -24,8 +24,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/x2"
-        android:paddingStart="@dimen/x3"
-        android:paddingEnd="@dimen/x3"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         tools:text="Title"
         android:textColor="@color/white" />
 
@@ -39,6 +39,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:overScrollMode="never"
+        tools:listitem="@layout/item_source"
+        tools:itemCount="3"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
 </LinearLayout>

@@ -14,13 +14,18 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
 import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {
-    override fun getMnemonic(): Single<List<String>> {
+    override fun getSecuritySource(accountAddress: String): Single<SecuritySource> {
+        return accountRepository.getSecuritySource(accountAddress)
+    }
+
+    override fun generateMnemonic(): Single<List<String>> {
         return accountRepository.generateMnemonic()
     }
 
@@ -41,15 +46,17 @@ class AccountInteractorImpl(
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable {
-        return accountRepository.createAccount(
-            accountName,
-            mnemonic,
-            encryptionType,
-            derivationPath,
-            node
-        )
+        return getNetwork(networkType).flatMapCompletable { network ->
+            accountRepository.createAccount(
+                accountName,
+                mnemonic,
+                encryptionType,
+                derivationPath,
+                network.defaultNode
+            )
+        }
     }
 
     override fun importFromMnemonic(
@@ -282,7 +289,7 @@ class AccountInteractorImpl(
             .flatMapCompletable(accountRepository::selectNode)
     }
 
-    override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
+    override fun getNetwork(networkType: Node.NetworkType): Single<Network> {
         return accountRepository.getNetworkByNetworkType(networkType)
     }
 

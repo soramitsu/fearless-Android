@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true">
 
-            <jp.co.soramitsu.common.base.Toolbar
+            <jp.co.soramitsu.common.view.Toolbar
                 android:id="@+id/chooseAmountToolbar"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

@@ -9,9 +9,12 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 
 interface AccountInteractor {
-    fun getMnemonic(): Single<List<String>>
+    fun getSecuritySource(accountAddress: String): Single<SecuritySource>
+
+    fun generateMnemonic(): Single<List<String>>
 
     fun getCryptoTypes(): Single<List<CryptoType>>
 
@@ -22,7 +25,7 @@ interface AccountInteractor {
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
     fun importFromMnemonic(
@@ -101,7 +104,7 @@ interface AccountInteractor {
 
     fun selectNode(nodeId: Int): Completable
 
-    fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
+    fun getNetwork(networkType: Node.NetworkType): Single<Network>
 
     fun deleteNode(nodeId: Int): Completable
 }

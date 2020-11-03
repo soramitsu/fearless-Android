@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.base
+package jp.co.soramitsu.common.view
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -8,10 +8,10 @@ import android.widget.LinearLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
-import kotlinx.android.synthetic.main.tool_bar.view.backImg
-import kotlinx.android.synthetic.main.tool_bar.view.rightImg
-import kotlinx.android.synthetic.main.tool_bar.view.rightText
-import kotlinx.android.synthetic.main.tool_bar.view.titleTv
+import kotlinx.android.synthetic.main.view_toolbar.view.backImg
+import kotlinx.android.synthetic.main.view_toolbar.view.rightImg
+import kotlinx.android.synthetic.main.view_toolbar.view.rightText
+import kotlinx.android.synthetic.main.view_toolbar.view.titleTv
 
 class Toolbar @JvmOverloads constructor(
     context: Context,
@@ -20,7 +20,7 @@ class Toolbar @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
     init {
-        View.inflate(context, R.layout.tool_bar, this)
+        View.inflate(context, R.layout.view_toolbar, this)
         applyAttributes(attrs)
     }
 

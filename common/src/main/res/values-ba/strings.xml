@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="account_export_warning_title">Будьте осторожны</string>
+    <string name="account_export_warning_message">Передача или копирование вашего секрета - операция с высоким риском, не отправляйте ее никому. Хотите продолжить процесс обмена / копирования?</string>
+    <string name="account_export_action">Экспортировать</string>
+
     <string name="import_account_exists_title">Аккаунт уже существует</string>
     <string name="import_mnemonic_invalid_title">Мнемоника недействительна</string>
     <string name="error_try_another_one">Пожалуйста, попробуйте другой.</string>

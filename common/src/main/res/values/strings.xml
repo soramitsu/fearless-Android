@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="account_export_warning_title">Be careful</string>
+    <string name="account_export_warning_message">Sharing or copying your secret is a high risk operation, don’t send it to anyone. Would you like to proceed with sharing/copying process?</string>
+
+    <string name="account_export_action">Export</string>
+
     <string name="common_skip_process">Skip process</string>
 
     <string name="import_json_invalid_format_title">Recovery JSON is invalid</string>

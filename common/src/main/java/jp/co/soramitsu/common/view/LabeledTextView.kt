@@ -44,8 +44,20 @@ class LabeledTextView @JvmOverloads constructor(
             val textIcon = typedArray.getDrawable(R.styleable.LabeledTextView_textIcon)
             textIcon?.let(::setTextIcon)
 
+            val enabled = typedArray.getBoolean(R.styleable.LabeledTextView_enabled, true)
+            isEnabled = enabled
+
             typedArray.recycle()
         }
+    }
+
+    override fun setEnabled(enabled: Boolean) {
+        super.setEnabled(enabled)
+
+        val backgroundRes = if (enabled) R.drawable.bg_input_shape_selector else R.drawable.bg_button_primary_disabled
+        setBackgroundResource(backgroundRes)
+
+        labeledTextAction.visibility = if (enabled) View.VISIBLE else View.GONE
     }
 
     fun setLabel(label: String) {

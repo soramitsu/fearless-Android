@@ -116,7 +116,7 @@ class WalletRepositoryImpl(
 
     override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
         return getSelectedAccount().flatMap { account ->
-            accountRepository.getSecuritySource()
+            accountRepository.getCurrentSecuritySource()
                 .map(SecuritySource::signingData)
                 .map(this::mapSigningDataToKeypair)
                 .flatMap { keys -> substrateSource.performTransfer(account, transfer, keys) }

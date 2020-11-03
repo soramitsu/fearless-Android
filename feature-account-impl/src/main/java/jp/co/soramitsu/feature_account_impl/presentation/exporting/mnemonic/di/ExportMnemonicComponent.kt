@@ -18,7 +18,8 @@ interface ExportMnemonicComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance fragment: Fragment
+            @BindsInstance fragment: Fragment,
+            @BindsInstance accountAddress: String
         ): ExportMnemonicComponent
     }
 

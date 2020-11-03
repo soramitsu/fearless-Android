@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:background="@color/black">
 
-    <jp.co.soramitsu.common.base.Toolbar
+    <jp.co.soramitsu.common.view.Toolbar
         app:textRight="@string/common_done"
         app:homeButtonIcon="@drawable/ic_close"
         app:titleText="@string/profile_title"

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="account_export_warning_title">注意してください</string>
+    <string name="account_export_warning_message">シークレットを共有またはコピーすることはリスクの高い操作です。誰にも送信しないでください。共有/コピープロセスを続行しますか？</string>
+    <string name="account_export_action">書き出す</string>
+
     <string name="import_account_exists_title">アカウントはすでに存在しています</string>
     <string name="import_mnemonic_invalid_title">ニーモニックが無効です</string>
     <string name="error_try_another_one">別のものを試してください。</string>

@@ -117,7 +117,9 @@ interface AccountRepository {
 
     fun changeLanguage(language: Language): Completable
 
-    fun getSecuritySource(): Single<SecuritySource>
+    fun getCurrentSecuritySource(): Single<SecuritySource>
+
+    fun getSecuritySource(accountAddress: String): Single<SecuritySource>
 
     fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable
 

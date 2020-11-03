@@ -5,7 +5,7 @@
     android:fitsSystemWindows="true"
     android:background="@color/black" >
 
-    <jp.co.soramitsu.common.base.Toolbar
+    <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

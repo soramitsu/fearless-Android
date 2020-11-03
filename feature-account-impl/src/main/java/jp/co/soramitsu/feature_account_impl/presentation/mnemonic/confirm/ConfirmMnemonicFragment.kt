@@ -4,16 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.EventObserver
+import jp.co.soramitsu.common.utils.doOnGlobalLayout
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
@@ -26,34 +23,12 @@ import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.wordsMnemonicVie
 class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     companion object {
-        private const val KEY_ACCOUNT_NAME = "account_name"
-        private const val KEY_MNEMONIC = "mnemonic"
-        private const val KEY_CRYPTO_TYPE = "crypto_type"
-        private const val KEY_NODE_ID = "node_id"
-        private const val KEY_NODE_NAME = "node_name"
-        private const val KEY_NODE_LINK = "node_link"
-        private const val KEY_NODE_TYPE = "node_type"
-        private const val KEY_NODE_IS_DEFAULT = "node_is_default"
-        private const val KEY_DERIVATION_PATH = "derivation_path"
+        private const val KEY_PAYLOAD = "confirm_payload"
 
-        fun getBundle(
-            accountName: String,
-            mnemonic: List<String>,
-            cryptoType: CryptoType,
-            node: Node,
-            derivationPath: String
-        ): Bundle {
+        fun getBundle(payload: ConfirmMnemonicPayload): Bundle {
 
             return Bundle().apply {
-                putString(KEY_ACCOUNT_NAME, accountName)
-                putStringArray(KEY_MNEMONIC, mnemonic.toTypedArray())
-                putSerializable(KEY_CRYPTO_TYPE, cryptoType)
-                putInt(KEY_NODE_ID, node.id)
-                putString(KEY_NODE_NAME, node.name)
-                putString(KEY_NODE_LINK, node.link)
-                putSerializable(KEY_NODE_TYPE, node.networkType)
-                putBoolean(KEY_NODE_IS_DEFAULT, node.isDefault)
-                putString(KEY_DERIVATION_PATH, derivationPath)
+                putParcelable(KEY_PAYLOAD, payload)
             }
         }
     }
@@ -87,50 +62,38 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
     }
 
     override fun inject() {
-        val mnemonic = arguments!!.getStringArray(KEY_MNEMONIC)!!.toList()
-        val accountName = arguments!!.getString(KEY_ACCOUNT_NAME)!!
-        val cryptoType = arguments!!.getSerializable(KEY_CRYPTO_TYPE) as CryptoType
-        val nodeId = arguments!!.getInt(KEY_NODE_ID)
-        val name = arguments!!.getString(KEY_NODE_NAME)!!
-        val link = arguments!!.getString(KEY_NODE_LINK)!!
-        val networkType = arguments!!.getSerializable(KEY_NODE_TYPE) as Node.NetworkType
-        val isDefault = arguments!!.getBoolean(KEY_NODE_IS_DEFAULT)
-        val node = Node(nodeId, name, networkType, link, isDefault)
-        val derivationPath = arguments!!.getString(KEY_DERIVATION_PATH)!!
+        val payload = argument<ConfirmMnemonicPayload>(KEY_PAYLOAD)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .confirmMnemonicComponentFactory()
-            .create(this, mnemonic, accountName, cryptoType, node, derivationPath)
+            .create(this, payload)
             .inject(this)
     }
 
     override fun subscribe(viewModel: ConfirmMnemonicViewModel) {
-        observe(viewModel.mnemonicLiveData, Observer {
-            wordsMnemonicView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-                override fun onGlobalLayout() {
-                    wordsMnemonicView.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    populateMnemonicContainer(it)
-                }
-            })
-        })
+        conformMnemonicSkip.setVisible(viewModel.skipVisible)
 
-        observe(viewModel.resetConfirmationEvent, EventObserver {
+        wordsMnemonicView.doOnGlobalLayout {
+            populateMnemonicContainer(viewModel.shuffledMnemonic)
+        }
+
+        viewModel.resetConfirmationEvent.observeEvent {
             confirmationMnemonicView.resetView()
             wordsMnemonicView.restoreAllWords()
-        })
+        }
 
-        observe(viewModel.removeLastWordFromConfirmationEvent, EventObserver {
+        viewModel.removeLastWordFromConfirmationEvent.observeEvent {
             confirmationMnemonicView.removeLastWord()
             wordsMnemonicView.restoreLastWord()
-        })
+        }
 
-        observe(viewModel.nextButtonEnableLiveData, Observer {
+        viewModel.nextButtonEnableLiveData.observe {
             nextBtn.isEnabled = it
-        })
+        }
 
-        observe(viewModel.matchingMnemonicErrorAnimationEvent, EventObserver {
+        viewModel.matchingMnemonicErrorAnimationEvent.observeEvent {
             playMatchingMnemonicErrorAnimation()
-        })
+        }
     }
 
     private fun populateMnemonicContainer(mnemonicWords: List<String>) {

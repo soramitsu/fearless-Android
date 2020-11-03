@@ -2,13 +2,14 @@ package jp.co.soramitsu.app.root.navigation
 
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment
@@ -62,20 +63,9 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         }
     }
 
-    override fun openConfirmMnemonicScreen(
-        accountName: String,
-        mnemonic: List<String>,
-        cryptoType: CryptoType,
-        node: Node,
-        derivationPath: String
-    ) {
-        val bundle = ConfirmMnemonicFragment.getBundle(
-            accountName,
-            mnemonic,
-            cryptoType,
-            node,
-            derivationPath
-        )
+    override fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload) {
+        val bundle = ConfirmMnemonicFragment.getBundle(confirmMnemonicPayload)
+
         navController?.navigate(
             R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment,
             bundle
@@ -203,7 +193,15 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_nodes_to_onboarding, WelcomeFragment.getBundleWithNetworkType(true, networkType))
     }
 
-    override fun openExportMnemonic() {
-        TODO("Not yet implemented")
+    override fun openExportMnemonic(accountAddress: String) {
+        val extras = ExportMnemonicFragment.getBundle(accountAddress)
+
+        navController?.navigate(R.id.action_accountDetailsFragment_to_exportMnemonicFragment, extras)
+    }
+
+    override fun openConfirmMnemonicOnExport(mnemonic: List<String>) {
+        val extras = ConfirmMnemonicFragment.getBundle(ConfirmMnemonicPayload(mnemonic, null))
+
+        navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
     }
 }

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="account_export_warning_title">Будь обережний</string>
+    <string name="account_export_warning_message">Поділитися або скопіювати вашу таємницю є операцією високого ризику, не надсилайте її нікому. Ви хотіли б продовжити процес обміну / копіювання?</string>
+    <string name="account_export_action">Експорт</string>
+
     <string name="import_account_exists_title">Обліковий запис уже існує</string>
     <string name="import_mnemonic_invalid_title">Мнемоніка недійсна</string>
     <string name="error_try_another_one">Будь ласка, спробуйте інший.</string>

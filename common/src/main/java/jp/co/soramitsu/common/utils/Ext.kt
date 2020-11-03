@@ -50,6 +50,8 @@ fun Fragment.showBrowser(link: String) {
     startActivity(intent)
 }
 
+fun Fragment.shareText(text: String) = requireContext().shareText(text)
+
 fun Context.createSendEmailIntent(targetEmail: String, title: String) {
     val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
         putExtra(Intent.EXTRA_EMAIL, targetEmail)

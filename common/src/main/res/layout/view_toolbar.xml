@@ -1,56 +1,58 @@
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="?android:attr/actionBarSize"
-    app:contentInsetLeft="0dp"
-    app:contentInsetStart="0dp"
-    tools:background="@color/black"
-    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+    android:layout_height="?attr/actionBarSize"
+    android:background="@android:color/black"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    tools:layout_height="48dp">
 
     <ImageView
-        android:id="@+id/back"
+        android:id="@+id/backImg"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
         android:background="@drawable/bg_primary_list_item"
-        android:padding="@dimen/x2"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_arrow_back_24dp"
-        tools:visibility="visible" />
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:src="@drawable/ic_arrow_back_24dp" />
 
     <TextView
-        android:id="@+id/title"
+        android:id="@+id/titleTv"
         style="@style/TextAppearance.Soramitsu.Header3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/soramitsu_semibold"
-        android:includeFontPadding="false"
+        android:layout_gravity="center"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:padding="@dimen/x1"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         tools:text="Title" />
 
-    <TextView
-        android:id="@+id/action"
-        style="@style/TextAppearance.Soramitsu.Header5"
+    <ImageView
+        android:id="@+id/rightImg"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:layout_marginEnd="9dp"
+        android:layout_gravity="center_vertical|end"
+        android:src="@drawable/ic_info_white_24"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/rightText"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical|end"
         android:background="@drawable/bg_primary_list_item"
-        android:drawablePadding="@dimen/x1_2"
         android:fontFamily="@font/soramitsu_semibold"
         android:gravity="center_vertical"
         android:paddingStart="@dimen/x2"
         android:paddingEnd="@dimen/x2"
         android:textColor="@color/white"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="Action"
-        tools:visibility="visible" />
-</merge>
+        tools:text="Action" />
+
+</FrameLayout>

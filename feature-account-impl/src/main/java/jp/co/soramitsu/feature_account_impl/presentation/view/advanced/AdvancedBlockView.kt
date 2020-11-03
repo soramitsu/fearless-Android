@@ -6,8 +6,10 @@ import android.view.View
 import android.view.View.OnClickListener
 import android.widget.EditText
 import android.widget.LinearLayout
+import com.google.android.material.textfield.TextInputLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
@@ -46,8 +48,6 @@ class AdvancedBlockView @JvmOverloads constructor(
         abstract fun applyTo(field: View)
     }
 
-    private var areSelectorsEnabled: Boolean = true
-
     private val showClickListener = OnClickListener {
         if (advancedView.visibility == View.VISIBLE) {
             hideAdvanced()
@@ -66,13 +66,13 @@ class AdvancedBlockView @JvmOverloads constructor(
     val derivationPathEditText: EditText
         get() = derivationPathEt
 
-    val derivationPathField: View
+    val derivationPathField: TextInputLayout
         get() = derivationPathInput
 
-    val encryptionTypeField: View
+    val encryptionTypeField: LabeledTextView
         get() = encryptionTypeInput
 
-    val networkTypeField: View
+    val networkTypeField: LabeledTextView
         get() = networkInput
 
     private fun showAdvanced() {
@@ -101,6 +101,10 @@ class AdvancedBlockView @JvmOverloads constructor(
         return derivationPathEt.text?.toString() ?: ""
     }
 
+    fun setDerivationPath(path: String?) {
+        derivationPathEt.setText(path)
+    }
+
     fun setEncryption(encryption: String) {
         encryptionTypeInput.setMessage(encryption)
     }
@@ -113,14 +117,14 @@ class AdvancedBlockView @JvmOverloads constructor(
         networkInput.setTextIcon(iconRes)
     }
 
-    fun configureField(field: View, fieldState: FieldState) {
+    fun configure(field: View, fieldState: FieldState) {
         fieldState.applyTo(field)
     }
 
     fun configure(fieldState: FieldState) {
-        configureField(encryptionTypeField, fieldState)
-        configureField(networkTypeField, fieldState)
-        configureField(derivationPathField, fieldState)
+        configure(encryptionTypeField, fieldState)
+        configure(networkTypeField, fieldState)
+        configure(derivationPathField, fieldState)
     }
 
     fun setNetworkSelectorEnabled(enabled: Boolean) {

@@ -5,21 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.EventObserver
-import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.mnemonic.MnemonicWordsAdapter
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserPayload
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.advancedBlockView
-import kotlinx.android.synthetic.main.fragment_backup_mnemonic.mnemonicRv
+import kotlinx.android.synthetic.main.fragment_backup_mnemonic.backupMnemonicViewer
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.nextBtn
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
 
@@ -68,7 +66,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     }
 
     override fun inject() {
-        val accountName = arguments!!.getString(KEY_ACCOUNT_NAME, "")
+        val accountName = argument<String>(KEY_ACCOUNT_NAME)
         val networkType = argument<Node.NetworkType?>(KEY_NETWORK_TYPE)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
@@ -80,42 +78,40 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     override fun subscribe(viewModel: BackupMnemonicViewModel) {
         advancedBlockView.setNetworkSelectorEnabled(viewModel.isNetworkTypeChangeAvailable)
 
-        observe(viewModel.mnemonicLiveData, Observer {
-            if (mnemonicRv.adapter == null) {
-                mnemonicRv.layoutManager =
-                    GridLayoutManager(activity!!, it.first, GridLayoutManager.HORIZONTAL, false)
-                mnemonicRv.adapter = MnemonicWordsAdapter()
-            }
-            (mnemonicRv.adapter as MnemonicWordsAdapter).submitList(it.second)
-            mnemonicRv.makeVisible()
-        })
+        viewModel.mnemonicLiveData.observe {
+            backupMnemonicViewer.submitList(it)
+        }
 
-        observe(viewModel.encryptionTypeChooserEvent, EventObserver {
-            EncryptionTypeChooserBottomSheetDialog(
-                requireActivity(), it,
-                viewModel.selectedEncryptionTypeLiveData::setValue
-            ).show()
-        })
+        viewModel.encryptionTypeChooserEvent.observeEvent(::showEncryptionChooser)
 
-        observe(viewModel.networkChooserEvent, EventObserver {
-            NetworkChooserBottomSheetDialog(
-                requireActivity(), it,
-                viewModel.selectedNetworkLiveData::setValue
-            ).show()
-        })
+        viewModel.networkChooserEvent.observeEvent(::showNetworkChooser)
 
         observe(viewModel.selectedEncryptionTypeLiveData, Observer {
             advancedBlockView.setEncryption(it.name)
         })
 
-        observe(viewModel.selectedNetworkLiveData, Observer {
+        viewModel.selectedNetworkLiveData.observe {
             advancedBlockView.setNetworkIconResource(it.networkTypeUI.icon)
             advancedBlockView.setNetworkName(it.name)
-        })
+        }
 
-        observe(viewModel.showInfoEvent, EventObserver {
+        viewModel.showInfoEvent.observeEvent {
             showMnemonicInfoDialog()
-        })
+        }
+    }
+
+    private fun showNetworkChooser(payload: NetworkChooserPayload) {
+        NetworkChooserBottomSheetDialog(
+            requireActivity(), payload,
+            viewModel.selectedNetworkLiveData::setValue
+        ).show()
+    }
+
+    private fun showEncryptionChooser(payload: EncryptionChooserPayload) {
+        EncryptionTypeChooserBottomSheetDialog(
+            requireActivity(), payload,
+            viewModel.selectedEncryptionTypeLiveData::setValue
+        ).show()
     }
 
     private fun showMnemonicInfoDialog() {

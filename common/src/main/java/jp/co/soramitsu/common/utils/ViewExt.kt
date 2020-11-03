@@ -5,6 +5,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
@@ -74,4 +75,18 @@ fun TextView.setDrawableStart(
     drawable.setBounds(0, 0, widthInPx, heightInPx)
 
     setCompoundDrawablesRelative(drawable, null, null, null)
+}
+
+inline fun View.doOnGlobalLayout(crossinline action: () -> Unit) {
+    viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+        override fun onGlobalLayout() {
+            viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+            action()
+        }
+    })
+}
+
+fun View.setVisible(visible: Boolean) {
+    visibility = if (visible) View.VISIBLE else View.GONE
 }
