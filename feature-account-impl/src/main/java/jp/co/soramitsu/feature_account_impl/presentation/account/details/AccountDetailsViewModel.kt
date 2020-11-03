@@ -111,7 +111,7 @@ class AccountDetailsViewModel(
 
     fun exportTypeSelected(selected: ExportSource) {
         when (selected) {
-            is ExportSource.Json -> return // TODO
+            is ExportSource.Json -> accountRouter.openExportJsonPassword(accountAddress)
             is ExportSource.Seed -> accountRouter.openExportSeed(accountAddress)
             is ExportSource.Mnemonic -> accountRouter.openExportMnemonic(accountAddress)
         }

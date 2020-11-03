@@ -182,6 +182,14 @@
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_accountDetailsFragment_to_exportJsonPasswordFragment"
+            app:destination="@id/exportJsonPasswordFragment" />
     </fragment>
 
     <fragment
@@ -298,5 +306,11 @@
         android:name="jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment"
         android:label="ExportSeedFragment"
         tools:layout="@layout/fragment_export_seed" />
+
+    <fragment
+        tools:layout="@layout/fragment_export_json_password"
+        android:id="@+id/exportJsonPasswordFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment"
+        android:label="ExportJsonPasswordFragment" />
 
 </navigation>
