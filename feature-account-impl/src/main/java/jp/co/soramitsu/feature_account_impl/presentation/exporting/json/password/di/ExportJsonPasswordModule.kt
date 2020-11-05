@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordViewModel
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedViewModel
 
 @Module(includes = [ViewModelModule::class])
 class ExportJsonPasswordModule {

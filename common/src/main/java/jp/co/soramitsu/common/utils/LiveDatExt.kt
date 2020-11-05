@@ -1,6 +1,5 @@
 package jp.co.soramitsu.common.utils
 
-import android.view.View
 import android.widget.EditText
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData

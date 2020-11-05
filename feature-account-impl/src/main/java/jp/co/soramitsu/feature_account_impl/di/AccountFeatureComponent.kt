@@ -65,7 +65,7 @@ interface AccountFeatureComponent : AccountFeatureApi {
 
     fun exportSeedFactory(): ExportSeedComponent.Factory
 
-    fun exportJsonPasswordFactory() : ExportJsonPasswordComponent.Factory
+    fun exportJsonPasswordFactory(): ExportJsonPasswordComponent.Factory
 
     @Component.Factory
     interface Factory {

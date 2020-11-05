@@ -6,23 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setDrawableStart
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordConfirm
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordMatchingError
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNew
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNext
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordToolbar
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedAdvanced
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedExport
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedToolbar
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedType
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedValue
 
 private const val ACCOUNT_ADDRESS_KEY = "ACCOUNT_ADDRESS_KEY"
 

@@ -5,7 +5,6 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
 
 @Subcomponent(
     modules = [
