@@ -49,6 +49,7 @@ fun <R> combine(
 
 fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(
     another: LiveData<SECOND>,
+    initial: RESULT? = null,
     zipper: (FIRST, SECOND) -> RESULT
 ): LiveData<RESULT> {
 
@@ -68,6 +69,8 @@ fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(
                 value = zipper.invoke(first, second)
             }
         }
+
+        initial?.let { value = it }
     }
 }
 

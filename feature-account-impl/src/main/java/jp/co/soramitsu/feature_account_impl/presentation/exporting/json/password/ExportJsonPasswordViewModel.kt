@@ -20,7 +20,7 @@ class ExportJsonPasswordViewModel(
         confirmation.isNotBlank() && confirmation != password
     }
 
-    val nextEnabled = passwordLiveData.combine(passwordConfirmationLiveData) { password, confirmation ->
+    val nextEnabled = passwordLiveData.combine(passwordConfirmationLiveData, initial = false) { password, confirmation ->
         password.isNotBlank() && confirmation.isNotBlank() && password == confirmation
     }
 
