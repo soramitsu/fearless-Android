@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="export_json_password_explanation">Password is required to encrypt your account for transferring it via Recovery JSON. Please create password for the account to export it.</string>
-    <string name="export_json_password_new">New password</string>
-    <string name="export_json_password_confirm">Confirm password</string>
-    <string name="export_json_password_match_error">Passwords are not matching</string>
-</resources>
