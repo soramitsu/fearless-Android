@@ -19,11 +19,11 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToCryptoTypeModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
@@ -85,20 +85,18 @@ class ImportAccountViewModel(
     fun nextClicked() {
         val sourceType = selectedSourceTypeLiveData.value!!
 
-        val node = selectedNetworkLiveData.value?.defaultNode!!
+        val networkType = selectedNetworkLiveData.value!!.networkTypeUI.networkType
         val cryptoType = selectedEncryptionTypeLiveData.value!!.cryptoType
         val derivationPath = derivationPathLiveData.value.orEmpty()
         val name = nameLiveData.value!!
 
-        val importObservable = constructImportObservable(sourceType, name, derivationPath, cryptoType, node)
+        val importObservable = constructImportObservable(sourceType, name, derivationPath, cryptoType, networkType)
 
-        disposables.add(
-            importObservable
-                .andThen(interactor.isCodeSet())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(::continueBasedOnCodeStatus, ::handleCreateAccountError)
-        )
+        disposables += importObservable
+            .andThen(interactor.isCodeSet())
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(::continueBasedOnCodeStatus, ::handleCreateAccountError)
     }
 
     private fun continueBasedOnCodeStatus(isCodeSet: Boolean) {
@@ -136,27 +134,32 @@ class ImportAccountViewModel(
         )
     }
 
-    private fun constructImportObservable(sourceType: ImportSource, name: String, derivationPath: String, cryptoType: CryptoType, node: Node): Completable {
+    private fun constructImportObservable(
+        sourceType: ImportSource,
+        name: String,
+        derivationPath: String,
+        cryptoType: CryptoType,
+        networkType: Node.NetworkType
+    ): Completable {
         return when (sourceType) {
             is MnemonicImportSource -> interactor.importFromMnemonic(
                 sourceType.mnemonicContentLiveData.value!!,
                 name,
                 derivationPath,
                 cryptoType,
-                node
+                networkType
             )
             is RawSeedImportSource -> interactor.importFromSeed(
                 sourceType.rawSeedLiveData.value!!,
                 name,
                 derivationPath,
                 cryptoType,
-                node
+                networkType
             )
             is JsonImportSource -> interactor.importFromJson(
                 sourceType.jsonContentLiveData.value!!,
                 sourceType.passwordLiveData.value!!,
-                name,
-                node
+                name
             )
         }
     }
@@ -169,7 +172,7 @@ class ImportAccountViewModel(
     }
 
     private fun handleParsedImportData(it: ImportJsonData) {
-        val networkModel = mapNetworkToNetworkModel(it.network)
+        val networkModel = mapNetworkTypeToNetworkModel(it.networkType)
         selectedNetworkLiveData.value = networkModel
 
         val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, it.encryptionType)

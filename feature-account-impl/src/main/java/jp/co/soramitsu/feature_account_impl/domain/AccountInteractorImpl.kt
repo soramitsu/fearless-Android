@@ -48,15 +48,13 @@ class AccountInteractorImpl(
         derivationPath: String,
         networkType: Node.NetworkType
     ): Completable {
-        return getNetwork(networkType).flatMapCompletable { network ->
-            accountRepository.createAccount(
-                accountName,
-                mnemonic,
-                encryptionType,
-                derivationPath,
-                network.defaultNode
-            )
-        }
+        return  accountRepository.createAccount(
+            accountName,
+            mnemonic,
+            encryptionType,
+            derivationPath,
+            networkType
+        )
     }
 
     override fun importFromMnemonic(
@@ -64,14 +62,14 @@ class AccountInteractorImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable {
         return accountRepository.importFromMnemonic(
             keyString,
             username,
             derivationPath,
             selectedEncryptionType,
-            node
+            networkType
         )
     }
 
@@ -80,24 +78,23 @@ class AccountInteractorImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable {
         return accountRepository.importFromSeed(
             keyString,
             username,
             derivationPath,
             selectedEncryptionType,
-            node
+            networkType
         )
     }
 
     override fun importFromJson(
         json: String,
         password: String,
-        name: String,
-        node: Node
+        name: String
     ): Completable {
-        return accountRepository.importFromJson(json, password, name, node)
+        return accountRepository.importFromJson(json, password, name)
     }
 
     override fun getAddressId(account: Account): Single<ByteArray> {
@@ -145,12 +142,8 @@ class AccountInteractorImpl(
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
 
-    override fun getSelectedNetwork(): Single<Network> {
-        return getNetworks()
-            .zipWith(getSelectedNode(),
-                BiFunction { networks, selectedNode ->
-                    networks.first { it.type == selectedNode.networkType }
-                })
+    override fun getSelectedNetworkType(): Single<Node.NetworkType> {
+        return getSelectedNode().map(Node::networkType)
     }
 
     override fun shouldOpenOnboarding(): Single<Boolean> {
@@ -210,7 +203,7 @@ class AccountInteractorImpl(
     }
 
     private fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
-        return accounts.groupBy(Account::network)
+        return accounts.groupBy { it.network.type }
             .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
             .flatten()
     }
@@ -287,10 +280,6 @@ class AccountInteractorImpl(
     override fun selectNode(nodeId: Int): Completable {
         return accountRepository.getNode(nodeId)
             .flatMapCompletable(accountRepository::selectNode)
-    }
-
-    override fun getNetwork(networkType: Node.NetworkType): Single<Network> {
-        return accountRepository.getNetworkByNetworkType(networkType)
     }
 
     override fun deleteNode(nodeId: Int): Completable {
