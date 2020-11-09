@@ -63,7 +63,7 @@ class BalanceListViewModel(
 
     val balanceLiveData = getBalance().asLiveData()
 
-    fun syncAssets() {
+    fun syncAssetsRates() {
         disposables += interactor.syncAssetsRates()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -75,7 +75,7 @@ class BalanceListViewModel(
         transactionsRefreshed = false
         balanceRefreshed = false
 
-        syncAssets()
+        syncAssetsRates()
         syncFirstTransactionsPage()
     }
 

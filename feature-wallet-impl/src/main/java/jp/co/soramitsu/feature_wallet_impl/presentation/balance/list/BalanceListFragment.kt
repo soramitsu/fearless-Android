@@ -82,7 +82,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     }
 
     override fun subscribe(viewModel: BalanceListViewModel) {
-        viewModel.syncAssets()
+        viewModel.syncAssetsRates()
         viewModel.syncFirstTransactionsPage()
 
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
