@@ -133,6 +133,8 @@ class SocketService(
 
         pendingRequests.clear()
         waitingForResponseRequests.clear()
+
+        requestsMap.values.forEach { entry -> entry.emitter.onComplete() }
         requestsMap.clear()
 
         socket!!.clearListeners()

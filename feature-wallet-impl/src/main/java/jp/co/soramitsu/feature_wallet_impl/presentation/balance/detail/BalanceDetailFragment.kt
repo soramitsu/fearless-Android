@@ -98,7 +98,6 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun subscribe(viewModel: BalanceDetailViewModel) {
-        viewModel.syncAsset()
         viewModel.syncFirstTransactionsPage()
 
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)

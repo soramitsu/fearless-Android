@@ -15,11 +15,11 @@ import java.math.BigDecimal
 interface WalletInteractor {
     fun observeAssets(): Observable<List<Asset>>
 
-    fun syncAssets(withoutRates: Boolean = false): Completable
+    fun syncAssetsRates(): Completable
 
     fun observeAsset(token: Asset.Token): Observable<Asset>
 
-    fun syncAsset(token: Asset.Token, withoutRates: Boolean = false): Completable
+    fun syncAssetRates(token: Asset.Token): Completable
 
     fun observeCurrentAsset(): Observable<Asset>
 
