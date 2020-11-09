@@ -13,7 +13,6 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmViewModel
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordViewModel
 
 @Module(includes = [ViewModelModule::class])
 class ExportJsonConfirmModule {
