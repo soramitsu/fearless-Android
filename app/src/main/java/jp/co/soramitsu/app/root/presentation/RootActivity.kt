@@ -68,6 +68,18 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
     override fun initViews() {
     }
 
+    override fun onStop() {
+        super.onStop()
+
+        viewModel.noticeInBackground()
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        viewModel.noticeInForeground()
+    }
+
     override fun subscribe(viewModel: RootViewModel) {
         viewModel.showConnectingBarLiveData.observe(this, Observer { show ->
             val visibility = if (show) View.VISIBLE else View.GONE

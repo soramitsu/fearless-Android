@@ -84,7 +84,7 @@ class SocketService(
     private val socketFactory = WebSocketFactory()
 
     private val stateSubject = BehaviorSubject.create<State>()
-    private val allowedToConnectSubject = BehaviorSubject.createDefault(false)
+    private val lifecycleConditionSubject = BehaviorSubject.createDefault(LifecycleCondition.FORBIDDEN)
 
     @Volatile
     private var currentReconnectAttempt = 0
@@ -106,11 +106,14 @@ class SocketService(
 
     override fun started() = state != State.DISCONNECTED
 
-    override fun setAllowedToConnect(allowed: Boolean) {
-        allowedToConnectSubject.onNext(allowed)
+    override fun setLifecycleCondition(condition: LifecycleCondition) {
+        lifecycleConditionSubject.onNext(condition)
     }
 
-    override fun observeAllowedToConnect() = allowedToConnectSubject
+    override fun observeLifecycleCondition(): Observable<LifecycleCondition> = lifecycleConditionSubject
+
+    override fun getLifecycleCondition() = lifecycleConditionSubject.value!!
+
 
     @Synchronized
     override fun start(url: String) {
