@@ -26,8 +26,8 @@
                 <ImageView
                     android:id="@+id/blur"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:background="@color/blurColor"
+                    android:layout_height="120dp"
+                    android:background="@color/blurColorLight"
                     app:layout_constraintBottom_toBottomOf="@+id/balanceDetailRate"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"

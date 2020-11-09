@@ -87,7 +87,9 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun subscribe(viewModel: ImportAccountViewModel) {
-        advancedBlockView.setNetworkSelectorEnabled(viewModel.isNetworkTypeChangeAvailable)
+        with(advancedBlockView) {
+            setEnabled(networkTypeField, viewModel.isNetworkTypeChangeAvailable)
+        }
 
         sourceViews = viewModel.sourceTypes.map {
             val view = createSourceView(it)

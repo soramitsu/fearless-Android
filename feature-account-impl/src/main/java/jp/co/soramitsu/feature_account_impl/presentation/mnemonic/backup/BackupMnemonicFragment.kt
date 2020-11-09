@@ -76,7 +76,9 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     }
 
     override fun subscribe(viewModel: BackupMnemonicViewModel) {
-        advancedBlockView.setNetworkSelectorEnabled(viewModel.isNetworkTypeChangeAvailable)
+        with(advancedBlockView) {
+            setEnabled(networkTypeField, viewModel.isNetworkTypeChangeAvailable)
+        }
 
         viewModel.mnemonicLiveData.observe {
             backupMnemonicViewer.submitList(it)

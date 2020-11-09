@@ -6,6 +6,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
@@ -197,6 +198,12 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         val extras = ExportMnemonicFragment.getBundle(accountAddress)
 
         navController?.navigate(R.id.action_accountDetailsFragment_to_exportMnemonicFragment, extras)
+    }
+
+    override fun openExportSeed(accountAddress: String) {
+        val extras = ExportSeedFragment.getBundle(accountAddress)
+
+        navController?.navigate(R.id.action_accountDetailsFragment_to_exportSeedFragment, extras)
     }
 
     override fun openConfirmMnemonicOnExport(mnemonic: List<String>) {
