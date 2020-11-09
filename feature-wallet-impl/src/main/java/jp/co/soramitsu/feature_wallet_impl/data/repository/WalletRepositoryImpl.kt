@@ -85,7 +85,7 @@ class WalletRepositoryImpl(
         }.map(::mapAssetLocalToAsset)
     }
 
-    override fun syncAsset(token: Asset.Token) : Completable {
+    override fun syncAsset(token: Asset.Token): Completable {
         return syncAssetsRates()
     }
 

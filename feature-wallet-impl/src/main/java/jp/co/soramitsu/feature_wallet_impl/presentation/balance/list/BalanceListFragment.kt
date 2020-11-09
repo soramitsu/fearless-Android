@@ -39,9 +39,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         adapter = BalanceListAdapter(this)
         balanceListAssets.adapter = adapter
 
-        transfersContainer.initializeBehavior()
-
-        transfersContainer.anchorTo(balanceListContent)
+        transfersContainer.initializeBehavior(anchorView = balanceListContent)
 
         transfersContainer.setPageLoadListener {
             viewModel.shouldLoadPage()

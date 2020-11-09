@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.zipSimilar
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListing
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin

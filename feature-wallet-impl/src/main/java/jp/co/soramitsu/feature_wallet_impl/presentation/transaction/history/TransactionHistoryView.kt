@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
-import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -64,10 +63,6 @@ class TransferHistorySheet @JvmOverloads constructor(
         adapter.submitList(transactions)
     }
 
-    fun anchorTo(newAnchor: View) {
-        anchor = newAnchor
-    }
-
     fun setPageLoadListener(listener: PageLoadListener) {
         pageLoadListener = listener
     }
@@ -88,7 +83,9 @@ class TransferHistorySheet @JvmOverloads constructor(
         }
     }
 
-    fun initializeBehavior() {
+    fun initializeBehavior(anchorView: View) {
+        anchor = anchorView
+
         bottomSheetBehavior = LockBottomSheetBehavior.fromView(this)
 
         bottomSheetBehavior!!.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {

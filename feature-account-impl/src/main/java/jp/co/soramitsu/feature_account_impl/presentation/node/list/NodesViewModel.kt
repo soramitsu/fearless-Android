@@ -134,9 +134,9 @@ class NodesViewModel(
         disposables += interactor.selectNodeAndAccount(nodeId, accountAddress)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe ({
+            .subscribe({
                 router.returnToMain()
-            },{
+            }, {
                 it.message?.let(this::showError)
             })
     }

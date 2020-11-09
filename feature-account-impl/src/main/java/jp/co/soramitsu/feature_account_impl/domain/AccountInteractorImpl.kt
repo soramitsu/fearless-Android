@@ -4,7 +4,6 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -48,7 +47,7 @@ class AccountInteractorImpl(
         derivationPath: String,
         networkType: Node.NetworkType
     ): Completable {
-        return  accountRepository.createAccount(
+        return accountRepository.createAccount(
             accountName,
             mnemonic,
             encryptionType,

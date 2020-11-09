@@ -114,7 +114,6 @@ class SocketService(
 
     override fun getLifecycleCondition() = lifecycleConditionSubject.value!!
 
-
     @Synchronized
     override fun start(url: String) {
         if (state != State.DISCONNECTED) return

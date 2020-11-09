@@ -11,7 +11,7 @@ interface ConnectionManager {
 
     fun observeLifecycleCondition(): Observable<LifecycleCondition>
 
-    fun getLifecycleCondition() : LifecycleCondition
+    fun getLifecycleCondition(): LifecycleCondition
 
     fun start(url: String)
 

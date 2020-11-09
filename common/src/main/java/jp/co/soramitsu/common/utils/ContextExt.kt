@@ -22,6 +22,6 @@ fun Context.shareText(text: String) {
 
 inline fun postToUiThread(crossinline action: () -> Unit) {
     Handler(Looper.getMainLooper()).post {
-       action.invoke()
+        action.invoke()
     }
 }

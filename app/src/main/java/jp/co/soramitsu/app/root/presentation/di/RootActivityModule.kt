@@ -11,7 +11,6 @@ import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.RootViewModel
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
-import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
