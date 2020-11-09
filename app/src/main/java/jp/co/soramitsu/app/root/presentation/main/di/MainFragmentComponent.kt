@@ -1,6 +1,8 @@
 package jp.co.soramitsu.app.root.presentation.main.di
 
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.app.root.presentation.main.MainFragment
@@ -18,7 +20,7 @@ interface MainFragmentComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance fragment: Fragment
+            @BindsInstance activity: FragmentActivity
         ): MainFragmentComponent
     }
 

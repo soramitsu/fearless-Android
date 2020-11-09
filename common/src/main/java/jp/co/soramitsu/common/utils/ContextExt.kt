@@ -2,6 +2,8 @@ package jp.co.soramitsu.common.utils
 
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 
@@ -16,4 +18,10 @@ fun Context.shareText(text: String) {
     }
 
     startActivity(intent)
+}
+
+inline fun postToUiThread(crossinline action: () -> Unit) {
+    Handler(Looper.getMainLooper()).post {
+       action.invoke()
+    }
 }

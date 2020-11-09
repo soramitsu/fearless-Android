@@ -39,6 +39,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         adapter = BalanceListAdapter(this)
         balanceListAssets.adapter = adapter
 
+        transfersContainer.initializeBehavior()
+
         transfersContainer.anchorTo(balanceListContent)
 
         transfersContainer.setPageLoadListener {

@@ -1,7 +1,5 @@
 package jp.co.soramitsu.app.root.presentation
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.Observer
@@ -13,27 +11,15 @@ import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
-import jp.co.soramitsu.splash.presentation.SplashFragment
 import kotlinx.android.synthetic.main.activity_root.mainView
 import kotlinx.android.synthetic.main.activity_root.navHost
 import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
 import javax.inject.Inject
 
 class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
-
-    companion object {
-        private const val ACTION_CHANGE_LANGUAGE = "jp.co.soramitsu.app.root.presentation.ACTION_CHANGE_LANGUAGE"
-
-        fun restartAfterLanguageChange(context: Context) {
-            val intent = Intent(context, RootActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                action = ACTION_CHANGE_LANGUAGE
-            }
-            context.startActivity(intent)
-        }
-    }
 
     @Inject
     lateinit var navigator: Navigator
@@ -45,11 +31,18 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
             .inject(this)
     }
 
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+
+        removeSplashBackground()
+
+        viewModel.restoredAfterLanguageChange()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val languageChanged = ACTION_CHANGE_LANGUAGE == intent.action
-        navController.setGraph(R.navigation.root_nav_graph, SplashFragment.getBundle(languageChanged))
+        navController.setGraph(R.navigation.root_nav_graph)
         navigator.attachNavController(navController)
 
         rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
@@ -95,7 +88,9 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
     override fun changeLanguage() {
         viewModel.noticeLanguageLanguage()
 
-        restartAfterLanguageChange(this)
+        recreate()
+
+//        restartAfterLanguageChange(this)
     }
 
 //    private fun processJsonOpenIntent() {

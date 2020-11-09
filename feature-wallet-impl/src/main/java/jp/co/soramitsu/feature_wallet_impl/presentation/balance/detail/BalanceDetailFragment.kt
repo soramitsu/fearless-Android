@@ -58,6 +58,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun initViews() {
         transfersContainer.anchorTo(balanceDetailContent)
 
+        transfersContainer.initializeBehavior()
+
         transfersContainer.setPageLoadListener {
             viewModel.shouldLoadPage()
         }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -26,7 +27,7 @@ class TransferHistorySheet @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), TransactionHistoryAdapter.Handler {
 
-    private lateinit var bottomSheetBehavior: LockBottomSheetBehavior<View>
+    private var bottomSheetBehavior: LockBottomSheetBehavior<View>? = null
 
     private var anchor: View? = null
 
@@ -37,11 +38,11 @@ class TransferHistorySheet @JvmOverloads constructor(
     private val adapter = TransactionHistoryAdapter(this)
 
     val slidingState: Int
-        get() = bottomSheetBehavior.state
+        get() = bottomSheetBehavior!!.state
 
     private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         anchor?.let {
-            bottomSheetBehavior.peekHeight = parentView.measuredHeight - it.bottom
+            bottomSheetBehavior?.peekHeight = parentView.measuredHeight - it.bottom
         }
     }
 
@@ -58,7 +59,7 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     fun showTransactions(transactions: List<Any>) {
         placeholder.visibility = if (transactions.isEmpty()) View.VISIBLE else View.GONE
-        bottomSheetBehavior.isDraggable = transactions.isNotEmpty()
+        bottomSheetBehavior?.isDraggable = transactions.isNotEmpty()
 
         adapter.submitList(transactions)
     }
@@ -82,15 +83,15 @@ class TransferHistorySheet @JvmOverloads constructor(
     override fun onRestoreInstanceState(state: Parcelable?) {
         super.onRestoreInstanceState(state)
 
-        slidingStateListener?.invoke(bottomSheetBehavior.state)
+        bottomSheetBehavior?.state?.let {
+            slidingStateListener?.invoke(it)
+        }
     }
 
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-
+    fun initializeBehavior() {
         bottomSheetBehavior = LockBottomSheetBehavior.fromView(this)
 
-        bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+        bottomSheetBehavior!!.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
             }
 

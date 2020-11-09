@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.utils.plusAssign
 
 class RootViewModel(
     private val interactor: RootInteractor,
+    private val rootRouter: RootRouter,
     private val connectionManager: ConnectionManager,
     private val networkStateMixin: NetworkStateMixin
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
@@ -66,15 +67,15 @@ class RootViewModel(
     override fun onCleared() {
         super.onCleared()
 
-        if (!willBeClearedForLanguageChange) {
-            connectionManager.setLifecycleCondition(LifecycleCondition.FORBIDDEN)
-        }
+        connectionManager.setLifecycleCondition(LifecycleCondition.FORBIDDEN)
     }
 
     fun noticeInBackground() {
         if (!willBeClearedForLanguageChange) {
             connectionManager.setLifecycleCondition(LifecycleCondition.STOPPED)
         }
+
+        willBeClearedForLanguageChange = false
     }
 
     fun noticeInForeground() {
@@ -85,5 +86,9 @@ class RootViewModel(
 
     fun noticeLanguageLanguage() {
         willBeClearedForLanguageChange = true
+    }
+
+    fun restoredAfterLanguageChange() {
+        rootRouter.returnToMain()
     }
 }

@@ -2,6 +2,8 @@ package jp.co.soramitsu.app.root.navigation
 
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.presentation.RootRouter
+import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
@@ -25,7 +27,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTran
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment
 import jp.co.soramitsu.splash.SplashRouter
 
-class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
+class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, RootRouter {
 
     private var navController: NavController? = null
 
@@ -163,7 +165,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
     }
 
     override fun returnToMain() {
-        navController?.navigate(R.id.action_return_to_wallet)
+        // to achieve smooth animation
+        postToUiThread {
+            navController?.navigate(R.id.action_return_to_wallet)
+        }
     }
 
     override fun openAccountDetails(address: String) {
