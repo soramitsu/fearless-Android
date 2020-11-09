@@ -107,4 +107,6 @@ interface AccountInteractor {
     fun getNetwork(networkType: Node.NetworkType): Single<Network>
 
     fun deleteNode(nodeId: Int): Completable
+
+    fun generateRestoreJson(accountAddress: String, password: String): Single<String>
 }

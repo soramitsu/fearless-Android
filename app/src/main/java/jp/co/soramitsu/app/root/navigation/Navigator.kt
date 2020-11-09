@@ -5,6 +5,8 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
@@ -217,5 +219,11 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         val extras = ExportJsonPasswordFragment.getBundle(accountAddress)
 
         navController?.navigate(R.id.action_accountDetailsFragment_to_exportJsonPasswordFragment, extras)
+    }
+
+    override fun openExportJsonConfirm(payload: ExportJsonConfirmPayload) {
+        val extras = ExportJsonConfirmFragment.getBundle(payload)
+
+        navController?.navigate(R.id.action_exportJsonPasswordFragment_to_exportJsonConfirmFragment, extras)
     }
 }

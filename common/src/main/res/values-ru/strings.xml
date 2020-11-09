@@ -184,4 +184,5 @@
     <string name="common_skip_process">Пропустить</string>
     <string name="wallet_receive_description">Поделиться этим QR-кодом с отправителем</string>
     <string name="wallet_receive_share_message">Мой %s адрес для получения %s:</string>
+    <string name="account_export_password_change">Сменить пароль</string>
 </resources>

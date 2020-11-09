@@ -25,6 +25,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.JsonFormer
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -345,6 +346,71 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun observeNodes(): Observable<List<Node>> {
+        return getNodes()
+            .filter { it.isNotEmpty() }
+    }
+
+    override fun observeSelectedNode(): Observable<Node> {
+        return accountDataSource.observeSelectedNode()
+    }
+
+    override fun observeLanguages(): Observable<List<Language>> {
+        return Observable.just(languagesHolder.getLanguages())
+    }
+
+    override fun getSelectedLanguage(): Single<Language> {
+        return Single.just(accountDataSource.getSelectedLanguage())
+    }
+
+    override fun changeLanguage(language: Language): Completable {
+        return Completable.fromAction {
+            accountDataSource.changeSelectedLanguage(language)
+        }
+    }
+
+    override fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable {
+        return Completable.fromAction {
+            val nodeLocal = NodeLocal(nodeName, nodeHost, networkType.ordinal, false)
+            nodeDao.insert(nodeLocal)
+        }
+    }
+
+    override fun checkNodeExists(nodeHost: String): Single<Boolean> {
+        return nodeDao.checkNodeExists(nodeHost)
+    }
+
+    override fun getNetworkName(nodeHost: String): Single<String> {
+        return accountSubstrateSource.getNodeNetworkType(nodeHost)
+    }
+
+    override fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>> {
+        return accountDao.getAccountsByNetworkType(networkType.ordinal)
+            .map { it.map(::mapAccountLocalToAccount) }
+    }
+
+    override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
+        return Single.fromCallable {
+            getNetworkForType(networkType)
+        }
+    }
+
+    override fun deleteNode(nodeId: Int): Completable {
+        return nodeDao.deleteNode(nodeId)
+    }
+
+    override fun generateRestoreJson(account: Account, password: String): Single<String> {
+        return getSecuritySource(account.address).map {
+            val seed = (it.jsonFormer() as? JsonFormer.Seed)?.seed
+            val keypair = mapSigningDataToKeypair(it.signingData)
+
+            val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
+            val addressType = mapNetworkTypeToAddressType(account.network.type)
+
+            "TODO" // TODO
+        }
+    }
+
     private fun saveFromMnemonic(
         accountName: String,
         mnemonic: String,
@@ -416,6 +482,16 @@ class AccountRepositoryImpl(
     private fun mapKeyPairToSigningData(keyPair: Keypair): SigningData {
         return with(keyPair) {
             SigningData(
+                publicKey = publicKey,
+                privateKey = privateKey,
+                nonce = nonce
+            )
+        }
+    }
+
+    private fun mapSigningDataToKeypair(singingData: SigningData): Keypair {
+        return with(singingData) {
+            Keypair(
                 publicKey = publicKey,
                 privateKey = privateKey,
                 nonce = nonce
@@ -505,58 +581,5 @@ class AccountRepositoryImpl(
 
     private fun mapNetworkToNodeLocal(it: Node): NodeLocal {
         return NodeLocal(it.name, it.link, it.networkType.ordinal, it.isDefault)
-    }
-
-    override fun observeNodes(): Observable<List<Node>> {
-        return getNodes()
-            .filter { it.isNotEmpty() }
-    }
-
-    override fun observeSelectedNode(): Observable<Node> {
-        return accountDataSource.observeSelectedNode()
-    }
-
-    override fun observeLanguages(): Observable<List<Language>> {
-        return Observable.just(languagesHolder.getLanguages())
-    }
-
-    override fun getSelectedLanguage(): Single<Language> {
-        return Single.just(accountDataSource.getSelectedLanguage())
-    }
-
-    override fun changeLanguage(language: Language): Completable {
-        return Completable.fromAction {
-            accountDataSource.changeSelectedLanguage(language)
-        }
-    }
-
-    override fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable {
-        return Completable.fromAction {
-            val nodeLocal = NodeLocal(nodeName, nodeHost, networkType.ordinal, false)
-            nodeDao.insert(nodeLocal)
-        }
-    }
-
-    override fun checkNodeExists(nodeHost: String): Single<Boolean> {
-        return nodeDao.checkNodeExists(nodeHost)
-    }
-
-    override fun getNetworkName(nodeHost: String): Single<String> {
-        return accountSubstrateSource.getNodeNetworkType(nodeHost)
-    }
-
-    override fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>> {
-        return accountDao.getAccountsByNetworkType(networkType.ordinal)
-            .map { it.map(::mapAccountLocalToAccount) }
-    }
-
-    override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
-        return Single.fromCallable {
-            getNetworkForType(networkType)
-        }
-    }
-
-    override fun deleteNode(nodeId: Int): Completable {
-        return nodeDao.deleteNode(nodeId)
     }
 }

@@ -5,7 +5,7 @@ sealed class SecuritySource(
     val signingData: SigningData
 ) : WithJson, WithSeed {
 
-    override fun jsonFormer() = jsonFormer(seed, signingData)
+    override fun jsonFormer() = jsonFormer(seed)
 
     class Create(
         seed: ByteArray?,
@@ -52,15 +52,15 @@ interface WithDerivationPath {
 }
 
 sealed class JsonFormer {
-    class KeyPair(val signingData: SigningData) : JsonFormer()
+    object KeyPair : JsonFormer()
 
     class Seed(val seed: ByteArray) : JsonFormer()
 }
 
-fun jsonFormer(seed: ByteArray?, signingData: SigningData): JsonFormer {
+fun jsonFormer(seed: ByteArray?): JsonFormer {
     return if (seed != null) {
         JsonFormer.Seed(seed)
     } else {
-        JsonFormer.KeyPair(signingData)
+        JsonFormer.KeyPair
     }
 }

@@ -13,6 +13,7 @@ import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import jp.co.soramitsu.splash.presentation.SplashFragment
@@ -70,9 +71,7 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
 
     override fun subscribe(viewModel: RootViewModel) {
         viewModel.showConnectingBarLiveData.observe(this, Observer { show ->
-            val visibility = if (show) View.VISIBLE else View.GONE
-
-            rootNetworkBar.visibility = visibility
+            rootNetworkBar.setVisible(show)
         })
     }
 
