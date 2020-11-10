@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_json_password_match_error">Mot de passe incompatible</string>
+    <string name="export_json_password_confirm">Confirmez le mot de passe</string>
+    <string name="export_json_password_new">Définir le mot de passe</string>
+    <string name="export_json_password_explanation">Le mot de passe est requis pour crypter votre compte et le stocker en tant que Recovery JSON. Veuillez créer un mot de passe pour continuer l\'opération.</string>
+
     <string name="account_export_warning_title">Faites attention</string>
     <string name="account_export_warning_message">Partager ou copier votre secret est une opération à haut risque, ne l\'envoyez à personne. Souhaitez-vous poursuivre le processus de partage / copie?</string>
     <string name="account_export_action">Exportation</string>

@@ -2,14 +2,17 @@ package jp.co.soramitsu.common.base
 
 import android.os.Bundle
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
+import jp.co.soramitsu.common.utils.bindTo
 import javax.inject.Inject
 
 abstract class BaseFragment<T : BaseViewModel> : Fragment() {
@@ -77,6 +80,8 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
             observer.invoke(it)
         })
     }
+
+    protected fun EditText.bindTo(liveData: MutableLiveData<String>) = bindTo(liveData, viewLifecycleOwner)
 
     protected inline fun <reified T> argument(key: String): T = arguments!![key] as T
 

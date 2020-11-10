@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_json_password_match_error">Password non corrispondente</string>
+    <string name="export_json_password_confirm">Conferma password</string>
+    <string name="export_json_password_new">Impostare la password</string>
+    <string name="export_json_password_explanation">La password è necessaria per crittografare il tuo account e archiviarlo come JSON di ripristino. Per favore, crea una password per continuare l\'operazione.</string>
+
     <string name="account_export_warning_title">Stai attento</string>
     <string name="account_export_warning_message">Condividere o copiare il tuo segreto è un\'operazione ad alto rischio, non inviarlo a nessuno. Desideri procedere con il processo di condivisione / copia?</string>
     <string name="account_export_action">Esportare</string>

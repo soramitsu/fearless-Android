@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_json_password_match_error">Contraseña no coincidente</string>
+    <string name="export_json_password_confirm">Confirmar contraseña</string>
+    <string name="export_json_password_new">Configurar la clave</string>
+    <string name="export_json_password_explanation">Se requiere contraseña para cifrar su cuenta y almacenarla como Recovery JSON. Por favor, cree una contraseña para continuar con la operación.</string>
+
     <string name="account_export_warning_title">Ten cuidado</string>
     <string name="account_export_warning_message">Compartir o copiar su secreto es una operación de alto riesgo, no se la envíe a nadie. ¿Le gustaría continuar con el proceso de compartir / copiar?</string>
     <string name="account_export_action">Exportar</string>

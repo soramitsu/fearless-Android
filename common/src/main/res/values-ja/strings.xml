@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_json_password_match_error">パスワードが一致しません</string>
+    <string name="export_json_password_confirm">パスワードを認証する</string>
+    <string name="export_json_password_new">パスワードを設定してください</string>
+    <string name="export_json_password_explanation">アカウントを暗号化してリカバリJSONとして保存するには、パスワードが必要です。操作を続行するには、パスワードを作成してください。</string>
+
     <string name="account_export_warning_title">注意してください</string>
     <string name="account_export_warning_message">シークレットを共有またはコピーすることはリスクの高い操作です。誰にも送信しないでください。共有/コピープロセスを続行しますか？</string>
     <string name="account_export_action">書き出す</string>
