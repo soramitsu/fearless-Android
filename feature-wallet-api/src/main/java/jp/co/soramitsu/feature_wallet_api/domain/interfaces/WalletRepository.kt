@@ -15,11 +15,11 @@ import java.math.BigDecimal
 interface WalletRepository {
     fun observeAssets(): Observable<List<Asset>>
 
-    fun syncAssets(withoutRates: Boolean): Completable
+    fun syncAssetsRates(): Completable
 
     fun observeAsset(token: Asset.Token): Observable<Asset>
 
-    fun syncAsset(token: Asset.Token, withoutRates: Boolean): Completable
+    fun syncAsset(token: Asset.Token): Completable
 
     fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>>
 

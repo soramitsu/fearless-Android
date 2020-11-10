@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToCryptoTypeModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
 
 abstract class ExportViewModel(
     protected val accountInteractor: AccountInteractor,
@@ -31,7 +31,7 @@ abstract class ExportViewModel(
 
     val cryptoTypeLiveData = account.map { mapCryptoTypeToCryptoTypeModel(resourceManager, it.cryptoType) }
 
-    val networkTypeLiveData = account.map { mapNetworkToNetworkModel(it.network) }
+    val networkTypeLiveData = account.map { mapNetworkTypeToNetworkModel(it.network.type) }
 
     private val _showSecurityWarningEvent = MutableLiveData<Event<Unit>>()
     val showSecurityWarningEvent = _showSecurityWarningEvent

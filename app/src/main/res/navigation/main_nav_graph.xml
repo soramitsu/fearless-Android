@@ -37,6 +37,16 @@
         app:popEnterAnim="@anim/fragment_close_enter"
         app:popExitAnim="@anim/fragment_close_exit" />
 
+    <action
+        android:id="@+id/action_return_to_wallet"
+        app:destination="@id/mainFragment"
+        app:enterAnim="@anim/fragment_close_enter"
+        app:popUpTo="@id/main_nav_graph"
+        app:launchSingleTop="true"
+        app:exitAnim="@anim/fragment_close_exit"
+        app:popEnterAnim="@anim/fragment_open_enter"
+        app:popExitAnim="@anim/fragment_open_exit" />
+
     <fragment
         android:id="@+id/mainFragment"
         android:name="jp.co.soramitsu.app.root.presentation.main.MainFragment"

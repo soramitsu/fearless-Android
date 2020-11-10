@@ -3,21 +3,20 @@ package jp.co.soramitsu.feature_account_impl.presentation.common
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
-fun mapNetworkToNetworkModel(network: Network): NetworkModel {
-    val type = when (network.type) {
+fun mapNetworkTypeToNetworkModel(networkType: Node.NetworkType): NetworkModel {
+    val type = when (networkType) {
         Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
         Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
         Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
     }
 
-    return NetworkModel(network.name, type, network.defaultNode)
+    return NetworkModel(networkType.readableName, type)
 }
 
 fun mapCryptoTypeToCryptoTypeModel(

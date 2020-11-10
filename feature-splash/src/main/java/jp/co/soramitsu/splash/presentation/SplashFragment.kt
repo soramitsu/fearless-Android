@@ -13,16 +13,6 @@ import javax.inject.Inject
 
 class SplashFragment : BaseFragment<SplashViewModel>() {
 
-    companion object {
-        private const val KEY_LANGUAGE_CHANGED = "language_changed"
-
-        fun getBundle(languageChanged: Boolean): Bundle {
-            return Bundle().apply {
-                putBoolean(KEY_LANGUAGE_CHANGED, languageChanged)
-            }
-        }
-    }
-
     @Inject lateinit var splashViewModel: SplashViewModel
 
     override fun onCreateView(
@@ -37,10 +27,9 @@ class SplashFragment : BaseFragment<SplashViewModel>() {
     }
 
     override fun inject() {
-        val languageChanged = arguments?.getBoolean(KEY_LANGUAGE_CHANGED, false) ?: false
         FeatureUtils.getFeature<SplashFeatureComponent>(this, SplashFeatureApi::class.java)
             .splashComponentFactory()
-            .create(this, languageChanged)
+            .create(this)
             .inject(this)
     }
 
