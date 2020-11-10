@@ -15,7 +15,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:id="@+id/itemFixedListLabel"
+        android:id="@+id/itemCurrencyLabel"
         android:textColor="@color/gray1"
         tools:text="Label" />
 
@@ -23,6 +23,6 @@
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/itemFixedListValue"
+        android:id="@+id/itemCurrencyValue"
         tools:text="Value" />
 </LinearLayout>

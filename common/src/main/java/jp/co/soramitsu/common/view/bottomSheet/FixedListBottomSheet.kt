@@ -3,22 +3,18 @@ package jp.co.soramitsu.common.view.bottomSheet
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
+import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.inflateChild
-import kotlinx.android.synthetic.main.bottom_sheeet_fixed_list.fixedListSheetClose
 import kotlinx.android.synthetic.main.bottom_sheeet_fixed_list.fixedListSheetItemContainer
 import kotlinx.android.synthetic.main.bottom_sheeet_fixed_list.fixedListSheetTitle
-import kotlinx.android.synthetic.main.item_fixed_list_sheet.view.itemFixedListLabel
-import kotlinx.android.synthetic.main.item_fixed_list_sheet.view.itemFixedListValue
 
-abstract class BaseFixedListBottomSheet(context: Context) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
+abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
 
     init {
         setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheeet_fixed_list, null))
-
-        fixedListSheetClose.setOnClickListener { dismiss() }
     }
 
     final override fun setContentView(view: View) {
@@ -33,12 +29,19 @@ abstract class BaseFixedListBottomSheet(context: Context) : BottomSheetDialog(co
         fixedListSheetTitle.text = title
     }
 
-    fun addItem(@StringRes labelRes: Int, value: String) {
-        val view = fixedListSheetItemContainer.inflateChild(R.layout.item_fixed_list_sheet)
+    fun item(@LayoutRes layoutRes: Int, builder: (View) -> Unit) {
+        val view = fixedListSheetItemContainer.inflateChild(layoutRes)
 
-        view.itemFixedListLabel.setText(labelRes)
-        view.itemFixedListValue.text = value
+        builder.invoke(view)
 
         fixedListSheetItemContainer.addView(view)
+    }
+
+    protected inline fun View.setDismissingClickListener(crossinline listener: (View) -> Unit) {
+        setOnClickListener {
+            listener.invoke(it)
+
+            dismiss()
+        }
     }
 }

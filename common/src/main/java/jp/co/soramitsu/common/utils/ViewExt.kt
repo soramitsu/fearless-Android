@@ -60,7 +60,8 @@ fun TextView.setTextColorRes(@ColorRes colorRes: Int) = setTextColor(ContextComp
 fun TextView.setDrawableStart(
     @DrawableRes start: Int? = null,
     widthInDp: Int? = null,
-    heightInDp: Int? = widthInDp
+    heightInDp: Int? = widthInDp,
+    @ColorRes tint: Int? = null
 ) {
     if (start == null) {
         setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
@@ -68,6 +69,8 @@ fun TextView.setDrawableStart(
     }
 
     val drawable = context.getDrawableCompat(start)
+
+    tint?.let { drawable.mutate().setTint(context.getColor(it)) }
 
     val widthInPx = if (widthInDp != null) (resources.displayMetrics.density * widthInDp).toInt() else drawable.intrinsicWidth
     val heightInPx = if (heightInDp != null) (resources.displayMetrics.density * heightInDp).toInt() else drawable.intrinsicHeight

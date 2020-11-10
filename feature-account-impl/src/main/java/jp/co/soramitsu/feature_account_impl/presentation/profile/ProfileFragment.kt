@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_profile.aboutTv
@@ -28,8 +30,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun initViews() {
-        accountView.setActionListener { viewModel.addressCopyClicked() }
-        accountView.setOnClickListener { viewModel.accountsClicked() }
+        accountView.setWholeClickListener { viewModel.accountActionsClicked() }
 
         aboutTv.setOnClickListener { viewModel.aboutClicked() }
 
@@ -49,7 +50,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun subscribe(viewModel: ProfileViewModel) {
-        viewModel.selectedAccount.observe { account ->
+        viewModel.selectedAccountLiveData.observe { account ->
             account.name?.let(accountView::setTitle)
 
             accountView.setText(account.address)
@@ -64,5 +65,24 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         viewModel.selectedLanguageLiveData.observe {
             selectedLanguageTv.text = it.displayName
         }
+
+        viewModel.showAccountActionsEvent.observeEvent {
+            val address = viewModel.selectedAccountLiveData.value
+
+            address?.let { showAccountActions(it) }
+        }
+
+        viewModel.openBrowserEvent.observeEvent(this::showBrowser)
+    }
+
+    private fun showAccountActions(account: Account) {
+        ProfileActionsSheet(
+            requireContext(),
+            account.address,
+            account.network.type,
+            viewModel::addressCopyClicked,
+            viewModel::viewExternalClicked,
+            viewModel::accountsClicked
+        ).show()
     }
 }

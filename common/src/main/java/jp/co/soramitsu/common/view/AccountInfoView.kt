@@ -7,6 +7,8 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.getDrawableCompat
+import jp.co.soramitsu.common.view.shape.addRipple
+import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import kotlinx.android.synthetic.main.view_account_info.view.accountAction
 import kotlinx.android.synthetic.main.view_account_info.view.accountAddressText
 import kotlinx.android.synthetic.main.view_account_info.view.accountIcon
@@ -21,7 +23,8 @@ class AccountInfoView @JvmOverloads constructor(
     init {
         View.inflate(context, R.layout.view_account_info, this)
 
-        background = context.getDrawableCompat(R.drawable.bg_input_shape_filled_selector)
+        background = with(context) { addRipple(getIdleDrawable()) }
+
         isFocusable = true
         isClickable = true
 
@@ -48,6 +51,12 @@ class AccountInfoView @JvmOverloads constructor(
 
     fun setActionListener(clickListener: (View) -> Unit) {
         accountAction.setOnClickListener(clickListener)
+    }
+
+    fun setWholeClickListener(listener: (View) -> Unit) {
+        setOnClickListener(listener)
+
+        setActionListener(listener)
     }
 
     fun setTitle(accountName: String) {

@@ -11,8 +11,8 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.ExternalActionsSheet
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.ExternalViewCallback
+import jp.co.soramitsu.common.view.bottomSheet.ExternalActionsSheet
+import jp.co.soramitsu.common.view.bottomSheet.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import jp.co.soramitsu.feature_wallet_impl.util.formatDateTime
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailAmount
