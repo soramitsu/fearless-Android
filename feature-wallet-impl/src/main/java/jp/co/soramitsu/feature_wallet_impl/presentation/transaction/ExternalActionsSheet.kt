@@ -3,47 +3,59 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
+import androidx.annotation.StringRes
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount.AccountChooserPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import kotlinx.android.synthetic.main.bottom_sheet_external_transaction_view.externalTransactionSheetCopy
 import kotlinx.android.synthetic.main.bottom_sheet_external_transaction_view.externalTransactionSheetPolkascan
 import kotlinx.android.synthetic.main.bottom_sheet_external_transaction_view.externalTransactionSheetSubscan
+import kotlinx.android.synthetic.main.bottom_sheet_external_transaction_view.externalTransactionSheetTitle
 
-class TransactionExternalActionsSheet(
+typealias ExternalViewCallback = (ExternalAnalyzer, String) -> Unit
+
+class ExternalActionsSheet(
     context: Context,
-    val model: TransactionModel,
-    handler: Handler
+    private val payload: Payload,
+    val onCopy: (String) -> Unit,
+    val onViewExternal: ExternalViewCallback
 ) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
 
-    interface Handler {
-        fun copyHashClicked(hash: String)
-
-        fun externalViewClicked(analyzer: ExternalAnalyzer)
-    }
+    class Payload(
+        @StringRes val titleRes: Int,
+        @StringRes val copyLabel: Int,
+        val value: String,
+        val networkType: Node.NetworkType
+    )
 
     init {
         setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheet_external_transaction_view, null))
 
+        externalTransactionSheetTitle.setText(payload.titleRes)
+
+        externalTransactionSheetCopy.setText(payload.copyLabel)
+
         hideUnsupported()
 
         externalTransactionSheetCopy.setDismissingClickListener {
-            handler.copyHashClicked(model.hash)
+            onCopy(payload.value)
         }
 
         externalTransactionSheetSubscan.setDismissingClickListener {
-            handler.externalViewClicked(ExternalAnalyzer.SUBSCAN)
+            onViewExternal(ExternalAnalyzer.SUBSCAN, payload.value)
         }
 
         externalTransactionSheetPolkascan.setDismissingClickListener {
-            handler.externalViewClicked(ExternalAnalyzer.POLKASCAN)
+            onViewExternal(ExternalAnalyzer.POLKASCAN, payload.value)
         }
     }
 
     private fun hideUnsupported() {
-        val networkType = model.token.networkType
+        val networkType = payload.networkType
 
         if (!ExternalAnalyzer.SUBSCAN.isNetworkSupported(networkType)) {
             externalTransactionSheetSubscan.makeGone()

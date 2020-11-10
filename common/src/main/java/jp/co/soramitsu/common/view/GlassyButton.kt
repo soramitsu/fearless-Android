@@ -21,7 +21,7 @@ class GlassyButton @JvmOverloads constructor(
         View.inflate(context, R.layout.button_glassy, this)
 
         with(context) {
-            background = addRipple(getCutCornerDrawable(R.color.blurColor, CutCornersShape.Type.FILL))
+            background = addRipple(getCutCornerDrawable(fillColorRes = R.color.blurColor))
         }
 
         attrs?.let(::applyAttributes)

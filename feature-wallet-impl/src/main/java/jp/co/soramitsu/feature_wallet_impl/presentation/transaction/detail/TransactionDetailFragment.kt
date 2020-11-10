@@ -3,15 +3,16 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.annotation.StringRes
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.TransactionExternalActionsSheet
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.ExternalActionsSheet
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import jp.co.soramitsu.feature_wallet_impl.util.formatDateTime
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailAmount
@@ -28,7 +29,7 @@ import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDe
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
 
-class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>(), TransactionExternalActionsSheet.Handler {
+class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     companion object {
         fun getBundle(transaction: TransactionModel) = Bundle().apply {
@@ -45,7 +46,21 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>(), Tr
     override fun initViews() {
         transactionDetailToolbar.setHomeButtonListener { viewModel.backClicked() }
 
-        transactionDetailHash.setActionClickListener { viewModel.showExternalActionsClicked() }
+        transactionDetailHash.setWholeClickListener {
+            viewModel.showExternalActionsClicked(ExternalActionsSource.TRANSACTION_HASH)
+        }
+
+        transactionDetailFrom.setWholeClickListener {
+            viewModel.showExternalActionsClicked(ExternalActionsSource.FROM_ADDRESS)
+        }
+
+        transactionDetailTo.setWholeClickListener {
+            viewModel.showExternalActionsClicked(ExternalActionsSource.TO_ADDRESS)
+        }
+
+        transactionDetailRepeat.setActionListener {
+            viewModel.repeatTransaction()
+        }
     }
 
     override fun inject() {
@@ -78,41 +93,71 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>(), Tr
         viewModel.senderAddressModelLiveData.observe { addressModel ->
             transactionDetailFrom.setMessage(addressModel.address)
             transactionDetailFrom.setTextIcon(addressModel.image)
-
-            transactionDetailFrom.setActionClickListener { viewModel.copyStringClicked(addressModel.address) }
         }
 
         viewModel.recipientAddressModelLiveData.observe { addressModel ->
             transactionDetailTo.setMessage(addressModel.address)
             transactionDetailTo.setTextIcon(addressModel.image)
-
-            transactionDetailTo.setActionClickListener { viewModel.copyStringClicked(addressModel.address) }
         }
 
         viewModel.retryAddressModelLiveData.observe {
             transactionDetailRepeat.setTitle(it.address)
             transactionDetailRepeat.setAccountIcon(it.image)
-
-            transactionDetailRepeat.setActionListener { viewModel.repeatTransaction() }
         }
 
-        viewModel.showExternalActionsEvent.observeEvent {
-            showExternalActionsSheet()
-        }
+        viewModel.showExternalTransactionActionsEvent.observeEvent(::showExternalActions)
 
         viewModel.openBrowserEvent.observeEvent(::showBrowser)
     }
 
-    private fun showExternalActionsSheet() {
-        TransactionExternalActionsSheet(requireContext(), viewModel.transaction, this)
+    private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
+        val transaction = viewModel.transaction
+
+        when (externalActionsSource) {
+            ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
+            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(R.string.transaction_details_from, transaction.senderAddress)
+            ExternalActionsSource.TO_ADDRESS -> showExternalAddressActions(R.string.choose_amount_to, transaction.recipientAddress)
+        }
+    }
+
+    private fun showExternalAddressActions(
+        @StringRes titleRes: Int,
+        address: String
+    ) = showExternalActionsSheet(
+        titleRes = titleRes,
+        copyLabelRes = R.string.common_copy_address,
+        value = address,
+        externalViewCallback = viewModel::viewAccountExternalClicked
+    )
+
+    private fun showExternalTransactionActions() {
+        showExternalActionsSheet(
+            R.string.transaction_details_hash_title,
+            R.string.transaction_details_copy_hash,
+            viewModel.transaction.hash,
+            viewModel::viewTransactionExternalClicked
+        )
+    }
+
+    private fun showExternalActionsSheet(
+        @StringRes titleRes: Int,
+        @StringRes copyLabelRes: Int,
+        value: String,
+        externalViewCallback: ExternalViewCallback
+    ) {
+        val payload = ExternalActionsSheet.Payload(
+            titleRes = titleRes,
+            copyLabel = copyLabelRes,
+            value = value,
+            networkType = viewModel.transaction.token.networkType
+        )
+
+        ExternalActionsSheet(
+            context = requireContext(),
+            payload = payload,
+            onCopy = viewModel::copyStringClicked,
+            onViewExternal = externalViewCallback
+        )
             .show()
-    }
-
-    override fun copyHashClicked(hash: String) {
-        viewModel.copyStringClicked(hash)
-    }
-
-    override fun externalViewClicked(analyzer: ExternalAnalyzer) {
-        viewModel.externalAnalyzerClicked(analyzer)
     }
 }

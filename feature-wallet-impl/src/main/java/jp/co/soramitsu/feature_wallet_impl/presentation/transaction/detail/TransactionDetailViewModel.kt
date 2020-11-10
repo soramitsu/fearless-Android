@@ -16,6 +16,10 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
 private const val ICON_SIZE_DP = 32
 
+enum class ExternalActionsSource {
+    TRANSACTION_HASH, FROM_ADDRESS, TO_ADDRESS
+}
+
 class TransactionDetailViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
@@ -26,8 +30,8 @@ class TransactionDetailViewModel(
     val transaction: TransactionModel
 ) : BaseViewModel() {
 
-    private val _showExternalViewEvent = MutableLiveData<Event<Unit>>()
-    val showExternalActionsEvent: LiveData<Event<Unit>> = _showExternalViewEvent
+    private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
+    val showExternalTransactionActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
 
     private val _openBrowserEvent = MutableLiveData<Event<String>>()
     val openBrowserEvent: LiveData<Event<String>> = _openBrowserEvent
@@ -60,12 +64,18 @@ class TransactionDetailViewModel(
     private fun getSenderIcon() = interactor.getAddressId(transaction.senderAddress)
         .flatMap { addressIconGenerator.createAddressModel(transaction.senderAddress, it, ICON_SIZE_DP) }
 
-    fun showExternalActionsClicked() {
-        _showExternalViewEvent.value = Event(Unit)
+    fun showExternalActionsClicked(externalActionsSource: ExternalActionsSource) {
+        _showExternalViewEvent.value = Event(externalActionsSource)
     }
 
-    fun externalAnalyzerClicked(analyzer: ExternalAnalyzer) {
-        val url = appLinksProvider.getExternalTransactionUrl(analyzer, transaction.hash, transaction.token.networkType)
+    fun viewTransactionExternalClicked(analyzer: ExternalAnalyzer, hash: String) {
+        val url = appLinksProvider.getExternalTransactionUrl(analyzer, hash, transaction.token.networkType)
+
+        _openBrowserEvent.value = Event(url)
+    }
+
+    fun viewAccountExternalClicked(analyzer: ExternalAnalyzer, address: String) {
+        val url = appLinksProvider.getExternalAddressUrl(analyzer, address, transaction.token.networkType)
 
         _openBrowserEvent.value = Event(url)
     }
