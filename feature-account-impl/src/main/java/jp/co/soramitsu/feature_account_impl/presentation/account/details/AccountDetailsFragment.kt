@@ -6,7 +6,10 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.utils.showBrowser
+import jp.co.soramitsu.common.view.bottomSheet.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
@@ -37,16 +40,12 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_account_details, container, false)
 
     override fun initViews() {
-        fearlessToolbar.setRightActionClickListener {
-            viewModel.backClicked()
-        }
-
         fearlessToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
 
-        accountDetailsAddressView.setOnCopyClickListener {
-            viewModel.copyAddressClicked()
+        accountDetailsAddressView.setWholeClickListener {
+            viewModel.addressClicked()
         }
 
         accountDetailsExport.setOnClickListener {
@@ -68,7 +67,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
 
     override fun subscribe(viewModel: AccountDetailsViewModel) {
         viewModel.accountLiveData.observe { account ->
-            accountDetailsAddressView.setAddress(account.address)
+            accountDetailsAddressView.setMessage(account.address)
 
             accountDetailsName.setText(account.name)
 
@@ -79,9 +78,31 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
             accountDetailsNode.setCompoundDrawablesWithIntrinsicBounds(networkModel.networkTypeUI.icon, 0, 0, 0)
         }
 
+        viewModel.openBrowserEvent.observeEvent(::showBrowser)
+
+        viewModel.showExternalActionsEvent.observeEvent {
+            val account = viewModel.accountLiveData.value!!
+
+            showExternalActionsChooser(account)
+        }
+
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
 
         accountDetailsName.onTextChanged(viewModel::nameChanged)
+    }
+
+    private fun showExternalActionsChooser(account: Account) {
+        ExternalActionsSheet(
+            requireContext(),
+            ExternalActionsSheet.Payload(
+                R.string.profile_accounts_title,
+                R.string.common_copy_address,
+                account.address,
+                account.network.type
+            ),
+            viewModel::copyAddressClicked,
+            viewModel::viewAccountExternalClicked
+        ).show()
     }
 
     private fun showExportSourceChooser(sources: List<ExportSource>) {

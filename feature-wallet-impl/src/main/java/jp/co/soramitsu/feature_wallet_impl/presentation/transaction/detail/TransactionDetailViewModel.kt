@@ -58,11 +58,12 @@ class TransactionDetailViewModel(
         router.openRepeatTransaction(transaction.displayAddress)
     }
 
-    private fun getRecipientIcon() = interactor.getAddressId(transaction.recipientAddress)
-        .flatMap { addressIconGenerator.createAddressModel(transaction.recipientAddress, it, ICON_SIZE_DP) }
+    private fun getRecipientIcon() = getIcon(transaction.recipientAddress)
 
-    private fun getSenderIcon() = interactor.getAddressId(transaction.senderAddress)
-        .flatMap { addressIconGenerator.createAddressModel(transaction.senderAddress, it, ICON_SIZE_DP) }
+    private fun getSenderIcon() = getIcon(transaction.senderAddress)
+
+    private fun getIcon(address: String) = interactor.getAddressId(address)
+        .flatMap { addressIconGenerator.createAddressModel(address, it, ICON_SIZE_DP) }
 
     fun showExternalActionsClicked(externalActionsSource: ExternalActionsSource) {
         _showExternalViewEvent.value = Event(externalActionsSource)

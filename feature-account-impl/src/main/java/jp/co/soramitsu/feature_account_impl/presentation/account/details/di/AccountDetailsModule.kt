@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -21,12 +22,20 @@ class AccountDetailsModule {
     @ViewModelKey(AccountDetailsViewModel::class)
     fun provideViewModel(
         interactor: AccountInteractor,
-        accountAddress: String,
         router: AccountRouter,
         clipboardManager: ClipboardManager,
-        resourceManager: ResourceManager
+        resourceManager: ResourceManager,
+        appLinksProvider: AppLinksProvider,
+        accountAddress: String
     ): ViewModel {
-        return AccountDetailsViewModel(interactor, router, clipboardManager, resourceManager, accountAddress)
+        return AccountDetailsViewModel(
+            interactor,
+            router,
+            clipboardManager,
+            resourceManager,
+            appLinksProvider,
+            accountAddress
+        )
     }
 
     @Provides

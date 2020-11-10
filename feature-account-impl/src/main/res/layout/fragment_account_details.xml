@@ -8,7 +8,6 @@
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.Toolbar
-        app:textRight="@string/common_done"
         app:homeButtonIcon="@drawable/ic_close"
         app:titleText="@string/profile_title"
         android:id="@+id/fearlessToolbar"
@@ -41,11 +40,13 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <jp.co.soramitsu.common.view.AddressView
+    <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/accountDetailsAddressView"
         android:layout_width="0dp"
+        app:label="@string/account_address"
         android:layout_height="wrap_content"
-        app:iconVisible="false"
+        app:enabled="false"
+        app:actionIcon="@drawable/ic_more_vertical"
         android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="@+id/accountDetailsNameContainer"
         app:layout_constraintStart_toStartOf="@+id/accountDetailsNameContainer"

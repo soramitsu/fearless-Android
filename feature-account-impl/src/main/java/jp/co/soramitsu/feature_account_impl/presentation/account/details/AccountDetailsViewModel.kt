@@ -9,6 +9,8 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -30,6 +32,7 @@ class AccountDetailsViewModel(
     private val accountRouter: AccountRouter,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
+    private val appLinksProvider: AppLinksProvider,
     val accountAddress: String
 ) : BaseViewModel() {
     private val accountNameChanges = BehaviorSubject.create<String>()
@@ -41,7 +44,13 @@ class AccountDetailsViewModel(
     private val _showExportSourceChooser = MutableLiveData<Event<List<ExportSource>>>()
     val showExportSourceChooser: LiveData<Event<List<ExportSource>>> = _showExportSourceChooser
 
-    val exportSourceTypesLiveData = buildExportSourceTypes().asLiveData()
+    private val _openBrowserEvent = MutableLiveData<Event<String>>()
+    val openBrowserEvent: LiveData<Event<String>> = _openBrowserEvent
+
+    private val _showExternalViewEvent = MutableLiveData<Event<Unit>>()
+    val showExternalActionsEvent: LiveData<Event<Unit>> = _showExternalViewEvent
+
+    private val exportSourceTypesLiveData = buildExportSourceTypes().asLiveData()
 
     init {
         disposables += observeNameChanges()
@@ -61,12 +70,22 @@ class AccountDetailsViewModel(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    fun copyAddressClicked() {
-        accountLiveData.value?.let {
-            clipboardManager.addToClipboard(it.address)
+    fun addressClicked() {
+       _showExternalViewEvent.value = Event(Unit)
+    }
 
-            showMessage(resourceManager.getString(R.string.common_copied))
-        }
+    fun copyAddressClicked(address: String) {
+        clipboardManager.addToClipboard(address)
+
+        showMessage(resourceManager.getString(R.string.common_copied))
+    }
+
+    fun viewAccountExternalClicked(analyzer: ExternalAnalyzer, address: String) {
+        val account = accountLiveData.value!!
+
+        val url = appLinksProvider.getExternalAddressUrl(analyzer, address, account.network.type)
+
+        _openBrowserEvent.value = Event(url)
     }
 
     fun exportClicked() {
