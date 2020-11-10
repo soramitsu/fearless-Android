@@ -8,8 +8,7 @@ import jp.co.soramitsu.feature_account_impl.R
 
 data class NetworkModel(
     val name: String,
-    val networkTypeUI: NetworkTypeUI,
-    val defaultNode: Node
+    val networkTypeUI: NetworkTypeUI
 ) {
     sealed class NetworkTypeUI(val icon: Int, val networkType: Node.NetworkType) {
         object Kusama : NetworkTypeUI(R.drawable.ic_ksm_24, KUSAMA)

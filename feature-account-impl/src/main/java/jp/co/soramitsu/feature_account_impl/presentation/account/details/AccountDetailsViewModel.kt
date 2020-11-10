@@ -19,7 +19,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import java.util.concurrent.TimeUnit
 
@@ -36,12 +36,12 @@ class AccountDetailsViewModel(
 
     val accountLiveData = getAccount(accountAddress).asLiveData()
 
-    val networkModel = accountLiveData.map { mapNetworkToNetworkModel(it.network) }
+    val networkModel = accountLiveData.map { mapNetworkTypeToNetworkModel(it.network.type) }
 
     private val _showExportSourceChooser = MutableLiveData<Event<List<ExportSource>>>()
     val showExportSourceChooser: LiveData<Event<List<ExportSource>>> = _showExportSourceChooser
 
-    val exportSourceTypesLiveData = buildExportSourceTypes().asLiveData()
+    private val exportSourceTypesLiveData = buildExportSourceTypes().asLiveData()
 
     init {
         disposables += observeNameChanges()

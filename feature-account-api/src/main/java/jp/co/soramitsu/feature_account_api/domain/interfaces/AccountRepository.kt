@@ -52,7 +52,7 @@ interface AccountRepository {
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
     fun observeAccounts(): Observable<List<Account>>
@@ -66,7 +66,7 @@ interface AccountRepository {
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
     fun importFromSeed(
@@ -74,10 +74,14 @@ interface AccountRepository {
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
-    fun importFromJson(json: String, password: String, name: String, node: Node): Completable
+    fun importFromJson(
+        json: String,
+        password: String,
+        name: String
+    ): Completable
 
     fun isCodeSet(): Single<Boolean>
 
@@ -128,8 +132,6 @@ interface AccountRepository {
     fun getNetworkName(nodeHost: String): Single<String>
 
     fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
-
-    fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
 
     fun deleteNode(nodeId: Int): Completable
 }

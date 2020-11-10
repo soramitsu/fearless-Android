@@ -54,4 +54,6 @@ interface AccountRouter {
     fun openConfirmMnemonicOnExport(mnemonic: List<String>)
 
     fun openExportJsonPassword(accountAddress: String)
+
+    fun returnToMain()
 }

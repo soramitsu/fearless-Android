@@ -74,9 +74,9 @@ class WalletRepositoryImpl(
         }.mapList(::mapAssetLocalToAsset)
     }
 
-    override fun syncAssets(withoutRates: Boolean): Completable {
+    override fun syncAssetsRates(): Completable {
         return getSelectedAccount()
-            .flatMapCompletable { syncAssets(it, withoutRates) }
+            .flatMapCompletable(this::syncAssetRates)
     }
 
     override fun observeAsset(token: Asset.Token): Observable<Asset> {
@@ -85,8 +85,8 @@ class WalletRepositoryImpl(
         }.map(::mapAssetLocalToAsset)
     }
 
-    override fun syncAsset(token: Asset.Token, withoutRates: Boolean): Completable {
-        return syncAssets(withoutRates)
+    override fun syncAsset(token: Asset.Token): Completable {
+        return syncAssetsRates()
     }
 
     override fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>> {
@@ -230,14 +230,6 @@ class WalletRepositoryImpl(
             .ignoreElement()
     }
 
-    private fun syncAssets(account: Account, withoutRates: Boolean): Completable {
-        return if (withoutRates) {
-            syncBalance(account)
-        } else {
-            syncBalanceWithRates(account)
-        }
-    }
-
     private fun getTransactionPage(pageSize: Int, page: Int, account: Account): Single<List<Transaction>> {
         val subDomain = subDomainFor(account.network.type)
         val request = TransactionHistoryRequest(account.address, pageSize, page)
@@ -267,42 +259,30 @@ class WalletRepositoryImpl(
         }
     }
 
-    private fun syncBalance(account: Account): Completable {
-        return substrateSource.fetchAccountInfo(account).flatMapCompletable { accountInfo ->
-            updateAssetBalance(account, accountInfo)
-        }
-    }
-
-    private fun syncBalanceWithRates(account: Account): Completable {
-        val accountInfoSingle = substrateSource.fetchAccountInfo(account)
-
+    private fun syncAssetRates(account: Account): Completable {
         val networkType = account.network.type
 
         val currentPriceStatsSingle = getAssetPrice(networkType, AssetPriceRequest.createForNow())
         val yesterdayPriceStatsSingle = getAssetPrice(networkType, AssetPriceRequest.createForYesterday())
 
-        val requests = listOf(accountInfoSingle, currentPriceStatsSingle, yesterdayPriceStatsSingle)
+        val requests = listOf(currentPriceStatsSingle, yesterdayPriceStatsSingle)
 
         return requests.zip()
             .flatMapCompletable { (
-                accountInfo: EncodableStruct<AccountInfo>,
                 nowStats: SubscanResponse<AssetPriceStatistics>,
                 yesterdayStats: SubscanResponse<AssetPriceStatistics>) ->
 
-                updateAssetBalance(account, accountInfo, nowStats, yesterdayStats)
+                updateAssetRates(account, nowStats, yesterdayStats)
             }
     }
 
-    private fun updateAssetBalance(
+    private fun updateAssetRates(
         account: Account,
-        accountInfo: EncodableStruct<AccountInfo>,
-        todayResponse: SubscanResponse<AssetPriceStatistics>? = null,
-        yesterdayResponse: SubscanResponse<AssetPriceStatistics>? = null
+        todayResponse: SubscanResponse<AssetPriceStatistics>?,
+        yesterdayResponse: SubscanResponse<AssetPriceStatistics>?
     ) = updateLocalAssetCopy(account) { cached ->
         val todayStats = todayResponse?.content
         val yesterdayStats = yesterdayResponse?.content
-
-        val data = accountInfo[data]
 
         var mostRecentPrice = todayStats?.price
 
@@ -313,12 +293,22 @@ class WalletRepositoryImpl(
         val change = todayStats?.calculateRateChange(yesterdayStats)
 
         cached.copy(
+            dollarRate = mostRecentPrice,
+            recentRateChange = change
+        )
+    }
+
+    private fun updateAssetBalance(
+        account: Account,
+        accountInfo: EncodableStruct<AccountInfo>
+    ) = updateLocalAssetCopy(account) { cached ->
+        val data = accountInfo[data]
+
+        cached.copy(
             freeInPlanks = data[free],
             reservedInPlanks = data[reserved],
             miscFrozenInPlanks = data[miscFrozen],
-            feeFrozenInPlanks = data[feeFrozen],
-            dollarRate = mostRecentPrice,
-            recentRateChange = change
+            feeFrozenInPlanks = data[feeFrozen]
         )
     }
 

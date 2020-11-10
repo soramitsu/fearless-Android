@@ -39,7 +39,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         adapter = BalanceListAdapter(this)
         balanceListAssets.adapter = adapter
 
-        transfersContainer.anchorTo(balanceListContent)
+        transfersContainer.initializeBehavior(anchorView = balanceListContent)
 
         transfersContainer.setPageLoadListener {
             viewModel.shouldLoadPage()
@@ -82,7 +82,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     }
 
     override fun subscribe(viewModel: BalanceListViewModel) {
-        viewModel.syncAssets()
+        viewModel.syncAssetsRates()
         viewModel.syncFirstTransactionsPage()
 
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)

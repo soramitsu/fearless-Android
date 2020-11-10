@@ -134,18 +134,22 @@ class NodesViewModel(
         disposables += interactor.selectNodeAndAccount(nodeId, accountAddress)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribeToError {
+            .subscribe({
+                router.returnToMain()
+            }, {
                 it.message?.let(this::showError)
-            }
+            })
     }
 
     private fun selectNodeWithCurrentAccount(nodeId: Int) {
         disposables += interactor.selectNode(nodeId)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribeToError {
+            .subscribe({
+                router.returnToMain()
+            }, {
                 it.message?.let(this::showError)
-            }
+            })
     }
 
     private fun generateIconForAddress(account: Account): Single<AddressModel> {
