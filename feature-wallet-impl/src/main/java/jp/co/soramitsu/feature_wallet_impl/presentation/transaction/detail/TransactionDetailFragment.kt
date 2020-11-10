@@ -58,7 +58,7 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             viewModel.showExternalActionsClicked(ExternalActionsSource.TO_ADDRESS)
         }
 
-        transactionDetailRepeat.setActionListener {
+        transactionDetailRepeat.setWholeClickListener {
             viewModel.repeatTransaction()
         }
     }
