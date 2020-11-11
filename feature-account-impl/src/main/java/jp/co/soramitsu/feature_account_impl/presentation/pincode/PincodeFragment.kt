@@ -20,23 +20,23 @@ import javax.inject.Inject
 class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     companion object {
-        private const val KEY_PINCODE_FLOW = "pincode_flow"
+        private const val KEY_PINCODE_ACTION = "pincode_action"
 
         fun getCreatePinCodeBundle(): Bundle {
             return Bundle().apply {
-                putSerializable(KEY_PINCODE_FLOW, PinCodeFlow.CREATE)
+                putSerializable(KEY_PINCODE_ACTION, PinCodeAction.CREATE)
             }
         }
 
         fun getCheckPinCodeBundle(): Bundle {
             return Bundle().apply {
-                putSerializable(KEY_PINCODE_FLOW, PinCodeFlow.CHECK)
+                putSerializable(KEY_PINCODE_ACTION, PinCodeAction.CHECK)
             }
         }
 
         fun getChangePinCodeBundle(): Bundle {
             return Bundle().apply {
-                putSerializable(KEY_PINCODE_FLOW, PinCodeFlow.CHANGE)
+                putSerializable(KEY_PINCODE_ACTION, PinCodeAction.CHANGE)
             }
         }
     }
@@ -48,7 +48,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     }
 
     override fun inject() {
-        val navigationFlow = argument<PinCodeFlow>(KEY_PINCODE_FLOW)
+        val navigationFlow = argument<PinCodeAction>(KEY_PINCODE_ACTION)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
             .pincodeComponentFactory()
