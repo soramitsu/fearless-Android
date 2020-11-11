@@ -58,8 +58,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             pinCodeView.changeFingerPrintButtonVisibility(fingerprintWrapper.isAuthReady())
         }
 
-        viewModel.titleLiveData.observe(pinCodeView::setTitle)
-
         viewModel.fingerPrintErrorEvent.observeEvent {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         }
@@ -82,6 +80,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
         viewModel.resetInputEvent.observeEvent {
             pinCodeView.resetInput()
+            pinCodeView.setTitle(it)
         }
 
         viewModel.startAuth()

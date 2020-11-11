@@ -29,14 +29,11 @@ class PinCodeViewModel(
     private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>(false)
     val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
 
-    private val _resetInputEvent = MutableLiveData<Event<Unit>>()
-    val resetInputEvent: LiveData<Event<Unit>> = _resetInputEvent
+    private val _resetInputEvent = MutableLiveData<Event<String>>()
+    val resetInputEvent: LiveData<Event<String>> = _resetInputEvent
 
     private val _matchingPincodeErrorEvent = MutableLiveData<Event<Unit>>()
     val matchingPincodeErrorEvent: LiveData<Event<Unit>> = _matchingPincodeErrorEvent
-
-    private val _titleLiveData = MutableLiveData<String>()
-    val titleLiveData: LiveData<String> = _titleLiveData
 
     private val _showFingerPrintEvent = MutableLiveData<Event<Unit>>()
     val showFingerPrintEvent: LiveData<Event<Unit>> = _showFingerPrintEvent
@@ -58,23 +55,12 @@ class PinCodeViewModel(
     private var currentState: State? = null
 
     fun startAuth() {
-        _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
-
-        disposables.add(
-            interactor.isCodeSet()
-                .subscribe({
-                    _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
-                    if (it) {
-                        currentState = State.CHECK
-                        _showFingerPrintEvent.value = Event(Unit)
-                    } else {
-                        currentState = State.CREATE
-                    }
-                }, {
-                    it.printStackTrace()
-                    currentState = State.CREATE
-                })
-        )
+        if (interactor.isCodeSet()) {
+            currentState = State.CHECK
+            _showFingerPrintEvent.value = Event(Unit)
+        } else {
+            currentState = State.CREATE
+        }
     }
 
     fun pinCodeEntered(pin: String) {
@@ -87,8 +73,7 @@ class PinCodeViewModel(
 
     private fun tempCodeEntered(pin: String) {
         tempCode = pin
-        _resetInputEvent.value = Event(Unit)
-        _titleLiveData.value = resourceManager.getString(R.string.pincode_confirm_your_pin_code)
+        _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_confirm_your_pin_code))
         _homeButtonVisibilityLiveData.value = true
         currentState = State.CONFIRM
     }
@@ -143,9 +128,8 @@ class PinCodeViewModel(
 
     private fun backToCreate() {
         tempCode = ""
-        _resetInputEvent.value = Event(Unit)
+        _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
         _homeButtonVisibilityLiveData.value = false
-        _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
     }
 
     fun onResume() {

@@ -93,14 +93,13 @@ class ImportAccountViewModel(
         val importObservable = constructImportObservable(sourceType, name, derivationPath, cryptoType, networkType)
 
         disposables += importObservable
-            .andThen(interactor.isCodeSet())
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(::continueBasedOnCodeStatus, ::handleCreateAccountError)
     }
 
-    private fun continueBasedOnCodeStatus(isCodeSet: Boolean) {
-        if (isCodeSet) {
+    private fun continueBasedOnCodeStatus() {
+        if (interactor.isCodeSet()) {
             router.openMain()
         } else {
             router.openCreatePincode()

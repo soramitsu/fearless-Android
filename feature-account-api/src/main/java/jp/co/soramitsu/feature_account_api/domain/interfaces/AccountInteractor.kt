@@ -52,7 +52,7 @@ interface AccountInteractor {
 
     fun getAddressId(account: Account): Single<ByteArray>
 
-    fun isCodeSet(): Single<Boolean>
+    fun isCodeSet(): Boolean
 
     fun savePin(code: String): Completable
 

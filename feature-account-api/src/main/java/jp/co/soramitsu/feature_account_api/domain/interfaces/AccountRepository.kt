@@ -83,7 +83,7 @@ interface AccountRepository {
         name: String
     ): Completable
 
-    fun isCodeSet(): Single<Boolean>
+    fun isCodeSet(): Boolean
 
     fun savePinCode(code: String): Completable
 
