@@ -130,6 +130,7 @@ class PinCodeViewModel(
         tempCode = ""
         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
         _homeButtonVisibilityLiveData.value = false
+        currentState = State.CREATE
     }
 
     fun onResume() {

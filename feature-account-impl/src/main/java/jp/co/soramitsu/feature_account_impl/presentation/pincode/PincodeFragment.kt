@@ -66,13 +66,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             requireActivity().finish()
         }
 
-        viewModel.homeButtonVisibilityLiveData.observe {
-            if (it) {
-                toolbar.showHomeButton()
-            } else {
-                toolbar.hideHomeButton()
-            }
-        }
+        viewModel.homeButtonVisibilityLiveData.observe(toolbar::setHomeButtonVisibility)
 
         viewModel.matchingPincodeErrorEvent.observeEvent {
             pinCodeView.pinCodeMatchingError()
