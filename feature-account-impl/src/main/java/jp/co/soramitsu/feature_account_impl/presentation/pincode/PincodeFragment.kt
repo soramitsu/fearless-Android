@@ -19,6 +19,28 @@ import javax.inject.Inject
 
 class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
+    companion object {
+        private const val KEY_PINCODE_FLOW = "pincode_flow"
+
+        fun getCreatePinCodeBundle(): Bundle {
+            return Bundle().apply {
+                putSerializable(KEY_PINCODE_FLOW, PinCodeFlow.CREATE)
+            }
+        }
+
+        fun getCheckPinCodeBundle(): Bundle {
+            return Bundle().apply {
+                putSerializable(KEY_PINCODE_FLOW, PinCodeFlow.CHECK)
+            }
+        }
+
+        fun getChangePinCodeBundle(): Bundle {
+            return Bundle().apply {
+                putSerializable(KEY_PINCODE_FLOW, PinCodeFlow.CHANGE)
+            }
+        }
+    }
+
     @Inject lateinit var fingerprintWrapper: FingerprintWrapper
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -26,9 +48,11 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     }
 
     override fun inject() {
+        val navigationFlow = argument<PinCodeFlow>(KEY_PINCODE_FLOW)
+
         FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
             .pincodeComponentFactory()
-            .create(this)
+            .create(this, navigationFlow)
             .inject(this)
     }
 

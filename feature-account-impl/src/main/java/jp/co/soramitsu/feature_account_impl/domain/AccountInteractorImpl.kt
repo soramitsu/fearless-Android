@@ -115,7 +115,7 @@ class AccountInteractorImpl(
         }
     }
 
-    override fun isBiometricEnabled(): Single<Boolean> {
+    override fun isBiometricEnabled(): Boolean {
         return accountRepository.isBiometricEnabled()
     }
 

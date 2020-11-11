@@ -7,7 +7,6 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
@@ -17,7 +16,8 @@ class PinCodeViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val deviceVibrator: DeviceVibrator,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val pinCodeFlow: PinCodeFlow
 ) : BaseViewModel() {
 
     enum class State {
@@ -55,11 +55,19 @@ class PinCodeViewModel(
     private var currentState: State? = null
 
     fun startAuth() {
-        if (interactor.isCodeSet()) {
-            currentState = State.CHECK
-            _showFingerPrintEvent.value = Event(Unit)
-        } else {
-            currentState = State.CREATE
+        when (pinCodeFlow) {
+            PinCodeFlow.CREATE -> {
+                currentState = State.CREATE
+            }
+            PinCodeFlow.CHECK -> {
+                currentState = State.CHECK
+                _showFingerPrintEvent.value = Event(Unit)
+            }
+            PinCodeFlow.CHANGE -> {
+                currentState = State.CHECK
+                _showFingerPrintEvent.value = Event(Unit)
+                _homeButtonVisibilityLiveData.value = true
+            }
         }
     }
 
@@ -91,7 +99,7 @@ class PinCodeViewModel(
         disposables.add(
             interactor.savePin(code)
                 .subscribe({
-                    if (fingerPrintAvailable) {
+                    if (fingerPrintAvailable && PinCodeFlow.CREATE == pinCodeFlow) {
                         _biometricSwitchDialogLiveData.value = Event(Unit)
                     } else {
                         authSuccess()
@@ -120,31 +128,24 @@ class PinCodeViewModel(
 
     fun backPressed() {
         when (currentState) {
-            State.CREATE -> _finishAppEvent.value = Event(Unit)
+            State.CREATE -> authCancel()
             State.CONFIRM -> backToCreate()
-            State.CHECK -> _finishAppEvent.value = Event(Unit)
+            State.CHECK -> authCancel()
         }
     }
 
     private fun backToCreate() {
         tempCode = ""
         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
-        _homeButtonVisibilityLiveData.value = false
+        if (PinCodeFlow.CREATE == pinCodeFlow) {
+            _homeButtonVisibilityLiveData.value = false
+        }
         currentState = State.CREATE
     }
 
     fun onResume() {
-        if (State.CHECK == currentState) {
-            disposables += interactor.isBiometricEnabled()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    if (it) {
-                        _startFingerprintScannerEventLiveData.value = Event(Unit)
-                    }
-                }, {
-                    it.message?.let(this::showError)
-                })
+        if (State.CHECK == currentState && interactor.isBiometricEnabled()) {
+            _startFingerprintScannerEventLiveData.value = Event(Unit)
         }
     }
 
@@ -152,11 +153,11 @@ class PinCodeViewModel(
         _fingerPrintErrorEvent.value = Event(errString)
     }
 
-    fun onAuthenticationSucceeded() {
+    fun biometryAuthenticationSucceeded() {
         authSuccess()
     }
 
-    fun onAuthenticationFailed() {
+    fun biometryAuthenticationFailed() {
         _fingerPrintErrorEvent.value = Event(resourceManager.getString(R.string.pincode_fingerprint_error))
     }
 
@@ -165,7 +166,30 @@ class PinCodeViewModel(
     }
 
     private fun authSuccess() {
-        router.openMain()
+        when (pinCodeFlow) {
+            PinCodeFlow.CREATE -> router.openMain()
+            PinCodeFlow.CHECK -> router.openMain()
+            PinCodeFlow.CHANGE -> {
+                when (currentState) {
+                    State.CHECK -> {
+                        currentState = State.CREATE
+                        _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
+                        _homeButtonVisibilityLiveData.value = true
+                    }
+                    State.CONFIRM -> {
+                        router.back()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun authCancel() {
+        when (pinCodeFlow) {
+            PinCodeFlow.CREATE -> _finishAppEvent.value = Event(Unit)
+            PinCodeFlow.CHECK -> _finishAppEvent.value = Event(Unit)
+            PinCodeFlow.CHANGE -> router.back()
+        }
     }
 
     fun acceptAuthWithBiometry() {
@@ -187,7 +211,7 @@ class PinCodeViewModel(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    router.openMain()
+                    authSuccess()
                 }, {
                     it.printStackTrace()
                 })

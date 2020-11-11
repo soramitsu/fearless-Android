@@ -78,4 +78,8 @@ class ProfileViewModel(
     fun languagesClicked() {
         router.openLanguages()
     }
+
+    fun changePinCodeClicked() {
+        router.openChangePinCode()
+    }
 }

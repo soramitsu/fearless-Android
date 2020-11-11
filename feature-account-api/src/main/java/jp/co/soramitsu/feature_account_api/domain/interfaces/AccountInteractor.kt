@@ -58,7 +58,7 @@ interface AccountInteractor {
 
     fun isPinCorrect(code: String): Single<Boolean>
 
-    fun isBiometricEnabled(): Single<Boolean>
+    fun isBiometricEnabled(): Boolean
 
     fun setBiometricOn(): Completable
 

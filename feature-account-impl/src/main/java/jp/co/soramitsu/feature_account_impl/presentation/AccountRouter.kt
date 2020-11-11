@@ -56,4 +56,6 @@ interface AccountRouter {
     fun openExportJsonPassword(accountAddress: String)
 
     fun returnToMain()
+
+    fun openChangePinCode()
 }

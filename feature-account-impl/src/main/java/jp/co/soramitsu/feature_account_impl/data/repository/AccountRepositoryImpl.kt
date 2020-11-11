@@ -284,10 +284,8 @@ class AccountRepositoryImpl(
             }
     }
 
-    override fun isBiometricEnabled(): Single<Boolean> {
-        return Single.fromCallable {
-            accountDataSource.getAuthType() == AuthType.BIOMETRY
-        }
+    override fun isBiometricEnabled(): Boolean {
+        return accountDataSource.getAuthType() == AuthType.BIOMETRY
     }
 
     override fun setBiometricOn(): Completable {
