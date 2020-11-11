@@ -18,7 +18,6 @@ interface PinCodeComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance maxPinCodeLength: Int,
             @BindsInstance fragment: Fragment
         ): PinCodeComponent
     }

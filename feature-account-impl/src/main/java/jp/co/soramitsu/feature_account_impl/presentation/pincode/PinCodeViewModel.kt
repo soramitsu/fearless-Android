@@ -7,7 +7,6 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -17,7 +16,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 class PinCodeViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
-    private val maxPinCodeLength: Int,
     private val deviceVibrator: DeviceVibrator,
     private val resourceManager: ResourceManager
 ) : BaseViewModel() {
@@ -28,18 +26,14 @@ class PinCodeViewModel(
         CHECK
     }
 
-    private val inputCodeLiveData = MutableLiveData<String>("")
-
-    val pinCodeProgressLiveData = inputCodeLiveData.map {
-        it.length
-    }
-
     private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>(false)
     val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
 
-    private var fingerPrintAvailable = false
-    private var tempCode = ""
-    private var currentState: State? = null
+    private val _resetInputEvent = MutableLiveData<Event<Unit>>()
+    val resetInputEvent: LiveData<Event<Unit>> = _resetInputEvent
+
+    private val _matchingPincodeErrorEvent = MutableLiveData<Event<Unit>>()
+    val matchingPincodeErrorEvent: LiveData<Event<Unit>> = _matchingPincodeErrorEvent
 
     private val _titleLiveData = MutableLiveData<String>()
     val titleLiveData: LiveData<String> = _titleLiveData
@@ -50,9 +44,6 @@ class PinCodeViewModel(
     private val _startFingerprintScannerEventLiveData = MutableLiveData<Event<Unit>>()
     val startFingerprintScannerEventLiveData: LiveData<Event<Unit>> = _startFingerprintScannerEventLiveData
 
-    private val _fingerPrintDialogVisibilityLiveData = MutableLiveData<Boolean>()
-    val fingerPrintDialogVisibilityLiveData: LiveData<Boolean> = _fingerPrintDialogVisibilityLiveData
-
     private val _fingerPrintErrorEvent = MutableLiveData<Event<String>>()
     val fingerPrintErrorEvent: LiveData<Event<String>> = _fingerPrintErrorEvent
 
@@ -62,8 +53,9 @@ class PinCodeViewModel(
     private val _finishAppEvent = MutableLiveData<Event<Unit>>()
     val finisAppEvent: LiveData<Event<Unit>> = _finishAppEvent
 
-    private val _matchingPincodeErrorAnimationEvent = MutableLiveData<Event<Unit>>()
-    val matchingPincodeErrorAnimationEvent: LiveData<Event<Unit>> = _matchingPincodeErrorAnimationEvent
+    private var fingerPrintAvailable = false
+    private var tempCode = ""
+    private var currentState: State? = null
 
     fun startAuth() {
         _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
@@ -85,29 +77,7 @@ class PinCodeViewModel(
         )
     }
 
-    fun pinCodeNumberClicked(pinCodeNumber: String) {
-        val inputCode = inputCodeLiveData.value ?: return
-
-        if (inputCode.length >= maxPinCodeLength) {
-            return
-        }
-        val newCode = inputCode + pinCodeNumber
-        inputCodeLiveData.value = newCode
-        if (newCode.length == maxPinCodeLength) {
-            pinCodeEntered(newCode)
-        }
-    }
-
-    fun pinCodeDeleteClicked() {
-        inputCodeLiveData.value?.let { inputCode ->
-            if (inputCode.isEmpty()) {
-                return
-            }
-            inputCodeLiveData.value = inputCode.substring(0, inputCode.length - 1)
-        }
-    }
-
-    private fun pinCodeEntered(pin: String) {
+    fun pinCodeEntered(pin: String) {
         when (currentState) {
             State.CREATE -> tempCodeEntered(pin)
             State.CONFIRM -> pinCodeEnterComplete(pin)
@@ -117,7 +87,7 @@ class PinCodeViewModel(
 
     private fun tempCodeEntered(pin: String) {
         tempCode = pin
-        inputCodeLiveData.value = ""
+        _resetInputEvent.value = Event(Unit)
         _titleLiveData.value = resourceManager.getString(R.string.pincode_confirm_your_pin_code)
         _homeButtonVisibilityLiveData.value = true
         currentState = State.CONFIRM
@@ -127,9 +97,8 @@ class PinCodeViewModel(
         if (tempCode == pinCode) {
             registerPinCode(pinCode)
         } else {
-            inputCodeLiveData.value = ""
             deviceVibrator.makeShortVibration()
-            _matchingPincodeErrorAnimationEvent.value = Event(Unit)
+            _matchingPincodeErrorEvent.value = Event(Unit)
         }
     }
 
@@ -155,9 +124,8 @@ class PinCodeViewModel(
                     if (pinIsCorrect) {
                         authSuccess()
                     } else {
-                        inputCodeLiveData.value = ""
                         deviceVibrator.makeShortVibration()
-                        _matchingPincodeErrorAnimationEvent.value = Event(Unit)
+                        _matchingPincodeErrorEvent.value = Event(Unit)
                     }
                 }, {
                     it.printStackTrace()
@@ -175,7 +143,7 @@ class PinCodeViewModel(
 
     private fun backToCreate() {
         tempCode = ""
-        inputCodeLiveData.value = ""
+        _resetInputEvent.value = Event(Unit)
         _homeButtonVisibilityLiveData.value = false
         _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
     }
@@ -211,7 +179,11 @@ class PinCodeViewModel(
         fingerPrintAvailable = authReady
     }
 
-    fun fingerprintSwitchDialogYesClicked() {
+    private fun authSuccess() {
+        router.openMain()
+    }
+
+    fun acceptAuthWithBiometry() {
         disposables.add(
             interactor.setBiometricOn()
                 .subscribeOn(Schedulers.io())
@@ -224,11 +196,7 @@ class PinCodeViewModel(
         )
     }
 
-    private fun authSuccess() {
-        router.openMain()
-    }
-
-    fun fingerprintSwitchDialogNoClicked() {
+    fun declineAuthWithBiometry() {
         disposables.add(
             interactor.setBiometricOff()
                 .subscribeOn(Schedulers.io())

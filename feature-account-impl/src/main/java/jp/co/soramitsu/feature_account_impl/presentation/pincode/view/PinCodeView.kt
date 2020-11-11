@@ -29,8 +29,7 @@ class PinCodeView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle) {
 
-    var pinCodeListener: (String) -> Unit = {}
-    var deleteClickListener: () -> Unit = {}
+    var pinCodeEnteredListener: (String) -> Unit = {}
     var fingerprintClickListener: () -> Unit = {}
 
     private var inputCode: String = ""
@@ -40,11 +39,31 @@ class PinCodeView @JvmOverloads constructor(
     }
 
     private val pinCodeNumberClickListener = OnClickListener {
-        pinCodeListener((it as AppCompatButton).text.toString())
+        pinNumberAdded((it as AppCompatButton).text.toString())
     }
 
     private val pinCodeDeleteClickListener = OnClickListener {
-        deleteClickListener()
+        deleteClicked()
+    }
+
+    private fun pinNumberAdded(number: String) {
+        if (inputCode.length > DotsProgressView.MAX_PROGRESS) {
+            return
+        } else {
+            inputCode += number
+            updateProgress()
+        }
+        if (inputCode.length == DotsProgressView.MAX_PROGRESS) {
+            pinCodeEnteredListener(inputCode)
+        }
+    }
+
+    private fun deleteClicked() {
+        if (inputCode.isEmpty()) {
+            return
+        }
+        inputCode = inputCode.substring(0, inputCode.length - 1)
+        updateProgress()
     }
 
     private val pinCodeFingerprintClickListener = OnClickListener {
@@ -82,11 +101,22 @@ class PinCodeView @JvmOverloads constructor(
         pinCodeTitleTv.text = title
     }
 
-    fun setProgress(currentProgress: Int) {
+    fun resetInput() {
+        inputCode = ""
+        updateProgress()
+    }
+
+    fun pinCodeMatchingError() {
+        resetInput()
+        shakeDotsAnimation()
+    }
+
+    private fun updateProgress() {
+        val currentProgress = inputCode.length
         dotsProgressView.setProgress(currentProgress)
     }
 
-    fun shakeDotsAnimation() {
+    private fun shakeDotsAnimation() {
         val animation = AnimationUtils.loadAnimation(context, R.anim.shake)
         dotsProgressView.startAnimation(animation)
     }

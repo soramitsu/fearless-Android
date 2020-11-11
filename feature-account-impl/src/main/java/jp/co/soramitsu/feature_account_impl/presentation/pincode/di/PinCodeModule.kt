@@ -34,14 +34,12 @@ class PinCodeModule {
     fun provideViewModel(
         interactor: AccountInteractor,
         router: AccountRouter,
-        maxPinCodeLength: Int,
         deviceVibrator: DeviceVibrator,
         resourceManager: ResourceManager
     ): ViewModel {
         return PinCodeViewModel(
             interactor,
             router,
-            maxPinCodeLength,
             deviceVibrator,
             resourceManager
         )
