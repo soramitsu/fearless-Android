@@ -173,11 +173,12 @@ class PinCodeViewModel(
                 when (currentState) {
                     State.CHECK -> {
                         currentState = State.CREATE
-                        _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
+                        _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_new_pin_code))
                         _homeButtonVisibilityLiveData.value = true
                     }
                     State.CONFIRM -> {
                         router.back()
+                        showMessage(resourceManager.getString(R.string.pincode_changed_message))
                     }
                 }
             }

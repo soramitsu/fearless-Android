@@ -185,4 +185,6 @@
     <string name="common_skip_process">Пропустить</string>
     <string name="wallet_receive_description">Поделиться этим QR-кодом c отправителем</string>
     <string name="wallet_receive_share_message">Мой %s адрес для получения %s:</string>
+    <string name="pincode_enter_new_pin_code">Яңы индерелгән pin-код</string>
+    <string name="pincode_changed_message">Яңыртыу Pin-код</string>
 </resources>
