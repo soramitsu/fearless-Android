@@ -30,16 +30,16 @@ class PinCodeViewModel(
 
     private val inputCodeLiveData = MutableLiveData<String>("")
 
-    private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>(false)
-    val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
-
     val pinCodeProgressLiveData = inputCodeLiveData.map {
         it.length
     }
 
+    private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>(false)
+    val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
+
     private var fingerPrintAvailable = false
-    private lateinit var action: PinCodeAction
     private var tempCode = ""
+    private var currentState: State? = null
 
     private val _titleLiveData = MutableLiveData<String>()
     val titleLiveData: LiveData<String> = _titleLiveData
@@ -65,8 +65,6 @@ class PinCodeViewModel(
     private val _matchingPincodeErrorAnimationEvent = MutableLiveData<Event<Unit>>()
     val matchingPincodeErrorAnimationEvent: LiveData<Event<Unit>> = _matchingPincodeErrorAnimationEvent
 
-    private var currentState: State? = null
-
     fun startAuth() {
         _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
 
@@ -76,30 +74,27 @@ class PinCodeViewModel(
                     _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
                     if (it) {
                         currentState = State.CHECK
-                        action = PinCodeAction.TIMEOUT_CHECK
                         _showFingerPrintEvent.value = Event(Unit)
                     } else {
                         currentState = State.CREATE
-                        action = PinCodeAction.CREATE_PIN_CODE
                     }
                 }, {
                     it.printStackTrace()
                     currentState = State.CREATE
-                    action = PinCodeAction.CREATE_PIN_CODE
                 })
         )
     }
 
     fun pinCodeNumberClicked(pinCodeNumber: String) {
-        inputCodeLiveData.value?.let { inputCode ->
-            if (inputCode.length >= maxPinCodeLength) {
-                return
-            }
-            val newCode = inputCode + pinCodeNumber
-            inputCodeLiveData.value = newCode
-            if (newCode.length == maxPinCodeLength) {
-                pinCodeEntered(newCode)
-            }
+        val inputCode = inputCodeLiveData.value ?: return
+
+        if (inputCode.length >= maxPinCodeLength) {
+            return
+        }
+        val newCode = inputCode + pinCodeNumber
+        inputCodeLiveData.value = newCode
+        if (newCode.length == maxPinCodeLength) {
+            pinCodeEntered(newCode)
         }
     }
 
@@ -113,18 +108,19 @@ class PinCodeViewModel(
     }
 
     private fun pinCodeEntered(pin: String) {
-        if (PinCodeAction.CREATE_PIN_CODE == action) {
-            if (tempCode.isEmpty()) {
-                tempCode = pin
-                inputCodeLiveData.value = ""
-                _titleLiveData.value = resourceManager.getString(R.string.pincode_confirm_your_pin_code)
-                _homeButtonVisibilityLiveData.value = true
-            } else {
-                pinCodeEnterComplete(pin)
-            }
-        } else {
-            checkPinCode(pin)
+        when (currentState) {
+            State.CREATE -> tempCodeEntered(pin)
+            State.CONFIRM -> pinCodeEnterComplete(pin)
+            State.CHECK -> checkPinCode(pin)
         }
+    }
+
+    private fun tempCodeEntered(pin: String) {
+        tempCode = pin
+        inputCodeLiveData.value = ""
+        _titleLiveData.value = resourceManager.getString(R.string.pincode_confirm_your_pin_code)
+        _homeButtonVisibilityLiveData.value = true
+        currentState = State.CONFIRM
     }
 
     private fun pinCodeEnterComplete(pinCode: String) {
@@ -144,7 +140,7 @@ class PinCodeViewModel(
                     if (fingerPrintAvailable) {
                         _biometricSwitchDialogLiveData.value = Event(Unit)
                     } else {
-                        processAuthSuccess()
+                        authSuccess()
                     }
                 }, {
                     it.printStackTrace()
@@ -157,7 +153,7 @@ class PinCodeViewModel(
             interactor.isPinCorrect(code)
                 .subscribe({ pinIsCorrect ->
                     if (pinIsCorrect) {
-                        processAuthSuccess()
+                        authSuccess()
                     } else {
                         inputCodeLiveData.value = ""
                         deviceVibrator.makeShortVibration()
@@ -170,26 +166,22 @@ class PinCodeViewModel(
     }
 
     fun backPressed() {
-        if (PinCodeAction.CREATE_PIN_CODE == action) {
-            if (tempCode.isEmpty()) {
-                _finishAppEvent.value = Event(Unit)
-            } else {
-                tempCode = ""
-                inputCodeLiveData.value = ""
-                _homeButtonVisibilityLiveData.value = false
-                _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
-            }
-        } else {
-            if (PinCodeAction.TIMEOUT_CHECK == action) {
-                _finishAppEvent.value = Event(Unit)
-            } else {
-                router.backToBackupMnemonicScreen()
-            }
+        when (currentState) {
+            State.CREATE -> _finishAppEvent.value = Event(Unit)
+            State.CONFIRM -> backToCreate()
+            State.CHECK -> _finishAppEvent.value = Event(Unit)
         }
     }
 
+    private fun backToCreate() {
+        tempCode = ""
+        inputCodeLiveData.value = ""
+        _homeButtonVisibilityLiveData.value = false
+        _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
+    }
+
     fun onResume() {
-        if (action != PinCodeAction.CREATE_PIN_CODE) {
+        if (State.CHECK == currentState) {
             disposables += interactor.isBiometricEnabled()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -208,7 +200,7 @@ class PinCodeViewModel(
     }
 
     fun onAuthenticationSucceeded() {
-        processAuthSuccess()
+        authSuccess()
     }
 
     fun onAuthenticationFailed() {
@@ -225,14 +217,14 @@ class PinCodeViewModel(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    processAuthSuccess()
+                    authSuccess()
                 }, {
                     it.printStackTrace()
                 })
         )
     }
 
-    private fun processAuthSuccess() {
+    private fun authSuccess() {
         router.openMain()
     }
 
