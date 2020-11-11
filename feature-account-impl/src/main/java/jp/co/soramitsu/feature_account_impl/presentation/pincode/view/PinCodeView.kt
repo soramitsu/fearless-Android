@@ -32,12 +32,6 @@ class PinCodeView @JvmOverloads constructor(
     var pinCodeEnteredListener: (String) -> Unit = {}
     var fingerprintClickListener: () -> Unit = {}
 
-    private var inputCode: String = ""
-
-    init {
-        orientation = VERTICAL
-    }
-
     private val pinCodeNumberClickListener = OnClickListener {
         pinNumberAdded((it as AppCompatButton).text.toString())
     }
@@ -46,29 +40,11 @@ class PinCodeView @JvmOverloads constructor(
         deleteClicked()
     }
 
-    private fun pinNumberAdded(number: String) {
-        if (inputCode.length > DotsProgressView.MAX_PROGRESS) {
-            return
-        } else {
-            inputCode += number
-            updateProgress()
-        }
-        if (inputCode.length == DotsProgressView.MAX_PROGRESS) {
-            pinCodeEnteredListener(inputCode)
-        }
-    }
-
-    private fun deleteClicked() {
-        if (inputCode.isEmpty()) {
-            return
-        }
-        inputCode = inputCode.substring(0, inputCode.length - 1)
-        updateProgress()
-    }
-
     private val pinCodeFingerprintClickListener = OnClickListener {
         fingerprintClickListener()
     }
+
+    private var inputCode: String = ""
 
     init {
         View.inflate(context, R.layout.pincode_view, this)
@@ -109,6 +85,26 @@ class PinCodeView @JvmOverloads constructor(
     fun pinCodeMatchingError() {
         resetInput()
         shakeDotsAnimation()
+    }
+
+    private fun pinNumberAdded(number: String) {
+        if (inputCode.length > DotsProgressView.MAX_PROGRESS) {
+            return
+        } else {
+            inputCode += number
+            updateProgress()
+        }
+        if (inputCode.length == DotsProgressView.MAX_PROGRESS) {
+            pinCodeEnteredListener(inputCode)
+        }
+    }
+
+    private fun deleteClicked() {
+        if (inputCode.isEmpty()) {
+            return
+        }
+        inputCode = inputCode.substring(0, inputCode.length - 1)
+        updateProgress()
     }
 
     private fun updateProgress() {
