@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.Observer
@@ -20,8 +19,6 @@ import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.view.DotsProgressView
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
-import kotlinx.android.synthetic.main.fragment_pincode.dotsProgressView
-import kotlinx.android.synthetic.main.fragment_pincode.pinCodeTitleTv
 import kotlinx.android.synthetic.main.fragment_pincode.pinCodeView
 import javax.inject.Inject
 
@@ -85,9 +82,9 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             pinCodeView.changeFingerPrintButtonVisibility(fingerprintWrapper.isAuthReady())
         })
 
-        observe(viewModel.titleLiveData, Observer {
-            pinCodeTitleTv.text = it
-        })
+        observe(viewModel.titleLiveData, Observer(pinCodeView::setTitle))
+
+        observe(viewModel.pinCodeProgressLiveData, Observer(pinCodeView::setProgress))
 
         observe(viewModel.fingerPrintDialogVisibilityLiveData, Observer {
             if (it) fingerprintDialog.show() else fingerprintDialog.dismiss()
@@ -95,10 +92,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
         observe(viewModel.fingerPrintErrorEvent, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-        })
-
-        observe(viewModel.pinCodeProgressLiveData, Observer {
-            dotsProgressView.setProgress(it)
         })
 
         observe(viewModel.finisAppEvent, EventObserver {
@@ -114,15 +107,10 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
         })
 
         observe(viewModel.matchingPincodeErrorAnimationEvent, EventObserver {
-            playMatchingPincodeErrorAnimation()
+            pinCodeView.shakeDotsAnimation()
         })
 
         viewModel.startAuth()
-    }
-
-    private fun playMatchingPincodeErrorAnimation() {
-        val animation = AnimationUtils.loadAnimation(activity!!, R.anim.shake)
-        dotsProgressView.startAnimation(animation)
     }
 
     override fun onPause() {

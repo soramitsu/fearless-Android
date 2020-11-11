@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.view.View.OnClickListener
+import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatButton
 import jp.co.soramitsu.feature_account_impl.R
@@ -18,7 +19,9 @@ import kotlinx.android.synthetic.main.pincode_view.view.btn7
 import kotlinx.android.synthetic.main.pincode_view.view.btn8
 import kotlinx.android.synthetic.main.pincode_view.view.btn9
 import kotlinx.android.synthetic.main.pincode_view.view.btnDelete
+import kotlinx.android.synthetic.main.pincode_view.view.dotsProgressView
 import kotlinx.android.synthetic.main.pincode_view.view.fingerprintBtn
+import kotlinx.android.synthetic.main.pincode_view.view.pinCodeTitleTv
 
 class PinCodeView @JvmOverloads constructor(
     context: Context,
@@ -29,6 +32,8 @@ class PinCodeView @JvmOverloads constructor(
     var pinCodeListener: (String) -> Unit = {}
     var deleteClickListener: () -> Unit = {}
     var fingerprintClickListener: () -> Unit = {}
+
+    private var inputCode: String = ""
 
     init {
         orientation = VERTICAL
@@ -71,5 +76,18 @@ class PinCodeView @JvmOverloads constructor(
         } else {
             fingerprintBtn.visibility = View.INVISIBLE
         }
+    }
+
+    fun setTitle(title: String) {
+        pinCodeTitleTv.text = title
+    }
+
+    fun setProgress(currentProgress: Int) {
+        dotsProgressView.setProgress(currentProgress)
+    }
+
+    fun shakeDotsAnimation() {
+        val animation = AnimationUtils.loadAnimation(context, R.anim.shake)
+        dotsProgressView.startAnimation(animation)
     }
 }
