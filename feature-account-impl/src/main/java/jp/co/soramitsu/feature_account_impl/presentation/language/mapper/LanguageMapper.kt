@@ -8,7 +8,7 @@ fun mapLanguageToLanguageModel(language: Language): LanguageModel {
     val languageLocale = Locale(language.iso)
     return LanguageModel(
         language.iso,
-        languageLocale.displayLanguage,
-        languageLocale.getDisplayLanguage(languageLocale)
+        languageLocale.displayLanguage.capitalize(),
+        languageLocale.getDisplayLanguage(languageLocale).capitalize()
     )
 }
