@@ -1,20 +1,18 @@
 package jp.co.soramitsu.feature_account_impl.presentation.pincode
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import java.util.concurrent.TimeUnit
 
 class PinCodeViewModel(
     private val interactor: AccountInteractor,
@@ -24,15 +22,24 @@ class PinCodeViewModel(
     private val resourceManager: ResourceManager
 ) : BaseViewModel() {
 
-    companion object {
-        private const val COMPLETE_PIN_CODE_DELAY: Long = 12
+    enum class State {
+        CREATE,
+        CONFIRM,
+        CHECK
+    }
+
+    private val inputCodeLiveData = MutableLiveData<String>("")
+
+    private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>(false)
+    val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
+
+    val pinCodeProgressLiveData = inputCodeLiveData.map {
+        it.length
     }
 
     private var fingerPrintAvailable = false
     private lateinit var action: PinCodeAction
     private var tempCode = ""
-
-    private val inputCodeLiveData = MutableLiveData<String>()
 
     private val _titleLiveData = MutableLiveData<String>()
     val titleLiveData: LiveData<String> = _titleLiveData
@@ -49,30 +56,16 @@ class PinCodeViewModel(
     private val _fingerPrintErrorEvent = MutableLiveData<Event<String>>()
     val fingerPrintErrorEvent: LiveData<Event<String>> = _fingerPrintErrorEvent
 
-    private val _pinCodeProgressLiveData = MediatorLiveData<Int>()
-    val pinCodeProgressLiveData: LiveData<Int> = _pinCodeProgressLiveData
-
     private val _biometricSwitchDialogLiveData = MutableLiveData<Event<Unit>>()
     val biometricSwitchDialogLiveData: LiveData<Event<Unit>> = _biometricSwitchDialogLiveData
 
     private val _finishAppEvent = MutableLiveData<Event<Unit>>()
     val finisAppEvent: LiveData<Event<Unit>> = _finishAppEvent
 
-    private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>()
-    val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
-
     private val _matchingPincodeErrorAnimationEvent = MutableLiveData<Event<Unit>>()
     val matchingPincodeErrorAnimationEvent: LiveData<Event<Unit>> = _matchingPincodeErrorAnimationEvent
 
-    init {
-        _pinCodeProgressLiveData.addSource(inputCodeLiveData) {
-            _pinCodeProgressLiveData.value = it.length
-        }
-
-        _homeButtonVisibilityLiveData.value = false
-
-        inputCodeLiveData.value = ""
-    }
+    private var currentState: State? = null
 
     fun startAuth() {
         _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
@@ -82,13 +75,16 @@ class PinCodeViewModel(
                 .subscribe({
                     _titleLiveData.value = resourceManager.getString(R.string.pincode_enter_pin_code)
                     if (it) {
+                        currentState = State.CHECK
                         action = PinCodeAction.TIMEOUT_CHECK
                         _showFingerPrintEvent.value = Event(Unit)
                     } else {
+                        currentState = State.CREATE
                         action = PinCodeAction.CREATE_PIN_CODE
                     }
                 }, {
                     it.printStackTrace()
+                    currentState = State.CREATE
                     action = PinCodeAction.CREATE_PIN_CODE
                 })
         )
@@ -117,28 +113,18 @@ class PinCodeViewModel(
     }
 
     private fun pinCodeEntered(pin: String) {
-        disposables.add(
-            Completable.complete()
-                .delay(COMPLETE_PIN_CODE_DELAY, TimeUnit.MILLISECONDS)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    if (PinCodeAction.CREATE_PIN_CODE == action) {
-                        if (tempCode.isEmpty()) {
-                            tempCode = pin
-                            inputCodeLiveData.value = ""
-                            _titleLiveData.value = resourceManager.getString(R.string.pincode_confirm_your_pin_code)
-                            _homeButtonVisibilityLiveData.value = true
-                        } else {
-                            pinCodeEnterComplete(pin)
-                        }
-                    } else {
-                        checkPinCode(pin)
-                    }
-                }, {
-                    it.printStackTrace()
-                })
-        )
+        if (PinCodeAction.CREATE_PIN_CODE == action) {
+            if (tempCode.isEmpty()) {
+                tempCode = pin
+                inputCodeLiveData.value = ""
+                _titleLiveData.value = resourceManager.getString(R.string.pincode_confirm_your_pin_code)
+                _homeButtonVisibilityLiveData.value = true
+            } else {
+                pinCodeEnterComplete(pin)
+            }
+        } else {
+            checkPinCode(pin)
+        }
     }
 
     private fun pinCodeEnterComplete(pinCode: String) {
@@ -169,8 +155,8 @@ class PinCodeViewModel(
     private fun checkPinCode(code: String) {
         disposables.add(
             interactor.isPinCorrect(code)
-                .subscribe({
-                    if (it) {
+                .subscribe({ pinIsCorrect ->
+                    if (pinIsCorrect) {
                         processAuthSuccess()
                     } else {
                         inputCodeLiveData.value = ""

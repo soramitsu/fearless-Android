@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import android.widget.Toast
@@ -123,16 +122,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
 
     private fun playMatchingPincodeErrorAnimation() {
         val animation = AnimationUtils.loadAnimation(activity!!, R.anim.shake)
-        animation.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationRepeat(animation: Animation?) {
-            }
-
-            override fun onAnimationStart(animation: Animation?) {
-            }
-
-            override fun onAnimationEnd(animation: Animation?) {
-            }
-        })
         dotsProgressView.startAnimation(animation)
     }
 
