@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import jp.co.soramitsu.common.account.externalActions.copyAddressClicked
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -50,6 +52,8 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun subscribe(viewModel: ProfileViewModel) {
+        observeBrowserEvents(viewModel)
+
         viewModel.selectedAccountLiveData.observe { account ->
             account.name?.let(accountView::setTitle)
 
@@ -66,13 +70,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             selectedLanguageTv.text = it.displayName
         }
 
-        viewModel.showAccountActionsEvent.observeEvent {
-            val address = viewModel.selectedAccountLiveData.value
-
-            address?.let { showAccountActions(it) }
-        }
-
-        viewModel.openBrowserEvent.observeEvent(this::showBrowser)
+        viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
     }
 
     private fun showAccountActions(account: Account) {
@@ -80,7 +78,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             requireContext(),
             account.address,
             account.network.type,
-            viewModel::addressCopyClicked,
+            viewModel::copyAddressClicked,
             viewModel::viewExternalClicked,
             viewModel::accountsClicked
         ).show()

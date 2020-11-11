@@ -7,7 +7,10 @@ import android.os.Vibrator
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
+import jp.co.soramitsu.common.account.externalActions.ExternalAccountActionsProvider
 import jp.co.soramitsu.common.data.FileProviderImpl
+import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -139,5 +142,15 @@ class CommonModule {
     @ApplicationScope
     fun provideFileProvider(contextManager: ContextManager): FileProvider {
         return FileProviderImpl(contextManager.getContext())
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideExternalAccountActions(
+        clipboardManager: ClipboardManager,
+        appLinksProvider: AppLinksProvider,
+        resourceManager: ResourceManager
+    ) : ExternalAccountActions.Presentation {
+        return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager)
     }
 }

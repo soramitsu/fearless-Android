@@ -6,9 +6,11 @@ import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
+import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -28,13 +30,12 @@ class TransactionDetailViewModel(
     private val clipboardManager: ClipboardManager,
     private val appLinksProvider: AppLinksProvider,
     val transaction: TransactionModel
-) : BaseViewModel() {
+) : BaseViewModel(), Browserable {
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalTransactionActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
 
-    private val _openBrowserEvent = MutableLiveData<Event<String>>()
-    val openBrowserEvent: LiveData<Event<String>> = _openBrowserEvent
+    override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val recipientAddressModelLiveData = getRecipientIcon()
         .asLiveData()
@@ -69,15 +70,15 @@ class TransactionDetailViewModel(
         _showExternalViewEvent.value = Event(externalActionsSource)
     }
 
-    fun viewTransactionExternalClicked(analyzer: ExternalAnalyzer, hash: String) {
-        val url = appLinksProvider.getExternalTransactionUrl(analyzer, hash, transaction.token.networkType)
+    fun viewTransactionExternalClicked(analyzer: ExternalAnalyzer, hash: String, networkType: Node.NetworkType) {
+        val url = appLinksProvider.getExternalTransactionUrl(analyzer, hash, networkType)
 
-        _openBrowserEvent.value = Event(url)
+        openBrowserEvent.value = Event(url)
     }
 
-    fun viewAccountExternalClicked(analyzer: ExternalAnalyzer, address: String) {
-        val url = appLinksProvider.getExternalAddressUrl(analyzer, address, transaction.token.networkType)
+    fun viewAccountExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: Node.NetworkType) {
+        val url = appLinksProvider.getExternalAddressUrl(analyzer, address, networkType)
 
-        _openBrowserEvent.value = Event(url)
+        openBrowserEvent.value = Event(url)
     }
 }

@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.details
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import jp.co.soramitsu.common.account.externalActions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
@@ -66,6 +67,8 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
     }
 
     override fun subscribe(viewModel: AccountDetailsViewModel) {
+        setupExternalActions(viewModel)
+
         viewModel.accountLiveData.observe { account ->
             accountDetailsAddressView.setMessage(account.address)
 
@@ -78,31 +81,9 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
             accountDetailsNode.setCompoundDrawablesWithIntrinsicBounds(networkModel.networkTypeUI.icon, 0, 0, 0)
         }
 
-        viewModel.openBrowserEvent.observeEvent(::showBrowser)
-
-        viewModel.showExternalActionsEvent.observeEvent {
-            val account = viewModel.accountLiveData.value!!
-
-            showExternalActionsChooser(account)
-        }
-
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
 
         accountDetailsName.onTextChanged(viewModel::nameChanged)
-    }
-
-    private fun showExternalActionsChooser(account: Account) {
-        ExternalActionsSheet(
-            requireContext(),
-            ExternalActionsSheet.Payload(
-                R.string.profile_accounts_title,
-                R.string.common_copy_address,
-                account.address,
-                account.network.type
-            ),
-            viewModel::copyAddressClicked,
-            viewModel::viewAccountExternalClicked
-        ).show()
     }
 
     private fun showExportSourceChooser(sources: List<ExportSource>) {

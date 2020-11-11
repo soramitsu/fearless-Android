@@ -8,9 +8,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
+import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -19,7 +19,6 @@ import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
@@ -30,11 +29,9 @@ private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 class AccountDetailsViewModel(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
-    private val clipboardManager: ClipboardManager,
-    private val resourceManager: ResourceManager,
-    private val appLinksProvider: AppLinksProvider,
+    private val externalAccountActions: ExternalAccountActions.Presentation,
     val accountAddress: String
-) : BaseViewModel() {
+) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
     private val accountNameChanges = BehaviorSubject.create<String>()
 
     val accountLiveData = getAccount(accountAddress).asLiveData()
@@ -43,12 +40,6 @@ class AccountDetailsViewModel(
 
     private val _showExportSourceChooser = MutableLiveData<Event<List<ExportSource>>>()
     val showExportSourceChooser: LiveData<Event<List<ExportSource>>> = _showExportSourceChooser
-
-    private val _openBrowserEvent = MutableLiveData<Event<String>>()
-    val openBrowserEvent: LiveData<Event<String>> = _openBrowserEvent
-
-    private val _showExternalViewEvent = MutableLiveData<Event<Unit>>()
-    val showExternalActionsEvent: LiveData<Event<Unit>> = _showExternalViewEvent
 
     private val exportSourceTypesLiveData = buildExportSourceTypes().asLiveData()
 
@@ -71,21 +62,9 @@ class AccountDetailsViewModel(
     }
 
     fun addressClicked() {
-       _showExternalViewEvent.value = Event(Unit)
-    }
+        val account = accountLiveData.value ?: return
 
-    fun copyAddressClicked(address: String) {
-        clipboardManager.addToClipboard(address)
-
-        showMessage(resourceManager.getString(R.string.common_copied))
-    }
-
-    fun viewAccountExternalClicked(analyzer: ExternalAnalyzer, address: String) {
-        val account = accountLiveData.value!!
-
-        val url = appLinksProvider.getExternalAddressUrl(analyzer, address, account.network.type)
-
-        _openBrowserEvent.value = Event(url)
+        externalAccountActions.showExternalActions(account)
     }
 
     fun exportClicked() {

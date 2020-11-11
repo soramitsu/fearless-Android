@@ -7,6 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
@@ -26,17 +27,13 @@ class ProfileModule {
         interactor: AccountInteractor,
         router: AccountRouter,
         addressIconGenerator: AddressIconGenerator,
-        appLinksProvider: AppLinksProvider,
-        clipboardManager: ClipboardManager,
-        resourceManager: ResourceManager
+        externalAccountActions: ExternalAccountActions.Presentation
     ): ViewModel {
         return ProfileViewModel(
             interactor,
             router,
             addressIconGenerator,
-            clipboardManager,
-            resourceManager,
-            appLinksProvider
+            externalAccountActions
         )
     }
 

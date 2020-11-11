@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.utils.setDrawableStart
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import kotlinx.android.synthetic.main.item_sheet_external_action.view.itemExternalActionContent
 
-typealias ExternalViewCallback = (ExternalAnalyzer, String) -> Unit
+typealias ExternalViewCallback = (ExternalAnalyzer, String, Node.NetworkType) -> Unit
 typealias CopyCallback = (String) -> Unit
 
 open class ExternalActionsSheet(
@@ -41,13 +41,13 @@ open class ExternalActionsSheet(
 
         if (ExternalAnalyzer.POLKASCAN.isNetworkSupported(networkType)) {
             item(R.drawable.ic_globe_24, R.string.transaction_details_view_polkascan) {
-                onViewExternal(ExternalAnalyzer.POLKASCAN, payload.value)
+                onViewExternal(ExternalAnalyzer.POLKASCAN, payload.value, payload.networkType)
             }
         }
 
         if (ExternalAnalyzer.SUBSCAN.isNetworkSupported(networkType)) {
             item(R.drawable.ic_globe_24, R.string.transaction_details_view_subscan) {
-                onViewExternal(ExternalAnalyzer.SUBSCAN, payload.value)
+                onViewExternal(ExternalAnalyzer.SUBSCAN, payload.value, payload.networkType)
             }
         }
     }

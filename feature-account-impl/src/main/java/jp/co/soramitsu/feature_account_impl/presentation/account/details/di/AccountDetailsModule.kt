@@ -6,7 +6,9 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -17,23 +19,20 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.details.Account
 
 @Module(includes = [ViewModelModule::class])
 class AccountDetailsModule {
+
     @Provides
     @IntoMap
     @ViewModelKey(AccountDetailsViewModel::class)
     fun provideViewModel(
         interactor: AccountInteractor,
         router: AccountRouter,
-        clipboardManager: ClipboardManager,
-        resourceManager: ResourceManager,
-        appLinksProvider: AppLinksProvider,
+        externalAccountActions: ExternalAccountActions.Presentation,
         accountAddress: String
     ): ViewModel {
         return AccountDetailsViewModel(
             interactor,
             router,
-            clipboardManager,
-            resourceManager,
-            appLinksProvider,
+            externalAccountActions,
             accountAddress
         )
     }
