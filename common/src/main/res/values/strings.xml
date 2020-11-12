@@ -5,6 +5,11 @@
 
     <string name="common_copy_address">Copy address</string>
 
+    <string name="export_json_password_explanation">Password is required to encrypt your account for transferring it via Recovery JSON. Please create password for the account to export it.</string>
+    <string name="export_json_password_new">Set password</string>
+    <string name="export_json_password_confirm">Confirm password</string>
+    <string name="export_json_password_match_error">Password mismatched</string>
+
     <string name="account_export_warning_title">Be careful</string>
     <string name="account_export_warning_message">Sharing or copying your secret is a high risk operation, don’t send it to anyone. Would you like to proceed with sharing/copying process?</string>
 

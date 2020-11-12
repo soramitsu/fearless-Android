@@ -56,7 +56,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun initViews() {
-        transfersContainer.anchorTo(balanceDetailContent)
+        transfersContainer.initializeBehavior(anchorView = balanceDetailContent)
 
         transfersContainer.setPageLoadListener {
             viewModel.shouldLoadPage()
@@ -98,7 +98,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun subscribe(viewModel: BalanceDetailViewModel) {
-        viewModel.syncAsset()
+        viewModel.syncAssetRates()
         viewModel.syncFirstTransactionsPage()
 
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)

@@ -33,7 +33,7 @@ interface AccountInteractor {
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
     fun importFromSeed(
@@ -41,10 +41,14 @@ interface AccountInteractor {
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
-    fun importFromJson(json: String, password: String, name: String, node: Node): Completable
+    fun importFromJson(
+        json: String,
+        password: String,
+        name: String
+    ): Completable
 
     fun getAddressId(account: Account): Single<ByteArray>
 
@@ -68,7 +72,7 @@ interface AccountInteractor {
 
     fun getSelectedNode(): Single<Node>
 
-    fun getSelectedNetwork(): Single<Network>
+    fun getSelectedNetworkType(): Single<Node.NetworkType>
 
     fun shouldOpenOnboarding(): Single<Boolean>
 
@@ -103,8 +107,6 @@ interface AccountInteractor {
     fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable
 
     fun selectNode(nodeId: Int): Completable
-
-    fun getNetwork(networkType: Node.NetworkType): Single<Network>
 
     fun deleteNode(nodeId: Int): Completable
 }

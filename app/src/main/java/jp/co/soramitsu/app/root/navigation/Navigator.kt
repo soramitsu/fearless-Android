@@ -2,9 +2,12 @@ package jp.co.soramitsu.app.root.navigation
 
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.presentation.RootRouter
+import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
@@ -25,7 +28,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTran
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment
 import jp.co.soramitsu.splash.SplashRouter
 
-class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
+class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, RootRouter {
 
     private var navController: NavController? = null
 
@@ -162,6 +165,13 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_open_receive)
     }
 
+    override fun returnToMain() {
+        // to achieve smooth animation
+        postToUiThread {
+            navController?.navigate(R.id.action_return_to_wallet)
+        }
+    }
+
     override fun openAccountDetails(address: String) {
         val extras = AccountDetailsFragment.getBundle(address)
 
@@ -210,5 +220,11 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         val extras = ConfirmMnemonicFragment.getBundle(ConfirmMnemonicPayload(mnemonic, null))
 
         navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
+    }
+
+    override fun openExportJsonPassword(accountAddress: String) {
+        val extras = ExportJsonPasswordFragment.getBundle(accountAddress)
+
+        navController?.navigate(R.id.action_accountDetailsFragment_to_exportJsonPasswordFragment, extras)
     }
 }

@@ -37,6 +37,12 @@ class MainFragment : BaseFragment<MainViewModel>() {
         backCallback.isEnabled = false
     }
 
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+
+        navController!!.restoreState(savedInstanceState)
+    }
+
     override fun initViews() {
         val nestedNavHostFragment =
             childFragmentManager.findFragmentById(R.id.bottomNavHost) as NavHostFragment
@@ -59,7 +65,7 @@ class MainFragment : BaseFragment<MainViewModel>() {
     override fun inject() {
         FeatureUtils.getFeature<RootComponent>(this, RootApi::class.java)
             .mainFragmentComponentFactory()
-            .create(this)
+            .create(requireActivity())
             .inject(this)
     }
 

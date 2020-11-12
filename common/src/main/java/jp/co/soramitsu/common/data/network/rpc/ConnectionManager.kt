@@ -2,10 +2,16 @@ package jp.co.soramitsu.common.data.network.rpc
 
 import io.reactivex.Observable
 
-interface ConnectionManager {
-    fun setAllowedToConnect(allowed: Boolean)
+enum class LifecycleCondition {
+    ALLOWED, FORBIDDEN, STOPPED
+}
 
-    fun observeAllowedToConnect(): Observable<Boolean>
+interface ConnectionManager {
+    fun setLifecycleCondition(condition: LifecycleCondition)
+
+    fun observeLifecycleCondition(): Observable<LifecycleCondition>
+
+    fun getLifecycleCondition(): LifecycleCondition
 
     fun start(url: String)
 

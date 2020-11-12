@@ -86,12 +86,12 @@ class ImportAccountViewModel(
     fun nextClicked() {
         val sourceType = selectedSourceTypeLiveData.value!!
 
-        val node = selectedNetworkLiveData.value?.defaultNode!!
+        val networkType = selectedNetworkLiveData.value!!.networkTypeUI.networkType
         val cryptoType = selectedEncryptionTypeLiveData.value!!.cryptoType
         val derivationPath = derivationPathLiveData.value.orEmpty()
         val name = nameLiveData.value!!
 
-        val importObservable = constructImportObservable(sourceType, name, derivationPath, cryptoType, node)
+        val importObservable = constructImportObservable(sourceType, name, derivationPath, cryptoType, networkType)
 
         disposables += importObservable
             .andThen(interactor.isCodeSet())
@@ -156,27 +156,32 @@ class ImportAccountViewModel(
         )
     }
 
-    private fun constructImportObservable(sourceType: ImportSource, name: String, derivationPath: String, cryptoType: CryptoType, node: Node): Completable {
+    private fun constructImportObservable(
+        sourceType: ImportSource,
+        name: String,
+        derivationPath: String,
+        cryptoType: CryptoType,
+        networkType: Node.NetworkType
+    ): Completable {
         return when (sourceType) {
             is MnemonicImportSource -> interactor.importFromMnemonic(
                 sourceType.mnemonicContentLiveData.value!!,
                 name,
                 derivationPath,
                 cryptoType,
-                node
+                networkType
             )
             is RawSeedImportSource -> interactor.importFromSeed(
                 sourceType.rawSeedLiveData.value!!,
                 name,
                 derivationPath,
                 cryptoType,
-                node
+                networkType
             )
             is JsonImportSource -> interactor.importFromJson(
                 sourceType.jsonContentLiveData.value!!,
                 sourceType.passwordLiveData.value!!,
-                name,
-                node
+                name
             )
         }
     }

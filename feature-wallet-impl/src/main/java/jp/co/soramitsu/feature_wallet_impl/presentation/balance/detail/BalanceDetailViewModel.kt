@@ -67,8 +67,8 @@ class BalanceDetailViewModel(
 
     val assetLiveData = observeAssetModel().asLiveData()
 
-    fun syncAsset() {
-        disposables += interactor.syncAsset(token)
+    fun syncAssetRates() {
+        disposables += interactor.syncAssetRates(token)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnComplete { balanceRefreshFinished() }
@@ -79,7 +79,7 @@ class BalanceDetailViewModel(
         transactionsRefreshed = false
         balanceRefreshed = false
 
-        syncAsset()
+        syncAssetRates()
         syncFirstTransactionsPage()
     }
 

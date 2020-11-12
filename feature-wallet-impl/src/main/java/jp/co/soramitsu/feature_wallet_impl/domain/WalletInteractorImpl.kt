@@ -30,16 +30,16 @@ class WalletInteractorImpl(
         return walletRepository.observeAssets()
     }
 
-    override fun syncAssets(withoutRates: Boolean): Completable {
-        return walletRepository.syncAssets(withoutRates)
+    override fun syncAssetsRates(): Completable {
+        return walletRepository.syncAssetsRates()
     }
 
     override fun observeAsset(token: Asset.Token): Observable<Asset> {
         return walletRepository.observeAsset(token)
     }
 
-    override fun syncAsset(token: Asset.Token, withoutRates: Boolean): Completable {
-        return walletRepository.syncAsset(token, withoutRates)
+    override fun syncAssetRates(token: Asset.Token): Completable {
+        return walletRepository.syncAsset(token)
     }
 
     override fun observeCurrentAsset(): Observable<Asset> {

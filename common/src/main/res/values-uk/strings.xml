@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_json_password_match_error">Пароль не відповідає</string>
+    <string name="export_json_password_confirm">Підтвердьте пароль</string>
+    <string name="export_json_password_new">Встановити пароль</string>
+    <string name="export_json_password_explanation">Пароль потрібен для шифрування вашого облікового запису та зберігання як Recovery JSON. Будь ласка, створіть пароль для продовження роботи.</string>
+
     <string name="account_export_warning_title">Будь обережний</string>
     <string name="account_export_warning_message">Поділитися або скопіювати вашу таємницю є операцією високого ризику, не надсилайте її нікому. Ви хотіли б продовжити процес обміну / копіювання?</string>
     <string name="account_export_action">Експорт</string>
