@@ -23,7 +23,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.AccountSource
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToCryptoTypeModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.importing.FileReader
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
@@ -128,7 +128,7 @@ class JsonImportSource(
     }
 
     private fun handleParsedImportData(it: ImportJsonData) {
-        val networkModel = mapNetworkToNetworkModel(it.network)
+        val networkModel = mapNetworkTypeToNetworkModel(it.networkType)
         networkLiveData.value = networkModel
 
         val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, it.encryptionType)
