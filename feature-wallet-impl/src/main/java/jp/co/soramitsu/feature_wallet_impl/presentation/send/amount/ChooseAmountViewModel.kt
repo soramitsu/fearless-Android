@@ -44,7 +44,6 @@ class ChooseAmountViewModel(
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
-    private val clipboardManager: ClipboardManager,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val recipientAddress: String
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {

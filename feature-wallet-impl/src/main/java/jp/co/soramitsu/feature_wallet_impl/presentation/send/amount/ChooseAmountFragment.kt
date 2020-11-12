@@ -43,7 +43,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_choose_amount, container, false)
 
     override fun initViews() {
-        chooseAmountRecipientView.setWholeClickListener { viewModel.recipientAddressClicked() }
+        chooseAmountRecipientView.setActionClickListener { viewModel.recipientAddressClicked() }
 
         chooseAmountToolbar.setHomeButtonListener { viewModel.backClicked() }
 

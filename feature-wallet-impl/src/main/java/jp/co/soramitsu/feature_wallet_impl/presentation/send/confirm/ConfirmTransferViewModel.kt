@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -24,8 +25,9 @@ class ConfirmTransferViewModel(
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val clipboardManager: ClipboardManager,
+    private val externalAccountActions: ExternalAccountActions.Presentation,
     val transferDraft: TransferDraft
-) : BaseViewModel() {
+) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<Unit>>()
     val showBalanceDetailsEvent: LiveData<Event<Unit>> = _showBalanceDetailsEvent
@@ -55,9 +57,9 @@ class ConfirmTransferViewModel(
     }
 
     fun copyRecipientAddressClicked() {
-        clipboardManager.addToClipboard(transferDraft.recipientAddress)
+        val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, transferDraft.token.networkType)
 
-        showMessage(resourceManager.getString(R.string.common_copied))
+        externalAccountActions.showExternalActions(payload)
     }
 
     fun availableBalanceClicked() {

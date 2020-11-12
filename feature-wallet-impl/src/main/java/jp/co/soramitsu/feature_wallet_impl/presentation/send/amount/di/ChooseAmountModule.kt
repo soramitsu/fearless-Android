@@ -27,7 +27,6 @@ class ChooseAmountModule {
         router: WalletRouter,
         resourceManager: ResourceManager,
         addressModelGenerator: AddressIconGenerator,
-        clipboardManager: ClipboardManager,
         externalAccountActions: ExternalAccountActions.Presentation,
         recipientAddress: String
     ): ViewModel {
@@ -36,7 +35,6 @@ class ChooseAmountModule {
             router,
             resourceManager,
             addressModelGenerator,
-            clipboardManager,
             externalAccountActions,
             recipientAddress
         )
