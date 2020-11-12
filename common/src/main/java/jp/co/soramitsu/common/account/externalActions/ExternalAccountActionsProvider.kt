@@ -17,14 +17,14 @@ class ExternalAccountActionsProvider(
 ) : ExternalAccountActions.Presentation {
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
-    override val showExternalActionsEvent = MutableLiveData<Event<Account>>()
+    override val showExternalActionsEvent = MutableLiveData<Event<ExternalAccountActions.Payload>>()
 
     override fun showBrowser(url: String) {
         openBrowserEvent.value = Event(url)
     }
 
-    override fun showExternalActions(account: Account) {
-        showExternalActionsEvent.value = Event(account)
+    override fun showExternalActions(payload: ExternalAccountActions.Payload) {
+        showExternalActionsEvent.value = Event(payload)
     }
 
     override fun copyAddress(address: String, messageShower: (message: String) -> Unit) {

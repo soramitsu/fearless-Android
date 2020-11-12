@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.StringRes
+import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.showBrowser
@@ -11,8 +12,8 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import jp.co.soramitsu.common.view.bottomSheet.ExternalActionsSheet
-import jp.co.soramitsu.common.view.bottomSheet.ExternalViewCallback
+import jp.co.soramitsu.common.account.externalActions.ExternalActionsSheet
+import jp.co.soramitsu.common.account.externalActions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import jp.co.soramitsu.feature_wallet_impl.util.formatDateTime
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailAmount
@@ -148,8 +149,10 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         val payload = ExternalActionsSheet.Payload(
             titleRes = titleRes,
             copyLabel = copyLabelRes,
-            value = value,
-            networkType = viewModel.transaction.token.networkType
+            content = ExternalAccountActions.Payload(
+                value = value,
+                networkType = viewModel.transaction.token.networkType
+            )
         )
 
         ExternalActionsSheet(

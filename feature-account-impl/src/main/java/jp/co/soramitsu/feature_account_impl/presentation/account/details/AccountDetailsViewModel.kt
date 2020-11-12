@@ -62,9 +62,11 @@ class AccountDetailsViewModel(
     }
 
     fun addressClicked() {
-        val account = accountLiveData.value ?: return
+        accountLiveData.value?.let {
+            val payload = ExternalAccountActions.Payload(it.address, it.network.type)
 
-        externalAccountActions.showExternalActions(account)
+            externalAccountActions.showExternalActions(payload)
+        }
     }
 
     fun exportClicked() {

@@ -63,7 +63,7 @@ class ProfileViewModel(
     fun accountActionsClicked() {
         val account = selectedAccountLiveData.value ?: return
 
-        externalAccountActions.showExternalActions(account)
+        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(account.address, account.network.type))
     }
 
     private fun observeIcon(accountObservable: Observable<Account>): Observable<AddressModel> {
