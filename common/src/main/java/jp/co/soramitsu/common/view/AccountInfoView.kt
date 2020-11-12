@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import kotlinx.android.synthetic.main.view_account_info.view.accountAction

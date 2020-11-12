@@ -7,7 +7,6 @@ import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 
 class ExternalAccountActionsProvider(

@@ -31,7 +31,6 @@ import kotlinx.android.synthetic.main.fragment_import_account.nextBtn
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeContainer
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
-import javax.inject.Inject
 
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 

@@ -79,5 +79,5 @@ interface CommonApi {
 
     fun fileProvider(): FileProvider
 
-    fun externalAccountActions() : ExternalAccountActions.Presentation
+    fun externalAccountActions(): ExternalAccountActions.Presentation
 }

@@ -7,7 +7,6 @@ import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
 import jp.co.soramitsu.common.account.externalActions.ExternalActionsSheet
 import jp.co.soramitsu.common.account.externalActions.ExternalViewCallback
 import jp.co.soramitsu.common.view.bottomSheet.item
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 
 class ProfileActionsSheet(

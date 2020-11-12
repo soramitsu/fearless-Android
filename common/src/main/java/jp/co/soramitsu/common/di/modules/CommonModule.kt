@@ -150,7 +150,7 @@ class CommonModule {
         clipboardManager: ClipboardManager,
         appLinksProvider: AppLinksProvider,
         resourceManager: ResourceManager
-    ) : ExternalAccountActions.Presentation {
+    ): ExternalAccountActions.Presentation {
         return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager)
     }
 }

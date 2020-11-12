@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.view.shape.CutCornersShape
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import kotlinx.android.synthetic.main.button_glassy.view.buttonGlassyContent

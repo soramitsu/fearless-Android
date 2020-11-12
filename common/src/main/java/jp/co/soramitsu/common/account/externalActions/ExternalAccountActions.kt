@@ -6,8 +6,6 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 
-
-
 interface ExternalAccountActions : Browserable {
 
     class Payload(

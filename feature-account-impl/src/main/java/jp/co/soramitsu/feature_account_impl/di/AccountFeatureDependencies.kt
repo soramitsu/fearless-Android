@@ -5,7 +5,6 @@ import com.google.gson.Gson
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -47,5 +46,5 @@ interface AccountFeatureDependencies {
 
     fun addressIconGenerator(): AddressIconGenerator
 
-    fun externalAccountActions() : ExternalAccountActions.Presentation
+    fun externalAccountActions(): ExternalAccountActions.Presentation
 }

@@ -30,7 +30,7 @@ class AppLinksProvider(
         value: String,
         networkType: Node.NetworkType,
         extractor: (ExternalAnalyzerLinks) -> String
-    ) : String {
+    ): String {
         val template = externalAnalyzerTemplates[analyzer] ?: error("No template for $analyzer")
 
         return extractor(template).format(networkPathSegment(networkType), value)

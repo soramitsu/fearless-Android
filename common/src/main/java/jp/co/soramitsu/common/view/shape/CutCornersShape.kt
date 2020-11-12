@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.view.shape
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.drawable.shapes.Shape
