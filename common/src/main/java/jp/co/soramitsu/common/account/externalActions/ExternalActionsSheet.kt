@@ -9,8 +9,9 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.utils.setDrawableStart
 import jp.co.soramitsu.common.view.bottomSheet.FixedListBottomSheet
+import jp.co.soramitsu.common.view.bottomSheet.item
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import kotlinx.android.synthetic.main.item_sheet_external_action.view.itemExternalActionContent
+import kotlinx.android.synthetic.main.item_sheet_iconic_label.view.itemExternalActionContent
 
 typealias ExternalViewCallback = (ExternalAnalyzer, String, Node.NetworkType) -> Unit
 typealias CopyCallback = (String) -> Unit
@@ -53,12 +54,5 @@ open class ExternalActionsSheet(
         }
     }
 
-    protected fun item(@DrawableRes icon: Int, @StringRes titleRes: Int, onClick: (View) -> Unit) {
-        item(R.layout.item_sheet_external_action) { view ->
-            view.itemExternalActionContent.setText(titleRes)
-            view.itemExternalActionContent.setDrawableStart(icon, widthInDp = 24, tint = R.color.white)
 
-            view.setDismissingClickListener(onClick)
-        }
-    }
 }

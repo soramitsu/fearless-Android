@@ -1,15 +1,32 @@
 package jp.co.soramitsu.feature_account_impl.presentation.importing.source.model
 
+import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.common.resources.ClipboardManager
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.isNotEmpty
+import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.IncorrectPasswordException
 import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.InvalidJsonException
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.AccountSource
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToCryptoTypeModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.importing.FileReader
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import org.bouncycastle.util.encoders.DecoderException
 
 class ImportError(
@@ -20,7 +37,7 @@ class ImportError(
 sealed class ImportSource(@StringRes nameRes: Int) : AccountSource(nameRes) {
 
     private val _validationLiveData = MediatorLiveData<Boolean>()
-    val validationLiveData = _validationLiveData
+    val validationLiveData: LiveData<Boolean> = _validationLiveData
 
     init {
         _validationLiveData.value = false
@@ -37,10 +54,32 @@ sealed class ImportSource(@StringRes nameRes: Int) : AccountSource(nameRes) {
     }
 }
 
-class JsonImportSource : ImportSource(R.string.recovery_json) {
+private const val PICK_FILE_RESULT_CODE = 101
+
+class JsonImportSource(
+    private val networkLiveData: MutableLiveData<NetworkModel>,
+    private val nameLiveData: MutableLiveData<String>,
+    private val cryptoTypeLiveData: MutableLiveData<CryptoTypeModel>,
+    private val interactor: AccountInteractor,
+    private val resourceManager: ResourceManager,
+    private val clipboardManager: ClipboardManager,
+    private val fileReader: FileReader,
+    private val disposables: CompositeDisposable
+) : ImportSource(R.string.recovery_json), FileRequester {
 
     val jsonContentLiveData = MutableLiveData<String>()
     val passwordLiveData = MutableLiveData<String>()
+
+    private val _showJsonInputOptionsEvent = MutableLiveData<Event<Unit>>()
+    val showJsonInputOptionsEvent: LiveData<Event<Unit>> = _showJsonInputOptionsEvent
+
+    override val chooseJsonFileEvent = MutableLiveData<Event<RequestCode>>()
+
+    init {
+        addValidationSource(jsonContentLiveData)
+
+        addValidationSource(passwordLiveData)
+    }
 
     override fun isFieldsValid(): Boolean {
         return jsonContentLiveData.isNotEmpty() && passwordLiveData.isNotEmpty()
@@ -60,10 +99,42 @@ class JsonImportSource : ImportSource(R.string.recovery_json) {
         }
     }
 
-    init {
-        addValidationSource(jsonContentLiveData)
+    override fun fileChosen(uri: Uri) {
+        disposables += fileReader.readFile(uri)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(::jsonReceived)
+    }
 
-        addValidationSource(passwordLiveData)
+    fun jsonClicked() {
+        _showJsonInputOptionsEvent.sendEvent()
+    }
+
+    fun chooseFileClicked() {
+        chooseJsonFileEvent.value = Event(PICK_FILE_RESULT_CODE)
+    }
+
+    fun pasteClicked() {
+        clipboardManager.getFromClipboard()?.let(this::jsonReceived)
+    }
+
+    private fun jsonReceived(newJson: String) {
+        jsonContentLiveData.value = newJson
+
+        disposables += interactor.processAccountJson(newJson)
+            .subscribeOn(Schedulers.computation())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(::handleParsedImportData, DEFAULT_ERROR_HANDLER)
+    }
+
+    private fun handleParsedImportData(it: ImportJsonData) {
+        val networkModel = mapNetworkToNetworkModel(it.network)
+        networkLiveData.value = networkModel
+
+        val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, it.encryptionType)
+        cryptoTypeLiveData.value = cryptoModel
+
+        nameLiveData.value = it.name
     }
 }
 
