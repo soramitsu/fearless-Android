@@ -20,7 +20,7 @@ fun <T> BaseFragment<T>.showAccountExternalActions(
     ExternalActionsSheet(
         requireContext(),
         ExternalActionsSheet.Payload(
-            R.string.profile_accounts_title,
+            R.string.profile_title,
             R.string.common_copy_address,
             payload
         ),
