@@ -180,4 +180,7 @@
     <string name="common_skip_process">Пропустить</string>
     <string name="wallet_receive_description">Поделиться этим QR-кодом c отправителем</string>
     <string name="wallet_receive_share_message">Мой %s адрес для получения %s:</string>
+    <string name="common_copy_address">Копировать адрес</string>
+    <string name="common_choose_file">Загрузить файл</string>
+    <string name="import_json_paste">Json профилендә</string>
 </resources>

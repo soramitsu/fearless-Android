@@ -178,4 +178,7 @@
     <string name="common_skip_process">プロセスをスキップ</string>
     <string name="wallet_receive_description">このQRを送信者に共有する</string>
     <string name="wallet_receive_share_message">マイ%s受信するためのアドレス%s:</string>
+    <string name="common_copy_address">コピーアドレス</string>
+    <string name="common_choose_file">ファイルをアップロードする</string>
+    <string name="import_json_paste">jsonを貼り付け</string>
 </resources>

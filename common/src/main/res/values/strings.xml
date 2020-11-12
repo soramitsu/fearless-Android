@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="import_json_paste">Paste JSON</string>
+    <string name="common_choose_file">Upload file</string>
+
     <string name="common_copy_address">Copy address</string>
 
     <string name="account_export_warning_title">Be careful</string>

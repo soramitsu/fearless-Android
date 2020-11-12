@@ -178,4 +178,7 @@
     <string name="common_skip_process">Salta processo</string>
     <string name="wallet_receive_description">Condividi questo QR con il mittente</string>
     <string name="wallet_receive_share_message">Il mio %s indirizzo per ricevere %s:</string>
+    <string name="common_copy_address">Copia indirizzo</string>
+    <string name="common_choose_file">Caricare un file</string>
+    <string name="import_json_paste">Incolla json</string>
 </resources>
