@@ -13,8 +13,9 @@ import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
-import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
@@ -45,6 +46,7 @@ class AccountRepositoryImpl(
     private val keypairFactory: KeypairFactory,
     private val appLinksProvider: AppLinksProvider,
     private val jsonSeedDecoder: JsonSeedDecoder,
+    private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
     private val accountSubstrateSource: AccountSubstrateSource
 ) : AccountRepository {
@@ -407,7 +409,7 @@ class AccountRepositoryImpl(
             val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
             val addressType = mapNetworkTypeToAddressType(account.network.type)
 
-            "TODO" // TODO
+            jsonSeedEncoder.generate(keypair, seed, password, account.name.orEmpty(), cryptoType, addressType)
         }
     }
 

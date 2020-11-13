@@ -28,6 +28,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import java.security.SecureRandom
+import java.util.Random
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
@@ -140,4 +142,8 @@ class CommonModule {
     fun provideFileProvider(contextManager: ContextManager): FileProvider {
         return FileProviderImpl(contextManager.getContext())
     }
+
+    @Provides
+    @ApplicationScope
+    fun provideRandom(): Random = SecureRandom()
 }

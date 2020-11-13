@@ -19,11 +19,11 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToCryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
@@ -168,14 +168,14 @@ class ImportAccountViewModel(
             .subscribe(::handleParsedImportData, DEFAULT_ERROR_HANDLER)
     }
 
-    private fun handleParsedImportData(it: ImportJsonData) {
-        val networkModel = mapNetworkToNetworkModel(it.network)
+    private fun handleParsedImportData(importData: ImportJsonData) {
+        val networkModel = mapNetworkToNetworkModel(importData.network)
         selectedNetworkLiveData.value = networkModel
 
-        val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, it.encryptionType)
+        val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, importData.encryptionType)
         selectedEncryptionTypeLiveData.value = cryptoModel
 
-        nameLiveData.value = it.name
+        importData.name?.let { nameLiveData.value = it }
     }
 
     fun fileChosen(fileContent: String?) {
