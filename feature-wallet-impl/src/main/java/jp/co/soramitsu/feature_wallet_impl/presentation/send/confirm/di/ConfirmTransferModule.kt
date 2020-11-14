@@ -10,8 +10,6 @@ import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
-import jp.co.soramitsu.common.resources.ClipboardManager
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
@@ -24,20 +22,16 @@ class ConfirmTransferModule {
     @IntoMap
     @ViewModelKey(ConfirmTransferViewModel::class)
     fun provideViewModel(
-            interactor: WalletInteractor,
-            router: WalletRouter,
-            resourceManager: ResourceManager,
-            addressIconGenerator: AddressIconGenerator,
-            clipboardManager: ClipboardManager,
-            externalAccountActions: ExternalAccountActions.Presentation,
-            transferDraft: TransferDraft
+        interactor: WalletInteractor,
+        router: WalletRouter,
+        addressIconGenerator: AddressIconGenerator,
+        externalAccountActions: ExternalAccountActions.Presentation,
+        transferDraft: TransferDraft
     ): ViewModel {
         return ConfirmTransferViewModel(
             interactor,
             router,
-            resourceManager,
             addressIconGenerator,
-            clipboardManager,
             externalAccountActions,
             transferDraft
         )

@@ -10,11 +10,11 @@ import jp.co.soramitsu.common.view.bottomSheet.item
 import jp.co.soramitsu.feature_account_impl.R
 
 class ProfileActionsSheet(
-        context: Context,
-        content: ExternalAccountActions.Payload,
-        onCopy: CopyCallback,
-        onExternalView: ExternalViewCallback,
-        private val onOpenAccounts: () -> Unit
+    context: Context,
+    content: ExternalAccountActions.Payload,
+    onCopy: CopyCallback,
+    onExternalView: ExternalViewCallback,
+    private val onOpenAccounts: () -> Unit
 ) : ExternalActionsSheet(
     context = context,
     payload = Payload(

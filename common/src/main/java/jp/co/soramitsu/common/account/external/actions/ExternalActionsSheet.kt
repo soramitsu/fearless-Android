@@ -13,10 +13,10 @@ typealias ExternalViewCallback = (ExternalAnalyzer, String, Node.NetworkType) ->
 typealias CopyCallback = (String) -> Unit
 
 open class ExternalActionsSheet(
-        context: Context,
-        private val payload: Payload,
-        val onCopy: CopyCallback,
-        val onViewExternal: ExternalViewCallback
+    context: Context,
+    private val payload: Payload,
+    val onCopy: CopyCallback,
+    val onViewExternal: ExternalViewCallback
 ) : FixedListBottomSheet(context) {
 
     class Payload(

@@ -25,12 +25,12 @@ import java.io.FileOutputStream
 private const val AVATAR_SIZE_DP = 32
 
 class ReceiveViewModel(
-        private val interactor: WalletInteractor,
-        private val qrCodeGenerator: QrCodeGenerator,
-        private val addressIconGenerator: AddressIconGenerator,
-        private val resourceManager: ResourceManager,
-        private val externalAccountActions: ExternalAccountActions.Presentation,
-        private val router: WalletRouter
+    private val interactor: WalletInteractor,
+    private val qrCodeGenerator: QrCodeGenerator,
+    private val addressIconGenerator: AddressIconGenerator,
+    private val resourceManager: ResourceManager,
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val router: WalletRouter
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     companion object {

@@ -22,12 +22,12 @@ class ChooseAmountModule {
     @IntoMap
     @ViewModelKey(ChooseAmountViewModel::class)
     fun provideViewModel(
-            interactor: WalletInteractor,
-            router: WalletRouter,
-            resourceManager: ResourceManager,
-            addressModelGenerator: AddressIconGenerator,
-            externalAccountActions: ExternalAccountActions.Presentation,
-            recipientAddress: String
+        interactor: WalletInteractor,
+        router: WalletRouter,
+        resourceManager: ResourceManager,
+        addressModelGenerator: AddressIconGenerator,
+        externalAccountActions: ExternalAccountActions.Presentation,
+        recipientAddress: String
     ): ViewModel {
         return ChooseAmountViewModel(
             interactor,

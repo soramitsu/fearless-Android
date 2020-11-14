@@ -20,10 +20,10 @@ class AccountDetailsModule {
     @IntoMap
     @ViewModelKey(AccountDetailsViewModel::class)
     fun provideViewModel(
-            interactor: AccountInteractor,
-            router: AccountRouter,
-            externalAccountActions: ExternalAccountActions.Presentation,
-            accountAddress: String
+        interactor: AccountInteractor,
+        router: AccountRouter,
+        externalAccountActions: ExternalAccountActions.Presentation,
+        accountAddress: String
     ): ViewModel {
         return AccountDetailsViewModel(
             interactor,

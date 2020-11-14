@@ -2,7 +2,6 @@ package jp.co.soramitsu.common.account.external.actions
 
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.resources.ClipboardManager

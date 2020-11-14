@@ -23,12 +23,12 @@ class ReceiveModule {
     @IntoMap
     @ViewModelKey(ReceiveViewModel::class)
     fun provideViewModel(
-            interactor: WalletInteractor,
-            qrCodeGenerator: QrCodeGenerator,
-            addressIconGenerator: AddressIconGenerator,
-            resourceManager: ResourceManager,
-            externalAccountActions: ExternalAccountActions.Presentation,
-            router: WalletRouter
+        interactor: WalletInteractor,
+        qrCodeGenerator: QrCodeGenerator,
+        addressIconGenerator: AddressIconGenerator,
+        resourceManager: ResourceManager,
+        externalAccountActions: ExternalAccountActions.Presentation,
+        router: WalletRouter
     ): ViewModel {
         return ReceiveViewModel(
             interactor,

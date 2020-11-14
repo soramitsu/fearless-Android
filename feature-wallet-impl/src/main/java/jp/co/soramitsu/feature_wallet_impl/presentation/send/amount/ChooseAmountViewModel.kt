@@ -39,12 +39,12 @@ enum class RetryReason(val reasonRes: Int) {
 }
 
 class ChooseAmountViewModel(
-        private val interactor: WalletInteractor,
-        private val router: WalletRouter,
-        private val resourceManager: ResourceManager,
-        private val addressIconGenerator: AddressIconGenerator,
-        private val externalAccountActions: ExternalAccountActions.Presentation,
-        private val recipientAddress: String
+    private val interactor: WalletInteractor,
+    private val router: WalletRouter,
+    private val resourceManager: ResourceManager,
+    private val addressIconGenerator: AddressIconGenerator,
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val recipientAddress: String
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     val recipientModelLiveData = generateAddressModel(recipientAddress).asLiveData()

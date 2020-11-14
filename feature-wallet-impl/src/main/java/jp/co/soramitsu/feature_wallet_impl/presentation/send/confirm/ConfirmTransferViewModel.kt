@@ -7,8 +7,6 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.resources.ClipboardManager
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -19,20 +17,17 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 private const val ICON_IN_DP = 24
 
 class ConfirmTransferViewModel(
-        private val interactor: WalletInteractor,
-        private val router: WalletRouter,
-        private val resourceManager: ResourceManager,
-        private val addressIconGenerator: AddressIconGenerator,
-        private val clipboardManager: ClipboardManager,
-        private val externalAccountActions: ExternalAccountActions.Presentation,
-        val transferDraft: TransferDraft
+    private val interactor: WalletInteractor,
+    private val router: WalletRouter,
+    private val addressIconGenerator: AddressIconGenerator,
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    val transferDraft: TransferDraft
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<Unit>>()
     val showBalanceDetailsEvent: LiveData<Event<Unit>> = _showBalanceDetailsEvent
 
-    val recipientModel = getAddressIcon()
-        .asLiveData()
+    val recipientModel = getAddressIcon().asLiveData()
 
     private val _transferSubmittingLiveData = MutableLiveData(false)
     val transferSubmittingLiveData: LiveData<Boolean> = _transferSubmittingLiveData
