@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.account.externalActions
+package jp.co.soramitsu.common.account.external.actions
 
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseFragment
@@ -14,18 +14,18 @@ fun <T> BaseFragment<T>.setupExternalActions(viewModel: T) where T : BaseViewMod
 }
 
 fun <T> BaseFragment<T>.showAccountExternalActions(
-    payload: ExternalAccountActions.Payload,
-    viewModel: T
+        payload: ExternalAccountActions.Payload,
+        viewModel: T
 ) where T : BaseViewModel, T : ExternalAccountActions {
     ExternalActionsSheet(
-        requireContext(),
-        ExternalActionsSheet.Payload(
-            R.string.profile_title,
-            R.string.common_copy_address,
-            payload
-        ),
-        viewModel::copyAddressClicked,
-        viewModel::viewExternalClicked
+            requireContext(),
+            ExternalActionsSheet.Payload(
+                    R.string.profile_title,
+                    R.string.common_copy_address,
+                    payload
+            ),
+            viewModel::copyAddressClicked,
+            viewModel::viewExternalClicked
     ).show()
 }
 

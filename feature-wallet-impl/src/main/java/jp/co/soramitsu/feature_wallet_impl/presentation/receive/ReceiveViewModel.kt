@@ -8,7 +8,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -25,12 +25,12 @@ import java.io.FileOutputStream
 private const val AVATAR_SIZE_DP = 32
 
 class ReceiveViewModel(
-    private val interactor: WalletInteractor,
-    private val qrCodeGenerator: QrCodeGenerator,
-    private val addressIconGenerator: AddressIconGenerator,
-    private val resourceManager: ResourceManager,
-    private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val router: WalletRouter
+        private val interactor: WalletInteractor,
+        private val qrCodeGenerator: QrCodeGenerator,
+        private val addressIconGenerator: AddressIconGenerator,
+        private val resourceManager: ResourceManager,
+        private val externalAccountActions: ExternalAccountActions.Presentation,
+        private val router: WalletRouter
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     companion object {

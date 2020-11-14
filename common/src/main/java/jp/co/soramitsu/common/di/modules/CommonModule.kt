@@ -7,8 +7,8 @@ import android.os.Vibrator
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActionsProvider
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActionsProvider
 import jp.co.soramitsu.common.data.FileProviderImpl
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.storage.Preferences

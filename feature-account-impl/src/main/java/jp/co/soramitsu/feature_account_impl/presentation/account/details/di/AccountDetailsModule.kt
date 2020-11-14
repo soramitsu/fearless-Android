@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -20,10 +20,10 @@ class AccountDetailsModule {
     @IntoMap
     @ViewModelKey(AccountDetailsViewModel::class)
     fun provideViewModel(
-        interactor: AccountInteractor,
-        router: AccountRouter,
-        externalAccountActions: ExternalAccountActions.Presentation,
-        accountAddress: String
+            interactor: AccountInteractor,
+            router: AccountRouter,
+            externalAccountActions: ExternalAccountActions.Presentation,
+            accountAddress: String
     ): ViewModel {
         return AccountDetailsViewModel(
             interactor,

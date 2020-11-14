@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
-import jp.co.soramitsu.common.account.externalActions.copyAddressClicked
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.copyAddressClicked
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents

@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
-import jp.co.soramitsu.common.account.externalActions.setupExternalActions
+import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged

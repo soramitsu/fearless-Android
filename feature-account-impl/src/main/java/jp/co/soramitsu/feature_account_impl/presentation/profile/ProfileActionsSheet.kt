@@ -2,19 +2,19 @@ package jp.co.soramitsu.feature_account_impl.presentation.profile
 
 import android.content.Context
 import android.os.Bundle
-import jp.co.soramitsu.common.account.externalActions.CopyCallback
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
-import jp.co.soramitsu.common.account.externalActions.ExternalActionsSheet
-import jp.co.soramitsu.common.account.externalActions.ExternalViewCallback
+import jp.co.soramitsu.common.account.external.actions.CopyCallback
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.ExternalActionsSheet
+import jp.co.soramitsu.common.account.external.actions.ExternalViewCallback
 import jp.co.soramitsu.common.view.bottomSheet.item
 import jp.co.soramitsu.feature_account_impl.R
 
 class ProfileActionsSheet(
-    context: Context,
-    content: ExternalAccountActions.Payload,
-    onCopy: CopyCallback,
-    onExternalView: ExternalViewCallback,
-    private val onOpenAccounts: () -> Unit
+        context: Context,
+        content: ExternalAccountActions.Payload,
+        onCopy: CopyCallback,
+        onExternalView: ExternalViewCallback,
+        private val onOpenAccounts: () -> Unit
 ) : ExternalActionsSheet(
     context = context,
     payload = Payload(

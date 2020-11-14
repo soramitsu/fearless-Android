@@ -7,7 +7,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account

@@ -7,7 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -24,13 +24,13 @@ class ConfirmTransferModule {
     @IntoMap
     @ViewModelKey(ConfirmTransferViewModel::class)
     fun provideViewModel(
-        interactor: WalletInteractor,
-        router: WalletRouter,
-        resourceManager: ResourceManager,
-        addressIconGenerator: AddressIconGenerator,
-        clipboardManager: ClipboardManager,
-        externalAccountActions: ExternalAccountActions.Presentation,
-        transferDraft: TransferDraft
+            interactor: WalletInteractor,
+            router: WalletRouter,
+            resourceManager: ResourceManager,
+            addressIconGenerator: AddressIconGenerator,
+            clipboardManager: ClipboardManager,
+            externalAccountActions: ExternalAccountActions.Presentation,
+            transferDraft: TransferDraft
     ): ViewModel {
         return ConfirmTransferViewModel(
             interactor,

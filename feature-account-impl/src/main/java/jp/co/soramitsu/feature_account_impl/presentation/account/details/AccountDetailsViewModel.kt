@@ -8,7 +8,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
@@ -24,10 +24,10 @@ import java.util.concurrent.TimeUnit
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
 class AccountDetailsViewModel(
-    private val accountInteractor: AccountInteractor,
-    private val accountRouter: AccountRouter,
-    private val externalAccountActions: ExternalAccountActions.Presentation,
-    val accountAddress: String
+        private val accountInteractor: AccountInteractor,
+        private val accountRouter: AccountRouter,
+        private val externalAccountActions: ExternalAccountActions.Presentation,
+        val accountAddress: String
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
     private val accountNameChanges = BehaviorSubject.create<String>()
 

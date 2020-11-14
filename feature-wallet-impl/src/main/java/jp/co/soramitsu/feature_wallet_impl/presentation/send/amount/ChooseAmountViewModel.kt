@@ -10,7 +10,7 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
@@ -39,12 +39,12 @@ enum class RetryReason(val reasonRes: Int) {
 }
 
 class ChooseAmountViewModel(
-    private val interactor: WalletInteractor,
-    private val router: WalletRouter,
-    private val resourceManager: ResourceManager,
-    private val addressIconGenerator: AddressIconGenerator,
-    private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val recipientAddress: String
+        private val interactor: WalletInteractor,
+        private val router: WalletRouter,
+        private val resourceManager: ResourceManager,
+        private val addressIconGenerator: AddressIconGenerator,
+        private val externalAccountActions: ExternalAccountActions.Presentation,
+        private val recipientAddress: String
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     val recipientModelLiveData = generateAddressModel(recipientAddress).asLiveData()

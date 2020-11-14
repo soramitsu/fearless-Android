@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.FileProvider
-import jp.co.soramitsu.common.account.externalActions.setupExternalActions
+import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi

@@ -7,7 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -22,12 +22,12 @@ class ChooseAmountModule {
     @IntoMap
     @ViewModelKey(ChooseAmountViewModel::class)
     fun provideViewModel(
-        interactor: WalletInteractor,
-        router: WalletRouter,
-        resourceManager: ResourceManager,
-        addressModelGenerator: AddressIconGenerator,
-        externalAccountActions: ExternalAccountActions.Presentation,
-        recipientAddress: String
+            interactor: WalletInteractor,
+            router: WalletRouter,
+            resourceManager: ResourceManager,
+            addressModelGenerator: AddressIconGenerator,
+            externalAccountActions: ExternalAccountActions.Presentation,
+            recipientAddress: String
     ): ViewModel {
         return ChooseAmountViewModel(
             interactor,

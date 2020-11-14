@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.externalActions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -19,13 +19,13 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 private const val ICON_IN_DP = 24
 
 class ConfirmTransferViewModel(
-    private val interactor: WalletInteractor,
-    private val router: WalletRouter,
-    private val resourceManager: ResourceManager,
-    private val addressIconGenerator: AddressIconGenerator,
-    private val clipboardManager: ClipboardManager,
-    private val externalAccountActions: ExternalAccountActions.Presentation,
-    val transferDraft: TransferDraft
+        private val interactor: WalletInteractor,
+        private val router: WalletRouter,
+        private val resourceManager: ResourceManager,
+        private val addressIconGenerator: AddressIconGenerator,
+        private val clipboardManager: ClipboardManager,
+        private val externalAccountActions: ExternalAccountActions.Presentation,
+        val transferDraft: TransferDraft
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<Unit>>()

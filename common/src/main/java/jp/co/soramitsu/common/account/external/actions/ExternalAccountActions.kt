@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.account.externalActions
+package jp.co.soramitsu.common.account.external.actions
 
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
