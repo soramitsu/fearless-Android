@@ -62,7 +62,7 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
 
         exportSeedType.setMessage(typeNameRes)
 
-        viewModel.derivationPath.observe {
+        viewModel.derivationPathLiveData.observe {
             val state = if (it.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
             with(exportSeedAdvanced) {

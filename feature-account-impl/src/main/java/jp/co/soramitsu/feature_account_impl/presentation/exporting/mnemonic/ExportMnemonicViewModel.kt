@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.WithDerivationPath
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
@@ -23,7 +24,7 @@ class ExportMnemonicViewModel(
         mapMnemonicToMnemonicWords(it.mnemonicWords())
     }
 
-    val derivationPath = securityTypeLiveData.map {
+    val derivationPathLiveData = securityTypeLiveData.map {
         (it as? WithDerivationPath)?.derivationPath
     }
 
@@ -36,9 +37,19 @@ class ExportMnemonicViewModel(
     }
 
     override fun securityWarningConfirmed() {
-        val mnemonicSource = mnemonicSourceLiveData.value ?: return
+        val mnemonic = mnemonicSourceLiveData.value?.mnemonic ?: return
 
-        exportText(mnemonicSource.mnemonic)
+        val networkType = networkTypeLiveData.value?.name ?: return
+
+        val derivationPath = derivationPathLiveData.value
+
+        val shareText = if (derivationPath.isNullOrBlank()) {
+            resourceManager.getString(R.string.export_mnemonic_without_derivation, networkType, mnemonic)
+        } else {
+            resourceManager.getString(R.string.export_mnemonic_with_derivation, networkType, mnemonic, derivationPath)
+        }
+
+        exportText(shareText)
     }
 
     fun openConfirmMnemonic() {

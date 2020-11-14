@@ -8,8 +8,8 @@ class ResourceManagerImpl(
     private val contextManager: ContextManager
 ) : ResourceManager {
 
-    override fun getString(res: Int): String {
-        return contextManager.getContext().getString(res)
+    override fun getString(res: Int, vararg arguments: Any): String {
+        return contextManager.getContext().getString(res, *arguments)
     }
 
     override fun getColor(res: Int): Int {
