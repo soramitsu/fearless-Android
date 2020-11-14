@@ -1,13 +1,14 @@
 package jp.co.soramitsu.feature_account_impl.presentation.importing
 
+import android.content.Intent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.plusAssign
@@ -15,15 +16,16 @@ import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToCryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
@@ -37,14 +39,16 @@ class ImportAccountViewModel(
     private val router: AccountRouter,
     private val resourceManager: ResourceManager,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
-    private val networkChooserMixin: NetworkChooserMixin
+    private val networkChooserMixin: NetworkChooserMixin,
+    private val clipboardManager: ClipboardManager,
+    private val fileReader: FileReader
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin,
     NetworkChooserMixin by networkChooserMixin {
 
-    val sourceTypes = provideSourceType()
-
     val nameLiveData = MutableLiveData<String>()
+
+    val sourceTypes = provideSourceType()
 
     private val _selectedSourceTypeLiveData = MutableLiveData<ImportSource>()
 
@@ -85,20 +89,30 @@ class ImportAccountViewModel(
     fun nextClicked() {
         val sourceType = selectedSourceTypeLiveData.value!!
 
-        val node = selectedNetworkLiveData.value?.defaultNode!!
+        val networkType = selectedNetworkLiveData.value!!.networkTypeUI.networkType
         val cryptoType = selectedEncryptionTypeLiveData.value!!.cryptoType
         val derivationPath = derivationPathLiveData.value.orEmpty()
         val name = nameLiveData.value!!
 
-        val importObservable = constructImportObservable(sourceType, name, derivationPath, cryptoType, node)
+        val importObservable = constructImportObservable(sourceType, name, derivationPath, cryptoType, networkType)
 
-        disposables.add(
-            importObservable
-                .andThen(interactor.isCodeSet())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(::continueBasedOnCodeStatus, ::handleCreateAccountError)
-        )
+        disposables += importObservable
+            .andThen(interactor.isCodeSet())
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(::continueBasedOnCodeStatus, ::handleCreateAccountError)
+    }
+
+    fun systemCallResultReceived(requestCode: Int, intent: Intent) {
+        val selectedSource = selectedSourceTypeLiveData.value!!
+
+        if (selectedSource is FileRequester) {
+            val currentRequestCode = selectedSource.chooseJsonFileEvent.value!!.peekContent()
+
+            if (requestCode == currentRequestCode) {
+                selectedSource.fileChosen(intent.data!!)
+            }
+        }
     }
 
     private fun continueBasedOnCodeStatus(isCodeSet: Boolean) {
@@ -131,58 +145,47 @@ class ImportAccountViewModel(
     private fun provideSourceType(): List<ImportSource> {
         return listOf(
             MnemonicImportSource(),
-            JsonImportSource(),
+            JsonImportSource(
+                networkChooserMixin.selectedNetworkLiveData,
+                nameLiveData,
+                cryptoTypeChooserMixin.selectedEncryptionTypeLiveData,
+                interactor,
+                resourceManager,
+                clipboardManager,
+                fileReader,
+                disposables
+            ),
             RawSeedImportSource()
         )
     }
 
-    private fun constructImportObservable(sourceType: ImportSource, name: String, derivationPath: String, cryptoType: CryptoType, node: Node): Completable {
+    private fun constructImportObservable(
+        sourceType: ImportSource,
+        name: String,
+        derivationPath: String,
+        cryptoType: CryptoType,
+        networkType: Node.NetworkType
+    ): Completable {
         return when (sourceType) {
             is MnemonicImportSource -> interactor.importFromMnemonic(
                 sourceType.mnemonicContentLiveData.value!!,
                 name,
                 derivationPath,
                 cryptoType,
-                node
+                networkType
             )
             is RawSeedImportSource -> interactor.importFromSeed(
                 sourceType.rawSeedLiveData.value!!,
                 name,
                 derivationPath,
                 cryptoType,
-                node
+                networkType
             )
             is JsonImportSource -> interactor.importFromJson(
                 sourceType.jsonContentLiveData.value!!,
                 sourceType.passwordLiveData.value!!,
-                name,
-                node
+                name
             )
-        }
-    }
-
-    fun jsonChanged(newJson: String) {
-        disposables += interactor.processAccountJson(newJson)
-            .subscribeOn(Schedulers.computation())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(::handleParsedImportData, DEFAULT_ERROR_HANDLER)
-    }
-
-    private fun handleParsedImportData(importData: ImportJsonData) {
-        val networkModel = mapNetworkToNetworkModel(importData.network)
-        selectedNetworkLiveData.value = networkModel
-
-        val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, importData.encryptionType)
-        selectedEncryptionTypeLiveData.value = cryptoModel
-
-        importData.name?.let { nameLiveData.value = it }
-    }
-
-    fun fileChosen(fileContent: String?) {
-        val jsonSource = selectedSourceTypeLiveData.value as? JsonImportSource
-
-        if (jsonSource != null && fileContent != null) {
-            jsonSource.jsonContentLiveData.value = fileContent
         }
     }
 }

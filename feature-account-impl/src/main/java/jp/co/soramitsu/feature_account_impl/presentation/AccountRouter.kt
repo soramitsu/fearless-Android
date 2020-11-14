@@ -56,6 +56,8 @@ interface AccountRouter {
 
     fun openExportJsonPassword(accountAddress: String)
 
+    fun returnToMain()
+
     fun openExportJsonConfirm(payload: ExportJsonConfirmPayload)
 
     fun finishExportFlow()

@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.di
 import android.content.Context
 import com.google.gson.Gson
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
@@ -80,4 +81,6 @@ interface CommonApi {
     fun fileProvider(): FileProvider
 
     fun random() : Random
+
+    fun externalAccountActions(): ExternalAccountActions.Presentation
 }

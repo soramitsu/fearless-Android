@@ -184,5 +184,8 @@
     <string name="common_skip_process">Ignorer le processus</string>
     <string name="wallet_receive_description">Partagez ce QR avec l\'expéditeur</string>
     <string name="wallet_receive_share_message">Mon adresse %s pour recevoir %s:</string>
+    <string name="common_copy_address">Copier l\'adresse</string>
+    <string name="common_choose_file">Téléverser un fichier</string>
+    <string name="import_json_paste">Coller json</string>
     <string name="account_export_password_change">Changer le mot de passe</string>
 </resources>

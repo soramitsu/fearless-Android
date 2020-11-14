@@ -140,16 +140,16 @@ class AccountRepositoryImpl(
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable {
         return saveFromMnemonic(
             accountName,
             mnemonic,
             derivationPath,
             encryptionType,
-            node,
+            networkType,
             isImport = false
-        ).flatMapCompletable { maybeSelectInitial(it, node) }
+        ).flatMapCompletable(this::switchToAccount)
     }
 
     override fun observeAccounts(): Observable<List<Account>> {
@@ -171,16 +171,16 @@ class AccountRepositoryImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable {
         return saveFromMnemonic(
             username,
             keyString,
             derivationPath,
             selectedEncryptionType,
-            node,
+            networkType,
             isImport = true
-        ).flatMapCompletable { maybeSelectInitial(it, node) }
+        ).flatMapCompletable { switchToAccount(it) }
     }
 
     override fun importFromSeed(
@@ -188,7 +188,7 @@ class AccountRepositoryImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable {
         return Single.fromCallable {
             val seedBytes = Hex.decode(seed.removePrefix("0x"))
@@ -201,7 +201,7 @@ class AccountRepositoryImpl(
 
             val signingData = mapKeyPairToSigningData(keys)
 
-            val addressType = mapNetworkTypeToAddressType(node.networkType)
+            val addressType = mapNetworkTypeToAddressType(networkType)
             val address = sS58Encoder.encode(keys.publicKey, addressType)
 
             val securitySource = SecuritySource.Seed(seedBytes, signingData, derivationPath)
@@ -210,17 +210,16 @@ class AccountRepositoryImpl(
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
-            val accountLocal = insertAccount(address, username, publicKeyEncoded, selectedEncryptionType, node.networkType)
+            val accountLocal = insertAccount(address, username, publicKeyEncoded, selectedEncryptionType, networkType)
 
             mapAccountLocalToAccount(accountLocal)
-        }.flatMapCompletable { maybeSelectInitial(it, node) }
+        }.flatMapCompletable(this::switchToAccount)
     }
 
     override fun importFromJson(
         json: String,
         password: String,
-        name: String,
-        node: Node
+        name: String
     ): Completable {
         return Single.fromCallable {
             val importData = jsonSeedDecoder.decode(json, password)
@@ -241,9 +240,7 @@ class AccountRepositoryImpl(
             val accountLocal = insertAccount(importData.address, name, publicKeyEncoded, cryptoType, networkType)
 
             mapAccountLocalToAccount(accountLocal)
-        }.flatMapCompletable { account ->
-            maybeSelectInitial(account, node)
-        }
+        }.flatMapCompletable(this::switchToAccount)
     }
 
     override fun isCodeSet(): Single<Boolean> {
@@ -329,10 +326,10 @@ class AccountRepositoryImpl(
             val importAccountMeta = jsonSeedDecoder.extractImportMetaData(json)
 
             with(importAccountMeta) {
-                val network = getNetworkForType(mapAddressTypeToNetworkType(networkType))
+                val networkType = mapAddressTypeToNetworkType(networkType)
                 val cryptoType = mapEncryptionToCryptoType(encryptionType)
 
-                ImportJsonData(name, network, cryptoType)
+                ImportJsonData(name, networkType, cryptoType)
             }
         }
     }
@@ -418,7 +415,7 @@ class AccountRepositoryImpl(
         mnemonic: String,
         derivationPath: String,
         cryptoType: CryptoType,
-        node: Node,
+        networkType: Node.NetworkType,
         isImport: Boolean
     ): Single<Account> {
         return Single.fromCallable {
@@ -427,7 +424,7 @@ class AccountRepositoryImpl(
             val seed = bip39.generateSeed(entropy, password)
             val keys =
                 keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
-            val addressType = mapNetworkTypeToAddressType(node.networkType)
+            val addressType = mapNetworkTypeToAddressType(networkType)
             val address = sS58Encoder.encode(keys.publicKey, addressType)
             val signingData = mapKeyPairToSigningData(keys)
 
@@ -441,9 +438,9 @@ class AccountRepositoryImpl(
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
-            val accountLocal = insertAccount(address, accountName, publicKeyEncoded, cryptoType, node.networkType)
+            val accountLocal = insertAccount(address, accountName, publicKeyEncoded, cryptoType, networkType)
 
-            val network = getNetworkForType(node.networkType)
+            val network = getNetworkForType(networkType)
 
             Account(address, accountName, publicKeyEncoded, cryptoType, accountLocal.position, network)
         }
@@ -531,15 +528,9 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun maybeSelectInitial(account: Account, node: Node): Completable {
-        return isAccountSelected().flatMapCompletable { isSelected ->
-            if (isSelected) {
-                Completable.complete()
-            } else {
-                selectAccount(account)
-                    .andThen(selectNode(node))
-            }
-        }
+    private fun switchToAccount(account: Account): Completable {
+        return selectAccount(account)
+            .andThen(selectNode(account.network.defaultNode))
     }
 
     private fun insertAccount(
