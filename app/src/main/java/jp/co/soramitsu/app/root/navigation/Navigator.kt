@@ -226,4 +226,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
 
         navController?.navigate(R.id.action_exportJsonPasswordFragment_to_exportJsonConfirmFragment, extras)
     }
+
+    override fun finishExportFlow() {
+        navController?.navigate(R.id.finish_export_flow)
+    }
 }
