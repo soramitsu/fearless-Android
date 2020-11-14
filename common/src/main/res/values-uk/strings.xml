@@ -184,4 +184,7 @@
     <string name="common_skip_process">Пропустити процес</string>
     <string name="wallet_receive_description">Поділіться цим QR-кодом відправника</string>
     <string name="wallet_receive_share_message">Мою %s адресу для отримання %s:</string>
+    <string name="common_copy_address">Скопіювати адресу</string>
+    <string name="common_choose_file">Завантажити файл</string>
+    <string name="import_json_paste">Вставити json</string>
 </resources>

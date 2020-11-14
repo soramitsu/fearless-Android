@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView android:id="@+id/itemExternalActionContent"
+    style="@style/TextAppearance.Soramitsu.Body0"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_primary_list_item"
+    android:drawableStart="@drawable/ic_copy_24"
+    android:drawablePadding="16dp"
+    android:padding="18dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:text="@string/transaction_details_copy_hash"
+    xmlns:android="http://schemas.android.com/apk/res/android" />

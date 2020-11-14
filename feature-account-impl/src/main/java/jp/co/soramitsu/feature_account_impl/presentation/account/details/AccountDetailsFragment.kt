@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.details
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
@@ -37,16 +38,12 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_account_details, container, false)
 
     override fun initViews() {
-        fearlessToolbar.setRightActionClickListener {
-            viewModel.backClicked()
-        }
-
         fearlessToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
 
-        accountDetailsAddressView.setOnCopyClickListener {
-            viewModel.copyAddressClicked()
+        accountDetailsAddressView.setWholeClickListener {
+            viewModel.addressClicked()
         }
 
         accountDetailsExport.setOnClickListener {
@@ -67,8 +64,10 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
     }
 
     override fun subscribe(viewModel: AccountDetailsViewModel) {
+        setupExternalActions(viewModel)
+
         viewModel.accountLiveData.observe { account ->
-            accountDetailsAddressView.setAddress(account.address)
+            accountDetailsAddressView.setMessage(account.address)
 
             accountDetailsName.setText(account.name)
 

@@ -8,16 +8,12 @@ import android.graphics.drawable.shapes.Shape
 class CutCornersShape(
     private val cornerSizePx: Float,
     private val strokeSizePx: Float,
-    private val drawingColor: Int,
-    val type: Type
+    private val fillColor: Int,
+    private val strokeColor: Int?
 ) : Shape() {
     private val drawingPaint = createPaint()
 
     private val path: Path = Path()
-
-    enum class Type(val paintStyle: Paint.Style) {
-        OUTLINE(Paint.Style.STROKE), FILL(Paint.Style.FILL)
-    }
 
     override fun onResize(width: Float, height: Float) {
         super.onResize(width, height)
@@ -39,12 +35,21 @@ class CutCornersShape(
     }
 
     override fun draw(canvas: Canvas, paint: Paint) {
+        drawingPaint.color = fillColor
+        drawingPaint.style = Paint.Style.FILL
+
         canvas.drawPath(path, drawingPaint)
+
+        strokeColor?.let {
+            drawingPaint.color = it
+            drawingPaint.style = Paint.Style.STROKE
+
+            canvas.drawPath(path, drawingPaint)
+        }
     }
 
     private fun createPaint() = Paint().apply {
-        color = drawingColor
-        style = type.paintStyle
+        color = fillColor
         strokeWidth = strokeSizePx
         isAntiAlias = true
         isDither = true

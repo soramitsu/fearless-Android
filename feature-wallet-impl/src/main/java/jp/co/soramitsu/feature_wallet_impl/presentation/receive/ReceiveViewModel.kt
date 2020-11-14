@@ -8,8 +8,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.QrCodeGenerator
@@ -28,10 +28,10 @@ class ReceiveViewModel(
     private val interactor: WalletInteractor,
     private val qrCodeGenerator: QrCodeGenerator,
     private val addressIconGenerator: AddressIconGenerator,
-    private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
+    private val externalAccountActions: ExternalAccountActions.Presentation,
     private val router: WalletRouter
-) : BaseViewModel() {
+) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     companion object {
         private const val QR_TEMP_IMAGE_NAME = "address.png"
@@ -52,12 +52,12 @@ class ReceiveViewModel(
     private val _shareEvent = MutableLiveData<Event<QrSharingPayload>>()
     val shareEvent: LiveData<Event<QrSharingPayload>> = _shareEvent
 
-    fun addressCopyClicked() {
-        accountLiveData.value?.let {
-            clipboardManager.addToClipboard(it.address)
+    fun recipientClicked() {
+        val account = accountLiveData.value ?: return
 
-            showMessage(resourceManager.getString(R.string.common_copied))
-        }
+        val payload = ExternalAccountActions.Payload(account.address, account.network.type)
+
+        externalAccountActions.showExternalActions(payload)
     }
 
     fun backClicked() {

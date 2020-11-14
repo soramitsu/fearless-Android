@@ -6,15 +6,21 @@ import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
+import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
 private const val ICON_SIZE_DP = 32
+
+enum class ExternalActionsSource {
+    TRANSACTION_HASH, FROM_ADDRESS, TO_ADDRESS
+}
 
 class TransactionDetailViewModel(
     private val interactor: WalletInteractor,
@@ -24,13 +30,12 @@ class TransactionDetailViewModel(
     private val clipboardManager: ClipboardManager,
     private val appLinksProvider: AppLinksProvider,
     val transaction: TransactionModel
-) : BaseViewModel() {
+) : BaseViewModel(), Browserable {
 
-    private val _showExternalViewEvent = MutableLiveData<Event<Unit>>()
-    val showExternalActionsEvent: LiveData<Event<Unit>> = _showExternalViewEvent
+    private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
+    val showExternalTransactionActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
 
-    private val _openBrowserEvent = MutableLiveData<Event<String>>()
-    val openBrowserEvent: LiveData<Event<String>> = _openBrowserEvent
+    override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val recipientAddressModelLiveData = getRecipientIcon()
         .asLiveData()
@@ -54,19 +59,26 @@ class TransactionDetailViewModel(
         router.openRepeatTransaction(transaction.displayAddress)
     }
 
-    private fun getRecipientIcon() = interactor.getAddressId(transaction.recipientAddress)
-        .flatMap { addressIconGenerator.createAddressModel(transaction.recipientAddress, it, ICON_SIZE_DP) }
+    private fun getRecipientIcon() = getIcon(transaction.recipientAddress)
 
-    private fun getSenderIcon() = interactor.getAddressId(transaction.senderAddress)
-        .flatMap { addressIconGenerator.createAddressModel(transaction.senderAddress, it, ICON_SIZE_DP) }
+    private fun getSenderIcon() = getIcon(transaction.senderAddress)
 
-    fun showExternalActionsClicked() {
-        _showExternalViewEvent.value = Event(Unit)
+    private fun getIcon(address: String) = interactor.getAddressId(address)
+        .flatMap { addressIconGenerator.createAddressModel(address, it, ICON_SIZE_DP) }
+
+    fun showExternalActionsClicked(externalActionsSource: ExternalActionsSource) {
+        _showExternalViewEvent.value = Event(externalActionsSource)
     }
 
-    fun externalAnalyzerClicked(analyzer: ExternalAnalyzer) {
-        val url = appLinksProvider.getExternalTransactionUrl(analyzer, transaction.hash, transaction.token.networkType)
+    fun viewTransactionExternalClicked(analyzer: ExternalAnalyzer, hash: String, networkType: Node.NetworkType) {
+        val url = appLinksProvider.getExternalTransactionUrl(analyzer, hash, networkType)
 
-        _openBrowserEvent.value = Event(url)
+        openBrowserEvent.value = Event(url)
+    }
+
+    fun viewAccountExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: Node.NetworkType) {
+        val url = appLinksProvider.getExternalAddressUrl(analyzer, address, networkType)
+
+        openBrowserEvent.value = Event(url)
     }
 }

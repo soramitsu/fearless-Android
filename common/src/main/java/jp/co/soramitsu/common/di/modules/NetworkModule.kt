@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
+import jp.co.soramitsu.common.data.network.ExternalAnalyzerLinks
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.RxCallAdapterFactory
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
@@ -28,8 +29,15 @@ class NetworkModule {
     @ApplicationScope
     fun provideAppLinksProvider(): AppLinksProvider {
         val externalAnalyzerTemplates = mapOf(
-            ExternalAnalyzer.POLKASCAN to BuildConfig.POLKSASCAN_TRANSACTION_TEMPLATE,
-            ExternalAnalyzer.SUBSCAN to BuildConfig.SUBSCAN_TRANSACTION_TEMPLATE
+            ExternalAnalyzer.POLKASCAN to ExternalAnalyzerLinks(
+                transaction = BuildConfig.POLKSASCAN_TRANSACTION_TEMPLATE,
+                account = BuildConfig.POLKSASCAN_ACCOUNT_TEMPLATE
+            ),
+
+            ExternalAnalyzer.SUBSCAN to ExternalAnalyzerLinks(
+                transaction = BuildConfig.SUBSCAN_TRANSACTION_TEMPLATE,
+                account = BuildConfig.SUBSCAN_ACCOUNT_TEMPLATE
+            )
         )
 
         return AppLinksProvider(

@@ -7,7 +7,7 @@ class AppLinksProvider(
     val termsUrl: String,
     val privacyUrl: String,
 
-    private val externalAnalyzerTemplates: Map<ExternalAnalyzer, String>,
+    private val externalAnalyzerTemplates: Map<ExternalAnalyzer, ExternalAnalyzerLinks>,
 
     val roadMapUrl: String,
     val devStatusUrl: String
@@ -17,12 +17,27 @@ class AppLinksProvider(
         analyzer: ExternalAnalyzer,
         hash: String,
         networkType: Node.NetworkType
+    ) = getExternalUrl(analyzer, hashWithPrefix(hash), networkType, ExternalAnalyzerLinks::transaction)
+
+    fun getExternalAddressUrl(
+        analyzer: ExternalAnalyzer,
+        address: String,
+        networkType: Node.NetworkType
+    ) = getExternalUrl(analyzer, address, networkType, ExternalAnalyzerLinks::account)
+
+    private fun getExternalUrl(
+        analyzer: ExternalAnalyzer,
+        value: String,
+        networkType: Node.NetworkType,
+        extractor: (ExternalAnalyzerLinks) -> String
     ): String {
         val template = externalAnalyzerTemplates[analyzer] ?: error("No template for $analyzer")
 
-        return template.format(networkPathSegment(networkType), hashWithPrefix(hash))
+        return extractor(template).format(networkPathSegment(networkType), value)
     }
 }
+
+class ExternalAnalyzerLinks(val transaction: String, val account: String)
 
 enum class ExternalAnalyzer(val supportedNetworks: List<Node.NetworkType>) {
     SUBSCAN(

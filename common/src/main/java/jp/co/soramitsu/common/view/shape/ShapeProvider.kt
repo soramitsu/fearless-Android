@@ -7,19 +7,15 @@ import android.graphics.drawable.RippleDrawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.StateListDrawable
 import android.util.StateSet
-import android.util.TypedValue
 import androidx.annotation.ColorRes
 import jp.co.soramitsu.common.R
 
 fun Int.toColorStateList() = ColorStateList.valueOf(this)
 
-fun Context.addRipple(drawable: Drawable): Drawable {
-    val typedValue = TypedValue()
+fun Context.addRipple(drawable: Drawable? = null, mask: Drawable? = null): Drawable {
+    val rippleColor = getColor(R.color.colorPrimary)
 
-    theme.resolveAttribute(R.attr.colorControlHighlight, typedValue, true)
-    val rippleColor = typedValue.data.toColorStateList()
-
-    return RippleDrawable(rippleColor, drawable, null)
+    return RippleDrawable(rippleColor.toColorStateList(), drawable, mask)
 }
 
 fun Context.getCutCornersStateDrawable(): Drawable {
@@ -30,13 +26,13 @@ fun Context.getCutCornersStateDrawable(): Drawable {
     }
 }
 
-fun Context.getFocusedDrawable(): Drawable = getCutCornerDrawable(R.color.white, CutCornersShape.Type.OUTLINE)
-fun Context.getDisabledDrawable(): Drawable = getCutCornerDrawable(R.color.gray3, CutCornersShape.Type.FILL)
-fun Context.getIdleDrawable(): Drawable = getCutCornerDrawable(R.color.gray2, CutCornersShape.Type.OUTLINE)
+fun Context.getFocusedDrawable(): Drawable = getCutCornerDrawable(strokeColorRes = R.color.white)
+fun Context.getDisabledDrawable(): Drawable = getCutCornerDrawable(fillColorRes = R.color.gray3)
+fun Context.getIdleDrawable(): Drawable = getCutCornerDrawable(strokeColorRes = R.color.gray2)
 
 fun Context.getCutCornerDrawable(
-    @ColorRes colorRes: Int,
-    type: CutCornersShape.Type,
+    @ColorRes fillColorRes: Int = R.color.black,
+    @ColorRes strokeColorRes: Int? = null,
     cornerSizeInDp: Int = 10,
     strokeSizeInDp: Int = 1
 ): Drawable {
@@ -44,7 +40,9 @@ fun Context.getCutCornerDrawable(
 
     val cornerSizePx = density * cornerSizeInDp
     val strokeSizePx = density * strokeSizeInDp
-    val color = getColor(colorRes)
 
-    return ShapeDrawable(CutCornersShape(cornerSizePx, strokeSizePx, color, type))
+    val fillColor = getColor(fillColorRes)
+    val strokeColor = strokeColorRes?.let(this::getColor)
+
+    return ShapeDrawable(CutCornersShape(cornerSizePx, strokeSizePx, fillColor, strokeColor))
 }

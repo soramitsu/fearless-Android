@@ -10,8 +10,8 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
@@ -43,9 +43,9 @@ class ChooseAmountViewModel(
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
-    private val clipboardManager: ClipboardManager,
+    private val externalAccountActions: ExternalAccountActions.Presentation,
     private val recipientAddress: String
-) : BaseViewModel() {
+) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     val recipientModelLiveData = generateAddressModel(recipientAddress).asLiveData()
 
@@ -105,12 +105,11 @@ class ChooseAmountViewModel(
         }
     }
 
-    fun copyRecipientAddressClicked() {
-        recipientModelLiveData.value?.let {
-            clipboardManager.addToClipboard(it.address)
+    fun recipientAddressClicked() {
+        val recipientAddress = recipientModelLiveData.value?.address ?: return
+        val networkType = assetLiveData.value?.token?.networkType ?: return
 
-            showMessage(resourceManager.getString(R.string.common_copied))
-        }
+        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(recipientAddress, networkType))
     }
 
     fun availableBalanceClicked() {
