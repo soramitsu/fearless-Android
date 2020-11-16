@@ -388,12 +388,6 @@ class AccountRepositoryImpl(
             .map { it.map(::mapAccountLocalToAccount) }
     }
 
-    override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
-        return Single.fromCallable {
-            getNetworkForType(networkType)
-        }
-    }
-
     override fun deleteNode(nodeId: Int): Completable {
         return nodeDao.deleteNode(nodeId)
     }

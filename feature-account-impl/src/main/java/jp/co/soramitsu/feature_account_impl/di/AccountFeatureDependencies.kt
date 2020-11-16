@@ -49,5 +49,5 @@ interface AccountFeatureDependencies {
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
 
-    fun random() : Random
+    fun random(): Random
 }

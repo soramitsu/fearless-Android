@@ -1,23 +1,25 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm
 
-import android.app.PendingIntent
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import jp.co.soramitsu.common.base.BaseFragment
+import androidx.annotation.CallSuper
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
-import kotlinx.android.synthetic.main.fragment_export_json_confirm.*
-
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmAdvanced
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmChangePassword
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmExport
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmToolbar
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmValue
 
 private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-class ExportJsonConfirmFragment : BaseFragment<ExportJsonConfirmViewModel>() {
+class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
 
     companion object {
         fun getBundle(payload: ExportJsonConfirmPayload): Bundle {
@@ -55,9 +57,7 @@ class ExportJsonConfirmFragment : BaseFragment<ExportJsonConfirmViewModel>() {
     }
 
     override fun subscribe(viewModel: ExportJsonConfirmViewModel) {
-        viewModel.exportEvent.observeEvent {
-            shareTextWithCallback(it)
-        }
+        super.subscribe(viewModel)
 
         viewModel.cryptoTypeLiveData.observe {
             exportJsonConfirmAdvanced.setEncryption(it.name)
@@ -69,21 +69,5 @@ class ExportJsonConfirmFragment : BaseFragment<ExportJsonConfirmViewModel>() {
         }
 
         exportJsonConfirmValue.setMessage(viewModel.json)
-    }
-
-    private fun shareTextWithCallback(text: String) {
-        val title = getString(R.string.common_share)
-
-        val intent = Intent(Intent.ACTION_SEND)
-                .putExtra(Intent.EXTRA_TEXT, text)
-                .setType("text/plain")
-
-        val receiver = Intent(requireContext(), ShareCompletedReceiver::class.java)
-
-        val pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, receiver, PendingIntent.FLAG_UPDATE_CURRENT)
-
-        val chooser = Intent.createChooser(intent, title, pendingIntent.intentSender)
-
-        startActivity(chooser)
     }
 }

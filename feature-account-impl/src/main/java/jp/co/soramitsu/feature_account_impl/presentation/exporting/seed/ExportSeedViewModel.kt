@@ -13,10 +13,10 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
 
 class ExportSeedViewModel(
-        private val router: AccountRouter,
-        resourceManager: ResourceManager,
-        accountInteractor: AccountInteractor,
-        accountAddress: String
+    private val router: AccountRouter,
+    resourceManager: ResourceManager,
+    accountInteractor: AccountInteractor,
+    accountAddress: String
 ) : ExportViewModel(accountInteractor, accountAddress, resourceManager, ExportSource.Seed) {
 
     val seedLiveData = securityTypeLiveData.map {

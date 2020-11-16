@@ -80,7 +80,7 @@ interface CommonApi {
 
     fun fileProvider(): FileProvider
 
-    fun random() : Random
+    fun random(): Random
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
 }
