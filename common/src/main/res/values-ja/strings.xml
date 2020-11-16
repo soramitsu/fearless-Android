@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">ネットワーク： %s\nシード： %s\n派生パス： %s</string>
+    <string name="export_seed_without_derivation" formatted="false">ネットワーク： %s\nシード： %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">ネットワーク： %s\nニーモニック： %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">ネットワーク： %s\nニーモニック： %s\n派生パス： %s</string>
+
     <string name="export_json_password_match_error">パスワードが一致しません</string>
     <string name="export_json_password_confirm">パスワードを認証する</string>
     <string name="export_json_password_new">パスワードを設定してください</string>

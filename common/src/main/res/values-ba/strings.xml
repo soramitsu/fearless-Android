@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">Сеть: %s\nСид: %s\nПуть деривации: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Сеть: %s\nСид: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Сеть: %s\nМнемоника: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Сеть: %s\nМнемоника: %s\nПуть деривации: %s</string>
+
     <string name="export_json_password_match_error">Неверный пароль</string>
     <string name="export_json_password_confirm">Подтверждение пароля</string>
     <string name="export_json_password_new">Новый пароль</string>

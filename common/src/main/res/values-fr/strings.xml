@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">Réseau: %s\nGraine: %s\nChemin de dérivation: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Réseau: %s\nGraine: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Réseau: %s\nMnémonique: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Réseau: %s\nMnémonique: %s\nChemin de dérivation: %s</string>
+
     <string name="export_json_password_match_error">Mot de passe incompatible</string>
     <string name="export_json_password_confirm">Confirmez le mot de passe</string>
     <string name="export_json_password_new">Définir le mot de passe</string>

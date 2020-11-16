@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">Rete: %s\nSeme: %s\nPercorso di derivazione: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Rete: %s\nSeme: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Rete: %s\nMnemonico: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Rete: %s\nMnemonico: %s\nPercorso di derivazione: %s</string>
+
     <string name="export_json_password_match_error">Password non corrispondente</string>
     <string name="export_json_password_confirm">Conferma password</string>
     <string name="export_json_password_new">Impostare la password</string>
