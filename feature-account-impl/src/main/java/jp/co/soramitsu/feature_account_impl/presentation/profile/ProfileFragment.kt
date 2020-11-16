@@ -4,8 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
+import jp.co.soramitsu.common.account.external.actions.copyAddressClicked
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -29,8 +32,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun initViews() {
-        accountView.setActionListener { viewModel.addressCopyClicked() }
-        accountView.setOnClickListener { viewModel.accountsClicked() }
+        accountView.setWholeClickListener { viewModel.accountActionsClicked() }
 
         aboutTv.setOnClickListener { viewModel.aboutClicked() }
 
@@ -51,7 +53,9 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     }
 
     override fun subscribe(viewModel: ProfileViewModel) {
-        viewModel.selectedAccount.observe { account ->
+        observeBrowserEvents(viewModel)
+
+        viewModel.selectedAccountLiveData.observe { account ->
             account.name?.let(accountView::setTitle)
 
             accountView.setText(account.address)
@@ -66,5 +70,17 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         viewModel.selectedLanguageLiveData.observe {
             selectedLanguageTv.text = it.displayName
         }
+
+        viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
+    }
+
+    private fun showAccountActions(payload: ExternalAccountActions.Payload) {
+        ProfileActionsSheet(
+            requireContext(),
+            payload,
+            viewModel::copyAddressClicked,
+            viewModel::viewExternalClicked,
+            viewModel::accountsClicked
+        ).show()
     }
 }

@@ -94,25 +94,18 @@
                 app:layout_constraintStart_toStartOf="@+id/chooseAmountBalanceLabel"
                 app:layout_constraintTop_toBottomOf="@+id/chooseAmountBalanceLabel" />
 
-            <TextView
-                android:id="@+id/chooseAmountToLabel"
-                style="@style/TextAppearance.Soramitsu.Body1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/choose_amount_to"
-                app:layout_constraintStart_toStartOf="@+id/chooseAmountDivider1"
-                app:layout_constraintTop_toBottomOf="@+id/chooseAmountDivider1" />
-
-            <jp.co.soramitsu.common.view.AddressView
+            <jp.co.soramitsu.common.view.LabeledTextView
                 android:id="@+id/chooseAmountRecipientView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:labelVisible="false"
+                app:label="@string/choose_amount_to"
+                app:enabled="false"
+                app:actionIcon="@drawable/ic_more_vertical"
+                tools:textIcon="@color/colorAccent"
                 app:layout_constraintEnd_toEndOf="@+id/chooseAmountDivider1"
-                app:layout_constraintStart_toStartOf="@+id/chooseAmountToLabel"
-                app:layout_constraintTop_toBottomOf="@+id/chooseAmountToLabel" />
+                app:layout_constraintStart_toStartOf="@+id/chooseAmountDivider1"
+                app:layout_constraintTop_toBottomOf="@+id/chooseAmountDivider1" />
 
             <View
                 android:id="@+id/chooseAmountDivider2"

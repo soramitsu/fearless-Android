@@ -69,13 +69,13 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         observables.add(source)
     }
 
-    protected inline fun <V> LiveData<Event<V>>.observeEvent(crossinline observer: (V) -> Unit) {
+    inline fun <V> LiveData<Event<V>>.observeEvent(crossinline observer: (V) -> Unit) {
         observe(viewLifecycleOwner, EventObserver {
             observer.invoke(it)
         })
     }
 
-    protected inline fun <V> LiveData<V>.observe(crossinline observer: (V) -> Unit) {
+    inline fun <V> LiveData<V>.observe(crossinline observer: (V) -> Unit) {
         observe(viewLifecycleOwner, Observer {
             observer.invoke(it)
         })

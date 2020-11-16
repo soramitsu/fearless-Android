@@ -7,12 +7,10 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.resources.ClipboardManager
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.language.mapper.mapLanguageToLanguageModel
 import jp.co.soramitsu.feature_account_impl.presentation.language.model.LanguageModel
@@ -23,13 +21,12 @@ class ProfileViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
-    private val clipboardManager: ClipboardManager,
-    private val resourceManager: ResourceManager
-) : BaseViewModel() {
+    private val externalAccountActions: ExternalAccountActions.Presentation
+) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     private val selectedAccountObservable = interactor.observeSelectedAccount()
 
-    val selectedAccount: LiveData<Account> = selectedAccountObservable.subscribeOn(Schedulers.io())
+    val selectedAccountLiveData: LiveData<Account> = selectedAccountObservable.subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .asLiveData()
 
@@ -38,30 +35,6 @@ class ProfileViewModel(
 
     val selectedLanguageLiveData: LiveData<LanguageModel> =
         getSelectedLanguage().asMutableLiveData()
-
-    fun addressCopyClicked() {
-        selectedAccount.value?.let {
-            clipboardManager.addToClipboard(it.address)
-
-            showMessage(resourceManager.getString(R.string.common_copied))
-        }
-    }
-
-    private fun observeIcon(accountObservable: Observable<Account>): Observable<AddressModel> {
-        return accountObservable
-            .subscribeOn(Schedulers.io())
-            .flatMapSingle { account ->
-                interactor.getAddressId(account).flatMap { accountId ->
-                    addressIconGenerator.createAddressModel(account.address, accountId, AVATAR_SIZE_DP)
-                }
-            }
-            .observeOn(AndroidSchedulers.mainThread())
-    }
-
-    private fun getSelectedLanguage(): Single<LanguageModel> {
-        return interactor.getSelectedLanguage()
-            .map(::mapLanguageToLanguageModel)
-    }
 
     fun aboutClicked() {
         router.openAboutScreen()
@@ -81,5 +54,27 @@ class ProfileViewModel(
 
     fun changePinCodeClicked() {
         router.openChangePinCode()
+    }
+
+    fun accountActionsClicked() {
+        val account = selectedAccountLiveData.value ?: return
+
+        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(account.address, account.network.type))
+    }
+
+    private fun observeIcon(accountObservable: Observable<Account>): Observable<AddressModel> {
+        return accountObservable
+            .subscribeOn(Schedulers.io())
+            .flatMapSingle { account ->
+                interactor.getAddressId(account).flatMap { accountId ->
+                    addressIconGenerator.createAddressModel(account.address, accountId, AVATAR_SIZE_DP)
+                }
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    private fun getSelectedLanguage(): Single<LanguageModel> {
+        return interactor.getSelectedLanguage()
+            .map(::mapLanguageToLanguageModel)
     }
 }

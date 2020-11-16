@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
+import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -40,7 +41,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_confirm_transfer, container, false)
 
     override fun initViews() {
-        confirmTransferRecipientView.setOnCopyClickListener { viewModel.copyRecipientAddressClicked() }
+        confirmTransferRecipientView.setActionClickListener { viewModel.copyRecipientAddressClicked() }
 
         confirmTransferToolbar.setHomeButtonListener { viewModel.backClicked() }
 
@@ -62,6 +63,8 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
     }
 
     override fun subscribe(viewModel: ConfirmTransferViewModel) {
+        setupExternalActions(viewModel)
+
         with(viewModel.transferDraft) {
             confirmTransferBalance.text = available.formatAsToken(token)
 
@@ -76,8 +79,8 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         }
 
         viewModel.recipientModel.observe {
-            confirmTransferRecipientView.setIcon(it.image)
-            confirmTransferRecipientView.setAddress(it.address)
+            confirmTransferRecipientView.setTextIcon(it.image)
+            confirmTransferRecipientView.setMessage(it.address)
         }
 
         viewModel.transferSubmittingLiveData.observe { submitting ->

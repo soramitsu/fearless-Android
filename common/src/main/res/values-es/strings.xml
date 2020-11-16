@@ -183,6 +183,9 @@
     <string name="common_skip_process">Omitir proceso</string>
     <string name="wallet_receive_description">Comparte este QR con el remitente</string>
     <string name="wallet_receive_share_message">Mi %s dirección para recibir %s:</string>
+    <string name="common_copy_address">Copiar dirección</string>
+    <string name="common_choose_file">Subir archivo</string>
+    <string name="import_json_paste">Pegar json</string>
     <string name="pincode_enter_new_pin_code">Ingrese un nuevo código pin</string>
     <string name="pincode_changed_message">El código PIN se ha cambiado correctamente</string>
 </resources>

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
@@ -42,7 +43,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_choose_amount, container, false)
 
     override fun initViews() {
-        chooseAmountRecipientView.setOnCopyClickListener { viewModel.copyRecipientAddressClicked() }
+        chooseAmountRecipientView.setActionClickListener { viewModel.recipientAddressClicked() }
 
         chooseAmountToolbar.setHomeButtonListener { viewModel.backClicked() }
 
@@ -64,6 +65,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
     }
 
     override fun subscribe(viewModel: ChooseAmountViewModel) {
+        setupExternalActions(viewModel)
+
         viewModel.feeLiveData.observe {
             chooseAmountFee.text = it.amount?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
         }
@@ -76,9 +79,9 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.recipientModelLiveData.observe {
-            chooseAmountRecipientView.setAddress(it.address)
+            chooseAmountRecipientView.setMessage(it.address)
 
-            chooseAmountRecipientView.setIcon(it.image)
+            chooseAmountRecipientView.setTextIcon(it.image)
         }
 
         viewModel.assetLiveData.observe {

@@ -8,16 +8,14 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.resources.ClipboardManager
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
@@ -28,10 +26,9 @@ private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 class AccountDetailsViewModel(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
-    private val clipboardManager: ClipboardManager,
-    private val resourceManager: ResourceManager,
+    private val externalAccountActions: ExternalAccountActions.Presentation,
     val accountAddress: String
-) : BaseViewModel() {
+) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
     private val accountNameChanges = BehaviorSubject.create<String>()
 
     val accountLiveData = getAccount(accountAddress).asLiveData()
@@ -61,11 +58,11 @@ class AccountDetailsViewModel(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    fun copyAddressClicked() {
+    fun addressClicked() {
         accountLiveData.value?.let {
-            clipboardManager.addToClipboard(it.address)
+            val payload = ExternalAccountActions.Payload(it.address, it.network.type)
 
-            showMessage(resourceManager.getString(R.string.common_copied))
+            externalAccountActions.showExternalActions(payload)
         }
     }
 

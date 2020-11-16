@@ -10,6 +10,8 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setVisible
+import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
 import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextAction
 import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextIcon
@@ -24,7 +26,9 @@ class LabeledTextView @JvmOverloads constructor(
     init {
         View.inflate(context, R.layout.view_labeled_text, this)
 
-        background = context.getCutCornersStateDrawable()
+        with(context) {
+            background = addRipple(getCutCornersStateDrawable())
+        }
 
         applyAttributes(attrs)
     }
@@ -34,9 +38,6 @@ class LabeledTextView @JvmOverloads constructor(
     private fun applyAttributes(attrs: AttributeSet?) {
         attrs?.let {
             val typedArray = context.obtainStyledAttributes(attrs, R.styleable.LabeledTextView)
-
-            val actionIcon = typedArray.getDrawable(R.styleable.LabeledTextView_actionIcon)
-            actionIcon?.let(::setActionIcon)
 
             val label = typedArray.getString(R.styleable.LabeledTextView_label)
             label?.let(::setLabel)
@@ -50,6 +51,9 @@ class LabeledTextView @JvmOverloads constructor(
             val enabled = typedArray.getBoolean(R.styleable.LabeledTextView_enabled, true)
             isEnabled = enabled
 
+            val actionIcon = typedArray.getDrawable(R.styleable.LabeledTextView_actionIcon)
+            actionIcon?.let(::setActionIcon)
+
             singleLine = typedArray.getBoolean(R.styleable.LabeledTextView_android_singleLine, true)
             labeledTextText.isSingleLine = singleLine
 
@@ -60,7 +64,7 @@ class LabeledTextView @JvmOverloads constructor(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
 
-        labeledTextAction.visibility = if (enabled) View.VISIBLE else View.GONE
+        labeledTextAction.setVisible(enabled)
     }
 
     fun setLabel(label: String) {
@@ -69,6 +73,8 @@ class LabeledTextView @JvmOverloads constructor(
 
     fun setActionIcon(icon: Drawable) {
         labeledTextAction.setImageDrawable(icon)
+
+        labeledTextAction.setVisible(true)
     }
 
     fun setMessage(@StringRes messageRes: Int) = setMessage(context.getString(messageRes))

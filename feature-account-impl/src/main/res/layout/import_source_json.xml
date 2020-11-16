@@ -7,58 +7,16 @@
     tools:background="@color/black"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/importJsonContentContainer"
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/importJsonContent"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_big_input_shape_selector"
+        app:actionIcon="@drawable/ic_file_upload"
+        app:label="@string/recovery_json"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:id="@+id/importJsonFile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:padding="8dp"
-            android:src="@drawable/ic_file_upload"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/importJsonTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:text="@string/recovery_json"
-            android:textColor="@color/colorHint"
-            app:layout_constraintEnd_toStartOf="@+id/importJsonFile"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <EditText
-            android:id="@+id/importJsonContent"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:background="@null"
-            android:gravity="top"
-            android:textCursorDrawable="@null"
-            android:textAppearance="@style/TextAppearance.Soramitsu.Body1"
-            android:hint="@string/recover_json_hint"
-            android:textColorHint="@color/colorHint"
-            android:inputType="textMultiLine|textVisiblePassword"
-            android:padding="0dp"
-            android:textColor="@color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/importJsonTitle"
-            app:layout_constraintStart_toStartOf="@+id/importJsonTitle"
-            app:layout_constraintTop_toBottomOf="@+id/importJsonTitle" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        app:layout_constraintTop_toTopOf="parent"
+        app:message="@string/recover_json_hint" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/importJsonUsernameInput"
@@ -70,7 +28,7 @@
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/importJsonContentContainer">
+        app:layout_constraintTop_toBottomOf="@id/importJsonContent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/importJsonUsernameField"
