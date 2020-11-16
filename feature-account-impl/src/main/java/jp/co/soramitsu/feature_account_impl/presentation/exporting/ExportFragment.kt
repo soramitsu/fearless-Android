@@ -6,7 +6,6 @@ import androidx.annotation.CallSuper
 import androidx.appcompat.app.AlertDialog
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.utils.shareText
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ShareCompletedReceiver
 
 abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
