@@ -66,9 +66,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
     }
 
     override fun openCreatePincode() {
+        val bundle = PincodeFragment.getCreatePinCodeBundle()
         when (navController?.currentDestination?.id) {
-            R.id.importAccountFragment -> navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment, PincodeFragment.getCreatePinCodeBundle())
-            R.id.confirmMnemonicFragment -> navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment, PincodeFragment.getCreatePinCodeBundle())
+            R.id.importAccountFragment -> navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment, bundle)
+            R.id.confirmMnemonicFragment -> navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment, bundle)
         }
     }
 
