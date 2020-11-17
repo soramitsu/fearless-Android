@@ -11,6 +11,8 @@ interface AccountRouter {
 
     fun openMain()
 
+    fun openDestination(destination: Int)
+
     fun openCreatePincode()
 
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)

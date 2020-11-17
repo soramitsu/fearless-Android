@@ -22,21 +22,15 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     companion object {
         private const val KEY_PINCODE_ACTION = "pincode_action"
 
-        fun getCreatePinCodeBundle(): Bundle {
+        fun getPinCodeBundle(pinCodeAction: PinCodeAction): Bundle {
             return Bundle().apply {
-                putSerializable(KEY_PINCODE_ACTION, PinCodeAction.CREATE)
-            }
-        }
-
-        fun getCheckPinCodeBundle(): Bundle {
-            return Bundle().apply {
-                putSerializable(KEY_PINCODE_ACTION, PinCodeAction.CHECK)
+                putParcelable(KEY_PINCODE_ACTION, pinCodeAction)
             }
         }
 
         fun getChangePinCodeBundle(): Bundle {
             return Bundle().apply {
-                putSerializable(KEY_PINCODE_ACTION, PinCodeAction.CHANGE)
+                putParcelable(KEY_PINCODE_ACTION, PinCodeAction.Change)
             }
         }
     }

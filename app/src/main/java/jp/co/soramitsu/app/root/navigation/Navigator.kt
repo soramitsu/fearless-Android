@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupM
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment
@@ -42,11 +43,15 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
     }
 
     override fun openCreatePin() {
-        navController?.navigate(R.id.action_splash_to_pin, PincodeFragment.getCreatePinCodeBundle())
+        val action = PinCodeAction.Create(R.id.action_open_main)
+        val bundle = PincodeFragment.getPinCodeBundle(action)
+        navController?.navigate(R.id.action_splash_to_pin, bundle)
     }
 
     override fun openCheckPin() {
-        navController?.navigate(R.id.action_splash_to_pin, PincodeFragment.getCheckPinCodeBundle())
+        val action = PinCodeAction.Check(R.id.action_open_main)
+        val bundle = PincodeFragment.getPinCodeBundle(action)
+        navController?.navigate(R.id.action_splash_to_pin, bundle)
     }
 
     override fun openMainScreen() {
@@ -65,8 +70,13 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_open_main)
     }
 
+    override fun openDestination(destination: Int) {
+        navController?.navigate(destination)
+    }
+
     override fun openCreatePincode() {
-        val bundle = PincodeFragment.getCreatePinCodeBundle()
+        val action = PinCodeAction.Create(R.id.action_open_main)
+        val bundle = PincodeFragment.getPinCodeBundle(action)
         when (navController?.currentDestination?.id) {
             R.id.importAccountFragment -> navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment, bundle)
             R.id.confirmMnemonicFragment -> navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment, bundle)
@@ -235,6 +245,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
     }
 
     override fun openChangePinCode() {
-        navController?.navigate(R.id.action_mainFragment_to_pinCodeFragment, PincodeFragment.getChangePinCodeBundle())
+        val action = PinCodeAction.Change
+        val bundle = PincodeFragment.getPinCodeBundle(action)
+        navController?.navigate(R.id.action_mainFragment_to_pinCodeFragment, bundle)
     }
 }

@@ -57,14 +57,14 @@ class PinCodeViewModel(
 
     fun startAuth() {
         when (pinCodeAction) {
-            PinCodeAction.CREATE -> {
+            is PinCodeAction.Create -> {
                 currentState = ScreenState.Creating
             }
-            PinCodeAction.CHECK -> {
+            is PinCodeAction.Check -> {
                 currentState = ScreenState.Checking
                 _showFingerPrintEvent.value = Event(Unit)
             }
-            PinCodeAction.CHANGE -> {
+            is PinCodeAction.Change -> {
                 currentState = ScreenState.Checking
                 _showFingerPrintEvent.value = Event(Unit)
                 _homeButtonVisibilityLiveData.value = true
@@ -98,7 +98,7 @@ class PinCodeViewModel(
     private fun registerPinCode(code: String) {
         disposables += interactor.savePin(code)
             .subscribe({
-                if (fingerPrintAvailable && PinCodeAction.CREATE == pinCodeAction) {
+                if (fingerPrintAvailable && pinCodeAction is PinCodeAction.Create) {
                     _biometricSwitchDialogLiveData.value = Event(Unit)
                 } else {
                     authSuccess()
@@ -128,7 +128,7 @@ class PinCodeViewModel(
 
     private fun backToCreateFromConfirmation() {
         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
-        if (PinCodeAction.CREATE == pinCodeAction) {
+        if (pinCodeAction is PinCodeAction.Create) {
             _homeButtonVisibilityLiveData.value = false
         }
         currentState = ScreenState.Creating
@@ -158,8 +158,9 @@ class PinCodeViewModel(
 
     private fun authSuccess() {
         when (pinCodeAction) {
-            PinCodeAction.CREATE, PinCodeAction.CHECK -> router.openMain()
-            PinCodeAction.CHANGE -> {
+            is PinCodeAction.Create -> router.openDestination(pinCodeAction.destination)
+            is PinCodeAction.Check -> router.openDestination(pinCodeAction.destination)
+            is PinCodeAction.Change -> {
                 when (currentState) {
                     is ScreenState.Checking -> {
                         currentState = ScreenState.Creating
@@ -177,9 +178,9 @@ class PinCodeViewModel(
 
     private fun authCancel() {
         when (pinCodeAction) {
-            PinCodeAction.CREATE -> _finishAppEvent.value = Event(Unit)
-            PinCodeAction.CHECK -> _finishAppEvent.value = Event(Unit)
-            PinCodeAction.CHANGE -> router.back()
+            is PinCodeAction.Create -> _finishAppEvent.value = Event(Unit)
+            is PinCodeAction.Check -> _finishAppEvent.value = Event(Unit)
+            is PinCodeAction.Change -> router.back()
         }
     }
 
