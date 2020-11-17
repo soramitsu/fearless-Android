@@ -187,4 +187,5 @@
     <string name="common_copy_address">Скопіювати адресу</string>
     <string name="common_choose_file">Завантажити файл</string>
     <string name="import_json_paste">Вставити json</string>
+    <string name="account_import_json_no_network">JSON не містить інформації про мережу. Будь ласка, вкажіть це в розширеному блоці.</string>
 </resources>

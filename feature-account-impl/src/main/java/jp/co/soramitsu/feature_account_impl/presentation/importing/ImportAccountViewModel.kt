@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
@@ -61,6 +62,16 @@ class ImportAccountViewModel(
     val nextButtonEnabledLiveData = sourceTypeValid.combine(nameLiveData) { sourceTypeValid, name ->
         sourceTypeValid && name.isNotEmpty()
     }
+
+    val networkChooserEnabledLiveData = _selectedSourceTypeLiveData.switchMap {
+        if (it is JsonImportSource) {
+            it.enableNetworkInputLiveData
+        } else {
+            MutableLiveData(true)
+        }
+    }
+
+    val advancedBlockExceptNetworkEnabled = _selectedSourceTypeLiveData.map { it !is JsonImportSource }
 
     init {
         disposables += networkDisposable

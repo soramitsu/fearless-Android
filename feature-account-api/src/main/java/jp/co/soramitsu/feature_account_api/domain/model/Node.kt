@@ -14,6 +14,8 @@ data class Node(
         val genesisHash: String,
         val existentialDeposit: BigDecimal
     ) {
+        // TODO reference genesis hashes to library
+
         KUSAMA(
             "Kusama",
             "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",

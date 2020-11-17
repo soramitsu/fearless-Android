@@ -108,10 +108,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             sourceTypeContainer.addView(sourceViews!![index])
 
             sourceTypeInput.setMessage(it.nameRes)
-
-            val isSelectorsEnabled = it !is JsonImportSource
-
-            setSelectorsEnabled(isSelectorsEnabled)
         }
 
         viewModel.encryptionTypeChooserEvent.observeEvent {
@@ -144,6 +140,14 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             nextBtn.isEnabled = it
         }
 
+        viewModel.advancedBlockExceptNetworkEnabled.observe(::setSelectorsEnabled)
+
+        viewModel.networkChooserEnabledLiveData.observe { enabled ->
+            with(advancedBlockView) {
+                configure(networkTypeField, getFieldState(enabled))
+            }
+        }
+
         advancedBlockView.derivationPathEditText.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)
     }
 
@@ -156,14 +160,17 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     private fun setSelectorsEnabled(selectorsEnabled: Boolean) {
-        val chooserState = if (selectorsEnabled) FieldState.NORMAL else FieldState.DISABLED
-        val derivationPathState = if (selectorsEnabled) FieldState.NORMAL else FieldState.HIDDEN
+        val chooserState = getFieldState(selectorsEnabled)
+        val derivationPathState = getFieldState(selectorsEnabled, disabledState = FieldState.HIDDEN)
 
         with(advancedBlockView) {
             configure(encryptionTypeField, chooserState)
-            configure(networkTypeField, chooserState)
             configure(derivationPathField, derivationPathState)
         }
+    }
+
+    private fun getFieldState(isEnabled: Boolean, disabledState: FieldState = FieldState.DISABLED): FieldState {
+        return if (isEnabled) FieldState.NORMAL else disabledState
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

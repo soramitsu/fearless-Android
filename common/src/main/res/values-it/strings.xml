@@ -186,4 +186,5 @@
     <string name="common_copy_address">Copia indirizzo</string>
     <string name="common_choose_file">Caricare un file</string>
     <string name="import_json_paste">Incolla json</string>
+    <string name="account_import_json_no_network">JSON non contiene informazioni di rete. Si prega di specificarlo nel blocco avanzato.</string>
 </resources>

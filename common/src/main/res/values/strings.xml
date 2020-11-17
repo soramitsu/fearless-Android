@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="account_import_json_no_network">No network information. Please specify it in advanced block</string>
+
     <string name="import_json_paste">Paste JSON</string>
     <string name="common_choose_file">Upload file</string>
 

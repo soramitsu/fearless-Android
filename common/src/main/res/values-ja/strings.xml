@@ -186,4 +186,5 @@
     <string name="common_copy_address">コピーアドレス</string>
     <string name="common_choose_file">ファイルをアップロードする</string>
     <string name="import_json_paste">jsonを貼り付け</string>
+    <string name="account_import_json_no_network">JSONにはネットワーク情報は含まれていません。高度なブロックで指定してください。</string>
 </resources>

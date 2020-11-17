@@ -49,11 +49,7 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     private val showClickListener = OnClickListener {
-        if (advancedView.visibility == View.VISIBLE) {
-            hideAdvanced()
-        } else {
-            showAdvanced()
-        }
+        toggle()
     }
 
     init {
@@ -75,12 +71,20 @@ class AdvancedBlockView @JvmOverloads constructor(
     val networkTypeField: LabeledTextView
         get() = networkInput
 
-    private fun showAdvanced() {
+    fun toggle() {
+        if (advancedView.visibility == View.VISIBLE) {
+            collapse()
+        } else {
+            expand()
+        }
+    }
+
+    fun expand() {
         advancedView.makeVisible()
         advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_minus_24, 0)
     }
 
-    private fun hideAdvanced() {
+    fun collapse() {
         advancedView.makeGone()
         advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_plus_white_24, 0)
     }
@@ -131,18 +135,6 @@ class AdvancedBlockView @JvmOverloads constructor(
         val state = if (enabled) FieldState.NORMAL else FieldState.DISABLED
 
         configure(field, state)
-    }
-
-    fun setNetworkSelectorEnabled(enabled: Boolean) {
-        updateSelectorState(networkInput, enabled)
-
-        networkInput.isEnabled = enabled
-    }
-
-    private fun updateSelectorState(view: View, enabled: Boolean) {
-        val background = if (enabled) R.drawable.bg_input_shape_selector else R.drawable.bg_button_primary_disabled
-
-        view.setBackgroundResource(background)
     }
 
     private fun maybeCallSelectorListener(view: View, clickListener: () -> Unit) {

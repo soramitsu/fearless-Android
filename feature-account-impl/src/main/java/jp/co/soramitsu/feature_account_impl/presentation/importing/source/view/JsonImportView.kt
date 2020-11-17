@@ -6,11 +6,13 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonContent
+import kotlinx.android.synthetic.main.import_source_json.view.importJsonNoNetworkInfo
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonPasswordField
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsernameField
 
@@ -38,6 +40,10 @@ class JsonImportView @JvmOverloads constructor(
         importJsonContent.setOnClickListener {
             source.jsonClicked()
         }
+
+        source.showNetworkWarningLiveData.observe(lifecycleOwner, Observer {
+            importJsonNoNetworkInfo.setVisible(it)
+        })
     }
 
     private fun showJsonInputOptionsSheet(source: JsonImportSource) {

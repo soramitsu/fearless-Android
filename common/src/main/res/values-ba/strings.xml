@@ -188,4 +188,5 @@
     <string name="common_copy_address">Копировать адрес</string>
     <string name="common_choose_file">Загрузить файл</string>
     <string name="import_json_paste">Json профилендә</string>
+    <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных настроек.</string>
 </resources>
