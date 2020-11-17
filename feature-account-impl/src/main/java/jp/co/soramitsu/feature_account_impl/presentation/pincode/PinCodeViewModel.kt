@@ -158,8 +158,7 @@ class PinCodeViewModel(
 
     private fun authSuccess() {
         when (pinCodeAction) {
-            PinCodeAction.CREATE -> router.openMain()
-            PinCodeAction.CHECK -> router.openMain()
+            PinCodeAction.CREATE, PinCodeAction.CHECK -> router.openMain()
             PinCodeAction.CHANGE -> {
                 when (currentState) {
                     is ScreenState.Checking -> {
