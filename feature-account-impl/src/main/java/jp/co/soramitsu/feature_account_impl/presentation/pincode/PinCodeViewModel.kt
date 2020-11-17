@@ -6,7 +6,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
@@ -20,10 +22,10 @@ class PinCodeViewModel(
     private val pinCodeAction: PinCodeAction
 ) : BaseViewModel() {
 
-    enum class ScreenState {
-        CREATING,
-        CONFIRMATION,
-        CHECKING
+    sealed class ScreenState {
+        object Creating : ScreenState()
+        data class Confirmation(val tempCode: String) : ScreenState()
+        object Checking : ScreenState()
     }
 
     private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>(false)
@@ -51,20 +53,19 @@ class PinCodeViewModel(
     val finisAppEvent: LiveData<Event<Unit>> = _finishAppEvent
 
     private var fingerPrintAvailable = false
-    private var tempCode = ""
-    private var currentScreenState: ScreenState? = null
+    private var currentState: ScreenState? = null
 
     fun startAuth() {
         when (pinCodeAction) {
             PinCodeAction.CREATE -> {
-                currentScreenState = ScreenState.CREATING
+                currentState = ScreenState.Creating
             }
             PinCodeAction.CHECK -> {
-                currentScreenState = ScreenState.CHECKING
+                currentState = ScreenState.Checking
                 _showFingerPrintEvent.value = Event(Unit)
             }
             PinCodeAction.CHANGE -> {
-                currentScreenState = ScreenState.CHECKING
+                currentState = ScreenState.Checking
                 _showFingerPrintEvent.value = Event(Unit)
                 _homeButtonVisibilityLiveData.value = true
             }
@@ -72,21 +73,20 @@ class PinCodeViewModel(
     }
 
     fun pinCodeEntered(pin: String) {
-        when (currentScreenState) {
-            ScreenState.CREATING -> tempCodeEntered(pin)
-            ScreenState.CONFIRMATION -> matchPincodeWithTempCode(pin)
-            ScreenState.CHECKING -> checkPinCode(pin)
+        when (currentState) {
+            is ScreenState.Creating -> tempCodeEntered(pin)
+            is ScreenState.Confirmation -> matchPincodeWithTempCode(pin, (currentState as ScreenState.Confirmation).tempCode)
+            is ScreenState.Checking -> checkPinCode(pin)
         }
     }
 
     private fun tempCodeEntered(pin: String) {
-        tempCode = pin
         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_confirm_your_pin_code))
         _homeButtonVisibilityLiveData.value = true
-        currentScreenState = ScreenState.CONFIRMATION
+        currentState = ScreenState.Confirmation(pin)
     }
 
-    private fun matchPincodeWithTempCode(pinCode: String) {
+    private fun matchPincodeWithTempCode(pinCode: String, tempCode: String) {
         if (tempCode == pinCode) {
             registerPinCode(pinCode)
         } else {
@@ -96,55 +96,46 @@ class PinCodeViewModel(
     }
 
     private fun registerPinCode(code: String) {
-        disposables.add(
-            interactor.savePin(code)
-                .subscribe({
-                    if (fingerPrintAvailable && PinCodeAction.CREATE == pinCodeAction) {
-                        _biometricSwitchDialogLiveData.value = Event(Unit)
-                    } else {
-                        authSuccess()
-                    }
-                }, {
-                    it.printStackTrace()
-                })
-        )
+        disposables += interactor.savePin(code)
+            .subscribe({
+                if (fingerPrintAvailable && PinCodeAction.CREATE == pinCodeAction) {
+                    _biometricSwitchDialogLiveData.value = Event(Unit)
+                } else {
+                    authSuccess()
+                }
+            }, (DEFAULT_ERROR_HANDLER))
     }
 
     private fun checkPinCode(code: String) {
-        disposables.add(
-            interactor.isPinCorrect(code)
-                .subscribe({ pinIsCorrect ->
-                    if (pinIsCorrect) {
-                        authSuccess()
-                    } else {
-                        deviceVibrator.makeShortVibration()
-                        _matchingPincodeErrorEvent.value = Event(Unit)
-                    }
-                }, {
-                    it.printStackTrace()
-                })
-        )
+        disposables += interactor.isPinCorrect(code)
+            .subscribe({ pinIsCorrect ->
+                if (pinIsCorrect) {
+                    authSuccess()
+                } else {
+                    deviceVibrator.makeShortVibration()
+                    _matchingPincodeErrorEvent.value = Event(Unit)
+                }
+            }, (DEFAULT_ERROR_HANDLER))
     }
 
     fun backPressed() {
-        when (currentScreenState) {
-            ScreenState.CREATING -> authCancel()
-            ScreenState.CONFIRMATION -> backToCreate()
-            ScreenState.CHECKING -> authCancel()
+        when (currentState) {
+            is ScreenState.Creating -> authCancel()
+            is ScreenState.Confirmation -> backToCreateFromConfirmation()
+            is ScreenState.Checking -> authCancel()
         }
     }
 
-    private fun backToCreate() {
-        tempCode = ""
+    private fun backToCreateFromConfirmation() {
         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
         if (PinCodeAction.CREATE == pinCodeAction) {
             _homeButtonVisibilityLiveData.value = false
         }
-        currentScreenState = ScreenState.CREATING
+        currentState = ScreenState.Creating
     }
 
     fun onResume() {
-        if (ScreenState.CHECKING == currentScreenState && interactor.isBiometricEnabled()) {
+        if (ScreenState.Checking == currentState && interactor.isBiometricEnabled()) {
             _startFingerprintScannerEventLiveData.value = Event(Unit)
         }
     }
@@ -170,13 +161,13 @@ class PinCodeViewModel(
             PinCodeAction.CREATE -> router.openMain()
             PinCodeAction.CHECK -> router.openMain()
             PinCodeAction.CHANGE -> {
-                when (currentScreenState) {
-                    ScreenState.CHECKING -> {
-                        currentScreenState = ScreenState.CREATING
+                when (currentState) {
+                    is ScreenState.Checking -> {
+                        currentState = ScreenState.Creating
                         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_new_pin_code))
                         _homeButtonVisibilityLiveData.value = true
                     }
-                    ScreenState.CONFIRMATION -> {
+                    is ScreenState.Confirmation -> {
                         router.back()
                         showMessage(resourceManager.getString(R.string.pincode_changed_message))
                     }
@@ -194,28 +185,20 @@ class PinCodeViewModel(
     }
 
     fun acceptAuthWithBiometry() {
-        disposables.add(
-            interactor.setBiometricOn()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    authSuccess()
-                }, {
-                    it.printStackTrace()
-                })
-        )
+        disposables += interactor.setBiometricOn()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                authSuccess()
+            }, (DEFAULT_ERROR_HANDLER))
     }
 
     fun declineAuthWithBiometry() {
-        disposables.add(
-            interactor.setBiometricOff()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    authSuccess()
-                }, {
-                    it.printStackTrace()
-                })
-        )
+        disposables += interactor.setBiometricOff()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                authSuccess()
+            }, (DEFAULT_ERROR_HANDLER))
     }
 }
