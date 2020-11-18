@@ -24,7 +24,7 @@ class PinCodeViewModel(
 
     sealed class ScreenState {
         object Creating : ScreenState()
-        data class Confirmation(val tempCode: String) : ScreenState()
+        data class Confirmation(val codeToConfirm: String) : ScreenState()
         object Checking : ScreenState()
     }
 
@@ -75,7 +75,7 @@ class PinCodeViewModel(
     fun pinCodeEntered(pin: String) {
         when (currentState) {
             is ScreenState.Creating -> tempCodeEntered(pin)
-            is ScreenState.Confirmation -> matchPincodeWithTempCode(pin, (currentState as ScreenState.Confirmation).tempCode)
+            is ScreenState.Confirmation -> matchPincodeWithCodeToConfirm(pin, (currentState as ScreenState.Confirmation).codeToConfirm)
             is ScreenState.Checking -> checkPinCode(pin)
         }
     }
@@ -86,8 +86,8 @@ class PinCodeViewModel(
         currentState = ScreenState.Confirmation(pin)
     }
 
-    private fun matchPincodeWithTempCode(pinCode: String, tempCode: String) {
-        if (tempCode == pinCode) {
+    private fun matchPincodeWithCodeToConfirm(pinCode: String, codeToConfirm: String) {
+        if (codeToConfirm == pinCode) {
             registerPinCode(pinCode)
         } else {
             deviceVibrator.makeShortVibration()
@@ -103,7 +103,7 @@ class PinCodeViewModel(
                 } else {
                     authSuccess()
                 }
-            }, (DEFAULT_ERROR_HANDLER))
+            }, DEFAULT_ERROR_HANDLER)
     }
 
     private fun checkPinCode(code: String) {
@@ -115,7 +115,7 @@ class PinCodeViewModel(
                     deviceVibrator.makeShortVibration()
                     _matchingPincodeErrorEvent.value = Event(Unit)
                 }
-            }, (DEFAULT_ERROR_HANDLER))
+            }, DEFAULT_ERROR_HANDLER)
     }
 
     fun backPressed() {
@@ -190,7 +190,7 @@ class PinCodeViewModel(
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 authSuccess()
-            }, (DEFAULT_ERROR_HANDLER))
+            }, DEFAULT_ERROR_HANDLER)
     }
 
     fun declineAuthWithBiometry() {
@@ -199,6 +199,6 @@ class PinCodeViewModel(
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 authSuccess()
-            }, (DEFAULT_ERROR_HANDLER))
+            }, DEFAULT_ERROR_HANDLER)
     }
 }
