@@ -49,9 +49,6 @@ class PinCodeViewModel(
     private val _biometricSwitchDialogLiveData = MutableLiveData<Event<Unit>>()
     val biometricSwitchDialogLiveData: LiveData<Event<Unit>> = _biometricSwitchDialogLiveData
 
-    private val _finishAppEvent = MutableLiveData<Event<Unit>>()
-    val finisAppEvent: LiveData<Event<Unit>> = _finishAppEvent
-
     private var fingerPrintAvailable = false
     private var currentState: ScreenState? = null
 
@@ -177,11 +174,7 @@ class PinCodeViewModel(
     }
 
     private fun authCancel() {
-        when (pinCodeAction) {
-            is PinCodeAction.Create -> _finishAppEvent.value = Event(Unit)
-            is PinCodeAction.Check -> _finishAppEvent.value = Event(Unit)
-            is PinCodeAction.Change -> router.back()
-        }
+        router.back()
     }
 
     fun acceptAuthWithBiometry() {

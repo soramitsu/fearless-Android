@@ -74,10 +74,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         }
 
-        viewModel.finisAppEvent.observeEvent {
-            requireActivity().finish()
-        }
-
         viewModel.homeButtonVisibilityLiveData.observe(toolbar::setHomeButtonVisibility)
 
         viewModel.matchingPincodeErrorEvent.observeEvent {
