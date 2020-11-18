@@ -4,7 +4,9 @@ interface SplashRouter {
 
     fun openAddFirstAccount()
 
-    fun openPin()
+    fun openCreatePin()
+
+    fun openCheckPin()
 
     fun openMainScreen()
 }

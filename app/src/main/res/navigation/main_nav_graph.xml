@@ -93,6 +93,14 @@
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
 
+        <action
+            android:id="@+id/action_mainFragment_to_pinCodeFragment"
+            app:destination="@id/pincodeFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
     </fragment>
 
     <fragment
@@ -322,5 +330,11 @@
         android:id="@+id/exportJsonPasswordFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment"
         android:label="ExportJsonPasswordFragment" />
+
+    <fragment
+        android:id="@+id/pincodeFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment"
+        android:label="fragment_pincode"
+        tools:layout="@layout/fragment_pincode" />
 
 </navigation>

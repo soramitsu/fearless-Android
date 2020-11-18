@@ -100,7 +100,7 @@ class AccountInteractorImpl(
         return accountRepository.getAddressId(account)
     }
 
-    override fun isCodeSet(): Single<Boolean> {
+    override fun isCodeSet(): Boolean {
         return accountRepository.isCodeSet()
     }
 
@@ -115,7 +115,7 @@ class AccountInteractorImpl(
         }
     }
 
-    override fun isBiometricEnabled(): Single<Boolean> {
+    override fun isBiometricEnabled(): Boolean {
         return accountRepository.isBiometricEnabled()
     }
 

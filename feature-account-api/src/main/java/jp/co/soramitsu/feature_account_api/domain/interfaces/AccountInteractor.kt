@@ -52,13 +52,13 @@ interface AccountInteractor {
 
     fun getAddressId(account: Account): Single<ByteArray>
 
-    fun isCodeSet(): Single<Boolean>
+    fun isCodeSet(): Boolean
 
     fun savePin(code: String): Completable
 
     fun isPinCorrect(code: String): Single<Boolean>
 
-    fun isBiometricEnabled(): Single<Boolean>
+    fun isBiometricEnabled(): Boolean
 
     fun setBiometricOn(): Completable
 

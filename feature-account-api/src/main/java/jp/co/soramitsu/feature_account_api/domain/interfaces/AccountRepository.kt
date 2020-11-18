@@ -83,7 +83,7 @@ interface AccountRepository {
         name: String
     ): Completable
 
-    fun isCodeSet(): Single<Boolean>
+    fun isCodeSet(): Boolean
 
     fun savePinCode(code: String): Completable
 
@@ -97,7 +97,7 @@ interface AccountRepository {
 
     fun getAddressId(address: String): Single<ByteArray>
 
-    fun isBiometricEnabled(): Single<Boolean>
+    fun isBiometricEnabled(): Boolean
 
     fun setBiometricOn(): Completable
 
