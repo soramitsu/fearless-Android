@@ -30,12 +30,12 @@ abstract class TransactionDao {
 
     @Query(
         """
-            SELECT DISTINCT recipientAddress FROM transactions WHERE (recipientAddress LIKE '%' || :query  || '%' AND recipientAddress != accountAddress) AND networkType = :networkType
+            SELECT DISTINCT recipientAddress FROM transactions WHERE (recipientAddress LIKE '%' || :query  || '%' AND recipientAddress != accountAddress) AND accountAddress = :accountAddress
             UNION
-            SELECT DISTINCT senderAddress FROM transactions WHERE (senderAddress LIKE '%' || :query  || '%' AND senderAddress != accountAddress) AND networkType = :networkType
+            SELECT DISTINCT senderAddress FROM transactions WHERE (senderAddress LIKE '%' || :query  || '%' AND senderAddress != accountAddress) AND accountAddress = :accountAddress
         """
     )
-    abstract fun getContacts(query: String, networkType: Node.NetworkType): Single<List<String>>
+    abstract fun getContacts(query: String, accountAddress: String): Single<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insert(transaction: TransactionLocal): Completable

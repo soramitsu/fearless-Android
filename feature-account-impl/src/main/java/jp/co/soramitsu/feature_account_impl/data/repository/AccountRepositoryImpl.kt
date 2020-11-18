@@ -118,6 +118,10 @@ class AccountRepositoryImpl(
         return accountDataSource.observeSelectedAccount()
     }
 
+    override fun getSelectedAccount(): Single<Account> {
+        return observeSelectedAccount().firstOrError()
+    }
+
     override fun getPreferredCryptoType(): Single<CryptoType> {
         return accountDataSource.getPreferredCryptoType()
     }

@@ -76,8 +76,8 @@ class WalletInteractorImpl(
     }
 
     override fun getContacts(query: String): Single<List<String>> {
-        return accountRepository.observeSelectedAccount().firstOrError()
-            .flatMap { walletRepository.getContacts(query, it.network.type) }
+        return accountRepository.getSelectedAccount()
+            .flatMap { walletRepository.getContacts(query) }
     }
 
     override fun getMyAddresses(query: String): Single<List<String>> {
