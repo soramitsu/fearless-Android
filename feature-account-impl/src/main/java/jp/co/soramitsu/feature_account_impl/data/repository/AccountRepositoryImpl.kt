@@ -231,11 +231,7 @@ class AccountRepositoryImpl(
 
                 val securitySource = SecuritySource.Json(seed, signingData)
 
-                val actualAddress = if (importData.networkType != null) {
-                    address
-                } else {
-                    sS58Encoder.encode(keypair.publicKey, mapNetworkTypeToAddressType(networkType))
-                }
+                val actualAddress = sS58Encoder.encode(keypair.publicKey, mapNetworkTypeToAddressType(networkType))
 
                 val accountLocal = insertAccount(actualAddress, name, publicKeyEncoded, cryptoType, networkType)
 
