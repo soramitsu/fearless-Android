@@ -192,6 +192,7 @@ class ImportAccountViewModel(
             is JsonImportSource -> interactor.importFromJson(
                 sourceType.jsonContentLiveData.value!!,
                 sourceType.passwordLiveData.value!!,
+                networkType,
                 name
             )
         }

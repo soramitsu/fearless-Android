@@ -91,9 +91,10 @@ class AccountInteractorImpl(
     override fun importFromJson(
         json: String,
         password: String,
+        networkType: Node.NetworkType,
         name: String
     ): Completable {
-        return accountRepository.importFromJson(json, password, name)
+        return accountRepository.importFromJson(json, password, networkType, name)
     }
 
     override fun getAddressId(account: Account): Single<ByteArray> {

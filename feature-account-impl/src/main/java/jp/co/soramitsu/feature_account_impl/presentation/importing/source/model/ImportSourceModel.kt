@@ -15,8 +15,8 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.isNotEmpty
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.sendEvent
-import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.IncorrectPasswordException
-import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.InvalidJsonException
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.InvalidJsonException
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.IncorrectPasswordException
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData

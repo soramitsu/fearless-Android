@@ -47,6 +47,7 @@ interface AccountInteractor {
     fun importFromJson(
         json: String,
         password: String,
+        networkType: Node.NetworkType,
         name: String
     ): Completable
 
