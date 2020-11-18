@@ -108,7 +108,9 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.showBalanceDetailsEvent.observeEvent {
-            BalanceDetailsBottomSheet(requireContext(), it).show()
+            val asset = viewModel.assetLiveData.value!!
+
+            BalanceDetailsBottomSheet(requireContext(), asset,  it).show()
         }
 
         viewModel.showAccountRemovalWarning.observeEvent {

@@ -42,6 +42,10 @@ open class BaseViewModel : ViewModel() {
         _errorLiveData.value = Event(text)
     }
 
+    fun showError(throwable: Throwable) {
+        throwable.message?.let(this::showError)
+    }
+
     fun <T> Single<T>.asLiveData(
         errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
     ) = asLiveData(disposables, errorHandler)

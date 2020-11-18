@@ -53,10 +53,10 @@ class ChooseAmountViewModel(
 
     private val currentAssetObservable = interactor.observeCurrentAsset()
 
-    val feeLiveData = observeFee().asLiveData()
-
     private val _feeLoadingLiveData = MutableLiveData<Boolean>()
     val feeLoadingLiveData = _feeLoadingLiveData
+
+    val feeLiveData = observeFee().asLiveData()
 
     private val _feeErrorLiveData = MutableLiveData<Event<RetryReason>>()
     val feeErrorLiveData = _feeErrorLiveData
@@ -125,7 +125,8 @@ class ChooseAmountViewModel(
     private fun observeFee(): Observable<Fee> {
         val debouncedAmountEvents = amountEventsSubject
             .subscribeOn(Schedulers.io())
-            .debounce(500, TimeUnit.MILLISECONDS)
+            .throttleLatest(500, TimeUnit.MILLISECONDS)
+            .distinctUntilChanged()
             .doOnNext { _feeLoadingLiveData.postValue(true) }
 
         return Observable.combineLatest(debouncedAmountEvents, currentAssetObservable, BiFunction<BigDecimal, Asset, Transfer> { amount, asset ->
@@ -190,7 +191,7 @@ class ChooseAmountViewModel(
         val fee = feeLiveData.value!!.amount ?: return null
         val asset = assetLiveData.value ?: return null
 
-        return TransferDraft(amount, fee, asset.available, asset.total, asset.token, recipientAddress)
+        return TransferDraft(amount, fee, asset.token, recipientAddress)
     }
 
     private fun retryLoadFee() {
