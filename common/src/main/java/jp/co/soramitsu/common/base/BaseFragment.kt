@@ -46,7 +46,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         buildErrorDialog(title, errorMessage).show()
     }
 
-    protected open fun buildErrorDialog(title: String, errorMessage: String) : AlertDialog {
+    protected open fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
         return AlertDialog.Builder(requireActivity())
             .setTitle(title)
             .setMessage(errorMessage)

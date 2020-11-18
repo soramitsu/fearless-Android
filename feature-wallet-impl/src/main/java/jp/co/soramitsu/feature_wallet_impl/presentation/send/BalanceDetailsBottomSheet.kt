@@ -3,11 +3,9 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send
 import android.content.Context
 import android.os.Bundle
 import jp.co.soramitsu.common.view.bottomSheet.FixedListBottomSheet
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.currencyItem
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import java.math.BigDecimal
 
 class BalanceDetailsBottomSheet(
     context: Context,
