@@ -27,12 +27,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
                 putParcelable(KEY_PINCODE_ACTION, pinCodeAction)
             }
         }
-
-        fun getChangePinCodeBundle(): Bundle {
-            return Bundle().apply {
-                putParcelable(KEY_PINCODE_ACTION, PinCodeAction.Change)
-            }
-        }
     }
 
     @Inject lateinit var fingerprintWrapper: FingerprintWrapper
