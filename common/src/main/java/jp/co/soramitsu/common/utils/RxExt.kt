@@ -29,7 +29,7 @@ fun <T> Observable<Optional<T>>.filterNonNull(): Observable<T> = filter { it.val
 fun <T> Observable<Optional<T>>.asOptionalLiveData(
     disposable: CompositeDisposable,
     errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-) : LiveData<T?> = asLiveData(disposable, errorHandler)
+): LiveData<T?> = asLiveData(disposable, errorHandler)
     .map { it.value }
 
 fun <T> Single<T>.asLiveData(
