@@ -7,6 +7,7 @@ import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
+import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
@@ -21,6 +22,10 @@ class JsonImportView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ImportSourceView(R.layout.import_source_json, context, attrs, defStyleAttr) {
+
+    init {
+        importJsonUsernameField.filters = nameInputFilters()
+    }
 
     override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {
         require(source is JsonImportSource)

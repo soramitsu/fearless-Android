@@ -11,6 +11,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
+import jp.co.soramitsu.common.utils.nameInputFilters
+import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.R
@@ -41,17 +43,11 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
 
         nextBtn.setOnClickListener { viewModel.nextClicked() }
 
-        accountNameEt.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-            }
+        accountNameEt.onTextChanged {
+            viewModel.accountNameChanged(it)
+        }
 
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                viewModel.accountNameChanged(s)
-            }
-        })
+        accountNameEt.filters = nameInputFilters()
     }
 
     override fun inject() {
