@@ -10,7 +10,6 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
-import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsernameField
 import kotlinx.android.synthetic.main.import_source_seed.view.importSeedContent
 import kotlinx.android.synthetic.main.import_source_seed.view.importSeedContentContainer
 import kotlinx.android.synthetic.main.import_source_seed.view.importSeedUsernameField
