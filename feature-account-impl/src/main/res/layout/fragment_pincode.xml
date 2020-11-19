@@ -2,19 +2,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:background="@color/black" >
+    android:background="@color/black"
+    android:fitsSystemWindows="true">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:homeButtonVisible="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:homeButtonVisible="false" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
+    <jp.co.soramitsu.feature_account_impl.presentation.pincode.view.PinCodeView
+        android:id="@+id/pinCodeView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -22,34 +23,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintVertical_bias="0.55">
-
-        <TextView
-            android:id="@+id/pinCodeTitleTv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginStart="@dimen/x1"
-            android:layout_marginEnd="@dimen/x1"
-            android:text="@string/pincode_enter_pin_code" />
-
-        <jp.co.soramitsu.feature_account_impl.presentation.pincode.view.DotsProgressView
-            android:id="@+id/dotsProgressView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginStart="@dimen/x1"
-            android:layout_marginTop="@dimen/x3"
-            android:layout_marginEnd="@dimen/x1"
-            android:gravity="center_horizontal" />
-
-        <jp.co.soramitsu.feature_account_impl.presentation.pincode.view.PinCodeView
-            android:id="@+id/pinCodeView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
-            android:padding="@dimen/x1" />
-
-    </LinearLayout>
+        app:layout_constraintVertical_bias="0.55" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

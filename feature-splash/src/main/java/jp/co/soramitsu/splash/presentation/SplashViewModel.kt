@@ -29,7 +29,11 @@ class SplashViewModel(
                 _removeSplashBackgroundLiveData.value = Event(Unit)
 
                 if (isSelected) {
-                    router.openPin()
+                    if (repository.isCodeSet()) {
+                        router.openCheckPin()
+                    } else {
+                        router.openCreatePin()
+                    }
                 } else {
                     router.openAddFirstAccount()
                 }
