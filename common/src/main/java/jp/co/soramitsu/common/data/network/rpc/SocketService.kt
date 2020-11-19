@@ -111,7 +111,7 @@ class SocketService(
         start(url)
     }
 
-    override fun started() = state != State.Disconnected
+    override fun started() = state !is State.Disconnected
 
     override fun setLifecycleCondition(condition: LifecycleCondition) {
         lifecycleConditionSubject.onNext(condition)
@@ -123,7 +123,7 @@ class SocketService(
 
     @Synchronized
     override fun start(url: String) {
-        if (state != State.Disconnected) return
+        if (state !is State.Disconnected) return
 
         currentReconnectAttempt = 0
         updateState(State.Connecting(currentReconnectAttempt))
