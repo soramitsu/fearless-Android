@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.di
 
+import android.content.ContentResolver
 import android.content.Context
 import com.google.gson.Gson
 import jp.co.soramitsu.common.account.AddressIconGenerator
@@ -80,4 +81,6 @@ interface CommonApi {
     fun fileProvider(): FileProvider
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
+
+    fun contentResolver(): ContentResolver
 }

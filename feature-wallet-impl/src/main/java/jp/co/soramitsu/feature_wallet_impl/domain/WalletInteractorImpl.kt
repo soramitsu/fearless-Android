@@ -139,4 +139,8 @@ class WalletInteractorImpl(
                     .map { Pair(file, it) }
             }
     }
+
+    override fun getRecipientFromQrCodeContent(content: String): Single<String> {
+        return Single.just("test")
+    }
 }

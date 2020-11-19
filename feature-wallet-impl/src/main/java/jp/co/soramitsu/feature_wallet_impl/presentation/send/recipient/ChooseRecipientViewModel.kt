@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 
 import androidx.annotation.StringRes
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -10,12 +11,15 @@ import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.distinctUntilChanged
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.zipSimilar
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.domain.QrCodeException
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import java.util.concurrent.TimeUnit
@@ -32,6 +36,7 @@ class ChooseRecipientViewModel(
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator
 ) : BaseViewModel() {
+
     private val searchEventSubject = BehaviorSubject.create<String>()
 
     private val isQueryEmptyLiveData = MutableLiveData<Boolean>()
@@ -41,6 +46,12 @@ class ChooseRecipientViewModel(
     val screenStateLiveData = isQueryEmptyLiveData.combine(searchResultLiveData) { isQueryEmpty, searchResult ->
         determineState(isQueryEmpty, searchResult)
     }.distinctUntilChanged()
+
+    private val _showChooserEvent = MutableLiveData<Event<Unit>>()
+    val showChooserEvent: LiveData<Event<Unit>> = _showChooserEvent
+
+    private val _cameraPermissionGrantedEvent = MutableLiveData<Event<Unit>>()
+    val cameraPermissionGrantedEvent: LiveData<Event<Unit>> = _cameraPermissionGrantedEvent
 
     fun backClicked() {
         router.back()
@@ -69,6 +80,47 @@ class ChooseRecipientViewModel(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { valid -> if (valid) recipientSelected(value) }
+    }
+
+    fun scanClicked() {
+        _showChooserEvent.value = Event(Unit)
+    }
+
+    fun observePermissionRequest(permissionsObservable: Observable<Boolean>) {
+        disposables += permissionsObservable
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                if (it) _cameraPermissionGrantedEvent.value = Event(Unit)
+            }, DEFAULT_ERROR_HANDLER)
+    }
+
+    fun qrCodeScanned(content: String) {
+        disposables += interactor.getRecipientFromQrCodeContent(content)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+
+            }, ::handleQrContentException)
+    }
+
+    fun observeQrCodeDecoding(qrDecodeObservable: Single<String>) {
+        disposables += qrDecodeObservable
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+
+            }, {
+                showError("")
+            })
+    }
+
+    private fun handleQrContentException(throwable: Throwable) {
+        when (throwable) {
+            is QrCodeException.DecodeException -> showError("1")
+            is QrCodeException.MyOwnQrCodeException -> showError("2")
+            is QrCodeException.UserNotFoundException -> showError("3")
+        }
     }
 
     private fun observeSearchResults(): Observable<List<Any>> {
