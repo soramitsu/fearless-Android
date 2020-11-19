@@ -30,6 +30,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
 
     companion object {
         private const val PICK_IMAGE_REQUEST = 101
+        private const val QR_CODE_IMAGE_TYPE = "image/*"
     }
 
     private lateinit var adapter: ChooseRecipientAdapter
@@ -85,8 +86,8 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
         viewModel.searchResultLiveData.observe(adapter::submitList)
 
         viewModel.showChooserEvent.observeEvent {
-            // showPhotoSourceChooserDialog()
-            requestCameraPermission()
+            QrCodeSourceChooserBottomSheet(requireContext(), ::requestCameraPermission, ::selectQrFromGallery)
+                .show()
         }
 
         viewModel.cameraPermissionGrantedEvent.observeEvent {
@@ -96,18 +97,23 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
         searchRecipientField.onTextChanged(viewModel::queryChanged)
     }
 
-    private fun showPhotoSourceChooserDialog() {
-
-    }
-
     private fun requestCameraPermission() {
         viewModel.observePermissionRequest(RxPermissions(this).request(Manifest.permission.CAMERA))
+    }
+
+    private fun selectQrFromGallery() {
+        val intent = Intent().apply {
+            type = QR_CODE_IMAGE_TYPE
+            action = Intent.ACTION_GET_CONTENT
+        }
+
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.common_add)), PICK_IMAGE_REQUEST)
     }
 
     private fun initiateCameraScanner() {
         val integrator = IntentIntegrator.forSupportFragment(this).apply {
             setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES)
-            //   setPrompt(getString(R.string.contacts_scan))
+            setPrompt("")
             setBeepEnabled(false)
         }
         integrator.initiateScan()

@@ -19,7 +19,6 @@ import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.zipSimilar
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.domain.QrCodeException
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import java.util.concurrent.TimeUnit
@@ -100,7 +99,7 @@ class ChooseRecipientViewModel(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-
+                queryChanged(it)
             }, ::handleQrContentException)
     }
 
@@ -109,7 +108,7 @@ class ChooseRecipientViewModel(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-
+                qrCodeScanned(it)
             }, {
                 showError("")
             })
@@ -117,9 +116,7 @@ class ChooseRecipientViewModel(
 
     private fun handleQrContentException(throwable: Throwable) {
         when (throwable) {
-            is QrCodeException.DecodeException -> showError("1")
-            is QrCodeException.MyOwnQrCodeException -> showError("2")
-            is QrCodeException.UserNotFoundException -> showError("3")
+            //TODO: Handle errors here
         }
     }
 

@@ -8,15 +8,15 @@ import com.google.zxing.MultiFormatReader
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import io.reactivex.Single
-import jp.co.soramitsu.feature_wallet_impl.domain.QrCodeException
 
 class QrBitmapDecoder(
     private val contentResolver: ContentResolver
 ) {
+    class InvalidFormatException : Exception()
 
     fun decodeQrCodeFromUri(data: Uri): Single<String> {
         return decode(data)
-            .onErrorResumeNext { Single.error(QrCodeException.DecodeException) }
+            .onErrorResumeNext { Single.error(InvalidFormatException()) }
     }
 
     private fun decode(data: Uri): Single<String> {
@@ -33,7 +33,7 @@ class QrBitmapDecoder(
             val textResult = reader.decode(bBitmap).text
 
             if (textResult.isNullOrEmpty()) {
-                it.onError(QrCodeException.DecodeException)
+                it.onError(InvalidFormatException())
             } else {
                 it.onSuccess(textResult)
             }
