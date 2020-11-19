@@ -110,7 +110,6 @@ class ConfirmMnemonicViewModel(
 
         with(extras) {
             disposables += interactor.createAccount(accountName, mnemonicString, cryptoType, derivationPath, networkType)
-                .andThen(interactor.isCodeSet())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(::continueBasedOnCodeStatus, Throwable::printStackTrace)
@@ -121,8 +120,8 @@ class ConfirmMnemonicViewModel(
         reset()
     }
 
-    private fun continueBasedOnCodeStatus(isCodeSet: Boolean) {
-        if (isCodeSet) {
+    private fun continueBasedOnCodeStatus() {
+        if (interactor.isCodeSet()) {
             router.openMain()
         } else {
             router.openCreatePincode()

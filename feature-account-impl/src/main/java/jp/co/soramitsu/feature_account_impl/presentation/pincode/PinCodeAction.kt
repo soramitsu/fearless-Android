@@ -1,6 +1,10 @@
 package jp.co.soramitsu.feature_account_impl.presentation.pincode
 
-enum class PinCodeAction {
-    CREATE_PIN_CODE,
-    TIMEOUT_CHECK
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
+sealed class PinCodeAction : Parcelable {
+    @Parcelize class Create(val destination: Int) : PinCodeAction()
+    @Parcelize class Check(val destination: Int) : PinCodeAction()
+    @Parcelize object Change : PinCodeAction()
 }

@@ -202,4 +202,6 @@
     <string name="connection_delete_confirm">Delete</string>
     <string name="wallet_receive_description">Share this QR to sender</string>
     <string name="wallet_receive_share_message">My %s address to receive %s:</string>
+    <string name="pincode_enter_new_pin_code">Enter new pin code</string>
+    <string name="pincode_changed_message">Pin code has been successfully changed</string>
 </resources>

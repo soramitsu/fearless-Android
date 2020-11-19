@@ -150,6 +150,7 @@
         android:background="@color/dividerGray" />
 
     <TextView
+        android:id="@+id/changePinCodeTv"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_profile.aboutTv
 import kotlinx.android.synthetic.main.fragment_profile.accountView
+import kotlinx.android.synthetic.main.fragment_profile.changePinCodeTv
 import kotlinx.android.synthetic.main.fragment_profile.languageWrapper
 import kotlinx.android.synthetic.main.fragment_profile.networkWrapper
 import kotlinx.android.synthetic.main.fragment_profile.profileAccounts
@@ -38,6 +39,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         profileAccounts.setOnClickListener { viewModel.accountsClicked() }
         networkWrapper.setOnClickListener { viewModel.networksClicked() }
         languageWrapper.setOnClickListener { viewModel.languagesClicked() }
+        changePinCodeTv.setOnClickListener { viewModel.changePinCodeClicked() }
     }
 
     override fun inject() {

@@ -240,10 +240,8 @@ class AccountRepositoryImpl(
         }.flatMapCompletable(this::switchToAccount)
     }
 
-    override fun isCodeSet(): Single<Boolean> {
-        return Single.fromCallable {
-            accountDataSource.getPinCode() != null
-        }
+    override fun isCodeSet(): Boolean {
+        return accountDataSource.getPinCode() != null
     }
 
     override fun savePinCode(code: String): Completable {
@@ -286,10 +284,8 @@ class AccountRepositoryImpl(
             }
     }
 
-    override fun isBiometricEnabled(): Single<Boolean> {
-        return Single.fromCallable {
-            accountDataSource.getAuthType() == AuthType.BIOMETRY
-        }
+    override fun isBiometricEnabled(): Boolean {
+        return accountDataSource.getAuthType() == AuthType.BIOMETRY
     }
 
     override fun setBiometricOn(): Completable {
