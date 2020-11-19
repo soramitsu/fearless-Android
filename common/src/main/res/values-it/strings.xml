@@ -193,4 +193,5 @@
     <string name="invoice_scan_gallery">Galleria</string>
     <string name="contacts_scan">Scansiona il codice QR</string>
     <string name="invoice_scan_error_no_info">Il QR non può essere decodificato</string>
+    <string name="common_options_title">Seleziona un\'opzione</string>
 </resources>
