@@ -12,11 +12,11 @@ import io.reactivex.Single
 class QrBitmapDecoder(
     private val contentResolver: ContentResolver
 ) {
-    class InvalidFormatException : Exception()
+    class DecodeException : Exception()
 
     fun decodeQrCodeFromUri(data: Uri): Single<String> {
         return decode(data)
-            .onErrorResumeNext { Single.error(InvalidFormatException()) }
+            .onErrorResumeNext { Single.error(DecodeException()) }
     }
 
     private fun decode(data: Uri): Single<String> {
@@ -33,7 +33,7 @@ class QrBitmapDecoder(
             val textResult = reader.decode(bBitmap).text
 
             if (textResult.isNullOrEmpty()) {
-                it.onError(InvalidFormatException())
+                it.onError(DecodeException())
             } else {
                 it.onSuccess(textResult)
             }
