@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 
 @Subcomponent(
@@ -18,8 +19,8 @@ interface PinCodeComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance maxPinCodeLength: Int,
-            @BindsInstance fragment: Fragment
+            @BindsInstance fragment: Fragment,
+            @BindsInstance pinCodeAction: PinCodeAction
         ): PinCodeComponent
     }
 

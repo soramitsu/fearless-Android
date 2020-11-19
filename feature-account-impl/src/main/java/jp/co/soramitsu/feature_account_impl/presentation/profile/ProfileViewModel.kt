@@ -52,6 +52,10 @@ class ProfileViewModel(
         router.openLanguages()
     }
 
+    fun changePinCodeClicked() {
+        router.openChangePinCode()
+    }
+
     fun accountActionsClicked() {
         val account = selectedAccountLiveData.value ?: return
 

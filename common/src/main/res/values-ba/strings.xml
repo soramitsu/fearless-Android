@@ -189,4 +189,6 @@
     <string name="common_choose_file">Загрузить файл</string>
     <string name="import_json_paste">Json профилендә</string>
     <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных настроек.</string>
+    <string name="pincode_enter_new_pin_code">Яңы индерелгән pin-код</string>
+    <string name="pincode_changed_message">Яңыртыу Pin-код</string>
 </resources>

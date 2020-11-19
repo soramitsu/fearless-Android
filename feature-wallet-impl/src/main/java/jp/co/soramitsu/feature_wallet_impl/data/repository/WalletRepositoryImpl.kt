@@ -214,7 +214,7 @@ class WalletRepositoryImpl(
         val transactionTotalInPlanks = fee.partialFee + transfer.amountInPlanks
         val transactionTotal = transfer.token.amountFromPlanks(transactionTotalInPlanks)
 
-        val existentialDeposit = transfer.token.networkType.existentialDeposit
+        val existentialDeposit = transfer.token.networkType.runtimeConfiguration.existentialDeposit
 
         return when {
             transactionTotal > asset.transferable -> CheckFundsStatus.NOT_ENOUGH_FUNDS

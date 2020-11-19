@@ -64,7 +64,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Stakin
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.byteLength
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.signedExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SupportedCall
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
 import org.bouncycastle.util.encoders.Hex
@@ -206,7 +205,7 @@ class WssSubstrateSource(
             val accountIdValue = Hex.decode(account.publicKey)
 
             getNonce(account).map { (currentNonce, newAccountInfo) ->
-                val genesis = account.network.type.genesisHash
+                val genesis = account.network.type.runtimeConfiguration.genesisHash
                 val genesisBytes = Hex.decode(genesis)
 
                 val callStruct = createTransferCall(account.network.type, transfer.recipient, transfer.amountInPlanks)
@@ -252,7 +251,7 @@ class WssSubstrateSource(
         val addressType = mapNetworkTypeToAddressType(networkType)
 
         return Call { call ->
-            call[Call.callIndex] = SupportedCall.TRANSFER.index
+            call[Call.callIndex] = networkType.runtimeConfiguration.predefinedPalettes.transfers.transfer.index
 
             call[Call.args] = TransferArgs { args ->
                 args[TransferArgs.recipientId] = sS58Encoder.decode(recipientAddress, addressType)
@@ -329,14 +328,14 @@ class WssSubstrateSource(
 
     private fun filterAccountTransactions(account: Account, extrinsics: List<String>): List<EncodableStruct<SubmittableExtrinsic>> {
         val currentPublicKey = extractPublicKeyBytes(account)
+        val transfersPalette = account.network.type.runtimeConfiguration.predefinedPalettes.transfers
 
         return extrinsics.filter { hex ->
             val stub = SubmittableExtrinsic.readOrNull(hex) ?: return@filter false
 
             val callIndex = stub[signedExtrinsic][call][callIndex]
-            val call = SupportedCall.from(callIndex)
 
-            call != null
+            callIndex in transfersPalette
         }
             .map(SubmittableExtrinsic::read)
             .filter { transfer ->

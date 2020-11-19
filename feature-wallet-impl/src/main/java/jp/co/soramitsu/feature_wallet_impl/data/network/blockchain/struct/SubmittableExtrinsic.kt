@@ -47,18 +47,6 @@ object Call : Schema<Call>() {
     val args by schema(TransferArgs)
 }
 
-@Suppress("EXPERIMENTAL_API_USAGE")
-enum class SupportedCall(val index: Pair<UByte, UByte>) {
-    TRANSFER(4.toUByte() to 0.toUByte()),
-    TRANSFER_KEEP_ALIVE(4.toUByte() to 3.toUByte());
-
-    companion object {
-        fun from(callIndex: Pair<UByte, UByte>): SupportedCall? {
-            return values().firstOrNull { it.index == callIndex }
-        }
-    }
-}
-
 object TransferArgs : Schema<TransferArgs>() {
     val recipientId by sizedByteArray(32)
 
