@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintCallback
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
@@ -34,16 +35,16 @@ class PinCodeModule {
     fun provideViewModel(
         interactor: AccountInteractor,
         router: AccountRouter,
-        maxPinCodeLength: Int,
         deviceVibrator: DeviceVibrator,
-        resourceManager: ResourceManager
+        resourceManager: ResourceManager,
+        pinCodeAction: PinCodeAction
     ): ViewModel {
         return PinCodeViewModel(
             interactor,
             router,
-            maxPinCodeLength,
             deviceVibrator,
-            resourceManager
+            resourceManager,
+            pinCodeAction
         )
     }
 

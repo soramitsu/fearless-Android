@@ -18,10 +18,10 @@ class FingerprintCallback(
     }
 
     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-        pinCodeViewModel.onAuthenticationSucceeded()
+        pinCodeViewModel.biometryAuthenticationSucceeded()
     }
 
     override fun onAuthenticationFailed() {
-        pinCodeViewModel.onAuthenticationFailed()
+        pinCodeViewModel.biometryAuthenticationFailed()
     }
 }

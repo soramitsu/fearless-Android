@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -28,7 +29,7 @@ class SubmittableExtrinsicTest {
         val decoded = SubmittableExtrinsic.read(data)
 
         val callIndex = decoded[SubmittableExtrinsic.signedExtrinsic][SignedExtrinsic.call][Call.callIndex]
-        val expectedCallIndex = SupportedCall.TRANSFER_KEEP_ALIVE.index
+        val expectedCallIndex = Node.NetworkType.KUSAMA.runtimeConfiguration.predefinedPalettes.transfers.transferKeepAlive.index
 
         assertEquals(expectedCallIndex, callIndex)
     }
