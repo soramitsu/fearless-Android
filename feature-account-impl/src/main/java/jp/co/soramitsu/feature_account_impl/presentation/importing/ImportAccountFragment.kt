@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.view.PrimaryButton
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
@@ -69,6 +70,8 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
 
         nextBtn.setOnClickListener { viewModel.nextClicked() }
+
+        nextBtn.prepareForProgress(this)
     }
 
     override fun inject() {
@@ -136,8 +139,14 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             advancedBlockView.setNetworkName(it.name)
         }
 
-        viewModel.nextButtonEnabledLiveData.observe {
-            nextBtn.isEnabled = it
+        viewModel.nextButtonState.observe {
+            val state = when (it) {
+                ButtonState.DISABLED -> PrimaryButton.State.DISABLED
+                ButtonState.ENABLED -> PrimaryButton.State.NORMAL
+                ButtonState.PROGRESS -> PrimaryButton.State.PROGRESS
+            }
+
+            nextBtn.setState(state)
         }
 
         viewModel.advancedBlockExceptNetworkEnabled.observe(::setSelectorsEnabled)

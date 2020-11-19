@@ -32,6 +32,10 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 
 typealias ImportSourceSelectorPayload = SourceTypeChooserPayload<ImportSource>
 
+enum class ButtonState {
+    ENABLED, DISABLED, PROGRESS
+}
+
 class ImportAccountViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
@@ -59,8 +63,18 @@ class ImportAccountViewModel(
 
     private val sourceTypeValid = _selectedSourceTypeLiveData.switchMap(ImportSource::validationLiveData)
 
-    val nextButtonEnabledLiveData = sourceTypeValid.combine(nameLiveData) { sourceTypeValid, name ->
+    private val importInProgressLiveData = MutableLiveData<Boolean>(false)
+
+    private val nextButtonEnabledLiveData = sourceTypeValid.combine(nameLiveData) { sourceTypeValid, name ->
         sourceTypeValid && name.isNotEmpty()
+    }
+
+    val nextButtonState = nextButtonEnabledLiveData.combine(importInProgressLiveData) { enabled, inProgress ->
+        when {
+            inProgress -> ButtonState.PROGRESS
+            enabled -> ButtonState.ENABLED
+            else -> ButtonState.DISABLED
+        }
     }
 
     val networkChooserEnabledLiveData = _selectedSourceTypeLiveData.switchMap {
@@ -95,6 +109,8 @@ class ImportAccountViewModel(
     }
 
     fun nextClicked() {
+        importInProgressLiveData.value = true
+
         val sourceType = selectedSourceTypeLiveData.value!!
 
         val networkType = selectedNetworkLiveData.value!!.networkTypeUI.networkType
@@ -108,6 +124,7 @@ class ImportAccountViewModel(
             .andThen(interactor.isCodeSet())
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+            .doFinally { importInProgressLiveData.value = false }
             .subscribe(::continueBasedOnCodeStatus, ::handleCreateAccountError)
     }
 

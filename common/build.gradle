@@ -74,6 +74,8 @@ dependencies {
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
 
+    implementation progressButtonDep
+
     implementation wsDep
 
     testImplementation jUnitDep
