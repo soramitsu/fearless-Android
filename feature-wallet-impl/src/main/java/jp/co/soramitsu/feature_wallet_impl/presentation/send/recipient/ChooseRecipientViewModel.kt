@@ -110,7 +110,7 @@ class ChooseRecipientViewModel(
             .subscribe({
                 qrCodeScanned(it)
             }, {
-                showError("")
+                showError(resourceManager.getString(R.string.invoice_scan_error_no_info))
             })
     }
 

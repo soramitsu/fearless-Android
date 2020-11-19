@@ -17,7 +17,7 @@ class QrCodeSourceChooserBottomSheet(
 
         setTitle(R.string.contacts_scan)
 
-        item(icon = R.drawable.ic_copy_24, titleRes = R.string.invoice_scan_camera) {
+        item(icon = R.drawable.ic_camera_white_24, titleRes = R.string.invoice_scan_camera) {
             cameraClicked()
         }
 

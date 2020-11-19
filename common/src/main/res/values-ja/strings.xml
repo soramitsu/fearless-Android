@@ -192,4 +192,5 @@
     <string name="invoice_scan_camera">カメラ</string>
     <string name="invoice_scan_gallery">ギャラリー</string>
     <string name="contacts_scan">QRコードをスキャン</string>
+    <string name="invoice_scan_error_no_info">QR をデコードできません</string>
 </resources>

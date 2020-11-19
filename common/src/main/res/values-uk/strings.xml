@@ -193,4 +193,5 @@
     <string name="invoice_scan_camera">Камера</string>
     <string name="invoice_scan_gallery">Галерея</string>
     <string name="contacts_scan">Сканувати QR</string>
+    <string name="invoice_scan_error_no_info">Неможливо декодувати QR</string>
 </resources>
