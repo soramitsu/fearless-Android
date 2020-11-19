@@ -110,10 +110,8 @@ class SendIntegrationTest {
     private fun generateExtrinsic(keypair: Keypair): EncodableStruct<SubmittableExtrinsic> {
         val accountId = Hex.decode(PUBLIC_KEY)
 
-        val genesis = Node.NetworkType.WESTEND.genesisHash
+        val genesis = Node.NetworkType.WESTEND.runtimeConfiguration.genesisHash
         val genesisBytes = Hex.decode(genesis)
-
-
 
         val transferAmount = BigDecimal("1.01").scaleByPowerOfTen(Asset.Token.WND.mantissa)
 
