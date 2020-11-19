@@ -68,7 +68,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         setupExternalActions(viewModel)
 
         viewModel.feeLiveData.observe {
-            chooseAmountFee.text = it.amount?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
+            chooseAmountFee.text = it?.feeAmount?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->

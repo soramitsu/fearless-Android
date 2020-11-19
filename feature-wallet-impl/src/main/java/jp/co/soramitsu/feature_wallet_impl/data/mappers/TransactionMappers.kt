@@ -4,8 +4,9 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionRemote
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
@@ -20,7 +21,7 @@ fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel
             date = date,
             amount = amount,
             status = status,
-            fee = fee.amount,
+            fee = fee,
             total = total
         )
     }
@@ -35,7 +36,7 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal): Transa
             senderAddress = senderAddress,
             amount = amount,
             date = date,
-            fee = Fee(feeInPlanks, token),
+            fee = feeInPlanks?.let(token::amountFromPlanks),
             status = status,
             token = token
         )
@@ -58,7 +59,7 @@ fun mapTransactionToTransactionLocal(
             date = date,
             source = source,
             token = token,
-            feeInPlanks = fee.amountInPlanks!!
+            feeInPlanks = token.planksFromAmount(amount)
         )
     }
 }
@@ -75,7 +76,7 @@ fun mapTransferToTransaction(transfer: TransactionRemote, account: Account): Tra
             status = Transaction.Status.fromSuccess(success),
             senderAddress = from,
             recipientAddress = to,
-            fee = Fee(feeInPlanks, token),
+            fee = token.amountFromPlanks(feeInPlanks),
             isIncome = account.address == to
         )
     }
