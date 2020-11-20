@@ -87,8 +87,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         viewModel.assetLiveData.observe {
             chooseAmountBalance.text = it.available.formatAsToken(it.token)
 
-            chooseAmountToken.setIcon(it.token.icon)
-            chooseAmountToken.setText(it.token.displayName)
+            chooseAmountToken.setTextIcon(it.token.icon)
+            chooseAmountToken.setMessage(it.token.displayName)
         }
 
         viewModel.continueEnabledLiveData.observe {
@@ -117,7 +117,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
             showAccountRemovalWarning()
         }
 
-        chooseAmountField.onTextChanged(viewModel::amountChanged)
+        chooseAmountField.content.onTextChanged(viewModel::amountChanged)
     }
 
     private fun showAccountRemovalWarning() {

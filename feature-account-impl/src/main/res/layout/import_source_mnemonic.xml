@@ -7,7 +7,7 @@
     tools:background="@color/black"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
-    <com.google.android.material.textfield.TextInputLayout
+    <jp.co.soramitsu.common.view.InputField
         android:id="@+id/importMnemonicUsernameInput"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="0dp"
@@ -18,15 +18,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/importMnemonicUsernameField"
-            style="@style/Widget.Fearless.Input.Primary.Internal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLength="64" />
-
-    </com.google.android.material.textfield.TextInputLayout>
+    </jp.co.soramitsu.common.view.InputField>
 
     <TextView
         android:id="@+id/usernameHintTv"

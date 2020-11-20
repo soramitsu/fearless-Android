@@ -82,14 +82,14 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         }
 
         with(viewModel.transferDraft) {
-            confirmTransferToken.setIcon(token.icon)
-            confirmTransferToken.setText(token.displayName)
+            confirmTransferToken.setTextIcon(token.icon)
+            confirmTransferToken.setMessage(token.displayName)
 
             confirmTransferFee.text = fee.formatAsToken(token)
 
             confirmTransferTotal.text = totalTransaction.formatAsToken(token)
 
-            confirmTransferAmount.setText(amount.toPlainString(), TextView.BufferType.NORMAL)
+            confirmTransferAmount.setMessage(amount.toPlainString())
         }
 
         viewModel.recipientModel.observe {
