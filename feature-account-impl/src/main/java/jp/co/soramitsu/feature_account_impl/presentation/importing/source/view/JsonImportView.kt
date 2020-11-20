@@ -14,8 +14,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonContent
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonNoNetworkInfo
-import kotlinx.android.synthetic.main.import_source_json.view.importJsonPasswordField
-import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsernameField
+import kotlinx.android.synthetic.main.import_source_json.view.importJsonPasswordInput
+import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsernameInput
 
 class JsonImportView @JvmOverloads constructor(
     context: Context,
@@ -24,7 +24,7 @@ class JsonImportView @JvmOverloads constructor(
 ) : ImportSourceView(R.layout.import_source_json, context, attrs, defStyleAttr) {
 
     init {
-        importJsonUsernameField.filters = nameInputFilters()
+        importJsonUsernameInput.editText!!.filters = nameInputFilters()
     }
 
     override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {
@@ -36,7 +36,7 @@ class JsonImportView @JvmOverloads constructor(
             showJsonInputOptionsSheet(source)
         })
 
-        importJsonPasswordField.bindTo(source.passwordLiveData, lifecycleOwner)
+        importJsonPasswordInput.content.bindTo(source.passwordLiveData, lifecycleOwner)
 
         importJsonContent.setActionClickListener {
             source.chooseFileClicked()
@@ -57,6 +57,6 @@ class JsonImportView @JvmOverloads constructor(
     }
 
     override fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {
-        importJsonUsernameField.bindTo(viewModel.nameLiveData, lifecycleOwner)
+        importJsonUsernameInput.editText!!.bindTo(viewModel.nameLiveData, lifecycleOwner)
     }
 }

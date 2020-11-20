@@ -74,8 +74,6 @@ class RootViewModel(
         if (!willBeClearedForLanguageChange) {
             connectionManager.setLifecycleCondition(LifecycleCondition.STOPPED)
         }
-
-        willBeClearedForLanguageChange = false
     }
 
     fun noticeInForeground() {
@@ -88,7 +86,11 @@ class RootViewModel(
         willBeClearedForLanguageChange = true
     }
 
-    fun restoredAfterLanguageChange() {
-        rootRouter.returnToMain()
+    fun restoredAfterConfigChange() {
+        if (willBeClearedForLanguageChange) {
+            rootRouter.returnToMain()
+
+            willBeClearedForLanguageChange = false
+        }
     }
 }

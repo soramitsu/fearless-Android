@@ -55,4 +55,9 @@
         <attr name="accountActionIcon" format="reference|color" />
         <attr name="textVisible" format="boolean" />
     </declare-styleable>
+
+    <declare-styleable name="InputField">
+        <attr name="android:inputType" />
+        <attr name="android:text" />
+    </declare-styleable>
 </resources>

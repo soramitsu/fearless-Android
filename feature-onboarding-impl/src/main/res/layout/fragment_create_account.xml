@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         app:titleText="@string/onboarding_create_account" />
 
-    <com.google.android.material.textfield.TextInputLayout
+    <jp.co.soramitsu.common.view.InputField
         android:id="@+id/accountNameInput"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="match_parent"
@@ -22,17 +22,7 @@
         android:layout_marginTop="@dimen/x1"
         android:layout_marginEnd="@dimen/x2"
         android:layout_marginBottom="@dimen/x1"
-        android:hint="@string/username_setup_choose_title">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/accountNameEt"
-            style="@style/Widget.Fearless.Input.Primary.Internal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLength="64" />
-
-    </com.google.android.material.textfield.TextInputLayout>
+        android:hint="@string/username_setup_choose_title" />
 
     <TextView
         style="@style/TextAppearance.Soramitsu.Body2"

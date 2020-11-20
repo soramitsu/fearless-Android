@@ -15,7 +15,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureComponent
-import kotlinx.android.synthetic.main.fragment_create_account.accountNameEt
+import kotlinx.android.synthetic.main.fragment_create_account.accountNameInput
 import kotlinx.android.synthetic.main.fragment_create_account.nextBtn
 import kotlinx.android.synthetic.main.fragment_create_account.toolbar
 
@@ -41,11 +41,11 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
 
         nextBtn.setOnClickListener { viewModel.nextClicked() }
 
-        accountNameEt.onTextChanged {
+        accountNameInput.content.onTextChanged {
             viewModel.accountNameChanged(it)
         }
 
-        accountNameEt.filters = nameInputFilters()
+        accountNameInput.content.filters = nameInputFilters()
     }
 
     override fun inject() {
@@ -73,7 +73,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
             .setMessage(R.string.common_no_screenshot_message)
             .setPositiveButton(R.string.common_ok) { dialog, _ ->
                 dialog?.dismiss()
-                viewModel.screenshotWarningConfirmed(accountNameEt.text.toString())
+                viewModel.screenshotWarningConfirmed(accountNameInput.content.text.toString())
             }
             .show()
     }

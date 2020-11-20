@@ -81,7 +81,6 @@
     </style>
 
     <style name="Widget.Fearless.Input.Primary.Internal" parent="Base.Widget.AppCompat.EditText">
-        <item name="android:background">@drawable/bg_input_shape_selector</item>
         <item name="android:textAppearance">@style/TextAppearance.Soramitsu.Body1</item>
         <item name="android:paddingStart">@dimen/x2</item>
         <item name="android:paddingEnd">@dimen/x2</item>
