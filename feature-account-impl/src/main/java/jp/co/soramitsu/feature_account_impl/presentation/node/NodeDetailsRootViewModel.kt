@@ -28,7 +28,7 @@ abstract class NodeDetailsRootViewModel(
     }
 
     protected open fun getUnsupportedNodeError(): String {
-        val supportedNodes = Node.NetworkType.values().joinToString(",") { it.readableName }
+        val supportedNodes = Node.NetworkType.values().joinToString(", ") { it.readableName }
         val unsupportedNodeErrorMsg = resourceManager.getString(R.string.connection_add_unsupported_error)
         return unsupportedNodeErrorMsg.format(supportedNodes)
     }
