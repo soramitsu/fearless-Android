@@ -59,7 +59,7 @@ fun mapTransactionToTransactionLocal(
             date = date,
             source = source,
             token = token,
-            feeInPlanks = token.planksFromAmount(amount)
+            feeInPlanks = fee?.let(token::planksFromAmount)
         )
     }
 }
