@@ -41,6 +41,8 @@ interface AccountRepository {
 
     fun observeSelectedAccount(): Observable<Account>
 
+    fun getSelectedAccount(): Single<Account>
+
     fun getPreferredCryptoType(): Single<CryptoType>
 
     fun isAccountSelected(): Single<Boolean>
