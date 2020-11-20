@@ -76,8 +76,8 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.deleteNodeEvent.observeEvent(::showDeleteNodeDialog)
     }
 
-    override fun infoClicked(nodeModel: NodeModel) {
-        viewModel.infoClicked(nodeModel)
+    override fun infoClicked(nodeModel: NodeModel, isChecked: Boolean) {
+        viewModel.infoClicked(nodeModel, isChecked)
     }
 
     override fun checkClicked(nodeModel: NodeModel) {

@@ -63,8 +63,8 @@ class NodesViewModel(
         router.back()
     }
 
-    fun infoClicked(nodeModel: NodeModel) {
-        router.openNodeDetails(nodeModel.id)
+    fun infoClicked(nodeModel: NodeModel, isChecked: Boolean) {
+        router.openNodeDetails(nodeModel.id, isChecked)
     }
 
     fun selectNodeClicked(nodeModel: NodeModel) {
