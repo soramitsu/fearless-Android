@@ -237,16 +237,6 @@ class AccountInteractorImpl(
     }
 
     override fun addNode(nodeName: String, nodeHost: String): Completable {
-        return checkNodeAndRetrieveNetworkType(nodeHost)
-            .flatMapCompletable { networkType -> accountRepository.addNode(nodeName, nodeHost, networkType) }
-    }
-
-    override fun updateNode(nodeId: Int, newName: String, newHost: String): Completable {
-        return checkNodeAndRetrieveNetworkType(newHost)
-            .flatMapCompletable { networkType -> accountRepository.updateNode(nodeId, newName, newHost, networkType) }
-    }
-
-    private fun checkNodeAndRetrieveNetworkType(nodeHost: String): Single<Node.NetworkType> {
         return accountRepository.checkNodeExists(nodeHost)
             .flatMap {
                 if (it) {
@@ -255,6 +245,12 @@ class AccountInteractorImpl(
                     getNetworkTypeByNodeHost(nodeHost)
                 }
             }
+            .flatMapCompletable { networkType -> accountRepository.addNode(nodeName, nodeHost, networkType) }
+    }
+
+    override fun updateNode(nodeId: Int, newName: String, newHost: String): Completable {
+        return getNetworkTypeByNodeHost(newHost)
+            .flatMapCompletable { networkType -> accountRepository.updateNode(nodeId, newName, newHost, networkType) }
     }
 
     private fun getNetworkTypeByNodeHost(nodeHost: String): Single<Node.NetworkType> {
