@@ -30,7 +30,8 @@ class NodeDetailsViewModel(
 
     val nodeLiveData = getNode(nodeId).asLiveData()
 
-    val editEnabled = nodeLiveData.map(::mapNodeEditState)
+    val nameEditEnabled = nodeLiveData.map(::mapNodeNameEditState)
+    val hostEditEnabled = nodeLiveData.map(::mapNodeHostEditState)
 
     private val _updateButtonEnabled = MutableLiveData<Boolean>()
     val updateButtonEnabled: LiveData<Boolean> = _updateButtonEnabled
@@ -45,8 +46,12 @@ class NodeDetailsViewModel(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun mapNodeEditState(node: Node): Boolean {
+    private fun mapNodeNameEditState(node: Node): Boolean {
         return !node.isDefault
+    }
+
+    private fun mapNodeHostEditState(node: Node): Boolean {
+        return !node.isDefault && !isSelected
     }
 
     fun nodeDetailsEdited() {

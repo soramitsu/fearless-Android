@@ -66,15 +66,18 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
             nodeDetailsHostField.content.setText(node.link)
         }
 
-        viewModel.editEnabled.observe { editEnabled ->
+        viewModel.nameEditEnabled.observe { editEnabled ->
             updateBtn.setVisible(editEnabled)
 
             nodeDetailsNameField.content.isEnabled = editEnabled
-            nodeDetailsHostField.content.isEnabled = editEnabled
 
             nodeDetailsNameField.content.onTextChanged {
                 viewModel.nodeDetailsEdited()
             }
+        }
+
+        viewModel.hostEditEnabled.observe { editEnabled ->
+            nodeDetailsHostField.content.isEnabled = editEnabled
 
             nodeDetailsHostField.content.onTextChanged {
                 viewModel.nodeDetailsEdited()
