@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_share">Share</string>
+
     <string name="export_seed_with_derivation" formatted="false">Network: %s\nSeed: %s\nDerivation path: %s</string>
     <string name="export_seed_without_derivation" formatted="false">Network: %s\nSeed: %s</string>
     <string name="export_mnemonic_without_derivation" formatted="false">Network: %s\nMnemonic: %s</string>
