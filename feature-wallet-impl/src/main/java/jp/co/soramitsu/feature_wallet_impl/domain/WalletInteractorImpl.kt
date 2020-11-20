@@ -4,6 +4,7 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotEnoughFundsException
@@ -149,6 +150,7 @@ class WalletInteractorImpl(
     }
 
     override fun getRecipientFromQrCodeContent(content: String): Single<String> {
-        return Single.just("test")
+        return Single.fromCallable { QrSharing.decode(content) }
+            .map { it.address }
     }
 }

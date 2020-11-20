@@ -94,6 +94,10 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
             initiateCameraScanner()
         }
 
+        viewModel.decodeAddressResult.observeEvent {
+            searchRecipientField.setText(it)
+        }
+
         searchRecipientField.onTextChanged(viewModel::queryChanged)
     }
 

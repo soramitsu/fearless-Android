@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.distinctUntilChanged
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.zipSimilar
+import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -38,7 +39,7 @@ class ChooseRecipientViewModel(
     private val addressIconGenerator: AddressIconGenerator
 ) : BaseViewModel() {
 
-    private val searchEventSubject = BehaviorSubject.create<String>(INITIAL_QUERY)
+    private val searchEventSubject = BehaviorSubject.createDefault(INITIAL_QUERY)
 
     private val isQueryEmptyLiveData = MutableLiveData<Boolean>()
 
@@ -53,6 +54,9 @@ class ChooseRecipientViewModel(
 
     private val _cameraPermissionGrantedEvent = MutableLiveData<Event<Unit>>()
     val cameraPermissionGrantedEvent: LiveData<Event<Unit>> = _cameraPermissionGrantedEvent
+
+    private val _decodeAddressResult = MutableLiveData<Event<String>>()
+    val decodeAddressResult: LiveData<Event<String>> = _decodeAddressResult
 
     fun backClicked() {
         router.back()
@@ -101,7 +105,7 @@ class ChooseRecipientViewModel(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                queryChanged(it)
+                _decodeAddressResult.value = Event(it)
             }, ::handleQrContentException)
     }
 
@@ -118,7 +122,7 @@ class ChooseRecipientViewModel(
 
     private fun handleQrContentException(throwable: Throwable) {
         when (throwable) {
-            // TODO: Handle errors here
+            is QrSharing.InvalidFormatException -> showError(resourceManager.getString(R.string.invoice_scan_error_no_info))
         }
     }
 
