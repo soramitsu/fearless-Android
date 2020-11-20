@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonContent
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonNoNetworkInfo
+import kotlinx.android.synthetic.main.import_source_json.view.importJsonPasswordInput
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsernameInput
 
 class JsonImportView @JvmOverloads constructor(
@@ -35,7 +36,7 @@ class JsonImportView @JvmOverloads constructor(
             showJsonInputOptionsSheet(source)
         })
 
-        importJsonUsernameInput.content.bindTo(source.passwordLiveData, lifecycleOwner)
+        importJsonPasswordInput.content.bindTo(source.passwordLiveData, lifecycleOwner)
 
         importJsonContent.setActionClickListener {
             source.chooseFileClicked()
