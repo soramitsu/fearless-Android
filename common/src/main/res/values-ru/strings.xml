@@ -193,6 +193,7 @@
     <string name="invoice_scan_upload">Из галереи</string>
     <string name="invoice_scan_camera">Камера</string>
     <string name="invoice_scan_gallery">Галерея</string>
+    <string name="invoice_scan_qr_code_title">QR-код</string>
     <string name="contacts_scan">Сканировать QR-код</string>
     <string name="invoice_scan_error_no_info">Не удается декодировать QR</string>
     <string name="common_options_title">Выберите опцию</string>

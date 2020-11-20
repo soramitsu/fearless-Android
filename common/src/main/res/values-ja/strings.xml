@@ -192,6 +192,7 @@
     <string name="invoice_scan_upload">写真からアップロード</string>
     <string name="invoice_scan_camera">カメラ</string>
     <string name="invoice_scan_gallery">ギャラリー</string>
+    <string name="invoice_scan_qr_code_title">QRコード</string>
     <string name="contacts_scan">QRコードをスキャン</string>
     <string name="invoice_scan_error_no_info">QR をデコードできません</string>
     <string name="common_options_title">選択肢一つを選択してください</string>

@@ -192,6 +192,7 @@
     <string name="invoice_scan_upload">Subir desde la galería</string>
     <string name="invoice_scan_camera">Cámara</string>
     <string name="invoice_scan_gallery">Galería</string>
+    <string name="invoice_scan_qr_code_title">Código QR</string>
     <string name="contacts_scan">Escanear código QR</string>
     <string name="invoice_scan_error_no_info">QR no se puede decodificar</string>
     <string name="common_options_title">Seleccione una opción</string>

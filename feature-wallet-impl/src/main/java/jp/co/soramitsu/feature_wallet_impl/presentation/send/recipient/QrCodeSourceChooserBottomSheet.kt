@@ -15,14 +15,14 @@ class QrCodeSourceChooserBottomSheet(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(R.string.contacts_scan)
+        setTitle(R.string.invoice_scan_qr_code_title)
 
-        item(icon = R.drawable.ic_camera_white_24, titleRes = R.string.invoice_scan_camera) {
-            cameraClicked()
+        item(icon = R.drawable.ic_file_upload, titleRes = R.string.invoice_scan_upload) {
+            galleryClicked()
         }
 
-        item(icon = R.drawable.ic_file_upload, titleRes = R.string.invoice_scan_gallery) {
-            galleryClicked()
+        item(icon = R.drawable.ic_scan_qr, titleRes = R.string.contacts_scan) {
+            cameraClicked()
         }
     }
 }
