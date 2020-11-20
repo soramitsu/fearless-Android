@@ -1,16 +1,13 @@
 package jp.co.soramitsu.common.view
 
 import android.content.Context
-import android.content.ContextWrapper
 import android.text.InputType
 import android.util.AttributeSet
-import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.EditText
 import com.google.android.material.textfield.TextInputLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
-import kotlinx.android.synthetic.main.button_glassy.view.buttonGlassyContent
 
 class InputField @JvmOverloads constructor(
     context: Context,
