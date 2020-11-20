@@ -116,7 +116,7 @@ class ChooseRecipientViewModel(
 
     private fun handleQrContentException(throwable: Throwable) {
         when (throwable) {
-            //TODO: Handle errors here
+            // TODO: Handle errors here
         }
     }
 
