@@ -17,7 +17,6 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.distinctUntilChanged
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.zipSimilar
-import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -106,7 +105,9 @@ class ChooseRecipientViewModel(
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 _decodeAddressResult.value = Event(it)
-            }, ::handleQrContentException)
+            }, {
+                showError(resourceManager.getString(R.string.invoice_scan_error_no_info))
+            })
     }
 
     fun observeQrCodeDecoding(qrDecodeObservable: Single<String>) {
@@ -118,12 +119,6 @@ class ChooseRecipientViewModel(
             }, {
                 showError(resourceManager.getString(R.string.invoice_scan_error_no_info))
             })
-    }
-
-    private fun handleQrContentException(throwable: Throwable) {
-        when (throwable) {
-            is QrSharing.InvalidFormatException -> showError(resourceManager.getString(R.string.invoice_scan_error_no_info))
-        }
     }
 
     private fun observeSearchResults(): Observable<List<Any>> {
