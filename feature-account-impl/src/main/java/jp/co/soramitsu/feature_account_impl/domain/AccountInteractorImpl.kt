@@ -91,16 +91,17 @@ class AccountInteractorImpl(
     override fun importFromJson(
         json: String,
         password: String,
+        networkType: Node.NetworkType,
         name: String
     ): Completable {
-        return accountRepository.importFromJson(json, password, name)
+        return accountRepository.importFromJson(json, password, networkType, name)
     }
 
     override fun getAddressId(account: Account): Single<ByteArray> {
         return accountRepository.getAddressId(account)
     }
 
-    override fun isCodeSet(): Single<Boolean> {
+    override fun isCodeSet(): Boolean {
         return accountRepository.isCodeSet()
     }
 
@@ -115,7 +116,7 @@ class AccountInteractorImpl(
         }
     }
 
-    override fun isBiometricEnabled(): Single<Boolean> {
+    override fun isBiometricEnabled(): Boolean {
         return accountRepository.isBiometricEnabled()
     }
 

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.view.View.OnClickListener
+import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatButton
 import jp.co.soramitsu.feature_account_impl.R
@@ -18,7 +19,9 @@ import kotlinx.android.synthetic.main.pincode_view.view.btn7
 import kotlinx.android.synthetic.main.pincode_view.view.btn8
 import kotlinx.android.synthetic.main.pincode_view.view.btn9
 import kotlinx.android.synthetic.main.pincode_view.view.btnDelete
+import kotlinx.android.synthetic.main.pincode_view.view.dotsProgressView
 import kotlinx.android.synthetic.main.pincode_view.view.fingerprintBtn
+import kotlinx.android.synthetic.main.pincode_view.view.pinCodeTitleTv
 
 class PinCodeView @JvmOverloads constructor(
     context: Context,
@@ -26,25 +29,22 @@ class PinCodeView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle) {
 
-    var pinCodeListener: (String) -> Unit = {}
-    var deleteClickListener: () -> Unit = {}
+    var pinCodeEnteredListener: (String) -> Unit = {}
     var fingerprintClickListener: () -> Unit = {}
 
-    init {
-        orientation = VERTICAL
-    }
-
     private val pinCodeNumberClickListener = OnClickListener {
-        pinCodeListener((it as AppCompatButton).text.toString())
+        pinNumberAdded((it as AppCompatButton).text.toString())
     }
 
     private val pinCodeDeleteClickListener = OnClickListener {
-        deleteClickListener()
+        deleteClicked()
     }
 
     private val pinCodeFingerprintClickListener = OnClickListener {
         fingerprintClickListener()
     }
+
+    private var inputCode: String = ""
 
     init {
         View.inflate(context, R.layout.pincode_view, this)
@@ -71,5 +71,49 @@ class PinCodeView @JvmOverloads constructor(
         } else {
             fingerprintBtn.visibility = View.INVISIBLE
         }
+    }
+
+    fun setTitle(title: String) {
+        pinCodeTitleTv.text = title
+    }
+
+    fun resetInput() {
+        inputCode = ""
+        updateProgress()
+    }
+
+    fun pinCodeMatchingError() {
+        resetInput()
+        shakeDotsAnimation()
+    }
+
+    private fun pinNumberAdded(number: String) {
+        if (inputCode.length > DotsProgressView.MAX_PROGRESS) {
+            return
+        } else {
+            inputCode += number
+            updateProgress()
+        }
+        if (inputCode.length == DotsProgressView.MAX_PROGRESS) {
+            pinCodeEnteredListener(inputCode)
+        }
+    }
+
+    private fun deleteClicked() {
+        if (inputCode.isEmpty()) {
+            return
+        }
+        inputCode = inputCode.substring(0, inputCode.length - 1)
+        updateProgress()
+    }
+
+    private fun updateProgress() {
+        val currentProgress = inputCode.length
+        dotsProgressView.setProgress(currentProgress)
+    }
+
+    private fun shakeDotsAnimation() {
+        val animation = AnimationUtils.loadAnimation(context, R.anim.shake)
+        dotsProgressView.startAnimation(animation)
     }
 }

@@ -26,13 +26,15 @@ enum class State {
     WELCOME, EMPTY, CONTENT
 }
 
+private const val INITIAL_QUERY = ""
+
 class ChooseRecipientViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator
 ) : BaseViewModel() {
-    private val searchEventSubject = BehaviorSubject.create<String>()
+    private val searchEventSubject = BehaviorSubject.createDefault(INITIAL_QUERY)
 
     private val isQueryEmptyLiveData = MutableLiveData<Boolean>()
 
@@ -73,10 +75,10 @@ class ChooseRecipientViewModel(
 
     private fun observeSearchResults(): Observable<List<Any>> {
         return searchEventSubject
-            .subscribeOn(Schedulers.io())
-            .debounce(300, TimeUnit.MILLISECONDS)
-            .doOnNext { isQueryEmptyLiveData.postValue(it.isEmpty()) }
+            .observeOn(Schedulers.io())
+            .throttleLatest(300, TimeUnit.MILLISECONDS)
             .flatMapSingle(this::formSearchResults)
+            .doOnNext { isQueryEmptyLiveData.postValue(it.isEmpty()) }
             .observeOn(AndroidSchedulers.mainThread())
     }
 

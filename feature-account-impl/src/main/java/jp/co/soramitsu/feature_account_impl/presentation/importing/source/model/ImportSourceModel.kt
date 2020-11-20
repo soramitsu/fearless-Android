@@ -15,8 +15,8 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.isNotEmpty
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.sendEvent
-import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.IncorrectPasswordException
-import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecodingException.InvalidJsonException
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.InvalidJsonException
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.IncorrectPasswordException
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
@@ -73,6 +73,11 @@ class JsonImportSource(
     private val _showJsonInputOptionsEvent = MutableLiveData<Event<Unit>>()
     val showJsonInputOptionsEvent: LiveData<Event<Unit>> = _showJsonInputOptionsEvent
 
+    private val _enableNetworkInputLiveData = MutableLiveData<Boolean>(false)
+    val enableNetworkInputLiveData = _enableNetworkInputLiveData
+
+    val showNetworkWarningLiveData = enableNetworkInputLiveData
+
     override val chooseJsonFileEvent = MutableLiveData<Event<RequestCode>>()
 
     init {
@@ -127,14 +132,18 @@ class JsonImportSource(
             .subscribe(::handleParsedImportData, DEFAULT_ERROR_HANDLER)
     }
 
-    private fun handleParsedImportData(it: ImportJsonData) {
-        val networkModel = mapNetworkTypeToNetworkModel(it.networkType)
-        networkLiveData.value = networkModel
+    private fun handleParsedImportData(importJsonData: ImportJsonData) {
+        _enableNetworkInputLiveData.value = importJsonData.networkType == null
 
-        val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, it.encryptionType)
+        importJsonData.networkType?.let {
+            val networkModel = mapNetworkTypeToNetworkModel(it)
+            networkLiveData.value = networkModel
+        }
+
+        val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, importJsonData.encryptionType)
         cryptoTypeLiveData.value = cryptoModel
 
-        nameLiveData.value = it.name
+        nameLiveData.value = importJsonData.name
     }
 }
 
