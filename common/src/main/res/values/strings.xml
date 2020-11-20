@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="account_import_json_no_network">No network information. Please specify it in advanced block</string>
+
     <string name="import_json_paste">Paste JSON</string>
     <string name="common_choose_file">Upload file</string>
 
@@ -59,7 +61,7 @@
     <string name="onboarding_privacy_policy">Privacy Policy</string>
     <string name="pincode_enter_pin_code">Enter pin code</string>
     <string name="pincode_confirm_your_pin_code">Confirm your pin code</string>
-    <string name="recovery_passphrase">Mnemonic</string>
+    <string name="recovery_passphrase">Mnemonic passphrase</string>
     <string name="tabbar_wallet_title">Wallet</string>
     <string name="tabbar_staking_title">Staking</string>
     <string name="tabbar_governance_title">Governance</string>
@@ -71,7 +73,7 @@
     <string name="about_privacy">Privacy policy</string>
     <string name="about_terms">Terms and conditions</string>
     <string name="onboarding_create_account">Create account</string>
-    <string name="username_setup_choose_title">Choose name</string>
+    <string name="username_setup_choose_title">Name</string>
     <string name="username_setup_hint">The name for this account and how it will appear under your addresses. With an on-chain identity, it can be made available to others.</string>
     <string name="common_no_screenshot_title">Do not take screenshots</string>
     <string name="common_no_screenshot_message">Do not take screenshots, which may be collected by third-party malware</string>

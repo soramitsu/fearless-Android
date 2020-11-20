@@ -20,6 +20,8 @@ buildscript {
 
         biometricVersion = '1.0.1'
 
+        progressButtonsVersion = '2.1.0'
+
         daggerVersion = '2.25.2'
         javaxInjectVersion = '1'
 
@@ -39,7 +41,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.21'
+        fearlessLibVersion = '1.0.25'
 
         gifVersion = '1.2.19'
 
@@ -101,6 +103,8 @@ buildscript {
         robolectricDep = "org.robolectric:robolectric:$robolectricVersion"
         robolectricMultidexDep = "org.robolectric:shadows-multidex:$robolectricVersion"
         archCoreTestDep = "androidx.arch.core:core-testing:$architectureComponentVersion"
+
+        progressButtonDep = "com.github.razir.progressbutton:progressbutton:$progressButtonsVersion"
 
         kotlin_version = '1.3.61'
     }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.lifecycle.LifecycleOwner
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
@@ -21,6 +22,8 @@ class SeedImportView @JvmOverloads constructor(
 
     init {
         importSeedContentContainer.background = context.getIdleDrawable()
+
+        importSeedUsernameField.filters = nameInputFilters()
     }
 
     override fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {

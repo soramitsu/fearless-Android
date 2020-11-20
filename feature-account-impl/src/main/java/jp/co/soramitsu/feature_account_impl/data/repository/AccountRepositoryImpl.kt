@@ -13,8 +13,8 @@ import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
-import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
@@ -207,11 +207,11 @@ class AccountRepositoryImpl(
 
             val securitySource = SecuritySource.Seed(seedBytes, signingData, derivationPath)
 
-            accountDataSource.saveSecuritySource(address, securitySource)
-
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
             val accountLocal = insertAccount(address, username, publicKeyEncoded, selectedEncryptionType, networkType)
+
+            accountDataSource.saveSecuritySource(address, securitySource)
 
             mapAccountLocalToAccount(accountLocal)
         }.flatMapCompletable(this::switchToAccount)
@@ -220,27 +220,29 @@ class AccountRepositoryImpl(
     override fun importFromJson(
         json: String,
         password: String,
+        networkType: Node.NetworkType,
         name: String
     ): Completable {
         return Single.fromCallable {
             val importData = jsonSeedDecoder.decode(json, password)
 
-            val publicKeyEncoded = Hex.toHexString(importData.keypair.publicKey)
+            with(importData) {
+                val publicKeyEncoded = Hex.toHexString(keypair.publicKey)
 
-            val cryptoType = mapEncryptionToCryptoType(importData.encryptionType)
-            val networkType = mapAddressTypeToNetworkType(importData.networType)
+                val cryptoType = mapEncryptionToCryptoType(encryptionType)
 
-            val signingData = mapKeyPairToSigningData(importData.keypair)
+                val signingData = mapKeyPairToSigningData(keypair)
 
-            val seed = importData.seed
+                val securitySource = SecuritySource.Json(seed, signingData)
 
-            val securitySource = SecuritySource.Json(seed, signingData)
+                val actualAddress = sS58Encoder.encode(keypair.publicKey, mapNetworkTypeToAddressType(networkType))
 
-            accountDataSource.saveSecuritySource(importData.address, securitySource)
+                val accountLocal = insertAccount(actualAddress, name, publicKeyEncoded, cryptoType, networkType)
 
-            val accountLocal = insertAccount(importData.address, name, publicKeyEncoded, cryptoType, networkType)
+                accountDataSource.saveSecuritySource(actualAddress, securitySource)
 
-            mapAccountLocalToAccount(accountLocal)
+                mapAccountLocalToAccount(accountLocal)
+            }
         }.flatMapCompletable(this::switchToAccount)
     }
 
@@ -323,7 +325,7 @@ class AccountRepositoryImpl(
             val importAccountMeta = jsonSeedDecoder.extractImportMetaData(json)
 
             with(importAccountMeta) {
-                val networkType = mapAddressTypeToNetworkType(networkType)
+                val networkType = networkType?.let(::mapAddressTypeToNetworkType)
                 val cryptoType = mapEncryptionToCryptoType(encryptionType)
 
                 ImportJsonData(name, networkType, cryptoType)
@@ -354,8 +356,7 @@ class AccountRepositoryImpl(
             val entropy = bip39.generateEntropy(mnemonic)
             val password = junctionDecoder.getPassword(derivationPath)
             val seed = bip39.generateSeed(entropy, password)
-            val keys =
-                keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
+            val keys = keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
             val addressType = mapNetworkTypeToAddressType(networkType)
             val address = sS58Encoder.encode(keys.publicKey, addressType)
             val signingData = mapKeyPairToSigningData(keys)
@@ -366,15 +367,12 @@ class AccountRepositoryImpl(
                 SecuritySource.Create(seed, signingData, mnemonic, derivationPath)
             }
 
-            accountDataSource.saveSecuritySource(address, securitySource)
-
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
             val accountLocal = insertAccount(address, accountName, publicKeyEncoded, cryptoType, networkType)
+            accountDataSource.saveSecuritySource(address, securitySource)
 
-            val network = getNetworkForType(networkType)
-
-            Account(address, accountName, publicKeyEncoded, cryptoType, accountLocal.position, network)
+            mapAccountLocalToAccount(accountLocal)
         }
     }
 
