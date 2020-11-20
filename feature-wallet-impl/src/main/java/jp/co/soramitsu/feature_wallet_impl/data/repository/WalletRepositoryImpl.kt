@@ -75,7 +75,7 @@ class WalletRepositoryImpl(
     }
 
     override fun syncAssetsRates(): Completable {
-        return getSelectedAccount()
+        return accountRepository.getSelectedAccount()
             .flatMapCompletable(this::syncAssetRates)
     }
 
@@ -95,30 +95,32 @@ class WalletRepositoryImpl(
     }
 
     override fun syncTransactionsFirstPage(pageSize: Int): Completable {
-        return getSelectedAccount()
+        return accountRepository.getSelectedAccount()
             .flatMapCompletable { syncTransactionsFirstPage(pageSize, it) }
     }
 
     override fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>> {
-        return getSelectedAccount()
+        return accountRepository.getSelectedAccount()
             .flatMap { getTransactionPage(pageSize, page, it) }
     }
 
-    override fun getContacts(query: String, networkType: Node.NetworkType): Single<List<String>> {
-        return transactionsDao.getContacts(query, networkType)
+    override fun getContacts(query: String): Single<List<String>> {
+        return accountRepository.getSelectedAccount().flatMap {
+            transactionsDao.getContacts(query, it.address)
+        }
     }
 
     override fun getTransferFee(transfer: Transfer): Single<Fee> {
-        return getSelectedAccount()
+        return accountRepository.getSelectedAccount()
             .flatMap { getTransferFeeUpdatingBalance(it, transfer) }
             .map { mapFeeRemoteToFee(it, transfer.token) }
     }
 
     override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
-        return getSelectedAccount().flatMap { account ->
+        return accountRepository.getSelectedAccount().flatMap { account ->
             accountRepository.getCurrentSecuritySource()
                 .map(SecuritySource::signingData)
-                .map(this::mapSigningDataToKeypair)
+                .map(::mapSigningDataToKeypair)
                 .flatMap { keys -> substrateSource.performTransfer(account, transfer, keys) }
                 .map { hash -> createTransaction(hash, transfer, account.address, fee) }
                 .map { transaction -> mapTransactionToTransactionLocal(transaction, account.address, TransactionSource.APP) }
@@ -126,7 +128,7 @@ class WalletRepositoryImpl(
     }
 
     override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<CheckFundsStatus> {
-        return getSelectedAccount().flatMap { account ->
+        return accountRepository.getSelectedAccount().flatMap { account ->
             getTransferFeeUpdatingBalance(account, transfer).map { fee ->
                 val assetLocal = assetDao.getAsset(account.address, transfer.token)!!
 
@@ -367,8 +369,6 @@ class WalletRepositoryImpl(
         return transactionsDao.observeTransactions(accountAddress)
             .mapList(::mapTransactionLocalToTransaction)
     }
-
-    private fun getSelectedAccount() = accountRepository.observeSelectedAccount().firstOrError()
 
     private fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): Single<SubscanResponse<AssetPriceStatistics>> {
         return subscanApi.getAssetPrice(subDomainFor(networkType), request)
