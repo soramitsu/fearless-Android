@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.di
 
+import android.content.ContentResolver
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -13,6 +14,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.ChooseRecipientViewModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.QrBitmapDecoder
 
 @Module(includes = [ViewModelModule::class])
 class ChooseRecipientModule {
@@ -35,5 +37,10 @@ class ChooseRecipientModule {
         viewModelFactory: ViewModelProvider.Factory
     ): ChooseRecipientViewModel {
         return ViewModelProvider(fragment, viewModelFactory).get(ChooseRecipientViewModel::class.java)
+    }
+
+    @Provides
+    fun provideQrCodeDecoder(contentResolver: ContentResolver): QrBitmapDecoder {
+        return QrBitmapDecoder(contentResolver)
     }
 }

@@ -191,4 +191,11 @@
     <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных настроек.</string>
     <string name="pincode_enter_new_pin_code">Яңы индерелгән pin-код</string>
     <string name="pincode_changed_message">Яңыртыу Pin-код</string>
+    <string name="invoice_scan_upload">Галерянан тәьмин итеү</string>
+    <string name="invoice_scan_camera">Камера</string>
+    <string name="invoice_scan_gallery">Галерея</string>
+    <string name="invoice_scan_qr_code_title">QR-код</string>
+    <string name="contacts_scan">QR код уҡырға</string>
+    <string name="invoice_scan_error_no_info">QR уҡырға мөмкин түгел</string>
+    <string name="common_options_title">Hайлағыҙ</string>
 </resources>

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.di
 
-import android.content.Context
+import android.content.ContentResolver
 import com.google.gson.Gson
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
@@ -34,7 +34,7 @@ interface WalletFeatureDependencies {
 
     fun clipboardManager(): ClipboardManager
 
-    fun context(): Context
+    fun contentResolver(): ContentResolver
 
     fun accountRepository(): AccountRepository
 

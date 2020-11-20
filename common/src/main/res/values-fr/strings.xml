@@ -190,4 +190,11 @@
     <string name="account_import_json_no_network">JSON ne contient aucune information sur le réseau. Veuillez le spécifier dans le bloc avancé.</string>
     <string name="pincode_enter_new_pin_code">Entrez le nouveau code PIN</string>
     <string name="pincode_changed_message">Le code PIN a été modifié avec succès</string>
+    <string name="invoice_scan_upload">Télécharger depuis la galerie</string>
+    <string name="invoice_scan_camera">Caméra</string>
+    <string name="invoice_scan_gallery">Galerie</string>
+    <string name="invoice_scan_qr_code_title">QR code</string>
+    <string name="contacts_scan">Scanner le QR code</string>
+    <string name="invoice_scan_error_no_info">Le QR code ne peut pas être décodé</string>
+    <string name="common_options_title">Sélectionner une option</string>
 </resources>
