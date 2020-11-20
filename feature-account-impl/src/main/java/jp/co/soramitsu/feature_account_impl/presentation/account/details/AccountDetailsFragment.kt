@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -49,6 +50,8 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
         accountDetailsExport.setOnClickListener {
             viewModel.exportClicked()
         }
+
+        accountDetailsName.filters = nameInputFilters()
     }
 
     override fun inject() {

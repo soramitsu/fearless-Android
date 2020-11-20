@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
@@ -30,6 +31,10 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
 
 typealias ImportSourceSelectorPayload = SourceTypeChooserPayload<ImportSource>
+
+enum class ButtonState {
+    ENABLED, DISABLED, PROGRESS
+}
 
 class ImportAccountViewModel(
     private val interactor: AccountInteractor,
@@ -58,9 +63,29 @@ class ImportAccountViewModel(
 
     private val sourceTypeValid = _selectedSourceTypeLiveData.switchMap(ImportSource::validationLiveData)
 
-    val nextButtonEnabledLiveData = sourceTypeValid.combine(nameLiveData) { sourceTypeValid, name ->
+    private val importInProgressLiveData = MutableLiveData<Boolean>(false)
+
+    private val nextButtonEnabledLiveData = sourceTypeValid.combine(nameLiveData) { sourceTypeValid, name ->
         sourceTypeValid && name.isNotEmpty()
     }
+
+    val nextButtonState = nextButtonEnabledLiveData.combine(importInProgressLiveData) { enabled, inProgress ->
+        when {
+            inProgress -> ButtonState.PROGRESS
+            enabled -> ButtonState.ENABLED
+            else -> ButtonState.DISABLED
+        }
+    }
+
+    val networkChooserEnabledLiveData = _selectedSourceTypeLiveData.switchMap {
+        if (it is JsonImportSource) {
+            it.enableNetworkInputLiveData
+        } else {
+            MutableLiveData(true)
+        }
+    }
+
+    val advancedBlockExceptNetworkEnabled = _selectedSourceTypeLiveData.map { it !is JsonImportSource }
 
     init {
         disposables += networkDisposable
@@ -84,6 +109,8 @@ class ImportAccountViewModel(
     }
 
     fun nextClicked() {
+        importInProgressLiveData.value = true
+
         val sourceType = selectedSourceTypeLiveData.value!!
 
         val networkType = selectedNetworkLiveData.value!!.networkTypeUI.networkType
@@ -96,6 +123,7 @@ class ImportAccountViewModel(
         disposables += importObservable
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+            .doFinally { importInProgressLiveData.value = false }
             .subscribe(::continueBasedOnCodeStatus, ::handleCreateAccountError)
     }
 
@@ -180,6 +208,7 @@ class ImportAccountViewModel(
             is JsonImportSource -> interactor.importFromJson(
                 sourceType.jsonContentLiveData.value!!,
                 sourceType.passwordLiveData.value!!,
+                networkType,
                 name
             )
         }

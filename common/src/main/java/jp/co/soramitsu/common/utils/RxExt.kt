@@ -12,6 +12,26 @@ typealias ErrorHandler = (Throwable) -> Unit
 
 val DEFAULT_ERROR_HANDLER: ErrorHandler = Throwable::printStackTrace
 
+class Optional<M>(val value: M?)
+
+inline fun <T, R> Observable<T>.mapExcludingNull(crossinline mapper: (T) -> R?): Observable<R> = mapNullable {
+    mapper(it)
+}
+    .filterNonNull()
+
+inline fun <T, R> Observable<T>.mapNullable(crossinline mapper: (T) -> R?): Observable<Optional<R>> = map {
+    Optional(mapper(it))
+}
+
+fun <T> Observable<Optional<T>>.filterNonNull(): Observable<T> = filter { it.value != null }
+    .map { it.value!! }
+
+fun <T> Observable<Optional<T>>.asOptionalLiveData(
+    disposable: CompositeDisposable,
+    errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
+): LiveData<T?> = asLiveData(disposable, errorHandler)
+    .map { it.value }
+
 fun <T> Single<T>.asLiveData(
     disposable: CompositeDisposable,
     errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER

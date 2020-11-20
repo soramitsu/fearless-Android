@@ -41,6 +41,8 @@ interface AccountRepository {
 
     fun observeSelectedAccount(): Observable<Account>
 
+    fun getSelectedAccount(): Single<Account>
+
     fun getPreferredCryptoType(): Single<CryptoType>
 
     fun isAccountSelected(): Single<Boolean>
@@ -80,6 +82,7 @@ interface AccountRepository {
     fun importFromJson(
         json: String,
         password: String,
+        networkType: Node.NetworkType,
         name: String
     ): Completable
 

@@ -15,7 +15,10 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.Optional
+import jp.co.soramitsu.common.utils.asOptionalLiveData
 import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.mapExcludingNull
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -49,14 +52,15 @@ class ChooseAmountViewModel(
 
     val recipientModelLiveData = generateAddressModel(recipientAddress).asLiveData()
 
-    private val amountEventsSubject = BehaviorSubject.createDefault(BigDecimal.ZERO)
+    private val amountEventsSubject = BehaviorSubject.createDefault("0")
+    private val amountRawLiveData = amountEventsSubject.asLiveData()
 
     private val currentAssetObservable = interactor.observeCurrentAsset()
 
-    val feeLiveData = observeFee().asLiveData()
-
     private val _feeLoadingLiveData = MutableLiveData<Boolean>()
     val feeLoadingLiveData = _feeLoadingLiveData
+
+    val feeLiveData = observeFee().asOptionalLiveData()
 
     private val _feeErrorLiveData = MutableLiveData<Event<RetryReason>>()
     val feeErrorLiveData = _feeErrorLiveData
@@ -73,9 +77,10 @@ class ChooseAmountViewModel(
     val continueEnabledLiveData = combine(
         feeLoadingLiveData,
         feeLiveData,
-        checkingEnoughFundsLiveData
-    ) { (feeLoading: Boolean, fee: Fee, checkingFunds: Boolean) ->
-        !feeLoading && fee.amount != null && !checkingFunds
+        checkingEnoughFundsLiveData,
+        amountRawLiveData
+    ) { (feeLoading: Boolean, fee: Fee?, checkingFunds: Boolean, amountRaw: String) ->
+        !feeLoading && fee != null && fee.transferAmount != BigDecimal.ZERO && !checkingFunds && amountRaw.isNotEmpty()
     }
 
     val assetLiveData = currentAssetObservable
@@ -89,9 +94,7 @@ class ChooseAmountViewModel(
     }
 
     fun amountChanged(newAmountRaw: String) {
-        val newAmount = newAmountRaw.toBigDecimalOrNull() ?: return
-
-        amountEventsSubject.onNext(newAmount)
+        amountEventsSubject.onNext(newAmountRaw)
     }
 
     fun backClicked() {
@@ -122,10 +125,12 @@ class ChooseAmountViewModel(
         openConfirmationScreen()
     }
 
-    private fun observeFee(): Observable<Fee> {
+    private fun observeFee(): Observable<Optional<Fee>> {
         val debouncedAmountEvents = amountEventsSubject
             .subscribeOn(Schedulers.io())
-            .debounce(500, TimeUnit.MILLISECONDS)
+            .mapExcludingNull(String::toBigDecimalOrNull)
+            .throttleLatest(500, TimeUnit.MILLISECONDS)
+            .distinctUntilChanged()
             .doOnNext { _feeLoadingLiveData.postValue(true) }
 
         return Observable.combineLatest(debouncedAmountEvents, currentAssetObservable, BiFunction<BigDecimal, Asset, Transfer> { amount, asset ->
@@ -138,14 +143,11 @@ class ChooseAmountViewModel(
                         _feeErrorLiveData.postValue(Event(RetryReason.LOAD_FEE))
                         DEFAULT_ERROR_HANDLER(it)
                     }
-                    .onErrorReturn { createFallbackFee(transfer.token) }
+                    .map { Optional(it) }
+                    .onErrorReturn { Optional(null) }
             }
             .observeOn(AndroidSchedulers.mainThread())
             .doOnNext { _feeLoadingLiveData.value = false }
-    }
-
-    private fun createFallbackFee(token: Asset.Token): Fee {
-        return Fee(null, token)
     }
 
     private fun generateAddressModel(address: String): Single<AddressModel> {
@@ -154,13 +156,13 @@ class ChooseAmountViewModel(
     }
 
     private fun checkEnoughFunds() {
-        val currentAmount = amountEventsSubject.value!!
+        val fee = feeLiveData.value ?: return
 
         _checkingEnoughFundsLiveData.value = true
 
         disposables += currentAssetObservable.firstOrError()
             .subscribeOn(Schedulers.io())
-            .map { Transfer(recipientAddress, currentAmount, it.token) }
+            .map { Transfer(recipientAddress, fee.transferAmount, it.token) }
             .flatMap(interactor::checkEnoughAmountForTransfer)
             .observeOn(AndroidSchedulers.mainThread())
             .doFinally { _checkingEnoughFundsLiveData.value = false }
@@ -186,11 +188,10 @@ class ChooseAmountViewModel(
     }
 
     private fun buildTransferDraft(): TransferDraft? {
-        val amount = amountEventsSubject.value ?: return null
-        val fee = feeLiveData.value!!.amount ?: return null
+        val fee = feeLiveData.value ?: return null
         val asset = assetLiveData.value ?: return null
 
-        return TransferDraft(amount, fee, asset.available, asset.total, asset.token, recipientAddress)
+        return TransferDraft(fee.transferAmount, fee.feeAmount, asset.token, recipientAddress)
     }
 
     private fun retryLoadFee() {

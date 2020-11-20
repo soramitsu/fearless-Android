@@ -7,7 +7,7 @@ import jp.co.soramitsu.common.data.network.rpc.State
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.utils.asLiveData
 
-private val STATES_TO_SHOW_BAR = listOf(State.CONNECTING, State.WAITING_RECONNECT)
+private const val ATTEMPT_THRESHOLD = 1
 
 class NetworkStateProvider(
     connectionManager: ConnectionManager
@@ -15,7 +15,8 @@ class NetworkStateProvider(
     override val networkStateDisposable = CompositeDisposable()
 
     override val showConnectingBarLiveData = connectionManager.observeNetworkState()
-        .map { state -> state in STATES_TO_SHOW_BAR }
+        .map { state -> state is State.Attempting && state.attempt > ATTEMPT_THRESHOLD }
+        .distinctUntilChanged()
         .observeOn(AndroidSchedulers.mainThread())
         .asLiveData(networkStateDisposable)
 }

@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
@@ -62,12 +64,24 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
             .inject(this)
     }
 
+    override fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
+        val base = super.buildErrorDialog(title, errorMessage)
+
+        base.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.common_ok)) { _, _ ->
+            viewModel.errorAcknowledged()
+        }
+
+        return base
+    }
+
     override fun subscribe(viewModel: ConfirmTransferViewModel) {
         setupExternalActions(viewModel)
 
-        with(viewModel.transferDraft) {
-            confirmTransferBalance.text = available.formatAsToken(token)
+        viewModel.assetLiveData.observe {
+            confirmTransferBalance.text = it.available.formatAsToken(it.token)
+        }
 
+        with(viewModel.transferDraft) {
             confirmTransferToken.setIcon(token.icon)
             confirmTransferToken.setText(token.displayName)
 
@@ -91,13 +105,14 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         }
 
         viewModel.showBalanceDetailsEvent.observeEvent {
-            val transfer = viewModel.transferDraft
+            val asset = viewModel.assetLiveData.value!!
+            val totalAfterTransfer = viewModel.transferDraft
 
-            showBalanceDetails(transfer)
+            showBalanceDetails(asset, totalAfterTransfer)
         }
     }
 
-    private fun showBalanceDetails(transfer: TransferDraft) {
-        BalanceDetailsBottomSheet(requireContext(), transfer).show()
+    private fun showBalanceDetails(asset: AssetModel, transferDraft: TransferDraft) {
+        BalanceDetailsBottomSheet(requireContext(), asset, transferDraft).show()
     }
 }

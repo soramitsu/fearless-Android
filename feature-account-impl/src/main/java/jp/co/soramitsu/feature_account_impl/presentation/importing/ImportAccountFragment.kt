@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.view.PrimaryButton
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
@@ -69,6 +70,8 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
 
         nextBtn.setOnClickListener { viewModel.nextClicked() }
+
+        nextBtn.prepareForProgress(this)
     }
 
     override fun inject() {
@@ -108,10 +111,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             sourceTypeContainer.addView(sourceViews!![index])
 
             sourceTypeInput.setMessage(it.nameRes)
-
-            val isSelectorsEnabled = it !is JsonImportSource
-
-            setSelectorsEnabled(isSelectorsEnabled)
         }
 
         viewModel.encryptionTypeChooserEvent.observeEvent {
@@ -140,8 +139,22 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             advancedBlockView.setNetworkName(it.name)
         }
 
-        viewModel.nextButtonEnabledLiveData.observe {
-            nextBtn.isEnabled = it
+        viewModel.nextButtonState.observe {
+            val state = when (it) {
+                ButtonState.DISABLED -> PrimaryButton.State.DISABLED
+                ButtonState.ENABLED -> PrimaryButton.State.NORMAL
+                ButtonState.PROGRESS -> PrimaryButton.State.PROGRESS
+            }
+
+            nextBtn.setState(state)
+        }
+
+        viewModel.advancedBlockExceptNetworkEnabled.observe(::setSelectorsEnabled)
+
+        viewModel.networkChooserEnabledLiveData.observe { enabled ->
+            with(advancedBlockView) {
+                configure(networkTypeField, getFieldState(enabled))
+            }
         }
 
         advancedBlockView.derivationPathEditText.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)
@@ -156,14 +169,17 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     private fun setSelectorsEnabled(selectorsEnabled: Boolean) {
-        val chooserState = if (selectorsEnabled) FieldState.NORMAL else FieldState.DISABLED
-        val derivationPathState = if (selectorsEnabled) FieldState.NORMAL else FieldState.HIDDEN
+        val chooserState = getFieldState(selectorsEnabled)
+        val derivationPathState = getFieldState(selectorsEnabled, disabledState = FieldState.HIDDEN)
 
         with(advancedBlockView) {
             configure(encryptionTypeField, chooserState)
-            configure(networkTypeField, chooserState)
             configure(derivationPathField, derivationPathState)
         }
+    }
+
+    private fun getFieldState(isEnabled: Boolean, disabledState: FieldState = FieldState.DISABLED): FieldState {
+        return if (isEnabled) FieldState.NORMAL else disabledState
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
