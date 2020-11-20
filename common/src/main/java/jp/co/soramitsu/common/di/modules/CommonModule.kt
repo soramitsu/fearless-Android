@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.di.modules
 
+import android.content.ContentResolver
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
@@ -152,5 +153,13 @@ class CommonModule {
         resourceManager: ResourceManager
     ): ExternalAccountActions.Presentation {
         return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager)
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideContentResolver(
+        context: Context
+    ): ContentResolver {
+        return context.contentResolver
     }
 }

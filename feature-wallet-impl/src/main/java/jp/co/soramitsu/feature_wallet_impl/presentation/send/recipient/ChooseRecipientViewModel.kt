@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 
 import androidx.annotation.StringRes
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -10,6 +11,8 @@ import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.distinctUntilChanged
 import jp.co.soramitsu.common.utils.plusAssign
@@ -34,6 +37,7 @@ class ChooseRecipientViewModel(
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator
 ) : BaseViewModel() {
+
     private val searchEventSubject = BehaviorSubject.createDefault(INITIAL_QUERY)
 
     private val isQueryEmptyLiveData = MutableLiveData<Boolean>()
@@ -43,6 +47,15 @@ class ChooseRecipientViewModel(
     val screenStateLiveData = isQueryEmptyLiveData.combine(searchResultLiveData) { isQueryEmpty, searchResult ->
         determineState(isQueryEmpty, searchResult)
     }.distinctUntilChanged()
+
+    private val _showChooserEvent = MutableLiveData<Event<Unit>>()
+    val showChooserEvent: LiveData<Event<Unit>> = _showChooserEvent
+
+    private val _cameraPermissionGrantedEvent = MutableLiveData<Event<Unit>>()
+    val cameraPermissionGrantedEvent: LiveData<Event<Unit>> = _cameraPermissionGrantedEvent
+
+    private val _decodeAddressResult = MutableLiveData<Event<String>>()
+    val decodeAddressResult: LiveData<Event<String>> = _decodeAddressResult
 
     fun backClicked() {
         router.back()
@@ -71,6 +84,41 @@ class ChooseRecipientViewModel(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { valid -> if (valid) recipientSelected(value) }
+    }
+
+    fun scanClicked() {
+        _showChooserEvent.value = Event(Unit)
+    }
+
+    fun observePermissionRequest(permissionsObservable: Observable<Boolean>) {
+        disposables += permissionsObservable
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                if (it) _cameraPermissionGrantedEvent.value = Event(Unit)
+            }, DEFAULT_ERROR_HANDLER)
+    }
+
+    fun qrCodeScanned(content: String) {
+        disposables += interactor.getRecipientFromQrCodeContent(content)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                _decodeAddressResult.value = Event(it)
+            }, {
+                showError(resourceManager.getString(R.string.invoice_scan_error_no_info))
+            })
+    }
+
+    fun observeQrCodeDecoding(qrDecodeObservable: Single<String>) {
+        disposables += qrDecodeObservable
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                qrCodeScanned(it)
+            }, {
+                showError(resourceManager.getString(R.string.invoice_scan_error_no_info))
+            })
     }
 
     private fun observeSearchResults(): Observable<List<Any>> {
