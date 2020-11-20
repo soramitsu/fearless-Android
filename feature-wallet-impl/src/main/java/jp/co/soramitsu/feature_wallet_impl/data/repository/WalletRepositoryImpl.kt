@@ -113,7 +113,7 @@ class WalletRepositoryImpl(
     override fun getTransferFee(transfer: Transfer): Single<Fee> {
         return accountRepository.getSelectedAccount()
             .flatMap { getTransferFeeUpdatingBalance(it, transfer) }
-            .map { mapFeeRemoteToFee(it, transfer.token) }
+            .map { mapFeeRemoteToFee(it, transfer) }
     }
 
     override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
@@ -198,7 +198,7 @@ class WalletRepositoryImpl(
             transfer.amount,
             System.currentTimeMillis(),
             isIncome = false,
-            fee = Fee(fee, transfer.token),
+            fee = fee,
             status = Transaction.Status.PENDING
         )
 

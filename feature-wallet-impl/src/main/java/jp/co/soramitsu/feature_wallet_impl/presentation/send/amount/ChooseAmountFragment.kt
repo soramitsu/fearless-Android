@@ -68,7 +68,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         setupExternalActions(viewModel)
 
         viewModel.feeLiveData.observe {
-            chooseAmountFee.text = it.amount?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
+            chooseAmountFee.text = it?.feeAmount?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->
@@ -85,7 +85,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.assetLiveData.observe {
-            chooseAmountBalance.text = it.total.formatAsToken(it.token)
+            chooseAmountBalance.text = it.available.formatAsToken(it.token)
 
             chooseAmountToken.setIcon(it.token.icon)
             chooseAmountToken.setText(it.token.displayName)
@@ -108,7 +108,9 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.showBalanceDetailsEvent.observeEvent {
-            BalanceDetailsBottomSheet(requireContext(), it).show()
+            val asset = viewModel.assetLiveData.value!!
+
+            BalanceDetailsBottomSheet(requireContext(), asset, it).show()
         }
 
         viewModel.showAccountRemovalWarning.observeEvent {
