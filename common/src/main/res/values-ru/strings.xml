@@ -45,7 +45,7 @@
     <string name="onboarding_privacy_policy">Политикой конфиденциальности</string>
     <string name="pincode_enter_pin_code">Введите PIN-код</string>
     <string name="pincode_confirm_your_pin_code">Подтвердите свой PIN-код</string>
-    <string name="recovery_passphrase">Мнемоника</string>
+    <string name="recovery_passphrase">Мнемоническая фраза</string>
     <string name="tabbar_wallet_title">Кошелек</string>
     <string name="tabbar_staking_title">Стекинг</string>
     <string name="tabbar_governance_title">Управление</string>
@@ -56,7 +56,7 @@
     <string name="about_privacy">Политика конфиденциальности</string>
     <string name="about_terms">Условия использования</string>
     <string name="onboarding_create_account">Создать аккаунт</string>
-    <string name="username_setup_choose_title">Выберите имя</string>
+    <string name="username_setup_choose_title">Имя</string>
     <string name="username_setup_hint">Имя аккаунта и его отображение рядом с адресом. Используя хранение идентификационных данных в блокчейне, имя можно сделать доступных для остальных.</string>
     <string name="common_no_screenshot_title">Не делайте скриншоты</string>
     <string name="common_no_screenshot_message">Не делайте скриншоты, которые могут быть собраны сторонними вредоносными программами</string>
@@ -187,6 +187,7 @@
     <string name="common_copy_address">Копировать адрес</string>
     <string name="common_choose_file">Загрузить файл</string>
     <string name="import_json_paste">Вставьте json</string>
+    <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных настроек.</string>
     <string name="pincode_enter_new_pin_code">Введите новый пин-код</string>
     <string name="pincode_changed_message">Пин-код успешно изменен</string>
 </resources>

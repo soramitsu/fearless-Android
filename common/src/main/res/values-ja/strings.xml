@@ -45,7 +45,7 @@
     <string name="onboarding_privacy_policy">個人情報保護方針</string>
     <string name="pincode_enter_pin_code">PINコードを入力する</string>
     <string name="pincode_confirm_your_pin_code">pinコードの確認</string>
-    <string name="recovery_passphrase">ニモニック</string>
+    <string name="recovery_passphrase">ニーモニックパスフレーズ</string>
     <string name="tabbar_wallet_title">ウォレット</string>
     <string name="tabbar_staking_title">抵押</string>
     <string name="tabbar_governance_title">治理</string>
@@ -56,7 +56,7 @@
     <string name="about_privacy">個人情報保護方針</string>
     <string name="about_terms">規約と条件</string>
     <string name="onboarding_create_account">アカウントを作成する</string>
-    <string name="username_setup_choose_title">名前を選択してください</string>
+    <string name="username_setup_choose_title">名前</string>
     <string name="username_setup_hint">このアカウントの名前と、アドレスの下での表示方法。チェーン上のIDを使用すると、他のユーザーが使用できるようになります。</string>
     <string name="common_no_screenshot_title">スクリーンショットを撮らないでください</string>
     <string name="common_no_screenshot_message">サードパーティのマルウェアによって収集される可能性のあるスクリーンショットを撮らないでください</string>
@@ -186,6 +186,7 @@
     <string name="common_copy_address">コピーアドレス</string>
     <string name="common_choose_file">ファイルをアップロードする</string>
     <string name="import_json_paste">jsonを貼り付け</string>
+    <string name="account_import_json_no_network">JSONにはネットワーク情報は含まれていません。高度なブロックで指定してください。</string>
     <string name="pincode_enter_new_pin_code">新しいPINコードを入力してください</string>
     <string name="pincode_changed_message">PINコードは正常に変更されました</string>
 </resources>

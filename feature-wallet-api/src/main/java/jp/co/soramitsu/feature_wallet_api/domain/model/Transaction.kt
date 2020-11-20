@@ -10,10 +10,10 @@ data class Transaction(
     val amount: BigDecimal,
     val date: Long,
     val status: Status,
-    val fee: Fee,
+    val fee: BigDecimal?,
     val isIncome: Boolean
 ) {
-    val total = fee.amount?.plus(amount)
+    val total = fee?.plus(amount)
 
     enum class Status {
         PENDING, COMPLETED, FAILED;
@@ -25,5 +25,3 @@ data class Transaction(
         }
     }
 }
-
-class TransactionsPage(val transactions: List<Transaction>?)

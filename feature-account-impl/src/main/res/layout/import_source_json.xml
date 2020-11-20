@@ -18,6 +18,24 @@
         app:layout_constraintTop_toTopOf="parent"
         app:message="@string/recover_json_hint" />
 
+    <TextView
+        android:id="@+id/importJsonNoNetworkInfo"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:drawableStart="@drawable/ic_alert_triangle_yellow_24"
+        android:drawablePadding="8dp"
+        android:gravity="center_vertical"
+        android:includeFontPadding="false"
+        android:text="@string/account_import_json_no_network"
+        android:textColor="@color/gray1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/importJsonContent" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/importJsonUsernameInput"
         style="@style/Widget.Fearless.Input.Primary.External"
@@ -28,7 +46,7 @@
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/importJsonContent">
+        app:layout_constraintTop_toBottomOf="@id/importJsonNoNetworkInfo">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/importJsonUsernameField"

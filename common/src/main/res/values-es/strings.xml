@@ -45,7 +45,7 @@
     <string name="onboarding_privacy_policy">Política de privacidad</string>
     <string name="pincode_enter_pin_code">Ingrese su código PIN</string>
     <string name="pincode_confirm_your_pin_code">Confirme su nuevo código pin</string>
-    <string name="recovery_passphrase">Mnemónica</string>
+    <string name="recovery_passphrase">Frase de contraseña mnemónica</string>
     <string name="tabbar_wallet_title">Billetera</string>
     <string name="tabbar_staking_title">Staking</string>
     <string name="tabbar_governance_title">Gobernanza</string>
@@ -56,7 +56,7 @@
     <string name="about_privacy">Política de privacidad</string>
     <string name="about_terms">Términos y Condiciones</string>
     <string name="onboarding_create_account">Crear una cuenta</string>
-    <string name="username_setup_choose_title">Elegir nombre</string>
+    <string name="username_setup_choose_title">Nombre</string>
     <string name="username_setup_hint">El nombre de esta cuenta y cómo aparecerá bajo sus direcciones. Con una identidad en cadena, puede estar disponible para otros.</string>
     <string name="common_no_screenshot_title">No tomes capturas de pantalla</string>
     <string name="common_no_screenshot_message">No tome capturas de pantalla, que pueden ser recopiladas por malware de terceros</string>
@@ -186,6 +186,7 @@
     <string name="common_copy_address">Copiar dirección</string>
     <string name="common_choose_file">Subir archivo</string>
     <string name="import_json_paste">Pegar json</string>
+    <string name="account_import_json_no_network">JSON no contiene información de red. Especifíquelo en el bloque avanzado.</string>
     <string name="pincode_enter_new_pin_code">Ingrese un nuevo código pin</string>
     <string name="pincode_changed_message">El código PIN se ha cambiado correctamente</string>
 </resources>
