@@ -30,7 +30,7 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_receive, container, false)
 
     override fun initViews() {
-        accountView.setActionListener { viewModel.recipientClicked() }
+        accountView.setWholeClickListener { viewModel.recipientClicked() }
 
         fearlessToolbar.setHomeButtonListener {
             viewModel.backClicked()

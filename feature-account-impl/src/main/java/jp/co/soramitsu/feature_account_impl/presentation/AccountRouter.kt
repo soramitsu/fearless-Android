@@ -12,6 +12,8 @@ interface AccountRouter {
 
     fun openMain()
 
+    fun openDestination(destination: Int)
+
     fun openCreatePincode()
 
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
@@ -61,4 +63,6 @@ interface AccountRouter {
     fun openExportJsonConfirm(payload: ExportJsonConfirmPayload)
 
     fun finishExportFlow()
+
+    fun openChangePinCode()
 }

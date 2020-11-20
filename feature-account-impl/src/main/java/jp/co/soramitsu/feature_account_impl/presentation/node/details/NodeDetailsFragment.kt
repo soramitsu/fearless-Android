@@ -2,19 +2,17 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.details
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_node_details.fearlessToolbar
-import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHost
-import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHostContainer
-import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsName
-import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNameContainer
+import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHostField
+import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNameField
 import kotlinx.android.synthetic.main.fragment_node_details.nodeHostCopy
 import kotlinx.android.synthetic.main.fragment_node_details.updateBtn
 
@@ -57,29 +55,21 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
     override fun subscribe(viewModel: NodeDetailsViewModel) {
         viewModel.nodeLiveData.observe { node ->
-            nodeDetailsName.setText(node.name)
-            nodeDetailsHost.setText(node.link)
+            nodeDetailsNameField.content.setText(node.name)
+            nodeDetailsHostField.content.setText(node.link)
         }
 
         viewModel.editEnabled.observe { editEnabled ->
-            updateBtn.visibility = if (editEnabled) View.VISIBLE else View.GONE
+            updateBtn.setVisible(editEnabled)
 
-            nodeDetailsName.isEnabled = editEnabled
-            nodeDetailsHost.isEnabled = editEnabled
+            nodeDetailsNameField.content.isEnabled = editEnabled
+            nodeDetailsHostField.content.isEnabled = editEnabled
 
-            if (editEnabled) {
-                nodeDetailsHost.setBackgroundResource(R.drawable.bg_input_shape_selector)
-                nodeDetailsNameContainer.setBackgroundResource(R.drawable.bg_input_shape_selector)
-            } else {
-                nodeDetailsHostContainer.setBackgroundResource(R.drawable.bg_button_primary_disabled)
-                nodeDetailsNameContainer.setBackgroundResource(R.drawable.bg_button_primary_disabled)
-            }
-
-            nodeDetailsName.onTextChanged {
+            nodeDetailsNameField.content.onTextChanged {
                 viewModel.nodeDetailsEdited()
             }
 
-            nodeDetailsHost.onTextChanged {
+            nodeDetailsHostField.content.onTextChanged {
                 viewModel.nodeDetailsEdited()
             }
         }

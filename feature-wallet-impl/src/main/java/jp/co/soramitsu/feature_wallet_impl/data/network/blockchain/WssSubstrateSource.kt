@@ -64,7 +64,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Stakin
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.byteLength
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.signedExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SupportedCall
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
 import org.bouncycastle.util.encoders.Hex
@@ -78,7 +77,7 @@ class WssSubstrateSource(
 ) : SubstrateRemoteSource {
 
     override fun fetchAccountInfo(account: Account): Single<EncodableStruct<AccountInfo>> {
-        val publicKeyBytes = extractPublicKeyBytes(account)
+        val publicKeyBytes = getAccountId(account)
         val request = AccountInfoRequest(publicKeyBytes)
 
         return socketService.executeRequest(request, responseType = scale(AccountInfo))
@@ -113,7 +112,7 @@ class WssSubstrateSource(
     }
 
     override fun listenForAccountUpdates(account: Account): Observable<BalanceChange> {
-        val key = Module.System.Account.storageKey(extractPublicKeyBytes(account))
+        val key = Module.System.Account.storageKey(getAccountId(account))
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscribe(request)
@@ -128,7 +127,7 @@ class WssSubstrateSource(
     }
 
     override fun listenStakingLedger(account: Account): Observable<EncodableStruct<StakingLedger>> {
-        val key = Module.Staking.Bonded.storageKey(extractPublicKeyBytes(account))
+        val key = Module.Staking.Bonded.storageKey(getAccountId(account))
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscribe(request)
@@ -190,10 +189,10 @@ class WssSubstrateSource(
         return BalanceChange(block, accountInfo)
     }
 
-    private fun extractPublicKeyBytes(account: Account): ByteArray {
-        val publicKey = account.publicKey
+    private fun getAccountId(account: Account): ByteArray {
+        val addressType = mapNetworkTypeToAddressType(account.network.type)
 
-        return Hex.decode(publicKey)
+        return sS58Encoder.decode(account.address, addressType)
     }
 
     private fun buildSubmittableExtrinsic(
@@ -206,7 +205,7 @@ class WssSubstrateSource(
             val accountIdValue = Hex.decode(account.publicKey)
 
             getNonce(account).map { (currentNonce, newAccountInfo) ->
-                val genesis = account.network.type.genesisHash
+                val genesis = account.network.type.runtimeConfiguration.genesisHash
                 val genesisBytes = Hex.decode(genesis)
 
                 val callStruct = createTransferCall(account.network.type, transfer.recipient, transfer.amountInPlanks)
@@ -252,7 +251,7 @@ class WssSubstrateSource(
         val addressType = mapNetworkTypeToAddressType(networkType)
 
         return Call { call ->
-            call[Call.callIndex] = SupportedCall.TRANSFER.index
+            call[Call.callIndex] = networkType.runtimeConfiguration.predefinedPalettes.transfers.transfer.index
 
             call[Call.args] = TransferArgs { args ->
                 args[TransferArgs.recipientId] = sS58Encoder.decode(recipientAddress, addressType)
@@ -328,15 +327,15 @@ class WssSubstrateSource(
     }
 
     private fun filterAccountTransactions(account: Account, extrinsics: List<String>): List<EncodableStruct<SubmittableExtrinsic>> {
-        val currentPublicKey = extractPublicKeyBytes(account)
+        val currentPublicKey = getAccountId(account)
+        val transfersPalette = account.network.type.runtimeConfiguration.predefinedPalettes.transfers
 
         return extrinsics.filter { hex ->
             val stub = SubmittableExtrinsic.readOrNull(hex) ?: return@filter false
 
             val callIndex = stub[signedExtrinsic][call][callIndex]
-            val call = SupportedCall.from(callIndex)
 
-            call != null
+            callIndex in transfersPalette
         }
             .map(SubmittableExtrinsic::read)
             .filter { transfer ->

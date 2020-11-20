@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.lifecycle.LifecycleOwner
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
@@ -11,7 +12,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
 import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicContent
 import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicContentContainer
-import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicUsernameField
+import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicUsernameInput
 
 class MnemonicImportView @JvmOverloads constructor(
     context: Context,
@@ -21,10 +22,12 @@ class MnemonicImportView @JvmOverloads constructor(
 
     init {
         importMnemonicContentContainer.background = context.getIdleDrawable()
+
+        importMnemonicUsernameInput.content.filters = nameInputFilters()
     }
 
     override fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {
-        importMnemonicUsernameField.bindTo(viewModel.nameLiveData, lifecycleOwner)
+        importMnemonicUsernameInput.content.bindTo(viewModel.nameLiveData, lifecycleOwner)
     }
 
     override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {

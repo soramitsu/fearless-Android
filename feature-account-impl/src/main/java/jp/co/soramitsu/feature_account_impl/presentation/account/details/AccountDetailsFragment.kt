@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -15,7 +16,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.So
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsAddressView
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsExport
-import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsName
+import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNode
 import kotlinx.android.synthetic.main.fragment_account_details.fearlessToolbar
 
@@ -49,6 +50,8 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
         accountDetailsExport.setOnClickListener {
             viewModel.exportClicked()
         }
+
+        accountDetailsNameField.content.filters = nameInputFilters()
     }
 
     override fun inject() {
@@ -69,7 +72,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
         viewModel.accountLiveData.observe { account ->
             accountDetailsAddressView.setMessage(account.address)
 
-            accountDetailsName.setText(account.name)
+            accountDetailsNameField.content.setText(account.name)
 
             accountDetailsNode.text = account.network.name
         }
@@ -80,7 +83,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
 
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
 
-        accountDetailsName.onTextChanged(viewModel::nameChanged)
+        accountDetailsNameField.content.onTextChanged(viewModel::nameChanged)
     }
 
     private fun showExportSourceChooser(sources: List<ExportSource>) {

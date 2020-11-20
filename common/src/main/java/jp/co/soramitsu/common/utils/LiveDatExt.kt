@@ -75,8 +75,12 @@ fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(
 }
 
 fun <FROM, TO> LiveData<FROM>.switchMap(
+    mapper: (FROM) -> LiveData<TO>
+) = switchMap(mapper, true)
+
+fun <FROM, TO> LiveData<FROM>.switchMap(
     mapper: (FROM) -> LiveData<TO>,
-    triggerOnSwitch: Boolean = true
+    triggerOnSwitch: Boolean
 ): LiveData<TO> {
     val result: MediatorLiveData<TO> = MediatorLiveData()
 
@@ -98,7 +102,7 @@ fun <FROM, TO> LiveData<FROM>.switchMap(
             if (mSource != null) {
                 result.addSource(mSource!!) { y -> result.setValue(y) }
 
-                if (triggerOnSwitch) {
+                if (triggerOnSwitch && mSource!!.value != null) {
                     mSource!!.notifyObservers()
                 }
             }

@@ -35,7 +35,7 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
 
         removeSplashBackground()
 
-        viewModel.restoredAfterLanguageChange()
+        viewModel.restoredAfterConfigChange()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

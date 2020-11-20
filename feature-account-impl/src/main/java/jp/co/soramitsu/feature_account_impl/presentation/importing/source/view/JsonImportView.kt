@@ -6,19 +6,26 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.setVisible
+import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
 import kotlinx.android.synthetic.main.import_source_json.view.importJsonContent
-import kotlinx.android.synthetic.main.import_source_json.view.importJsonPasswordField
-import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsernameField
+import kotlinx.android.synthetic.main.import_source_json.view.importJsonNoNetworkInfo
+import kotlinx.android.synthetic.main.import_source_json.view.importJsonPasswordInput
+import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsernameInput
 
 class JsonImportView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ImportSourceView(R.layout.import_source_json, context, attrs, defStyleAttr) {
+
+    init {
+        importJsonUsernameInput.editText!!.filters = nameInputFilters()
+    }
 
     override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {
         require(source is JsonImportSource)
@@ -29,7 +36,7 @@ class JsonImportView @JvmOverloads constructor(
             showJsonInputOptionsSheet(source)
         })
 
-        importJsonPasswordField.bindTo(source.passwordLiveData, lifecycleOwner)
+        importJsonPasswordInput.content.bindTo(source.passwordLiveData, lifecycleOwner)
 
         importJsonContent.setActionClickListener {
             source.chooseFileClicked()
@@ -38,6 +45,10 @@ class JsonImportView @JvmOverloads constructor(
         importJsonContent.setOnClickListener {
             source.jsonClicked()
         }
+
+        source.showNetworkWarningLiveData.observe(lifecycleOwner, Observer {
+            importJsonNoNetworkInfo.setVisible(it)
+        })
     }
 
     private fun showJsonInputOptionsSheet(source: JsonImportSource) {
@@ -46,6 +57,6 @@ class JsonImportView @JvmOverloads constructor(
     }
 
     override fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {
-        importJsonUsernameField.bindTo(viewModel.nameLiveData, lifecycleOwner)
+        importJsonUsernameInput.editText!!.bindTo(viewModel.nameLiveData, lifecycleOwner)
     }
 }

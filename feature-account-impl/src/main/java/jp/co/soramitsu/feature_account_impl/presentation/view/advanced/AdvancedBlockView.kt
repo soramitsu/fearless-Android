@@ -6,14 +6,13 @@ import android.view.View
 import android.view.View.OnClickListener
 import android.widget.EditText
 import android.widget.LinearLayout
-import com.google.android.material.textfield.TextInputLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
-import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathEt
 import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.networkInput
@@ -49,11 +48,7 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     private val showClickListener = OnClickListener {
-        if (advancedView.visibility == View.VISIBLE) {
-            hideAdvanced()
-        } else {
-            showAdvanced()
-        }
+        toggle()
     }
 
     init {
@@ -64,9 +59,9 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     val derivationPathEditText: EditText
-        get() = derivationPathEt
+        get() = derivationPathInput.content
 
-    val derivationPathField: TextInputLayout
+    val derivationPathField: InputField
         get() = derivationPathInput
 
     val encryptionTypeField: LabeledTextView
@@ -75,12 +70,20 @@ class AdvancedBlockView @JvmOverloads constructor(
     val networkTypeField: LabeledTextView
         get() = networkInput
 
-    private fun showAdvanced() {
+    fun toggle() {
+        if (advancedView.visibility == View.VISIBLE) {
+            collapse()
+        } else {
+            expand()
+        }
+    }
+
+    fun expand() {
         advancedView.makeVisible()
         advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_minus_24, 0)
     }
 
-    private fun hideAdvanced() {
+    fun collapse() {
         advancedView.makeGone()
         advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_plus_white_24, 0)
     }
@@ -98,11 +101,11 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     fun getDerivationPath(): String {
-        return derivationPathEt.text?.toString() ?: ""
+        return derivationPathEditText.text?.toString() ?: ""
     }
 
     fun setDerivationPath(path: String?) {
-        derivationPathEt.setText(path)
+        derivationPathEditText.setText(path)
     }
 
     fun setEncryption(encryption: String) {
@@ -131,18 +134,6 @@ class AdvancedBlockView @JvmOverloads constructor(
         val state = if (enabled) FieldState.NORMAL else FieldState.DISABLED
 
         configure(field, state)
-    }
-
-    fun setNetworkSelectorEnabled(enabled: Boolean) {
-        updateSelectorState(networkInput, enabled)
-
-        networkInput.isEnabled = enabled
-    }
-
-    private fun updateSelectorState(view: View, enabled: Boolean) {
-        val background = if (enabled) R.drawable.bg_input_shape_selector else R.drawable.bg_button_primary_disabled
-
-        view.setBackgroundResource(background)
     }
 
     private fun maybeCallSelectorListener(view: View, clickListener: () -> Unit) {
