@@ -23,7 +23,7 @@ class NodesAdapter(
 
     interface NodeItemHandler {
 
-        fun infoClicked(nodeModel: NodeModel)
+        fun infoClicked(nodeModel: NodeModel, isChecked: Boolean)
 
         fun checkClicked(nodeModel: NodeModel)
 
@@ -109,7 +109,7 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
                 nodeDelete.visibility = View.GONE
                 nodeDelete.setOnClickListener(null)
                 nodeInfo.visibility = View.VISIBLE
-                nodeInfo.setOnClickListener { handler.infoClicked(nodeModel) }
+                nodeInfo.setOnClickListener { handler.infoClicked(nodeModel, isChecked) }
                 isEnabled = true
                 setOnClickListener { handler.checkClicked(nodeModel) }
             }

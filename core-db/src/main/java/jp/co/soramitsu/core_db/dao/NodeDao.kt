@@ -36,6 +36,9 @@ abstract class NodeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insert(nodes: NodeLocal): Long
 
+    @Query("update nodes set name = :newName, link = :newHost, networkType = :networkType where id = :id")
+    abstract fun updateNode(id: Int, newName: String, newHost: String, networkType: Int): Completable
+
     @Query("SELECT * from nodes where isDefault = 1 AND networkType = :networkType")
     abstract fun getDefaultNodeFor(networkType: Int): NodeLocal
 

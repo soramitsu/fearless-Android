@@ -526,6 +526,10 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType): Completable {
+        return nodeDao.updateNode(nodeId, newName, newHost, networkType.ordinal)
+    }
+
     override fun checkNodeExists(nodeHost: String): Single<Boolean> {
         return nodeDao.checkNodeExists(nodeHost)
     }

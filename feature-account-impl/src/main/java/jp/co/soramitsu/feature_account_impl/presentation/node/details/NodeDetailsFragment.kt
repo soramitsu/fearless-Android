@@ -20,10 +20,12 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
     companion object {
         private const val KEY_NODE_ID = "node_id"
+        private const val KEY_IS_SELECTED = "is_selected"
 
-        fun getBundle(nodeId: Int): Bundle {
+        fun getBundle(nodeId: Int, isSelected: Boolean): Bundle {
             return Bundle().apply {
                 putInt(KEY_NODE_ID, nodeId)
+                putBoolean(KEY_IS_SELECTED, isSelected)
             }
         }
     }
@@ -40,16 +42,21 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
         nodeHostCopy.setOnClickListener {
             viewModel.copyNodeHostClicked()
         }
+
+        updateBtn.setOnClickListener {
+            viewModel.updateClicked(nodeDetailsNameField.content.text.toString(), nodeDetailsHostField.content.text.toString())
+        }
     }
 
     override fun inject() {
-        val nodeId = arguments!!.getInt(KEY_NODE_ID)
+        val nodeId = argument<Int>(KEY_NODE_ID)
+        val isChecked = argument<Boolean>(KEY_IS_SELECTED)
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .nodeDetailsComponentFactory()
-            .create(this, nodeId)
+            .create(this, nodeId, isChecked)
             .inject(this)
     }
 
@@ -59,15 +66,18 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
             nodeDetailsHostField.content.setText(node.link)
         }
 
-        viewModel.editEnabled.observe { editEnabled ->
+        viewModel.nameEditEnabled.observe { editEnabled ->
             updateBtn.setVisible(editEnabled)
 
             nodeDetailsNameField.content.isEnabled = editEnabled
-            nodeDetailsHostField.content.isEnabled = editEnabled
 
             nodeDetailsNameField.content.onTextChanged {
                 viewModel.nodeDetailsEdited()
             }
+        }
+
+        viewModel.hostEditEnabled.observe { editEnabled ->
+            nodeDetailsHostField.content.isEnabled = editEnabled
 
             nodeDetailsHostField.content.onTextChanged {
                 viewModel.nodeDetailsEdited()
