@@ -18,8 +18,8 @@ class AddNodeViewModel(
     private val resourceManager: ResourceManager
 ) : NodeDetailsRootViewModel(resourceManager) {
 
-    private val nodeNameInputLiveData = MutableLiveData<String>()
-    private val nodeHostInputLiveData = MutableLiveData<String>()
+    val nodeNameInputLiveData = MutableLiveData<String>()
+    val nodeHostInputLiveData = MutableLiveData<String>()
 
     val addButtonEnabled = nodeNameInputLiveData
         .combine(nodeHostInputLiveData) { name, host ->
@@ -28,14 +28,6 @@ class AddNodeViewModel(
 
     fun backClicked() {
         router.back()
-    }
-
-    fun nodeNameChanged(nodeName: String) {
-        nodeNameInputLiveData.value = nodeName
-    }
-
-    fun nodeHostChanged(nodeHost: String) {
-        nodeHostInputLiveData.value = nodeHost
     }
 
     private fun mapNodeInputsToAddButtonState(name: String, host: String): Boolean {

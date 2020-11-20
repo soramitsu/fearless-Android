@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -25,13 +24,9 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
     override fun initViews() {
         fearlessToolbar.setHomeButtonListener { viewModel.backClicked() }
 
-        nodeNameField.content.onTextChanged {
-            viewModel.nodeNameChanged(it)
-        }
+        nodeNameField.content.bindTo(viewModel.nodeNameInputLiveData)
 
-        nodeHostField.content.onTextChanged {
-            viewModel.nodeHostChanged(it)
-        }
+        nodeHostField.content.bindTo(viewModel.nodeHostInputLiveData)
 
         addBtn.setOnClickListener { viewModel.addNodeClicked() }
     }
