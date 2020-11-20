@@ -6,6 +6,7 @@ import io.reactivex.Single
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotEnoughFundsException
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -76,8 +77,8 @@ class WalletInteractorImpl(
     }
 
     override fun getContacts(query: String): Single<List<String>> {
-        return accountRepository.observeSelectedAccount().firstOrError()
-            .flatMap { walletRepository.getContacts(query, it.network.type) }
+        return accountRepository.getSelectedAccount()
+            .flatMap { walletRepository.getContacts(query) }
     }
 
     override fun getMyAddresses(query: String): Single<List<String>> {
@@ -96,7 +97,14 @@ class WalletInteractorImpl(
     }
 
     override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
-        return walletRepository.performTransfer(transfer, fee)
+        return walletRepository.checkEnoughAmountForTransfer(transfer)
+            .flatMapCompletable {
+                if (it == CheckFundsStatus.NOT_ENOUGH_FUNDS) {
+                    throw NotEnoughFundsException()
+                } else {
+                    walletRepository.performTransfer(transfer, fee)
+                }
+            }
     }
 
     override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<CheckFundsStatus> {

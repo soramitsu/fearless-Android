@@ -9,8 +9,10 @@ import io.reactivex.disposables.CompositeDisposable
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.Optional
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.asMutableLiveData
+import jp.co.soramitsu.common.utils.asOptionalLiveData
 
 open class BaseViewModel : ViewModel() {
 
@@ -41,6 +43,14 @@ open class BaseViewModel : ViewModel() {
     fun showError(text: String) {
         _errorLiveData.value = Event(text)
     }
+
+    fun showError(throwable: Throwable) {
+        throwable.message?.let(this::showError)
+    }
+
+    fun <T> Observable<Optional<T>>.asOptionalLiveData(
+        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
+    ) = asOptionalLiveData(disposables, errorHandler)
 
     fun <T> Single<T>.asLiveData(
         errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
