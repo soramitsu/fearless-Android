@@ -15,6 +15,7 @@ import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
@@ -25,6 +26,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.JsonFormer
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -44,6 +46,7 @@ class AccountRepositoryImpl(
     private val keypairFactory: KeypairFactory,
     private val appLinksProvider: AppLinksProvider,
     private val jsonSeedDecoder: JsonSeedDecoder,
+    private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
     private val accountSubstrateSource: AccountSubstrateSource
 ) : AccountRepository {
@@ -344,6 +347,18 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun generateRestoreJson(account: Account, password: String): Single<String> {
+        return getSecuritySource(account.address).map {
+            val seed = (it.jsonFormer() as? JsonFormer.Seed)?.seed
+            val keypair = mapSigningDataToKeypair(it.signingData)
+
+            val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
+            val addressType = mapNetworkTypeToAddressType(account.network.type)
+
+            jsonSeedEncoder.generate(keypair, seed, password, account.name.orEmpty(), cryptoType, addressType)
+        }
+    }
+
     private fun saveFromMnemonic(
         accountName: String,
         mnemonic: String,
@@ -411,6 +426,16 @@ class AccountRepositoryImpl(
     private fun mapKeyPairToSigningData(keyPair: Keypair): SigningData {
         return with(keyPair) {
             SigningData(
+                publicKey = publicKey,
+                privateKey = privateKey,
+                nonce = nonce
+            )
+        }
+    }
+
+    private fun mapSigningDataToKeypair(singingData: SigningData): Keypair {
+        return with(singingData) {
+            Keypair(
                 publicKey = publicKey,
                 privateKey = privateKey,
                 nonce = nonce

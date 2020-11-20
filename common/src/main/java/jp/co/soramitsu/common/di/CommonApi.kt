@@ -27,6 +27,7 @@ import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.wsrpc.Logger
+import java.util.Random
 
 interface CommonApi {
 
@@ -79,6 +80,8 @@ interface CommonApi {
     fun qrCodeGenerator(): QrCodeGenerator
 
     fun fileProvider(): FileProvider
+
+    fun random(): Random
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
 

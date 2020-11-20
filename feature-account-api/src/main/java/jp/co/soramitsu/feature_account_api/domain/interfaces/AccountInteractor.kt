@@ -112,4 +112,6 @@ interface AccountInteractor {
     fun selectNode(nodeId: Int): Completable
 
     fun deleteNode(nodeId: Int): Completable
+
+    fun generateRestoreJson(accountAddress: String, password: String): Single<String>
 }

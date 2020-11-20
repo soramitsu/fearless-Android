@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">ネットワーク： %s\nシード： %s\n派生パス： %s</string>
+    <string name="export_seed_without_derivation" formatted="false">ネットワーク： %s\nシード： %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">ネットワーク： %s\nニーモニック： %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">ネットワーク： %s\nニーモニック： %s\n派生パス： %s</string>
+
     <string name="export_json_password_match_error">パスワードが一致しません</string>
     <string name="export_json_password_confirm">パスワードを認証する</string>
     <string name="export_json_password_new">パスワードを設定してください</string>
@@ -183,12 +188,14 @@
     <string name="common_skip_process">プロセスをスキップ</string>
     <string name="wallet_receive_description">このQRを送信者に共有する</string>
     <string name="wallet_receive_share_message">マイ%s受信するためのアドレス%s:</string>
+    <string name="account_export_password_change">パスワードを変更する</string>
     <string name="common_copy_address">コピーアドレス</string>
     <string name="common_choose_file">ファイルをアップロードする</string>
     <string name="import_json_paste">jsonを貼り付け</string>
     <string name="account_import_json_no_network">JSONにはネットワーク情報は含まれていません。高度なブロックで指定してください。</string>
     <string name="pincode_enter_new_pin_code">新しいPINコードを入力してください</string>
     <string name="pincode_changed_message">PINコードは正常に変更されました</string>
+    <string name="common_share">シェア</string>
     <string name="invoice_scan_upload">写真からアップロード</string>
     <string name="invoice_scan_camera">カメラ</string>
     <string name="invoice_scan_gallery">ギャラリー</string>

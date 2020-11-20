@@ -139,4 +139,6 @@ interface AccountRepository {
     fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
 
     fun deleteNode(nodeId: Int): Completable
+
+    fun generateRestoreJson(account: Account, password: String): Single<String>
 }

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">Мережа: %s\nНасіння: %s\nШлях виведення: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Мережа: %s\nНасіння: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Мережа: %s\nМнемоніка: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Мережа: %s\nМнемоніка: %s\nШлях виведення: %s</string>
+
     <string name="export_json_password_match_error">Пароль не відповідає</string>
     <string name="export_json_password_confirm">Підтвердьте пароль</string>
     <string name="export_json_password_new">Встановити пароль</string>
@@ -184,10 +189,12 @@
     <string name="common_skip_process">Пропустити процес</string>
     <string name="wallet_receive_description">Поділіться цим QR-кодом відправника</string>
     <string name="wallet_receive_share_message">Мою %s адресу для отримання %s:</string>
+    <string name="account_export_password_change">Змінити пароль</string>
     <string name="common_copy_address">Скопіювати адресу</string>
     <string name="common_choose_file">Завантажити файл</string>
     <string name="pincode_enter_new_pin_code">Введіть новий пін-код</string>
     <string name="pincode_changed_message">Успіх зміни пін-коду</string>
+    <string name="common_share">Поділіться</string>
     <string name="import_json_paste">Вставити json</string>
     <string name="account_import_json_no_network">JSON не містить інформації про мережу. Будь ласка, вкажіть це в розширеному блоці.</string>
     <string name="invoice_scan_upload">Завантажити з галереї</string>

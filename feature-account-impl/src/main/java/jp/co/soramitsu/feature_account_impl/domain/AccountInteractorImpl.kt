@@ -290,4 +290,9 @@ class AccountInteractorImpl(
     override fun deleteNode(nodeId: Int): Completable {
         return accountRepository.deleteNode(nodeId)
     }
+
+    override fun generateRestoreJson(accountAddress: String, password: String): Single<String> {
+        return accountRepository.getAccount(accountAddress)
+            .flatMap { accountRepository.generateRestoreJson(it, password) }
+    }
 }

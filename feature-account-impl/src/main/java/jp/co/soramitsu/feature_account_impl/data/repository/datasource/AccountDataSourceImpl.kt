@@ -130,7 +130,7 @@ class AccountDataSourceImpl(
             nonce = internalSource[SourceInternal.Nonce]
         )
 
-        val seed = internalSource[SourceInternal.Nonce]
+        val seed = internalSource[SourceInternal.Seed]
         val mnemonic = internalSource[SourceInternal.Mnemonic]
         val derivationPath = internalSource[SourceInternal.DerivationPath]
 

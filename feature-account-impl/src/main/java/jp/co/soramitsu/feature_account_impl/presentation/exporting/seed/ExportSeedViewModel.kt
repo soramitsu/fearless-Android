@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.utils.toHex
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.WithDerivationPath
 import jp.co.soramitsu.feature_account_api.domain.model.WithSeed
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
@@ -22,7 +23,7 @@ class ExportSeedViewModel(
         (it as WithSeed).seed!!.toHex().requireHexPrefix()
     }
 
-    val derivationPath = securityTypeLiveData.map {
+    val derivationPathLiveData = securityTypeLiveData.map {
         (it as? WithDerivationPath)?.derivationPath
     }
 
@@ -36,7 +37,16 @@ class ExportSeedViewModel(
 
     override fun securityWarningConfirmed() {
         val seed = seedLiveData.value ?: return
+        val networkType = networkTypeLiveData.value?.name ?: return
 
-        exportText(seed)
+        val derivationPath = derivationPathLiveData.value
+
+        val shareText = if (derivationPath.isNullOrBlank()) {
+            resourceManager.getString(R.string.export_seed_without_derivation, networkType, seed)
+        } else {
+            resourceManager.getString(R.string.export_seed_with_derivation, networkType, seed, derivationPath)
+        }
+
+        exportText(shareText)
     }
 }

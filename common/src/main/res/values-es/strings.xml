@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">Red: %s\nSemilla: %s\nRuta de derivación: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Red: %s\nSemilla: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Red: %s\nMnemónico: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Red: %s\nMnemónico: %s\nRuta de derivación: %s</string>
+
     <string name="export_json_password_match_error">Contraseña no coincidente</string>
     <string name="export_json_password_confirm">Confirmar contraseña</string>
     <string name="export_json_password_new">Configurar la clave</string>
@@ -183,12 +188,14 @@
     <string name="common_skip_process">Omitir proceso</string>
     <string name="wallet_receive_description">Comparte este QR con el remitente</string>
     <string name="wallet_receive_share_message">Mi %s dirección para recibir %s:</string>
+    <string name="account_export_password_change">Cambia la contraseña</string>
     <string name="common_copy_address">Copiar dirección</string>
     <string name="common_choose_file">Subir archivo</string>
     <string name="import_json_paste">Pegar json</string>
     <string name="account_import_json_no_network">JSON no contiene información de red. Especifíquelo en el bloque avanzado.</string>
     <string name="pincode_enter_new_pin_code">Ingrese un nuevo código pin</string>
     <string name="pincode_changed_message">El código PIN se ha cambiado correctamente</string>
+    <string name="common_share">Compartir</string>
     <string name="invoice_scan_upload">Subir desde la galería</string>
     <string name="invoice_scan_camera">Cámara</string>
     <string name="invoice_scan_gallery">Galería</string>

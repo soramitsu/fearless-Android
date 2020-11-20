@@ -11,6 +11,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.about.di.AboutComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.di.AccountDetailsComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.edit.di.AccountEditComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.di.AccountListComponent
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ShareCompletedReceiver
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.di.ExportJsonConfirmComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.di.ExportJsonPasswordComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.di.ExportMnemonicComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.di.ExportSeedComponent
@@ -66,6 +68,10 @@ interface AccountFeatureComponent : AccountFeatureApi {
     fun exportSeedFactory(): ExportSeedComponent.Factory
 
     fun exportJsonPasswordFactory(): ExportJsonPasswordComponent.Factory
+
+    fun exportJsonConfirmFactory(): ExportJsonConfirmComponent.Factory
+
+    fun inject(receiver: ShareCompletedReceiver)
 
     @Component.Factory
     interface Factory {

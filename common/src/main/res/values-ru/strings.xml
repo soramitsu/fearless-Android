@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">Сеть: %s\nСид: %s\nПуть деривации: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Сеть: %s\nСид: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Сеть: %s\nМнемоника: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Сеть: %s\nМнемоника: %s\nПуть деривации: %s</string>
+
     <string name="export_json_password_match_error">Неверный пароль</string>
     <string name="export_json_password_confirm">Подтверждение пароля</string>
     <string name="export_json_password_new">Новый пароль</string>
@@ -184,12 +189,14 @@
     <string name="common_skip_process">Пропустить</string>
     <string name="wallet_receive_description">Поделиться этим QR-кодом с отправителем</string>
     <string name="wallet_receive_share_message">Мой %s адрес для получения %s:</string>
+    <string name="account_export_password_change">Сменить пароль</string>
     <string name="common_copy_address">Копировать адрес</string>
     <string name="common_choose_file">Загрузить файл</string>
     <string name="import_json_paste">Вставьте json</string>
     <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных настроек.</string>
     <string name="pincode_enter_new_pin_code">Введите новый пин-код</string>
     <string name="pincode_changed_message">Пин-код успешно изменен</string>
+    <string name="common_share">Поделиться</string>
     <string name="invoice_scan_upload">Из галереи</string>
     <string name="invoice_scan_camera">Камера</string>
     <string name="invoice_scan_gallery">Галерея</string>

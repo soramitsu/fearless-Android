@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_share">Share</string>
+
+    <string name="export_seed_with_derivation" formatted="false">Network: %s\nSeed: %s\nDerivation path: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Network: %s\nSeed: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Network: %s\nMnemonic: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Network: %s\nMnemonic: %s\nDerivation path: %s</string>
+
+    <string name="account_export_password_change">Change password</string>
+
     <string name="account_import_json_no_network">No network information. Please specify it in advanced block</string>
 
     <string name="import_json_paste">Paste JSON</string>

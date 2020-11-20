@@ -15,6 +15,7 @@ import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -28,6 +29,7 @@ import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.CryptoTypeChooser
+import java.util.Random
 
 @Module
 class AccountFeatureModule {
@@ -57,6 +59,14 @@ class AccountFeatureModule {
     ) = JsonSeedDecoder(jsonMapper, sS58Encoder, keypairFactory)
 
     @Provides
+    @FeatureScope
+    fun provideJsonEncoder(
+        sS58Encoder: SS58Encoder,
+        random: Random,
+        jsonMapper: Gson
+    ) = JsonSeedEncoder(jsonMapper, sS58Encoder, random)
+
+    @Provides
     fun provideCryptoChooserMixin(
         interactor: AccountInteractor,
         resourceManager: ResourceManager
@@ -74,6 +84,7 @@ class AccountFeatureModule {
         accountDao: AccountDao,
         nodeDao: NodeDao,
         jsonSeedDecoder: JsonSeedDecoder,
+        jsonSeedEncoder: JsonSeedEncoder,
         accountSubstrateSource: AccountSubstrateSource,
         languagesHolder: LanguagesHolder
     ): AccountRepository {
@@ -87,6 +98,7 @@ class AccountFeatureModule {
             keypairFactory,
             appLinksProvider,
             jsonSeedDecoder,
+            jsonSeedEncoder,
             languagesHolder,
             accountSubstrateSource
         )

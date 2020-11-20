@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">Rete: %s\nSeme: %s\nPercorso di derivazione: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Rete: %s\nSeme: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Rete: %s\nMnemonico: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Rete: %s\nMnemonico: %s\nPercorso di derivazione: %s</string>
+
     <string name="export_json_password_match_error">Password non corrispondente</string>
     <string name="export_json_password_confirm">Conferma password</string>
     <string name="export_json_password_new">Impostare la password</string>
@@ -186,9 +191,11 @@
     <string name="common_copy_address">Copia indirizzo</string>
     <string name="common_choose_file">Caricare un file</string>
     <string name="import_json_paste">Incolla json</string>
+    <string name="account_export_password_change">Cambia la password</string>
     <string name="account_import_json_no_network">JSON non contiene informazioni di rete. Si prega di specificarlo nel blocco avanzato.</string>
     <string name="pincode_enter_new_pin_code">Inserisci il codice PIN</string>
     <string name="pincode_changed_message">Il codice PIN è stato modificato con successo</string>
+    <string name="common_share">Condividere</string>
     <string name="invoice_scan_upload">Carica dalla galleria</string>
     <string name="invoice_scan_camera">Fotocamera</string>
     <string name="invoice_scan_gallery">Galleria</string>
