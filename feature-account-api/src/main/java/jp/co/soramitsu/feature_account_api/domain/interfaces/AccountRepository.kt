@@ -41,6 +41,8 @@ interface AccountRepository {
 
     fun observeSelectedAccount(): Observable<Account>
 
+    fun getSelectedAccount(): Single<Account>
+
     fun getPreferredCryptoType(): Single<CryptoType>
 
     fun isAccountSelected(): Single<Boolean>
@@ -83,7 +85,7 @@ interface AccountRepository {
         name: String
     ): Completable
 
-    fun isCodeSet(): Single<Boolean>
+    fun isCodeSet(): Boolean
 
     fun savePinCode(code: String): Completable
 
@@ -97,7 +99,7 @@ interface AccountRepository {
 
     fun getAddressId(address: String): Single<ByteArray>
 
-    fun isBiometricEnabled(): Single<Boolean>
+    fun isBiometricEnabled(): Boolean
 
     fun setBiometricOn(): Completable
 

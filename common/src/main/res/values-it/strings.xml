@@ -186,4 +186,6 @@
     <string name="common_copy_address">Copia indirizzo</string>
     <string name="common_choose_file">Caricare un file</string>
     <string name="import_json_paste">Incolla json</string>
+    <string name="pincode_enter_new_pin_code">Inserisci il codice PIN</string>
+    <string name="pincode_changed_message">Il codice PIN è stato modificato con successo</string>
 </resources>

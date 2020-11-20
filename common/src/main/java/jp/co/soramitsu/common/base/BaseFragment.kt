@@ -38,19 +38,20 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     protected fun showError(errorMessage: String) {
-        AlertDialog.Builder(requireActivity())
-            .setTitle(R.string.common_error_general_title)
-            .setMessage(errorMessage)
-            .setPositiveButton(R.string.common_ok) { _, _ -> }
+        buildErrorDialog(getString(R.string.common_error_general_title), errorMessage)
             .show()
     }
 
     protected fun showErrorWithTitle(title: String, errorMessage: String) {
-        AlertDialog.Builder(requireActivity())
+        buildErrorDialog(title, errorMessage).show()
+    }
+
+    protected open fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
+        return AlertDialog.Builder(requireActivity())
             .setTitle(title)
             .setMessage(errorMessage)
             .setPositiveButton(R.string.common_ok) { _, _ -> }
-            .show()
+            .create()
     }
 
     protected fun showMessage(text: String) {
