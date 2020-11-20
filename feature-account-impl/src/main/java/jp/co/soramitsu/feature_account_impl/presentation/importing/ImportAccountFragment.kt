@@ -71,7 +71,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         nextBtn.setOnClickListener { viewModel.nextClicked() }
 
-        nextBtn.prepareForProgress(this)
+        nextBtn.prepareForProgress(viewLifecycleOwner)
     }
 
     override fun inject() {

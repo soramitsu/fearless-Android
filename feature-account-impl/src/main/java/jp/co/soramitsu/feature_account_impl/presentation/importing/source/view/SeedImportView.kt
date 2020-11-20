@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
 import kotlinx.android.synthetic.main.import_source_seed.view.importSeedContent
 import kotlinx.android.synthetic.main.import_source_seed.view.importSeedContentContainer
-import kotlinx.android.synthetic.main.import_source_seed.view.importSeedUsernameField
+import kotlinx.android.synthetic.main.import_source_seed.view.importSeedUsernameInput
 
 class SeedImportView @JvmOverloads constructor(
     context: Context,
@@ -23,11 +23,11 @@ class SeedImportView @JvmOverloads constructor(
     init {
         importSeedContentContainer.background = context.getIdleDrawable()
 
-        importSeedUsernameField.filters = nameInputFilters()
+        importSeedUsernameInput.content.filters = nameInputFilters()
     }
 
     override fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {
-        importSeedUsernameField.bindTo(viewModel.nameLiveData, lifecycleOwner)
+        importSeedUsernameInput.content.bindTo(viewModel.nameLiveData, lifecycleOwner)
     }
 
     override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {

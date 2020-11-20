@@ -16,7 +16,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.So
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsAddressView
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsExport
-import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsName
+import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNode
 import kotlinx.android.synthetic.main.fragment_account_details.fearlessToolbar
 
@@ -51,7 +51,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
             viewModel.exportClicked()
         }
 
-        accountDetailsName.filters = nameInputFilters()
+        accountDetailsNameField.content.filters = nameInputFilters()
     }
 
     override fun inject() {
@@ -72,7 +72,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
         viewModel.accountLiveData.observe { account ->
             accountDetailsAddressView.setMessage(account.address)
 
-            accountDetailsName.setText(account.name)
+            accountDetailsNameField.content.setText(account.name)
 
             accountDetailsNode.text = account.network.name
         }
@@ -83,7 +83,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
 
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
 
-        accountDetailsName.onTextChanged(viewModel::nameChanged)
+        accountDetailsNameField.content.onTextChanged(viewModel::nameChanged)
     }
 
     private fun showExportSourceChooser(sources: List<ExportSource>) {

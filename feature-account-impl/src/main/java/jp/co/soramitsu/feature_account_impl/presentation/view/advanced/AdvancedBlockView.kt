@@ -6,14 +6,13 @@ import android.view.View
 import android.view.View.OnClickListener
 import android.widget.EditText
 import android.widget.LinearLayout
-import com.google.android.material.textfield.TextInputLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
-import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathEt
 import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.networkInput
@@ -60,9 +59,9 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     val derivationPathEditText: EditText
-        get() = derivationPathEt
+        get() = derivationPathInput.content
 
-    val derivationPathField: TextInputLayout
+    val derivationPathField: InputField
         get() = derivationPathInput
 
     val encryptionTypeField: LabeledTextView
@@ -102,11 +101,11 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     fun getDerivationPath(): String {
-        return derivationPathEt.text?.toString() ?: ""
+        return derivationPathEditText.text?.toString() ?: ""
     }
 
     fun setDerivationPath(path: String?) {
-        derivationPathEt.setText(path)
+        derivationPathEditText.setText(path)
     }
 
     fun setEncryption(encryption: String) {

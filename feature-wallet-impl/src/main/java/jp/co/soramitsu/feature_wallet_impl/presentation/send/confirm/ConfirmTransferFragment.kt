@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
@@ -82,14 +81,14 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         }
 
         with(viewModel.transferDraft) {
-            confirmTransferToken.setIcon(token.icon)
-            confirmTransferToken.setText(token.displayName)
+            confirmTransferToken.setTextIcon(token.icon)
+            confirmTransferToken.setMessage(token.displayName)
 
             confirmTransferFee.text = fee.formatAsToken(token)
 
             confirmTransferTotal.text = totalTransaction.formatAsToken(token)
 
-            confirmTransferAmount.setText(amount.toPlainString(), TextView.BufferType.NORMAL)
+            confirmTransferAmount.setMessage(amount.toPlainString())
         }
 
         viewModel.recipientModel.observe {

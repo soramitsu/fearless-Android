@@ -49,23 +49,13 @@
             app:label="@string/common_crypto_type"
             app:message="@string/sr25519_selection_title" />
 
-        <com.google.android.material.textfield.TextInputLayout
+        <jp.co.soramitsu.common.view.InputField
             android:id="@+id/derivationPathInput"
             style="@style/Widget.Fearless.Input.Primary.External"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/common_secret_derivation_path">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/derivationPathEt"
-                style="@style/Widget.Fearless.Input.Primary.Internal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text"
-                android:maxLength="64" />
-
-        </com.google.android.material.textfield.TextInputLayout>
+            android:hint="@string/common_secret_derivation_path" />
 
         <jp.co.soramitsu.common.view.LabeledTextView
             android:id="@+id/networkInput"

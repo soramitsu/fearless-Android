@@ -11,9 +11,9 @@ import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordConfirm
+import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordConfirmField
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordMatchingError
-import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNew
+import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNewField
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNext
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordToolbar
 
@@ -51,8 +51,8 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
     }
 
     override fun subscribe(viewModel: ExportJsonPasswordViewModel) {
-        exportJsonPasswordNew.bindTo(viewModel.passwordLiveData)
-        exportJsonPasswordConfirm.bindTo(viewModel.passwordConfirmationLiveData)
+        exportJsonPasswordNewField.content.bindTo(viewModel.passwordLiveData)
+        exportJsonPasswordConfirmField.content.bindTo(viewModel.passwordConfirmationLiveData)
 
         viewModel.nextEnabled.observe(exportJsonPasswordNext::setEnabled)
 

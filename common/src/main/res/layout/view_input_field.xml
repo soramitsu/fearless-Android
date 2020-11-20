@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.Fearless.Input.Primary.External"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:parentTag="com.google.android.material.textfield.TextInputLayout">
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/inputField"
+        style="@style/Widget.Fearless.Input.Primary.Internal"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:includeFontPadding="false"
+        android:inputType="text"
+        android:maxLength="64" />
+
+</merge>

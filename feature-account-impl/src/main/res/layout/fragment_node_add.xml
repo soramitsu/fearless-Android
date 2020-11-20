@@ -16,43 +16,26 @@
         app:homeButtonIcon="@drawable/ic_close"
         app:titleText="@string/connections_add_connection" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/nodeNameContainer"
+    <jp.co.soramitsu.common.view.InputField
+        android:id="@+id/nodeNameField"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:hint="@string/network_info_name">
+        android:hint="@string/network_info_name" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/nodeName"
-            style="@style/Widget.Fearless.Input.Primary.Internal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/nodeHostContainer"
+    <jp.co.soramitsu.common.view.InputField
+        android:id="@+id/nodeHostField"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:hint="@string/network_info_address">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/nodeHost"
-            style="@style/Widget.Fearless.Input.Primary.Internal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textWebEmailAddress" />
-
-    </com.google.android.material.textfield.TextInputLayout>
+        android:hint="@string/network_info_address"
+        android:inputType="textWebEmailAddress" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/addBtn"
