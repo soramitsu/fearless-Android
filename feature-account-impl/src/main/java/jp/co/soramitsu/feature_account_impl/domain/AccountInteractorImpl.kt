@@ -238,8 +238,8 @@ class AccountInteractorImpl(
 
     override fun addNode(nodeName: String, nodeHost: String): Completable {
         return accountRepository.checkNodeExists(nodeHost)
-            .flatMap {
-                if (it) {
+            .flatMap { nodeExists ->
+                if (nodeExists) {
                     throw NodeAlreadyExistsException()
                 } else {
                     getNetworkTypeByNodeHost(nodeHost)
