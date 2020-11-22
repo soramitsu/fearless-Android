@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.utils
 
+import android.content.Context
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -7,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
 import androidx.annotation.ColorRes
@@ -92,4 +94,9 @@ inline fun View.doOnGlobalLayout(crossinline action: () -> Unit) {
 
 fun View.setVisible(visible: Boolean, falseState: Int = View.GONE) {
     visibility = if (visible) View.VISIBLE else falseState
+}
+
+fun View.hideSoftKeyboard() {
+    val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
 }
