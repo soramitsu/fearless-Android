@@ -41,7 +41,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
         toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
 
         nextBtn.setOnClickListener {
-            requireContext().hideSoftKeyboard(accountNameInput)
+            accountNameInput.hideSoftKeyboard()
             viewModel.nextClicked()
         }
 
