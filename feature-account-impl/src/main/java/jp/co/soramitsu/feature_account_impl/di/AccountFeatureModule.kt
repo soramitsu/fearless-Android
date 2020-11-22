@@ -117,9 +117,10 @@ class AccountFeatureModule {
     fun provideAccountDataSource(
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
-        jsonMapper: Gson
+        jsonMapper: Gson,
+        bip39: Bip39
     ): AccountDataSource {
-        return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper)
+        return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper, bip39)
     }
 
     @Provides

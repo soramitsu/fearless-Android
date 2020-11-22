@@ -23,7 +23,7 @@ interface AccountDataSource {
 
     fun getSelectedNode(): Node?
 
-    fun saveSecuritySource(accountAddress: String, source: SecuritySource)
+    fun saveSecuritySource(accountAddress: String, source: SecuritySource.Specified)
 
     fun getSecuritySource(accountAddress: String): SecuritySource?
 
