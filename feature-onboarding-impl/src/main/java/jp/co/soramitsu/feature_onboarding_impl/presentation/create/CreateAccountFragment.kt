@@ -9,6 +9,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
+import jp.co.soramitsu.common.utils.hideSoftKeyboard
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -39,7 +40,10 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
     override fun initViews() {
         toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
 
-        nextBtn.setOnClickListener { viewModel.nextClicked() }
+        nextBtn.setOnClickListener {
+            requireContext().hideSoftKeyboard(accountNameInput)
+            viewModel.nextClicked()
+        }
 
         accountNameInput.content.onTextChanged {
             viewModel.accountNameChanged(it)
