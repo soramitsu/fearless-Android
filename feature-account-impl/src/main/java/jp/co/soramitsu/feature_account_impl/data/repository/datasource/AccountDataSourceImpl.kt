@@ -20,7 +20,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_account_api.domain.model.WithDerivationPath
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
 import jp.co.soramitsu.feature_account_api.domain.model.WithSeed
-import jp.co.soramitsu.feature_account_impl.data.mappers.getSourceType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 
 private const val PREFS_AUTH_TYPE = "auth_type"
@@ -30,7 +29,7 @@ private const val PREFS_SELECTED_ACCOUNT = "selected_address"
 
 private const val PREFS_SELECTED_NODE = "node"
 
-const val PREFS_SECURITY_SOURCE_MASK = "security_source_%s"
+private const val PREFS_SECURITY_SOURCE_MASK = "security_source_%s"
 
 private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 
@@ -216,5 +215,15 @@ class AccountDataSourceImpl(
 
     override fun changeSelectedLanguage(language: Language) {
         preferences.saveCurrentLanguage(language.iso)
+    }
+
+    private fun getSourceType(securitySource: SecuritySource): SourceType {
+        return when (securitySource) {
+            is SecuritySource.Specified.Create -> SourceType.CREATE
+            is SecuritySource.Specified.Mnemonic -> SourceType.MNEMONIC
+            is SecuritySource.Specified.Json -> SourceType.JSON
+            is SecuritySource.Specified.Seed -> SourceType.SEED
+            else -> SourceType.UNSPECIFIED
+        }
     }
 }

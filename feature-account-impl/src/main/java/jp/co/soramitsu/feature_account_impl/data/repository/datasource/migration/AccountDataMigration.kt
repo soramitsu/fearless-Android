@@ -42,22 +42,22 @@ class AccountDataMigration(
         return !migrated
     }
 
-    fun migrate(migrateFun: (String, SecuritySource) -> Unit) {
+    fun migrate(saveSourceCallback: (String, SecuritySource) -> Unit) {
         accountsDao.observeAccounts()
             .subscribeOn(Schedulers.io())
             .firstOrError()
-            .map { migrateAllAccounts(it, migrateFun) }
+            .map { migrateAllAccounts(it, saveSourceCallback) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 preferences.putBoolean(PREFS_MIGRATED_FROM_0_4_1_TO_1_0_0, true)
             }, DEFAULT_ERROR_HANDLER)
     }
 
-    private fun migrateAllAccounts(accounts: List<AccountLocal>, migrateFun: (String, SecuritySource) -> Unit) {
-        accounts.forEach { migrateAccount(it.address, migrateFun) }
+    private fun migrateAllAccounts(accounts: List<AccountLocal>, saveSourceCallback: (String, SecuritySource) -> Unit) {
+        accounts.forEach { migrateAccount(it.address, saveSourceCallback) }
     }
 
-    private fun migrateAccount(accountAddress: String, migrateFun: (String, SecuritySource) -> Unit) {
+    private fun migrateAccount(accountAddress: String, saveSourceCallback: (String, SecuritySource) -> Unit) {
         val oldKey = PREFS_PRIVATE_KEY.format(accountAddress)
         val oldRaw = encryptedPreferences.getDecryptedString(oldKey) ?: return
         val data = ScaleSigningData.read(oldRaw)
@@ -88,6 +88,6 @@ class AccountDataMigration(
             }
         }
 
-        migrateFun(accountAddress, securitySource)
+        saveSourceCallback(accountAddress, securitySource)
     }
 }
