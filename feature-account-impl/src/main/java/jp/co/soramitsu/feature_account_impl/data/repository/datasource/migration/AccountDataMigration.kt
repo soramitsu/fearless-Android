@@ -71,8 +71,10 @@ class AccountDataMigration(
         val seedKey = PREFS_SEED_MASK.format(accountAddress)
         val seedValue = encryptedPreferences.getDecryptedString(seedKey)
         val seed = seedValue?.let { Hex.decode(it) }
+
         val derivationKey = PREFS_DERIVATION_MASK.format(accountAddress)
         val derivationPath = encryptedPreferences.getDecryptedString(derivationKey)
+
         val entropyKey = PREFS_ENTROPY_MASK.format(accountAddress)
         val entropyValue = encryptedPreferences.getDecryptedString(entropyKey)
         val entropy = entropyValue?.let { Hex.decode(it) }
