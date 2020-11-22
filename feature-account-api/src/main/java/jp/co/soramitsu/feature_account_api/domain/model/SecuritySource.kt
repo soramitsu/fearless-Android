@@ -37,7 +37,7 @@ sealed class SecuritySource(
         ) : Specified(seed, signingData)
     }
 
-    open class UnSpecified(
+    open class Unspecified(
         signingData: SigningData
     ) : SecuritySource(signingData)
 }

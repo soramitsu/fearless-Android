@@ -165,7 +165,7 @@ class AccountDataSourceImpl(
                 if (seed != null) {
                     SecuritySource.Specified.Seed(seed, signingData, derivationPath)
                 } else {
-                    SecuritySource.UnSpecified(signingData)
+                    SecuritySource.Unspecified(signingData)
                 }
             }
         } else {
@@ -187,7 +187,7 @@ class AccountDataSourceImpl(
                 SourceType.SEED -> SecuritySource.Specified.Seed(seed, signingData, derivationPath)
                 SourceType.JSON -> SecuritySource.Specified.Json(seed, signingData)
                 SourceType.MNEMONIC -> SecuritySource.Specified.Mnemonic(seed, signingData, mnemonic!!, derivationPath)
-                SourceType.UNSPECIFIED -> SecuritySource.UnSpecified(signingData)
+                SourceType.UNSPECIFIED -> SecuritySource.Unspecified(signingData)
             }
         }
     }
