@@ -15,7 +15,9 @@ import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_account_api.domain.model.WithJson
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
+import jp.co.soramitsu.feature_account_api.domain.model.WithSeed
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
@@ -99,8 +101,8 @@ class AccountDetailsViewModel(
             val sources = mutableListOf<ExportSource>()
 
             if (it is WithMnemonic) sources += ExportSource.Mnemonic
-            if (it.seed != null) sources += ExportSource.Seed
-            sources += ExportSource.Json
+            if (it is WithSeed && it.seed != null) sources += ExportSource.Seed
+            if (it is WithJson) sources += ExportSource.Json
 
             sources
         }

@@ -19,6 +19,8 @@ import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_account_api.domain.model.WithDerivationPath
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
+import jp.co.soramitsu.feature_account_api.domain.model.WithSeed
+import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 
 private const val PREFS_AUTH_TYPE = "auth_type"
 private const val PREFS_PIN_CODE = "pin_code"
@@ -31,11 +33,11 @@ private const val PREFS_SECURITY_SOURCE_MASK = "security_source_%s"
 
 private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 
-private enum class SourceType {
-    CREATE, SEED, MNEMONIC, JSON
+enum class SourceType {
+    CREATE, SEED, MNEMONIC, JSON, UNSPECIFIED
 }
 
-private object SourceInternal : Schema<SourceInternal>() {
+object SourceInternal : Schema<SourceInternal>() {
     val Type by string()
 
     val PrivateKey by byteArray()
@@ -52,8 +54,15 @@ private object SourceInternal : Schema<SourceInternal>() {
 class AccountDataSourceImpl(
     private val preferences: Preferences,
     private val encryptedPreferences: EncryptedPreferences,
-    private val jsonMapper: Gson
+    private val jsonMapper: Gson,
+    accountDataMigration: AccountDataMigration
 ) : AccountDataSource {
+
+    init {
+        if (accountDataMigration.migrationNeeded()) {
+            accountDataMigration.migrate(::saveSecuritySource)
+        }
+    }
 
     private val selectedAccountSubject = createAccountBehaviorSubject()
 
@@ -96,7 +105,7 @@ class AccountDataSourceImpl(
         val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
         val signingData = source.signingData
-        val seed = source.seed
+        val seed = (source as? WithSeed)?.seed
         val mnemonic = (source as? WithMnemonic)?.mnemonic
         val derivationPath = (source as? WithDerivationPath)?.derivationPath
 
@@ -121,7 +130,6 @@ class AccountDataSourceImpl(
         val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
         val raw = encryptedPreferences.getDecryptedString(key) ?: return null
-
         val internalSource = SourceInternal.read(raw)
 
         val signingData = SigningData(
@@ -135,10 +143,11 @@ class AccountDataSourceImpl(
         val derivationPath = internalSource[SourceInternal.DerivationPath]
 
         return when (SourceType.valueOf(internalSource[SourceInternal.Type])) {
-            SourceType.CREATE -> SecuritySource.Create(seed, signingData, mnemonic!!, derivationPath)
-            SourceType.SEED -> SecuritySource.Seed(seed, signingData, derivationPath)
-            SourceType.JSON -> SecuritySource.Json(seed, signingData)
-            SourceType.MNEMONIC -> SecuritySource.Mnemonic(seed, signingData, mnemonic!!, derivationPath)
+            SourceType.CREATE -> SecuritySource.Specified.Create(seed, signingData, mnemonic!!, derivationPath)
+            SourceType.SEED -> SecuritySource.Specified.Seed(seed, signingData, derivationPath)
+            SourceType.JSON -> SecuritySource.Specified.Json(seed, signingData)
+            SourceType.MNEMONIC -> SecuritySource.Specified.Mnemonic(seed, signingData, mnemonic!!, derivationPath)
+            SourceType.UNSPECIFIED -> SecuritySource.Unspecified(signingData)
         }
     }
 
@@ -210,10 +219,11 @@ class AccountDataSourceImpl(
 
     private fun getSourceType(securitySource: SecuritySource): SourceType {
         return when (securitySource) {
-            is SecuritySource.Create -> SourceType.CREATE
-            is SecuritySource.Mnemonic -> SourceType.MNEMONIC
-            is SecuritySource.Json -> SourceType.JSON
-            is SecuritySource.Seed -> SourceType.SEED
+            is SecuritySource.Specified.Create -> SourceType.CREATE
+            is SecuritySource.Specified.Mnemonic -> SourceType.MNEMONIC
+            is SecuritySource.Specified.Json -> SourceType.JSON
+            is SecuritySource.Specified.Seed -> SourceType.SEED
+            else -> SourceType.UNSPECIFIED
         }
     }
 }

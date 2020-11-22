@@ -25,6 +25,7 @@ import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubst
 import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSourceImpl
+import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
@@ -117,9 +118,10 @@ class AccountFeatureModule {
     fun provideAccountDataSource(
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
-        jsonMapper: Gson
+        jsonMapper: Gson,
+        accountDataMigration: AccountDataMigration
     ): AccountDataSource {
-        return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper)
+        return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper, accountDataMigration)
     }
 
     @Provides
@@ -129,5 +131,16 @@ class AccountFeatureModule {
     @FeatureScope
     fun provideAccountSubstrateSource(socketRequestExecutor: SocketSingleRequestExecutor): AccountSubstrateSource {
         return AccountSubstrateSourceImpl(socketRequestExecutor)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideAccountDataMigration(
+        preferences: Preferences,
+        encryptedPreferences: EncryptedPreferences,
+        bip39: Bip39,
+        accountDao: AccountDao
+    ): AccountDataMigration {
+        return AccountDataMigration(preferences, encryptedPreferences, bip39, accountDao)
     }
 }
