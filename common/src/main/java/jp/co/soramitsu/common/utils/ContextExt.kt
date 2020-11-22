@@ -4,8 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
-import android.view.View
-import android.view.inputmethod.InputMethodManager
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 
@@ -26,9 +24,4 @@ inline fun postToUiThread(crossinline action: () -> Unit) {
     Handler(Looper.getMainLooper()).post {
         action.invoke()
     }
-}
-
-fun View.hideSoftKeyboard() {
-    val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
 }
