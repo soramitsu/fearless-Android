@@ -14,12 +14,12 @@ private const val OTHER_SIGNATURE_SIZE = 64
 
 class Signature(val version: UByte, val value: ByteArray) {
 
-    constructor(encryptionType: EncryptionType, value: ByteArray)
-        : this(encryptionType.signatureVersion.toUByte(), value)
+    constructor(encryptionType: EncryptionType, value: ByteArray) :
+        this(encryptionType.signatureVersion.toUByte(), value)
 }
 
 object SignatureType : DataType<Signature>() {
-    override fun conformsType(value: Any?) =  value is Signature
+    override fun conformsType(value: Any?) = value is Signature
 
     override fun read(reader: ScaleCodecReader): Signature {
         val signatureVersion = uint8.read(reader)

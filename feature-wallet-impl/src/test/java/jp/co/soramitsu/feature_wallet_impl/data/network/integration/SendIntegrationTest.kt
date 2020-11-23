@@ -56,7 +56,7 @@ private const val TO_ADDRESS = "5DEwU2U97RnBHCpfwHMDfJC7pqAdfWaPFib9wiZcr2ephSfT
 private const val URL = "wss://westend-rpc.polkadot.io"
 
 @RunWith(MockitoJUnitRunner::class)
-//@Ignore("Manual run only")
+@Ignore("Manual run only")
 class SendIntegrationTest {
     private val sS58Encoder = SS58Encoder()
     private val signer = Signer()
