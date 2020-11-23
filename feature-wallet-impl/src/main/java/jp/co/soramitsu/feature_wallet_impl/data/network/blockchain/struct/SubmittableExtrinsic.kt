@@ -29,8 +29,7 @@ object SignedExtrinsic : Schema<SignedExtrinsic>() {
 
     val accountId by sizedByteArray(32)
 
-    val signatureVersion by uint8()
-    val signature by sizedByteArray(64)
+    val signature by custom(SignatureType)
 
     val era by custom(EraType, default = Era.Immortal)
 
