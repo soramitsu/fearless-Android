@@ -30,6 +30,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.args
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.callIndex
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ExtrinsicPayloadValue
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Signature
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.signedExtrinsic
@@ -48,9 +49,9 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import java.math.BigDecimal
 
-private const val PUBLIC_KEY = "fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168"
-private const val PRIVATE_KEY = "f3923eea431177cd21906d4308aea61c037055fb00575cae687217c6d8b2397f"
-private const val TO_ADDRESS = "5CDayXd3cDCWpBkSXVsVfhE5bWKyTZdD3D1XUinR1ezS1sGn"
+private const val PUBLIC_KEY = "f65a7d560102f2019da9b9d8993f53f51cc38d50cdff3d0b8e71997d7f911ff1"
+private const val PRIVATE_KEY = "ae4093af3c40f2ecc32c14d4dada9628a4a42b28ca1a5b200b89321cbc883182"
+private const val TO_ADDRESS = "5DEwU2U97RnBHCpfwHMDfJC7pqAdfWaPFib9wiZcr2ephSfT"
 
 private const val URL = "wss://westend-rpc.polkadot.io"
 
@@ -95,8 +96,8 @@ class SendIntegrationTest {
 
     @Test
     fun `should calculate fee`() {
-        val seed = ByteArray(32)
-        val keyPair = KeypairFactory().generate(EncryptionType.ED25519, seed, "")
+        val seed = ByteArray(32) { 1 }
+        val keyPair = KeypairFactory().generate(EncryptionType.ECDSA, seed, "")
 
         val submittableExtrinsic = generateExtrinsic(keyPair)
 
@@ -113,7 +114,7 @@ class SendIntegrationTest {
         val genesis = Node.NetworkType.WESTEND.runtimeConfiguration.genesisHash
         val genesisBytes = Hex.decode(genesis)
 
-        val transferAmount = BigDecimal("1.01").scaleByPowerOfTen(Asset.Token.WND.mantissa)
+        val transferAmount = BigDecimal("0.001").scaleByPowerOfTen(Asset.Token.WND.mantissa)
 
         val runtimeInfo = rxWebSocket
             .executeRequest(RuntimeVersionRequest(), pojo<RuntimeVersion>().nonNull())
@@ -156,15 +157,14 @@ class SendIntegrationTest {
             payload[ExtrinsicPayloadValue.blockHash] = genesisBytes
         }
 
-        val signature = signer.signExtrinsic(payload, keypair, EncryptionType.ED25519)
-
-        assert(signer.verifyEd25519(ExtrinsicPayloadValue.toByteArray(payload), signature, keypair.publicKey))
+        val signature = Signature(
+            encryptionType = EncryptionType.ECDSA,
+            value =  signer.signExtrinsic(payload, keypair, EncryptionType.ECDSA)
+        )
 
         val extrinsic = SignedExtrinsic { extrinsic ->
             extrinsic[SignedExtrinsic.accountId] = accountId
-
             extrinsic[SignedExtrinsic.signature] = signature
-            extrinsic[SignedExtrinsic.signatureVersion] = 0.toUByte()
             extrinsic[SignedExtrinsic.nonce] = nonceBigInt
             extrinsic[SignedExtrinsic.call] = callStruct
         }

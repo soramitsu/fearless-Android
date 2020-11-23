@@ -67,7 +67,7 @@ class ChooseRecipientViewModel(
 
     private fun determineState(queryEmpty: Boolean, searchResult: List<Any>): State {
         return when {
-            queryEmpty -> State.WELCOME
+            queryEmpty && searchResult.isEmpty() -> State.WELCOME
             searchResult.isEmpty() -> State.EMPTY
             else -> State.CONTENT
         }
@@ -125,8 +125,8 @@ class ChooseRecipientViewModel(
         return searchEventSubject
             .observeOn(Schedulers.io())
             .throttleLatest(300, TimeUnit.MILLISECONDS)
-            .flatMapSingle(this::formSearchResults)
             .doOnNext { isQueryEmptyLiveData.postValue(it.isEmpty()) }
+            .flatMapSingle(this::formSearchResults)
             .observeOn(AndroidSchedulers.mainThread())
     }
 
@@ -134,9 +134,11 @@ class ChooseRecipientViewModel(
         return interactor.validateSendAddress(address).flatMap { isValidAddress ->
             interactor.getContacts(address).flatMap { contacts ->
                 interactor.getMyAddresses(address).flatMap { myAccounts ->
+                    val contactsWithoutMyAccounts = contacts.toSet() - myAccounts.toSet()
+
                     val resultWithHeader = maybeAppendResultHeader(isValidAddress, address)
                     val myAccountsWithHeader = generateModelsWithHeader(R.string.search_header_my_accounts, myAccounts)
-                    val contactsWithHeader = generateModelsWithHeader(R.string.search_contacts, contacts)
+                    val contactsWithHeader = generateModelsWithHeader(R.string.search_contacts, contactsWithoutMyAccounts.toList())
 
                     val result = resultWithHeader + myAccountsWithHeader + contactsWithHeader
 
