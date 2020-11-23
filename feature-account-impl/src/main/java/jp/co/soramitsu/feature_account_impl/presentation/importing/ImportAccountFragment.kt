@@ -59,7 +59,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     override fun initViews() {
         toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
 
-        sourceTypeInput.setOnClickListener { viewModel.openSourceChooserClicked() }
+        sourceTypeInput.setWholeClickListener { viewModel.openSourceChooserClicked() }
 
         advancedBlockView.setOnEncryptionTypeClickListener {
             viewModel.chooseEncryptionClicked()
