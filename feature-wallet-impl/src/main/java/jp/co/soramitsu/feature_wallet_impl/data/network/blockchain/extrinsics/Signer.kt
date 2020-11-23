@@ -13,5 +13,5 @@ fun Signer.signExtrinsic(
 ): ByteArray {
     val message = ExtrinsicPayloadValue.toByteArray(payload)
 
-    return sign(encryptionType, message, keyPair).signature!!
+    return sign(encryptionType, message, keyPair).signature
 }

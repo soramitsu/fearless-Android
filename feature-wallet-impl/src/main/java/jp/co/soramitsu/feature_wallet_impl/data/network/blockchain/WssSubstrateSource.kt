@@ -55,11 +55,11 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.args
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call.callIndex
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ExtrinsicPayloadValue
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Signature
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.accountId
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.call
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.signature
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic.signatureVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.StakingLedger
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.byteLength
@@ -202,7 +202,7 @@ class WssSubstrateSource(
     ): Single<Pair<EncodableStruct<SubmittableExtrinsic>, EncodableStruct<AccountInfo>>> {
         return getRuntimeVersion().flatMap { runtimeInfo ->
             val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-            val accountIdValue = Hex.decode(account.publicKey)
+            val accountIdValue = getAccountId(account)
 
             getNonce(account).map { (currentNonce, newAccountInfo) ->
                 val genesis = account.network.type.runtimeConfiguration.genesisHash
@@ -220,12 +220,14 @@ class WssSubstrateSource(
                     payload[ExtrinsicPayloadValue.blockHash] = genesisBytes
                 }
 
-                val signatureValue = signer.signExtrinsic(payload, keypair, cryptoType)
+                val signatureValue = Signature(
+                    encryptionType = cryptoType,
+                    value = signer.signExtrinsic(payload, keypair, cryptoType)
+                )
 
                 val extrinsic = SignedExtrinsic { extrinsic ->
                     extrinsic[accountId] = accountIdValue
                     extrinsic[signature] = signatureValue
-                    extrinsic[signatureVersion] = cryptoType.signatureVersion.toUByte()
                     extrinsic[SignedExtrinsic.nonce] = currentNonce
                     extrinsic[call] = callStruct
                 }
