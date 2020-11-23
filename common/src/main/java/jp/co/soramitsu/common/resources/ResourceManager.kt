@@ -2,7 +2,7 @@ package jp.co.soramitsu.common.resources
 
 interface ResourceManager {
 
-    fun getString(res: Int): String
+    fun getString(res: Int, vararg arguments: Any): String
 
     fun getColor(res: Int): Int
 

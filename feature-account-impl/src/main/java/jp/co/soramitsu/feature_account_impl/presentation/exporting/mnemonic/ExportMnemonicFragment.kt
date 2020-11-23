@@ -69,7 +69,7 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
             exportMnemonicViewer.submitList(it)
         }
 
-        viewModel.derivationPath.observe {
+        viewModel.derivationPathLiveData.observe {
             val state = if (it.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
             with(exportMnemonicAdvanced) {

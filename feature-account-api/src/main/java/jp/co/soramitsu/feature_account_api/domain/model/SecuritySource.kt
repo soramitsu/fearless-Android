@@ -1,36 +1,45 @@
 package jp.co.soramitsu.feature_account_api.domain.model
 
 sealed class SecuritySource(
-    final override val seed: ByteArray?,
     val signingData: SigningData
-) : WithJson, WithSeed {
+) {
 
-    override fun jsonFormer() = jsonFormer(seed, signingData)
-
-    class Create(
-        seed: ByteArray?,
-        signingData: SigningData,
-        override val mnemonic: String,
-        override val derivationPath: String?
-    ) : SecuritySource(seed, signingData), WithMnemonic, WithDerivationPath
-
-    class Seed(
-        seed: ByteArray?,
-        signingData: SigningData,
-        override val derivationPath: String?
-    ) : SecuritySource(seed, signingData), WithDerivationPath
-
-    class Mnemonic(
-        seed: ByteArray?,
-        signingData: SigningData,
-        override val mnemonic: String,
-        override val derivationPath: String?
-    ) : SecuritySource(seed, signingData), WithMnemonic, WithDerivationPath
-
-    class Json(
-        seed: ByteArray?,
+    open class Specified(
+        final override val seed: ByteArray?,
         signingData: SigningData
-    ) : SecuritySource(seed, signingData)
+    ) : SecuritySource(signingData), WithJson, WithSeed {
+
+        override fun jsonFormer() = jsonFormer(seed)
+
+        class Create(
+            seed: ByteArray?,
+            signingData: SigningData,
+            override val mnemonic: String,
+            override val derivationPath: String?
+        ) : Specified(seed, signingData), WithMnemonic, WithDerivationPath
+
+        class Seed(
+            seed: ByteArray?,
+            signingData: SigningData,
+            override val derivationPath: String?
+        ) : Specified(seed, signingData), WithDerivationPath
+
+        class Mnemonic(
+            seed: ByteArray?,
+            signingData: SigningData,
+            override val mnemonic: String,
+            override val derivationPath: String?
+        ) : Specified(seed, signingData), WithMnemonic, WithDerivationPath
+
+        class Json(
+            seed: ByteArray?,
+            signingData: SigningData
+        ) : Specified(seed, signingData)
+    }
+
+    open class Unspecified(
+        signingData: SigningData
+    ) : SecuritySource(signingData)
 }
 
 interface WithMnemonic {
@@ -52,15 +61,15 @@ interface WithDerivationPath {
 }
 
 sealed class JsonFormer {
-    class KeyPair(val signingData: SigningData) : JsonFormer()
+    object KeyPair : JsonFormer()
 
     class Seed(val seed: ByteArray) : JsonFormer()
 }
 
-fun jsonFormer(seed: ByteArray?, signingData: SigningData): JsonFormer {
+fun jsonFormer(seed: ByteArray?): JsonFormer {
     return if (seed != null) {
         JsonFormer.Seed(seed)
     } else {
-        JsonFormer.KeyPair(signingData)
+        JsonFormer.KeyPair
     }
 }

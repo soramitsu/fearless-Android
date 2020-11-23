@@ -15,6 +15,7 @@ import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
@@ -25,11 +26,13 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.JsonFormer
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
+import jp.co.soramitsu.feature_account_api.domain.model.WithJson
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import org.bouncycastle.util.encoders.Hex
@@ -44,6 +47,7 @@ class AccountRepositoryImpl(
     private val keypairFactory: KeypairFactory,
     private val appLinksProvider: AppLinksProvider,
     private val jsonSeedDecoder: JsonSeedDecoder,
+    private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
     private val accountSubstrateSource: AccountSubstrateSource
 ) : AccountRepository {
@@ -205,7 +209,7 @@ class AccountRepositoryImpl(
             val addressType = mapNetworkTypeToAddressType(networkType)
             val address = sS58Encoder.encode(keys.publicKey, addressType)
 
-            val securitySource = SecuritySource.Seed(seedBytes, signingData, derivationPath)
+            val securitySource = SecuritySource.Specified.Seed(seedBytes, signingData, derivationPath)
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
@@ -233,7 +237,7 @@ class AccountRepositoryImpl(
 
                 val signingData = mapKeyPairToSigningData(keypair)
 
-                val securitySource = SecuritySource.Json(seed, signingData)
+                val securitySource = SecuritySource.Specified.Json(seed, signingData)
 
                 val actualAddress = sS58Encoder.encode(keypair.publicKey, mapNetworkTypeToAddressType(networkType))
 
@@ -344,6 +348,19 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun generateRestoreJson(account: Account, password: String): Single<String> {
+        return getSecuritySource(account.address).map {
+            it as WithJson
+            val seed = (it.jsonFormer() as? JsonFormer.Seed)?.seed
+            val keypair = mapSigningDataToKeypair(it.signingData)
+
+            val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
+            val addressType = mapNetworkTypeToAddressType(account.network.type)
+
+            jsonSeedEncoder.generate(keypair, seed, password, account.name.orEmpty(), cryptoType, addressType)
+        }
+    }
+
     private fun saveFromMnemonic(
         accountName: String,
         mnemonic: String,
@@ -361,10 +378,10 @@ class AccountRepositoryImpl(
             val address = sS58Encoder.encode(keys.publicKey, addressType)
             val signingData = mapKeyPairToSigningData(keys)
 
-            val securitySource: SecuritySource = if (isImport) {
-                SecuritySource.Mnemonic(seed, signingData, mnemonic, derivationPath)
+            val securitySource: SecuritySource.Specified = if (isImport) {
+                SecuritySource.Specified.Mnemonic(seed, signingData, mnemonic, derivationPath)
             } else {
-                SecuritySource.Create(seed, signingData, mnemonic, derivationPath)
+                SecuritySource.Specified.Create(seed, signingData, mnemonic, derivationPath)
             }
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
@@ -411,6 +428,16 @@ class AccountRepositoryImpl(
     private fun mapKeyPairToSigningData(keyPair: Keypair): SigningData {
         return with(keyPair) {
             SigningData(
+                publicKey = publicKey,
+                privateKey = privateKey,
+                nonce = nonce
+            )
+        }
+    }
+
+    private fun mapSigningDataToKeypair(singingData: SigningData): Keypair {
+        return with(singingData) {
+            Keypair(
                 publicKey = publicKey,
                 privateKey = privateKey,
                 nonce = nonce
@@ -524,6 +551,10 @@ class AccountRepositoryImpl(
             val nodeLocal = NodeLocal(nodeName, nodeHost, networkType.ordinal, false)
             nodeDao.insert(nodeLocal)
         }
+    }
+
+    override fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType): Completable {
+        return nodeDao.updateNode(nodeId, newName, newHost, networkType.ordinal)
     }
 
     override fun checkNodeExists(nodeHost: String): Single<Boolean> {

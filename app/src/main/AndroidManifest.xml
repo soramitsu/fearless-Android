@@ -51,6 +51,11 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
+        <receiver
+            android:name="jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ShareCompletedReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
     </application>
 
 </manifest>

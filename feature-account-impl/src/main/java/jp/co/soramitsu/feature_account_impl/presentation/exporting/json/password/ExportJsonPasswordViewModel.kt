@@ -1,16 +1,18 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password
 
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 
 class ExportJsonPasswordViewModel(
     private val router: AccountRouter,
-    resourceManager: ResourceManager,
-    accountInteractor: AccountInteractor,
+    private val interactor: AccountInteractor,
     private val accountAddress: String
 ) : BaseViewModel() {
     val passwordLiveData = MutableLiveData<String>()
@@ -29,6 +31,15 @@ class ExportJsonPasswordViewModel(
     }
 
     fun nextClicked() {
-        // TODO
+        val password = passwordLiveData.value!!
+
+        disposables += interactor.generateRestoreJson(accountAddress, password)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { json ->
+                val payload = ExportJsonConfirmPayload(accountAddress, json)
+
+                router.openExportJsonConfirm(payload)
+            }
     }
 }

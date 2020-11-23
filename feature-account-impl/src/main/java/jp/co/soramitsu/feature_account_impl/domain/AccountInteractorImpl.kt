@@ -238,14 +238,19 @@ class AccountInteractorImpl(
 
     override fun addNode(nodeName: String, nodeHost: String): Completable {
         return accountRepository.checkNodeExists(nodeHost)
-            .flatMapCompletable {
-                if (it) {
+            .flatMap { nodeExists ->
+                if (nodeExists) {
                     throw NodeAlreadyExistsException()
                 } else {
                     getNetworkTypeByNodeHost(nodeHost)
-                        .flatMapCompletable { networkType -> accountRepository.addNode(nodeName, nodeHost, networkType) }
                 }
             }
+            .flatMapCompletable { networkType -> accountRepository.addNode(nodeName, nodeHost, networkType) }
+    }
+
+    override fun updateNode(nodeId: Int, newName: String, newHost: String): Completable {
+        return getNetworkTypeByNodeHost(newHost)
+            .flatMapCompletable { networkType -> accountRepository.updateNode(nodeId, newName, newHost, networkType) }
     }
 
     private fun getNetworkTypeByNodeHost(nodeHost: String): Single<Node.NetworkType> {
@@ -284,5 +289,10 @@ class AccountInteractorImpl(
 
     override fun deleteNode(nodeId: Int): Completable {
         return accountRepository.deleteNode(nodeId)
+    }
+
+    override fun generateRestoreJson(accountAddress: String, password: String): Single<String> {
+        return accountRepository.getAccount(accountAddress)
+            .flatMap { accountRepository.generateRestoreJson(it, password) }
     }
 }

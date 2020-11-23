@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
+import java.util.Random
 
 interface AccountFeatureDependencies {
 
@@ -47,4 +48,6 @@ interface AccountFeatureDependencies {
     fun addressIconGenerator(): AddressIconGenerator
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
+
+    fun random(): Random
 }

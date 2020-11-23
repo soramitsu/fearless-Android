@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation
 
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 
 interface AccountRouter {
@@ -43,7 +44,7 @@ interface AccountRouter {
 
     fun backToMainScreen()
 
-    fun openNodeDetails(nodeId: Int)
+    fun openNodeDetails(nodeId: Int, isSelected: Boolean)
 
     fun openAddNode()
 
@@ -58,6 +59,10 @@ interface AccountRouter {
     fun openExportJsonPassword(accountAddress: String)
 
     fun returnToMain()
+
+    fun openExportJsonConfirm(payload: ExportJsonConfirmPayload)
+
+    fun finishExportFlow()
 
     fun openChangePinCode()
 }

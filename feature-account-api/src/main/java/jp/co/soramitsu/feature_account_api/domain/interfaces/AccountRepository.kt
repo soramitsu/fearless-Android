@@ -130,6 +130,8 @@ interface AccountRepository {
 
     fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable
 
+    fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType): Completable
+
     fun checkNodeExists(nodeHost: String): Single<Boolean>
 
     fun getNetworkName(nodeHost: String): Single<String>
@@ -137,4 +139,6 @@ interface AccountRepository {
     fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
 
     fun deleteNode(nodeId: Int): Completable
+
+    fun generateRestoreJson(account: Account, password: String): Single<String>
 }

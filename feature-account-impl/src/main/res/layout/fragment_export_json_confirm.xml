@@ -4,12 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:fitsSystemWindows="true"
+    android:orientation="vertical"
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.Toolbar
-        android:id="@+id/exportMnemonicToolbar"
+        android:id="@+id/exportJsonConfirmToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:titleText="Export account" />
@@ -26,48 +26,50 @@
             android:orientation="vertical">
 
             <jp.co.soramitsu.common.view.LabeledTextView
-                android:id="@+id/exportMnemonicType"
+                android:id="@+id/exportJsonConfirmType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                app:enabled="false"
                 android:layout_marginEnd="16dp"
+                app:enabled="false"
                 app:label="@string/recovery_source_type"
-                app:message="@string/recovery_passphrase" />
+                app:message="@string/recovery_json" />
 
-            <jp.co.soramitsu.common.account.mnemonicViewer.MnemonicViewer
-                android:id="@+id/exportMnemonicViewer"
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/exportJsonConfirmValue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="18dp"
-                android:layout_marginEnd="16dp" />
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:enabled="false"
+                app:label="@string/recovery_json"
+                tools:message="{“address”:”Gerfdad...DJWIdjawIdjWd”}" />
 
             <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
-                android:id="@+id/exportMnemonicAdvanced"
+                android:id="@+id/exportJsonConfirmAdvanced"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
     </ScrollView>
 
     <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/exportMnemonicConfirm"
+        android:id="@+id/exportJsonConfirmChangePassword"
         style="@style/Widget.Fearless.Button.Outline"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:text="@string/account_confirmation_title" />
+        android:text="@string/account_export_password_change" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/exportMnemonicExport"
+        android:id="@+id/exportJsonConfirmExport"
         style="@style/Widget.Fearless.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:visibility="gone"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
         android:text="@string/account_export_action" />

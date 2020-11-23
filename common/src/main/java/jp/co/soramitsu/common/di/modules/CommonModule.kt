@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.di.modules
 
+import android.content.ContentResolver
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
@@ -31,6 +32,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import java.security.SecureRandom
+import java.util.Random
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
@@ -146,11 +149,23 @@ class CommonModule {
 
     @Provides
     @ApplicationScope
+    fun provideRandom(): Random = SecureRandom()
+
+    @Provides
+    @ApplicationScope
     fun provideExternalAccountActions(
         clipboardManager: ClipboardManager,
         appLinksProvider: AppLinksProvider,
         resourceManager: ResourceManager
     ): ExternalAccountActions.Presentation {
         return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager)
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideContentResolver(
+        context: Context
+    ): ContentResolver {
+        return context.contentResolver
     }
 }
