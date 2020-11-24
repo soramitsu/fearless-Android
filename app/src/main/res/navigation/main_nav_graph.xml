@@ -41,18 +41,31 @@
         android:id="@+id/action_return_to_wallet"
         app:destination="@id/mainFragment"
         app:enterAnim="@anim/fragment_close_enter"
-        app:popUpTo="@id/main_nav_graph"
-        app:launchSingleTop="true"
         app:exitAnim="@anim/fragment_close_exit"
+        app:launchSingleTop="true"
         app:popEnterAnim="@anim/fragment_open_enter"
-        app:popExitAnim="@anim/fragment_open_exit" />
+        app:popExitAnim="@anim/fragment_open_exit"
+        app:popUpTo="@id/main_nav_graph" />
 
-    <action android:id="@+id/finish_export_flow"
-        app:popUpTo="@+id/accountDetailsFragment"
+    <action
+        android:id="@+id/finish_export_flow"
         app:enterAnim="@anim/fragment_close_enter"
         app:exitAnim="@anim/fragment_close_exit"
         app:popEnterAnim="@anim/fragment_open_enter"
-        app:popExitAnim="@anim/fragment_open_exit" />
+        app:popExitAnim="@anim/fragment_open_exit"
+        app:popUpTo="@+id/accountDetailsFragment" />
+
+    <action
+        android:id="@+id/action_export_mnemonic"
+        app:destination="@id/exportMnemonicFragment" />
+
+    <action
+        android:id="@+id/action_export_seed"
+        app:destination="@id/exportSeedFragment" />
+
+    <action
+        android:id="@+id/action_export_json"
+        app:destination="@id/exportJsonPasswordFragment" />
 
     <fragment
         android:id="@+id/mainFragment"
@@ -190,32 +203,7 @@
         android:id="@+id/accountDetailsFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment"
         android:label="AccountDetailsFragment"
-        tools:layout="@layout/fragment_account_details">
-
-        <action
-            android:id="@+id/action_accountDetailsFragment_to_exportMnemonicFragment"
-            app:destination="@id/exportMnemonicFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
-
-        <action
-            android:id="@+id/action_accountDetailsFragment_to_exportSeedFragment"
-            app:destination="@id/exportSeedFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
-
-        <action
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_accountDetailsFragment_to_exportJsonPasswordFragment"
-            app:destination="@id/exportJsonPasswordFragment" />
-    </fragment>
+        tools:layout="@layout/fragment_account_details" />
 
     <fragment
         android:id="@+id/editAccountsFragment"
@@ -333,26 +321,26 @@
         tools:layout="@layout/fragment_export_seed" />
 
     <fragment
-        tools:layout="@layout/fragment_export_json_password"
         android:id="@+id/exportJsonPasswordFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment"
-        android:label="ExportJsonPasswordFragment" >
+        android:label="ExportJsonPasswordFragment"
+        tools:layout="@layout/fragment_export_json_password">
 
         <action
+            android:id="@+id/action_exportJsonPasswordFragment_to_exportJsonConfirmFragment"
+            app:destination="@id/exportJsonConfirmFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_exportJsonPasswordFragment_to_exportJsonConfirmFragment"
-            app:destination="@id/exportJsonConfirmFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
 
     </fragment>
 
     <fragment
-        tools:layout="@layout/fragment_export_json_confirm"
         android:id="@+id/exportJsonConfirmFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment"
-        android:label="ExportJsonConfirmFragment" />
+        android:label="ExportJsonConfirmFragment"
+        tools:layout="@layout/fragment_export_json_confirm" />
 
     <fragment
         android:id="@+id/pincodeFragment"

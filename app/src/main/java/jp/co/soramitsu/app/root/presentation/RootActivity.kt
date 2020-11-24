@@ -42,7 +42,7 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
         super.onCreate(savedInstanceState)
 
         navController.setGraph(R.navigation.root_nav_graph)
-        navigator.attachNavController(navController)
+        navigator.attach(navController, this)
 
         rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
             view.updatePadding(top = insets.systemWindowInsetTop)
@@ -51,6 +51,12 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
         }
 
 //        processJsonOpenIntent()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        navigator.detach()
     }
 
     override fun layoutResource(): Int {
