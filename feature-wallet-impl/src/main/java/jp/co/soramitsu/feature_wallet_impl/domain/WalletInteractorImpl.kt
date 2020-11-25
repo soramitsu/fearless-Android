@@ -4,8 +4,10 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotEnoughFundsException
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -30,16 +32,16 @@ class WalletInteractorImpl(
         return walletRepository.observeAssets()
     }
 
-    override fun syncAssets(withoutRates: Boolean): Completable {
-        return walletRepository.syncAssets(withoutRates)
+    override fun syncAssetsRates(): Completable {
+        return walletRepository.syncAssetsRates()
     }
 
     override fun observeAsset(token: Asset.Token): Observable<Asset> {
         return walletRepository.observeAsset(token)
     }
 
-    override fun syncAsset(token: Asset.Token, withoutRates: Boolean): Completable {
-        return walletRepository.syncAsset(token, withoutRates)
+    override fun syncAssetRates(token: Asset.Token): Completable {
+        return walletRepository.syncAsset(token)
     }
 
     override fun observeCurrentAsset(): Observable<Asset> {
@@ -76,8 +78,8 @@ class WalletInteractorImpl(
     }
 
     override fun getContacts(query: String): Single<List<String>> {
-        return accountRepository.observeSelectedAccount().firstOrError()
-            .flatMap { walletRepository.getContacts(query, it.network.type) }
+        return accountRepository.getSelectedAccount()
+            .flatMap { walletRepository.getContacts(query) }
     }
 
     override fun getMyAddresses(query: String): Single<List<String>> {
@@ -96,7 +98,14 @@ class WalletInteractorImpl(
     }
 
     override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
-        return walletRepository.performTransfer(transfer, fee)
+        return walletRepository.checkEnoughAmountForTransfer(transfer)
+            .flatMapCompletable {
+                if (it == CheckFundsStatus.NOT_ENOUGH_FUNDS) {
+                    throw NotEnoughFundsException()
+                } else {
+                    walletRepository.performTransfer(transfer, fee)
+                }
+            }
     }
 
     override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<CheckFundsStatus> {
@@ -138,5 +147,10 @@ class WalletInteractorImpl(
                     .firstOrError()
                     .map { Pair(file, it) }
             }
+    }
+
+    override fun getRecipientFromQrCodeContent(content: String): Single<String> {
+        return Single.fromCallable { QrSharing.decode(content) }
+            .map { it.address }
     }
 }

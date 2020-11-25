@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/exportMnemonicToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:titleText="Export account" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="24dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/exportMnemonicType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                app:enabled="false"
+                android:layout_marginEnd="16dp"
+                app:label="@string/recovery_source_type"
+                app:message="@string/recovery_passphrase" />
+
+            <jp.co.soramitsu.common.account.mnemonicViewer.MnemonicViewer
+                android:id="@+id/exportMnemonicViewer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="18dp"
+                android:layout_marginEnd="16dp" />
+
+            <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
+                android:id="@+id/exportMnemonicAdvanced"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </ScrollView>
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/exportMnemonicConfirm"
+        style="@style/Widget.Fearless.Button.Outline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/account_confirmation_title" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/exportMnemonicExport"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:visibility="gone"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        android:text="@string/account_export_action" />
+</LinearLayout>

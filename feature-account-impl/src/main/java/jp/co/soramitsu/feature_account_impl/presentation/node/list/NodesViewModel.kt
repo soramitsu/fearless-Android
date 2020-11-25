@@ -63,16 +63,16 @@ class NodesViewModel(
         router.back()
     }
 
-    fun infoClicked(nodeModel: NodeModel) {
-        router.openNodeDetails(nodeModel.id)
+    fun infoClicked(nodeModel: NodeModel, isChecked: Boolean) {
+        router.openNodeDetails(nodeModel.id, isChecked)
     }
 
     fun selectNodeClicked(nodeModel: NodeModel) {
-        disposables += interactor.getAccountsByNetworkType(nodeModel.networkModelType.networkType)
+        disposables += interactor.getAccountsByNetworkTypeWithSelectedNode(nodeModel.networkModelType.networkType)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ accounts ->
-                handleAccountsForNetwork(nodeModel, accounts)
+            .subscribe({ (accounts, selectedNode) ->
+                handleAccountsForNetwork(nodeModel, selectedNode, accounts)
             }, {
                 it.message?.let(this::showError)
             })
@@ -90,14 +90,18 @@ class NodesViewModel(
         router.createAccountForNetworkType(networkType)
     }
 
-    private fun handleAccountsForNetwork(nodeModel: NodeModel, accounts: List<Account>) {
+    private fun handleAccountsForNetwork(nodeModel: NodeModel, selectedNode: Node, accounts: List<Account>) {
         if (accounts.isEmpty()) {
             _noAccountsEvent.value = Event(nodeModel.networkModelType.networkType)
         } else {
             if (accounts.size == 1) {
                 selectAccountForNode(nodeModel.id, accounts.first().address)
             } else {
-                showAccountChooser(nodeModel, accounts)
+                if (selectedNode.networkType == nodeModel.networkModelType.networkType) {
+                    selectNodeWithCurrentAccount(nodeModel.id)
+                } else {
+                    showAccountChooser(nodeModel, accounts)
+                }
             }
         }
     }
@@ -130,9 +134,22 @@ class NodesViewModel(
         disposables += interactor.selectNodeAndAccount(nodeId, accountAddress)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribeToError {
-                it.message?.let { showError(it) }
-            }
+            .subscribe({
+                router.returnToMain()
+            }, {
+                it.message?.let(this::showError)
+            })
+    }
+
+    private fun selectNodeWithCurrentAccount(nodeId: Int) {
+        disposables += interactor.selectNode(nodeId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                router.returnToMain()
+            }, {
+                it.message?.let(this::showError)
+            })
     }
 
     private fun generateIconForAddress(account: Account): Single<AddressModel> {

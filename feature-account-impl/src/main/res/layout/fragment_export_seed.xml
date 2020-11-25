@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/exportSeedToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:titleText="Export account" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="24dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/exportSeedType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                app:enabled="false"
+                app:label="@string/recovery_source_type"
+                app:message="@string/recovery_raw_seed" />
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/exportSeedValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:minHeight="156dp"
+                android:singleLine="false"
+                app:enabled="false"
+                app:label="@string/recovery_raw_seed"
+                tools:message="0x1aa03512d3bba4997b499521504d36b81dfa28628a3a0bc10a13f2eb0b3e910b" />
+
+            <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
+                android:id="@+id/exportSeedAdvanced"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </ScrollView>
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/exportSeedExport"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        android:visibility="gone"
+        android:text="@string/account_export_action" />
+</LinearLayout>

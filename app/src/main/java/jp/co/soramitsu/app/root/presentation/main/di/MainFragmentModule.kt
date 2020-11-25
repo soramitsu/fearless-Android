@@ -1,6 +1,6 @@
 package jp.co.soramitsu.app.root.presentation.main.di
 
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import dagger.Module
@@ -27,9 +27,9 @@ class MainFragmentModule {
 
     @Provides
     fun provideViewModelCreator(
-        fragment: Fragment,
+        activity: FragmentActivity,
         viewModelFactory: ViewModelProvider.Factory
     ): MainViewModel {
-        return ViewModelProvider(fragment, viewModelFactory).get(MainViewModel::class.java)
+        return ViewModelProvider(activity, viewModelFactory).get(MainViewModel::class.java)
     }
 }

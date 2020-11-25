@@ -9,7 +9,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.SigningData
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 
 class AccountAlreadyExistsException : Exception()
 
@@ -41,6 +41,8 @@ interface AccountRepository {
 
     fun observeSelectedAccount(): Observable<Account>
 
+    fun getSelectedAccount(): Single<Account>
+
     fun getPreferredCryptoType(): Single<CryptoType>
 
     fun isAccountSelected(): Single<Boolean>
@@ -52,7 +54,7 @@ interface AccountRepository {
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
     fun observeAccounts(): Observable<List<Account>>
@@ -66,20 +68,25 @@ interface AccountRepository {
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
     fun importFromSeed(
-        keyString: String,
+        seed: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
-    fun importFromJson(json: String, password: String, name: String): Completable
+    fun importFromJson(
+        json: String,
+        password: String,
+        networkType: Node.NetworkType,
+        name: String
+    ): Completable
 
-    fun isCodeSet(): Single<Boolean>
+    fun isCodeSet(): Boolean
 
     fun savePinCode(code: String): Completable
 
@@ -93,7 +100,7 @@ interface AccountRepository {
 
     fun getAddressId(address: String): Single<ByteArray>
 
-    fun isBiometricEnabled(): Single<Boolean>
+    fun isBiometricEnabled(): Boolean
 
     fun setBiometricOn(): Completable
 
@@ -117,9 +124,13 @@ interface AccountRepository {
 
     fun changeLanguage(language: Language): Completable
 
-    fun getSigningData(): Single<SigningData>
+    fun getCurrentSecuritySource(): Single<SecuritySource>
+
+    fun getSecuritySource(accountAddress: String): Single<SecuritySource>
 
     fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable
+
+    fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType): Completable
 
     fun checkNodeExists(nodeHost: String): Single<Boolean>
 
@@ -127,7 +138,7 @@ interface AccountRepository {
 
     fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
 
-    fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
-
     fun deleteNode(nodeId: Int): Completable
+
+    fun generateRestoreJson(account: Account, password: String): Single<String>
 }

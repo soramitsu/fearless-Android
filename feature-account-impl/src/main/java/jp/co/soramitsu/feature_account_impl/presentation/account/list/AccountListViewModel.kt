@@ -22,7 +22,9 @@ class AccountListViewModel(
 
     fun selectAccountClicked(accountModel: AccountModel) {
         disposables += accountInteractor.selectAccount(accountModel.address)
-            .subscribe()
+            .subscribe {
+                accountRouter.returnToMain()
+            }
     }
 
     fun backClicked() {

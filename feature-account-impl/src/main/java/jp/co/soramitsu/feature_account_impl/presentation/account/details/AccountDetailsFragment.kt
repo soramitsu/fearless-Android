@@ -3,14 +3,20 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.details
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsAddressView
-import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsName
+import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsExport
+import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNode
 import kotlinx.android.synthetic.main.fragment_account_details.fearlessToolbar
 
@@ -33,17 +39,19 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_account_details, container, false)
 
     override fun initViews() {
-        fearlessToolbar.setRightActionClickListener {
-            viewModel.backClicked()
-        }
-
         fearlessToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
 
-        accountDetailsAddressView.setOnCopyClickListener {
-            viewModel.copyAddressClicked()
+        accountDetailsAddressView.setWholeClickListener {
+            viewModel.addressClicked()
         }
+
+        accountDetailsExport.setOnClickListener {
+            viewModel.exportClicked()
+        }
+
+        accountDetailsNameField.content.filters = nameInputFilters()
     }
 
     override fun inject() {
@@ -59,10 +67,12 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
     }
 
     override fun subscribe(viewModel: AccountDetailsViewModel) {
-        viewModel.accountLiveData.observe { account ->
-            accountDetailsAddressView.setAddress(account.address)
+        setupExternalActions(viewModel)
 
-            accountDetailsName.setText(account.name)
+        viewModel.accountLiveData.observe { account ->
+            accountDetailsAddressView.setMessage(account.address)
+
+            accountDetailsNameField.content.setText(account.name)
 
             accountDetailsNode.text = account.network.name
         }
@@ -71,6 +81,16 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
             accountDetailsNode.setCompoundDrawablesWithIntrinsicBounds(networkModel.networkTypeUI.icon, 0, 0, 0)
         }
 
-        accountDetailsName.onTextChanged(viewModel::nameChanged)
+        viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
+
+        accountDetailsNameField.content.onTextChanged(viewModel::nameChanged)
+    }
+
+    private fun showExportSourceChooser(sources: List<ExportSource>) {
+        val chooserPayload = SourceTypeChooserPayload(sources)
+
+        SourceTypeChooserBottomSheetDialog(requireActivity(), chooserPayload) { selected ->
+            viewModel.exportTypeSelected(selected)
+        }.show()
     }
 }

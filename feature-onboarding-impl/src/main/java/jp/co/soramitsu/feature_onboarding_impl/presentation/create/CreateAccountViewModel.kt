@@ -24,10 +24,8 @@ class CreateAccountViewModel(
         router.backToWelcomeScreen()
     }
 
-    fun accountNameChanged(accountName: CharSequence?) {
-        accountName?.let {
-            _nextButtonEnabledLiveData.value = it.isNotEmpty()
-        }
+    fun accountNameChanged(accountName: CharSequence) {
+        _nextButtonEnabledLiveData.value = accountName.isNotEmpty()
     }
 
     fun nextClicked() {

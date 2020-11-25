@@ -8,6 +8,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.Transformations
 
+fun MutableLiveData<Event<Unit>>.sendEvent() {
+    this.value = Event(Unit)
+}
+
 fun <FROM, TO> LiveData<FROM>.map(mapper: (FROM) -> TO): LiveData<TO> {
     return Transformations.map(this, mapper)
 }
@@ -45,6 +49,7 @@ fun <R> combine(
 
 fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(
     another: LiveData<SECOND>,
+    initial: RESULT? = null,
     zipper: (FIRST, SECOND) -> RESULT
 ): LiveData<RESULT> {
 
@@ -64,12 +69,18 @@ fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(
                 value = zipper.invoke(first, second)
             }
         }
+
+        initial?.let { value = it }
     }
 }
 
 fun <FROM, TO> LiveData<FROM>.switchMap(
+    mapper: (FROM) -> LiveData<TO>
+) = switchMap(mapper, true)
+
+fun <FROM, TO> LiveData<FROM>.switchMap(
     mapper: (FROM) -> LiveData<TO>,
-    triggerOnSwitch: Boolean = true
+    triggerOnSwitch: Boolean
 ): LiveData<TO> {
     val result: MediatorLiveData<TO> = MediatorLiveData()
 
@@ -91,7 +102,7 @@ fun <FROM, TO> LiveData<FROM>.switchMap(
             if (mSource != null) {
                 result.addSource(mSource!!) { y -> result.setValue(y) }
 
-                if (triggerOnSwitch) {
+                if (triggerOnSwitch && mSource!!.value != null) {
                     mSource!!.notifyObservers()
                 }
             }

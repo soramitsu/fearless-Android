@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">Réseau: %s\nGraine: %s\nChemin de dérivation: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Réseau: %s\nGraine: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Réseau: %s\nMnémonique: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Réseau: %s\nMnémonique: %s\nChemin de dérivation: %s</string>
+
+    <string name="export_json_password_match_error">Mot de passe incompatible</string>
+    <string name="export_json_password_confirm">Confirmez le mot de passe</string>
+    <string name="export_json_password_new">Définir le mot de passe</string>
+    <string name="export_json_password_explanation">Le mot de passe est requis pour crypter votre compte et le stocker en tant que Recovery JSON. Veuillez créer un mot de passe pour continuer l\'opération.</string>
+
+    <string name="account_export_warning_title">Faites attention</string>
+    <string name="account_export_warning_message">Partager ou copier votre secret est une opération à haut risque, ne l\'envoyez à personne. Souhaitez-vous poursuivre le processus de partage / copie?</string>
+    <string name="account_export_action">Exportation</string>
+
     <string name="import_account_exists_title">Le compte existe déjà</string>
     <string name="import_mnemonic_invalid_title">Mnemonic est invalide</string>
     <string name="error_try_another_one">Veuillez en essayer un autre.</string>
@@ -36,7 +50,7 @@
     <string name="onboarding_privacy_policy">Politique de confidentialité</string>
     <string name="pincode_enter_pin_code">Entrez le code PIN</string>
     <string name="pincode_confirm_your_pin_code">Confirmez votre code PIN</string>
-    <string name="recovery_passphrase">Mnémonique</string>
+    <string name="recovery_passphrase">Phrase secrète mnémotechnique</string>
     <string name="tabbar_wallet_title">Portefeuille</string>
     <string name="tabbar_staking_title">Staking</string>
     <string name="tabbar_governance_title">Gouvernance</string>
@@ -47,7 +61,7 @@
     <string name="about_privacy">Respect de la vie privée</string>
     <string name="about_terms">Termes et conditions</string>
     <string name="onboarding_create_account">Créer un compte</string>
-    <string name="username_setup_choose_title">Choisissez le nom</string>
+    <string name="username_setup_choose_title">Nom</string>
     <string name="username_setup_hint">Le nom de ce compte et comment il apparaîtra sous vos adresses. Avec une identité en chaîne, il peut être mis à la disposition des autres.</string>
     <string name="common_no_screenshot_title">Ne prenez pas de captures d\'écran</string>
     <string name="common_no_screenshot_message">Ne prenez pas de captures d\'écran, qui pourraient être collectées par des logiciels malveillants tiers</string>
@@ -175,4 +189,19 @@
     <string name="common_skip_process">Ignorer le processus</string>
     <string name="wallet_receive_description">Partagez ce QR avec l\'expéditeur</string>
     <string name="wallet_receive_share_message">Mon adresse %s pour recevoir %s:</string>
+    <string name="common_copy_address">Copier l\'adresse</string>
+    <string name="common_choose_file">Téléverser un fichier</string>
+    <string name="import_json_paste">Coller json</string>
+    <string name="account_export_password_change">Changer le mot de passe</string>
+    <string name="account_import_json_no_network">JSON ne contient aucune information sur le réseau. Veuillez le spécifier dans le bloc avancé.</string>
+    <string name="pincode_enter_new_pin_code">Entrez le nouveau code PIN</string>
+    <string name="pincode_changed_message">Le code PIN a été modifié avec succès</string>
+    <string name="common_share">Partager</string>
+    <string name="invoice_scan_upload">Télécharger depuis la galerie</string>
+    <string name="invoice_scan_camera">Caméra</string>
+    <string name="invoice_scan_gallery">Galerie</string>
+    <string name="invoice_scan_qr_code_title">QR code</string>
+    <string name="contacts_scan">Scanner le QR code</string>
+    <string name="invoice_scan_error_no_info">Le QR code ne peut pas être décodé</string>
+    <string name="common_options_title">Sélectionner une option</string>
 </resources>

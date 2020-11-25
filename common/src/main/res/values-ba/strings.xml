@@ -1,9 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">Сеть: %s\nСид: %s\nПуть деривации: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Сеть: %s\nСид: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Сеть: %s\nМнемоника: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Сеть: %s\nМнемоника: %s\nПуть деривации: %s</string>
+
+    <string name="export_json_password_match_error">Неверный пароль</string>
+    <string name="export_json_password_confirm">Подтверждение пароля</string>
+    <string name="export_json_password_new">Новый пароль</string>
+    <string name="export_json_password_explanation">Пароль необходим для шифрования вашей учетной записи и сохранения как Recovery JSON. Пожалуйста, придумайте пароль для продолжения работы.</string>
+
+    <string name="account_export_warning_title">Будьте осторожны</string>
+    <string name="account_export_warning_message">Передача или копирование вашего секрета - операция с высоким риском, не отправляйте ее никому. Хотите продолжить процесс обмена / копирования?</string>
+    <string name="account_export_action">Экспортировать</string>
+
     <string name="import_account_exists_title">Аккаунт уже существует</string>
     <string name="import_mnemonic_invalid_title">Мнемоника недействительна</string>
     <string name="error_try_another_one">Пожалуйста, попробуйте другой.</string>
-    <string name="import_seed_invalid_message"/>
+    <string name="import_seed_invalid_message">Пожалуйста, убедитесь, что ваш ввод содержит 64 шестнадцатеричных символа.</string>
     <string name="import_seed_invalid_title">Сид недействителен</string>
     <string name="import_json_invalid_password_title">Не удалось расшифровать хранилище ключей</string>
     <string name="import_json_invalid_format_message">Пожалуйста, убедитесь, что введённые данные содержат действительный json.</string>
@@ -36,7 +50,7 @@
     <string name="onboarding_privacy_policy">Хосусил сәйәсәтен</string>
     <string name="pincode_enter_pin_code">Пин кодты индерегеҙ</string>
     <string name="pincode_confirm_your_pin_code">Пин кодты раҫлаһыҙ</string>
-    <string name="recovery_passphrase">Мнемоника</string>
+    <string name="recovery_passphrase">Мнемоническая фраза</string>
     <string name="tabbar_wallet_title">Янсыҡ</string>
     <string name="tabbar_staking_title">Стейкинг</string>
     <string name="tabbar_governance_title">Управление</string>
@@ -47,7 +61,7 @@
     <string name="about_privacy">Хосусил сәйәсәте</string>
     <string name="about_terms">Ҡағиҙәләр һәм шарттар</string>
     <string name="onboarding_create_account">Создать аккаунт</string>
-    <string name="username_setup_choose_title">Выберите имя</string>
+    <string name="username_setup_choose_title">Имя</string>
     <string name="username_setup_hint">Имя аккаунта и его отображение рядом с адресом. Используя хранение идентификационных данных в блокчейне, имя можно сделать доступных для остальных.</string>
     <string name="common_no_screenshot_title">Не делайте снимков экрана</string>
     <string name="common_no_screenshot_message">Не делайте снимков экрана, так как они могут быть похищены сторонним вредоносным программным обеспечением</string>
@@ -176,4 +190,19 @@
     <string name="common_skip_process">Пропустить</string>
     <string name="wallet_receive_description">Поделиться этим QR-кодом c отправителем</string>
     <string name="wallet_receive_share_message">Мой %s адрес для получения %s:</string>
+    <string name="account_export_password_change">Сменить пароль</string>
+    <string name="common_copy_address">Копировать адрес</string>
+    <string name="common_choose_file">Загрузить файл</string>
+    <string name="import_json_paste">Json профилендә</string>
+    <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных настроек.</string>
+    <string name="pincode_enter_new_pin_code">Яңы индерелгән pin-код</string>
+    <string name="pincode_changed_message">Яңыртыу Pin-код</string>
+    <string name="common_share">Поделиться</string>
+    <string name="invoice_scan_upload">Галерянан тәьмин итеү</string>
+    <string name="invoice_scan_camera">Камера</string>
+    <string name="invoice_scan_gallery">Галерея</string>
+    <string name="invoice_scan_qr_code_title">QR-код</string>
+    <string name="contacts_scan">QR код уҡырға</string>
+    <string name="invoice_scan_error_no_info">QR уҡырға мөмкин түгел</string>
+    <string name="common_options_title">Hайлағыҙ</string>
 </resources>

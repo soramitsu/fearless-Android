@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="export_seed_with_derivation" formatted="false">Мережа: %s\nНасіння: %s\nШлях виведення: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Мережа: %s\nНасіння: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Мережа: %s\nМнемоніка: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Мережа: %s\nМнемоніка: %s\nШлях виведення: %s</string>
+
+    <string name="export_json_password_match_error">Пароль не відповідає</string>
+    <string name="export_json_password_confirm">Підтвердьте пароль</string>
+    <string name="export_json_password_new">Встановити пароль</string>
+    <string name="export_json_password_explanation">Пароль потрібен для шифрування вашого облікового запису та зберігання як Recovery JSON. Будь ласка, створіть пароль для продовження роботи.</string>
+
+    <string name="account_export_warning_title">Будь обережний</string>
+    <string name="account_export_warning_message">Поділитися або скопіювати вашу таємницю є операцією високого ризику, не надсилайте її нікому. Ви хотіли б продовжити процес обміну / копіювання?</string>
+    <string name="account_export_action">Експорт</string>
+
     <string name="import_account_exists_title">Обліковий запис уже існує</string>
     <string name="import_mnemonic_invalid_title">Мнемоніка недійсна</string>
     <string name="error_try_another_one">Будь ласка, спробуйте інший.</string>
@@ -36,7 +50,7 @@
     <string name="onboarding_privacy_policy">Політикою конфіденційності</string>
     <string name="pincode_enter_pin_code">Введіть PIN-код</string>
     <string name="pincode_confirm_your_pin_code">Підтвердьте свій PIN-код</string>
-    <string name="recovery_passphrase">Мнемонічний</string>
+    <string name="recovery_passphrase">Мнемонічна фраза</string>
     <string name="tabbar_wallet_title">Гаманець</string>
     <string name="tabbar_staking_title">Стекiнг</string>
     <string name="tabbar_governance_title">Управління</string>
@@ -47,7 +61,7 @@
     <string name="about_privacy">Політика конфіденційності</string>
     <string name="about_terms">Умови користування</string>
     <string name="onboarding_create_account">Створити рахунок</string>
-    <string name="username_setup_choose_title">Виберіть ім\'я</string>
+    <string name="username_setup_choose_title">Ім\'я</string>
     <string name="username_setup_hint">Назва цього облікового запису та спосіб відображення під вашими адресами. Завдяки ланцюговій ідентичності він може бути доступний для інших.</string>
     <string name="common_no_screenshot_title">Не робити знімки екрана</string>
     <string name="common_no_screenshot_message">Не робіть знімки екрана, які можуть збирати сторонні зловмисні програми</string>
@@ -175,4 +189,19 @@
     <string name="common_skip_process">Пропустити процес</string>
     <string name="wallet_receive_description">Поділіться цим QR-кодом відправника</string>
     <string name="wallet_receive_share_message">Мою %s адресу для отримання %s:</string>
+    <string name="account_export_password_change">Змінити пароль</string>
+    <string name="common_copy_address">Скопіювати адресу</string>
+    <string name="common_choose_file">Завантажити файл</string>
+    <string name="pincode_enter_new_pin_code">Введіть новий пін-код</string>
+    <string name="pincode_changed_message">Успіх зміни пін-коду</string>
+    <string name="common_share">Поділіться</string>
+    <string name="import_json_paste">Вставити json</string>
+    <string name="account_import_json_no_network">JSON не містить інформації про мережу. Будь ласка, вкажіть це в розширеному блоці.</string>
+    <string name="invoice_scan_upload">Завантажити з галереї</string>
+    <string name="invoice_scan_camera">Камера</string>
+    <string name="invoice_scan_gallery">Галерея</string>
+    <string name="invoice_scan_qr_code_title">QR-код</string>
+    <string name="contacts_scan">Сканувати QR</string>
+    <string name="invoice_scan_error_no_info">Неможливо декодувати QR</string>
+    <string name="common_options_title">Виберіть варіант</string>
 </resources>

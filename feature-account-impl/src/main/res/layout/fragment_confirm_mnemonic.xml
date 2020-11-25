@@ -8,12 +8,10 @@
     android:fitsSystemWindows="true">
 
 
-    <jp.co.soramitsu.common.base.Toolbar
+    <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="@dimen/x1"
-        android:paddingEnd="@dimen/x1"
         app:iconRight="@drawable/ic_refresh_white_24"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -9,7 +9,7 @@
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <jp.co.soramitsu.common.base.Toolbar
+    <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -29,6 +29,7 @@
         android:id="@+id/accountView"
         android:layout_marginStart="@dimen/x2"
         android:layout_marginEnd="@dimen/x2"
+        app:accountActionIcon="@drawable/ic_more_vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
@@ -43,7 +44,7 @@
         android:background="@drawable/bg_primary_list_item"
         android:clickable="true"
         android:id="@+id/profileAccounts"
-        android:drawableStart="@drawable/ic_user_blue_24"
+        android:drawableStart="@drawable/ic_user_24"
         android:drawableEnd="@drawable/ic_arrow_right_24"
         android:drawablePadding="@dimen/x1_5"
         android:focusable="true"
@@ -149,6 +150,7 @@
         android:background="@color/dividerGray" />
 
     <TextView
+        android:id="@+id/changePinCodeTv"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

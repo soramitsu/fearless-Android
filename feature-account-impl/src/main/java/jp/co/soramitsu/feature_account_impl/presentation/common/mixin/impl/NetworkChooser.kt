@@ -9,9 +9,10 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.asMutableLiveData
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
@@ -27,9 +28,9 @@ class NetworkChooser(
 
     override val isNetworkTypeChangeAvailable = selectedNetworkType == null
 
-    override val selectedNetworkLiveData = getSelectedNetwork()
+    override val selectedNetworkLiveData = getNetworkType()
         .subscribeOn(Schedulers.io())
-        .map(::mapNetworkToNetworkModel)
+        .map(::mapNetworkTypeToNetworkModel)
         .observeOn(AndroidSchedulers.mainThread())
         .asMutableLiveData(networkDisposable)
 
@@ -48,13 +49,13 @@ class NetworkChooser(
     private fun getNetworkModels(): Single<List<NetworkModel>> {
         return interactor.getNetworks()
             .subscribeOn(Schedulers.io())
-            .map { it.map(::mapNetworkToNetworkModel) }
+            .mapList { mapNetworkTypeToNetworkModel(it.type) }
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun getSelectedNetwork() = if (selectedNetworkType == null) {
-        interactor.getSelectedNetwork()
+    private fun getNetworkType() = if (selectedNetworkType == null) {
+        interactor.getSelectedNetworkType()
     } else {
-        interactor.getNetworkByNetworkType(selectedNetworkType)
+        Single.just(selectedNetworkType)
     }
 }

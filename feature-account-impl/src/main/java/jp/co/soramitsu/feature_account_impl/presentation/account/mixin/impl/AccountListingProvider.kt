@@ -12,11 +12,11 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.zipSimilar
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_api.domain.model.Network
+import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListing
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkToNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
 
 private const val ICON_SIZE_IN_DP = 24
 
@@ -51,7 +51,7 @@ class AccountListingProvider(
         val singles = list.map {
             when (it) {
                 is Account -> transformAccount(it)
-                is Network -> Single.just(mapNetworkToNetworkModel(it))
+                is Node.NetworkType -> Single.just(mapNetworkTypeToNetworkModel(it))
                 else -> throw IllegalArgumentException()
             }
         }

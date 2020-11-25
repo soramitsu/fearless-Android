@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:background="@color/black">
 
-    <jp.co.soramitsu.common.base.Toolbar
+    <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/transactionDetailToolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -172,7 +172,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        app:actionIcon="@drawable/ic_copy_24"
+        app:actionIcon="@drawable/ic_more_vertical"
         app:label="@string/transaction_details_from"
         app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider4"
         app:layout_constraintHorizontal_bias="1.0"
@@ -185,7 +185,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/transactionDetailTo"
         android:layout_marginTop="16dp"
-        app:actionIcon="@drawable/ic_copy_24"
+        app:actionIcon="@drawable/ic_more_vertical"
         app:label="@string/choose_amount_to"
         app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider4"
         app:layout_constraintHorizontal_bias="0.0"

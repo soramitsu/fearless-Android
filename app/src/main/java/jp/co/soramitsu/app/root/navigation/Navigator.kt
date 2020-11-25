@@ -2,14 +2,23 @@ package jp.co.soramitsu.app.root.navigation
 
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
+import jp.co.soramitsu.app.root.presentation.RootRouter
+import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
@@ -23,7 +32,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTran
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment
 import jp.co.soramitsu.splash.SplashRouter
 
-class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
+class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, RootRouter {
 
     private var navController: NavController? = null
 
@@ -35,8 +44,16 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_splash_to_onboarding, WelcomeFragment.getBundle(false))
     }
 
-    override fun openPin() {
-        navController?.navigate(R.id.action_splash_to_pin)
+    override fun openCreatePin() {
+        val action = PinCodeAction.Create(R.id.action_open_main)
+        val bundle = PincodeFragment.getPinCodeBundle(action)
+        navController?.navigate(R.id.action_splash_to_pin, bundle)
+    }
+
+    override fun openCheckPin() {
+        val action = PinCodeAction.Check(R.id.action_open_main)
+        val bundle = PincodeFragment.getPinCodeBundle(action)
+        navController?.navigate(R.id.action_splash_to_pin, bundle)
     }
 
     override fun openMainScreen() {
@@ -55,27 +72,22 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_open_main)
     }
 
+    override fun openDestination(destination: Int) {
+        navController?.navigate(destination)
+    }
+
     override fun openCreatePincode() {
+        val action = PinCodeAction.Create(R.id.action_open_main)
+        val bundle = PincodeFragment.getPinCodeBundle(action)
         when (navController?.currentDestination?.id) {
-            R.id.importAccountFragment -> navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment)
-            R.id.confirmMnemonicFragment -> navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment)
+            R.id.importAccountFragment -> navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment, bundle)
+            R.id.confirmMnemonicFragment -> navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment, bundle)
         }
     }
 
-    override fun openConfirmMnemonicScreen(
-        accountName: String,
-        mnemonic: List<String>,
-        cryptoType: CryptoType,
-        node: Node,
-        derivationPath: String
-    ) {
-        val bundle = ConfirmMnemonicFragment.getBundle(
-            accountName,
-            mnemonic,
-            cryptoType,
-            node,
-            derivationPath
-        )
+    override fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload) {
+        val bundle = ConfirmMnemonicFragment.getBundle(confirmMnemonicPayload)
+
         navController?.navigate(
             R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment,
             bundle
@@ -171,6 +183,13 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_open_receive)
     }
 
+    override fun returnToMain() {
+        // to achieve smooth animation
+        postToUiThread {
+            navController?.navigate(R.id.action_return_to_wallet)
+        }
+    }
+
     override fun openAccountDetails(address: String) {
         val extras = AccountDetailsFragment.getBundle(address)
 
@@ -185,8 +204,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
         navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
     }
 
-    override fun openNodeDetails(nodeId: Int) {
-        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId))
+    override fun openNodeDetails(nodeId: Int, isSelected: Boolean) {
+        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId, isSelected))
     }
 
     override fun openAssetDetails(token: Asset.Token) {
@@ -201,5 +220,45 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter {
 
     override fun createAccountForNetworkType(networkType: Node.NetworkType) {
         navController?.navigate(R.id.action_nodes_to_onboarding, WelcomeFragment.getBundleWithNetworkType(true, networkType))
+    }
+
+    override fun openExportMnemonic(accountAddress: String) {
+        val extras = ExportMnemonicFragment.getBundle(accountAddress)
+
+        navController?.navigate(R.id.action_accountDetailsFragment_to_exportMnemonicFragment, extras)
+    }
+
+    override fun openExportSeed(accountAddress: String) {
+        val extras = ExportSeedFragment.getBundle(accountAddress)
+
+        navController?.navigate(R.id.action_accountDetailsFragment_to_exportSeedFragment, extras)
+    }
+
+    override fun openConfirmMnemonicOnExport(mnemonic: List<String>) {
+        val extras = ConfirmMnemonicFragment.getBundle(ConfirmMnemonicPayload(mnemonic, null))
+
+        navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
+    }
+
+    override fun openExportJsonPassword(accountAddress: String) {
+        val extras = ExportJsonPasswordFragment.getBundle(accountAddress)
+
+        navController?.navigate(R.id.action_accountDetailsFragment_to_exportJsonPasswordFragment, extras)
+    }
+
+    override fun openExportJsonConfirm(payload: ExportJsonConfirmPayload) {
+        val extras = ExportJsonConfirmFragment.getBundle(payload)
+
+        navController?.navigate(R.id.action_exportJsonPasswordFragment_to_exportJsonConfirmFragment, extras)
+    }
+
+    override fun finishExportFlow() {
+        navController?.navigate(R.id.finish_export_flow)
+    }
+
+    override fun openChangePinCode() {
+        val action = PinCodeAction.Change
+        val bundle = PincodeFragment.getPinCodeBundle(action)
+        navController?.navigate(R.id.action_mainFragment_to_pinCodeFragment, bundle)
     }
 }

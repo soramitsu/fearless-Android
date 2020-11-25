@@ -4,7 +4,6 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -14,13 +13,18 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
 import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {
-    override fun getMnemonic(): Single<List<String>> {
+    override fun getSecuritySource(accountAddress: String): Single<SecuritySource> {
+        return accountRepository.getSecuritySource(accountAddress)
+    }
+
+    override fun generateMnemonic(): Single<List<String>> {
         return accountRepository.generateMnemonic()
     }
 
@@ -41,14 +45,14 @@ class AccountInteractorImpl(
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable {
         return accountRepository.createAccount(
             accountName,
             mnemonic,
             encryptionType,
             derivationPath,
-            node
+            networkType
         )
     }
 
@@ -57,14 +61,14 @@ class AccountInteractorImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable {
         return accountRepository.importFromMnemonic(
             keyString,
             username,
             derivationPath,
             selectedEncryptionType,
-            node
+            networkType
         )
     }
 
@@ -73,30 +77,31 @@ class AccountInteractorImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable {
         return accountRepository.importFromSeed(
             keyString,
             username,
             derivationPath,
             selectedEncryptionType,
-            node
+            networkType
         )
     }
 
     override fun importFromJson(
         json: String,
         password: String,
+        networkType: Node.NetworkType,
         name: String
     ): Completable {
-        return accountRepository.importFromJson(json, password, name)
+        return accountRepository.importFromJson(json, password, networkType, name)
     }
 
     override fun getAddressId(account: Account): Single<ByteArray> {
         return accountRepository.getAddressId(account)
     }
 
-    override fun isCodeSet(): Single<Boolean> {
+    override fun isCodeSet(): Boolean {
         return accountRepository.isCodeSet()
     }
 
@@ -111,7 +116,7 @@ class AccountInteractorImpl(
         }
     }
 
-    override fun isBiometricEnabled(): Single<Boolean> {
+    override fun isBiometricEnabled(): Boolean {
         return accountRepository.isBiometricEnabled()
     }
 
@@ -137,12 +142,8 @@ class AccountInteractorImpl(
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
 
-    override fun getSelectedNetwork(): Single<Network> {
-        return getNetworks()
-            .zipWith(getSelectedNode(),
-                BiFunction { networks, selectedNode ->
-                    networks.first { it.type == selectedNode.networkType }
-                })
+    override fun getSelectedNetworkType(): Single<Node.NetworkType> {
+        return getSelectedNode().map(Node::networkType)
     }
 
     override fun shouldOpenOnboarding(): Single<Boolean> {
@@ -202,7 +203,7 @@ class AccountInteractorImpl(
     }
 
     private fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
-        return accounts.groupBy(Account::network)
+        return accounts.groupBy { it.network.type }
             .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
             .flatten()
     }
@@ -237,14 +238,19 @@ class AccountInteractorImpl(
 
     override fun addNode(nodeName: String, nodeHost: String): Completable {
         return accountRepository.checkNodeExists(nodeHost)
-            .flatMapCompletable {
-                if (it) {
+            .flatMap { nodeExists ->
+                if (nodeExists) {
                     throw NodeAlreadyExistsException()
                 } else {
                     getNetworkTypeByNodeHost(nodeHost)
-                        .flatMapCompletable { networkType -> accountRepository.addNode(nodeName, nodeHost, networkType) }
                 }
             }
+            .flatMapCompletable { networkType -> accountRepository.addNode(nodeName, nodeHost, networkType) }
+    }
+
+    override fun updateNode(nodeId: Int, newName: String, newHost: String): Completable {
+        return getNetworkTypeByNodeHost(newHost)
+            .flatMapCompletable { networkType -> accountRepository.updateNode(nodeId, newName, newHost, networkType) }
     }
 
     private fun getNetworkTypeByNodeHost(nodeHost: String): Single<Node.NetworkType> {
@@ -256,8 +262,13 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>> {
+    override fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Single<Pair<List<Account>, Node>> {
         return accountRepository.getAccountsByNetworkType(networkType)
+            .flatMap { accounts ->
+                accountRepository.observeSelectedNode()
+                    .firstOrError()
+                    .map { Pair(accounts, it) }
+            }
     }
 
     override fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable {
@@ -271,11 +282,17 @@ class AccountInteractorImpl(
             }
     }
 
-    override fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network> {
-        return accountRepository.getNetworkByNetworkType(networkType)
+    override fun selectNode(nodeId: Int): Completable {
+        return accountRepository.getNode(nodeId)
+            .flatMapCompletable(accountRepository::selectNode)
     }
 
     override fun deleteNode(nodeId: Int): Completable {
         return accountRepository.deleteNode(nodeId)
+    }
+
+    override fun generateRestoreJson(accountAddress: String, password: String): Single<String> {
+        return accountRepository.getAccount(accountAddress)
+            .flatMap { accountRepository.generateRestoreJson(it, password) }
     }
 }

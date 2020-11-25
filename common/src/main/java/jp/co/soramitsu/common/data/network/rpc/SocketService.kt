@@ -28,8 +28,15 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-enum class State {
-    CONNECTED, WAITING_RECONNECT, CONNECTING, DISCONNECTED
+sealed class State {
+    abstract class Attempting(val attempt: Int) : State()
+
+    object Connected : State()
+
+    class Waiting(attempt: Int) : Attempting(attempt)
+    class Connecting(attempt: Int) : Attempting(attempt)
+
+    object Disconnected : State()
 }
 
 class ConnectionClosedException : Exception()
@@ -84,7 +91,7 @@ class SocketService(
     private val socketFactory = WebSocketFactory()
 
     private val stateSubject = BehaviorSubject.create<State>()
-    private val allowedToConnectSubject = BehaviorSubject.createDefault(false)
+    private val lifecycleConditionSubject = BehaviorSubject.createDefault(LifecycleCondition.FORBIDDEN)
 
     @Volatile
     private var currentReconnectAttempt = 0
@@ -96,7 +103,7 @@ class SocketService(
     private var resendPendingDisposable: Disposable? = null
 
     @Volatile
-    private var state: State = State.DISCONNECTED
+    private var state: State = State.Disconnected
 
     override fun switchUrl(url: String) {
         stop()
@@ -104,35 +111,38 @@ class SocketService(
         start(url)
     }
 
-    override fun started() = state != State.DISCONNECTED
+    override fun started() = state !is State.Disconnected
 
-    override fun setAllowedToConnect(allowed: Boolean) {
-        allowedToConnectSubject.onNext(allowed)
+    override fun setLifecycleCondition(condition: LifecycleCondition) {
+        lifecycleConditionSubject.onNext(condition)
     }
 
-    override fun observeAllowedToConnect() = allowedToConnectSubject
+    override fun observeLifecycleCondition(): Observable<LifecycleCondition> = lifecycleConditionSubject
+
+    override fun getLifecycleCondition() = lifecycleConditionSubject.value!!
 
     @Synchronized
     override fun start(url: String) {
-        if (state != State.DISCONNECTED) return
-
-        socket = createSocket(url)
-
-        updateState(State.CONNECTING)
+        if (state !is State.Disconnected) return
 
         currentReconnectAttempt = 0
+        updateState(State.Connecting(currentReconnectAttempt))
+
+        socket = createSocket(url)
 
         socket!!.connectAsync()
     }
 
     @Synchronized
     override fun stop() {
-        if (state == State.DISCONNECTED) return
+        if (state is State.Disconnected) return
 
         resendPendingDisposable?.dispose()
 
         pendingRequests.clear()
         waitingForResponseRequests.clear()
+
+        requestsMap.values.forEach { entry -> entry.emitter.onComplete() }
         requestsMap.clear()
 
         socket!!.clearListeners()
@@ -144,11 +154,10 @@ class SocketService(
         subscriptions.values.forEach { entry -> entry.emitter.onComplete() }
         subscriptions.clear()
 
-        currentReconnectAttempt = 0
-
         socket = null
 
-        updateState(State.DISCONNECTED)
+        currentReconnectAttempt = 0
+        updateState(State.Disconnected)
     }
 
     override fun observeNetworkState() = stateSubject
@@ -190,7 +199,7 @@ class SocketService(
             synchronized<Unit>(this) {
                 requestsMap[runtimeRequest.id] = RequestMapEntry(runtimeRequest, deliveryType, it)
 
-                if (state == State.CONNECTED) {
+                if (state is State.Connected) {
                     socket!!.sendRpcRequest(runtimeRequest)
                     waitingForResponseRequests.add(runtimeRequest)
                 } else {
@@ -204,7 +213,7 @@ class SocketService(
 
                     pendingRequests.add(runtimeRequest)
 
-                    if (state == State.WAITING_RECONNECT) forceReconnect()
+                    if (state is State.Waiting) forceReconnect()
                 }
             }
         }.doOnDispose { cancelRequest(runtimeRequest) }
@@ -279,8 +288,7 @@ class SocketService(
     @Synchronized
     private fun connectionEstablished() {
         currentReconnectAttempt = 0
-
-        updateState(State.CONNECTED)
+        updateState(State.Connected)
 
         resendPendingDisposable = Completable.fromAction {
             pendingRequests.forEach {
@@ -304,8 +312,7 @@ class SocketService(
         socket!!.clearListeners()
 
         currentReconnectAttempt++
-
-        updateState(State.WAITING_RECONNECT)
+        updateState(State.Waiting(currentReconnectAttempt))
 
         val waitTime = reconnectStrategy.getTimeForReconnect(currentReconnectAttempt)
 
@@ -319,15 +326,15 @@ class SocketService(
 
     @Synchronized
     private fun reconnectNow() {
-        if (state == State.CONNECTING) return
+        if (state is State.Connecting) return
 
         clearCurrentWaitingTask()
-
-        updateState(State.CONNECTING)
 
         socket = createSocket(socket!!.url)
 
         socket!!.connectAsync()
+
+        updateState(State.Connecting(currentReconnectAttempt))
     }
 
     private fun clearCurrentWaitingTask() {

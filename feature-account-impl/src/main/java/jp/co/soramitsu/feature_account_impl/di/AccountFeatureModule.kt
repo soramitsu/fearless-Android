@@ -13,8 +13,9 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
-import jp.co.soramitsu.fearless_utils.encrypt.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -24,10 +25,12 @@ import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubst
 import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSourceImpl
+import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.CryptoTypeChooser
+import java.util.Random
 
 @Module
 class AccountFeatureModule {
@@ -57,6 +60,14 @@ class AccountFeatureModule {
     ) = JsonSeedDecoder(jsonMapper, sS58Encoder, keypairFactory)
 
     @Provides
+    @FeatureScope
+    fun provideJsonEncoder(
+        sS58Encoder: SS58Encoder,
+        random: Random,
+        jsonMapper: Gson
+    ) = JsonSeedEncoder(jsonMapper, sS58Encoder, random)
+
+    @Provides
     fun provideCryptoChooserMixin(
         interactor: AccountInteractor,
         resourceManager: ResourceManager
@@ -74,6 +85,7 @@ class AccountFeatureModule {
         accountDao: AccountDao,
         nodeDao: NodeDao,
         jsonSeedDecoder: JsonSeedDecoder,
+        jsonSeedEncoder: JsonSeedEncoder,
         accountSubstrateSource: AccountSubstrateSource,
         languagesHolder: LanguagesHolder
     ): AccountRepository {
@@ -87,6 +99,7 @@ class AccountFeatureModule {
             keypairFactory,
             appLinksProvider,
             jsonSeedDecoder,
+            jsonSeedEncoder,
             languagesHolder,
             accountSubstrateSource
         )
@@ -105,9 +118,10 @@ class AccountFeatureModule {
     fun provideAccountDataSource(
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
-        jsonMapper: Gson
+        jsonMapper: Gson,
+        accountDataMigration: AccountDataMigration
     ): AccountDataSource {
-        return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper)
+        return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper, accountDataMigration)
     }
 
     @Provides
@@ -117,5 +131,16 @@ class AccountFeatureModule {
     @FeatureScope
     fun provideAccountSubstrateSource(socketRequestExecutor: SocketSingleRequestExecutor): AccountSubstrateSource {
         return AccountSubstrateSourceImpl(socketRequestExecutor)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideAccountDataMigration(
+        preferences: Preferences,
+        encryptedPreferences: EncryptedPreferences,
+        bip39: Bip39,
+        accountDao: AccountDao
+    ): AccountDataMigration {
+        return AccountDataMigration(preferences, encryptedPreferences, bip39, accountDao)
     }
 }

@@ -5,14 +5,16 @@ import androidx.lifecycle.MutableLiveData
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotEnoughFundsException
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 
@@ -21,20 +23,25 @@ private const val ICON_IN_DP = 24
 class ConfirmTransferViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
-    private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
-    private val clipboardManager: ClipboardManager,
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val resourceManager: ResourceManager,
     val transferDraft: TransferDraft
-) : BaseViewModel() {
+) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<Unit>>()
     val showBalanceDetailsEvent: LiveData<Event<Unit>> = _showBalanceDetailsEvent
 
-    val recipientModel = getAddressIcon()
-        .asLiveData()
+    val recipientModel = getAddressIcon().asLiveData()
 
     private val _transferSubmittingLiveData = MutableLiveData(false)
     val transferSubmittingLiveData: LiveData<Boolean> = _transferSubmittingLiveData
+
+    val assetLiveData = interactor.observeAsset(transferDraft.token)
+        .subscribeOn(Schedulers.io())
+        .map(::mapAssetToAssetModel)
+        .observeOn(AndroidSchedulers.mainThread())
+        .asLiveData()
 
     fun backClicked() {
         router.back()
@@ -50,14 +57,18 @@ class ConfirmTransferViewModel(
             .subscribe({
                 router.finishSendFlow()
             }, {
-                showError(it.message!!)
+                if (it is NotEnoughFundsException) {
+                    showError(resourceManager.getString(R.string.choose_amount_error_too_big))
+                } else {
+                    showError(it)
+                }
             })
     }
 
     fun copyRecipientAddressClicked() {
-        clipboardManager.addToClipboard(transferDraft.recipientAddress)
+        val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, transferDraft.token.networkType)
 
-        showMessage(resourceManager.getString(R.string.common_copied))
+        externalAccountActions.showExternalActions(payload)
     }
 
     fun availableBalanceClicked() {
@@ -75,5 +86,9 @@ class ConfirmTransferViewModel(
                 token = token
             )
         }
+    }
+
+    fun errorAcknowledged() {
+        router.back()
     }
 }

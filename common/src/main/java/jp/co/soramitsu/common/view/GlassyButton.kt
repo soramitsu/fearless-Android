@@ -6,6 +6,8 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.view.shape.addRipple
+import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import kotlinx.android.synthetic.main.button_glassy.view.buttonGlassyContent
 
 class GlassyButton @JvmOverloads constructor(
@@ -16,7 +18,11 @@ class GlassyButton @JvmOverloads constructor(
 
     init {
         View.inflate(context, R.layout.button_glassy, this)
-        setBackgroundResource(R.drawable.bg_button_solid_small)
+
+        with(context) {
+            background = addRipple(getCutCornerDrawable(fillColorRes = R.color.blurColor))
+        }
+
         attrs?.let(::applyAttributes)
     }
 

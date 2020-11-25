@@ -3,12 +3,14 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
@@ -40,7 +42,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_confirm_transfer, container, false)
 
     override fun initViews() {
-        confirmTransferRecipientView.setOnCopyClickListener { viewModel.copyRecipientAddressClicked() }
+        confirmTransferRecipientView.setActionClickListener { viewModel.copyRecipientAddressClicked() }
 
         confirmTransferToolbar.setHomeButtonListener { viewModel.backClicked() }
 
@@ -61,23 +63,37 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
             .inject(this)
     }
 
-    override fun subscribe(viewModel: ConfirmTransferViewModel) {
-        with(viewModel.transferDraft) {
-            confirmTransferBalance.text = available.formatAsToken(token)
+    override fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
+        val base = super.buildErrorDialog(title, errorMessage)
 
-            confirmTransferToken.setIcon(token.icon)
-            confirmTransferToken.setText(token.displayName)
+        base.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.common_ok)) { _, _ ->
+            viewModel.errorAcknowledged()
+        }
+
+        return base
+    }
+
+    override fun subscribe(viewModel: ConfirmTransferViewModel) {
+        setupExternalActions(viewModel)
+
+        viewModel.assetLiveData.observe {
+            confirmTransferBalance.text = it.available.formatAsToken(it.token)
+        }
+
+        with(viewModel.transferDraft) {
+            confirmTransferToken.setTextIcon(token.icon)
+            confirmTransferToken.setMessage(token.displayName)
 
             confirmTransferFee.text = fee.formatAsToken(token)
 
             confirmTransferTotal.text = totalTransaction.formatAsToken(token)
 
-            confirmTransferAmount.setText(amount.toPlainString(), TextView.BufferType.NORMAL)
+            confirmTransferAmount.setMessage(amount.toPlainString())
         }
 
         viewModel.recipientModel.observe {
-            confirmTransferRecipientView.setIcon(it.image)
-            confirmTransferRecipientView.setAddress(it.address)
+            confirmTransferRecipientView.setTextIcon(it.image)
+            confirmTransferRecipientView.setMessage(it.address)
         }
 
         viewModel.transferSubmittingLiveData.observe { submitting ->
@@ -88,13 +104,14 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         }
 
         viewModel.showBalanceDetailsEvent.observeEvent {
-            val transfer = viewModel.transferDraft
+            val asset = viewModel.assetLiveData.value!!
+            val totalAfterTransfer = viewModel.transferDraft
 
-            showBalanceDetails(transfer)
+            showBalanceDetails(asset, totalAfterTransfer)
         }
     }
 
-    private fun showBalanceDetails(transfer: TransferDraft) {
-        BalanceDetailsBottomSheet(requireContext(), transfer).show()
+    private fun showBalanceDetails(asset: AssetModel, transferDraft: TransferDraft) {
+        BalanceDetailsBottomSheet(requireContext(), asset, transferDraft).show()
     }
 }

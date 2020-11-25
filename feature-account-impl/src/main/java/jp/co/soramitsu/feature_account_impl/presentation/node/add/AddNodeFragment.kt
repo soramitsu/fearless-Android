@@ -5,14 +5,13 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_node_add.addBtn
 import kotlinx.android.synthetic.main.fragment_node_add.fearlessToolbar
-import kotlinx.android.synthetic.main.fragment_node_add.nodeHost
-import kotlinx.android.synthetic.main.fragment_node_add.nodeName
+import kotlinx.android.synthetic.main.fragment_node_add.nodeHostField
+import kotlinx.android.synthetic.main.fragment_node_add.nodeNameField
 
 class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
 
@@ -25,13 +24,9 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
     override fun initViews() {
         fearlessToolbar.setHomeButtonListener { viewModel.backClicked() }
 
-        nodeName.onTextChanged {
-            viewModel.nodeNameChanged(it)
-        }
+        nodeNameField.content.bindTo(viewModel.nodeNameInputLiveData)
 
-        nodeHost.onTextChanged {
-            viewModel.nodeHostChanged(it)
-        }
+        nodeHostField.content.bindTo(viewModel.nodeHostInputLiveData)
 
         addBtn.setOnClickListener { viewModel.addNodeClicked() }
     }

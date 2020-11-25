@@ -9,9 +9,12 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 
 interface AccountInteractor {
-    fun getMnemonic(): Single<List<String>>
+    fun getSecuritySource(accountAddress: String): Single<SecuritySource>
+
+    fun generateMnemonic(): Single<List<String>>
 
     fun getCryptoTypes(): Single<List<CryptoType>>
 
@@ -22,7 +25,7 @@ interface AccountInteractor {
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
     fun importFromMnemonic(
@@ -30,7 +33,7 @@ interface AccountInteractor {
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
     fun importFromSeed(
@@ -38,20 +41,25 @@ interface AccountInteractor {
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        node: Node
+        networkType: Node.NetworkType
     ): Completable
 
-    fun importFromJson(json: String, password: String, name: String): Completable
+    fun importFromJson(
+        json: String,
+        password: String,
+        networkType: Node.NetworkType,
+        name: String
+    ): Completable
 
     fun getAddressId(account: Account): Single<ByteArray>
 
-    fun isCodeSet(): Single<Boolean>
+    fun isCodeSet(): Boolean
 
     fun savePin(code: String): Completable
 
     fun isPinCorrect(code: String): Single<Boolean>
 
-    fun isBiometricEnabled(): Single<Boolean>
+    fun isBiometricEnabled(): Boolean
 
     fun setBiometricOn(): Completable
 
@@ -65,7 +73,7 @@ interface AccountInteractor {
 
     fun getSelectedNode(): Single<Node>
 
-    fun getSelectedNetwork(): Single<Network>
+    fun getSelectedNetworkType(): Single<Node.NetworkType>
 
     fun shouldOpenOnboarding(): Single<Boolean>
 
@@ -95,11 +103,15 @@ interface AccountInteractor {
 
     fun addNode(nodeName: String, nodeHost: String): Completable
 
-    fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
+    fun updateNode(nodeId: Int, newName: String, newHost: String): Completable
+
+    fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Single<Pair<List<Account>, Node>>
 
     fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable
 
-    fun getNetworkByNetworkType(networkType: Node.NetworkType): Single<Network>
+    fun selectNode(nodeId: Int): Completable
 
     fun deleteNode(nodeId: Int): Completable
+
+    fun generateRestoreJson(accountAddress: String, password: String): Single<String>
 }

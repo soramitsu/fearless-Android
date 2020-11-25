@@ -18,6 +18,7 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -73,9 +74,9 @@ class WalletRepositoryImpl(
         }.mapList(::mapAssetLocalToAsset)
     }
 
-    override fun syncAssets(withoutRates: Boolean): Completable {
-        return getSelectedAccount()
-            .flatMapCompletable { syncAssets(it, withoutRates) }
+    override fun syncAssetsRates(): Completable {
+        return accountRepository.getSelectedAccount()
+            .flatMapCompletable(this::syncAssetRates)
     }
 
     override fun observeAsset(token: Asset.Token): Observable<Asset> {
@@ -84,8 +85,8 @@ class WalletRepositoryImpl(
         }.map(::mapAssetLocalToAsset)
     }
 
-    override fun syncAsset(token: Asset.Token, withoutRates: Boolean): Completable {
-        return syncAssets(withoutRates)
+    override fun syncAsset(token: Asset.Token): Completable {
+        return syncAssetsRates()
     }
 
     override fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>> {
@@ -94,29 +95,32 @@ class WalletRepositoryImpl(
     }
 
     override fun syncTransactionsFirstPage(pageSize: Int): Completable {
-        return getSelectedAccount()
+        return accountRepository.getSelectedAccount()
             .flatMapCompletable { syncTransactionsFirstPage(pageSize, it) }
     }
 
     override fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>> {
-        return getSelectedAccount()
+        return accountRepository.getSelectedAccount()
             .flatMap { getTransactionPage(pageSize, page, it) }
     }
 
-    override fun getContacts(query: String, networkType: Node.NetworkType): Single<List<String>> {
-        return transactionsDao.getContacts(query, networkType)
+    override fun getContacts(query: String): Single<List<String>> {
+        return accountRepository.getSelectedAccount().flatMap {
+            transactionsDao.getContacts(query, it.address)
+        }
     }
 
     override fun getTransferFee(transfer: Transfer): Single<Fee> {
-        return getSelectedAccount()
+        return accountRepository.getSelectedAccount()
             .flatMap { getTransferFeeUpdatingBalance(it, transfer) }
-            .map { mapFeeRemoteToFee(it, transfer.token) }
+            .map { mapFeeRemoteToFee(it, transfer) }
     }
 
     override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
-        return getSelectedAccount().flatMap { account ->
-            accountRepository.getSigningData()
-                .map(this::mapSigningDataToKeypair)
+        return accountRepository.getSelectedAccount().flatMap { account ->
+            accountRepository.getCurrentSecuritySource()
+                .map(SecuritySource::signingData)
+                .map(::mapSigningDataToKeypair)
                 .flatMap { keys -> substrateSource.performTransfer(account, transfer, keys) }
                 .map { hash -> createTransaction(hash, transfer, account.address, fee) }
                 .map { transaction -> mapTransactionToTransactionLocal(transaction, account.address, TransactionSource.APP) }
@@ -124,7 +128,7 @@ class WalletRepositoryImpl(
     }
 
     override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<CheckFundsStatus> {
-        return getSelectedAccount().flatMap { account ->
+        return accountRepository.getSelectedAccount().flatMap { account ->
             getTransferFeeUpdatingBalance(account, transfer).map { fee ->
                 val assetLocal = assetDao.getAsset(account.address, transfer.token)!!
 
@@ -194,7 +198,7 @@ class WalletRepositoryImpl(
             transfer.amount,
             System.currentTimeMillis(),
             isIncome = false,
-            fee = Fee(fee, transfer.token),
+            fee = fee,
             status = Transaction.Status.PENDING
         )
 
@@ -212,7 +216,7 @@ class WalletRepositoryImpl(
         val transactionTotalInPlanks = fee.partialFee + transfer.amountInPlanks
         val transactionTotal = transfer.token.amountFromPlanks(transactionTotalInPlanks)
 
-        val existentialDeposit = transfer.token.networkType.existentialDeposit
+        val existentialDeposit = transfer.token.networkType.runtimeConfiguration.existentialDeposit
 
         return when {
             transactionTotal > asset.transferable -> CheckFundsStatus.NOT_ENOUGH_FUNDS
@@ -226,14 +230,6 @@ class WalletRepositoryImpl(
             .mapList { mapTransactionToTransactionLocal(it, account.address, TransactionSource.SUBSCAN) }
             .doOnSuccess { transactionsDao.insertFromSubscan(account.address, it) }
             .ignoreElement()
-    }
-
-    private fun syncAssets(account: Account, withoutRates: Boolean): Completable {
-        return if (withoutRates) {
-            syncBalance(account)
-        } else {
-            syncBalanceWithRates(account)
-        }
     }
 
     private fun getTransactionPage(pageSize: Int, page: Int, account: Account): Single<List<Transaction>> {
@@ -265,42 +261,30 @@ class WalletRepositoryImpl(
         }
     }
 
-    private fun syncBalance(account: Account): Completable {
-        return substrateSource.fetchAccountInfo(account).flatMapCompletable { accountInfo ->
-            updateAssetBalance(account, accountInfo)
-        }
-    }
-
-    private fun syncBalanceWithRates(account: Account): Completable {
-        val accountInfoSingle = substrateSource.fetchAccountInfo(account)
-
+    private fun syncAssetRates(account: Account): Completable {
         val networkType = account.network.type
 
         val currentPriceStatsSingle = getAssetPrice(networkType, AssetPriceRequest.createForNow())
         val yesterdayPriceStatsSingle = getAssetPrice(networkType, AssetPriceRequest.createForYesterday())
 
-        val requests = listOf(accountInfoSingle, currentPriceStatsSingle, yesterdayPriceStatsSingle)
+        val requests = listOf(currentPriceStatsSingle, yesterdayPriceStatsSingle)
 
         return requests.zip()
             .flatMapCompletable { (
-                accountInfo: EncodableStruct<AccountInfo>,
                 nowStats: SubscanResponse<AssetPriceStatistics>,
                 yesterdayStats: SubscanResponse<AssetPriceStatistics>) ->
 
-                updateAssetBalance(account, accountInfo, nowStats, yesterdayStats)
+                updateAssetRates(account, nowStats, yesterdayStats)
             }
     }
 
-    private fun updateAssetBalance(
+    private fun updateAssetRates(
         account: Account,
-        accountInfo: EncodableStruct<AccountInfo>,
-        todayResponse: SubscanResponse<AssetPriceStatistics>? = null,
-        yesterdayResponse: SubscanResponse<AssetPriceStatistics>? = null
+        todayResponse: SubscanResponse<AssetPriceStatistics>?,
+        yesterdayResponse: SubscanResponse<AssetPriceStatistics>?
     ) = updateLocalAssetCopy(account) { cached ->
         val todayStats = todayResponse?.content
         val yesterdayStats = yesterdayResponse?.content
-
-        val data = accountInfo[data]
 
         var mostRecentPrice = todayStats?.price
 
@@ -311,12 +295,22 @@ class WalletRepositoryImpl(
         val change = todayStats?.calculateRateChange(yesterdayStats)
 
         cached.copy(
+            dollarRate = mostRecentPrice,
+            recentRateChange = change
+        )
+    }
+
+    private fun updateAssetBalance(
+        account: Account,
+        accountInfo: EncodableStruct<AccountInfo>
+    ) = updateLocalAssetCopy(account) { cached ->
+        val data = accountInfo[data]
+
+        cached.copy(
             freeInPlanks = data[free],
             reservedInPlanks = data[reserved],
             miscFrozenInPlanks = data[miscFrozen],
-            feeFrozenInPlanks = data[feeFrozen],
-            dollarRate = mostRecentPrice,
-            recentRateChange = change
+            feeFrozenInPlanks = data[feeFrozen]
         )
     }
 
@@ -375,8 +369,6 @@ class WalletRepositoryImpl(
         return transactionsDao.observeTransactions(accountAddress)
             .mapList(::mapTransactionLocalToTransaction)
     }
-
-    private fun getSelectedAccount() = accountRepository.observeSelectedAccount().firstOrError()
 
     private fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): Single<SubscanResponse<AssetPriceStatistics>> {
         return subscanApi.getAssetPrice(subDomainFor(networkType), request)

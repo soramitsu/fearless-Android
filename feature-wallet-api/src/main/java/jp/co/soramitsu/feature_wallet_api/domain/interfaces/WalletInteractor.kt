@@ -10,16 +10,19 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import java.io.File
+import java.lang.Exception
 import java.math.BigDecimal
+
+class NotEnoughFundsException : Exception()
 
 interface WalletInteractor {
     fun observeAssets(): Observable<List<Asset>>
 
-    fun syncAssets(withoutRates: Boolean = false): Completable
+    fun syncAssetsRates(): Completable
 
     fun observeAsset(token: Asset.Token): Observable<Asset>
 
-    fun syncAsset(token: Asset.Token, withoutRates: Boolean = false): Completable
+    fun syncAssetRates(token: Asset.Token): Completable
 
     fun observeCurrentAsset(): Observable<Asset>
 
@@ -52,4 +55,6 @@ interface WalletInteractor {
     fun getQrCodeSharingString(): Single<String>
 
     fun createFileInTempStorageAndRetrieveAsset(fileName: String): Single<Pair<File, Asset>>
+
+    fun getRecipientFromQrCodeContent(content: String): Single<String>
 }

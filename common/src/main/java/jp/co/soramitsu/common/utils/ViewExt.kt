@@ -1,11 +1,14 @@
 package jp.co.soramitsu.common.utils
 
+import android.content.Context
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
 import androidx.annotation.ColorRes
@@ -59,7 +62,8 @@ fun TextView.setTextColorRes(@ColorRes colorRes: Int) = setTextColor(ContextComp
 fun TextView.setDrawableStart(
     @DrawableRes start: Int? = null,
     widthInDp: Int? = null,
-    heightInDp: Int? = widthInDp
+    heightInDp: Int? = widthInDp,
+    @ColorRes tint: Int? = null
 ) {
     if (start == null) {
         setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
@@ -68,10 +72,31 @@ fun TextView.setDrawableStart(
 
     val drawable = context.getDrawableCompat(start)
 
+    tint?.let { drawable.mutate().setTint(context.getColor(it)) }
+
     val widthInPx = if (widthInDp != null) (resources.displayMetrics.density * widthInDp).toInt() else drawable.intrinsicWidth
     val heightInPx = if (heightInDp != null) (resources.displayMetrics.density * heightInDp).toInt() else drawable.intrinsicHeight
 
     drawable.setBounds(0, 0, widthInPx, heightInPx)
 
     setCompoundDrawablesRelative(drawable, null, null, null)
+}
+
+inline fun View.doOnGlobalLayout(crossinline action: () -> Unit) {
+    viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+        override fun onGlobalLayout() {
+            viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+            action()
+        }
+    })
+}
+
+fun View.setVisible(visible: Boolean, falseState: Int = View.GONE) {
+    visibility = if (visible) View.VISIBLE else falseState
+}
+
+fun View.hideSoftKeyboard() {
+    val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
 }

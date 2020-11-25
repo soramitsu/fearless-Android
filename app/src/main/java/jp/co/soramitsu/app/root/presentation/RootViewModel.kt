@@ -6,12 +6,14 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
+import jp.co.soramitsu.common.data.network.rpc.LifecycleCondition
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.plusAssign
 
 class RootViewModel(
     private val interactor: RootInteractor,
+    private val rootRouter: RootRouter,
     private val connectionManager: ConnectionManager,
     private val networkStateMixin: NetworkStateMixin
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
@@ -26,10 +28,10 @@ class RootViewModel(
     }
 
     private fun observeAllowedToConnect() {
-        disposables += connectionManager.observeAllowedToConnect()
+        disposables += connectionManager.observeLifecycleCondition()
             .distinctUntilChanged()
-            .subscribe { allowed ->
-                if (allowed) {
+            .subscribe { lifecycleCondition ->
+                if (lifecycleCondition == LifecycleCondition.ALLOWED) {
                     bindConnectionToNode()
                 } else {
                     unbindConnection()
@@ -65,12 +67,30 @@ class RootViewModel(
     override fun onCleared() {
         super.onCleared()
 
+        connectionManager.setLifecycleCondition(LifecycleCondition.FORBIDDEN)
+    }
+
+    fun noticeInBackground() {
         if (!willBeClearedForLanguageChange) {
-            connectionManager.setAllowedToConnect(false)
+            connectionManager.setLifecycleCondition(LifecycleCondition.STOPPED)
+        }
+    }
+
+    fun noticeInForeground() {
+        if (connectionManager.getLifecycleCondition() == LifecycleCondition.STOPPED) {
+            connectionManager.setLifecycleCondition(LifecycleCondition.ALLOWED)
         }
     }
 
     fun noticeLanguageLanguage() {
         willBeClearedForLanguageChange = true
+    }
+
+    fun restoredAfterConfigChange() {
+        if (willBeClearedForLanguageChange) {
+            rootRouter.returnToMain()
+
+            willBeClearedForLanguageChange = false
+        }
     }
 }

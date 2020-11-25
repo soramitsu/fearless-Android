@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/exportJsonConfirmToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:titleText="Export account" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="24dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/exportJsonConfirmType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                app:enabled="false"
+                app:label="@string/recovery_source_type"
+                app:message="@string/recovery_json" />
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/exportJsonConfirmValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:enabled="false"
+                app:label="@string/recovery_json"
+                tools:message="{“address”:”Gerfdad...DJWIdjawIdjWd”}" />
+
+            <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
+                android:id="@+id/exportJsonConfirmAdvanced"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </ScrollView>
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/exportJsonConfirmChangePassword"
+        style="@style/Widget.Fearless.Button.Outline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/account_export_password_change" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/exportJsonConfirmExport"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        android:text="@string/account_export_action" />
+</LinearLayout>

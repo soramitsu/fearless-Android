@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/black"
     android:fitsSystemWindows="true">
 
-    <jp.co.soramitsu.common.base.Toolbar
+    <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -35,125 +35,33 @@
             android:fitsSystemWindows="true"
             android:orientation="vertical">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <jp.co.soramitsu.common.view.LabeledTextView
                 android:id="@+id/sourceTypeInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/x2"
                 android:layout_marginTop="@dimen/x2"
                 android:layout_marginEnd="@dimen/x2"
-                android:background="@drawable/bg_input_shape_selector"
-                android:orientation="vertical"
-                android:paddingStart="@dimen/x2"
-                android:paddingTop="@dimen/x1"
-                android:paddingEnd="@dimen/x2"
-                android:paddingBottom="@dimen/x1">
-
-                <TextView
-                    android:id="@+id/sourceTypeTitle"
-                    style="@style/TextAppearance.Soramitsu.Body2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="@string/recovery_source_type"
-                    android:textColor="@color/colorHint"
-                    app:layout_constraintEnd_toStartOf="@id/icon"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/sourceTypeText"
-                    style="@style/TextAppearance.Soramitsu.Body1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="@string/recovery_passphrase"
-                    android:textColor="@color/white"
-                    app:layout_constraintEnd_toStartOf="@id/icon"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/sourceTypeTitle" />
-
-                <ImageView
-                    android:id="@+id/icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_pin_white_24"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/sourceTypeTitle"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/jsonFileInput"
-                style="@style/Widget.Fearless.Input.Primary.External"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/x2"
-                android:layout_marginTop="@dimen/x2"
-                android:layout_marginEnd="@dimen/x2"
-                android:orientation="vertical"
-                android:paddingStart="@dimen/x2"
-                android:paddingTop="@dimen/x1"
-                android:paddingEnd="@dimen/x2"
-                android:paddingBottom="@dimen/x1"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/jsonFileInputTitle"
-                    style="@style/TextAppearance.Soramitsu.Body2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="@string/recovery_json"
-                    android:textColor="@color/colorHint"
-                    app:layout_constraintEnd_toStartOf="@id/jsonFileIcon"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <EditText
-                    android:id="@+id/jsonFileEt"
-                    style="@style/TextAppearance.Soramitsu.Body1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:background="@null"
-                    android:hint="@string/recover_json_hint"
-                    android:lines="1"
-                    android:textColor="@color/white"
-                    android:textColorHint="@color/colorHint"
-                    app:layout_constraintEnd_toStartOf="@id/jsonFileIcon"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/jsonFileInputTitle" />
-
-                <ImageView
-                    android:id="@+id/jsonFileIcon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_file_upload"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/jsonFileEt"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                app:actionIcon="@drawable/ic_pin_white_24"
+                app:label="@string/recovery_source_type"
+                tools:message="Mnemonic" />
 
             <FrameLayout
-                tools:layout_height="200dp"
+                android:id="@+id/sourceTypeContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/x2"
                 android:layout_marginTop="@dimen/x2"
                 android:layout_marginEnd="@dimen/x2"
                 android:animateLayoutChanges="true"
                 tools:background="@drawable/bg_big_input_shape"
-                android:id="@+id/sourceTypeContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                tools:layout_height="200dp" />
 
             <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/advancedBlockView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/x2"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/mnemonicRv" />
+                android:layout_marginTop="@dimen/x2" />
 
         </LinearLayout>
 
