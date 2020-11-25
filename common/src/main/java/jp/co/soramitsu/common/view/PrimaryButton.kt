@@ -6,8 +6,15 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.lifecycle.LifecycleOwner
 import com.github.razir.progressbutton.bindProgressButton
 import com.github.razir.progressbutton.hideProgress
+import com.github.razir.progressbutton.isProgressActive
 import com.github.razir.progressbutton.showProgress
 import jp.co.soramitsu.common.R
+
+enum class ButtonState(val viewEnabled: Boolean) {
+    NORMAL(true),
+    DISABLED(false),
+    PROGRESS(false)
+}
 
 class PrimaryButton @JvmOverloads constructor(
     context: Context,
@@ -17,12 +24,6 @@ class PrimaryButton @JvmOverloads constructor(
 
     private var cachedText: String? = null
 
-    enum class State(val viewEnabled: Boolean) {
-        NORMAL(true),
-        DISABLED(false),
-        PROGRESS(false)
-    }
-
     private var preparedForProgress = false
 
     fun prepareForProgress(lifecycleOwner: LifecycleOwner) {
@@ -31,10 +32,10 @@ class PrimaryButton @JvmOverloads constructor(
         preparedForProgress = true
     }
 
-    fun setState(state: State) {
+    fun setState(state: ButtonState) {
         isEnabled = state.viewEnabled
 
-        if (state == State.PROGRESS) {
+        if (state == ButtonState.PROGRESS) {
             checkPreparedForProgress()
 
             showProgress()
@@ -50,12 +51,14 @@ class PrimaryButton @JvmOverloads constructor(
     }
 
     private fun hideProgress() {
-        cachedText?.let {
-            hideProgress(it)
+        if (isProgressActive()) {
+            hideProgress(cachedText)
         }
     }
 
     private fun showProgress() {
+        if (isProgressActive()) return
+
         cachedText = text.toString()
 
         showProgress {
