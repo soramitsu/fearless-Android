@@ -26,7 +26,7 @@ interface WalletRepository {
 
     fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>>
 
-    fun getContacts(query: String): Single<List<String>>
+    fun getContacts(query: String): Single<Set<String>>
 
     fun getTransferFee(transfer: Transfer): Single<Fee>
 
