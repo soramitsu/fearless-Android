@@ -86,7 +86,7 @@
     <string name="recovery_json">JSON для восстановления</string>
     <string name="account_import_password_placeholder">Пароль</string>
     <string name="common_error_general_message">Мы уже решаем проблему. Пожалуйста, попробуйте позже.</string>
-    <string name="recover_json_hint">Вставьте json строку или загрузите из файла файл ...</string>
+    <string name="recover_json_hint">Вставьте json строку или загрузите файл...</string>
     <string name="account_confirmation_title">Подтверждение</string>
     <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
     <string name="pincode_fingerprint_error">Вы не авторизованы. Попробуйте другой палец.</string>
