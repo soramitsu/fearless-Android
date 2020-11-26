@@ -116,6 +116,6 @@ class AccountDetailsViewModel(
             is ExportSource.Mnemonic -> accountRouter.openExportMnemonic(accountAddress)
         }
 
-        accountRouter.withPincodeCheckRequired(destination, pincodeTitleRes = R.string.account_export)
+        accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 }

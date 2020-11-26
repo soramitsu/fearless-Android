@@ -78,7 +78,7 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_open_main)
     }
 
-    override fun openAfterPincode(delayedNavigation: DelayedNavigation) {
+    override fun openAfterPinCode(delayedNavigation: DelayedNavigation) {
         require(delayedNavigation is NavComponentDelayedNavigation)
 
         val navOptions = NavOptions.Builder()
@@ -283,15 +283,15 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_mainFragment_to_pinCodeFragment, bundle)
     }
 
-    override fun withPincodeCheckRequired(
+    override fun withPinCodeCheckRequired(
         delayedNavigation: DelayedNavigation,
         createMode: Boolean,
-        pincodeTitleRes: Int?
+        pinCodeTitleRes: Int?
     ) {
         val action = if (createMode) {
             PinCodeAction.Create(delayedNavigation)
         } else {
-            PinCodeAction.Check(delayedNavigation, ToolbarConfiguration(pincodeTitleRes, true))
+            PinCodeAction.Check(delayedNavigation, ToolbarConfiguration(pinCodeTitleRes, true))
         }
 
         val extras = PincodeFragment.getPinCodeBundle(action)
