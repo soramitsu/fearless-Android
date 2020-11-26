@@ -15,7 +15,7 @@ interface TransactionFilter {
 interface TransactionHistoryUi {
     val transactionsLiveData: LiveData<List<Any>>
 
-    fun shouldLoadPage()
+    fun scrolled(currentIndex: Int)
 
     fun syncFirstTransactionsPage()
 
