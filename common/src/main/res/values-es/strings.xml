@@ -203,4 +203,5 @@
     <string name="invoice_scan_error_no_info">QR no se puede decodificar</string>
     <string name="common_options_title">Seleccione una opción</string>
     <string name="pincode_title_create">Configurar código pin</string>
+    <string name="pincode_confirm_your_pin_code_v1_0_1">Confirmar el código pin</string>
 </resources>

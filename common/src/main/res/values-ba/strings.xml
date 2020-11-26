@@ -205,4 +205,5 @@
     <string name="invoice_scan_error_no_info">QR уҡырға мөмкин түгел</string>
     <string name="common_options_title">Hайлағыҙ</string>
     <string name="pincode_title_create">Установить пин-код</string>
+    <string name="pincode_confirm_your_pin_code_v1_0_1">Подтвердите пин-код</string>
 </resources>

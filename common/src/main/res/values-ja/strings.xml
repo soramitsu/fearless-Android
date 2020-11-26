@@ -203,4 +203,5 @@
     <string name="invoice_scan_error_no_info">QR をデコードできません</string>
     <string name="common_options_title">選択肢一つを選択してください</string>
     <string name="pincode_title_create">セットアップピンコード</string>
+    <string name="pincode_confirm_your_pin_code_v1_0_1">PINコードを確認する</string>
 </resources>

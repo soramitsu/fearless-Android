@@ -77,7 +77,7 @@ class PinCodeViewModel(
     }
 
     private fun tempCodeEntered(pin: String) {
-        _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_confirm_your_pin_code))
+        _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_confirm_your_pin_code_v1_0_1))
         _homeButtonVisibilityLiveData.value = true
         currentState = ScreenState.Confirmation(pin)
     }
