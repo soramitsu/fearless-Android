@@ -35,7 +35,7 @@
         android:layout_marginTop="16dp"
         android:visibility="visible"
         android:overScrollMode="never"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layoutManager="jp.co.soramitsu.common.view.recyclerview.LinearLayoutManagerFixed"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
