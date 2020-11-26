@@ -71,7 +71,7 @@ class PinCodeViewModel(
     fun pinCodeEntered(pin: String) {
         when (currentState) {
             is ScreenState.Creating -> tempCodeEntered(pin)
-            is ScreenState.Confirmation -> matchPincodeWithCodeToConfirm(pin, (currentState as ScreenState.Confirmation).codeToConfirm)
+            is ScreenState.Confirmation -> matchPinCodeWithCodeToConfirm(pin, (currentState as ScreenState.Confirmation).codeToConfirm)
             is ScreenState.Checking -> checkPinCode(pin)
         }
     }
@@ -82,7 +82,7 @@ class PinCodeViewModel(
         currentState = ScreenState.Confirmation(pin)
     }
 
-    private fun matchPincodeWithCodeToConfirm(pinCode: String, codeToConfirm: String) {
+    private fun matchPinCodeWithCodeToConfirm(pinCode: String, codeToConfirm: String) {
         if (codeToConfirm == pinCode) {
             registerPinCode(pinCode)
         } else {
@@ -154,8 +154,8 @@ class PinCodeViewModel(
 
     private fun authSuccess() {
         when (pinCodeAction) {
-            is PinCodeAction.Create -> router.openAfterPincode(pinCodeAction.delayedNavigation)
-            is PinCodeAction.Check -> router.openAfterPincode(pinCodeAction.delayedNavigation)
+            is PinCodeAction.Create -> router.openAfterPinCode(pinCodeAction.delayedNavigation)
+            is PinCodeAction.Check -> router.openAfterPinCode(pinCodeAction.delayedNavigation)
             is PinCodeAction.Change -> {
                 when (currentState) {
                     is ScreenState.Checking -> {

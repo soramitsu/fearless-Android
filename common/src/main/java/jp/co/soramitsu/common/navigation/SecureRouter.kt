@@ -9,11 +9,11 @@ interface DelayedNavigation : Parcelable
 
 interface SecureRouter {
 
-    fun withPincodeCheckRequired(
+    fun withPinCodeCheckRequired(
         delayedNavigation: DelayedNavigation,
         createMode: Boolean = false,
-        pincodeTitleRes: Int? = null
+        pinCodeTitleRes: Int? = null
     )
 
-    fun openAfterPincode(delayedNavigation: DelayedNavigation)
+    fun openAfterPinCode(delayedNavigation: DelayedNavigation)
 }
