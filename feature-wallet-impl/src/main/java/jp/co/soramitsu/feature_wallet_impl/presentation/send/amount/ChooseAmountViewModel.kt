@@ -16,20 +16,23 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.Optional
-import jp.co.soramitsu.common.utils.asOptionalLiveData
 import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapExcludingNull
 import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 
 private const val AVATAR_SIZE_DP = 24
@@ -65,8 +68,7 @@ class ChooseAmountViewModel(
     private val _feeErrorLiveData = MutableLiveData<Event<RetryReason>>()
     val feeErrorLiveData = _feeErrorLiveData
 
-    private val _checkingEnoughFundsLiveData = MutableLiveData<Boolean>(false)
-    val checkingEnoughFundsLiveData = _checkingEnoughFundsLiveData
+    private val checkingEnoughFundsLiveData = MutableLiveData<Boolean>(false)
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<TransferDraft>>()
     val showBalanceDetailsEvent: LiveData<Event<TransferDraft>> = _showBalanceDetailsEvent
@@ -74,20 +76,30 @@ class ChooseAmountViewModel(
     private val _showAccountRemovalWarning = MutableLiveData<Event<Unit>>()
     val showAccountRemovalWarning: LiveData<Event<Unit>> = _showAccountRemovalWarning
 
-    val continueEnabledLiveData = combine(
-        feeLoadingLiveData,
-        feeLiveData,
-        checkingEnoughFundsLiveData,
-        amountRawLiveData
-    ) { (feeLoading: Boolean, fee: Fee?, checkingFunds: Boolean, amountRaw: String) ->
-        !feeLoading && fee != null && fee.transferAmount != BigDecimal.ZERO && !checkingFunds && amountRaw.isNotEmpty()
-    }
-
     val assetLiveData = currentAssetObservable
         .subscribeOn(Schedulers.io())
         .map(::mapAssetToAssetModel)
         .observeOn(AndroidSchedulers.mainThread())
         .asLiveData()
+
+    private val minimumPossibleAmountLiveData = assetLiveData.map {
+        it.token.amountFromPlanks(BigInteger.ONE)
+    }
+
+    val continueButtonStateLiveData = combine(
+        feeLoadingLiveData,
+        feeLiveData,
+        checkingEnoughFundsLiveData,
+        amountRawLiveData,
+        minimumPossibleAmountLiveData
+    ) { (feeLoading: Boolean, fee: Fee?, checkingFunds: Boolean, amountRaw: String, minimumPossibleAmount: BigDecimal) ->
+        when {
+            feeLoading || checkingFunds -> ButtonState.PROGRESS
+            fee != null && fee.transferAmount >= minimumPossibleAmount
+                && amountRaw.isNotEmpty() -> ButtonState.NORMAL
+            else -> ButtonState.DISABLED
+        }
+    }
 
     fun nextClicked() {
         checkEnoughFunds()
@@ -158,14 +170,14 @@ class ChooseAmountViewModel(
     private fun checkEnoughFunds() {
         val fee = feeLiveData.value ?: return
 
-        _checkingEnoughFundsLiveData.value = true
+        checkingEnoughFundsLiveData.value = true
 
         disposables += currentAssetObservable.firstOrError()
             .subscribeOn(Schedulers.io())
             .map { Transfer(recipientAddress, fee.transferAmount, it.token) }
             .flatMap(interactor::checkEnoughAmountForTransfer)
             .observeOn(AndroidSchedulers.mainThread())
-            .doFinally { _checkingEnoughFundsLiveData.value = false }
+            .doFinally { checkingEnoughFundsLiveData.value = false }
             .subscribe({
                 processHasEnoughFunds(it)
             }, {

@@ -58,9 +58,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun initViews() {
         transfersContainer.initializeBehavior(anchorView = balanceDetailContent)
 
-        transfersContainer.setPageLoadListener {
-            viewModel.shouldLoadPage()
-        }
+        transfersContainer.setScrollingListener(viewModel::scrolled)
 
         transfersContainer.setSlidingStateListener(::setRefreshEnabled)
 

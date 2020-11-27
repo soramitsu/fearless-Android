@@ -47,6 +47,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         confirmTransferToolbar.setHomeButtonListener { viewModel.backClicked() }
 
         confirmTransferSubmit.setOnClickListener { viewModel.submitClicked() }
+        confirmTransferSubmit.prepareForProgress(viewLifecycleOwner)
 
         confirmTransferBalanceLabel.setOnClickListener { viewModel.availableBalanceClicked() }
     }
@@ -96,12 +97,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
             confirmTransferRecipientView.setMessage(it.address)
         }
 
-        viewModel.transferSubmittingLiveData.observe { submitting ->
-            val text = if (submitting) R.string.wallet_send_progress else R.string.wallet_send_confirm_transfer
-
-            confirmTransferSubmit.isEnabled = !submitting
-            confirmTransferSubmit.setText(text)
-        }
+        viewModel.sendButtonStateLiveData.observe(confirmTransferSubmit::setState)
 
         viewModel.showBalanceDetailsEvent.observeEvent {
             val asset = viewModel.assetLiveData.value!!

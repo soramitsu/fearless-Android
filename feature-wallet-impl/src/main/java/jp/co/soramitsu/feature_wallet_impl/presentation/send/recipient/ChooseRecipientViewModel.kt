@@ -132,18 +132,14 @@ class ChooseRecipientViewModel(
 
     private fun formSearchResults(address: String): Single<List<Any>> {
         return interactor.validateSendAddress(address).flatMap { isValidAddress ->
-            interactor.getContacts(address).flatMap { contacts ->
-                interactor.getMyAddresses(address).flatMap { myAccounts ->
-                    val contactsWithoutMyAccounts = contacts.toSet() - myAccounts.toSet()
+            interactor.getRecipients(address).flatMap { searchResult ->
+                val resultWithHeader = maybeAppendResultHeader(isValidAddress, address)
+                val myAccountsWithHeader = generateModelsWithHeader(R.string.search_header_my_accounts, searchResult.myAccounts)
+                val contactsWithHeader = generateModelsWithHeader(R.string.search_contacts, searchResult.contacts)
 
-                    val resultWithHeader = maybeAppendResultHeader(isValidAddress, address)
-                    val myAccountsWithHeader = generateModelsWithHeader(R.string.search_header_my_accounts, myAccounts)
-                    val contactsWithHeader = generateModelsWithHeader(R.string.search_contacts, contactsWithoutMyAccounts.toList())
+                val result = resultWithHeader + myAccountsWithHeader + contactsWithHeader
 
-                    val result = resultWithHeader + myAccountsWithHeader + contactsWithHeader
-
-                    result.zipSimilar()
-                }
+                result.zipSimilar()
             }
         }
     }

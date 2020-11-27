@@ -1,18 +1,19 @@
 package jp.co.soramitsu.feature_account_impl.presentation
 
+import jp.co.soramitsu.common.navigation.DelayedNavigation
+import jp.co.soramitsu.common.navigation.PinRequired
+import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 
-interface AccountRouter {
+interface AccountRouter : SecureRouter {
 
     fun backToCreateAccountScreen()
 
     fun backToWelcomeScreen()
 
     fun openMain()
-
-    fun openDestination(destination: Int)
 
     fun openCreatePincode()
 
@@ -50,17 +51,20 @@ interface AccountRouter {
 
     fun createAccountForNetworkType(networkType: Node.NetworkType)
 
-    fun openExportMnemonic(accountAddress: String)
+    @PinRequired
+    fun openExportMnemonic(accountAddress: String): DelayedNavigation
 
-    fun openExportSeed(accountAddress: String)
+    @PinRequired
+    fun openExportSeed(accountAddress: String): DelayedNavigation
+
+    @PinRequired
+    fun openExportJsonPassword(accountAddress: String): DelayedNavigation
 
     fun openConfirmMnemonicOnExport(mnemonic: List<String>)
 
-    fun openExportJsonPassword(accountAddress: String)
+    fun openExportJsonConfirm(payload: ExportJsonConfirmPayload)
 
     fun returnToMain()
-
-    fun openExportJsonConfirm(payload: ExportJsonConfirmPayload)
 
     fun finishExportFlow()
 

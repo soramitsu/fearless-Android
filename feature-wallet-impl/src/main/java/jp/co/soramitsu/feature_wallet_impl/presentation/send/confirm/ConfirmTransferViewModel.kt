@@ -9,7 +9,9 @@ import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotEnoughFundsException
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -35,7 +37,14 @@ class ConfirmTransferViewModel(
     val recipientModel = getAddressIcon().asLiveData()
 
     private val _transferSubmittingLiveData = MutableLiveData(false)
-    val transferSubmittingLiveData: LiveData<Boolean> = _transferSubmittingLiveData
+
+    val sendButtonStateLiveData = _transferSubmittingLiveData.map { submitting ->
+        if (submitting) {
+            ButtonState.PROGRESS
+        } else {
+            ButtonState.NORMAL
+        }
+    }
 
     val assetLiveData = interactor.observeAsset(transferDraft.token)
         .subscribeOn(Schedulers.io())

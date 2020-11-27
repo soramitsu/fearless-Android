@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="pincode_confirm_your_pin_code_v1_0_1">Confirm pin code</string>
+    <string name="pincode_title_create">Setup pin code</string>
+
     <string name="common_share">Share</string>
 
     <string name="export_seed_with_derivation" formatted="false">Network: %s\nSeed: %s\nDerivation path: %s</string>
@@ -110,14 +113,13 @@
     <string name="recover_json_hint">Paste json or upload file...</string>
     <string name="account_confirmation_title">Confirm mnemonic</string>
     <string name="account_confirmation_details">Choose words in the right order</string>
-    <string name="pincode_create_top_title">Create pin code</string>
     <string name="pincode_fingerprint_error">You are not authorized. Try another finger.</string>
     <string name="pincode_touch_fingerprint_scanner">Touch the fingerprint scanner</string>
     <string name="pincode_fingerprint_switch_dialog_title">Use biometric to authorize</string>
     <string name="profile_title">Account</string>
     <string name="profile_accounts_title">Accounts</string>
     <string name="profile_network_title">Networks</string>
-    <string name="profile_pincode_change_title">Change pin-code</string>
+    <string name="profile_pincode_change_title">Change pin code</string>
     <string name="tabbar_profile_title">Profile</string>
     <string name="pincode_biometry_dialog_title">Biometry</string>
     <string name="common_edit">Edit</string>

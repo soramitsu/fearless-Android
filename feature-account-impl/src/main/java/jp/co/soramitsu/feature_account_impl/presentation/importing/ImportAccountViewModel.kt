@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.switchMap
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
@@ -31,10 +32,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
 
 typealias ImportSourceSelectorPayload = SourceTypeChooserPayload<ImportSource>
-
-enum class ButtonState {
-    ENABLED, DISABLED, PROGRESS
-}
 
 class ImportAccountViewModel(
     private val interactor: AccountInteractor,
@@ -72,7 +69,7 @@ class ImportAccountViewModel(
     val nextButtonState = nextButtonEnabledLiveData.combine(importInProgressLiveData) { enabled, inProgress ->
         when {
             inProgress -> ButtonState.PROGRESS
-            enabled -> ButtonState.ENABLED
+            enabled -> ButtonState.NORMAL
             else -> ButtonState.DISABLED
         }
     }

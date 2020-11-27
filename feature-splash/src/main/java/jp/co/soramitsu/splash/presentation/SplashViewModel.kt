@@ -30,9 +30,9 @@ class SplashViewModel(
 
                 if (isSelected) {
                     if (repository.isCodeSet()) {
-                        router.openCheckPin()
+                        router.openInitialCheckPincode()
                     } else {
-                        router.openCreatePin()
+                        router.openCreatePincode()
                     }
                 } else {
                     router.openAddFirstAccount()

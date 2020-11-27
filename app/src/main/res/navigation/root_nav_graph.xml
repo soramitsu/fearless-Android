@@ -20,6 +20,14 @@
         app:popUpToInclusive="true" />
 
     <action
+        android:id="@+id/open_pincode_check"
+        app:destination="@+id/pincodeFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <action
         android:id="@+id/openPrivacy"
         app:destination="@id/privacyFragment"
         app:enterAnim="@anim/fragment_open_enter"
@@ -51,14 +59,6 @@
         <action
             android:id="@+id/action_splash_to_pin"
             app:destination="@id/pincodeFragment"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            app:popUpTo="@id/splashFragment"
-            app:popUpToInclusive="true" />
-
-        <action
-            android:id="@+id/action_splash_to_main"
-            app:destination="@id/main_nav_graph"
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit"
             app:popUpTo="@id/splashFragment"

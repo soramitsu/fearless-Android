@@ -89,7 +89,6 @@
     <string name="recover_json_hint">Incolla json o carica il file ...</string>
     <string name="account_confirmation_title">Conferma mnemonico</string>
     <string name="account_confirmation_details">Scegli le parole nell\'ordine giusto</string>
-    <string name="pincode_create_top_title">Crea codice PIN</string>
     <string name="pincode_fingerprint_error">Non sei autorizzato. Prova un altro dito.</string>
     <string name="pincode_touch_fingerprint_scanner">Tocca lo scanner di impronte digitali</string>
     <string name="pincode_fingerprint_switch_dialog_title">Usa la biometria per autorizzare</string>
@@ -203,4 +202,6 @@
     <string name="contacts_scan">Scansiona il codice QR</string>
     <string name="invoice_scan_error_no_info">Il QR non può essere decodificato</string>
     <string name="common_options_title">Seleziona un\'opzione</string>
+    <string name="pincode_title_create">Imposta codice pin</string>
+    <string name="pincode_confirm_your_pin_code_v1_0_1">Conferma il codice PIN</string>
 </resources>

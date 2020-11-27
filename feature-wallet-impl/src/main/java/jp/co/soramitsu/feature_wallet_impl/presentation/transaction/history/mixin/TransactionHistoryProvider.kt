@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -23,6 +22,9 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mode
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 
 private const val PAGE_SIZE = 20
+
+private const val SCROLL_OFFSET = PAGE_SIZE
+
 private const val ICON_SIZE_DP = 32
 
 class TransactionHistoryProvider(
@@ -33,8 +35,7 @@ class TransactionHistoryProvider(
 
     override val transferHistoryDisposable = CompositeDisposable()
 
-    private val _transactionsLiveData: MutableLiveData<List<Any>> = MutableLiveData()
-    override val transactionsLiveData: LiveData<List<Any>> = _transactionsLiveData
+    override val transactionsLiveData = MutableLiveData<List<Any>>()
 
     private var transactionsErrorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
     private var transactionsSyncedInterceptor: Interceptor? = null
@@ -59,8 +60,12 @@ class TransactionHistoryProvider(
         transactionsSyncedInterceptor = interceptor
     }
 
-    override fun shouldLoadPage() {
-        maybeLoadNewPage()
+    override fun scrolled(currentIndex: Int) {
+        val currentSize = transactionsLiveData.value?.size ?: return
+
+        if (currentIndex >= currentSize - SCROLL_OFFSET) {
+            maybeLoadNewPage()
+        }
     }
 
     override fun addFilter(filter: TransactionFilter) {
@@ -71,7 +76,7 @@ class TransactionHistoryProvider(
             .map { list -> list.filter(filters) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                _transactionsLiveData.value = it
+                transactionsLiveData.value = it
             }, transactionsErrorHandler)
     }
 
@@ -101,7 +106,7 @@ class TransactionHistoryProvider(
             .flatMapSingle { transformNewPage(it, true) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                _transactionsLiveData.value = it
+                transactionsLiveData.value = it
                 isLoading = false
                 currentPage = 0
             }, transactionsErrorHandler)
@@ -119,7 +124,7 @@ class TransactionHistoryProvider(
             .flatMap { transformNewPage(it, false) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                _transactionsLiveData.value = it
+                transactionsLiveData.value = it
                 isLoading = false
             }, {
                 rollbackPageLoading()

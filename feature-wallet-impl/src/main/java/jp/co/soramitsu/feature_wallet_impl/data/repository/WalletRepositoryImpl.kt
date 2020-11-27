@@ -104,9 +104,9 @@ class WalletRepositoryImpl(
             .flatMap { getTransactionPage(pageSize, page, it) }
     }
 
-    override fun getContacts(query: String): Single<List<String>> {
-        return accountRepository.getSelectedAccount().flatMap {
-            transactionsDao.getContacts(query, it.address)
+    override fun getContacts(query: String): Single<Set<String>> {
+        return accountRepository.getSelectedAccount().flatMap { account ->
+            transactionsDao.getContacts(query, account.address).map { it.toSet() }
         }
     }
 

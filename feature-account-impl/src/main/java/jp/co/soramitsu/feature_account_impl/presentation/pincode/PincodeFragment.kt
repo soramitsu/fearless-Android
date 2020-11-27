@@ -5,19 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.interfaces.BackButtonListener
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
-import kotlinx.android.synthetic.main.fragment_import_account.toolbar
 import kotlinx.android.synthetic.main.fragment_pincode.pinCodeView
+import kotlinx.android.synthetic.main.fragment_pincode.toolbar
 import javax.inject.Inject
 
-class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
+class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
     companion object {
         private const val KEY_PINCODE_ACTION = "pincode_action"
@@ -30,6 +30,12 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     }
 
     @Inject lateinit var fingerprintWrapper: FingerprintWrapper
+
+    private val backCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            viewModel.backPressed()
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_pincode, container, false)
@@ -45,6 +51,8 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     }
 
     override fun initViews() {
+        requireActivity().onBackPressedDispatcher.addCallback(this, backCallback)
+
         toolbar.setHomeButtonListener { viewModel.backPressed() }
 
         viewModel.fingerprintScannerAvailable(fingerprintWrapper.isAuthReady())
@@ -56,6 +64,10 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     }
 
     override fun subscribe(viewModel: PinCodeViewModel) {
+        viewModel.pinCodeAction.toolbarConfiguration.titleRes?.let {
+            toolbar.setTitle(getString(it))
+        }
+
         viewModel.startFingerprintScannerEventLiveData.observeEvent {
             if (fingerprintWrapper.isAuthReady()) {
                 fingerprintWrapper.startAuth()
@@ -109,9 +121,5 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>(), BackButtonListener {
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
-    }
-
-    override fun onBackButtonPressed() {
-        viewModel.backPressed()
     }
 }

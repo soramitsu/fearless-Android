@@ -117,6 +117,7 @@
                 android:layout_marginTop="16dp"
                 android:hint="@string/common_amount"
                 android:text="@string/choose_amount_initial"
+                android:inputType="numberDecimal"
                 app:layout_constraintEnd_toEndOf="@+id/chooseAmountRecipientView"
                 app:layout_constraintStart_toStartOf="@+id/chooseAmountRecipientView"
                 app:layout_constraintTop_toBottomOf="@+id/chooseAmountDivider2" />

@@ -41,9 +41,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         transfersContainer.initializeBehavior(anchorView = balanceListContent)
 
-        transfersContainer.setPageLoadListener {
-            viewModel.shouldLoadPage()
-        }
+        transfersContainer.setScrollingListener(viewModel::scrolled)
 
         transfersContainer.setSlidingStateListener(this::setRefreshEnabled)
 

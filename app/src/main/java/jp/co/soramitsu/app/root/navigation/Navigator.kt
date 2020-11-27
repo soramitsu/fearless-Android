@@ -1,8 +1,12 @@
 package jp.co.soramitsu.app.root.navigation
 
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
+import androidx.navigation.NavOptions
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
+import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
@@ -19,6 +23,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.Confir
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfiguration
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
@@ -31,33 +36,34 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmount
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment
 import jp.co.soramitsu.splash.SplashRouter
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
+class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
 
 class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, RootRouter {
 
     private var navController: NavController? = null
+    private var activity: AppCompatActivity? = null
 
-    fun attachNavController(navController: NavController) {
+    fun attach(navController: NavController, activity: AppCompatActivity) {
         this.navController = navController
+        this.activity = activity
+    }
+
+    fun detach() {
+        navController = null
+        activity = null
     }
 
     override fun openAddFirstAccount() {
         navController?.navigate(R.id.action_splash_to_onboarding, WelcomeFragment.getBundle(false))
     }
 
-    override fun openCreatePin() {
-        val action = PinCodeAction.Create(R.id.action_open_main)
+    override fun openInitialCheckPincode() {
+        val action = PinCodeAction.Check(NavComponentDelayedNavigation(R.id.action_open_main), ToolbarConfiguration())
         val bundle = PincodeFragment.getPinCodeBundle(action)
         navController?.navigate(R.id.action_splash_to_pin, bundle)
-    }
-
-    override fun openCheckPin() {
-        val action = PinCodeAction.Check(R.id.action_open_main)
-        val bundle = PincodeFragment.getPinCodeBundle(action)
-        navController?.navigate(R.id.action_splash_to_pin, bundle)
-    }
-
-    override fun openMainScreen() {
-        navController?.navigate(R.id.action_splash_to_main)
     }
 
     override fun openCreateAccount(selectedNetworkType: Node.NetworkType?) {
@@ -72,14 +78,25 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_open_main)
     }
 
-    override fun openDestination(destination: Int) {
-        navController?.navigate(destination)
+    override fun openAfterPinCode(delayedNavigation: DelayedNavigation) {
+        require(delayedNavigation is NavComponentDelayedNavigation)
+
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(R.id.pincodeFragment, true)
+            .setEnterAnim(R.anim.fragment_open_enter)
+            .setExitAnim(R.anim.fragment_open_exit)
+            .setPopEnterAnim(R.anim.fragment_close_enter)
+            .setPopExitAnim(R.anim.fragment_close_exit)
+            .build()
+
+        navController?.navigate(delayedNavigation.globalActionId, delayedNavigation.extras, navOptions)
     }
 
     override fun openCreatePincode() {
-        val action = PinCodeAction.Create(R.id.action_open_main)
-        val bundle = PincodeFragment.getPinCodeBundle(action)
+        val bundle = buildCreatePinBundle()
+
         when (navController?.currentDestination?.id) {
+            R.id.splashFragment -> navController?.navigate(R.id.action_splash_to_pin, bundle)
             R.id.importAccountFragment -> navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment, bundle)
             R.id.confirmMnemonicFragment -> navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment, bundle)
         }
@@ -128,7 +145,11 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
     }
 
     override fun back() {
-        navController?.navigateUp()
+        val popped = navController!!.popBackStack()
+
+        if (!popped) {
+            activity!!.finish()
+        }
     }
 
     override fun openChooseRecipient() {
@@ -222,16 +243,16 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_nodes_to_onboarding, WelcomeFragment.getBundleWithNetworkType(true, networkType))
     }
 
-    override fun openExportMnemonic(accountAddress: String) {
+    override fun openExportMnemonic(accountAddress: String): DelayedNavigation {
         val extras = ExportMnemonicFragment.getBundle(accountAddress)
 
-        navController?.navigate(R.id.action_accountDetailsFragment_to_exportMnemonicFragment, extras)
+        return NavComponentDelayedNavigation(R.id.action_export_mnemonic, extras)
     }
 
-    override fun openExportSeed(accountAddress: String) {
+    override fun openExportSeed(accountAddress: String): DelayedNavigation {
         val extras = ExportSeedFragment.getBundle(accountAddress)
 
-        navController?.navigate(R.id.action_accountDetailsFragment_to_exportSeedFragment, extras)
+        return NavComponentDelayedNavigation(R.id.action_export_seed, extras)
     }
 
     override fun openConfirmMnemonicOnExport(mnemonic: List<String>) {
@@ -240,10 +261,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
     }
 
-    override fun openExportJsonPassword(accountAddress: String) {
+    override fun openExportJsonPassword(accountAddress: String): DelayedNavigation {
         val extras = ExportJsonPasswordFragment.getBundle(accountAddress)
 
-        navController?.navigate(R.id.action_accountDetailsFragment_to_exportJsonPasswordFragment, extras)
+        return NavComponentDelayedNavigation(R.id.action_export_json, extras)
     }
 
     override fun openExportJsonConfirm(payload: ExportJsonConfirmPayload) {
@@ -260,5 +281,27 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         val action = PinCodeAction.Change
         val bundle = PincodeFragment.getPinCodeBundle(action)
         navController?.navigate(R.id.action_mainFragment_to_pinCodeFragment, bundle)
+    }
+
+    override fun withPinCodeCheckRequired(
+        delayedNavigation: DelayedNavigation,
+        createMode: Boolean,
+        pinCodeTitleRes: Int?
+    ) {
+        val action = if (createMode) {
+            PinCodeAction.Create(delayedNavigation)
+        } else {
+            PinCodeAction.Check(delayedNavigation, ToolbarConfiguration(pinCodeTitleRes, true))
+        }
+
+        val extras = PincodeFragment.getPinCodeBundle(action)
+
+        navController?.navigate(R.id.open_pincode_check, extras)
+    }
+
+    private fun buildCreatePinBundle(): Bundle {
+        val delayedNavigation = NavComponentDelayedNavigation(R.id.action_open_main)
+        val action = PinCodeAction.Create(delayedNavigation)
+        return PincodeFragment.getPinCodeBundle(action)
     }
 }

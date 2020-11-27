@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.WithJson
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
 import jp.co.soramitsu.feature_account_api.domain.model.WithSeed
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
@@ -109,10 +110,12 @@ class AccountDetailsViewModel(
     }
 
     fun exportTypeSelected(selected: ExportSource) {
-        when (selected) {
+        val destination = when (selected) {
             is ExportSource.Json -> accountRouter.openExportJsonPassword(accountAddress)
             is ExportSource.Seed -> accountRouter.openExportSeed(accountAddress)
             is ExportSource.Mnemonic -> accountRouter.openExportMnemonic(accountAddress)
         }
+
+        accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 }

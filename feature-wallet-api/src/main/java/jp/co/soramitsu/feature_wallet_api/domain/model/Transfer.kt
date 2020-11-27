@@ -9,5 +9,5 @@ class Transfer(
     val token: Asset.Token
 ) {
 
-    val amountInPlanks: BigInteger = amount.scaleByPowerOfTen(token.mantissa).toBigIntegerExact()
+    val amountInPlanks: BigInteger = token.planksFromAmount(amount)
 }

@@ -89,14 +89,13 @@
     <string name="recover_json_hint">Вставити json або завантажити файл ...</string>
     <string name="account_confirmation_title">Підтвердіть мнемонічне</string>
     <string name="account_confirmation_details">Вибирайте слова в потрібному порядку</string>
-    <string name="pincode_create_top_title">Створення пін-коду</string>
     <string name="pincode_fingerprint_error">Ви не авторизовані. Спробуйте інший палець.</string>
     <string name="pincode_touch_fingerprint_scanner">Торкніться сканера відбитків пальців</string>
     <string name="pincode_fingerprint_switch_dialog_title">Використовуйте біометричні для авторизації</string>
     <string name="profile_title">Рахунок</string>
     <string name="profile_accounts_title">Рахунки</string>
     <string name="profile_network_title">Мережа</string>
-    <string name="profile_pincode_change_title">Зміна пін-коду</string>
+    <string name="profile_pincode_change_title">Зміна пін коду</string>
     <string name="tabbar_profile_title">Профіль</string>
     <string name="pincode_biometry_dialog_title">Біометрія</string>
     <string name="common_edit">Редагувати</string>
@@ -204,4 +203,6 @@
     <string name="contacts_scan">Сканувати QR</string>
     <string name="invoice_scan_error_no_info">Неможливо декодувати QR</string>
     <string name="common_options_title">Виберіть варіант</string>
+    <string name="pincode_title_create">Налаштування пін-коду</string>
+    <string name="pincode_confirm_your_pin_code_v1_0_1">Підтвердьте пін-код</string>
 </resources>

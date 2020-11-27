@@ -86,17 +86,16 @@
     <string name="recovery_json">JSON для восстановления</string>
     <string name="account_import_password_placeholder">Пароль</string>
     <string name="common_error_general_message">Мы уже решаем проблему. Пожалуйста, попробуйте позже.</string>
-    <string name="recover_json_hint">Вставьте json строку или загрузите из файла файл ...</string>
+    <string name="recover_json_hint">Вставьте json строку или загрузите файл...</string>
     <string name="account_confirmation_title">Подтверждение</string>
     <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
-    <string name="pincode_create_top_title">Новый пинкод</string>
     <string name="pincode_fingerprint_error">Вы не авторизованы. Попробуйте другой палец.</string>
     <string name="pincode_touch_fingerprint_scanner">Коснитесь сканера отпечатков пальцев</string>
     <string name="pincode_fingerprint_switch_dialog_title">Использовать биометрию для авторизации</string>
     <string name="profile_title">Аккаунт</string>
     <string name="profile_accounts_title">Аккаунты</string>
     <string name="profile_network_title">Сеть</string>
-    <string name="profile_pincode_change_title">Изменить пин-код</string>
+    <string name="profile_pincode_change_title">Изменить пин код</string>
     <string name="tabbar_profile_title">Профиль</string>
     <string name="pincode_biometry_dialog_title">Биометрия</string>
     <string name="common_edit">Редактировать</string>
@@ -204,4 +203,6 @@
     <string name="contacts_scan">Сканировать QR-код</string>
     <string name="invoice_scan_error_no_info">Не удается декодировать QR</string>
     <string name="common_options_title">Выберите опцию</string>
+    <string name="pincode_title_create">Установить пин-код</string>
+    <string name="pincode_confirm_your_pin_code_v1_0_1">Подтвердите пин-код</string>
 </resources>
