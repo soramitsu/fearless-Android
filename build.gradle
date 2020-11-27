@@ -33,7 +33,7 @@ buildscript {
 
         zXingVersion = '3.5.0'
 
-        navControllerVersion = '2.0.0-rc02'
+        navControllerVersion = '2.3.1'
 
         junitVersion = '4.12'
         mockitoVersion = '2.23.0'
