@@ -30,6 +30,7 @@ fun BigDecimal.formatAsToken(token: Asset.Token): String {
 fun BigDecimal.formatAsCurrency(): String {
     val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
     formatter.currency = Currency.getInstance(DOLLAR_CODE)
+    formatter.minimumFractionDigits = 0
 
     return formatter.format(this)
 }
