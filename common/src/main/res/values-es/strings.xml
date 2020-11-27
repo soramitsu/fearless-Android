@@ -205,4 +205,5 @@
     <string name="pincode_title_create">Configurar código pin</string>
     <string name="pincode_confirm_your_pin_code_v1_0_1">Confirmar el código pin</string>
     <string name="common_address">Habla a</string>
+    <string name="node_add">Agregar nodo</string>
 </resources>

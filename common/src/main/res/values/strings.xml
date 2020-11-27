@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="node_add">Add node</string>
+
     <string name="common_address">Address</string>
 
     <string name="pincode_confirm_your_pin_code_v1_0_1">Confirm pin code</string>

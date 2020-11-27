@@ -206,4 +206,5 @@
     <string name="pincode_title_create">Установить пин-код</string>
     <string name="pincode_confirm_your_pin_code_v1_0_1">Подтвердите пин-код</string>
     <string name="common_address">Адрес</string>
+    <string name="node_add">Добавить узел</string>
 </resources>
