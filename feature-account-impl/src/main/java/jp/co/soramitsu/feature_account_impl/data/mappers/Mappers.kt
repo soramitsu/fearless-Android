@@ -1,5 +1,6 @@
-package jp.co.soramitsu.feature_account_impl.presentation.common
+package jp.co.soramitsu.feature_account_impl.data.mappers
 
+import android.graphics.drawable.PictureDrawable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
@@ -39,8 +40,26 @@ fun mapCryptoTypeToCryptoTypeModel(
     return CryptoTypeModel(name, encryptionType)
 }
 
-fun mapAccountModelToAccount(accountModel: AccountModel, position: Int): Account {
+fun mapAccountModelToAccount(accountModel: AccountModel, position: Int = accountModel.position): Account {
     return with(accountModel) {
-        Account(address, name, publicKey, cryptoType, position, network)
+        Account(address, name, publicKey, cryptoTypeModel.cryptoType, position, network)
+    }
+}
+
+fun mapAccountToAccountModel(
+    account: Account,
+    accountIcon: PictureDrawable,
+    resourceManager: ResourceManager
+) : AccountModel {
+    return with(account) {
+        AccountModel(
+            address = address,
+            name = name,
+            image = accountIcon,
+            publicKey = publicKey,
+            position = position,
+            cryptoTypeModel = mapCryptoTypeToCryptoTypeModel(resourceManager, cryptoType),
+            network = network
+        )
     }
 }

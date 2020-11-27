@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.So
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsAddressView
+import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsEncryptionType
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsExport
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNode
@@ -71,6 +72,9 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
 
         viewModel.accountLiveData.observe { account ->
             accountDetailsAddressView.setMessage(account.address)
+            accountDetailsAddressView.setTextIcon(account.image)
+
+            accountDetailsEncryptionType.setMessage(account.cryptoTypeModel.name)
 
             accountDetailsNameField.content.setText(account.name)
 
