@@ -50,7 +50,7 @@ fun mapAccountToAccountModel(
     account: Account,
     accountIcon: PictureDrawable,
     resourceManager: ResourceManager
-) : AccountModel {
+): AccountModel {
     return with(account) {
         AccountModel(
             address = address,
