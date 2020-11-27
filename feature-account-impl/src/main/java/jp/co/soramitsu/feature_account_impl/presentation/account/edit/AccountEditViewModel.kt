@@ -90,6 +90,10 @@ class EditAccountsViewModel(
                 showError(it.message!!)
             })
     }
+
+    fun addAccountClicked() {
+        accountRouter.openAddAccount()
+    }
 }
 
 @UseExperimental(ExperimentalContracts::class)
