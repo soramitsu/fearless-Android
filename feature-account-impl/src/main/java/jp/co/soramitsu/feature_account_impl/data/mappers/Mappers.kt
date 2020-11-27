@@ -7,6 +7,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
@@ -61,5 +62,33 @@ fun mapAccountToAccountModel(
             cryptoTypeModel = mapCryptoTypeToCryptoTypeModel(resourceManager, cryptoType),
             network = network
         )
+    }
+}
+
+fun mapNodeToNodeModel(node: Node): NodeModel {
+    val networkModelType = when (node.networkType) {
+        Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
+        Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
+        Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
+    }
+
+    return with(node) {
+        NodeModel(
+            id = id,
+            name = name,
+            link = link,
+            networkModelType = networkModelType,
+            isDefault = isDefault)
+    }
+}
+
+fun mapNodeModelToNode(node: NodeModel): Node {
+    return with(node) {
+        Node(
+            id = id,
+            name = name,
+            link = link,
+            networkType = networkModelType.networkType,
+            isDefault = isDefault)
     }
 }
