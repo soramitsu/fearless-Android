@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="connection_delete_description_v1_0_1">Confirm %s, %s deletion.</string>
+
     <string name="node_add">Add node</string>
 
     <string name="common_address">Address</string>
