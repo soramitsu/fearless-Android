@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.utils.setDrawableStart
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -13,6 +14,7 @@ import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_node_details.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHostField
 import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNameField
+import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNetworkType
 import kotlinx.android.synthetic.main.fragment_node_details.nodeHostCopy
 import kotlinx.android.synthetic.main.fragment_node_details.updateBtn
 
@@ -61,9 +63,14 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
     }
 
     override fun subscribe(viewModel: NodeDetailsViewModel) {
-        viewModel.nodeLiveData.observe { node ->
+        viewModel.nodeModelLiveData.observe { node ->
             nodeDetailsNameField.content.setText(node.name)
             nodeDetailsHostField.content.setText(node.link)
+
+            with(node.networkModelType) {
+                nodeDetailsNetworkType.text = networkType.readableName
+                nodeDetailsNetworkType.setDrawableStart(icon)
+            }
         }
 
         viewModel.nameEditEnabled.observe { editEnabled ->

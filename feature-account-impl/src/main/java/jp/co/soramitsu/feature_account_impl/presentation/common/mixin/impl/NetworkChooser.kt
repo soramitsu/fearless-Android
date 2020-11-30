@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.utils.asMutableLiveData
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel

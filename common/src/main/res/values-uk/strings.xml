@@ -205,4 +205,8 @@
     <string name="common_options_title">Виберіть варіант</string>
     <string name="pincode_title_create">Налаштування пін-коду</string>
     <string name="pincode_confirm_your_pin_code_v1_0_1">Підтвердьте пін-код</string>
+    <string name="common_address">Адреса</string>
+    <string name="node_add">Додати вузол</string>
+    <string name="connection_delete_description_v1_0_1">Підтвердьте %s , %s видалення.</string>
+    <string name="network_info_address_v1_0_1">URL-адреса</string>
 </resources>

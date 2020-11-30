@@ -29,6 +29,8 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
         nodeHostField.content.bindTo(viewModel.nodeHostInputLiveData)
 
         addBtn.setOnClickListener { viewModel.addNodeClicked() }
+
+        addBtn.prepareForProgress(viewLifecycleOwner)
     }
 
     override fun inject() {
@@ -42,8 +44,6 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
     }
 
     override fun subscribe(viewModel: AddNodeViewModel) {
-        viewModel.addButtonEnabled.observe {
-            addBtn.isEnabled = it
-        }
+        viewModel.addButtonState.observe(addBtn::setState)
     }
 }

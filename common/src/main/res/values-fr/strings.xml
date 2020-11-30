@@ -205,4 +205,8 @@
     <string name="common_options_title">Sélectionner une option</string>
     <string name="pincode_title_create">Code PIN de configuration</string>
     <string name="pincode_confirm_your_pin_code_v1_0_1">Confirmer le code PIN</string>
+    <string name="common_address">Adresse</string>
+    <string name="node_add">Ajouter un nœud</string>
+    <string name="connection_delete_description_v1_0_1">Confirmer la suppression de %s , %s .</string>
+    <string name="network_info_address_v1_0_1">Adresse URL</string>
 </resources>

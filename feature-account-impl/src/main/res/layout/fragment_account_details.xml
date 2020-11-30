@@ -34,7 +34,7 @@
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
         app:enabled="false"
-        app:label="@string/account_address" />
+        app:label="@string/common_address" />
 
     <TextView
         android:id="@+id/accountDetailsNode"
@@ -51,6 +51,17 @@
         android:padding="16dp"
         tools:drawableStart="@drawable/ic_ksm_24"
         tools:text="Kusama" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/accountDetailsEncryptionType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:enabled="false"
+        app:label="@string/common_crypto_type"
+        app:message="@string/sr25519_selection_title" />
 
     <Space
         android:layout_width="match_parent"

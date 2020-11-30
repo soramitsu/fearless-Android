@@ -204,4 +204,8 @@
     <string name="common_options_title">Seleziona un\'opzione</string>
     <string name="pincode_title_create">Imposta codice pin</string>
     <string name="pincode_confirm_your_pin_code_v1_0_1">Conferma il codice PIN</string>
+    <string name="common_address">Indirizzo</string>
+    <string name="node_add">Aggiungi nodo</string>
+    <string name="connection_delete_description_v1_0_1">Conferma l\'eliminazione di %s , %s .</string>
+    <string name="network_info_address_v1_0_1">Indirizzo URL</string>
 </resources>

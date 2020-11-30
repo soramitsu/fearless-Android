@@ -206,4 +206,8 @@
     <string name="common_options_title">Hайлағыҙ</string>
     <string name="pincode_title_create">Установить пин-код</string>
     <string name="pincode_confirm_your_pin_code_v1_0_1">Подтвердите пин-код</string>
+    <string name="common_address">Адрес</string>
+    <string name="node_add">Добавить узел</string>
+    <string name="connection_delete_description_v1_0_1">Подтвердите удаление %s , %s .</string>
+    <string name="network_info_address_v1_0_1">URL-адрес</string>
 </resources>

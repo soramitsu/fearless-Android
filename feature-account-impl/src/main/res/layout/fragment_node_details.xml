@@ -23,7 +23,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:hint="@string/network_info_name" />
+        android:hint="@string/username_setup_choose_title" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -37,7 +37,8 @@
             style="@style/Widget.Fearless.Input.Primary.External"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="@string/network_info_address"
+            android:inputType="textWebEmailAddress|textNoSuggestions"
+            android:hint="@string/network_info_address_v1_0_1"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -60,6 +61,22 @@
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/nodeDetailsNetworkType"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_button_primary_disabled"
+        android:drawablePadding="8dp"
+        android:gravity="center_vertical"
+        android:includeFontPadding="false"
+        android:padding="16dp"
+        tools:drawableStart="@drawable/ic_ksm_24"
+        tools:text="Kusama" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/updateBtn"

@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="network_info_address_v1_0_1">URL address</string>
+
+    <string name="connection_delete_description_v1_0_1">Confirm %s, %s deletion.</string>
+
+    <string name="node_add">Add node</string>
+
+    <string name="common_address">Address</string>
+
     <string name="pincode_confirm_your_pin_code_v1_0_1">Confirm pin code</string>
     <string name="pincode_title_create">Setup pin code</string>
 

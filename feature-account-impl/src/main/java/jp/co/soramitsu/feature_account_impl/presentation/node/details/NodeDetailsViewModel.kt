@@ -11,10 +11,11 @@ import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.setValueIfNew
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeToNodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.NodeDetailsRootViewModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 
 class NodeDetailsViewModel(
     private val interactor: AccountInteractor,
@@ -25,10 +26,10 @@ class NodeDetailsViewModel(
     private val resourceManager: ResourceManager
 ) : NodeDetailsRootViewModel(resourceManager) {
 
-    val nodeLiveData = getNode(nodeId).asLiveData()
+    val nodeModelLiveData = getNode(nodeId).asLiveData()
 
-    val nameEditEnabled = nodeLiveData.map(::mapNodeNameEditState)
-    val hostEditEnabled = nodeLiveData.map(::mapNodeHostEditState)
+    val nameEditEnabled = nodeModelLiveData.map(::mapNodeNameEditState)
+    val hostEditEnabled = nodeModelLiveData.map(::mapNodeHostEditState)
 
     private val _updateButtonEnabled = MutableLiveData<Boolean>()
     val updateButtonEnabled: LiveData<Boolean> = _updateButtonEnabled
@@ -37,17 +38,18 @@ class NodeDetailsViewModel(
         router.back()
     }
 
-    private fun getNode(nodeId: Int): Single<Node> {
+    private fun getNode(nodeId: Int): Single<NodeModel> {
         return interactor.getNode(nodeId)
             .subscribeOn(Schedulers.io())
+            .map(::mapNodeToNodeModel)
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun mapNodeNameEditState(node: Node): Boolean {
+    private fun mapNodeNameEditState(node: NodeModel): Boolean {
         return !node.isDefault
     }
 
-    private fun mapNodeHostEditState(node: Node): Boolean {
+    private fun mapNodeHostEditState(node: NodeModel): Boolean {
         return !node.isDefault && !isSelected
     }
 
@@ -56,7 +58,7 @@ class NodeDetailsViewModel(
     }
 
     fun copyNodeHostClicked() {
-        nodeLiveData.value?.let {
+        nodeModelLiveData.value?.let {
             clipboardManager.addToClipboard(it.link)
 
             showMessage(resourceManager.getString(R.string.common_copied))

@@ -89,7 +89,12 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     }
 
     private fun showDeleteNodeDialog(nodeModel: NodeModel) {
-        val message = getString(R.string.connection_delete_description, nodeModel.name)
+        val message = getString(
+            R.string.connection_delete_description_v1_0_1,
+            nodeModel.networkModelType.networkType.readableName,
+            nodeModel.name
+        )
+
         MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
             .setTitle(R.string.connection_delete_title)
             .setMessage(message)
