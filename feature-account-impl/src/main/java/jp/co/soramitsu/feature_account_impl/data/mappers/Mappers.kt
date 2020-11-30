@@ -78,17 +78,7 @@ fun mapNodeToNodeModel(node: Node): NodeModel {
             name = name,
             link = link,
             networkModelType = networkModelType,
-            isDefault = isDefault)
-    }
-}
-
-fun mapNodeModelToNode(node: NodeModel): Node {
-    return with(node) {
-        Node(
-            id = id,
-            name = name,
-            link = link,
-            networkType = networkModelType.networkType,
-            isDefault = isDefault)
+            isDefault = isDefault
+        )
     }
 }
