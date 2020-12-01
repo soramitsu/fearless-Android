@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation.pincode
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
