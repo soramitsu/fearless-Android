@@ -89,14 +89,13 @@
     <string name="recover_json_hint">Json профилендә йәки загрузить файл...</string>
     <string name="account_confirmation_title">Подтверждение</string>
     <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
-    <string name="pincode_create_top_title">Новый пинкод</string>
     <string name="pincode_fingerprint_error">Һеҙ . Башҡа бармаҡты тейеп ҡарағыҙ.</string>
     <string name="pincode_touch_fingerprint_scanner">Бармаҡ эҙҙәре сенсор сканерын тейегеҙ</string>
     <string name="pincode_fingerprint_switch_dialog_title">Авторизациялау өсөн файҙаланылған мәғлүмәт биометрический</string>
     <string name="profile_title">Аккаунт</string>
     <string name="profile_accounts_title">Аккаунты</string>
     <string name="profile_network_title">Селтәре</string>
-    <string name="profile_pincode_change_title">Үҙгәртергә pin-код</string>
+    <string name="profile_pincode_change_title">Үҙгәртергә pin код</string>
     <string name="tabbar_profile_title">Профиль</string>
     <string name="pincode_biometry_dialog_title">Биометрия</string>
     <string name="common_edit">Шымартыу</string>
@@ -205,4 +204,10 @@
     <string name="contacts_scan">QR код уҡырға</string>
     <string name="invoice_scan_error_no_info">QR уҡырға мөмкин түгел</string>
     <string name="common_options_title">Hайлағыҙ</string>
+    <string name="pincode_title_create">Установить пин-код</string>
+    <string name="pincode_confirm_your_pin_code_v1_0_1">Подтвердите пин-код</string>
+    <string name="common_address">Адрес</string>
+    <string name="node_add">Добавить узел</string>
+    <string name="connection_delete_description_v1_0_1">Подтвердите удаление %s , %s .</string>
+    <string name="network_info_address_v1_0_1">URL-адрес</string>
 </resources>

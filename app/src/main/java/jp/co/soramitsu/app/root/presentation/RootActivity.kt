@@ -41,8 +41,7 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        navController.setGraph(R.navigation.root_nav_graph)
-        navigator.attachNavController(navController)
+        navigator.attach(navController, this)
 
         rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
             view.updatePadding(top = insets.systemWindowInsetTop)
@@ -51,6 +50,12 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
         }
 
 //        processJsonOpenIntent()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        navigator.detach()
     }
 
     override fun layoutResource(): Int {
@@ -100,6 +105,10 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
 //        }
 //    }
 
-    private val navController: NavController
-        get() = NavHostFragment.findNavController(navHost)
+    private val navController: NavController by lazy {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.navHost) as NavHostFragment
+
+        navHostFragment.navController
+    }
 }

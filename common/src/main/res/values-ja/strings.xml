@@ -89,7 +89,6 @@
     <string name="recover_json_hint">JSONを貼り付けるかファイルをアップロード...</string>
     <string name="account_confirmation_title">ニーモニックを確認する</string>
     <string name="account_confirmation_details">正しい順序で単語を選択する</string>
-    <string name="pincode_create_top_title">PINコードを作成</string>
     <string name="pincode_fingerprint_error">あなたは許可されていません。別の指を試してください。</string>
     <string name="pincode_touch_fingerprint_scanner">指紋スキャナーに触れます</string>
     <string name="pincode_fingerprint_switch_dialog_title">生体認証を使用して認証する</string>
@@ -203,4 +202,10 @@
     <string name="contacts_scan">QRコードをスキャン</string>
     <string name="invoice_scan_error_no_info">QR をデコードできません</string>
     <string name="common_options_title">選択肢一つを選択してください</string>
+    <string name="pincode_title_create">セットアップピンコード</string>
+    <string name="pincode_confirm_your_pin_code_v1_0_1">PINコードを確認する</string>
+    <string name="common_address">住所</string>
+    <string name="node_add">ノードを追加</string>
+    <string name="connection_delete_description_v1_0_1">%s 、 %s削除を確認します。</string>
+    <string name="network_info_address_v1_0_1">URLアドレス</string>
 </resources>

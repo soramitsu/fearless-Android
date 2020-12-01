@@ -1,12 +1,12 @@
 package jp.co.soramitsu.splash
 
-interface SplashRouter {
+import jp.co.soramitsu.common.navigation.SecureRouter
+
+interface SplashRouter : SecureRouter {
 
     fun openAddFirstAccount()
 
-    fun openCreatePin()
+    fun openCreatePincode()
 
-    fun openCheckPin()
-
-    fun openMainScreen()
+    fun openInitialCheckPincode()
 }

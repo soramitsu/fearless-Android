@@ -43,6 +43,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
     ) = layoutInflater.inflate(R.layout.fragment_choose_amount, container, false)
 
     override fun initViews() {
+        chooseAmountNext.prepareForProgress(viewLifecycleOwner)
+
         chooseAmountRecipientView.setActionClickListener { viewModel.recipientAddressClicked() }
 
         chooseAmountToolbar.setHomeButtonListener { viewModel.backClicked() }
@@ -91,21 +93,11 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
             chooseAmountToken.setMessage(it.token.displayName)
         }
 
-        viewModel.continueEnabledLiveData.observe {
-            chooseAmountNext.isEnabled = it
-        }
-
         viewModel.feeErrorLiveData.observeEvent {
             showRetry(it)
         }
 
-        viewModel.checkingEnoughFundsLiveData.observe { checking ->
-            val textRes = if (checking) R.string.choose_amount_checking else R.string.common_continue
-
-            chooseAmountField.isEnabled = !checking
-
-            chooseAmountNext.setText(textRes)
-        }
+        viewModel.continueButtonStateLiveData.observe(chooseAmountNext::setState)
 
         viewModel.showBalanceDetailsEvent.observeEvent {
             val asset = viewModel.assetLiveData.value!!

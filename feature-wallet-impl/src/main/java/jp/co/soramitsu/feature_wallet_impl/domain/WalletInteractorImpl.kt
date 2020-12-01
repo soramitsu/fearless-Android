@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
+import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import java.io.File
@@ -77,14 +78,17 @@ class WalletInteractorImpl(
         return accountRepository.getAddressId(address)
     }
 
-    override fun getContacts(query: String): Single<List<String>> {
-        return accountRepository.getSelectedAccount()
-            .flatMap { walletRepository.getContacts(query) }
-    }
+    override fun getRecipients(query: String): Single<RecipientSearchResult> {
+        return accountRepository.getSelectedAccount().flatMap { account ->
+            walletRepository.getContacts(query).flatMap { contacts ->
+                accountRepository.getMyAccounts(query, account.network.type).map { myAddresses ->
+                    val contactsWithoutMyAddresses = contacts - myAddresses
+                    val myAddressesWithoutCurrent = myAddresses - account.address
 
-    override fun getMyAddresses(query: String): Single<List<String>> {
-        return accountRepository.observeSelectedAccount().firstOrError()
-            .flatMap { accountRepository.getMyAccounts(query, it.network.type) }
+                    RecipientSearchResult(myAddressesWithoutCurrent.toList(), contactsWithoutMyAddresses.toList())
+                }
+            }
+        }
     }
 
     override fun validateSendAddress(address: String): Single<Boolean> {

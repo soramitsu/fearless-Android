@@ -23,5 +23,15 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_edit_account" />
 
-
+    <TextView
+        android:id="@+id/addAccount"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/gray4"
+        android:drawableStart="@drawable/ic_plus_accent_24"
+        android:drawableEnd="@drawable/ic_arrow_right_24"
+        android:drawablePadding="16dp"
+        android:padding="16dp"
+        android:text="@string/accounts_add_account" />
 </LinearLayout>

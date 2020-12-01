@@ -60,4 +60,4 @@ class Asset(
 
 fun Asset.Token.amountFromPlanks(amountInPlanks: BigInteger) = amountInPlanks.toBigDecimal(scale = mantissa)
 
-fun Asset.Token.planksFromAmount(amount: BigDecimal) = amount.scaleByPowerOfTen(mantissa).toBigIntegerExact()
+fun Asset.Token.planksFromAmount(amount: BigDecimal): BigInteger = amount.scaleByPowerOfTen(mantissa).toBigInteger()

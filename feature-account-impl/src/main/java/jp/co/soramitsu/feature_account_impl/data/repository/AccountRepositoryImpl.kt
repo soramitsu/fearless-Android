@@ -167,8 +167,8 @@ class AccountRepositoryImpl(
             .map(::mapAccountLocalToAccount)
     }
 
-    override fun getMyAccounts(query: String, networkType: Node.NetworkType): Single<List<String>> {
-        return accountDao.getAddresses(query, networkType)
+    override fun getMyAccounts(query: String, networkType: Node.NetworkType): Single<Set<String>> {
+        return accountDao.getAddresses(query, networkType).map { it.toSet() }
     }
 
     override fun importFromMnemonic(

@@ -7,10 +7,10 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
+import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import java.io.File
-import java.lang.Exception
 import java.math.BigDecimal
 
 class NotEnoughFundsException : Exception()
@@ -36,9 +36,7 @@ interface WalletInteractor {
 
     fun getAddressId(address: String): Single<ByteArray>
 
-    fun getContacts(query: String): Single<List<String>>
-
-    fun getMyAddresses(query: String): Single<List<String>>
+    fun getRecipients(query: String): Single<RecipientSearchResult>
 
     fun validateSendAddress(address: String): Single<Boolean>
 

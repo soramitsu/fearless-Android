@@ -16,7 +16,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import kotlinx.android.synthetic.main.view_transfer_history.view.placeholder
 import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryList
 
-typealias PageLoadListener = () -> Unit
+typealias ScrollingListener = (position: Int) -> Unit
 typealias SlidingStateListener = (Int) -> Unit
 typealias TransactionClickListener = (TransactionModel) -> Unit
 
@@ -30,7 +30,7 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     private var anchor: View? = null
 
-    private var pageLoadListener: PageLoadListener? = null
+    private var scrollingListener: ScrollingListener? = null
     private var slidingStateListener: SlidingStateListener? = null
     private var transactionClickListener: TransactionClickListener? = null
 
@@ -63,8 +63,8 @@ class TransferHistorySheet @JvmOverloads constructor(
         adapter.submitList(transactions)
     }
 
-    fun setPageLoadListener(listener: PageLoadListener) {
-        pageLoadListener = listener
+    fun setScrollingListener(listener: ScrollingListener) {
+        scrollingListener = listener
     }
 
     fun setSlidingStateListener(listener: SlidingStateListener) {
@@ -115,12 +115,9 @@ class TransferHistorySheet @JvmOverloads constructor(
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
 
-                val totalItemCount = recyclerView.layoutManager?.itemCount
                 val lastVisiblePosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
 
-                if (lastVisiblePosition + 1 == totalItemCount) {
-                    pageLoadListener?.invoke()
-                }
+                scrollingListener?.invoke(lastVisiblePosition)
             }
         }
 

@@ -8,27 +8,36 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
+import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.WithJson
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
 import jp.co.soramitsu.feature_account_api.domain.model.WithSeed
+import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapAccountModelToAccount
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapAccountToAccountModel
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import java.util.concurrent.TimeUnit
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
+private const val ACCOUNT_ICON_SIZE_DP = 18
+
 class AccountDetailsViewModel(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
+    private val iconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val resourceManager: ResourceManager,
     val accountAddress: String
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
     private val accountNameChanges = BehaviorSubject.create<String>()
@@ -54,9 +63,14 @@ class AccountDetailsViewModel(
         accountRouter.back()
     }
 
-    private fun getAccount(accountAddress: String): Single<Account> {
-        return accountInteractor.getAccount(accountAddress)
-            .subscribeOn(Schedulers.io())
+    private fun getAccount(accountAddress: String): Single<AccountModel> {
+        return accountInteractor.getAccount(accountAddress).flatMap { account ->
+            accountInteractor.getAddressId(account).flatMap { addressId ->
+                iconGenerator.createAddressModel(accountAddress, addressId, ACCOUNT_ICON_SIZE_DP)
+            }.map { addressModel ->
+                mapAccountToAccountModel(account, addressModel.image, resourceManager)
+            }
+        }.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
     }
 
@@ -85,9 +99,9 @@ class AccountDetailsViewModel(
     }
 
     private fun changeName(newName: String): Completable {
-        val account = accountLiveData.value!!
+        val accountModel = accountLiveData.value!!
 
-        return accountInteractor.updateAccountName(account, newName)
+        return accountInteractor.updateAccountName(mapAccountModelToAccount(accountModel), newName)
     }
 
     private fun nameNotChanged(name: String): Boolean {
@@ -109,10 +123,12 @@ class AccountDetailsViewModel(
     }
 
     fun exportTypeSelected(selected: ExportSource) {
-        when (selected) {
+        val destination = when (selected) {
             is ExportSource.Json -> accountRouter.openExportJsonPassword(accountAddress)
             is ExportSource.Seed -> accountRouter.openExportSeed(accountAddress)
             is ExportSource.Mnemonic -> accountRouter.openExportMnemonic(accountAddress)
         }
+
+        accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 }

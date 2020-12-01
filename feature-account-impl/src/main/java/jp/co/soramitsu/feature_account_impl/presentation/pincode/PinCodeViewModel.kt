@@ -19,7 +19,7 @@ class PinCodeViewModel(
     private val router: AccountRouter,
     private val deviceVibrator: DeviceVibrator,
     private val resourceManager: ResourceManager,
-    private val pinCodeAction: PinCodeAction
+    val pinCodeAction: PinCodeAction
 ) : BaseViewModel() {
 
     sealed class ScreenState {
@@ -28,7 +28,7 @@ class PinCodeViewModel(
         object Checking : ScreenState()
     }
 
-    private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>(false)
+    private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>(pinCodeAction.toolbarConfiguration.backVisible)
     val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
 
     private val _resetInputEvent = MutableLiveData<Event<String>>()
@@ -64,7 +64,6 @@ class PinCodeViewModel(
             is PinCodeAction.Change -> {
                 currentState = ScreenState.Checking
                 _showFingerPrintEvent.value = Event(Unit)
-                _homeButtonVisibilityLiveData.value = true
             }
         }
     }
@@ -72,18 +71,18 @@ class PinCodeViewModel(
     fun pinCodeEntered(pin: String) {
         when (currentState) {
             is ScreenState.Creating -> tempCodeEntered(pin)
-            is ScreenState.Confirmation -> matchPincodeWithCodeToConfirm(pin, (currentState as ScreenState.Confirmation).codeToConfirm)
+            is ScreenState.Confirmation -> matchPinCodeWithCodeToConfirm(pin, (currentState as ScreenState.Confirmation).codeToConfirm)
             is ScreenState.Checking -> checkPinCode(pin)
         }
     }
 
     private fun tempCodeEntered(pin: String) {
-        _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_confirm_your_pin_code))
+        _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_confirm_your_pin_code_v1_0_1))
         _homeButtonVisibilityLiveData.value = true
         currentState = ScreenState.Confirmation(pin)
     }
 
-    private fun matchPincodeWithCodeToConfirm(pinCode: String, codeToConfirm: String) {
+    private fun matchPinCodeWithCodeToConfirm(pinCode: String, codeToConfirm: String) {
         if (codeToConfirm == pinCode) {
             registerPinCode(pinCode)
         } else {
@@ -126,7 +125,7 @@ class PinCodeViewModel(
     private fun backToCreateFromConfirmation() {
         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
         if (pinCodeAction is PinCodeAction.Create) {
-            _homeButtonVisibilityLiveData.value = false
+            _homeButtonVisibilityLiveData.value = pinCodeAction.toolbarConfiguration.backVisible
         }
         currentState = ScreenState.Creating
     }
@@ -155,8 +154,8 @@ class PinCodeViewModel(
 
     private fun authSuccess() {
         when (pinCodeAction) {
-            is PinCodeAction.Create -> router.openDestination(pinCodeAction.destination)
-            is PinCodeAction.Check -> router.openDestination(pinCodeAction.destination)
+            is PinCodeAction.Create -> router.openAfterPinCode(pinCodeAction.delayedNavigation)
+            is PinCodeAction.Check -> router.openAfterPinCode(pinCodeAction.delayedNavigation)
             is PinCodeAction.Change -> {
                 when (currentState) {
                     is ScreenState.Checking -> {

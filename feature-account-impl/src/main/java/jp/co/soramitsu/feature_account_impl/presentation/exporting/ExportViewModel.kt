@@ -13,8 +13,8 @@ import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapCryptoTypeToCryptoTypeModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mapNetworkTypeToNetworkModel
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapCryptoTypeToCryptoTypeModel
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetworkModel
 
 abstract class ExportViewModel(
     protected val accountInteractor: AccountInteractor,
