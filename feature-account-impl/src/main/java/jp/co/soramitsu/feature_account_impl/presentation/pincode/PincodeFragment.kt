@@ -104,6 +104,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         MaterialAlertDialogBuilder(requireActivity(), R.style.AlertDialogTheme)
             .setTitle(R.string.pincode_biometry_dialog_title)
             .setMessage(R.string.pincode_fingerprint_switch_dialog_title)
+            .setCancelable(false)
             .setPositiveButton(R.string.common_use) { _, _ ->
                 viewModel.acceptAuthWithBiometry()
             }
