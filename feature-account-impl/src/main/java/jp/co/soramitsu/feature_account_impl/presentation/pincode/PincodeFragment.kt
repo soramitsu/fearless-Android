@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation.pincode
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -104,6 +105,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         MaterialAlertDialogBuilder(requireActivity(), R.style.AlertDialogTheme)
             .setTitle(R.string.pincode_biometry_dialog_title)
             .setMessage(R.string.pincode_fingerprint_switch_dialog_title)
+            .setCancelable(false)
             .setPositiveButton(R.string.common_use) { _, _ ->
                 viewModel.acceptAuthWithBiometry()
             }
