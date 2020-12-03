@@ -2,8 +2,8 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 
 import android.content.Context
 import android.os.Bundle
-import jp.co.soramitsu.common.view.bottomSheet.FixedListBottomSheet
-import jp.co.soramitsu.common.view.bottomSheet.item
+import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
+import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
 import jp.co.soramitsu.feature_wallet_impl.R
 
 class QrCodeSourceChooserBottomSheet(

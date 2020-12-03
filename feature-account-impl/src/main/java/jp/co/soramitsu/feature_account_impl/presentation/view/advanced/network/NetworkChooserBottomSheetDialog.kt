@@ -1,35 +1,64 @@
 package jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network
 
 import android.content.Context
-import android.view.LayoutInflater
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.os.Bundle
+import android.view.View
+import androidx.recyclerview.widget.DiffUtil
+import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.makeInvisible
+import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
-import kotlinx.android.synthetic.main.bottom_sheet_network_chooser.networkRv
-import kotlinx.android.synthetic.main.bottom_sheet_network_chooser.titleTv
-
-class NetworkChooserPayload(val networkModels: List<NetworkModel>, val selectedNetwork: NetworkModel)
+import kotlinx.android.synthetic.main.item_network.view.networkTv
+import kotlinx.android.synthetic.main.item_network.view.rightIcon
 
 class NetworkChooserBottomSheetDialog(
     context: Context,
-    payload: NetworkChooserPayload,
-    val itemClickListener: (NetworkModel) -> Unit
-) : BottomSheetDialog(context, R.style.BottomSheetDialog), NetworkAdapter.NetworkItemHandler {
+    payload: Payload<NetworkModel>,
+    onClicked: ClickHandler<NetworkModel>
+) : DynamicListBottomSheet<NetworkModel>(context, payload, NetworkModelDiffCallback, onClicked) {
 
-    init {
-        setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheet_network_chooser, null))
-        titleTv.text = context.getString(R.string.common_choose_network)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        val adapter = NetworkAdapter(this, payload.selectedNetwork)
-
-        adapter.submitList(payload.networkModels)
-        networkRv.adapter = adapter
-        networkRv.layoutManager = LinearLayoutManager(context)
+        setTitle(R.string.common_choose_network)
     }
 
-    override fun onNetworkClicked(model: NetworkModel) {
-        itemClickListener.invoke(model)
-        dismiss()
+    override fun holderCreator(): HolderCreator<NetworkModel> = {
+        NodeViewHolder(it.inflateChild(R.layout.item_network))
+    }
+}
+
+class NodeViewHolder(
+    itemView: View
+) : DynamicListSheetAdapter.Holder<NetworkModel>(itemView) {
+
+    override fun bind(item: NetworkModel, isSelected: Boolean, handler: DynamicListSheetAdapter.Handler<NetworkModel>) {
+        super.bind(item, isSelected, handler)
+
+        with(itemView) {
+            if (isSelected) {
+                rightIcon.makeVisible()
+            } else {
+                rightIcon.makeInvisible()
+            }
+
+            networkTv.text = item.name
+            networkTv.setCompoundDrawablesWithIntrinsicBounds(item.networkTypeUI.icon, 0, 0, 0)
+        }
+    }
+}
+
+private object NetworkModelDiffCallback : DiffUtil.ItemCallback<NetworkModel>() {
+    override fun areItemsTheSame(oldItem: NetworkModel, newItem: NetworkModel): Boolean {
+        return oldItem == newItem
+    }
+
+    override fun areContentsTheSame(oldItem: NetworkModel, newItem: NetworkModel): Boolean {
+        return oldItem == newItem
     }
 }

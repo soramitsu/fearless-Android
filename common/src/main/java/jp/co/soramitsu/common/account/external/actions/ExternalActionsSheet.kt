@@ -5,8 +5,8 @@ import android.os.Bundle
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
-import jp.co.soramitsu.common.view.bottomSheet.FixedListBottomSheet
-import jp.co.soramitsu.common.view.bottomSheet.item
+import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
+import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 
 typealias ExternalViewCallback = (ExternalAnalyzer, String, Node.NetworkType) -> Unit

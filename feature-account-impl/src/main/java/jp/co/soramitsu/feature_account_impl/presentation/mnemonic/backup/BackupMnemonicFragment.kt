@@ -8,14 +8,15 @@ import androidx.lifecycle.Observer
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserBottomSheetDialog
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserPayload
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.advancedBlockView
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.backupMnemonicViewer
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.nextBtn
@@ -102,14 +103,14 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         }
     }
 
-    private fun showNetworkChooser(payload: NetworkChooserPayload) {
+    private fun showNetworkChooser(payload: Payload<NetworkModel>) {
         NetworkChooserBottomSheetDialog(
             requireActivity(), payload,
             viewModel.selectedNetworkLiveData::setValue
         ).show()
     }
 
-    private fun showEncryptionChooser(payload: EncryptionChooserPayload) {
+    private fun showEncryptionChooser(payload: Payload<CryptoTypeModel>) {
         EncryptionTypeChooserBottomSheetDialog(
             requireActivity(), payload,
             viewModel.selectedEncryptionTypeLiveData::setValue
