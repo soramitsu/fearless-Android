@@ -25,7 +25,7 @@ open class App : Application(), FeatureContainer {
         super.attachBaseContext(contextManager.setLocale(base))
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         val contextManager = ContextManager.getInstanceOrInit(this, languagesHolder)
         contextManager.setLocale(this)
