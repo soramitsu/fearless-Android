@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_send_dead_recipient_title">Transfer will probably fail</string>
+    <string name="wallet_send_dead_recipient_message">After transfer, the total recipient balance will be less than existential deposit. This transaction will probably fail</string>
+
     <string name="network_info_address_v1_0_1">URL address</string>
 
     <string name="connection_delete_description_v1_0_1">Confirm %s, %s deletion.</string>

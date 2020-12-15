@@ -26,7 +26,7 @@ class Asset(
     val locked = miscFrozen.max(feeFrozen)
     val frozen = locked + reserved
 
-    val total = free + reserved
+    val total = token.amountFromPlanks(calculateTotalBalance(freeInPlanks, reservedInPlanks))
 
     val transferable = free - locked
 
@@ -57,6 +57,11 @@ class Asset(
         }
     }
 }
+
+fun calculateTotalBalance(
+    freeInPlanks: BigInteger,
+    reservedInPlanks: BigInteger
+) = freeInPlanks + reservedInPlanks
 
 fun Asset.Token.amountFromPlanks(amountInPlanks: BigInteger) = amountInPlanks.toBigDecimal(scale = mantissa)
 

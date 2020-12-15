@@ -18,6 +18,8 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateS
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecksProvider
 
 @Module
 class WalletFeatureModule {
@@ -62,4 +64,8 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         fileProvider: FileProvider
     ): WalletInteractor = WalletInteractorImpl(walletRepository, accountRepository, fileProvider)
+
+    @Provides
+    @FeatureScope
+    fun provideTransferChecks(): TransferValidityChecks.Presentation = TransferValidityChecksProvider()
 }
