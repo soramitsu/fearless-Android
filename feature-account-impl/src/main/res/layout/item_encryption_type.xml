@@ -3,8 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingStart="@dimen/x1_5"
+    android:paddingStart="16dp"
     android:paddingTop="@dimen/x2"
+    android:background="@drawable/bg_primary_list_item"
     android:paddingEnd="@dimen/x1_5"
     android:paddingBottom="@dimen/x2">
 

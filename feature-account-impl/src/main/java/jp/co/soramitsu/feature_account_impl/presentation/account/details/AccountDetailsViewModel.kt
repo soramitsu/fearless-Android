@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.WithJson
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
@@ -46,8 +47,8 @@ class AccountDetailsViewModel(
 
     val networkModel = accountLiveData.map { mapNetworkTypeToNetworkModel(it.network.type) }
 
-    private val _showExportSourceChooser = MutableLiveData<Event<List<ExportSource>>>()
-    val showExportSourceChooser: LiveData<Event<List<ExportSource>>> = _showExportSourceChooser
+    private val _showExportSourceChooser = MutableLiveData<Event<Payload<ExportSource>>>()
+    val showExportSourceChooser: LiveData<Event<Payload<ExportSource>>> = _showExportSourceChooser
 
     private val exportSourceTypesLiveData = buildExportSourceTypes().asLiveData()
 
@@ -85,7 +86,7 @@ class AccountDetailsViewModel(
     fun exportClicked() {
         val sources = exportSourceTypesLiveData.value ?: return
 
-        _showExportSourceChooser.value = Event(sources)
+        _showExportSourceChooser.value = Event(Payload(sources))
     }
 
     private fun observeNameChanges(): Disposable {

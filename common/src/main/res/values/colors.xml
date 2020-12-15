@@ -14,7 +14,7 @@
     <color name="colorGreyText">#888888</color>
     <color name="green">#0ED33B</color>
     <color name="dividerGray">#88888888</color>
-    <color name="bottomSheetBackground">#80004CB7</color>
+    <color name="bottomSheetBackground">#80838383</color>
     <color name="red">#F00004</color>
     <color name="blurColor">#B3000000</color>
     <color name="blurColorLight">#66000000</color>

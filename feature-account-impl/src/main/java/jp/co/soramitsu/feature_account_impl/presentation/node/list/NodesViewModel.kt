@@ -14,12 +14,12 @@ import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.common.utils.zipSimilar
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
@@ -37,8 +37,8 @@ class NodesViewModel(
     private val _noAccountsEvent = MutableLiveData<Event<Node.NetworkType>>()
     val noAccountsEvent: LiveData<Event<Node.NetworkType>> = _noAccountsEvent
 
-    private val _showAccountChooserLiveData = MutableLiveData<Event<AccountChooserPayload>>()
-    val showAccountChooserLiveData: LiveData<Event<AccountChooserPayload>> = _showAccountChooserLiveData
+    private val _showAccountChooserLiveData = MutableLiveData<Event<Payload<AccountByNetworkModel>>>()
+    val showAccountChooserLiveData: LiveData<Event<Payload<AccountByNetworkModel>>> = _showAccountChooserLiveData
 
     private val _editMode = MutableLiveData<Boolean>()
     val editMode: LiveData<Boolean> = _editMode
@@ -111,7 +111,7 @@ class NodesViewModel(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ accountModels ->
-                _showAccountChooserLiveData.value = Event(AccountChooserPayload(accountModels, nodeModel.networkModelType))
+                _showAccountChooserLiveData.value = Event(Payload(accountModels))
             }, {
                 it.message?.let(this::showError)
             })

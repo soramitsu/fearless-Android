@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -23,7 +22,7 @@ import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmou
 import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
 
-class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler, AccountChooserBottomSheetDialog.ClickHandler {
+class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
 
     private lateinit var adapter: BalanceListAdapter
 
@@ -100,19 +99,11 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         }
 
         viewModel.showAccountChooser.observeEvent {
-            AccountChooserBottomSheetDialog(requireActivity(), it, this).show()
+            AccountChooserBottomSheetDialog(requireActivity(), it, viewModel::accountSelected).show()
         }
     }
 
     override fun assetClicked(asset: AssetModel) {
         viewModel.assetClicked(asset)
-    }
-
-    override fun accountClicked(addressModel: AddressModel) {
-        viewModel.accountSelected(addressModel)
-    }
-
-    override fun addAccountClicked() {
-        viewModel.addAccountClicked()
     }
 }
