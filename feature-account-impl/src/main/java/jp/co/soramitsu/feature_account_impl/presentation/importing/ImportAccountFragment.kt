@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
@@ -177,7 +178,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         data?.let { viewModel.systemCallResultReceived(requestCode, it) }
     }
 
-    private fun showTypeChooser(it: ImportSourceSelectorPayload) {
+    private fun showTypeChooser(it: Payload<ImportSource>) {
         SourceTypeChooserBottomSheetDialog(requireActivity(), it, viewModel::sourceTypeChanged)
             .show()
     }

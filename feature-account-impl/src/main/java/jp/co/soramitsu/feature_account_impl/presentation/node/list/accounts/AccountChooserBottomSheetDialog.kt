@@ -1,61 +1,56 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts
 
-import android.app.Activity
-import android.view.LayoutInflater
+import android.content.Context
+import android.os.Bundle
 import android.view.View
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import androidx.recyclerview.widget.DiffUtil
+import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
-import kotlinx.android.synthetic.main.bottom_sheet_account_chooser.accountsRv
-import kotlinx.android.synthetic.main.bottom_sheet_account_chooser.addImg
-import kotlinx.android.synthetic.main.bottom_sheet_account_chooser.titleTv
-
-class AccountChooserPayload(val accountsByNetwork: List<AccountByNetworkModel>, val network: NetworkModel.NetworkTypeUI)
+import kotlinx.android.synthetic.main.item_account_by_network.view.accountIcon
+import kotlinx.android.synthetic.main.item_account_by_network.view.accountTitle
 
 class AccountChooserBottomSheetDialog(
-    context: Activity,
-    accountChooserPayload: AccountChooserPayload,
-    private val clickHandler: ClickHandler
-) : BottomSheetDialog(context, R.style.BottomSheetDialog), AccountsAdapter.AccountItemHandler {
+    context: Context,
+    payload: Payload<AccountByNetworkModel>,
+    onClicked: ClickHandler<AccountByNetworkModel>
+) : DynamicListBottomSheet<AccountByNetworkModel>(context, payload, AccountDiffCallback, onClicked) {
 
-    interface ClickHandler {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        fun accountClicked(account: AccountByNetworkModel)
-
-        fun addAccountClicked(networkType: Node.NetworkType)
+        setTitle(R.string.profile_accounts_title)
     }
 
-    init {
-        setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheet_account_chooser, null))
+    override fun holderCreator(): HolderCreator<AccountByNetworkModel> = {
+        AccountHolder(it.inflateChild(R.layout.item_account_by_network))
+    }
+}
 
-        behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+class AccountHolder(
+    itemView: View
+) : DynamicListSheetAdapter.Holder<AccountByNetworkModel>(itemView) {
 
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                    behavior.state = BottomSheetBehavior.STATE_COLLAPSED
-                }
-            }
-        })
+    override fun bind(item: AccountByNetworkModel, isSelected: Boolean, handler: DynamicListSheetAdapter.Handler<AccountByNetworkModel>) {
+        super.bind(item, isSelected, handler)
 
-        titleTv.text = context.getString(R.string.profile_accounts_title)
-
-        addImg.setOnClickListener {
-            clickHandler.addAccountClicked(accountChooserPayload.network.networkType)
-            dismiss()
+        with(itemView) {
+            accountTitle.text = item.name.orEmpty()
+            accountIcon.setImageDrawable(item.addressModel.image)
         }
+    }
+}
 
-        val adapter = AccountsAdapter(this)
-
-        adapter.submitList(accountChooserPayload.accountsByNetwork)
-        accountsRv.adapter = adapter
+private object AccountDiffCallback : DiffUtil.ItemCallback<AccountByNetworkModel>() {
+    override fun areItemsTheSame(oldItem: AccountByNetworkModel, newItem: AccountByNetworkModel): Boolean {
+        return oldItem.accountAddress == newItem.accountAddress
     }
 
-    override fun itemClicked(account: AccountByNetworkModel) {
-        clickHandler.accountClicked(account)
-        dismiss()
+    override fun areContentsTheSame(oldItem: AccountByNetworkModel, newItem: AccountByNetworkModel): Boolean {
+        return oldItem == newItem
     }
 }

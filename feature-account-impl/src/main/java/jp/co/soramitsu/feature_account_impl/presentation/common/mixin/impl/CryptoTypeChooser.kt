@@ -10,10 +10,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.asMutableLiveData
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapCryptoTypeToCryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 
 class CryptoTypeChooser(
@@ -28,9 +28,9 @@ class CryptoTypeChooser(
         .map { mapCryptoTypeToCryptoTypeModel(resourceManager, it) }
         .asMutableLiveData(cryptoDisposable)
 
-    private val _encryptionTypeChooserEvent = MutableLiveData<Event<EncryptionChooserPayload>>()
+    private val _encryptionTypeChooserEvent = MutableLiveData<Event<Payload<CryptoTypeModel>>>()
 
-    override val encryptionTypeChooserEvent: LiveData<Event<EncryptionChooserPayload>> =
+    override val encryptionTypeChooserEvent: LiveData<Event<Payload<CryptoTypeModel>>> =
         _encryptionTypeChooserEvent
 
     override fun chooseEncryptionClicked() {
@@ -38,8 +38,7 @@ class CryptoTypeChooser(
         val selectedType = selectedEncryptionTypeLiveData.value
 
         if (encryptionTypes != null && selectedType != null) {
-            _encryptionTypeChooserEvent.value =
-                Event(EncryptionChooserPayload(encryptionTypes, selectedType))
+            _encryptionTypeChooserEvent.value = Event(Payload(encryptionTypes, selectedType))
         }
     }
 

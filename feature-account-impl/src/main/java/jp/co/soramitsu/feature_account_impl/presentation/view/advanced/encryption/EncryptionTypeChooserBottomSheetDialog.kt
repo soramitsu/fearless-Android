@@ -1,36 +1,63 @@
 package jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption
 
 import android.content.Context
-import android.view.LayoutInflater
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.os.Bundle
+import android.view.View
+import androidx.recyclerview.widget.DiffUtil
+import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.makeInvisible
+import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
-import kotlinx.android.synthetic.main.bottom_sheet_encryption_type_chooser.encryptionRv
-import kotlinx.android.synthetic.main.bottom_sheet_encryption_type_chooser.titleTv
-
-class EncryptionChooserPayload(val cryptoTypes: List<CryptoTypeModel>, val selectedType: CryptoTypeModel)
+import kotlinx.android.synthetic.main.item_encryption_type.view.encryptionTv
+import kotlinx.android.synthetic.main.item_encryption_type.view.rightIcon
 
 class EncryptionTypeChooserBottomSheetDialog(
     context: Context,
-    payload: EncryptionChooserPayload,
-    val onClicked: (CryptoTypeModel) -> Unit
-) : BottomSheetDialog(context, R.style.BottomSheetDialog),
-    EncryptionTypeListAdapter.EncryptionItemHandler {
+    payload: Payload<CryptoTypeModel>,
+    onClicked: ClickHandler<CryptoTypeModel>
+) : DynamicListBottomSheet<CryptoTypeModel>(context, payload, CryptoModelCallback, onClicked) {
 
-    init {
-        setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheet_encryption_type_chooser, null))
-        titleTv.text = context.getString(R.string.common_crypto_type)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        val adapter = EncryptionTypeListAdapter(this, payload.selectedType)
-
-        adapter.submitList(payload.cryptoTypes)
-        encryptionRv.adapter = adapter
-        encryptionRv.layoutManager = LinearLayoutManager(context)
+        setTitle(R.string.common_crypto_type)
     }
 
-    override fun encryptionClicked(encryption: CryptoTypeModel) {
-        onClicked(encryption)
-        dismiss()
+    override fun holderCreator(): HolderCreator<CryptoTypeModel> = {
+        EncryptionTypeViewHolder(it.inflateChild(R.layout.item_encryption_type))
+    }
+}
+
+class EncryptionTypeViewHolder(
+    itemView: View
+) : DynamicListSheetAdapter.Holder<CryptoTypeModel>(itemView) {
+
+    override fun bind(item: CryptoTypeModel, isSelected: Boolean, handler: DynamicListSheetAdapter.Handler<CryptoTypeModel>) {
+        super.bind(item, isSelected, handler)
+
+        with(itemView) {
+            if (isSelected) {
+                rightIcon.makeVisible()
+            } else {
+                rightIcon.makeInvisible()
+            }
+
+            encryptionTv.text = item.name
+        }
+    }
+}
+
+private object CryptoModelCallback : DiffUtil.ItemCallback<CryptoTypeModel>() {
+    override fun areItemsTheSame(oldItem: CryptoTypeModel, newItem: CryptoTypeModel): Boolean {
+        return oldItem.cryptoType == newItem.cryptoType
+    }
+
+    override fun areContentsTheSame(oldItem: CryptoTypeModel, newItem: CryptoTypeModel): Boolean {
+        return oldItem == newItem
     }
 }

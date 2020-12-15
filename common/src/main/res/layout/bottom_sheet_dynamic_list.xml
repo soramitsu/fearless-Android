@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/fixedListSheetItemContainer"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dynamicListSheetItemContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -14,19 +15,25 @@
         android:layout_gravity="center_horizontal" />
 
     <TextView
-        android:id="@+id/fixedListSheetTitle"
+        android:id="@+id/dynamicListSheetTitle"
         style="@style/TextAppearance.Soramitsu.Header3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="17dp"
+        android:layout_marginTop="13dp"
         tools:text="Title" />
 
     <View
-        android:id="@+id/fixedListSheetDivider"
+        android:id="@+id/dynamicListSheetDivider"
         android:layout_width="wrap_content"
         android:layout_height="1dp"
         android:layout_marginTop="16dp"
         android:background="@color/gray3" />
+    
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        android:id="@+id/dynamicListSheetContent"
+        android:layout_height="wrap_content" />
 
 </LinearLayout>

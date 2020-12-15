@@ -1,8 +1,9 @@
-package jp.co.soramitsu.common.view.bottomSheet
+package jp.co.soramitsu.common.view.bottomSheet.list.fixed
 
 import android.content.Context
-import android.view.LayoutInflater
+import android.os.Bundle
 import android.view.View
+import androidx.annotation.CallSuper
 import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
@@ -16,12 +17,11 @@ import kotlinx.android.synthetic.main.item_sheet_iconic_label.view.itemExternalA
 
 abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
 
-    init {
-        setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheeet_fixed_list, null))
-    }
+    @CallSuper
+    override fun onCreate(savedInstanceState: Bundle?) {
+        setContentView(R.layout.bottom_sheeet_fixed_list)
 
-    final override fun setContentView(view: View) {
-        super.setContentView(view)
+        super.onCreate(savedInstanceState)
     }
 
     override fun setTitle(@StringRes titleRes: Int) {

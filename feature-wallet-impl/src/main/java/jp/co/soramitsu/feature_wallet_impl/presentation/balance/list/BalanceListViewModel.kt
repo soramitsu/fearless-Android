@@ -15,11 +15,11 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.common.utils.zipSimilar
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount.AccountChooserPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
@@ -41,8 +41,8 @@ class BalanceListViewModel(
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
 
-    private val _showAccountChooser = MutableLiveData<Event<AccountChooserPayload>>()
-    val showAccountChooser: LiveData<Event<AccountChooserPayload>> = _showAccountChooser
+    private val _showAccountChooser = MutableLiveData<Event<Payload<AddressModel>>>()
+    val showAccountChooser: LiveData<Event<Payload<AddressModel>>> = _showAccountChooser
 
     private val errorHandler: ErrorHandler = {
         showError(it.message!!)
@@ -102,10 +102,6 @@ class BalanceListViewModel(
             })
     }
 
-    fun addAccountClicked() {
-        router.openAddAccount()
-    }
-
     fun avatarClicked() {
         val currentAddressModel = currentAddressModelLiveData.value ?: return
 
@@ -118,7 +114,7 @@ class BalanceListViewModel(
             .map { models ->
                 val selected = models.first { it.address == currentAddressModel.address }
 
-                AccountChooserPayload(models, selected)
+                Payload(models, selected)
             }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({

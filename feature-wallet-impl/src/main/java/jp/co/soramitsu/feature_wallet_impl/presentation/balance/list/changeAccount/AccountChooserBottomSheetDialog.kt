@@ -1,48 +1,62 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount
 
 import android.app.Activity
-import android.view.LayoutInflater
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.os.Bundle
+import android.view.View
+import androidx.recyclerview.widget.DiffUtil
 import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_wallet_impl.R
-import kotlinx.android.synthetic.main.sheet_account_chooser.accountChooserAdd
-import kotlinx.android.synthetic.main.sheet_account_chooser.accountChooserList
-
-class AccountChooserPayload(
-    val accountsByNetwork: List<AddressModel>,
-    val selected: AddressModel
-)
+import kotlinx.android.synthetic.main.item_account_chooser.view.accountChecked
+import kotlinx.android.synthetic.main.item_account_chooser.view.accountIcon
+import kotlinx.android.synthetic.main.item_account_chooser.view.accountTitle
 
 class AccountChooserBottomSheetDialog(
     context: Activity,
-    payload: AccountChooserPayload,
-    private val clickHandler: ClickHandler
-) : BottomSheetDialog(context, R.style.BottomSheetDialog), AccountsAdapter.Handler {
+    payload: Payload<AddressModel>,
+    clickHandler: ClickHandler<AddressModel>
+) : DynamicListBottomSheet<AddressModel>(
+    context, payload, AddressModelDiffCallback, clickHandler
+) {
 
-    interface ClickHandler {
-        fun accountClicked(addressModel: AddressModel)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        fun addAccountClicked()
+        setTitle(R.string.profile_accounts_title)
     }
 
-    init {
-        setContentView(LayoutInflater.from(context).inflate(R.layout.sheet_account_chooser, null))
+    override fun holderCreator(): HolderCreator<AddressModel> = { parent ->
+        AddressModelHolder(parent.inflateChild(R.layout.item_account_chooser))
+    }
+}
 
-        accountChooserAdd.setOnClickListener {
-            clickHandler.addAccountClicked()
-            dismiss()
+private class AddressModelHolder(parent: View) : DynamicListSheetAdapter.Holder<AddressModel>(parent) {
+
+    override fun bind(
+        item: AddressModel,
+        isSelected: Boolean,
+        handler: DynamicListSheetAdapter.Handler<AddressModel>
+    ) {
+        super.bind(item, isSelected, handler)
+
+        with(itemView) {
+            accountTitle.text = item.address
+            accountIcon.setImageDrawable(item.image)
+            accountChecked.visibility = if (isSelected) View.VISIBLE else View.INVISIBLE
         }
+    }
+}
 
-        accountChooserList.setHasFixedSize(true)
-
-        val adapter = AccountsAdapter(this, payload.selected)
-        accountChooserList.adapter = adapter
-
-        adapter.submitList(payload.accountsByNetwork)
+private object AddressModelDiffCallback : DiffUtil.ItemCallback<AddressModel>() {
+    override fun areItemsTheSame(oldItem: AddressModel, newItem: AddressModel): Boolean {
+        return oldItem.address == newItem.address
     }
 
-    override fun itemClicked(account: AddressModel) {
-        clickHandler.accountClicked(account)
-        dismiss()
+    override fun areContentsTheSame(oldItem: AddressModel, newItem: AddressModel): Boolean {
+        return true
     }
 }
