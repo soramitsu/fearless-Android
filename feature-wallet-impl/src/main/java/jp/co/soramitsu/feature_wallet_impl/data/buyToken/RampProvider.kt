@@ -15,6 +15,10 @@ class RampProvider(
     override val supportedTokens = setOf(Asset.Token.DOT)
 
     override fun createPurchaseLink(token: Asset.Token, address: String): String {
+        if (!isTokenSupported(token)) {
+            throw BuyTokenRegistry.Provider.UnsupportedTokenException()
+        }
+
         return Uri.Builder()
             .scheme("https")
             .authority(host)
