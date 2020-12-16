@@ -208,4 +208,5 @@
     <string name="node_add">ノードを追加</string>
     <string name="connection_delete_description_v1_0_1">%s 、 %s削除を確認します。</string>
     <string name="network_info_address_v1_0_1">URLアドレス</string>
+    <string name="wallet_asset_buy">購入</string>
 </resources>

@@ -9,8 +9,10 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
@@ -18,6 +20,7 @@ import jp.co.soramitsu.common.utils.zipSimilar
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
@@ -32,8 +35,11 @@ class BalanceListViewModel(
     private val interactor: WalletInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
-    private val transactionHistoryMixin: TransactionHistoryMixin
-) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin {
+    private val transactionHistoryMixin: TransactionHistoryMixin,
+    buyTokenRegistry: BuyTokenRegistry
+) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin, Browserable {
+
+    override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     private var transactionsRefreshed: Boolean = false
     private var balanceRefreshed: Boolean = false
@@ -63,6 +69,12 @@ class BalanceListViewModel(
 
     val balanceLiveData = getBalance().asLiveData()
 
+    private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token }
+
+    private val availableProvidersLiveData = primaryTokenLiveData.map(buyTokenRegistry::availableProviders)
+
+    val buyShownLiveData = availableProvidersLiveData.map { it.isNotEmpty() }
+
     fun syncAssetsRates() {
         disposables += interactor.syncAssetsRates()
             .subscribeOn(Schedulers.io())
@@ -89,6 +101,16 @@ class BalanceListViewModel(
 
     fun receiveClicked() {
         router.openReceive()
+    }
+
+    fun buyClicked() {
+        val token = primaryTokenLiveData.value ?: return
+        val address = currentAddressModelLiveData.value?.address ?: return
+        val provider = availableProvidersLiveData.value?.firstOrNull() ?: return
+
+        val url = provider.createPurchaseLink(token, address)
+
+        openBrowserEvent.value = Event(url)
     }
 
     fun accountSelected(addressModel: AddressModel) {

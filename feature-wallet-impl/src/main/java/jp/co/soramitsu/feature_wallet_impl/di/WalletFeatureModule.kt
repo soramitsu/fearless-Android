@@ -14,6 +14,9 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
+import jp.co.soramitsu.feature_wallet_impl.BuildConfig
+import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
@@ -62,4 +65,14 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         fileProvider: FileProvider
     ): WalletInteractor = WalletInteractorImpl(walletRepository, accountRepository, fileProvider)
+
+    @Provides
+    @FeatureScope
+    fun provideBuyTokenIntegration(): BuyTokenRegistry {
+        return BuyTokenRegistry(
+            availableProviders = listOf(
+                RampProvider(host = BuildConfig.RAMP_HOST, apiToken = BuildConfig.RAMP_TOKEN)
+            )
+        )
+    }
 }

@@ -209,4 +209,5 @@
     <string name="node_add">Ajouter un nœud</string>
     <string name="connection_delete_description_v1_0_1">Confirmer la suppression de %s , %s .</string>
     <string name="network_info_address_v1_0_1">Adresse URL</string>
+    <string name="wallet_asset_buy">Acheter</string>
 </resources>

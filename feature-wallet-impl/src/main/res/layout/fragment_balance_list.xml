@@ -75,34 +75,16 @@
                     tools:itemCount="2"
                     tools:listitem="@layout/item_asset" />
 
-                <jp.co.soramitsu.common.view.GlassyButton
-                    android:id="@+id/balanceListSend"
+                <jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.AssetActionsView
+                    android:id="@+id/balanceListActions"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="@dimen/asset_image_height"
                     android:layout_marginTop="8dp"
-                    android:layout_marginEnd="4dp"
                     android:layout_marginBottom="16dp"
-                    app:drawable="@drawable/ic_send"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/guideline"
-                    app:layout_constraintHorizontal_bias="1.0"
+                    app:layout_constraintEnd_toEndOf="@id/balanceListAssets"
                     app:layout_constraintStart_toStartOf="@+id/balanceListAssets"
-                    app:layout_constraintTop_toBottomOf="@+id/balanceListAssets"
-                    app:text="@string/wallet_asset_send" />
-
-                <jp.co.soramitsu.common.view.GlassyButton
-                    android:id="@+id/balanceListReceive"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="8dp"
-                    app:drawable="@drawable/ic_receive"
-                    app:layout_constraintEnd_toEndOf="@+id/balanceListAssets"
-                    app:layout_constraintHorizontal_bias="1.0"
-                    app:layout_constraintStart_toStartOf="@+id/guideline"
-                    app:layout_constraintTop_toBottomOf="@+id/balanceListAssets"
-                    app:text="@string/wallet_asset_receive" />
-
+                    app:layout_constraintTop_toBottomOf="@+id/balanceListAssets" />
 
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/guideline"
@@ -117,7 +99,8 @@
                 android:id="@+id/transfersContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:layout_behavior="jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior" />
+                app:layout_behavior="jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior"
+                tools:layout_height="350dp" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
