@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailViewModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
@@ -37,9 +38,10 @@ class BalanceDetailModule {
         interactor: WalletInteractor,
         router: WalletRouter,
         transactionHistoryMixin: TransactionHistoryMixin,
+        buyTokenRegistry: BuyTokenRegistry,
         token: Asset.Token
     ): ViewModel {
-        return BalanceDetailViewModel(interactor, router, token, transactionHistoryMixin)
+        return BalanceDetailViewModel(interactor, router, token, buyTokenRegistry, transactionHistoryMixin)
     }
 
     @Provides

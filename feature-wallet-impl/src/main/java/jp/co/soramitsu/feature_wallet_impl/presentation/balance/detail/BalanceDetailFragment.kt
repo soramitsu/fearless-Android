@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -18,6 +19,7 @@ import jp.co.soramitsu.feature_wallet_impl.util.format
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsChange
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
+import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetaiActions
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailAvailableAmount
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailBack
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailContainer
@@ -28,8 +30,6 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailFroze
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailFrozenTitle
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRate
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRateChange
-import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailReceive
-import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailSend
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTotal
@@ -70,12 +70,16 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
         balanceDetailBack.setOnClickListener { viewModel.backClicked() }
 
-        balanceDetailSend.setOnClickListener {
+        balanceDetaiActions.send.setOnClickListener {
             viewModel.sendClicked()
         }
 
-        balanceDetailReceive.setOnClickListener {
+        balanceDetaiActions.receive.setOnClickListener {
             viewModel.receiveClicked()
+        }
+
+        balanceDetaiActions.buy.setOnClickListener {
+            viewModel.buyClicked()
         }
 
         balanceDetailFrozenTitle.setOnClickListener {
@@ -98,6 +102,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun subscribe(viewModel: BalanceDetailViewModel) {
         viewModel.syncAssetRates()
         viewModel.syncFirstTransactionsPage()
+
+        observeBrowserEvents(viewModel)
 
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
 
@@ -129,6 +135,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         }
 
         viewModel.showFrozenDetailsEvent.observeEvent(::showFrozenDetails)
+
+        viewModel.buyEnabledLiveData.observe(balanceDetaiActions.buy::setEnabled)
     }
 
     private fun setRefreshEnabled(bottomSheetState: Int) {

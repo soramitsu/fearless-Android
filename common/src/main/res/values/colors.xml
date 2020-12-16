@@ -16,6 +16,7 @@
     <color name="dividerGray">#88888888</color>
     <color name="bottomSheetBackground">#80838383</color>
     <color name="red">#F00004</color>
-    <color name="blurColor">#B3000000</color>
+    <color name="blurColorDark">#B3000000</color>
+    <color name="blurColor">#8C000000</color>
     <color name="blurColorLight">#66000000</color>
 </resources>
