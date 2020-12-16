@@ -41,10 +41,11 @@ class Asset(
         val networkType: Node.NetworkType,
         val mantissa: Int = DEFAULT_MANTISSA
     ) {
-
         KSM("KSM", Node.NetworkType.KUSAMA),
         DOT("DOT", Node.NetworkType.POLKADOT, 10),
         WND("WND", Node.NetworkType.WESTEND);
+
+        val maximumPrecision = mantissa - 1
 
         companion object {
             fun fromNetworkType(networkType: Node.NetworkType): Token {
