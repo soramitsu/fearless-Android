@@ -9,8 +9,8 @@ fun mapFeeRemoteToFee(feeRemote: FeeRemote, transfer: Transfer): Fee {
     return with(transfer) {
         Fee(
             transferAmount = amount,
-            feeAmount = token.amountFromPlanks(feeRemote.partialFee),
-            token = token
+            feeAmount = type.amountFromPlanks(feeRemote.partialFee),
+            type = type
         )
     }
 }

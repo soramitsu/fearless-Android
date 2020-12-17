@@ -85,7 +85,7 @@ class ChooseAmountViewModel(
         .asLiveData()
 
     private val minimumPossibleAmountLiveData = assetLiveData.map {
-        it.token.amountFromPlanks(BigInteger.ONE)
+        it.token.type.amountFromPlanks(BigInteger.ONE)
     }
 
     val continueButtonStateLiveData = combine(
@@ -124,7 +124,7 @@ class ChooseAmountViewModel(
 
     fun recipientAddressClicked() {
         val recipientAddress = recipientModelLiveData.value?.address ?: return
-        val networkType = assetLiveData.value?.token?.networkType ?: return
+        val networkType = assetLiveData.value?.token?.type?.networkType ?: return
 
         externalAccountActions.showExternalActions(ExternalAccountActions.Payload(recipientAddress, networkType))
     }
@@ -148,7 +148,7 @@ class ChooseAmountViewModel(
             .doOnNext { _feeLoadingLiveData.postValue(true) }
 
         return Observable.combineLatest(debouncedAmountEvents, currentAssetObservable, BiFunction<BigDecimal, Asset, Transfer> { amount, asset ->
-            Transfer(recipientAddress, amount, asset.token)
+            Transfer(recipientAddress, amount, asset.token.type)
         })
             .switchMapSingle { transfer ->
                 interactor.getTransferFee(transfer)
@@ -176,7 +176,7 @@ class ChooseAmountViewModel(
 
         disposables += currentAssetObservable.firstOrError()
             .subscribeOn(Schedulers.io())
-            .map { Transfer(recipientAddress, fee.transferAmount, it.token) }
+            .map { Transfer(recipientAddress, fee.transferAmount, it.token.type) }
             .flatMap(interactor::checkEnoughAmountForTransfer)
             .observeOn(AndroidSchedulers.mainThread())
             .doFinally { checkingEnoughFundsLiveData.value = false }
@@ -205,7 +205,7 @@ class ChooseAmountViewModel(
         val fee = feeLiveData.value ?: return null
         val asset = assetLiveData.value ?: return null
 
-        return TransferDraft(fee.transferAmount, fee.feeAmount, asset.token, recipientAddress)
+        return TransferDraft(fee.transferAmount, fee.feeAmount, asset.token.type, recipientAddress)
     }
 
     private fun retryLoadFee() {

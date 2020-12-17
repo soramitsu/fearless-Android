@@ -19,7 +19,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoR
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.PendingExtrinsicsRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
@@ -114,7 +114,7 @@ class SendIntegrationTest {
         val genesis = Node.NetworkType.WESTEND.runtimeConfiguration.genesisHash
         val genesisBytes = Hex.decode(genesis)
 
-        val transferAmount = BigDecimal("0.001").scaleByPowerOfTen(Asset.Token.WND.mantissa)
+        val transferAmount = BigDecimal("0.001").scaleByPowerOfTen(Token.Type.WND.mantissa)
 
         val runtimeInfo = rxWebSocket
             .executeRequest(RuntimeVersionRequest(), pojo<RuntimeVersion>().nonNull())

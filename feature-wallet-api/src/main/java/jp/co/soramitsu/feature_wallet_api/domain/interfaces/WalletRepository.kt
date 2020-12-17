@@ -6,6 +6,7 @@ import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
@@ -16,9 +17,9 @@ interface WalletRepository {
 
     fun syncAssetsRates(): Completable
 
-    fun observeAsset(token: Asset.Token): Observable<Asset>
+    fun observeAsset(type: Token.Type): Observable<Asset>
 
-    fun syncAsset(token: Asset.Token): Completable
+    fun syncAsset(type: Token.Type): Completable
 
     fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>>
 

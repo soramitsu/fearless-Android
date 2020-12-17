@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
@@ -40,9 +40,9 @@ private const val KEY_TOKEN = "KEY_TOKEN"
 class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
     companion object {
-        fun getBundle(token: Asset.Token): Bundle {
+        fun getBundle(type: Token.Type): Bundle {
             return Bundle().apply {
-                putSerializable(KEY_TOKEN, token)
+                putSerializable(KEY_TOKEN, type)
             }
         }
     }
@@ -88,7 +88,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun inject() {
-        val token = arguments!![KEY_TOKEN] as Asset.Token
+        val token = arguments!![KEY_TOKEN] as Token.Type
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -108,23 +108,23 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
 
         viewModel.assetLiveData.observe { asset ->
-            balanceDetailTokenIcon.setImageResource(asset.token.icon)
-            balanceDetailTokenName.text = asset.token.networkType.readableName
+            balanceDetailTokenIcon.setImageResource(asset.token.type.icon)
+            balanceDetailTokenName.text = asset.token.type.networkType.readableName
 
-            asset.dollarRate?.let {
+            asset.token.dollarRate?.let {
                 balanceDetailDollarGroup.visibility = View.VISIBLE
 
                 balanceDetailRate.text = it.formatAsCurrency()
             }
 
-            asset.recentRateChange?.let {
-                balanceDetailRateChange.setTextColorRes(asset.rateChangeColorRes!!)
+            asset.token.recentRateChange?.let {
+                balanceDetailRateChange.setTextColorRes(asset.token.rateChangeColorRes!!)
                 balanceDetailRateChange.text = it.formatAsChange()
             }
 
             asset.dollarAmount?.let { balanceDetailDollarAmount.text = it.formatAsCurrency() }
 
-            balanceDetailTotal.text = asset.total.formatAsToken(asset.token)
+            balanceDetailTotal.text = asset.total.formatAsToken(asset.token.type)
 
             balanceDetailFrozenAmount.text = asset.frozen.format()
             balanceDetailAvailableAmount.text = asset.available.format()

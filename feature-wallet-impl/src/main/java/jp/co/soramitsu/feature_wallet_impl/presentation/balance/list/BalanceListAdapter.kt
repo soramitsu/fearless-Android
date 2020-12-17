@@ -28,6 +28,9 @@ import kotlinx.android.synthetic.main.item_asset.view.itemAssetRateChange
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetToken
 import java.math.BigDecimal
 
+val dollarRateExtractor = { assetModel: AssetModel -> assetModel.token.dollarRate }
+val recentChangeExtractor = { assetModel: AssetModel -> assetModel.token.recentRateChange }
+
 class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapter<AssetModel, AssetViewHolder>(AssetDiffCallback) {
 
     interface ItemAssetHandler {
@@ -51,8 +54,8 @@ class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapte
 
         resolvePayload(holder, position, payloads) {
             when (it) {
-                AssetModel::dollarRate -> holder.bindDollarInfo(item)
-                AssetModel::recentRateChange -> holder.bindRecentChange(item)
+                dollarRateExtractor -> holder.bindDollarInfo(item)
+                recentChangeExtractor -> holder.bindRecentChange(item)
                 AssetModel::total -> holder.bindTotal(item)
             }
         }
@@ -71,8 +74,8 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
     }
 
     fun bind(asset: AssetModel, itemHandler: BalanceListAdapter.ItemAssetHandler) = with(containerView) {
-        itemAssetImage.setImageResource(asset.token.icon)
-        itemAssetNetwork.text = asset.token.networkType.readableName
+        itemAssetImage.setImageResource(asset.token.type.icon)
+        itemAssetNetwork.text = asset.token.type.networkType.readableName
 
         bindDollarInfo(asset)
 
@@ -80,7 +83,7 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
 
         bindTotal(asset)
 
-        itemAssetToken.text = asset.token.displayName
+        itemAssetToken.text = asset.token.type.displayName
 
         setOnClickListener { itemHandler.assetClicked(asset) }
     }
@@ -92,14 +95,14 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
     }
 
     fun bindRecentChange(asset: AssetModel) = with(containerView) {
-        asset.recentRateChange?.let {
-            itemAssetRateChange.setTextColorRes(asset.rateChangeColorRes!!)
+        asset.token.recentRateChange?.let {
+            itemAssetRateChange.setTextColorRes(asset.token.rateChangeColorRes!!)
             itemAssetRateChange.text = it.formatAsChange()
         }
     }
 
     fun bindDollarInfo(asset: AssetModel) = with(containerView) {
-        asset.dollarRate?.let { itemAssetRate.text = it.formatAsCurrency() }
+        asset.token.dollarRate?.let { itemAssetRate.text = it.formatAsCurrency() }
         bindDollarAmount(asset.dollarAmount)
     }
 
@@ -111,7 +114,7 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
 private object AssetDiffCallback : DiffUtil.ItemCallback<AssetModel>() {
 
     override fun areItemsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {
-        return oldItem.token == newItem.token
+        return oldItem.token.type == newItem.token.type
     }
 
     override fun areContentsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {
@@ -124,5 +127,5 @@ private object AssetDiffCallback : DiffUtil.ItemCallback<AssetModel>() {
 }
 
 private object AssetPayloadGenerator : PayloadGenerator<AssetModel>(
-    AssetModel::dollarRate, AssetModel::recentRateChange, AssetModel::total
+    dollarRateExtractor, recentChangeExtractor, AssetModel::total
 )

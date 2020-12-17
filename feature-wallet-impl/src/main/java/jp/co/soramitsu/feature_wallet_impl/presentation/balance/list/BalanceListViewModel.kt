@@ -69,7 +69,7 @@ class BalanceListViewModel(
 
     val balanceLiveData = getBalance().asLiveData()
 
-    private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token }
+    private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token.type }
 
     private val availableProvidersLiveData = primaryTokenLiveData.map(buyTokenRegistry::availableProviders)
 
@@ -92,7 +92,7 @@ class BalanceListViewModel(
     }
 
     fun assetClicked(asset: AssetModel) {
-        router.openAssetDetails(asset.token)
+        router.openAssetDetails(asset.token.type)
     }
 
     fun sendClicked() {

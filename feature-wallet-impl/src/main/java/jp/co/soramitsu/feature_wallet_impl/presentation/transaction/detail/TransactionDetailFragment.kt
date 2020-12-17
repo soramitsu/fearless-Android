@@ -83,12 +83,12 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
             transactionDetailDate.text = date.formatDateTime(requireContext())
 
-            transactionDetailAmount.text = amount.formatAsToken(token)
-            transactionDetailFee.text = fee?.formatAsToken(token) ?: getString(R.string.common_unknown)
+            transactionDetailAmount.text = amount.formatAsToken(type)
+            transactionDetailFee.text = fee?.formatAsToken(type) ?: getString(R.string.common_unknown)
 
             transactionDetailHash.setMessage(hash)
 
-            transactionDetailTotal.text = total?.formatAsToken(token) ?: getString(R.string.common_unknown)
+            transactionDetailTotal.text = total?.formatAsToken(type) ?: getString(R.string.common_unknown)
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->
@@ -151,7 +151,7 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                networkType = viewModel.transaction.token.networkType
+                networkType = viewModel.transaction.type.networkType
             )
         )
 

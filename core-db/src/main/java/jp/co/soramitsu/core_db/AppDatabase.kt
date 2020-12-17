@@ -14,19 +14,22 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.migration.AddTokenTable
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Database(
-    version = 9,
+    version = 10,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
         TransactionLocal::class,
-        AssetLocal::class
+        AssetLocal::class,
+        TokenLocal::class
     ])
 @TypeConverters(
     LongMathConverters::class,
@@ -52,6 +55,7 @@ abstract class AppDatabase : RoomDatabase() {
                             db.execSQL(defaultNodes.prepopulateQuery)
                         }
                     })
+                    .addMigrations(AddTokenTable)
                     .build()
             }
             return instance!!
