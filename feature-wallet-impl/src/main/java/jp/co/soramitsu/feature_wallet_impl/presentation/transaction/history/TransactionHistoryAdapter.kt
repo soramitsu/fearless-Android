@@ -2,9 +2,9 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history
 
 import android.view.View
 import android.view.ViewGroup
-import jp.co.soramitsu.common.groupedList.BaseGroupedDiffCallback
-import jp.co.soramitsu.common.groupedList.GroupedListAdapter
-import jp.co.soramitsu.common.groupedList.GroupedListHolder
+import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
+import jp.co.soramitsu.common.list.GroupedListAdapter
+import jp.co.soramitsu.common.list.GroupedListHolder
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 import jp.co.soramitsu.feature_wallet_impl.util.formatDateTime

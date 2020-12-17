@@ -5,8 +5,11 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import jp.co.soramitsu.common.list.PayloadGenerator
+import jp.co.soramitsu.common.list.resolvePayload
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
@@ -42,12 +45,28 @@ class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapte
 
         holder.bind(item, itemHandler)
     }
+
+    override fun onBindViewHolder(holder: AssetViewHolder, position: Int, payloads: MutableList<Any>) {
+        val item = getItem(position)
+
+        resolvePayload(holder, position, payloads) {
+            when (it) {
+                AssetModel::dollarRate -> holder.bindDollarInfo(item)
+                AssetModel::recentRateChange -> holder.bindRecentChange(item)
+                AssetModel::total -> holder.bindTotal(item)
+            }
+        }
+    }
 }
 
 class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
     init {
         with(containerView) {
-            containerView.itemAssetContainer.background = context.getCutCornerDrawable(R.color.blurColor)
+            val background = with(context) {
+                addRipple(getCutCornerDrawable(R.color.blurColor))
+            }
+
+            containerView.itemAssetContainer.background = background
         }
     }
 
@@ -55,24 +74,42 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
         itemAssetImage.setImageResource(asset.token.icon)
         itemAssetNetwork.text = asset.token.networkType.readableName
 
-        asset.dollarRate?.let { itemAssetRate.text = it.formatAsCurrency() }
-        asset.recentRateChange?.let { showRateChange(it, asset.rateChangeColorRes!!) }
-        asset.dollarAmount?.let { itemAssetDollarAmount.text = it.formatAsCurrency() }
+        bindDollarInfo(asset)
 
-        itemAssetBalance.text = asset.total.format()
+        bindRecentChange(asset)
+
+        bindTotal(asset)
 
         itemAssetToken.text = asset.token.displayName
 
         setOnClickListener { itemHandler.assetClicked(asset) }
     }
 
-    private fun showRateChange(rateChange: BigDecimal, rateChangeColorRes: Int) = with(containerView) {
-        itemAssetRateChange.setTextColorRes(rateChangeColorRes)
-        itemAssetRateChange.text = rateChange.formatAsChange()
+    fun bindTotal(asset: AssetModel) {
+        containerView.itemAssetBalance.text = asset.total.format()
+
+        bindDollarAmount(asset.dollarAmount)
+    }
+
+    fun bindRecentChange(asset: AssetModel) = with(containerView) {
+        asset.recentRateChange?.let {
+            itemAssetRateChange.setTextColorRes(asset.rateChangeColorRes!!)
+            itemAssetRateChange.text = it.formatAsChange()
+        }
+    }
+
+    fun bindDollarInfo(asset: AssetModel) = with(containerView) {
+        asset.dollarRate?.let { itemAssetRate.text = it.formatAsCurrency() }
+        bindDollarAmount(asset.dollarAmount)
+    }
+
+    private fun bindDollarAmount(dollarAmount: BigDecimal?) {
+        dollarAmount?.let { containerView.itemAssetDollarAmount.text = it.formatAsCurrency() }
     }
 }
 
 private object AssetDiffCallback : DiffUtil.ItemCallback<AssetModel>() {
+
     override fun areItemsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {
         return oldItem.token == newItem.token
     }
@@ -80,4 +117,12 @@ private object AssetDiffCallback : DiffUtil.ItemCallback<AssetModel>() {
     override fun areContentsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {
         return oldItem == newItem
     }
+
+    override fun getChangePayload(oldItem: AssetModel, newItem: AssetModel): Any? {
+        return AssetPayloadGenerator.diff(oldItem, newItem)
+    }
 }
+
+private object AssetPayloadGenerator : PayloadGenerator<AssetModel>(
+    AssetModel::dollarRate, AssetModel::recentRateChange, AssetModel::total
+)
