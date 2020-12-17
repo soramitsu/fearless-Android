@@ -76,8 +76,11 @@ class WssSubstrateSource(
     private val sS58Encoder: SS58Encoder
 ) : SubstrateRemoteSource {
 
-    override fun fetchAccountInfo(account: Account): Single<EncodableStruct<AccountInfo>> {
-        val publicKeyBytes = getAccountId(account)
+    override fun fetchAccountInfo(
+        address: String,
+        networkType: Node.NetworkType
+    ): Single<EncodableStruct<AccountInfo>> {
+        val publicKeyBytes = getAccountId(address, networkType)
         val request = AccountInfoRequest(publicKeyBytes)
 
         return socketService.executeRequest(request, responseType = scale(AccountInfo))
@@ -190,9 +193,13 @@ class WssSubstrateSource(
     }
 
     private fun getAccountId(account: Account): ByteArray {
-        val addressType = mapNetworkTypeToAddressType(account.network.type)
+        return with(account) { getAccountId(address, network.type) }
+    }
 
-        return sS58Encoder.decode(account.address, addressType)
+    private fun getAccountId(address: String, networkType: Node.NetworkType): ByteArray {
+        val addressType = mapNetworkTypeToAddressType(networkType)
+
+        return sS58Encoder.decode(address, addressType)
     }
 
     private fun buildSubmittableExtrinsic(
@@ -263,7 +270,7 @@ class WssSubstrateSource(
     }
 
     private fun getNonce(account: Account): Single<Pair<BigInteger, EncodableStruct<AccountInfo>>> {
-        return fetchAccountInfo(account).flatMap { accountInfo ->
+        return fetchAccountInfo(account.address, account.network.type).flatMap { accountInfo ->
             val accountNonce = accountInfo[nonce]
 
             getPendingExtrinsicsCount(account).map { pendingExtrinsics ->

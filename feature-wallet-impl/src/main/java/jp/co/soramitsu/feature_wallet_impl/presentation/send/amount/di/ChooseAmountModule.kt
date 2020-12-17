@@ -10,9 +10,9 @@ import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountViewModel
 
 @Module(includes = [ViewModelModule::class])
@@ -24,17 +24,17 @@ class ChooseAmountModule {
     fun provideViewModel(
         interactor: WalletInteractor,
         router: WalletRouter,
-        resourceManager: ResourceManager,
         addressModelGenerator: AddressIconGenerator,
         externalAccountActions: ExternalAccountActions.Presentation,
+        transferValidityChecks: TransferValidityChecks.Presentation,
         recipientAddress: String
     ): ViewModel {
         return ChooseAmountViewModel(
             interactor,
             router,
-            resourceManager,
             addressModelGenerator,
             externalAccountActions,
+            transferValidityChecks,
             recipientAddress
         )
     }

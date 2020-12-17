@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalance
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalanceLabel
@@ -69,6 +70,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
     override fun subscribe(viewModel: ChooseAmountViewModel) {
         setupExternalActions(viewModel)
 
+        observeTransferChecks(viewModel, viewModel::warningConfirmed)
+
         viewModel.feeLiveData.observe {
             chooseAmountFee.text = it?.feeAmount?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
         }
@@ -105,21 +108,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
             BalanceDetailsBottomSheet(requireContext(), asset, it).show()
         }
 
-        viewModel.showAccountRemovalWarning.observeEvent {
-            showAccountRemovalWarning()
-        }
-
         chooseAmountField.content.onTextChanged(viewModel::amountChanged)
-    }
-
-    private fun showAccountRemovalWarning() {
-        AlertDialog.Builder(requireActivity())
-            .setTitle(R.string.wallet_send_existential_warning_title)
-            .setMessage(R.string.wallet_send_existential_warning_message)
-            .setCancelable(false)
-            .setPositiveButton(R.string.common_continue) { _, _ -> viewModel.transferRemovingAccountConfirmed() }
-            .setNegativeButton(R.string.common_cancel, null)
-            .show()
     }
 
     private fun showRetry(reason: RetryReason) {

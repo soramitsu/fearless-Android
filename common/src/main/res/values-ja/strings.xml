@@ -208,5 +208,7 @@
     <string name="node_add">ノードを追加</string>
     <string name="connection_delete_description_v1_0_1">%s 、 %s削除を確認します。</string>
     <string name="network_info_address_v1_0_1">URLアドレス</string>
+    <string name="wallet_send_dead_recipient_title">金額が少なすぎる</string>
+    <string name="wallet_send_dead_recipient_message">宛先アカウントの最終金額が既存の預金より少ないため、転送は失敗します。量を増やしてみてください。</string>
     <string name="wallet_asset_buy">購入</string>
 </resources>

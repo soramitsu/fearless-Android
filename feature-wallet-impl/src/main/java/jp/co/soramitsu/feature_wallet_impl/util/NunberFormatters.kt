@@ -24,7 +24,7 @@ private const val GROUPING_SEPARATOR = ' '
 private const val DECIMAL_SEPARATOR = '.'
 
 fun BigDecimal.formatAsToken(token: Asset.Token): String {
-    return "${format()} ${token.displayName}"
+    return "${format(precision = token.maximumPrecision)} ${token.displayName}"
 }
 
 fun BigDecimal.formatAsCurrency(): String {

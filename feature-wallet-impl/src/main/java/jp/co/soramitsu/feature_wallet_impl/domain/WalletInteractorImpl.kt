@@ -7,15 +7,16 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotEnoughFundsException
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import java.io.File
 import java.math.BigDecimal
 
@@ -102,19 +103,23 @@ class WalletInteractorImpl(
         return walletRepository.getTransferFee(transfer)
     }
 
-    override fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable {
-        return walletRepository.checkEnoughAmountForTransfer(transfer)
+    override fun performTransfer(
+        transfer: Transfer,
+        fee: BigDecimal,
+        maxAllowedLevel: TransferValidityLevel
+    ): Completable {
+        return walletRepository.checkTransferValidity(transfer)
             .flatMapCompletable {
-                if (it == CheckFundsStatus.NOT_ENOUGH_FUNDS) {
-                    throw NotEnoughFundsException()
+                if (it.level > maxAllowedLevel) {
+                    throw NotValidTransferStatus(it)
                 } else {
                     walletRepository.performTransfer(transfer, fee)
                 }
             }
     }
 
-    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<CheckFundsStatus> {
-        return walletRepository.checkEnoughAmountForTransfer(transfer)
+    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<TransferValidityStatus> {
+        return walletRepository.checkTransferValidity(transfer)
     }
 
     override fun getAccountsInCurrentNetwork(): Single<List<Account>> {

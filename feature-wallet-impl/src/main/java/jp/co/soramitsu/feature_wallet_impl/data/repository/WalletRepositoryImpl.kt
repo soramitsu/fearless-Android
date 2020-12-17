@@ -22,11 +22,15 @@ import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Error
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Ok
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Warning
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.domain.model.calculateTotalBalance
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTransaction
@@ -127,12 +131,22 @@ class WalletRepositoryImpl(
         }.flatMapCompletable { transactionsDao.insert(it) }
     }
 
-    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<CheckFundsStatus> {
+    override fun checkTransferValidity(transfer: Transfer): Single<TransferValidityStatus> {
         return accountRepository.getSelectedAccount().flatMap { account ->
-            getTransferFeeUpdatingBalance(account, transfer).map { fee ->
-                val assetLocal = assetDao.getAsset(account.address, transfer.token)!!
+            getTransferFeeUpdatingBalance(account, transfer).flatMap { fee ->
+                substrateSource.fetchAccountInfo(transfer.recipient, account.network.type).map { recipientInfo ->
+                    val assetLocal = assetDao.getAsset(account.address, transfer.token)!!
 
-                checkEnoughAmountForTransfer(transfer, mapAssetLocalToAsset(assetLocal), fee)
+                    val recipientData = recipientInfo[data]
+                    val totalRecipientBalance = calculateTotalBalance(recipientData[free], recipientData[reserved])
+
+                    checkTransferValidity(
+                        transfer,
+                        mapAssetLocalToAsset(assetLocal),
+                        fee,
+                        totalRecipientBalance
+                    )
+                }
             }
         }
     }
@@ -208,20 +222,24 @@ class WalletRepositoryImpl(
             .map { it.feeRemote }
     }
 
-    private fun checkEnoughAmountForTransfer(
+    private fun checkTransferValidity(
         transfer: Transfer,
         asset: Asset,
-        fee: FeeRemote
-    ): CheckFundsStatus {
+        fee: FeeRemote,
+        recipientBalanceInPlanks: BigInteger
+    ): TransferValidityStatus {
         val transactionTotalInPlanks = fee.partialFee + transfer.amountInPlanks
         val transactionTotal = transfer.token.amountFromPlanks(transactionTotalInPlanks)
 
         val existentialDeposit = transfer.token.networkType.runtimeConfiguration.existentialDeposit
 
+        val recipientBalance = transfer.token.amountFromPlanks(recipientBalanceInPlanks)
+
         return when {
-            transactionTotal > asset.transferable -> CheckFundsStatus.NOT_ENOUGH_FUNDS
-            asset.total - transactionTotal < existentialDeposit -> CheckFundsStatus.WILL_DESTROY_ACCOUNT
-            else -> CheckFundsStatus.OK
+            transactionTotal > asset.transferable -> Error.Status.NotEnoughFunds
+            asset.total - transactionTotal < existentialDeposit -> Warning.Status.WillRemoveAccount
+            recipientBalance + transfer.amount < existentialDeposit -> Warning.Status.DeadRecipient
+            else -> Ok
         }
     }
 

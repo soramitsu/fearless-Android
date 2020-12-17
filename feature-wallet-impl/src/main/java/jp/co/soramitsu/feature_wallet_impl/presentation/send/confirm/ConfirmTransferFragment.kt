@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferAmount
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferBalance
@@ -76,6 +77,8 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
 
     override fun subscribe(viewModel: ConfirmTransferViewModel) {
         setupExternalActions(viewModel)
+
+        observeTransferChecks(viewModel, viewModel::warningConfirmed, viewModel::errorAcknowledged)
 
         viewModel.assetLiveData.observe {
             confirmTransferBalance.text = it.available.formatAsToken(it.token)

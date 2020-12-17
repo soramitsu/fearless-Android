@@ -26,7 +26,7 @@ class Asset(
     val locked = miscFrozen.max(feeFrozen)
     val frozen = locked + reserved
 
-    val total = free + reserved
+    val total = token.amountFromPlanks(calculateTotalBalance(freeInPlanks, reservedInPlanks))
 
     val transferable = free - locked
 
@@ -41,10 +41,11 @@ class Asset(
         val networkType: Node.NetworkType,
         val mantissa: Int = DEFAULT_MANTISSA
     ) {
-
         KSM("KSM", Node.NetworkType.KUSAMA),
         DOT("DOT", Node.NetworkType.POLKADOT, 10),
         WND("WND", Node.NetworkType.WESTEND);
+
+        val maximumPrecision = mantissa - 1
 
         companion object {
             fun fromNetworkType(networkType: Node.NetworkType): Token {
@@ -57,6 +58,11 @@ class Asset(
         }
     }
 }
+
+fun calculateTotalBalance(
+    freeInPlanks: BigInteger,
+    reservedInPlanks: BigInteger
+) = freeInPlanks + reservedInPlanks
 
 fun Asset.Token.amountFromPlanks(amountInPlanks: BigInteger) = amountInPlanks.toBigDecimal(scale = mantissa)
 
