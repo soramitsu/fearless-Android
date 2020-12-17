@@ -25,3 +25,9 @@ inline fun postToUiThread(crossinline action: () -> Unit) {
         action.invoke()
     }
 }
+
+fun Int.dp(context: Context): Int {
+    val inPx = context.resources.displayMetrics.density * this
+
+    return inPx.toInt()
+}

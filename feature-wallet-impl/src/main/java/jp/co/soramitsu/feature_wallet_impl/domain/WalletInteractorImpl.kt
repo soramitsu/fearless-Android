@@ -32,6 +32,7 @@ class WalletInteractorImpl(
 
     override fun observeAssets(): Observable<List<Asset>> {
         return walletRepository.observeAssets()
+            .filter { it.isNotEmpty() }
     }
 
     override fun syncAssetsRates(): Completable {

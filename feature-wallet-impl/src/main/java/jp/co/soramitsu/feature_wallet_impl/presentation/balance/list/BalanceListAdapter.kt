@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
@@ -15,6 +16,7 @@ import jp.co.soramitsu.feature_wallet_impl.util.formatAsChange
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetBalance
+import kotlinx.android.synthetic.main.item_asset.view.itemAssetContainer
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetDollarAmount
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetImage
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetNetwork
@@ -43,6 +45,12 @@ class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapte
 }
 
 class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+    init {
+        with(containerView) {
+            containerView.itemAssetContainer.background = context.getCutCornerDrawable(R.color.blurColor)
+        }
+    }
+
     fun bind(asset: AssetModel, itemHandler: BalanceListAdapter.ItemAssetHandler) = with(containerView) {
         itemAssetImage.setImageResource(asset.token.icon)
         itemAssetNetwork.text = asset.token.networkType.readableName

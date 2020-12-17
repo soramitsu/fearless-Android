@@ -26,7 +26,7 @@
                 <ImageView
                     android:id="@+id/blur"
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="0dp"
                     android:background="@color/blurColorLight"
                     app:layout_constraintBottom_toBottomOf="@+id/balanceDetailRate"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -190,35 +190,18 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/balanceDetailFrozenTitle" />
 
-                <jp.co.soramitsu.common.view.GlassyButton
-                    android:id="@+id/balanceDetailSend"
+                <jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.AssetActionsView
+                    android:id="@+id/balanceDetaiActions"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="@dimen/asset_image_height"
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="16dp"
-                    android:layout_marginEnd="4dp"
-                    android:layout_marginBottom="16dp"
-                    app:drawable="@drawable/ic_send"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/guideline"
-                    app:layout_constraintHorizontal_bias="1.0"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailFrozenTitle"
-                    app:text="@string/wallet_asset_send" />
-
-                <jp.co.soramitsu.common.view.GlassyButton
-                    android:id="@+id/balanceDetailReceive"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
                     android:layout_marginEnd="16dp"
-                    app:drawable="@drawable/ic_receive"
-                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailSend"
-                    app:layout_constraintEnd_toEndOf="@+id/blur"
-                    app:layout_constraintHorizontal_bias="1.0"
-                    app:layout_constraintStart_toStartOf="@+id/guideline"
-                    app:layout_constraintTop_toTopOf="@+id/balanceDetailSend"
-                    app:text="@string/wallet_asset_receive" />
+                    android:layout_marginBottom="8dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailAvailableTitle" />
 
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/guideline"
@@ -241,7 +224,8 @@
                 android:id="@+id/transfersContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:layout_behavior="jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior" />
+                app:layout_behavior="jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior"
+                tools:layout_height="400dp" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

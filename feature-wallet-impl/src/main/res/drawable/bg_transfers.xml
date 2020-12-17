@@ -6,6 +6,5 @@
   <path
       android:name="outline"
       android:pathData="M0,10L0,768H375V0H10L0,10Z"
-      android:fillColor="#000000"
-      android:fillAlpha="0.8"/>
+      android:fillColor="#000000" />
 </vector>

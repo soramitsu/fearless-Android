@@ -211,4 +211,5 @@
     <string name="network_info_address_v1_0_1">Adresse URL</string>
     <string name="wallet_send_dead_recipient_title">Le montant est trop faible</string>
     <string name="wallet_send_dead_recipient_message">Votre transfert échouera car le montant final sur le compte de destination sera inférieur au dépôt existentiel. S\'il vous plaît, essayez d\'augmenter le montant.</string>
+    <string name="wallet_asset_buy">Acheter</string>
 </resources>
