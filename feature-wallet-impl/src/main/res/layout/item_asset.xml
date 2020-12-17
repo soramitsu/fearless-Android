@@ -5,14 +5,14 @@
     android:id="@+id/itemAssetContainer"
     android:layout_width="match_parent"
     tools:background="@color/blurColor"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/asset_height"
     android:layout_marginTop="8dp"
     android:layout_weight="1">
 
     <ImageView
         android:id="@+id/itemAssetImage"
         android:layout_width="@dimen/asset_image_width"
-        android:layout_height="@dimen/asset_image_height"
+        android:layout_height="0dp"
         android:paddingStart="16dp"
         android:paddingEnd="17dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -20,15 +20,28 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:src="@drawable/ic_token_ksm" />
 
+    <View
+        android:id="@+id/itemAssetDivider"
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/white_10"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/itemAssetImage"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/itemAssetNetwork"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="6dp"
+        android:includeFontPadding="false"
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/itemAssetToken"
-        app:layout_constraintStart_toEndOf="@id/itemAssetImage"
+        app:layout_constraintStart_toEndOf="@id/itemAssetDivider"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
         tools:text="Kusama" />
@@ -38,8 +51,10 @@
         style="@style/TextAppearance.Soramitsu.Header3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
         android:fontFamily="@font/soramitsu_bold"
-        android:textColor="@color/colorGreyText"
+        android:includeFontPadding="false"
+        android:textColor="@color/white_50"
         app:layout_constraintBottom_toTopOf="@+id/itemAssetRate"
         app:layout_constraintStart_toStartOf="@+id/itemAssetNetwork"
         app:layout_constraintTop_toBottomOf="@+id/itemAssetNetwork"
@@ -50,6 +65,9 @@
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        android:includeFontPadding="false"
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/itemAssetToken"
@@ -62,6 +80,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
+        android:includeFontPadding="false"
         android:textColor="@color/green"
         app:layout_constraintBottom_toBottomOf="@+id/itemAssetRate"
         app:layout_constraintStart_toEndOf="@+id/itemAssetRate"
@@ -74,7 +93,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="12dp"
-        android:textColor="@color/colorGreyText"
+        android:textColor="@color/white_50"
         app:layout_constraintBottom_toBottomOf="@+id/itemAssetRateChange"
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="$1,000.05" />
