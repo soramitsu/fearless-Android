@@ -9,7 +9,6 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
@@ -37,9 +36,7 @@ class BalanceListViewModel(
     private val router: WalletRouter,
     private val transactionHistoryMixin: TransactionHistoryMixin,
     buyTokenRegistry: BuyTokenRegistry
-) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin, Browserable {
-
-    override val openBrowserEvent = MutableLiveData<Event<String>>()
+) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin {
 
     private var transactionsRefreshed: Boolean = false
     private var balanceRefreshed: Boolean = false
@@ -104,13 +101,7 @@ class BalanceListViewModel(
     }
 
     fun buyClicked() {
-        val token = primaryTokenLiveData.value ?: return
-        val address = currentAddressModelLiveData.value?.address ?: return
-        val provider = availableProvidersLiveData.value?.firstOrNull() ?: return
-
-        val url = provider.createPurchaseLink(token, address)
-
-        openBrowserEvent.value = Event(url)
+        router.openBuy()
     }
 
     fun accountSelected(addressModel: AddressModel) {
