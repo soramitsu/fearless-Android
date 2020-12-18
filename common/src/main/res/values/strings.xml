@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="buy_completed">Purchase initiated! Please wait up to 60 minutes. You can track status on the email.</string>
+
+    <string name="wallet_send_dead_recipient_title">Amount is too low</string>
+    <string name="wallet_send_dead_recipient_message">Your transfer will fail since the final amount on the destination account will be less than the existential deposit. Please, try to increase the amount.</string>
+
+    <string name="wallet_asset_buy">Buy</string>
+
     <string name="network_info_address_v1_0_1">URL address</string>
 
     <string name="connection_delete_description_v1_0_1">Confirm %s, %s deletion.</string>

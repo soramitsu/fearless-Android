@@ -2,8 +2,8 @@ package jp.co.soramitsu.feature_account_impl.presentation.importing.source.view
 
 import android.content.Context
 import android.os.Bundle
-import jp.co.soramitsu.common.view.bottomSheet.FixedListBottomSheet
-import jp.co.soramitsu.common.view.bottomSheet.item
+import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
+import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
 import jp.co.soramitsu.feature_account_impl.R
 
 class JsonPasteOptionsSheet(

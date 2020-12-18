@@ -8,10 +8,12 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
@@ -20,16 +22,17 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixi
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 
-private class TokenFilter(private val token: Asset.Token) : TransactionFilter {
+private class TokenFilter(private val type: Token.Type) : TransactionFilter {
     override fun shouldInclude(model: TransactionHistoryElement): Boolean {
-        return token == model.transactionModel.token
+        return type == model.transactionModel.type
     }
 }
 
 class BalanceDetailViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
-    private val token: Asset.Token,
+    private val type: Token.Type,
+    private val buyTokenRegistry: BuyTokenRegistry,
     private val transactionHistoryMixin: TransactionHistoryMixin
 ) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin {
 
@@ -49,6 +52,16 @@ class BalanceDetailViewModel(
         balanceRefreshFinished()
     }
 
+    val assetLiveData = observeAssetModel().asLiveData()
+
+    val currentAccountLiveData = interactor.observeSelectedAccount().asLiveData()
+
+    private val availableProvidersLiveData = assetLiveData.map {
+        buyTokenRegistry.availableProviders(it.token.type)
+    }
+
+    val buyEnabledLiveData = availableProvidersLiveData.map { it.isNotEmpty() }
+
     init {
         disposables += transactionHistoryMixin.transferHistoryDisposable
 
@@ -56,7 +69,7 @@ class BalanceDetailViewModel(
 
         transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
 
-        transactionHistoryMixin.addFilter(TokenFilter(token))
+        transactionHistoryMixin.addFilter(TokenFilter(type))
     }
 
     override fun onCleared() {
@@ -65,10 +78,8 @@ class BalanceDetailViewModel(
         transactionHistoryMixin.clear()
     }
 
-    val assetLiveData = observeAssetModel().asLiveData()
-
     fun syncAssetRates() {
-        disposables += interactor.syncAssetRates(token)
+        disposables += interactor.syncAssetRates(type)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnComplete { balanceRefreshFinished() }
@@ -95,6 +106,10 @@ class BalanceDetailViewModel(
         router.openReceive()
     }
 
+    fun buyClicked() {
+        router.openBuy()
+    }
+
     fun frozenInfoClicked() {
         assetLiveData.value?.let {
             _showFrozenDetailsEvent.value = Event(it)
@@ -102,7 +117,7 @@ class BalanceDetailViewModel(
     }
 
     private fun observeAssetModel(): Observable<AssetModel> {
-        return interactor.observeAsset(token)
+        return interactor.observeAsset(type)
             .subscribeOn(Schedulers.io())
             .map(::mapAssetToAssetModel)
             .observeOn(AndroidSchedulers.mainThread())

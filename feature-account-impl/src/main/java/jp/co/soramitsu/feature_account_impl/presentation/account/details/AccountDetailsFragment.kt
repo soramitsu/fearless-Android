@@ -8,11 +8,11 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsAddressView
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsEncryptionType
@@ -90,11 +90,8 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
         accountDetailsNameField.content.onTextChanged(viewModel::nameChanged)
     }
 
-    private fun showExportSourceChooser(sources: List<ExportSource>) {
-        val chooserPayload = SourceTypeChooserPayload(sources)
-
-        SourceTypeChooserBottomSheetDialog(requireActivity(), chooserPayload) { selected ->
-            viewModel.exportTypeSelected(selected)
-        }.show()
+    private fun showExportSourceChooser(payload: Payload<ExportSource>) {
+        SourceTypeChooserBottomSheetDialog(requireActivity(), payload, viewModel::exportTypeSelected)
+            .show()
     }
 }

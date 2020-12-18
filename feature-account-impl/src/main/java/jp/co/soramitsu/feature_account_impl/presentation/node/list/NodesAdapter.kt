@@ -2,9 +2,9 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
 import android.view.View
 import android.view.ViewGroup
-import jp.co.soramitsu.common.groupedList.BaseGroupedDiffCallback
-import jp.co.soramitsu.common.groupedList.GroupedListAdapter
-import jp.co.soramitsu.common.groupedList.GroupedListHolder
+import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
+import jp.co.soramitsu.common.list.GroupedListAdapter
+import jp.co.soramitsu.common.list.GroupedListHolder
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeHeaderModel

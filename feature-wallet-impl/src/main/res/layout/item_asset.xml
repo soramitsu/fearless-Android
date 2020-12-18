@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/itemAssetContainer"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    tools:background="@color/blurColor"
+    android:layout_height="@dimen/asset_height"
     android:layout_marginTop="8dp"
-    android:orientation="horizontal">
+    android:layout_weight="1">
 
     <ImageView
         android:id="@+id/itemAssetImage"
         android:layout_width="@dimen/asset_image_width"
-        android:layout_height="@dimen/asset_image_height"
-        android:background="@drawable/bg_asset_left"
+        android:layout_height="0dp"
         android:paddingStart="16dp"
         android:paddingEnd="17dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -19,83 +20,92 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:src="@drawable/ic_token_ksm" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:background="@drawable/bg_asset_right">
+    <View
+        android:id="@+id/itemAssetDivider"
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/white_10"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/itemAssetImage"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/itemAssetNetwork"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:textColor="@color/white"
-            app:layout_constraintBottom_toTopOf="@+id/itemAssetToken"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_chainStyle="packed"
-            tools:text="Kusama" />
+    <TextView
+        android:id="@+id/itemAssetNetwork"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="6dp"
+        android:includeFontPadding="false"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/itemAssetToken"
+        app:layout_constraintStart_toEndOf="@id/itemAssetDivider"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Kusama" />
 
-        <TextView
-            android:id="@+id/itemAssetToken"
-            style="@style/TextAppearance.Soramitsu.Header3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/soramitsu_bold"
-            android:textColor="@color/colorGreyText"
-            app:layout_constraintBottom_toTopOf="@+id/itemAssetRate"
-            app:layout_constraintStart_toStartOf="@+id/itemAssetNetwork"
-            app:layout_constraintTop_toBottomOf="@+id/itemAssetNetwork"
-            tools:text="KSM" />
+    <TextView
+        android:id="@+id/itemAssetToken"
+        style="@style/TextAppearance.Soramitsu.Header3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:fontFamily="@font/soramitsu_bold"
+        android:includeFontPadding="false"
+        android:textColor="@color/white_50"
+        app:layout_constraintBottom_toTopOf="@+id/itemAssetRate"
+        app:layout_constraintStart_toStartOf="@+id/itemAssetNetwork"
+        app:layout_constraintTop_toBottomOf="@+id/itemAssetNetwork"
+        tools:text="KSM" />
 
-        <TextView
-            android:id="@+id/itemAssetRate"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/itemAssetToken"
-            app:layout_constraintTop_toBottomOf="@+id/itemAssetToken"
-            tools:text="$10.25" />
+    <TextView
+        android:id="@+id/itemAssetRate"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        android:includeFontPadding="false"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/itemAssetToken"
+        app:layout_constraintTop_toBottomOf="@+id/itemAssetToken"
+        tools:text="$10.25" />
 
-        <TextView
-            android:id="@+id/itemAssetRateChange"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:textColor="@color/green"
-            app:layout_constraintBottom_toBottomOf="@+id/itemAssetRate"
-            app:layout_constraintStart_toEndOf="@+id/itemAssetRate"
-            app:layout_constraintTop_toTopOf="@+id/itemAssetRate"
-            tools:text="+25%" />
+    <TextView
+        android:id="@+id/itemAssetRateChange"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:includeFontPadding="false"
+        android:textColor="@color/green"
+        app:layout_constraintBottom_toBottomOf="@+id/itemAssetRate"
+        app:layout_constraintStart_toEndOf="@+id/itemAssetRate"
+        app:layout_constraintTop_toTopOf="@+id/itemAssetRate"
+        tools:text="+25%" />
 
-        <TextView
-            android:id="@+id/itemAssetDollarAmount"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
-            android:textColor="@color/colorGreyText"
-            app:layout_constraintBottom_toBottomOf="@+id/itemAssetRateChange"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:text="$1,000.05" />
+    <TextView
+        android:id="@+id/itemAssetDollarAmount"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:textColor="@color/white_50"
+        app:layout_constraintBottom_toBottomOf="@+id/itemAssetRateChange"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="$1,000.05" />
 
-        <TextView
-            android:id="@+id/itemAssetBalance"
-            style="@style/TextAppearance.Soramitsu.Header3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            app:layout_constraintBottom_toTopOf="@+id/itemAssetDollarAmount"
-            app:layout_constraintEnd_toEndOf="@+id/itemAssetDollarAmount"
-            tools:text="120.0849" />
+    <TextView
+        android:id="@+id/itemAssetBalance"
+        style="@style/TextAppearance.Soramitsu.Header3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintBottom_toTopOf="@+id/itemAssetDollarAmount"
+        app:layout_constraintEnd_toEndOf="@+id/itemAssetDollarAmount"
+        tools:text="120.0849" />
 
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-</LinearLayout>
-
+</androidx.constraintlayout.widget.ConstraintLayout>

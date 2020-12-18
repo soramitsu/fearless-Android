@@ -1,11 +1,11 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation
 
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 
 interface WalletRouter {
-    fun openAssetDetails(token: Asset.Token)
+    fun openAssetDetails(type: Token.Type)
 
     fun back()
 
@@ -24,4 +24,6 @@ interface WalletRouter {
     fun openAddAccount()
 
     fun openReceive()
+
+    fun openBuy()
 }

@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.account.external.actions.CopyCallback
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.account.external.actions.ExternalActionsSheet
 import jp.co.soramitsu.common.account.external.actions.ExternalViewCallback
-import jp.co.soramitsu.common.view.bottomSheet.item
+import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
 import jp.co.soramitsu.feature_account_impl.R
 
 class ProfileActionsSheet(

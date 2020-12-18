@@ -1,47 +1,60 @@
 package jp.co.soramitsu.feature_account_impl.presentation.common.accountSource
 
-import android.app.Activity
-import android.view.LayoutInflater
+import android.content.Context
+import android.os.Bundle
 import android.view.View
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import androidx.recyclerview.widget.DiffUtil
+import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.makeInvisible
+import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeListAdapter.SourceItemHandler
-import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.sourceRv
-import kotlinx.android.synthetic.main.bottom_sheet_source_chooser.titleTv
-
-class SourceTypeChooserPayload<T : AccountSource>(val allSources: List<T>, val selected: T? = null)
+import kotlinx.android.synthetic.main.item_source.view.rightIcon
+import kotlinx.android.synthetic.main.item_source.view.sourceTv
 
 class SourceTypeChooserBottomSheetDialog<T : AccountSource>(
-    context: Activity,
-    payload: SourceTypeChooserPayload<T>,
-    private val itemTypeClickListener: (T) -> Unit
-) : BottomSheetDialog(context, R.style.BottomSheetDialog), SourceItemHandler<T> {
+    context: Context,
+    payload: Payload<T>,
+    onClicked: ClickHandler<T>
+) : DynamicListBottomSheet<T>(context, payload, AccountSourceDiffCallback<T>(), onClicked) {
 
-    init {
-        setContentView(LayoutInflater.from(context).inflate(R.layout.bottom_sheet_source_chooser, null))
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
-
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                    behavior.state = BottomSheetBehavior.STATE_COLLAPSED
-                }
-            }
-        })
-
-        titleTv.text = context.getString(R.string.recovery_source_type)
-
-        val adapter = SourceTypeListAdapter(payload.selected, this)
-
-        adapter.submitList(payload.allSources)
-        sourceRv.adapter = adapter
+        setTitle(R.string.recovery_source_type)
     }
 
-    override fun onSourceSelected(source: T) {
-        itemTypeClickListener.invoke(source)
+    override fun holderCreator(): HolderCreator<T> = {
+        SourceTypeHolder(it.inflateChild(R.layout.item_source))
+    }
+}
 
-        dismiss()
+class SourceTypeHolder<T : AccountSource>(itemView: View) : DynamicListSheetAdapter.Holder<T>(itemView) {
+
+    override fun bind(item: T, isSelected: Boolean, handler: DynamicListSheetAdapter.Handler<T>) {
+        super.bind(item, isSelected, handler)
+
+        with(itemView) {
+            if (isSelected) {
+                rightIcon.makeVisible()
+            } else {
+                rightIcon.makeInvisible()
+            }
+
+            sourceTv.setText(item.nameRes)
+        }
+    }
+}
+
+private class AccountSourceDiffCallback<T : AccountSource> : DiffUtil.ItemCallback<T>() {
+    override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
+        return oldItem.nameRes == newItem.nameRes
+    }
+
+    override fun areContentsTheSame(oldItem: T, newItem: T): Boolean {
+        return true
     }
 }

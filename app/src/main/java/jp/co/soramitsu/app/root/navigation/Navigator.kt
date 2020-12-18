@@ -27,7 +27,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfigur
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
@@ -204,6 +204,10 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_open_receive)
     }
 
+    override fun openBuy() {
+        navController?.navigate(R.id.action_open_buy)
+    }
+
     override fun returnToMain() {
         // to achieve smooth animation
         postToUiThread {
@@ -229,8 +233,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId, isSelected))
     }
 
-    override fun openAssetDetails(token: Asset.Token) {
-        val bundle = BalanceDetailFragment.getBundle(token)
+    override fun openAssetDetails(type: Token.Type) {
+        val bundle = BalanceDetailFragment.getBundle(type)
 
         navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle)
     }

@@ -3,20 +3,25 @@ package jp.co.soramitsu.core_db.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import java.math.BigDecimal
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import java.math.BigInteger
 
 @Entity(
     tableName = "assets",
     primaryKeys = ["token", "accountAddress"],
-    foreignKeys = [ForeignKey(entity = AccountLocal::class,
-        parentColumns = ["address"],
-        childColumns = ["accountAddress"],
-        onDelete = ForeignKey.CASCADE)]
+    foreignKeys = [
+        ForeignKey(entity = AccountLocal::class,
+            parentColumns = ["address"],
+            childColumns = ["accountAddress"],
+            onDelete = ForeignKey.CASCADE),
+        ForeignKey(entity = TokenLocal::class,
+            parentColumns = ["type"],
+            childColumns = ["token"]
+        )
+    ]
 )
 data class AssetLocal(
-    val token: Asset.Token,
+    val token: Token.Type,
     @ColumnInfo(index = true) val accountAddress: String,
     val freeInPlanks: BigInteger,
     val reservedInPlanks: BigInteger,
@@ -24,16 +29,14 @@ data class AssetLocal(
     val feeFrozenInPlanks: BigInteger,
     val bondedInPlanks: BigInteger,
     val redeemableInPlanks: BigInteger,
-    val unbondingInPlanks: BigInteger,
-    val dollarRate: BigDecimal?,
-    val recentRateChange: BigDecimal?
+    val unbondingInPlanks: BigInteger
 ) {
     companion object {
         fun createEmpty(
-            token: Asset.Token,
+            type: Token.Type,
             accountAddress: String
         ) = AssetLocal(
-            token = token,
+            token = type,
             accountAddress = accountAddress,
             freeInPlanks = BigInteger.ZERO,
             reservedInPlanks = BigInteger.ZERO,
@@ -41,9 +44,7 @@ data class AssetLocal(
             feeFrozenInPlanks = BigInteger.ZERO,
             bondedInPlanks = BigInteger.ZERO,
             redeemableInPlanks = BigInteger.ZERO,
-            unbondingInPlanks = BigInteger.ZERO,
-            dollarRate = null,
-            recentRateChange = null
+            unbondingInPlanks = BigInteger.ZERO
         )
     }
 }

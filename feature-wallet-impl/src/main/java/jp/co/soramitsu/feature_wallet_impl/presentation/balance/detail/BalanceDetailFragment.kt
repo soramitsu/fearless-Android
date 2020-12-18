@@ -9,7 +9,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_wallet_impl.util.format
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsChange
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
+import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetaiActions
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailAvailableAmount
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailBack
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailContainer
@@ -28,8 +29,6 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailFroze
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailFrozenTitle
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRate
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRateChange
-import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailReceive
-import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailSend
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTotal
@@ -40,9 +39,9 @@ private const val KEY_TOKEN = "KEY_TOKEN"
 class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
     companion object {
-        fun getBundle(token: Asset.Token): Bundle {
+        fun getBundle(type: Token.Type): Bundle {
             return Bundle().apply {
-                putSerializable(KEY_TOKEN, token)
+                putSerializable(KEY_TOKEN, type)
             }
         }
     }
@@ -70,12 +69,16 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
         balanceDetailBack.setOnClickListener { viewModel.backClicked() }
 
-        balanceDetailSend.setOnClickListener {
+        balanceDetaiActions.send.setOnClickListener {
             viewModel.sendClicked()
         }
 
-        balanceDetailReceive.setOnClickListener {
+        balanceDetaiActions.receive.setOnClickListener {
             viewModel.receiveClicked()
+        }
+
+        balanceDetaiActions.buy.setOnClickListener {
+            viewModel.buyClicked()
         }
 
         balanceDetailFrozenTitle.setOnClickListener {
@@ -84,7 +87,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun inject() {
-        val token = arguments!![KEY_TOKEN] as Asset.Token
+        val token = arguments!![KEY_TOKEN] as Token.Type
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -102,23 +105,23 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
 
         viewModel.assetLiveData.observe { asset ->
-            balanceDetailTokenIcon.setImageResource(asset.token.icon)
-            balanceDetailTokenName.text = asset.token.networkType.readableName
+            balanceDetailTokenIcon.setImageResource(asset.token.type.icon)
+            balanceDetailTokenName.text = asset.token.type.networkType.readableName
 
-            asset.dollarRate?.let {
+            asset.token.dollarRate?.let {
                 balanceDetailDollarGroup.visibility = View.VISIBLE
 
                 balanceDetailRate.text = it.formatAsCurrency()
             }
 
-            asset.recentRateChange?.let {
-                balanceDetailRateChange.setTextColorRes(asset.rateChangeColorRes!!)
+            asset.token.recentRateChange?.let {
+                balanceDetailRateChange.setTextColorRes(asset.token.rateChangeColorRes!!)
                 balanceDetailRateChange.text = it.formatAsChange()
             }
 
             asset.dollarAmount?.let { balanceDetailDollarAmount.text = it.formatAsCurrency() }
 
-            balanceDetailTotal.text = asset.total.formatAsToken(asset.token)
+            balanceDetailTotal.text = asset.total.formatAsToken(asset.token.type)
 
             balanceDetailFrozenAmount.text = asset.frozen.format()
             balanceDetailAvailableAmount.text = asset.available.format()
@@ -129,6 +132,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         }
 
         viewModel.showFrozenDetailsEvent.observeEvent(::showFrozenDetails)
+
+        viewModel.buyEnabledLiveData.observe(balanceDetaiActions.buy::setEnabled)
     }
 
     private fun setRefreshEnabled(bottomSheetState: Int) {

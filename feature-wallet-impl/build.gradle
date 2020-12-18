@@ -13,10 +13,19 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
+        // TODO use after staging will be usefull
+//        buildConfigField "String", "RAMP_TOKEN", "\"4bk3yhfrg99fer764bo7egrqmxbfene7gbrpwmp3\""
+//        buildConfigField "String", "RAMP_HOST", "\"ri-widget-staging.firebaseapp.com\""
+
+        buildConfigField "String", "RAMP_TOKEN", "\"3quzr4e6wdyccndec8jzjebzar5kxxzfy2f3us5k\""
+        buildConfigField "String", "RAMP_HOST", "\"buy.ramp.network\""
     }
 
     buildTypes {
         release {
+            buildConfigField "String", "RAMP_TOKEN", "\"3quzr4e6wdyccndec8jzjebzar5kxxzfy2f3us5k\""
+            buildConfigField "String", "RAMP_HOST", "\"buy.ramp.network\""
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

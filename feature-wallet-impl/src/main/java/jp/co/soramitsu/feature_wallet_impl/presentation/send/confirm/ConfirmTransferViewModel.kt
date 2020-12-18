@@ -7,18 +7,19 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.view.ButtonState
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotEnoughFundsException
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
-import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 
 private const val ICON_IN_DP = 24
 
@@ -27,9 +28,11 @@ class ConfirmTransferViewModel(
     private val router: WalletRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val resourceManager: ResourceManager,
+    private val transferValidityChecks: TransferValidityChecks.Presentation,
     val transferDraft: TransferDraft
-) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
+) : BaseViewModel(),
+    ExternalAccountActions by externalAccountActions,
+    TransferValidityChecks by transferValidityChecks {
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<Unit>>()
     val showBalanceDetailsEvent: LiveData<Event<Unit>> = _showBalanceDetailsEvent
@@ -46,7 +49,7 @@ class ConfirmTransferViewModel(
         }
     }
 
-    val assetLiveData = interactor.observeAsset(transferDraft.token)
+    val assetLiveData = interactor.observeAsset(transferDraft.type)
         .subscribeOn(Schedulers.io())
         .map(::mapAssetToAssetModel)
         .observeOn(AndroidSchedulers.mainThread())
@@ -56,32 +59,53 @@ class ConfirmTransferViewModel(
         router.back()
     }
 
-    fun submitClicked() {
-        _transferSubmittingLiveData.value = true
-
-        disposables += interactor.performTransfer(createTransfer(), transferDraft.fee)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doFinally { _transferSubmittingLiveData.value = false }
-            .subscribe({
-                router.finishSendFlow()
-            }, {
-                if (it is NotEnoughFundsException) {
-                    showError(resourceManager.getString(R.string.choose_amount_error_too_big))
-                } else {
-                    showError(it)
-                }
-            })
-    }
-
     fun copyRecipientAddressClicked() {
-        val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, transferDraft.token.networkType)
+        val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, transferDraft.type.networkType)
 
         externalAccountActions.showExternalActions(payload)
     }
 
     fun availableBalanceClicked() {
         _showBalanceDetailsEvent.value = Event(Unit)
+    }
+
+    fun submitClicked() {
+        performTransfer(suppressWarnings = false)
+    }
+
+    fun warningConfirmed() {
+        performTransfer(suppressWarnings = true)
+    }
+
+    fun errorAcknowledged() {
+        router.back()
+    }
+
+    private fun performTransfer(suppressWarnings: Boolean) {
+        val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
+
+        _transferSubmittingLiveData.value = true
+
+        disposables += interactor.performTransfer(createTransfer(), transferDraft.fee, maxAllowedStatusLevel)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doFinally { _transferSubmittingLiveData.value = false }
+            .subscribe({
+                router.finishSendFlow()
+            }, {
+                if (it is NotValidTransferStatus) {
+                    processInvalidStatus(it.status)
+                } else {
+                    showError(it)
+                }
+            })
+    }
+
+    private fun processInvalidStatus(status: TransferValidityStatus) {
+        when (status) {
+            is TransferValidityLevel.Warning.Status -> transferValidityChecks.showTransferWarning(status)
+            is TransferValidityLevel.Error.Status -> transferValidityChecks.showTransferError(status)
+        }
     }
 
     private fun getAddressIcon() = interactor.getAddressId(transferDraft.recipientAddress)
@@ -92,12 +116,8 @@ class ConfirmTransferViewModel(
             Transfer(
                 recipient = recipientAddress,
                 amount = amount,
-                token = token
+                type = type
             )
         }
-    }
-
-    fun errorAcknowledged() {
-        router.back()
     }
 }

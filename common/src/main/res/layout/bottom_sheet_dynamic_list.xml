@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dynamicListSheetItemContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="24dp"
+    tools:layout_height="300dp">
+
+    <View
+        style="@style/Widget.Fearless.Puller"
+        android:layout_marginTop="2dp"
+        android:layout_gravity="center_horizontal" />
+
+    <TextView
+        android:id="@+id/dynamicListSheetTitle"
+        style="@style/TextAppearance.Soramitsu.Header3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="13dp"
+        tools:text="Title" />
+
+    <View
+        android:id="@+id/dynamicListSheetDivider"
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/gray3" />
+    
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        android:id="@+id/dynamicListSheetContent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

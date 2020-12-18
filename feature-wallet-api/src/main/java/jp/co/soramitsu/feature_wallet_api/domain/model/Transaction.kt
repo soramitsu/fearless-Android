@@ -4,7 +4,7 @@ import java.math.BigDecimal
 
 data class Transaction(
     val hash: String,
-    val token: Asset.Token,
+    val type: Token.Type,
     val senderAddress: String,
     val recipientAddress: String,
     val amount: BigDecimal,

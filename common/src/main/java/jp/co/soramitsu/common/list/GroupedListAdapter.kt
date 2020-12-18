@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.groupedList
+package jp.co.soramitsu.common.list
 
 import android.view.View
 import android.view.ViewGroup

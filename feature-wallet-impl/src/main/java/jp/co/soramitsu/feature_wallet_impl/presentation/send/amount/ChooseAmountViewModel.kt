@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.Optional
@@ -23,14 +22,18 @@ import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.CheckFundsStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Error
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Ok
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Warning
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.concurrent.TimeUnit
@@ -47,11 +50,13 @@ enum class RetryReason(val reasonRes: Int) {
 class ChooseAmountViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
-    private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val transferValidityChecks: TransferValidityChecks.Presentation,
     private val recipientAddress: String
-) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
+) : BaseViewModel(),
+    ExternalAccountActions by externalAccountActions,
+    TransferValidityChecks by transferValidityChecks {
 
     val recipientModelLiveData = generateAddressModel(recipientAddress).asLiveData()
 
@@ -73,9 +78,6 @@ class ChooseAmountViewModel(
     private val _showBalanceDetailsEvent = MutableLiveData<Event<TransferDraft>>()
     val showBalanceDetailsEvent: LiveData<Event<TransferDraft>> = _showBalanceDetailsEvent
 
-    private val _showAccountRemovalWarning = MutableLiveData<Event<Unit>>()
-    val showAccountRemovalWarning: LiveData<Event<Unit>> = _showAccountRemovalWarning
-
     val assetLiveData = currentAssetObservable
         .subscribeOn(Schedulers.io())
         .map(::mapAssetToAssetModel)
@@ -83,7 +85,7 @@ class ChooseAmountViewModel(
         .asLiveData()
 
     private val minimumPossibleAmountLiveData = assetLiveData.map {
-        it.token.amountFromPlanks(BigInteger.ONE)
+        it.token.type.amountFromPlanks(BigInteger.ONE)
     }
 
     val continueButtonStateLiveData = combine(
@@ -122,7 +124,7 @@ class ChooseAmountViewModel(
 
     fun recipientAddressClicked() {
         val recipientAddress = recipientModelLiveData.value?.address ?: return
-        val networkType = assetLiveData.value?.token?.networkType ?: return
+        val networkType = assetLiveData.value?.token?.type?.networkType ?: return
 
         externalAccountActions.showExternalActions(ExternalAccountActions.Payload(recipientAddress, networkType))
     }
@@ -133,7 +135,7 @@ class ChooseAmountViewModel(
         _showBalanceDetailsEvent.value = Event(transferDraft)
     }
 
-    fun transferRemovingAccountConfirmed() {
+    fun warningConfirmed() {
         openConfirmationScreen()
     }
 
@@ -146,7 +148,7 @@ class ChooseAmountViewModel(
             .doOnNext { _feeLoadingLiveData.postValue(true) }
 
         return Observable.combineLatest(debouncedAmountEvents, currentAssetObservable, BiFunction<BigDecimal, Asset, Transfer> { amount, asset ->
-            Transfer(recipientAddress, amount, asset.token)
+            Transfer(recipientAddress, amount, asset.token.type)
         })
             .switchMapSingle { transfer ->
                 interactor.getTransferFee(transfer)
@@ -174,7 +176,7 @@ class ChooseAmountViewModel(
 
         disposables += currentAssetObservable.firstOrError()
             .subscribeOn(Schedulers.io())
-            .map { Transfer(recipientAddress, fee.transferAmount, it.token) }
+            .map { Transfer(recipientAddress, fee.transferAmount, it.token.type) }
             .flatMap(interactor::checkEnoughAmountForTransfer)
             .observeOn(AndroidSchedulers.mainThread())
             .doFinally { checkingEnoughFundsLiveData.value = false }
@@ -185,11 +187,11 @@ class ChooseAmountViewModel(
             })
     }
 
-    private fun processHasEnoughFunds(status: CheckFundsStatus) {
+    private fun processHasEnoughFunds(status: TransferValidityStatus) {
         when (status) {
-            CheckFundsStatus.OK -> openConfirmationScreen()
-            CheckFundsStatus.WILL_DESTROY_ACCOUNT -> _showAccountRemovalWarning.value = Event(Unit)
-            CheckFundsStatus.NOT_ENOUGH_FUNDS -> showError(resourceManager.getString(R.string.choose_amount_error_too_big))
+            is Ok -> openConfirmationScreen()
+            is Warning.Status -> transferValidityChecks.showTransferWarning(status)
+            is Error.Status -> transferValidityChecks.showTransferError(status)
         }
     }
 
@@ -203,7 +205,7 @@ class ChooseAmountViewModel(
         val fee = feeLiveData.value ?: return null
         val asset = assetLiveData.value ?: return null
 
-        return TransferDraft(fee.transferAmount, fee.feeAmount, asset.token, recipientAddress)
+        return TransferDraft(fee.transferAmount, fee.feeAmount, asset.token.type, recipientAddress)
     }
 
     private fun retryLoadFee() {

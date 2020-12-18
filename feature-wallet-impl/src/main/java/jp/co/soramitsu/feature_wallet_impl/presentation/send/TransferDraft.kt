@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send
 
 import android.os.Parcelable
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
 import java.math.BigDecimal
@@ -10,7 +10,7 @@ import java.math.BigDecimal
 class TransferDraft(
     val amount: BigDecimal,
     val fee: BigDecimal,
-    val token: Asset.Token,
+    val type: Token.Type,
     val recipientAddress: String
 ) : Parcelable {
     @IgnoredOnParcel

@@ -210,4 +210,8 @@
     <string name="node_add">Добавить узел</string>
     <string name="connection_delete_description_v1_0_1">Подтвердите удаление %s , %s .</string>
     <string name="network_info_address_v1_0_1">URL-адрес</string>
+    <string name="wallet_send_dead_recipient_title">Сумма слишком мала</string>
+    <string name="wallet_send_dead_recipient_message">Ваш перевод не состоится, так как окончательная сумма на целевом счете будет меньше, чем существующий депозит. Пожалуйста, попробуйте увеличить сумму.</string>
+    <string name="wallet_asset_buy">Купить</string>
+    <string name="buy_completed">Покупка началась! Подождите до 60 минут. Вы можете отслеживать статус по электронной почте.</string>
 </resources>

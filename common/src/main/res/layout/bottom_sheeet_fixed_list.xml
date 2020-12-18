@@ -4,10 +4,14 @@
     android:id="@+id/fixedListSheetItemContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_bottom_sheet_dialog_rounded"
     android:orientation="vertical"
     android:paddingBottom="24dp"
     tools:layout_height="300dp">
+
+    <View
+        style="@style/Widget.Fearless.Puller"
+        android:layout_marginTop="2dp"
+        android:layout_gravity="center_horizontal" />
 
     <TextView
         android:id="@+id/fixedListSheetTitle"
