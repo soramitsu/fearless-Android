@@ -17,8 +17,6 @@ sealed class TransferValidityLevel(private val level: Int) {
 
     object Warning : TransferValidityLevel(level = 1) {
         sealed class Status : BaseStatus(Warning) {
-            object DeadRecipient : Status()
-
             object WillRemoveAccount : Status()
         }
     }
@@ -26,6 +24,8 @@ sealed class TransferValidityLevel(private val level: Int) {
     object Error : TransferValidityLevel(level = 2) {
         sealed class Status : BaseStatus(Error) {
             object NotEnoughFunds : Status()
+
+            object DeadRecipient : Error.Status()
         }
     }
 }
