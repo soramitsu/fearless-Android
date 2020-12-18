@@ -55,11 +55,13 @@ private fun BaseFragment<*>.showTransferError(
     status: TransferValidityLevel.Error.Status,
     errorConfirmed: DialogClickHandler?
 ) {
-    val messageRes = when (status) {
-        TransferValidityLevel.Error.Status.NotEnoughFunds -> R.string.choose_amount_error_too_big
+    val (titleRes, messageRes) = when (status) {
+        TransferValidityLevel.Error.Status.NotEnoughFunds -> R.string.common_error_general_title to R.string.choose_amount_error_too_big
+        TransferValidityLevel.Error.Status.DeadRecipient -> R.string.wallet_send_dead_recipient_title to R.string.wallet_send_dead_recipient_message
     }
 
     showErrorDialog(errorConfirmed) {
+        setTitle(titleRes)
         setMessage(messageRes)
     }
 }
@@ -70,7 +72,6 @@ private fun BaseFragment<*>.showTransferWarning(
 ) {
     val (title, message) = when (status) {
         TransferValidityLevel.Warning.Status.WillRemoveAccount -> R.string.wallet_send_existential_warning_title to R.string.wallet_send_existential_warning_message
-        TransferValidityLevel.Warning.Status.DeadRecipient -> R.string.wallet_send_dead_recipient_title to R.string.wallet_send_dead_recipient_message
     }
 
     showWarningDialog(warningConfirmed) {

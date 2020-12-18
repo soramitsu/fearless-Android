@@ -78,7 +78,7 @@
                 <jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.AssetActionsView
                     android:id="@+id/balanceListActions"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/asset_image_height"
+                    android:layout_height="@dimen/asset_height"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="16dp"
                     app:layout_constraintBottom_toBottomOf="parent"

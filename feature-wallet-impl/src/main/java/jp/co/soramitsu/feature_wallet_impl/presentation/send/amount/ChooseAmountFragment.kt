@@ -73,7 +73,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         observeTransferChecks(viewModel, viewModel::warningConfirmed)
 
         viewModel.feeLiveData.observe {
-            chooseAmountFee.text = it?.feeAmount?.formatAsToken(it.token) ?: getString(R.string.common_error_general_title)
+            chooseAmountFee.text = it?.feeAmount?.formatAsToken(it.type) ?: getString(R.string.common_error_general_title)
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->
@@ -90,10 +90,10 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.assetLiveData.observe {
-            chooseAmountBalance.text = it.available.formatAsToken(it.token)
+            chooseAmountBalance.text = it.available.formatAsToken(it.token.type)
 
-            chooseAmountToken.setTextIcon(it.token.icon)
-            chooseAmountToken.setMessage(it.token.displayName)
+            chooseAmountToken.setTextIcon(it.token.type.icon)
+            chooseAmountToken.setMessage(it.token.type.displayName)
         }
 
         viewModel.feeErrorLiveData.observeEvent {

@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
@@ -39,17 +40,17 @@ class WalletInteractorImpl(
         return walletRepository.syncAssetsRates()
     }
 
-    override fun observeAsset(token: Asset.Token): Observable<Asset> {
-        return walletRepository.observeAsset(token)
+    override fun observeAsset(type: Token.Type): Observable<Asset> {
+        return walletRepository.observeAsset(type)
     }
 
-    override fun syncAssetRates(token: Asset.Token): Completable {
-        return walletRepository.syncAsset(token)
+    override fun syncAssetRates(type: Token.Type): Completable {
+        return walletRepository.syncAsset(type)
     }
 
     override fun observeCurrentAsset(): Observable<Asset> {
         return accountRepository.observeSelectedAccount()
-            .map { Asset.Token.fromNetworkType(it.network.type) }
+            .map { Token.Type.fromNetworkType(it.network.type) }
             .switchMap(walletRepository::observeAsset)
     }
 

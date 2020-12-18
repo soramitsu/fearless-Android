@@ -71,7 +71,7 @@ class ReceiveViewModel(
             .subscribeOn(Schedulers.io())
             .map { (file, asset) ->
                 val qrFile = compressBitmapToFile(qrBitmap, file)
-                val message = generateMessage(asset.token.networkType.readableName, asset.token.displayName, address)
+                val message = generateMessage(asset.token.type.networkType.readableName, asset.token.type.displayName, address)
                 Pair(qrFile, message)
             }
             .observeOn(AndroidSchedulers.mainThread())

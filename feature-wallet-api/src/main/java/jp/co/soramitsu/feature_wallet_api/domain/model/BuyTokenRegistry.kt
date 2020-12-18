@@ -2,16 +2,16 @@ package jp.co.soramitsu.feature_wallet_api.domain.model
 
 class BuyTokenRegistry(private val availableProviders: List<Provider>) {
 
-    fun availableProviders(token: Asset.Token) = availableProviders.filter { it.isTokenSupported(token) }
+    fun availableProviders(type: Token.Type) = availableProviders.filter { it.isTokenSupported(type) }
 
     interface Provider {
         class UnsupportedTokenException : Exception()
 
-        val supportedTokens: Set<Asset.Token>
+        val supportedTypes: Set<Token.Type>
 
-        fun isTokenSupported(token: Asset.Token): Boolean = token in supportedTokens
+        fun isTokenSupported(type: Token.Type): Boolean = type in supportedTypes
 
         @Throws(UnsupportedTokenException::class)
-        fun createPurchaseLink(token: Asset.Token, address: String): String
+        fun createPurchaseLink(type: Token.Type, address: String): String
     }
 }

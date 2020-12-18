@@ -21,6 +21,6 @@ class BalanceDetailsBottomSheet(
         currencyItem(R.string.choose_amount_available_balance, assetModel.available)
         currencyItem(R.string.wallet_balance_details_total, assetModel.total)
         currencyItem(R.string.wallet_balance_details_total_after, transferDraft.totalAfterTransfer(assetModel.total))
-        currencyItem(R.string.wallet_balance_details_existential_deposit, assetModel.token.networkType.runtimeConfiguration.existentialDeposit)
+        currencyItem(R.string.wallet_balance_details_existential_deposit, assetModel.token.type.networkType.runtimeConfiguration.existentialDeposit)
     }
 }

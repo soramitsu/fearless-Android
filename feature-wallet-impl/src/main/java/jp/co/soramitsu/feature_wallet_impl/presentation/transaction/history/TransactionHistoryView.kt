@@ -12,6 +12,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import jp.co.soramitsu.common.utils.enableShowingNewlyAddedTopElements
 import jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
@@ -59,6 +60,8 @@ class TransferHistorySheet @JvmOverloads constructor(
 
         transactionHistoryList.adapter = adapter
         transactionHistoryList.setHasFixedSize(true)
+
+        transactionHistoryList.enableShowingNewlyAddedTopElements()
 
         addScrollListener()
 

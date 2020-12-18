@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.mappers
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
@@ -14,7 +14,7 @@ fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel
     return with(transaction) {
         TransactionModel(
             hash = hash,
-            token = token,
+            type = type,
             senderAddress = senderAddress,
             recipientAddress = recipientAddress,
             isIncome = isIncome,
@@ -38,7 +38,7 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal): Transa
             date = date,
             fee = feeInPlanks?.let(token::amountFromPlanks),
             status = status,
-            token = token
+            type = token
         )
     }
 }
@@ -58,19 +58,19 @@ fun mapTransactionToTransactionLocal(
             amount = amount,
             date = date,
             source = source,
-            token = token,
-            feeInPlanks = fee?.let(token::planksFromAmount)
+            token = type,
+            feeInPlanks = fee?.let(type::planksFromAmount)
         )
     }
 }
 
 fun mapTransferToTransaction(transfer: TransactionRemote, account: Account): Transaction {
-    val token = Asset.Token.fromNetworkType(account.network.type)
+    val token = Token.Type.fromNetworkType(account.network.type)
 
     return with(transfer) {
         Transaction(
             hash = hash,
-            token = token,
+            type = token,
             date = timeInMillis,
             amount = amount,
             status = Transaction.Status.fromSuccess(success),

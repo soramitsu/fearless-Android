@@ -49,7 +49,7 @@ class ConfirmTransferViewModel(
         }
     }
 
-    val assetLiveData = interactor.observeAsset(transferDraft.token)
+    val assetLiveData = interactor.observeAsset(transferDraft.type)
         .subscribeOn(Schedulers.io())
         .map(::mapAssetToAssetModel)
         .observeOn(AndroidSchedulers.mainThread())
@@ -60,7 +60,7 @@ class ConfirmTransferViewModel(
     }
 
     fun copyRecipientAddressClicked() {
-        val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, transferDraft.token.networkType)
+        val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, transferDraft.type.networkType)
 
         externalAccountActions.showExternalActions(payload)
     }
@@ -116,7 +116,7 @@ class ConfirmTransferViewModel(
             Transfer(
                 recipient = recipientAddress,
                 amount = amount,
-                token = token
+                type = type
             )
         }
     }

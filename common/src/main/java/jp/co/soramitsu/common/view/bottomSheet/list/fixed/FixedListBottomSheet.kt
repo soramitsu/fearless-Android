@@ -17,11 +17,18 @@ import kotlinx.android.synthetic.main.item_sheet_iconic_label.view.itemExternalA
 
 abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
 
+    init {
+        setContentView(R.layout.bottom_sheeet_fixed_list)
+    }
+
     @CallSuper
     override fun onCreate(savedInstanceState: Bundle?) {
-        setContentView(R.layout.bottom_sheeet_fixed_list)
 
         super.onCreate(savedInstanceState)
+    }
+
+    final override fun setContentView(layoutResId: Int) {
+        super.setContentView(layoutResId)
     }
 
     override fun setTitle(@StringRes titleRes: Int) {

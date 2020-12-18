@@ -5,8 +5,11 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import jp.co.soramitsu.common.list.PayloadGenerator
+import jp.co.soramitsu.common.list.resolvePayload
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
@@ -25,6 +28,9 @@ import kotlinx.android.synthetic.main.item_asset.view.itemAssetRateChange
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetToken
 import java.math.BigDecimal
 
+val dollarRateExtractor = { assetModel: AssetModel -> assetModel.token.dollarRate }
+val recentChangeExtractor = { assetModel: AssetModel -> assetModel.token.recentRateChange }
+
 class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapter<AssetModel, AssetViewHolder>(AssetDiffCallback) {
 
     interface ItemAssetHandler {
@@ -42,42 +48,84 @@ class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapte
 
         holder.bind(item, itemHandler)
     }
+
+    override fun onBindViewHolder(holder: AssetViewHolder, position: Int, payloads: MutableList<Any>) {
+        val item = getItem(position)
+
+        resolvePayload(holder, position, payloads) {
+            when (it) {
+                dollarRateExtractor -> holder.bindDollarInfo(item)
+                recentChangeExtractor -> holder.bindRecentChange(item)
+                AssetModel::total -> holder.bindTotal(item)
+            }
+        }
+    }
 }
 
 class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
     init {
         with(containerView) {
-            containerView.itemAssetContainer.background = context.getCutCornerDrawable(R.color.blurColor)
+            val background = with(context) {
+                addRipple(getCutCornerDrawable(R.color.blurColor))
+            }
+
+            containerView.itemAssetContainer.background = background
         }
     }
 
     fun bind(asset: AssetModel, itemHandler: BalanceListAdapter.ItemAssetHandler) = with(containerView) {
-        itemAssetImage.setImageResource(asset.token.icon)
-        itemAssetNetwork.text = asset.token.networkType.readableName
+        itemAssetImage.setImageResource(asset.token.type.icon)
+        itemAssetNetwork.text = asset.token.type.networkType.readableName
 
-        asset.dollarRate?.let { itemAssetRate.text = it.formatAsCurrency() }
-        asset.recentRateChange?.let { showRateChange(it, asset.rateChangeColorRes!!) }
-        asset.dollarAmount?.let { itemAssetDollarAmount.text = it.formatAsCurrency() }
+        bindDollarInfo(asset)
 
-        itemAssetBalance.text = asset.total.format()
+        bindRecentChange(asset)
 
-        itemAssetToken.text = asset.token.displayName
+        bindTotal(asset)
+
+        itemAssetToken.text = asset.token.type.displayName
 
         setOnClickListener { itemHandler.assetClicked(asset) }
     }
 
-    private fun showRateChange(rateChange: BigDecimal, rateChangeColorRes: Int) = with(containerView) {
-        itemAssetRateChange.setTextColorRes(rateChangeColorRes)
-        itemAssetRateChange.text = rateChange.formatAsChange()
+    fun bindTotal(asset: AssetModel) {
+        containerView.itemAssetBalance.text = asset.total.format()
+
+        bindDollarAmount(asset.dollarAmount)
+    }
+
+    fun bindRecentChange(asset: AssetModel) = with(containerView) {
+        asset.token.recentRateChange?.let {
+            itemAssetRateChange.setTextColorRes(asset.token.rateChangeColorRes!!)
+            itemAssetRateChange.text = it.formatAsChange()
+        }
+    }
+
+    fun bindDollarInfo(asset: AssetModel) = with(containerView) {
+        asset.token.dollarRate?.let { itemAssetRate.text = it.formatAsCurrency() }
+        bindDollarAmount(asset.dollarAmount)
+    }
+
+    private fun bindDollarAmount(dollarAmount: BigDecimal?) {
+        dollarAmount?.let { containerView.itemAssetDollarAmount.text = it.formatAsCurrency() }
     }
 }
 
 private object AssetDiffCallback : DiffUtil.ItemCallback<AssetModel>() {
+
     override fun areItemsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {
-        return oldItem.token == newItem.token
+        return oldItem.token.type == newItem.token.type
     }
 
     override fun areContentsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {
         return oldItem == newItem
     }
+
+    override fun getChangePayload(oldItem: AssetModel, newItem: AssetModel): Any? {
+        return AssetPayloadGenerator.diff(oldItem, newItem)
+    }
 }
+
+private object AssetPayloadGenerator : PayloadGenerator<AssetModel>(
+    dollarRateExtractor, recentChangeExtractor, AssetModel::total
+)

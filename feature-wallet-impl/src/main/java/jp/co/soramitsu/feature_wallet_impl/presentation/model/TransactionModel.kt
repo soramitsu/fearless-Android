@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.model
 import android.os.Parcelable
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
@@ -14,7 +14,7 @@ import java.math.BigDecimal
 @Parcelize
 data class TransactionModel(
     val hash: String,
-    val token: Asset.Token,
+    val type: Token.Type,
     val senderAddress: String,
     val recipientAddress: String,
     val amount: BigDecimal,
@@ -45,7 +45,7 @@ data class TransactionModel(
     }
 
     private fun createFormattedAmount(): String {
-        val withoutSign = amount.formatAsToken(token)
+        val withoutSign = amount.formatAsToken(type)
         val sign = if (isIncome) '+' else '-'
 
         return sign + withoutSign

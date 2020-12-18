@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.utils.zip
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.AssetLocal
+import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
@@ -23,6 +24,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Error
@@ -83,13 +85,13 @@ class WalletRepositoryImpl(
             .flatMapCompletable(this::syncAssetRates)
     }
 
-    override fun observeAsset(token: Asset.Token): Observable<Asset> {
+    override fun observeAsset(type: Token.Type): Observable<Asset> {
         return accountRepository.observeSelectedAccount().switchMap { account ->
-            assetDao.observeAsset(account.address, token)
+            assetDao.observeAsset(account.address, type)
         }.map(::mapAssetLocalToAsset)
     }
 
-    override fun syncAsset(token: Asset.Token): Completable {
+    override fun syncAsset(type: Token.Type): Completable {
         return syncAssetsRates()
     }
 
@@ -135,7 +137,7 @@ class WalletRepositoryImpl(
         return accountRepository.getSelectedAccount().flatMap { account ->
             getTransferFeeUpdatingBalance(account, transfer).flatMap { fee ->
                 substrateSource.fetchAccountInfo(transfer.recipient, account.network.type).map { recipientInfo ->
-                    val assetLocal = assetDao.getAsset(account.address, transfer.token)!!
+                    val assetLocal = assetDao.getAsset(account.address, transfer.type)!!
 
                     val recipientData = recipientInfo[data]
                     val totalRecipientBalance = calculateTotalBalance(recipientData[free], recipientData[reserved])
@@ -206,7 +208,7 @@ class WalletRepositoryImpl(
     private fun createTransaction(hash: String, transfer: Transfer, accountAddress: String, fee: BigDecimal) =
         Transaction(
             hash,
-            transfer.token,
+            transfer.type,
             accountAddress,
             transfer.recipient,
             transfer.amount,
@@ -229,16 +231,16 @@ class WalletRepositoryImpl(
         recipientBalanceInPlanks: BigInteger
     ): TransferValidityStatus {
         val transactionTotalInPlanks = fee.partialFee + transfer.amountInPlanks
-        val transactionTotal = transfer.token.amountFromPlanks(transactionTotalInPlanks)
+        val transactionTotal = transfer.type.amountFromPlanks(transactionTotalInPlanks)
 
-        val existentialDeposit = transfer.token.networkType.runtimeConfiguration.existentialDeposit
+        val existentialDeposit = transfer.type.networkType.runtimeConfiguration.existentialDeposit
 
-        val recipientBalance = transfer.token.amountFromPlanks(recipientBalanceInPlanks)
+        val recipientBalance = transfer.type.amountFromPlanks(recipientBalanceInPlanks)
 
         return when {
             transactionTotal > asset.transferable -> Error.Status.NotEnoughFunds
             asset.total - transactionTotal < existentialDeposit -> Warning.Status.WillRemoveAccount
-            recipientBalance + transfer.amount < existentialDeposit -> Warning.Status.DeadRecipient
+            recipientBalance + transfer.amount < existentialDeposit -> Error.Status.DeadRecipient
             else -> Ok
         }
     }
@@ -300,7 +302,7 @@ class WalletRepositoryImpl(
         account: Account,
         todayResponse: SubscanResponse<AssetPriceStatistics>?,
         yesterdayResponse: SubscanResponse<AssetPriceStatistics>?
-    ) = updateLocalAssetCopy(account) { cached ->
+    ) = updateLocalTokenCopy(account) { cached ->
         val todayStats = todayResponse?.content
         val yesterdayStats = yesterdayResponse?.content
 
@@ -321,10 +323,10 @@ class WalletRepositoryImpl(
     private fun updateAssetBalance(
         account: Account,
         accountInfo: EncodableStruct<AccountInfo>
-    ) = updateLocalAssetCopy(account) { cached ->
+    ) = updateLocalAssetCopy(account) { cachedAsset ->
         val data = accountInfo[data]
 
-        cached.copy(
+        cachedAsset.copy(
             freeInPlanks = data[free],
             reservedInPlanks = data[reserved],
             miscFrozenInPlanks = data[miscFrozen],
@@ -334,15 +336,35 @@ class WalletRepositoryImpl(
 
     private fun updateLocalAssetCopy(
         account: Account,
-        builder: (localSource: AssetLocal) -> AssetLocal
+        builder: (local: AssetLocal) -> AssetLocal
     ) = Completable.fromAction {
         synchronized(this) {
-            val token = Asset.Token.fromNetworkType(account.network.type)
-            val cachedAsset = assetDao.getAsset(account.address, token) ?: AssetLocal.createEmpty(token, account.address)
+            val tokenType = Token.Type.fromNetworkType(account.network.type)
+
+            if (!assetDao.isTokenExists(tokenType)) {
+                assetDao.insertToken(TokenLocal.createEmpty(tokenType))
+            }
+
+            val cachedAsset = assetDao.getAsset(account.address, tokenType)?.asset ?: AssetLocal.createEmpty(tokenType, account.address)
 
             val newAsset = builder.invoke(cachedAsset)
 
             assetDao.insertBlocking(newAsset)
+        }
+    }
+
+    private fun updateLocalTokenCopy(
+        account: Account,
+        builder: (local: TokenLocal) -> TokenLocal
+    ) = Completable.fromAction {
+        synchronized(this) {
+            val tokenType = Token.Type.fromNetworkType(account.network.type)
+
+            val tokenLocal = assetDao.getToken(tokenType) ?: TokenLocal.createEmpty(tokenType)
+
+            val newAsset = builder.invoke(tokenLocal)
+
+            assetDao.insertToken(newAsset)
         }
     }
 
@@ -357,7 +379,7 @@ class WalletRepositoryImpl(
         val fee = localCopy?.feeInPlanks
 
         val networkType = account.network.type
-        val token = Asset.Token.fromNetworkType(networkType)
+        val token = Token.Type.fromNetworkType(networkType)
         val addressType = AddressType.valueOf(networkType.toString())
 
         val signed = extrinsic[SubmittableExtrinsic.signedExtrinsic]

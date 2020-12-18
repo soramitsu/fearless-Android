@@ -6,8 +6,8 @@ import java.math.BigInteger
 class Transfer(
     val recipient: String,
     val amount: BigDecimal,
-    val token: Asset.Token
+    val type: Token.Type
 ) {
 
-    val amountInPlanks: BigInteger = token.planksFromAmount(amount)
+    val amountInPlanks: BigInteger = type.planksFromAmount(amount)
 }
