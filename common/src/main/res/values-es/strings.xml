@@ -211,4 +211,5 @@
     <string name="wallet_send_dead_recipient_title">La cantidad es demasiado baja</string>
     <string name="wallet_send_dead_recipient_message">Su transferencia fallará ya que el monto final en la cuenta de destino será menor que el depósito existente. Por favor, intente aumentar la cantidad.</string>
     <string name="wallet_asset_buy">Comprar</string>
+    <string name="buy_completed">Compra iniciada! Espere hasta 60 minutos. Puede realizar un seguimiento del estado en el correo electrónico.</string>
 </resources>

@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
@@ -85,8 +84,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     override fun subscribe(viewModel: BalanceListViewModel) {
         viewModel.syncAssetsRates()
         viewModel.syncFirstTransactionsPage()
-
-        observeBrowserEvents(viewModel)
 
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
 

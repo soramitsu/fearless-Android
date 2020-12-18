@@ -6,7 +6,6 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
@@ -35,12 +34,10 @@ class BalanceDetailViewModel(
     private val type: Token.Type,
     private val buyTokenRegistry: BuyTokenRegistry,
     private val transactionHistoryMixin: TransactionHistoryMixin
-) : BaseViewModel(), Browserable, TransactionHistoryUi by transactionHistoryMixin {
+) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin {
 
     private var transactionsRefreshed: Boolean = false
     private var balanceRefreshed: Boolean = false
-
-    override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
@@ -110,13 +107,7 @@ class BalanceDetailViewModel(
     }
 
     fun buyClicked() {
-        val token = assetLiveData.value?.token ?: return
-        val address = currentAccountLiveData.value?.address ?: return
-        val provider = availableProvidersLiveData.value?.firstOrNull() ?: return
-
-        val url = provider.createPurchaseLink(token.type, address)
-
-        openBrowserEvent.value = Event(url)
+        router.openBuy()
     }
 
     fun frozenInfoClicked() {

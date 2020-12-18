@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -102,8 +101,6 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun subscribe(viewModel: BalanceDetailViewModel) {
         viewModel.syncAssetRates()
         viewModel.syncFirstTransactionsPage()
-
-        observeBrowserEvents(viewModel)
 
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
 
