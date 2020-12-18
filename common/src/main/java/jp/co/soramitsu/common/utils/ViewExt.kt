@@ -15,6 +15,7 @@ import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.RecyclerView
 
 fun View.updatePadding(
     top: Int = paddingTop,
@@ -99,4 +100,14 @@ fun View.setVisible(visible: Boolean, falseState: Int = View.GONE) {
 fun View.hideSoftKeyboard() {
     val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
+}
+
+fun RecyclerView.enableShowingNewlyAddedTopElements() {
+    adapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+            if (positionStart == 0) {
+                scrollToPosition(0)
+            }
+        }
+    })
 }
