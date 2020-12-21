@@ -1,13 +1,9 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.integration
 
 import com.google.gson.Gson
-import jp.co.soramitsu.common.data.network.rpc.SocketService
-import jp.co.soramitsu.common.data.network.rpc.mappers.nonNull
-import jp.co.soramitsu.common.data.network.rpc.mappers.pojo
-import jp.co.soramitsu.common.data.network.rpc.mappers.scale
-import jp.co.soramitsu.common.data.network.rpc.mappers.scaleCollection
-import jp.co.soramitsu.common.data.network.scale.EncodableStruct
-import jp.co.soramitsu.common.data.network.scale.invoke
+import com.neovisionaries.ws.client.WebSocketFactory
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
@@ -15,6 +11,11 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scaleCollection
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.PendingExtrinsicsRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
@@ -23,6 +24,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.NextAccountIndexRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.nonce
@@ -48,6 +50,7 @@ import org.mockito.BDDMockito.given
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import java.math.BigDecimal
+import java.math.BigInteger
 
 private const val PUBLIC_KEY = "f65a7d560102f2019da9b9d8993f53f51cc38d50cdff3d0b8e71997d7f911ff1"
 private const val PRIVATE_KEY = "ae4093af3c40f2ecc32c14d4dada9628a4a42b28ca1a5b200b89321cbc883182"
@@ -71,7 +74,7 @@ class SendIntegrationTest {
     fun setup() {
         given(resourceManager.getString(anyInt())).willReturn("Mock")
 
-        rxWebSocket = SocketService(mapper, StdoutLogger())
+        rxWebSocket = SocketService(mapper, StdoutLogger(), WebSocketFactory())
 
         rxWebSocket.start(URL)
     }

@@ -113,6 +113,8 @@ dependencies {
     implementation rxCallAdapterDep
 
     implementation gifDep
+
+    compileOnly wsDep
 }
 
 task printVersion {

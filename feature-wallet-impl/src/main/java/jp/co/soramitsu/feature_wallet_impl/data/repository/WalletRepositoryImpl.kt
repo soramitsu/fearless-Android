@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import jp.co.soramitsu.common.data.network.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.sumBy
 import jp.co.soramitsu.common.utils.zip
@@ -39,7 +39,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTra
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeRemote
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.feeFrozen
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.free
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.miscFrozen
@@ -118,7 +118,7 @@ class WalletRepositoryImpl(
 
     override fun getTransferFee(transfer: Transfer): Single<Fee> {
         return accountRepository.getSelectedAccount()
-            .flatMap { getTransferFeeUpdatingBalance(it, transfer) }
+            .flatMap { getTransferFee(it, transfer) }
             .map { mapFeeRemoteToFee(it, transfer) }
     }
 
@@ -135,7 +135,7 @@ class WalletRepositoryImpl(
 
     override fun checkTransferValidity(transfer: Transfer): Single<TransferValidityStatus> {
         return accountRepository.getSelectedAccount().flatMap { account ->
-            getTransferFeeUpdatingBalance(account, transfer).flatMap { fee ->
+            getTransferFee(account, transfer).flatMap { fee ->
                 substrateSource.fetchAccountInfo(transfer.recipient, account.network.type).map { recipientInfo ->
                     val assetLocal = assetDao.getAsset(account.address, transfer.type)!!
 
@@ -218,16 +218,14 @@ class WalletRepositoryImpl(
             status = Transaction.Status.PENDING
         )
 
-    private fun getTransferFeeUpdatingBalance(account: Account, transfer: Transfer): Single<FeeRemote> {
+    private fun getTransferFee(account: Account, transfer: Transfer): Single<FeeResponse> {
         return substrateSource.getTransferFee(account, transfer)
-            .doOnSuccess { updateAssetBalance(account, it.newAccountInfo) }
-            .map { it.feeRemote }
     }
 
     private fun checkTransferValidity(
         transfer: Transfer,
         asset: Asset,
-        fee: FeeRemote,
+        fee: FeeResponse,
         recipientBalanceInPlanks: BigInteger
     ): TransferValidityStatus {
         val transactionTotalInPlanks = fee.partialFee + transfer.amountInPlanks

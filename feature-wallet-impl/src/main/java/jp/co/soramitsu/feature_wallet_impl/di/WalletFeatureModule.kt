@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_wallet_impl.di
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core_db.dao.AssetDao
@@ -11,6 +10,7 @@ import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.network.rpc
 
 import io.reactivex.Observable
+import jp.co.soramitsu.fearless_utils.wsrpc.State
 
 enum class LifecycleCondition {
     ALLOWED, FORBIDDEN, STOPPED
