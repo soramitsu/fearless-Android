@@ -239,8 +239,8 @@ class WalletRepositoryImpl(
 
         return when {
             transactionTotal > asset.transferable -> Error.Status.NotEnoughFunds
-            asset.total - transactionTotal < existentialDeposit -> Warning.Status.WillRemoveAccount
             recipientBalance + transfer.amount < existentialDeposit -> Error.Status.DeadRecipient
+            asset.total - transactionTotal < existentialDeposit -> Warning.Status.WillRemoveAccount
             else -> Ok
         }
     }
