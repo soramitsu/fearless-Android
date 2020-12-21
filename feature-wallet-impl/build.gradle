@@ -71,6 +71,8 @@ dependencies {
     implementation gsonDep
     implementation retrofitDep
 
+    implementation wsDep
+
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
 }

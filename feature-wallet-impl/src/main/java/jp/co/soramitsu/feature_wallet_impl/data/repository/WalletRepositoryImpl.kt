@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import jp.co.soramitsu.common.data.network.scale.EncodableStruct
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.sumBy
 import jp.co.soramitsu.common.utils.zip
@@ -14,6 +13,7 @@ import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -27,9 +27,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
-import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Error
-import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Ok
-import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Warning
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.calculateTotalBalance
@@ -39,7 +36,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTra
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeRemote
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.feeFrozen
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.free
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.miscFrozen
@@ -118,7 +115,7 @@ class WalletRepositoryImpl(
 
     override fun getTransferFee(transfer: Transfer): Single<Fee> {
         return accountRepository.getSelectedAccount()
-            .flatMap { getTransferFeeUpdatingBalance(it, transfer) }
+            .flatMap { getTransferFee(it, transfer) }
             .map { mapFeeRemoteToFee(it, transfer) }
     }
 
@@ -135,19 +132,20 @@ class WalletRepositoryImpl(
 
     override fun checkTransferValidity(transfer: Transfer): Single<TransferValidityStatus> {
         return accountRepository.getSelectedAccount().flatMap { account ->
-            getTransferFeeUpdatingBalance(account, transfer).flatMap { fee ->
+            getTransferFee(account, transfer).flatMap { feeResponse ->
                 substrateSource.fetchAccountInfo(transfer.recipient, account.network.type).map { recipientInfo ->
                     val assetLocal = assetDao.getAsset(account.address, transfer.type)!!
+                    val asset = mapAssetLocalToAsset(assetLocal)
+
+                    val tokenType = transfer.type
 
                     val recipientData = recipientInfo[data]
-                    val totalRecipientBalance = calculateTotalBalance(recipientData[free], recipientData[reserved])
+                    val totalRecipientBalanceInPlanks = calculateTotalBalance(recipientData[free], recipientData[reserved])
+                    val totalRecipientBalance = tokenType.amountFromPlanks(totalRecipientBalanceInPlanks)
 
-                    checkTransferValidity(
-                        transfer,
-                        mapAssetLocalToAsset(assetLocal),
-                        fee,
-                        totalRecipientBalance
-                    )
+                    val fee = tokenType.amountFromPlanks(feeResponse.partialFee)
+
+                    transfer.validityStatus(asset.transferable, asset.total, fee, totalRecipientBalance)
                 }
             }
         }
@@ -218,31 +216,8 @@ class WalletRepositoryImpl(
             status = Transaction.Status.PENDING
         )
 
-    private fun getTransferFeeUpdatingBalance(account: Account, transfer: Transfer): Single<FeeRemote> {
+    private fun getTransferFee(account: Account, transfer: Transfer): Single<FeeResponse> {
         return substrateSource.getTransferFee(account, transfer)
-            .doOnSuccess { updateAssetBalance(account, it.newAccountInfo) }
-            .map { it.feeRemote }
-    }
-
-    private fun checkTransferValidity(
-        transfer: Transfer,
-        asset: Asset,
-        fee: FeeRemote,
-        recipientBalanceInPlanks: BigInteger
-    ): TransferValidityStatus {
-        val transactionTotalInPlanks = fee.partialFee + transfer.amountInPlanks
-        val transactionTotal = transfer.type.amountFromPlanks(transactionTotalInPlanks)
-
-        val existentialDeposit = transfer.type.networkType.runtimeConfiguration.existentialDeposit
-
-        val recipientBalance = transfer.type.amountFromPlanks(recipientBalanceInPlanks)
-
-        return when {
-            transactionTotal > asset.transferable -> Error.Status.NotEnoughFunds
-            asset.total - transactionTotal < existentialDeposit -> Warning.Status.WillRemoveAccount
-            recipientBalance + transfer.amount < existentialDeposit -> Error.Status.DeadRecipient
-            else -> Ok
-        }
     }
 
     private fun syncTransactionsFirstPage(pageSize: Int, account: Account): Completable {

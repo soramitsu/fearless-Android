@@ -3,8 +3,8 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource.migratio
 import android.annotation.SuppressLint
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import jp.co.soramitsu.common.data.network.scale.Schema
-import jp.co.soramitsu.common.data.network.scale.byteArray
+import jp.co.soramitsu.fearless_utils.scale.Schema
+import jp.co.soramitsu.fearless_utils.scale.byteArray
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER

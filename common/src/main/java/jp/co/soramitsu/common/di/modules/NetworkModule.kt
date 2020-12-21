@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.di.modules
 
 import com.google.gson.Gson
+import com.neovisionaries.ws.client.WebSocketFactory
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.BuildConfig
@@ -11,13 +12,14 @@ import jp.co.soramitsu.common.data.network.ExternalAnalyzerLinks
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.RxCallAdapterFactory
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
-import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
+import jp.co.soramitsu.common.data.network.rpc.WsConnectionManager
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.fearless_utils.wsrpc.Logger
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
@@ -86,24 +88,30 @@ class NetworkModule {
 
     @Provides
     @ApplicationScope
+    fun provideSocketFactory() = WebSocketFactory()
+
+    @Provides
+    @ApplicationScope
     fun provideSocketService(
         mapper: Gson,
+        socketFactory: WebSocketFactory,
         logger: Logger
-    ): SocketService = SocketService(mapper, logger)
+    ): SocketService = SocketService(mapper, logger, socketFactory)
 
     @Provides
     @ApplicationScope
     fun provideConnectionManager(
         socketService: SocketService
-    ): ConnectionManager = socketService
+    ): ConnectionManager = WsConnectionManager(socketService)
 
     @Provides
     @ApplicationScope
     fun provideSocketSingleRequestExecutor(
         mapper: Gson,
         logger: Logger,
+        socketFactory: WebSocketFactory,
         resourceManager: ResourceManager
-    ) = SocketSingleRequestExecutor(mapper, logger, resourceManager)
+    ) = SocketSingleRequestExecutor(mapper, logger, socketFactory, resourceManager)
 
     @Provides
     fun provideNetworkStateMixin(

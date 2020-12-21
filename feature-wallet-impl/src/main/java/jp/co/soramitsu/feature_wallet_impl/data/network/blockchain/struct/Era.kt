@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
-import jp.co.soramitsu.common.data.network.scale.dataType.DataType
+import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
 
 sealed class Era {
     object Immortal : Era()

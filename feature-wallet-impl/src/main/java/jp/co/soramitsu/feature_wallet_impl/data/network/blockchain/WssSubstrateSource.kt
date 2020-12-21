@@ -4,27 +4,25 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
 import io.reactivex.Observable
 import io.reactivex.Single
-import jp.co.soramitsu.common.data.network.rpc.DeliveryType
-import jp.co.soramitsu.common.data.network.rpc.SocketService
-import jp.co.soramitsu.common.data.network.rpc.mappers.nonNull
-import jp.co.soramitsu.common.data.network.rpc.mappers.pojo
-import jp.co.soramitsu.common.data.network.rpc.mappers.scale
-import jp.co.soramitsu.common.data.network.rpc.mappers.scaleCollection
-import jp.co.soramitsu.common.data.network.rpc.mappers.string
-import jp.co.soramitsu.common.data.network.rpc.subscription.SubscriptionChange
-import jp.co.soramitsu.common.data.network.scale.EncodableStruct
-import jp.co.soramitsu.common.data.network.scale.invoke
+import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.runtime.storageKey
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.wsrpc.DeliveryType
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.string
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.PendingExtrinsicsRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.subscription.SubscriptionChange
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -34,9 +32,9 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.si
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetBlockRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetStorageRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.NextAccountIndexRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.SubscribeStorageRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.BalanceChange
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeRemote
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
@@ -90,12 +88,10 @@ class WssSubstrateSource(
     override fun getTransferFee(account: Account, transfer: Transfer): Single<FeeResponse> {
         return generateFakeKeyPair(account).flatMap { keypair ->
             buildSubmittableExtrinsic(account, transfer, keypair)
-        }.flatMap { (extrinsic, newAccountInfo) ->
+        }.flatMap { extrinsic ->
             val request = FeeCalculationRequest(extrinsic)
 
-            socketService.executeRequest(request, responseType = pojo<FeeRemote>().nonNull()).map { feeRemote ->
-                FeeResponse(feeRemote, newAccountInfo)
-            }
+            socketService.executeRequest(request, responseType = pojo<FeeResponse>().nonNull())
         }
     }
 
@@ -104,7 +100,7 @@ class WssSubstrateSource(
         transfer: Transfer,
         keypair: Keypair
     ): Single<String> {
-        return buildSubmittableExtrinsic(account, transfer, keypair).map { (extrinsic, _) ->
+        return buildSubmittableExtrinsic(account, transfer, keypair).map { extrinsic ->
             TransferRequest(extrinsic)
         }.flatMap { transferRequest ->
             socketService.executeRequest(transferRequest,
@@ -206,12 +202,12 @@ class WssSubstrateSource(
         account: Account,
         transfer: Transfer,
         keypair: Keypair
-    ): Single<Pair<EncodableStruct<SubmittableExtrinsic>, EncodableStruct<AccountInfo>>> {
+    ): Single<EncodableStruct<SubmittableExtrinsic>> {
         return getRuntimeVersion().flatMap { runtimeInfo ->
             val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
             val accountIdValue = getAccountId(account)
 
-            getNonce(account).map { (currentNonce, newAccountInfo) ->
+            getNonce(account).map { currentNonce ->
                 val genesis = account.network.type.runtimeConfiguration.genesisHash
                 val genesisBytes = Hex.decode(genesis)
 
@@ -247,7 +243,7 @@ class WssSubstrateSource(
                     struct[signedExtrinsic] = extrinsic
                 }
 
-                submittableExtrinsic to newAccountInfo
+                submittableExtrinsic
             }
         }
     }
@@ -269,36 +265,21 @@ class WssSubstrateSource(
         }
     }
 
-    private fun getNonce(account: Account): Single<Pair<BigInteger, EncodableStruct<AccountInfo>>> {
-        return fetchAccountInfo(account.address, account.network.type).flatMap { accountInfo ->
-            val accountNonce = accountInfo[nonce]
+    private fun getNonce(account: Account): Single<BigInteger> {
+        val nonceRequest = NextAccountIndexRequest(account.address)
 
-            getPendingExtrinsicsCount(account).map { pendingExtrinsics ->
-                val result = accountNonce + pendingExtrinsics.toUInt()
+        return socketService.executeRequest(nonceRequest)
+            .map {
+                val doubleResult = it.result as Double
 
-                result.toLong().toBigInteger() to accountInfo
+                doubleResult.toInt().toBigInteger()
             }
-        }
     }
 
     private fun generateFakeKeyPair(account: Account) = Single.fromCallable {
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
         val emptySeed = ByteArray(32)
         keypairFactory.generate(cryptoType, emptySeed, "")
-    }
-
-    private fun getPendingExtrinsicsCount(account: Account): Single<Int> {
-        val request = PendingExtrinsicsRequest()
-
-        return socketService.executeRequest(request, scaleCollection(SubmittableExtrinsic))
-            .map { it.result ?: throw IllegalArgumentException("Result is null") }
-            .map { countUserExtrinsics(account, it) }
-    }
-
-    private fun countUserExtrinsics(account: Account, list: List<EncodableStruct<SubmittableExtrinsic>>): Int {
-        val publicKeyBytes = Hex.decode(account.publicKey)
-
-        return list.count { it[signedExtrinsic][accountId].contentEquals(publicKeyBytes) }
     }
 
     private fun getRuntimeVersion(): Single<RuntimeVersion> {
