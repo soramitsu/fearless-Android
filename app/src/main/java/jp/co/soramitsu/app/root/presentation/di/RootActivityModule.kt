@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.resources.ResourceManager
 
 @Module(
     includes = [
@@ -32,12 +33,14 @@ class RootActivityModule {
         interactor: RootInteractor,
         rootRouter: RootRouter,
         connectionManager: ConnectionManager,
+        resourceManager: ResourceManager,
         networkStateMixin: NetworkStateMixin
     ): ViewModel {
         return RootViewModel(
             interactor,
             rootRouter,
             connectionManager,
+            resourceManager,
             networkStateMixin
         )
     }

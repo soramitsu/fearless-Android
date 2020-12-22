@@ -12,12 +12,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 
-fun Activity.showShortToast(msg: String) {
-    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+fun Activity.showToast(msg: String, duration: Int = Toast.LENGTH_LONG) {
+    Toast.makeText(this, msg, duration).show()
 }
 
-fun Activity.showShortToast(@StringRes msg: Int) {
-    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+fun Activity.showToast(@StringRes msg: Int, duration: Int = Toast.LENGTH_LONG) {
+    Toast.makeText(this, msg, duration).show()
 }
 
 @SuppressLint("NewApi")
@@ -45,7 +45,9 @@ fun View.makeGone() {
     this.visibility = View.GONE
 }
 
-fun Fragment.showBrowser(link: String) {
+fun Fragment.showBrowser(link: String) = requireContext().showBrowser(link)
+
+fun Context.showBrowser(link: String) {
     val intent = Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(link) }
     startActivity(intent)
 }

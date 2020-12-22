@@ -1,7 +1,7 @@
 package jp.co.soramitsu.app.root.presentation
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import jp.co.soramitsu.app.R
@@ -10,11 +10,12 @@ import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.setVisible
+import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import kotlinx.android.synthetic.main.activity_root.mainView
-import kotlinx.android.synthetic.main.activity_root.navHost
 import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
 import javax.inject.Inject
 
@@ -49,6 +50,8 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
             insets
         }
 
+        intent?.let(::processIntent)
+
 //        processJsonOpenIntent()
     }
 
@@ -60,6 +63,12 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
 
     override fun layoutResource(): Int {
         return R.layout.activity_root
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+
+        processIntent(intent)
     }
 
     override fun initViews() {
@@ -78,9 +87,11 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
     }
 
     override fun subscribe(viewModel: RootViewModel) {
-        viewModel.showConnectingBarLiveData.observe(this, Observer { show ->
+        viewModel.showConnectingBarLiveData.observe(this) { show ->
             rootNetworkBar.setVisible(show)
-        })
+        }
+
+        viewModel.messageLiveData.observe(this, EventObserver(::showToast))
     }
 
     override fun removeSplashBackground() {
@@ -93,6 +104,12 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
         recreate()
 
 //        restartAfterLanguageChange(this)
+    }
+
+    private fun processIntent(intent: Intent) {
+        val uri = intent.data?.toString()
+
+        uri?.let { viewModel.externalUrlOpened(uri) }
     }
 
 //    private fun processJsonOpenIntent() {
