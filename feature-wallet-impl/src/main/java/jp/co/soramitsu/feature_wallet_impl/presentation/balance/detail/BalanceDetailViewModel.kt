@@ -8,14 +8,13 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
@@ -32,9 +31,11 @@ class BalanceDetailViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val type: Token.Type,
-    private val buyTokenRegistry: BuyTokenRegistry,
+    private val buyMixin: BuyMixin.Presentation,
     private val transactionHistoryMixin: TransactionHistoryMixin
-) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin {
+) : BaseViewModel(),
+    TransactionHistoryUi by transactionHistoryMixin,
+    BuyMixin by buyMixin {
 
     private var transactionsRefreshed: Boolean = false
     private var balanceRefreshed: Boolean = false
@@ -56,20 +57,14 @@ class BalanceDetailViewModel(
 
     val currentAccountLiveData = interactor.observeSelectedAccount().asLiveData()
 
-    private val availableProvidersLiveData = assetLiveData.map {
-        buyTokenRegistry.availableProviders(it.token.type)
-    }
-
-    val buyEnabledLiveData = availableProvidersLiveData.map { it.isNotEmpty() }
-
     init {
         disposables += transactionHistoryMixin.transferHistoryDisposable
 
         transactionHistoryMixin.setTransactionErrorHandler(errorHandler)
-
         transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
-
         transactionHistoryMixin.addFilter(TokenFilter(type))
+
+        buyMixin.supplyTokenSource(type)
     }
 
     override fun onCleared() {
@@ -107,7 +102,9 @@ class BalanceDetailViewModel(
     }
 
     fun buyClicked() {
-        router.openBuy()
+        val address = currentAccountLiveData.value?.address ?: return
+
+        buyMixin.startBuyProcess(address)
     }
 
     fun frozenInfoClicked() {

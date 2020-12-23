@@ -21,6 +21,8 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateS
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixinProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecksProvider
 
@@ -77,6 +79,11 @@ class WalletFeatureModule {
             )
         )
     }
+
+    @Provides
+    fun provideBuyMixin(
+        buyTokenRegistry: BuyTokenRegistry
+    ): BuyMixin.Presentation = BuyMixinProvider(buyTokenRegistry)
 
     @Provides
     @FeatureScope

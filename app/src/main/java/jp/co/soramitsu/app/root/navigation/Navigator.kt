@@ -204,10 +204,6 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_open_receive)
     }
 
-    override fun openBuy() {
-        navController?.navigate(R.id.action_open_buy)
-    }
-
     override fun returnToMain() {
         // to achieve smooth animation
         postToUiThread {

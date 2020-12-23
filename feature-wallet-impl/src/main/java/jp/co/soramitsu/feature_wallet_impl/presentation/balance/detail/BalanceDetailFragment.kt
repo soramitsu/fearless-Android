@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.util.format
@@ -103,6 +104,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         viewModel.syncFirstTransactionsPage()
 
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
+
+        setupBuyIntegration(viewModel)
 
         viewModel.assetLiveData.observe { asset ->
             balanceDetailTokenIcon.setImageResource(asset.token.type.icon)

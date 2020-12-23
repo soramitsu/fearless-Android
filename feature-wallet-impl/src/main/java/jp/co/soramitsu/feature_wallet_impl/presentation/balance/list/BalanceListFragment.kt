@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
@@ -85,9 +86,11 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         viewModel.syncAssetsRates()
         viewModel.syncFirstTransactionsPage()
 
+        setupBuyIntegration(viewModel)
+
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
 
-        viewModel.buyShownLiveData.observe(balanceListActions.buy::setEnabled)
+        viewModel.buyEnabledLiveData.observe(balanceListActions.buy::setEnabled)
 
         viewModel.balanceLiveData.observe {
             adapter.submitList(it.assetModels)
