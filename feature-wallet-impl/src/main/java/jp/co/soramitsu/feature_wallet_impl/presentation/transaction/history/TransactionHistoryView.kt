@@ -47,6 +47,8 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     private var lastOffset: Float = 0.0F
 
+    private var adapterDataObserver: RecyclerView.AdapterDataObserver? = null
+
     private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         anchor?.let {
             bottomSheetBehavior?.peekHeight = parentView.measuredHeight - it.bottom
@@ -60,8 +62,6 @@ class TransferHistorySheet @JvmOverloads constructor(
 
         transactionHistoryList.adapter = adapter
         transactionHistoryList.setHasFixedSize(true)
-
-        transactionHistoryList.enableShowingNewlyAddedTopElements()
 
         addScrollListener()
 
@@ -129,8 +129,16 @@ class TransferHistorySheet @JvmOverloads constructor(
         addLayoutListener()
     }
 
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+
+        adapterDataObserver = transactionHistoryList.enableShowingNewlyAddedTopElements()
+    }
+
     override fun onDetachedFromWindow() {
         removeLayoutListener()
+
+        adapter.unregisterAdapterDataObserver(adapterDataObserver!!)
 
         super.onDetachedFromWindow()
     }
