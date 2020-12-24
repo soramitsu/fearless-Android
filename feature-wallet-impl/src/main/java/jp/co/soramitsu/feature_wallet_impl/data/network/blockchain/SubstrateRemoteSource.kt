@@ -29,11 +29,11 @@ interface SubstrateRemoteSource {
     ): Single<String>
 
     fun listenForAccountUpdates(
-        account: Account
+        address: String
     ): Observable<BalanceChange>
 
     fun listenStakingLedger(
-        account: Account
+        stashAddress: String
     ): Observable<EncodableStruct<StakingLedger>>
 
     fun getActiveEra(): Single<EncodableStruct<ActiveEraInfo>>

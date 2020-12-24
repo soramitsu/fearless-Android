@@ -51,7 +51,7 @@ interface AccountInteractor {
         name: String
     ): Completable
 
-    fun getAddressId(account: Account): Single<ByteArray>
+    fun getAddressId(address: String): Single<ByteArray>
 
     fun isCodeSet(): Boolean
 

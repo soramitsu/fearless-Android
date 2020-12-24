@@ -164,9 +164,7 @@ class BalanceListViewModel(
     }
 
     private fun generateAddressModel(account: Account, sizeInDp: Int): Single<AddressModel> {
-        return interactor.getAddressId(account.address).flatMap { id ->
-            addressIconGenerator.createAddressModel(account.address, id, sizeInDp)
-        }
+        return addressIconGenerator.createAddressModel(account.address, sizeInDp)
     }
 
     private fun getBalance(): Observable<BalanceModel> {

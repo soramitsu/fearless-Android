@@ -41,7 +41,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.28'
+        fearlessLibVersion = '1.0.30'
 
         gifVersion = '1.2.19'
 

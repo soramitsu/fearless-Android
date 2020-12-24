@@ -153,8 +153,7 @@ class NodesViewModel(
     }
 
     private fun generateIconForAddress(account: Account): Single<AddressModel> {
-        return interactor.getAddressId(account)
-            .flatMap { addressIconGenerator.createAddressModel(account.address, it, ICON_IN_DP) }
+        return addressIconGenerator.createAddressModel(account.address, ICON_IN_DP)
     }
 
     fun deleteNodeClicked(nodeModel: NodeModel) {
