@@ -19,9 +19,9 @@ import jp.co.soramitsu.common.utils.zipSimilar
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
@@ -34,9 +34,11 @@ class BalanceListViewModel(
     private val interactor: WalletInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
-    private val transactionHistoryMixin: TransactionHistoryMixin,
-    buyTokenRegistry: BuyTokenRegistry
-) : BaseViewModel(), TransactionHistoryUi by transactionHistoryMixin {
+    private val buyMixin: BuyMixin.Presentation,
+    private val transactionHistoryMixin: TransactionHistoryMixin
+) : BaseViewModel(),
+    TransactionHistoryUi by transactionHistoryMixin,
+    BuyMixin by buyMixin {
 
     private var transactionsRefreshed: Boolean = false
     private var balanceRefreshed: Boolean = false
@@ -54,23 +56,20 @@ class BalanceListViewModel(
         balanceRefreshFinished()
     }
 
-    init {
-        disposables += transactionHistoryMixin.transferHistoryDisposable
-
-        transactionHistoryMixin.setTransactionErrorHandler(errorHandler)
-
-        transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
-    }
-
     val currentAddressModelLiveData = getCurrentAddressModel().asLiveData { showError(it.message!!) }
 
     val balanceLiveData = getBalance().asLiveData()
 
     private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token.type }
 
-    private val availableProvidersLiveData = primaryTokenLiveData.map(buyTokenRegistry::availableProviders)
+    init {
+        disposables += transactionHistoryMixin.transferHistoryDisposable
 
-    val buyShownLiveData = availableProvidersLiveData.map { it.isNotEmpty() }
+        transactionHistoryMixin.setTransactionErrorHandler(errorHandler)
+        transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
+
+        buyMixin.supplyTokenSource(primaryTokenLiveData)
+    }
 
     fun syncAssetsRates() {
         disposables += interactor.syncAssetsRates()
@@ -101,7 +100,9 @@ class BalanceListViewModel(
     }
 
     fun buyClicked() {
-        router.openBuy()
+        val address = currentAddressModelLiveData.value?.address ?: return
+
+        buyMixin.startBuyProcess(address)
     }
 
     fun accountSelected(addressModel: AddressModel) {

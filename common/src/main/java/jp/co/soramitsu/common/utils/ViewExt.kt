@@ -102,12 +102,16 @@ fun View.hideSoftKeyboard() {
     inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
 }
 
-fun RecyclerView.enableShowingNewlyAddedTopElements() {
-    adapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+fun RecyclerView.enableShowingNewlyAddedTopElements(): RecyclerView.AdapterDataObserver {
+    val adapterDataObserver = object : RecyclerView.AdapterDataObserver() {
         override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
             if (positionStart == 0) {
                 scrollToPosition(0)
             }
         }
-    })
+    }
+
+    adapter?.registerAdapterDataObserver(adapterDataObserver)
+
+    return adapterDataObserver
 }

@@ -10,4 +10,21 @@ class Transfer(
 ) {
 
     val amountInPlanks: BigInteger = type.planksFromAmount(amount)
+
+    fun validityStatus(
+        senderTransferable: BigDecimal,
+        senderTotal: BigDecimal,
+        fee: BigDecimal,
+        recipientBalance: BigDecimal
+    ): TransferValidityStatus {
+        val transactionTotal = fee + amount
+        val existentialDeposit = type.networkType.runtimeConfiguration.existentialDeposit
+
+        return when {
+            transactionTotal > senderTransferable -> TransferValidityLevel.Error.Status.NotEnoughFunds
+            recipientBalance + amount < existentialDeposit -> TransferValidityLevel.Error.Status.DeadRecipient
+            senderTotal - transactionTotal < existentialDeposit -> TransferValidityLevel.Warning.Status.WillRemoveAccount
+            else -> TransferValidityLevel.Ok
+        }
+    }
 }

@@ -4,10 +4,10 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
-import jp.co.soramitsu.common.data.network.scale.dataType.DataType
-import jp.co.soramitsu.common.data.network.scale.dataType.byteArraySized
-import jp.co.soramitsu.common.data.network.scale.dataType.uint8
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
+import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
+import jp.co.soramitsu.fearless_utils.scale.dataType.byteArraySized
+import jp.co.soramitsu.fearless_utils.scale.dataType.uint8
 
 private const val ECDSA_SIGNATURE_SIZE = 65
 private const val OTHER_SIGNATURE_SIZE = 64

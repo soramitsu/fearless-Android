@@ -2,8 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.exporting.seed
 
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.utils.requireHexPrefix
-import jp.co.soramitsu.common.utils.toHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.WithDerivationPath
 import jp.co.soramitsu.feature_account_api.domain.model.WithSeed
@@ -20,7 +19,7 @@ class ExportSeedViewModel(
 ) : ExportViewModel(accountInteractor, accountAddress, resourceManager, ExportSource.Seed) {
 
     val seedLiveData = securityTypeLiveData.map {
-        (it as WithSeed).seed!!.toHex().requireHexPrefix()
+        (it as WithSeed).seed!!.toHexString(withPrefix = true)
     }
 
     val derivationPathLiveData = securityTypeLiveData.map {

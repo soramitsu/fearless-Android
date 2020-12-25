@@ -3,19 +3,25 @@
     android:id="@+id/balanceListActions"
     android:layout_width="match_parent"
     android:layout_height="80dp"
-    tools:parentTag="android.widget.LinearLayout"
     android:orientation="horizontal"
-    tools:background="@color/blurColor">
+    tools:background="@color/blurColor"
+    tools:parentTag="android.widget.LinearLayout">
 
     <TextView
         android:id="@+id/assetActionsSend"
         style="@style/AssetAction"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_marginStart="12dp"
         android:layout_weight="1"
         android:drawableTop="@drawable/ic_send"
         android:text="@string/wallet_asset_send" />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/white_10" />
 
     <TextView
         android:id="@+id/assetActionsReceive"
@@ -26,12 +32,18 @@
         android:drawableTop="@drawable/ic_receive"
         android:text="@string/wallet_asset_receive" />
 
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/white_10" />
+
     <TextView
         android:id="@+id/assetActionsBuy"
         style="@style/AssetAction"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_marginEnd="12dp"
         android:layout_weight="1"
         android:drawableTop="@drawable/ic_buy"
         android:text="@string/wallet_asset_buy" />

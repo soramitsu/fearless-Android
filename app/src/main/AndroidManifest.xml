@@ -21,6 +21,7 @@
             android:name="jp.co.soramitsu.app.root.presentation.RootActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Soramitsu.Fearless"
+            android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize">
             <intent-filter tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW" />
@@ -32,6 +33,17 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <data
+                    android:host="buy-success"
+                    android:scheme="fearless" />
+
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
 

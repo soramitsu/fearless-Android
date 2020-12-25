@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.rpc.SocketService
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -19,7 +18,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
-import jp.co.soramitsu.fearless_utils.wsrpc.Logger
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 
 interface WalletFeatureDependencies {

@@ -1,19 +1,18 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct
 
-import jp.co.soramitsu.common.data.network.scale.EncodableStruct
-import jp.co.soramitsu.common.data.network.scale.Schema
-import jp.co.soramitsu.common.data.network.scale.compactInt
-import jp.co.soramitsu.common.data.network.scale.custom
-import jp.co.soramitsu.common.data.network.scale.dataType.uint8
-import jp.co.soramitsu.common.data.network.scale.pair
-import jp.co.soramitsu.common.data.network.scale.schema
-import jp.co.soramitsu.common.data.network.scale.sizedByteArray
-import jp.co.soramitsu.common.data.network.scale.uint32
-import jp.co.soramitsu.common.data.network.scale.uint8
-import jp.co.soramitsu.common.utils.requirePrefix
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.Schema
+import jp.co.soramitsu.fearless_utils.scale.compactInt
+import jp.co.soramitsu.fearless_utils.scale.custom
+import jp.co.soramitsu.fearless_utils.scale.dataType.uint8
+import jp.co.soramitsu.fearless_utils.scale.pair
+import jp.co.soramitsu.fearless_utils.scale.schema
+import jp.co.soramitsu.fearless_utils.scale.sizedByteArray
+import jp.co.soramitsu.fearless_utils.scale.uint32
+import jp.co.soramitsu.fearless_utils.scale.uint8
 import org.bouncycastle.crypto.digests.Blake2bDigest
 import org.bouncycastle.jcajce.provider.digest.BCMessageDigest
-import org.bouncycastle.util.encoders.Hex
 
 private val VERSION = "84".toUByte(radix = 16)
 private val TIP = 0.toBigInteger()
@@ -73,5 +72,5 @@ object Blake2b256 : BCMessageDigest(Blake2bDigest(256))
 fun EncodableStruct<SubmittableExtrinsic>.hash(): String {
     val bytes = Blake2b256.digest(SubmittableExtrinsic.toByteArray(this))
 
-    return Hex.toHexString(bytes).requirePrefix("0x")
+    return bytes.toHexString(withPrefix = true)
 }

@@ -4,10 +4,10 @@ import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.subjects.BehaviorSubject
-import jp.co.soramitsu.common.data.network.scale.Schema
-import jp.co.soramitsu.common.data.network.scale.byteArray
-import jp.co.soramitsu.common.data.network.scale.invoke
-import jp.co.soramitsu.common.data.network.scale.string
+import jp.co.soramitsu.fearless_utils.scale.Schema
+import jp.co.soramitsu.fearless_utils.scale.byteArray
+import jp.co.soramitsu.fearless_utils.scale.invoke
+import jp.co.soramitsu.fearless_utils.scale.string
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.feature_account_api.domain.model.Account
