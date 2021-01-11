@@ -18,7 +18,7 @@ class RampProvider(
 ) : ExternalProvider {
     override val redirectLink = RAMP_FINAL_URL
 
-    override val supportedTokens = setOf(Token.Type.DOT)
+    override val supportedTokens = setOf(Token.Type.DOT, Token.Type.KSM)
 
     override fun createIntegrator(type: Token.Type, address: String): BuyTokenRegistry.Integrator<Context> {
         if (!isTokenSupported(type)) {
