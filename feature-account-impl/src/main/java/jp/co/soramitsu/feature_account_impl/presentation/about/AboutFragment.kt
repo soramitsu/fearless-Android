@@ -64,7 +64,7 @@ class AboutFragment : BaseFragment<AboutViewModel>() {
         }
 
         viewModel.openSendEmailEvent.observeEvent {
-            activity!!.createSendEmailIntent(it, getString(R.string.common_email_chooser_title))
+            requireContext().createSendEmailIntent(it, getString(R.string.common_email_chooser_title))
         }
 
         observeBrowserEvents(viewModel)
