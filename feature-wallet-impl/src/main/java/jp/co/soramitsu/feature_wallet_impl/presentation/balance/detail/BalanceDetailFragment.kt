@@ -136,7 +136,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
         viewModel.showFrozenDetailsEvent.observeEvent(::showFrozenDetails)
 
-        viewModel.buyEnabledLiveData.observe(balanceDetaiActions.buy::setEnabled)
+        balanceDetaiActions.buy.isEnabled = viewModel.buyEnabled
     }
 
     private fun setRefreshEnabled(bottomSheetState: Int) {
