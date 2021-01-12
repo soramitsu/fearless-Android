@@ -4,25 +4,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.EventObserver
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.createSendEmailIntent
-import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_about.emailText
-import kotlinx.android.synthetic.main.fragment_about.githubText
-import kotlinx.android.synthetic.main.fragment_about.telegramText
-import kotlinx.android.synthetic.main.fragment_about.websiteText
 import kotlinx.android.synthetic.main.fragment_about.backIv
+import kotlinx.android.synthetic.main.fragment_about.emailText
 import kotlinx.android.synthetic.main.fragment_about.emailWrapper
+import kotlinx.android.synthetic.main.fragment_about.githubText
 import kotlinx.android.synthetic.main.fragment_about.githubWrapper
 import kotlinx.android.synthetic.main.fragment_about.privacyTv
+import kotlinx.android.synthetic.main.fragment_about.telegramText
 import kotlinx.android.synthetic.main.fragment_about.telegramWrapper
 import kotlinx.android.synthetic.main.fragment_about.termsTv
+import kotlinx.android.synthetic.main.fragment_about.websiteText
 import kotlinx.android.synthetic.main.fragment_about.websiteWrapper
 
 class AboutFragment : BaseFragment<AboutViewModel>() {
@@ -49,28 +47,26 @@ class AboutFragment : BaseFragment<AboutViewModel>() {
     }
 
     override fun subscribe(viewModel: AboutViewModel) {
-        observe(viewModel.websiteLiveData, Observer {
+        viewModel.websiteLiveData.observe {
             websiteText.text = it
-        })
+        }
 
-        observe(viewModel.versionLiveData, Observer {
+        viewModel.versionLiveData.observe {
             githubText.text = it
-        })
+        }
 
-        observe(viewModel.telegramLiveData, Observer {
+        viewModel.telegramLiveData.observe {
             telegramText.text = it
-        })
+        }
 
-        observe(viewModel.emailLiveData, Observer {
+        viewModel.emailLiveData.observe {
             emailText.text = it
-        })
+        }
 
-        observe(viewModel.openSendEmailEvent, EventObserver {
-            activity!!.createSendEmailIntent(it, getString(R.string.common_email_chooser_title))
-        })
+        viewModel.openSendEmailEvent.observeEvent {
+            requireContext().createSendEmailIntent(it, getString(R.string.common_email_chooser_title))
+        }
 
-        observe(viewModel.showBrowserLiveData, EventObserver {
-            showBrowser(it)
-        })
+        observeBrowserEvents(viewModel)
     }
 }

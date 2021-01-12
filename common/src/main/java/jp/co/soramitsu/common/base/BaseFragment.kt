@@ -8,7 +8,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
@@ -18,8 +17,6 @@ import javax.inject.Inject
 abstract class BaseFragment<T : BaseViewModel> : Fragment() {
 
     @Inject protected open lateinit var viewModel: T
-
-    private val observables = mutableListOf<LiveData<*>>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -59,27 +56,14 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
             .show()
     }
 
-    override fun onDestroyView() {
-        observables.forEach { it.removeObservers(this) }
-        super.onDestroyView()
-    }
-
-    @Suppress("unchecked_cast")
-    protected fun <V : Any?> observe(source: LiveData<V>, observer: Observer<V>) {
-        source.observe(viewLifecycleOwner, observer as Observer<in Any?>)
-        observables.add(source)
-    }
-
     inline fun <V> LiveData<Event<V>>.observeEvent(crossinline observer: (V) -> Unit) {
         observe(viewLifecycleOwner, EventObserver {
             observer.invoke(it)
         })
     }
 
-    inline fun <V> LiveData<V>.observe(crossinline observer: (V) -> Unit) {
-        observe(viewLifecycleOwner, Observer {
-            observer.invoke(it)
-        })
+    fun <V> LiveData<V>.observe(observer: (V) -> Unit) {
+        observe(viewLifecycleOwner, observer)
     }
 
     protected fun EditText.bindTo(liveData: MutableLiveData<String>) = bindTo(liveData, viewLifecycleOwner)

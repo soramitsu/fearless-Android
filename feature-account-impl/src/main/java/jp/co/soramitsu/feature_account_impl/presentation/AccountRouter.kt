@@ -21,10 +21,6 @@ interface AccountRouter : SecureRouter {
 
     fun openAboutScreen()
 
-    fun openTermsScreen()
-
-    fun openPrivacyScreen()
-
     fun backToBackupMnemonicScreen()
 
     fun backToProfileScreen()

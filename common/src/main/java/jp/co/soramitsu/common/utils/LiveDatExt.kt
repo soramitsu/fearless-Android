@@ -12,7 +12,6 @@ fun MutableLiveData<Event<Unit>>.sendEvent() {
     this.value = Event(Unit)
 }
 
-// TODO move to default parameter after migration to kotlin 1.4
 fun <FROM, TO> LiveData<FROM>.map(mapper: (FROM) -> TO): LiveData<TO> {
     return map(null, mapper)
 }

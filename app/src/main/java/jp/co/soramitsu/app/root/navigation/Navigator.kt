@@ -115,14 +115,6 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_profileFragment_to_aboutFragment)
     }
 
-    override fun openTermsScreen() {
-        navController?.navigate(R.id.openTerms)
-    }
-
-    override fun openPrivacyScreen() {
-        navController?.navigate(R.id.openPrivacy)
-    }
-
     override fun openImportAccountScreen(selectedNetworkType: Node.NetworkType?) {
         navController?.navigate(R.id.importAction, ImportAccountFragment.getBundle(selectedNetworkType))
     }

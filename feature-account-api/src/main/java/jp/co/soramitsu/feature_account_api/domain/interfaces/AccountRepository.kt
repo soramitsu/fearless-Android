@@ -15,10 +15,6 @@ class AccountAlreadyExistsException : Exception()
 
 interface AccountRepository {
 
-    fun getTermsAddress(): Single<String>
-
-    fun getPrivacyAddress(): Single<String>
-
     fun getEncryptionTypes(): Single<List<CryptoType>>
 
     fun getNodes(): Observable<List<Node>>

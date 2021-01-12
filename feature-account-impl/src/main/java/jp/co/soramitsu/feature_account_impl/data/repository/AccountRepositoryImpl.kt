@@ -4,7 +4,6 @@ import android.database.sqlite.SQLiteConstraintException
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.encode
 import jp.co.soramitsu.core_db.dao.AccountDao
@@ -46,20 +45,11 @@ class AccountRepositoryImpl(
     private val sS58Encoder: SS58Encoder,
     private val junctionDecoder: JunctionDecoder,
     private val keypairFactory: KeypairFactory,
-    private val appLinksProvider: AppLinksProvider,
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
     private val accountSubstrateSource: AccountSubstrateSource
 ) : AccountRepository {
-
-    override fun getTermsAddress(): Single<String> {
-        return Single.just(appLinksProvider.termsUrl)
-    }
-
-    override fun getPrivacyAddress(): Single<String> {
-        return Single.just(appLinksProvider.privacyUrl)
-    }
 
     override fun getEncryptionTypes(): Single<List<CryptoType>> {
         return Single.just(listOf(CryptoType.SR25519, CryptoType.ED25519, CryptoType.ECDSA))
