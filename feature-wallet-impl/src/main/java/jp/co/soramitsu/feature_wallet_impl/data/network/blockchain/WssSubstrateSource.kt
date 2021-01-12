@@ -12,7 +12,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.runtime.storageKey
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.wsrpc.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
@@ -78,7 +77,7 @@ class WssSubstrateSource(
         address: String,
         networkType: Node.NetworkType
     ): Single<EncodableStruct<AccountInfo>> {
-        val publicKeyBytes = getAccountId(address, networkType)
+        val publicKeyBytes = getAccountId(address)
         val request = AccountInfoRequest(publicKeyBytes)
 
         return socketService.executeRequest(request, responseType = scale(AccountInfo))
@@ -110,8 +109,8 @@ class WssSubstrateSource(
         }
     }
 
-    override fun listenForAccountUpdates(account: Account): Observable<BalanceChange> {
-        val key = Module.System.Account.storageKey(getAccountId(account))
+    override fun listenForAccountUpdates(address: String): Observable<BalanceChange> {
+        val key = Module.System.Account.storageKey(getAccountId(address))
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscribe(request)
@@ -125,8 +124,8 @@ class WssSubstrateSource(
             .map { block -> filterAccountTransactions(account, block.block.extrinsics) }
     }
 
-    override fun listenStakingLedger(account: Account): Observable<EncodableStruct<StakingLedger>> {
-        val key = Module.Staking.Bonded.storageKey(getAccountId(account))
+    override fun listenStakingLedger(stashAddress: String): Observable<EncodableStruct<StakingLedger>> {
+        val key = Module.Staking.Bonded.storageKey(getAccountId(stashAddress))
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscribe(request)
@@ -136,9 +135,9 @@ class WssSubstrateSource(
                 val controllerId = change.value
 
                 if (controllerId != null) {
-                    subscribeToLedger(account, controllerId)
+                    subscribeToLedger(stashAddress, controllerId)
                 } else {
-                    Observable.just(createEmptyLedger(account))
+                    Observable.just(createEmptyLedger(stashAddress))
                 }
             }
     }
@@ -150,7 +149,7 @@ class WssSubstrateSource(
         return socketService.executeRequest(request, responseType = scale(ActiveEraInfo).nonNull())
     }
 
-    private fun subscribeToLedger(account: Account, controllerId: String): Observable<EncodableStruct<StakingLedger>> {
+    private fun subscribeToLedger(stashAddress: String, controllerId: String): Observable<EncodableStruct<StakingLedger>> {
         val accountId = AccountId.read(controllerId)
         val bytes = AccountId.toByteArray(accountId)
 
@@ -161,16 +160,16 @@ class WssSubstrateSource(
             .map { it.params.result.getSingleChange() }
             .map { change ->
                 if (change.value.isNullOrBlank()) {
-                    createEmptyLedger(account)
+                    createEmptyLedger(stashAddress)
                 } else {
                     StakingLedger.read(change.value!!)
                 }
             }
     }
 
-    private fun createEmptyLedger(account: Account): EncodableStruct<StakingLedger> {
+    private fun createEmptyLedger(address: String): EncodableStruct<StakingLedger> {
         return StakingLedger { ledger ->
-            ledger[StakingLedger.stash] = sS58Encoder.decode(account.address, mapNetworkTypeToAddressType(account.network.type))
+            ledger[StakingLedger.stash] = sS58Encoder.decode(address)
             ledger[StakingLedger.active] = BigInteger.ZERO
             ledger[StakingLedger.claimedRewards] = emptyList()
             ledger[StakingLedger.total] = BigInteger.ZERO
@@ -188,14 +187,8 @@ class WssSubstrateSource(
         return BalanceChange(block, accountInfo)
     }
 
-    private fun getAccountId(account: Account): ByteArray {
-        return with(account) { getAccountId(address, network.type) }
-    }
-
-    private fun getAccountId(address: String, networkType: Node.NetworkType): ByteArray {
-        val addressType = mapNetworkTypeToAddressType(networkType)
-
-        return sS58Encoder.decode(address, addressType)
+    private fun getAccountId(address: String): ByteArray {
+        return sS58Encoder.decode(address)
     }
 
     private fun buildSubmittableExtrinsic(
@@ -205,7 +198,7 @@ class WssSubstrateSource(
     ): Single<EncodableStruct<SubmittableExtrinsic>> {
         return getRuntimeVersion().flatMap { runtimeInfo ->
             val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-            val accountIdValue = getAccountId(account)
+            val accountIdValue = getAccountId(account.address)
 
             getNonce(account).map { currentNonce ->
                 val genesis = account.network.type.runtimeConfiguration.genesisHash
@@ -253,13 +246,11 @@ class WssSubstrateSource(
         recipientAddress: String,
         amount: BigInteger
     ): EncodableStruct<Call> {
-        val addressType = mapNetworkTypeToAddressType(networkType)
-
         return Call { call ->
-            call[Call.callIndex] = networkType.runtimeConfiguration.predefinedPalettes.transfers.transfer.index
+            call[Call.callIndex] = networkType.runtimeConfiguration.pallets.transfers.transfer.index
 
             call[Call.args] = TransferArgs { args ->
-                args[TransferArgs.recipientId] = sS58Encoder.decode(recipientAddress, addressType)
+                args[TransferArgs.recipientId] = sS58Encoder.decode(recipientAddress)
                 args[TransferArgs.amount] = amount
             }
         }
@@ -308,17 +299,9 @@ class WssSubstrateSource(
         }
     }
 
-    private fun mapNetworkTypeToAddressType(networkType: Node.NetworkType): AddressType {
-        return when (networkType) {
-            Node.NetworkType.KUSAMA -> AddressType.KUSAMA
-            Node.NetworkType.POLKADOT -> AddressType.POLKADOT
-            Node.NetworkType.WESTEND -> AddressType.WESTEND
-        }
-    }
-
     private fun filterAccountTransactions(account: Account, extrinsics: List<String>): List<EncodableStruct<SubmittableExtrinsic>> {
-        val currentPublicKey = getAccountId(account)
-        val transfersPalette = account.network.type.runtimeConfiguration.predefinedPalettes.transfers
+        val currentPublicKey = getAccountId(account.address)
+        val transfersPalette = account.network.type.runtimeConfiguration.pallets.transfers
 
         return extrinsics.filter { hex ->
             val stub = SubmittableExtrinsic.readOrNull(hex) ?: return@filter false

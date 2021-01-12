@@ -96,9 +96,9 @@ interface AccountRepository {
 
     fun generateMnemonic(): Single<List<String>>
 
-    fun getAddressId(account: Account): Single<ByteArray>
-
     fun getAddressId(address: String): Single<ByteArray>
+
+    fun isInCurrentNetwork(address: String): Single<Boolean>
 
     fun isBiometricEnabled(): Boolean
 

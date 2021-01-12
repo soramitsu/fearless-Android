@@ -132,8 +132,9 @@ class CommonModule {
     @ApplicationScope
     fun provideAddressModelCreator(
         resourceManager: ResourceManager,
+        sS58Encoder: SS58Encoder,
         iconGenerator: IconGenerator
-    ): AddressIconGenerator = AddressIconGenerator(iconGenerator, resourceManager)
+    ): AddressIconGenerator = AddressIconGenerator(iconGenerator, sS58Encoder, resourceManager)
 
     @Provides
     @ApplicationScope
