@@ -66,9 +66,7 @@ class AccountDetailsViewModel(
 
     private fun getAccount(accountAddress: String): Single<AccountModel> {
         return accountInteractor.getAccount(accountAddress).flatMap { account ->
-            accountInteractor.getAddressId(account).flatMap { addressId ->
-                iconGenerator.createAddressModel(accountAddress, addressId, ACCOUNT_ICON_SIZE_DP)
-            }.map { addressModel ->
+            iconGenerator.createAddressModel(accountAddress, ACCOUNT_ICON_SIZE_DP).map { addressModel ->
                 mapAccountToAccountModel(account, addressModel.image, resourceManager)
             }
         }.subscribeOn(Schedulers.io())

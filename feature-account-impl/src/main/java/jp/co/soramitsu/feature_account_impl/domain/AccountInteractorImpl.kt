@@ -97,8 +97,8 @@ class AccountInteractorImpl(
         return accountRepository.importFromJson(json, password, networkType, name)
     }
 
-    override fun getAddressId(account: Account): Single<ByteArray> {
-        return accountRepository.getAddressId(account)
+    override fun getAddressId(address: String): Single<ByteArray> {
+        return accountRepository.getAddressId(address)
     }
 
     override fun isCodeSet(): Boolean {

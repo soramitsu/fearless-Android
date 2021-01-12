@@ -2,9 +2,11 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
@@ -108,8 +110,9 @@ class ConfirmTransferViewModel(
         }
     }
 
-    private fun getAddressIcon() = interactor.getAddressId(transferDraft.recipientAddress)
-        .flatMap { addressIconGenerator.createAddressModel(transferDraft.recipientAddress, it, ICON_IN_DP) }
+    private fun getAddressIcon(): Single<AddressModel> {
+        return addressIconGenerator.createAddressModel(transferDraft.recipientAddress, ICON_IN_DP)
+    }
 
     private fun createTransfer(): Transfer {
         return with(transferDraft) {
