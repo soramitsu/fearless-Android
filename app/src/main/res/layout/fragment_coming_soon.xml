@@ -25,7 +25,7 @@
         android:layout_marginBottom="35dp"
         android:adjustViewBounds="true"
         android:scaleType="fitXY"
-        android:src="@drawable/ic_logo_about"
+        android:src="@drawable/drawable_fearless_logo"
         app:layout_constraintBottom_toTopOf="@+id/comingSoonLabel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

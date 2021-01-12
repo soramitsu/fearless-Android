@@ -62,13 +62,15 @@ class BalanceListViewModel(
 
     private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token.type }
 
+    val buyEnabledLiveData = primaryTokenLiveData.map(initial = false) {
+        buyMixin.buyEnabled(it)
+    }
+
     init {
         disposables += transactionHistoryMixin.transferHistoryDisposable
 
         transactionHistoryMixin.setTransactionErrorHandler(errorHandler)
         transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
-
-        buyMixin.supplyTokenSource(primaryTokenLiveData)
     }
 
     fun syncAssetsRates() {
@@ -101,8 +103,9 @@ class BalanceListViewModel(
 
     fun buyClicked() {
         val address = currentAddressModelLiveData.value?.address ?: return
+        val token = primaryTokenLiveData.value ?: return
 
-        buyMixin.startBuyProcess(address)
+        buyMixin.startBuyProcess(token, address)
     }
 
     fun accountSelected(addressModel: AddressModel) {
@@ -164,9 +167,7 @@ class BalanceListViewModel(
     }
 
     private fun generateAddressModel(account: Account, sizeInDp: Int): Single<AddressModel> {
-        return interactor.getAddressId(account.address).flatMap { id ->
-            addressIconGenerator.createAddressModel(account.address, id, sizeInDp)
-        }
+        return addressIconGenerator.createAddressModel(account.address, sizeInDp)
     }
 
     private fun getBalance(): Observable<BalanceModel> {

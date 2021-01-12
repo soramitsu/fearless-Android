@@ -9,6 +9,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
@@ -144,25 +145,25 @@ class ChooseRecipientViewModel(
         }
     }
 
-    private fun maybeAppendResultHeader(validAddress: Boolean, address: String): List<Single<Any>> {
+    private fun maybeAppendResultHeader(validAddress: Boolean, address: String): List<Single<out Any>> {
         if (!validAddress) return emptyList()
 
         return generateModelsWithHeader(R.string.search_result_header, listOf(address))
     }
 
-    private fun generateModelsWithHeader(@StringRes headerRes: Int, addresses: List<String>): List<Single<Any>> {
+    private fun generateModelsWithHeader(@StringRes headerRes: Int, addresses: List<String>): List<Single<out Any>> {
         val models = addresses.map(this::generateModel)
 
         return maybeAppendHeader(headerRes, models)
     }
 
-    private fun maybeAppendHeader(@StringRes headerRes: Int, content: List<Single<Any>>): List<Single<Any>> {
+    private fun maybeAppendHeader(@StringRes headerRes: Int, content: List<Single<out Any>>): List<Single<out Any>> {
         if (content.isEmpty()) return emptyList()
 
         return appendHeader(headerRes, content)
     }
 
-    private fun appendHeader(@StringRes headerRes: Int, content: List<Single<Any>>): List<Single<Any>> {
+    private fun appendHeader(@StringRes headerRes: Int, content: List<Single<out Any>>): List<Single<out Any>> {
         val header = getHeader(headerRes)
 
         return listOf(header) + content
@@ -172,9 +173,7 @@ class ChooseRecipientViewModel(
         ContactsHeader(resourceManager.getString(resId))
     )
 
-    private fun generateModel(address: String): Single<Any> {
-        return interactor.getAddressId(address).flatMap { addressId ->
-            addressIconGenerator.createAddressModel(address, addressId, ICON_SIZE_IN_DP)
-        }
+    private fun generateModel(address: String): Single<AddressModel> {
+        return addressIconGenerator.createAddressModel(address, ICON_SIZE_IN_DP)
     }
 }
