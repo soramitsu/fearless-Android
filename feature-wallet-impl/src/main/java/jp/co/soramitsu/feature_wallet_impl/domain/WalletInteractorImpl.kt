@@ -95,9 +95,8 @@ class WalletInteractorImpl(
     }
 
     override fun validateSendAddress(address: String): Single<Boolean> {
-        return getAddressId(address)
-            .map { true }
-            .onErrorReturn { false }
+        return accountRepository.isInCurrentNetwork(address)
+            .onErrorReturnItem(false)
     }
 
     override fun getTransferFee(transfer: Transfer): Single<Fee> {

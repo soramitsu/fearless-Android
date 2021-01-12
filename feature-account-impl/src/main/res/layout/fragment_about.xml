@@ -43,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/x2"
-            android:src="@drawable/ic_logo_about"
+            android:src="@drawable/drawable_fearless_logo"
             app:layout_constraintBottom_toBottomOf="@+id/bgIv"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

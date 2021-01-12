@@ -162,8 +162,7 @@ class TransactionHistoryProvider(
     }
 
     private fun createIcon(address: String): Single<AddressModel> {
-        return walletInteractor.getAddressId(address)
-            .flatMap { iconGenerator.createAddressModel(address, it, ICON_SIZE_DP) }
+        return iconGenerator.createAddressModel(address, ICON_SIZE_DP)
     }
 
     private fun List<TransactionHistoryElement>.filter(filters: List<TransactionFilter>): List<TransactionHistoryElement> {
