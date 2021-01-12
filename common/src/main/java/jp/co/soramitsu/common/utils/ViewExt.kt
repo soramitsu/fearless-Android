@@ -120,6 +120,6 @@ fun RecyclerView.enableShowingNewlyAddedTopElements(): RecyclerView.AdapterDataO
 private fun RecyclerView.wasAtBeginningBeforeInsertion(insertedCount: Int) =
     findFirstVisiblePosition() < insertedCount && insertedCount != adapter!!.itemCount
 
-fun RecyclerView.findFirstVisiblePosition() : Int {
+fun RecyclerView.findFirstVisiblePosition(): Int {
     return (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
 }
