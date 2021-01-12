@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Observer
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -89,9 +88,9 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
 
         viewModel.networkChooserEvent.observeEvent(::showNetworkChooser)
 
-        observe(viewModel.selectedEncryptionTypeLiveData, Observer {
+        viewModel.selectedEncryptionTypeLiveData.observe {
             advancedBlockView.setEncryption(it.name)
-        })
+        }
 
         viewModel.selectedNetworkLiveData.observe {
             advancedBlockView.setNetworkIconResource(it.networkTypeUI.icon)

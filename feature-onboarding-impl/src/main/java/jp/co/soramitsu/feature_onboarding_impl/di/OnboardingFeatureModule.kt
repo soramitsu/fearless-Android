@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_onboarding_impl.di
 
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_onboarding_api.domain.OnboardingInteractor
 import jp.co.soramitsu.feature_onboarding_impl.domain.OnboardingInteractorImpl
 
@@ -10,9 +9,7 @@ import jp.co.soramitsu.feature_onboarding_impl.domain.OnboardingInteractorImpl
 class OnboardingFeatureModule {
 
     @Provides
-    fun provideOnboardingInteractor(
-        accountRepository: AccountRepository
-    ): OnboardingInteractor {
-        return OnboardingInteractorImpl(accountRepository)
+    fun provideOnboardingInteractor(): OnboardingInteractor {
+        return OnboardingInteractorImpl()
     }
 }

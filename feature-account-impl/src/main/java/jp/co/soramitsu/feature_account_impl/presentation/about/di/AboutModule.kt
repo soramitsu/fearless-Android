@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -19,8 +20,13 @@ class AboutModule {
     @Provides
     @IntoMap
     @ViewModelKey(AboutViewModel::class)
-    fun provideViewModel(router: AccountRouter, context: Context, resourceManager: ResourceManager): ViewModel {
-        return AboutViewModel(router, context, resourceManager)
+    fun provideViewModel(
+        router: AccountRouter,
+        context: Context,
+        appLinksProvider: AppLinksProvider,
+        resourceManager: ResourceManager
+    ): ViewModel {
+        return AboutViewModel(router, context, appLinksProvider, resourceManager)
     }
 
     @Provides

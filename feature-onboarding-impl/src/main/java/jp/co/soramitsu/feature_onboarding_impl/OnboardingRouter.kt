@@ -10,10 +10,6 @@ interface OnboardingRouter {
 
     fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType?)
 
-    fun openTermsScreen()
-
-    fun openPrivacyScreen()
-
     fun openImportAccountScreen(selectedNetworkType: Node.NetworkType?)
 
     fun back()
