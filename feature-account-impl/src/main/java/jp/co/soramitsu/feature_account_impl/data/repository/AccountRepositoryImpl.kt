@@ -4,8 +4,8 @@ import android.database.sqlite.SQLiteConstraintException
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.resources.LanguagesHolder
+import jp.co.soramitsu.common.utils.encode
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
@@ -17,8 +17,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
-import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -45,20 +45,11 @@ class AccountRepositoryImpl(
     private val sS58Encoder: SS58Encoder,
     private val junctionDecoder: JunctionDecoder,
     private val keypairFactory: KeypairFactory,
-    private val appLinksProvider: AppLinksProvider,
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
     private val accountSubstrateSource: AccountSubstrateSource
 ) : AccountRepository {
-
-    override fun getTermsAddress(): Single<String> {
-        return Single.just(appLinksProvider.termsUrl)
-    }
-
-    override fun getPrivacyAddress(): Single<String> {
-        return Single.just(appLinksProvider.privacyUrl)
-    }
 
     override fun getEncryptionTypes(): Single<List<CryptoType>> {
         return Single.just(listOf(CryptoType.SR25519, CryptoType.ED25519, CryptoType.ECDSA))
@@ -206,8 +197,7 @@ class AccountRepositoryImpl(
 
             val signingData = mapKeyPairToSigningData(keys)
 
-            val addressType = mapNetworkTypeToAddressType(networkType)
-            val address = sS58Encoder.encode(keys.publicKey, addressType)
+            val address = sS58Encoder.encode(keys.publicKey, networkType)
 
             val securitySource = SecuritySource.Specified.Seed(seedBytes, signingData, derivationPath)
 
@@ -239,7 +229,7 @@ class AccountRepositoryImpl(
 
                 val securitySource = SecuritySource.Specified.Json(seed, signingData)
 
-                val actualAddress = sS58Encoder.encode(keypair.publicKey, mapNetworkTypeToAddressType(networkType))
+                val actualAddress = sS58Encoder.encode(keypair.publicKey, networkType)
 
                 val accountLocal = insertAccount(actualAddress, name, publicKeyEncoded, cryptoType, networkType)
 
@@ -277,21 +267,19 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun getAddressId(account: Account): Single<ByteArray> {
+    override fun getAddressId(address: String): Single<ByteArray> {
         return Single.fromCallable {
-            val addressType = mapNetworkTypeToAddressType(account.network.type)
-
-            sS58Encoder.decode(account.address, addressType)
+            sS58Encoder.decode(address)
         }
     }
 
-    override fun getAddressId(address: String): Single<ByteArray> {
-        return observeSelectedAccount().firstOrError()
-            .map {
-                val addressType = mapNetworkTypeToAddressType(it.network.type)
+    override fun isInCurrentNetwork(address: String): Single<Boolean> {
+        return getSelectedAccount().map {
+            val otherAddressByte = sS58Encoder.extractAddressByte(address)
+            val currentAddressByte = sS58Encoder.extractAddressByte(it.address)
 
-                sS58Encoder.decode(address, addressType)
-            }
+            otherAddressByte == currentAddressByte
+        }
     }
 
     override fun isBiometricEnabled(): Boolean {
@@ -329,7 +317,7 @@ class AccountRepositoryImpl(
             val importAccountMeta = jsonSeedDecoder.extractImportMetaData(json)
 
             with(importAccountMeta) {
-                val networkType = networkType?.let(::mapAddressTypeToNetworkType)
+                val networkType = constructNetworkType(networkTypeIdentifier)
                 val cryptoType = mapEncryptionToCryptoType(encryptionType)
 
                 ImportJsonData(name, networkType, cryptoType)
@@ -350,14 +338,23 @@ class AccountRepositoryImpl(
 
     override fun generateRestoreJson(account: Account, password: String): Single<String> {
         return getSecuritySource(account.address).map {
-            it as WithJson
+            require(it is WithJson)
+
             val seed = (it.jsonFormer() as? JsonFormer.Seed)?.seed
             val keypair = mapSigningDataToKeypair(it.signingData)
 
             val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-            val addressType = mapNetworkTypeToAddressType(account.network.type)
+            val runtimeConfiguration = account.network.type.runtimeConfiguration
 
-            jsonSeedEncoder.generate(keypair, seed, password, account.name.orEmpty(), cryptoType, addressType)
+            jsonSeedEncoder.generate(
+                keypair = keypair,
+                seed = seed,
+                password = password,
+                name = account.name.orEmpty(),
+                encryptionType = cryptoType,
+                genesisHash = runtimeConfiguration.genesisHash,
+                addressByte = runtimeConfiguration.addressByte
+            )
         }
     }
 
@@ -374,8 +371,7 @@ class AccountRepositoryImpl(
             val password = junctionDecoder.getPassword(derivationPath)
             val seed = bip39.generateSeed(entropy, password)
             val keys = keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
-            val addressType = mapNetworkTypeToAddressType(networkType)
-            val address = sS58Encoder.encode(keys.publicKey, addressType)
+            val address = sS58Encoder.encode(keys.publicKey, networkType)
             val signingData = mapKeyPairToSigningData(keys)
 
             val securitySource: SecuritySource.Specified = if (isImport) {
@@ -409,19 +405,11 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapNetworkTypeToAddressType(networkType: Node.NetworkType): AddressType {
-        return when (networkType) {
-            Node.NetworkType.KUSAMA -> AddressType.KUSAMA
-            Node.NetworkType.POLKADOT -> AddressType.POLKADOT
-            Node.NetworkType.WESTEND -> AddressType.WESTEND
-        }
-    }
-
-    private fun mapAddressTypeToNetworkType(networkType: AddressType): Node.NetworkType {
-        return when (networkType) {
-            AddressType.KUSAMA -> Node.NetworkType.KUSAMA
-            AddressType.POLKADOT -> Node.NetworkType.POLKADOT
-            AddressType.WESTEND -> Node.NetworkType.WESTEND
+    private fun constructNetworkType(identifier: NetworkTypeIdentifier): Node.NetworkType? {
+        return when (identifier) {
+            is NetworkTypeIdentifier.Genesis -> Node.NetworkType.findByGenesis(identifier.genesis)
+            is NetworkTypeIdentifier.AddressByte -> Node.NetworkType.findByAddressByte(identifier.addressByte)
+            is NetworkTypeIdentifier.Undefined -> null
         }
     }
 

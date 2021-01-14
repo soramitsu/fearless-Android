@@ -5,6 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_impl.R
@@ -12,9 +14,10 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 class AboutViewModel(
     private val router: AccountRouter,
-    private val context: Context,
-    private val resourceManager: ResourceManager
-) : BaseViewModel() {
+    context: Context,
+    private val appLinksProvider: AppLinksProvider,
+    resourceManager: ResourceManager
+) : BaseViewModel(), Browserable {
 
     private val _websiteLiveData = MutableLiveData<String>()
     val websiteLiveData: LiveData<String> = _websiteLiveData
@@ -31,8 +34,7 @@ class AboutViewModel(
     private val _openSendEmailEvent = MutableLiveData<Event<String>>()
     val openSendEmailEvent: LiveData<Event<String>> = _openSendEmailEvent
 
-    private val _showBrowserLiveData = MutableLiveData<Event<String>>()
-    val showBrowserLiveData: LiveData<Event<String>> = _showBrowserLiveData
+    override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     init {
         _websiteLiveData.value = BuildConfig.WEBSITE_URL
@@ -49,15 +51,15 @@ class AboutViewModel(
     }
 
     fun websiteClicked() {
-        _showBrowserLiveData.value = Event(BuildConfig.WEBSITE_URL)
+        openBrowserEvent.value = Event(BuildConfig.WEBSITE_URL)
     }
 
     fun githubClicked() {
-        _showBrowserLiveData.value = Event(BuildConfig.GITHUB_URL)
+        openBrowserEvent.value = Event(BuildConfig.GITHUB_URL)
     }
 
     fun telegramClicked() {
-        _showBrowserLiveData.value = Event(BuildConfig.TELEGRAM_URL)
+        openBrowserEvent.value = Event(BuildConfig.TELEGRAM_URL)
     }
 
     fun emailClicked() {
@@ -65,10 +67,10 @@ class AboutViewModel(
     }
 
     fun termsClicked() {
-        router.openTermsScreen()
+        openBrowserEvent.value = Event(appLinksProvider.termsUrl)
     }
 
     fun privacyClicked() {
-        router.openPrivacyScreen()
+        openBrowserEvent.value = Event(appLinksProvider.privacyUrl)
     }
 }

@@ -15,6 +15,7 @@ import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 fun View.updatePadding(
@@ -105,7 +106,7 @@ fun View.hideSoftKeyboard() {
 fun RecyclerView.enableShowingNewlyAddedTopElements(): RecyclerView.AdapterDataObserver {
     val adapterDataObserver = object : RecyclerView.AdapterDataObserver() {
         override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-            if (positionStart == 0) {
+            if (positionStart == 0 && wasAtBeginningBeforeInsertion(itemCount)) {
                 scrollToPosition(0)
             }
         }
@@ -114,4 +115,11 @@ fun RecyclerView.enableShowingNewlyAddedTopElements(): RecyclerView.AdapterDataO
     adapter?.registerAdapterDataObserver(adapterDataObserver)
 
     return adapterDataObserver
+}
+
+private fun RecyclerView.wasAtBeginningBeforeInsertion(insertedCount: Int) =
+    findFirstVisiblePosition() < insertedCount && insertedCount != adapter!!.itemCount
+
+fun RecyclerView.findFirstVisiblePosition(): Int {
+    return (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
 }

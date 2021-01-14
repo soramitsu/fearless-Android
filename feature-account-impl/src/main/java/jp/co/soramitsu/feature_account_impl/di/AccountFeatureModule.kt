@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_account_impl.di
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -81,7 +80,6 @@ class AccountFeatureModule {
         junctionDecoder: JunctionDecoder,
         keypairFactory: KeypairFactory,
         accountDataSource: AccountDataSource,
-        appLinksProvider: AppLinksProvider,
         accountDao: AccountDao,
         nodeDao: NodeDao,
         jsonSeedDecoder: JsonSeedDecoder,
@@ -97,7 +95,6 @@ class AccountFeatureModule {
             sS58Encoder,
             junctionDecoder,
             keypairFactory,
-            appLinksProvider,
             jsonSeedDecoder,
             jsonSeedEncoder,
             languagesHolder,

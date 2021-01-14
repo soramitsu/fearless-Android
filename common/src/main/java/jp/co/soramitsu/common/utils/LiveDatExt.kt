@@ -13,14 +13,16 @@ fun MutableLiveData<Event<Unit>>.sendEvent() {
 }
 
 fun <FROM, TO> LiveData<FROM>.map(mapper: (FROM) -> TO): LiveData<TO> {
-    return Transformations.map(this, mapper)
+    return map(null, mapper)
 }
 
-fun <FROM, TO> LiveData<FROM>.mapMutable(mapper: (FROM) -> TO): MutableLiveData<TO> {
+fun <FROM, TO> LiveData<FROM>.map(initial: TO?, mapper: (FROM) -> TO): LiveData<TO> {
     return MediatorLiveData<TO>().apply {
-        addSource(this@mapMutable) {
+        addSource(this@map) {
             value = mapper.invoke(it)
         }
+
+        initial?.let(::setValue)
     }
 }
 

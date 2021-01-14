@@ -55,7 +55,9 @@ class BalanceDetailViewModel(
 
     val assetLiveData = observeAssetModel().asLiveData()
 
-    val currentAccountLiveData = interactor.observeSelectedAccount().asLiveData()
+    private val currentAccountLiveData = interactor.observeSelectedAccount().asLiveData()
+
+    val buyEnabled = buyMixin.buyEnabled(type)
 
     init {
         disposables += transactionHistoryMixin.transferHistoryDisposable
@@ -63,8 +65,6 @@ class BalanceDetailViewModel(
         transactionHistoryMixin.setTransactionErrorHandler(errorHandler)
         transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
         transactionHistoryMixin.addFilter(TokenFilter(type))
-
-        buyMixin.supplyTokenSource(type)
     }
 
     override fun onCleared() {
@@ -104,7 +104,7 @@ class BalanceDetailViewModel(
     fun buyClicked() {
         val address = currentAccountLiveData.value?.address ?: return
 
-        buyMixin.startBuyProcess(address)
+        buyMixin.startBuyProcess(type, address)
     }
 
     fun frozenInfoClicked() {

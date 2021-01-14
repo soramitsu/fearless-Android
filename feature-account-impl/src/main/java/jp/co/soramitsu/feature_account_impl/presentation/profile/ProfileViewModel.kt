@@ -66,9 +66,7 @@ class ProfileViewModel(
         return accountObservable
             .subscribeOn(Schedulers.io())
             .flatMapSingle { account ->
-                interactor.getAddressId(account).flatMap { accountId ->
-                    addressIconGenerator.createAddressModel(account.address, accountId, AVATAR_SIZE_DP)
-                }
+                addressIconGenerator.createAddressModel(account.address, AVATAR_SIZE_DP)
             }
             .observeOn(AndroidSchedulers.mainThread())
     }

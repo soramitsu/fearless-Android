@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import jp.co.soramitsu.common.utils.encode
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.sumBy
 import jp.co.soramitsu.common.utils.zip
@@ -14,7 +15,6 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.fearless_utils.ss58.AddressType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -152,13 +152,13 @@ class WalletRepositoryImpl(
     }
 
     override fun listenForUpdates(account: Account): Completable {
-        val balanceUpdates = substrateSource.listenForAccountUpdates(account)
+        val balanceUpdates = substrateSource.listenForAccountUpdates(account.address)
             .flatMapCompletable { change ->
                 updateAssetBalance(account, change.newAccountInfo)
                     .andThen(fetchTransactions(account, change.block))
             }
 
-        val stakingUpdates = substrateSource.listenStakingLedger(account)
+        val stakingUpdates = substrateSource.listenStakingLedger(account.address)
             .flatMapCompletable { stakingLedger ->
                 substrateSource.getActiveEra().flatMapCompletable { era ->
                     updateAssetStaking(account, stakingLedger, era)
@@ -355,13 +355,12 @@ class WalletRepositoryImpl(
 
         val networkType = account.network.type
         val token = Token.Type.fromNetworkType(networkType)
-        val addressType = AddressType.valueOf(networkType.toString())
 
         val signed = extrinsic[SubmittableExtrinsic.signedExtrinsic]
         val transferArgs = signed[SignedExtrinsic.call][Call.args]
 
-        val senderAddress = sS58Encoder.encode(signed[SignedExtrinsic.accountId], addressType)
-        val recipientAddress = sS58Encoder.encode(transferArgs[TransferArgs.recipientId], addressType)
+        val senderAddress = sS58Encoder.encode(signed[SignedExtrinsic.accountId], networkType)
+        val recipientAddress = sS58Encoder.encode(transferArgs[TransferArgs.recipientId], networkType)
 
         val amountInPlanks = transferArgs[TransferArgs.amount]
 

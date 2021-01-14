@@ -63,16 +63,13 @@ class AccountListingProvider(
     }
 
     private fun transformAccount(account: Account): Single<AccountModel> {
-        return generateIcon(account)
+        return generateIcon(account.address)
             .map { addressModel ->
                 mapAccountToAccountModel(account, addressModel.image, resourceManager)
             }
     }
 
-    private fun generateIcon(account: Account): Single<AddressModel> {
-        return accountInteractor.getAddressId(account)
-            .flatMap { addressId ->
-                addressIconGenerator.createAddressModel(account.address, addressId, ICON_SIZE_IN_DP)
-            }
+    private fun generateIcon(address: String): Single<AddressModel> {
+        return addressIconGenerator.createAddressModel(address, ICON_SIZE_IN_DP)
     }
 }

@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.R
@@ -47,7 +48,7 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
     }
 
     override fun initViews() {
-        configureTermsAndPrivacy1(
+        configureTermsAndPrivacy(
             getString(R.string.onboarding_terms_and_conditions_1),
             getString(R.string.onboarding_terms_and_conditions_2),
             getString(R.string.onboarding_privacy_policy)
@@ -62,7 +63,7 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
         back.setOnClickListener { viewModel.backClicked() }
     }
 
-    private fun configureTermsAndPrivacy1(sourceText: String, terms: String, privacy: String) {
+    private fun configureTermsAndPrivacy(sourceText: String, terms: String, privacy: String) {
         val termsClickableSpan = object : ClickableSpan() {
             override fun updateDrawState(ds: TextPaint) {
                 super.updateDrawState(ds)
@@ -141,5 +142,7 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>() {
         viewModel.shouldShowBackLiveData.observe {
             back.visibility = if (it) View.VISIBLE else View.GONE
         }
+
+        observeBrowserEvents(viewModel)
     }
 }

@@ -14,16 +14,12 @@ interface BuyMixin {
 
     val integrateWithBuyProviderEvent: LiveData<Event<Payload>>
 
-    val buyEnabledLiveData: LiveData<Boolean>
-
     interface Presentation : BuyMixin {
         override val integrateWithBuyProviderEvent: MutableLiveData<Event<Payload>>
 
-        fun startBuyProcess(address: String)
+        fun startBuyProcess(token: Token.Type, address: String)
 
-        fun supplyTokenSource(source: LiveData<Token.Type>)
-
-        fun supplyTokenSource(source: Token.Type)
+        fun buyEnabled(token: Token.Type): Boolean
     }
 }
 

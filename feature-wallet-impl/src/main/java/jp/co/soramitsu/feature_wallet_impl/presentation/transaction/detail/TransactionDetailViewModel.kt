@@ -63,8 +63,7 @@ class TransactionDetailViewModel(
 
     private fun getSenderIcon() = getIcon(transaction.senderAddress)
 
-    private fun getIcon(address: String) = interactor.getAddressId(address)
-        .flatMap { addressIconGenerator.createAddressModel(address, it, ICON_SIZE_DP) }
+    private fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP)
 
     fun showExternalActionsClicked(externalActionsSource: ExternalActionsSource) {
         _showExternalViewEvent.value = Event(externalActionsSource)

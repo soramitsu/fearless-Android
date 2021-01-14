@@ -1,15 +1,15 @@
 buildscript {
     ext {
         // App version
-        versionName = '1.1.1'
-        versionCode = 7
+        versionName = '1.2.0'
+        versionCode = 8
 
         // SDK and tools
         compileSdkVersion = 29
         minSdkVersion = 24
         targetSdkVersion = 29
 
-        kotlinVersion = '1.3.61'
+        kotlinVersion = '1.4.21'
 
         supportVersion = '1.1.0'
         cardViewVersion = '1.0.0'
@@ -41,7 +41,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.28'
+        fearlessLibVersion = '1.0.30'
 
         gifVersion = '1.2.19'
 

@@ -30,7 +30,8 @@ class PredefinedPalettes(
 }
 
 class RuntimeConfiguration(
-    val predefinedPalettes: PredefinedPalettes,
+    val pallets: PredefinedPalettes,
     val genesisHash: String,
+    val addressByte: Byte,
     val existentialDeposit: BigDecimal
 )

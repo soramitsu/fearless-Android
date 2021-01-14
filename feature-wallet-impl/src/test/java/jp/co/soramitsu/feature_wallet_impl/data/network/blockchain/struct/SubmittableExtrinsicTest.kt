@@ -29,7 +29,7 @@ class SubmittableExtrinsicTest {
         val decoded = SubmittableExtrinsic.read(data)
 
         val callIndex = decoded[SubmittableExtrinsic.signedExtrinsic][SignedExtrinsic.call][Call.callIndex]
-        val expectedCallIndex = Node.NetworkType.KUSAMA.runtimeConfiguration.predefinedPalettes.transfers.transferKeepAlive.index
+        val expectedCallIndex = Node.NetworkType.KUSAMA.runtimeConfiguration.pallets.transfers.transferKeepAlive.index
 
         assertEquals(expectedCallIndex, callIndex)
     }

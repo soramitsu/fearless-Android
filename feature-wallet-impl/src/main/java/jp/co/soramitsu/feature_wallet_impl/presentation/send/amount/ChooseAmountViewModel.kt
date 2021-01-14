@@ -165,8 +165,7 @@ class ChooseAmountViewModel(
     }
 
     private fun generateAddressModel(address: String): Single<AddressModel> {
-        return interactor.getAddressId(address)
-            .flatMap { addressIconGenerator.createAddressModel(address, it, AVATAR_SIZE_DP) }
+        return addressIconGenerator.createAddressModel(address, AVATAR_SIZE_DP)
     }
 
     private fun checkEnoughFunds() {
