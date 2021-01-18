@@ -27,11 +27,11 @@ interface SubstrateRemoteSource {
         keypair: Keypair
     ): String
 
-    fun listenForAccountUpdates(
+    suspend fun listenForAccountUpdates(
         address: String
     ): Flow<BalanceChange>
 
-    fun listenStakingLedger(
+    suspend fun listenStakingLedger(
         stashAddress: String
     ): Flow<EncodableStruct<StakingLedger>>
 
