@@ -2,17 +2,15 @@ package jp.co.soramitsu.feature_account_impl.presentation.pincode
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import kotlinx.coroutines.launch
 
 class PinCodeViewModel(
     private val interactor: AccountInteractor,
@@ -92,26 +90,28 @@ class PinCodeViewModel(
     }
 
     private fun registerPinCode(code: String) {
-        disposables += interactor.savePin(code)
-            .subscribe({
-                if (fingerPrintAvailable && pinCodeAction is PinCodeAction.Create) {
-                    _biometricSwitchDialogLiveData.value = Event(Unit)
-                } else {
-                    authSuccess()
-                }
-            }, DEFAULT_ERROR_HANDLER)
+        viewModelScope.launch {
+            interactor.savePin(code)
+
+            if (fingerPrintAvailable && pinCodeAction is PinCodeAction.Create) {
+                _biometricSwitchDialogLiveData.value = Event(Unit)
+            } else {
+                authSuccess()
+            }
+        }
     }
 
     private fun checkPinCode(code: String) {
-        disposables += interactor.isPinCorrect(code)
-            .subscribe({ pinIsCorrect ->
-                if (pinIsCorrect) {
-                    authSuccess()
-                } else {
-                    deviceVibrator.makeShortVibration()
-                    _matchingPincodeErrorEvent.value = Event(Unit)
-                }
-            }, DEFAULT_ERROR_HANDLER)
+        viewModelScope.launch {
+            val isCorrect = interactor.isPinCorrect(code)
+
+            if (isCorrect) {
+                authSuccess()
+            } else {
+                deviceVibrator.makeShortVibration()
+                _matchingPincodeErrorEvent.value = Event(Unit)
+            }
+        }
     }
 
     fun backPressed() {
@@ -124,15 +124,19 @@ class PinCodeViewModel(
 
     private fun backToCreateFromConfirmation() {
         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
+
         if (pinCodeAction is PinCodeAction.Create) {
             _homeButtonVisibilityLiveData.value = pinCodeAction.toolbarConfiguration.backVisible
         }
+
         currentState = ScreenState.Creating
     }
 
     fun onResume() {
-        if (ScreenState.Checking == currentState && interactor.isBiometricEnabled()) {
-            _startFingerprintScannerEventLiveData.value = Event(Unit)
+        viewModelScope.launch {
+            if (ScreenState.Checking == currentState && interactor.isBiometricEnabled()) {
+                _startFingerprintScannerEventLiveData.value = Event(Unit)
+            }
         }
     }
 
@@ -177,20 +181,18 @@ class PinCodeViewModel(
     }
 
     fun acceptAuthWithBiometry() {
-        disposables += interactor.setBiometricOn()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                authSuccess()
-            }, DEFAULT_ERROR_HANDLER)
+        viewModelScope.launch {
+            interactor.setBiometricOn()
+
+            authSuccess()
+        }
     }
 
     fun declineAuthWithBiometry() {
-        disposables += interactor.setBiometricOff()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                authSuccess()
-            }, DEFAULT_ERROR_HANDLER)
+        viewModelScope.launch {
+            interactor.setBiometricOff()
+
+            authSuccess()
+        }
     }
 }
