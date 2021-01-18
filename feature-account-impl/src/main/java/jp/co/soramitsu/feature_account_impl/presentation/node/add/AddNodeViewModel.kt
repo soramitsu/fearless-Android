@@ -1,22 +1,24 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.add
 
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.NodeDetailsRootViewModel
+import kotlinx.coroutines.launch
 
 class AddNodeViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val nodeHostValidator: NodeHostValidator,
-    private val resourceManager: ResourceManager
+    resourceManager: ResourceManager
 ) : NodeDetailsRootViewModel(resourceManager) {
 
     val nodeNameInputLiveData = MutableLiveData<String>()
@@ -46,12 +48,14 @@ class AddNodeViewModel(
 
         addingInProgressLiveData.value = true
 
-        disposables += interactor.addNode(nodeName, nodeHost)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doFinally { addingInProgressLiveData.value = false }
-            .subscribe({
+        viewModelScope.launch {
+            val result = interactor.addNode(nodeName, nodeHost)
+
+            if (result.isSuccess) {
                 router.back()
-            }, ::handleNodeException)
+            } else {
+                handleNodeException(result.requireException())
+            }
+        }
     }
 }

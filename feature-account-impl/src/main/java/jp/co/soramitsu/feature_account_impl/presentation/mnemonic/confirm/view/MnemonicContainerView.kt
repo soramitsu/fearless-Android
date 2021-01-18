@@ -133,7 +133,7 @@ class MnemonicContainerView @JvmOverloads constructor(
         super.onLayout(changed, left, top, right, bottom)
         if (elements.isEmpty()) return
 
-        val maxLines = elements.maxBy { it.line }!!.line
+        val maxLines = elements.maxByOrNull { it.line }!!.line
 
         for (line in 1..maxLines) {
             var previousLineElementIndex = elements.indexOfLast { it.line == line - 1 } + 1

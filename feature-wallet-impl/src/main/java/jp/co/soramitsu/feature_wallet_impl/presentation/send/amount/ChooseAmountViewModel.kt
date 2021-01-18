@@ -121,8 +121,8 @@ class ChooseAmountViewModel(
     }
 
     fun recipientAddressClicked() {
-        val recipientAddress = recipientModelLiveData.value?.address ?: return
-        val networkType = assetLiveData.value?.token?.type?.networkType ?: return
+        val recipientAddress = recipientModelLiveData.value.address ?: return
+        val networkType = assetLiveData.value.token.type.networkType ?: return
 
         externalAccountActions.showExternalActions(ExternalAccountActions.Payload(recipientAddress, networkType))
     }

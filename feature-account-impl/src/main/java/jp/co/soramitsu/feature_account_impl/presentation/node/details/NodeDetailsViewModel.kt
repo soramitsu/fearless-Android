@@ -2,13 +2,12 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.details
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.setValueIfNew
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
@@ -16,6 +15,7 @@ import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeToNodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.NodeDetailsRootViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
+import kotlinx.coroutines.launch
 
 class NodeDetailsViewModel(
     private val interactor: AccountInteractor,
@@ -26,7 +26,9 @@ class NodeDetailsViewModel(
     private val resourceManager: ResourceManager
 ) : NodeDetailsRootViewModel(resourceManager) {
 
-    val nodeModelLiveData = getNode(nodeId).asLiveData()
+    val nodeModelLiveData = liveData {
+        emit(getNode(nodeId))
+    }
 
     val nameEditEnabled = nodeModelLiveData.map(::mapNodeNameEditState)
     val hostEditEnabled = nodeModelLiveData.map(::mapNodeHostEditState)
@@ -36,21 +38,6 @@ class NodeDetailsViewModel(
 
     fun backClicked() {
         router.back()
-    }
-
-    private fun getNode(nodeId: Int): Single<NodeModel> {
-        return interactor.getNode(nodeId)
-            .subscribeOn(Schedulers.io())
-            .map(::mapNodeToNodeModel)
-            .observeOn(AndroidSchedulers.mainThread())
-    }
-
-    private fun mapNodeNameEditState(node: NodeModel): Boolean {
-        return !node.isDefault
-    }
-
-    private fun mapNodeHostEditState(node: NodeModel): Boolean {
-        return !node.isDefault && !isSelected
     }
 
     fun nodeDetailsEdited() {
@@ -66,11 +53,28 @@ class NodeDetailsViewModel(
     }
 
     fun updateClicked(name: String, hostUrl: String) {
-        disposables += interactor.updateNode(nodeId, name, hostUrl)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
+        viewModelScope.launch {
+            val result = interactor.updateNode(nodeId, name, hostUrl)
+
+            if (result.isSuccess) {
                 router.back()
-            }, ::handleNodeException)
+            } else {
+                handleNodeException(result.requireException())
+            }
+        }
+    }
+
+    private suspend fun getNode(nodeId: Int): NodeModel {
+        val node = interactor.getNode(nodeId)
+
+        return mapNodeToNodeModel(node)
+    }
+
+    private fun mapNodeNameEditState(node: NodeModel): Boolean {
+        return !node.isDefault
+    }
+
+    private fun mapNodeHostEditState(node: NodeModel): Boolean {
+        return !node.isDefault && !isSelected
     }
 }

@@ -84,7 +84,7 @@ class ReceiveViewModel(
             .subscribe({ (file, message) ->
                 _shareEvent.value = Event(QrSharingPayload(file, message))
             }, {
-                it.message?.let(::showError)
+                it.message.let(::showError)
             })
     }
 
