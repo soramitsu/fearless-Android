@@ -8,43 +8,47 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import jp.co.soramitsu.core_db.model.NodeLocal
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class NodeDao {
 
     @Query("select * from nodes")
-    abstract fun getNodes(): Observable<List<NodeLocal>>
+    abstract fun nodesFlow(): Flow<List<NodeLocal>>
+
+    @Query("select * from nodes")
+    abstract suspend fun getNodes(): List<NodeLocal>
 
     @Query("select * from nodes where link = :link")
-    abstract fun getNode(link: String): Single<NodeLocal>
+    abstract suspend fun getNode(link: String): NodeLocal
 
     @Query("select * from nodes where id = :id")
-    abstract fun getNodeById(id: Int): Single<NodeLocal>
+    abstract suspend fun getNodeById(id: Int): NodeLocal
 
     @Query("select count(*) from nodes where link = :nodeHost")
-    abstract fun getNodesCountByHost(nodeHost: String): Single<Int>
+    abstract suspend fun getNodesCountByHost(nodeHost: String): Int
 
     @Query("select exists (select * from nodes where link = :nodeHost)")
-    abstract fun checkNodeExists(nodeHost: String): Single<Boolean>
+    abstract suspend fun checkNodeExists(nodeHost: String): Boolean
 
     @Query("DELETE FROM nodes where link = :link")
-    abstract fun remove(link: String)
+    abstract suspend fun remove(link: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(nodes: List<NodeLocal>)
+    abstract suspend fun insert(nodes: List<NodeLocal>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(nodes: NodeLocal): Long
+    abstract suspend fun insert(nodes: NodeLocal): Long
 
     @Query("update nodes set name = :newName, link = :newHost, networkType = :networkType where id = :id")
-    abstract fun updateNode(id: Int, newName: String, newHost: String, networkType: Int): Completable
+    abstract suspend fun updateNode(id: Int, newName: String, newHost: String, networkType: Int)
 
     @Query("SELECT * from nodes where isDefault = 1 AND networkType = :networkType")
-    abstract fun getDefaultNodeFor(networkType: Int): NodeLocal
+    abstract suspend fun getDefaultNodeFor(networkType: Int): NodeLocal
 
     @Query("select * from nodes limit 1")
-    abstract fun getFirstNode(): NodeLocal
+    abstract suspend fun getFirstNode(): NodeLocal
 
     @Query("delete from nodes where id = :nodeId")
-    abstract fun deleteNode(nodeId: Int): Completable
+    abstract suspend fun deleteNode(nodeId: Int)
 }

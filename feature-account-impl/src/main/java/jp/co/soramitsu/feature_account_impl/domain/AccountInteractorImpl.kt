@@ -27,7 +27,7 @@ class AccountInteractorImpl(
         return accountRepository.generateMnemonic()
     }
 
-    override suspend fun getCryptoTypes(): List<CryptoType> {
+    override fun getCryptoTypes(): List<CryptoType> {
         return accountRepository.getEncryptionTypes()
     }
 
@@ -100,7 +100,7 @@ class AccountInteractorImpl(
         }
     }
 
-    override fun isCodeSet(): Boolean {
+    override suspend fun isCodeSet(): Boolean {
         return accountRepository.isCodeSet()
     }
 
@@ -114,7 +114,7 @@ class AccountInteractorImpl(
         return pinCode == code
     }
 
-    override fun isBiometricEnabled(): Boolean {
+    override suspend fun isBiometricEnabled(): Boolean {
         return accountRepository.isBiometricEnabled()
     }
 

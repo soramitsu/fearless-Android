@@ -14,7 +14,7 @@ interface AccountInteractor {
 
     suspend fun generateMnemonic(): List<String>
 
-    suspend fun getCryptoTypes(): List<CryptoType>
+    fun getCryptoTypes(): List<CryptoType>
 
     suspend fun getPreferredCryptoType(): CryptoType
 
@@ -49,13 +49,13 @@ interface AccountInteractor {
         name: String
     ): Result<Unit>
 
-    fun isCodeSet(): Boolean
+    suspend fun isCodeSet(): Boolean
 
     suspend fun savePin(code: String)
 
     suspend fun isPinCorrect(code: String): Boolean
 
-    fun isBiometricEnabled(): Boolean
+    suspend fun isBiometricEnabled(): Boolean
 
     suspend fun setBiometricOn()
 

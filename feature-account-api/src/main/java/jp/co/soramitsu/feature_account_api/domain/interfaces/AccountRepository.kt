@@ -14,7 +14,7 @@ class AccountAlreadyExistsException : Exception()
 
 interface AccountRepository {
 
-    suspend fun getEncryptionTypes(): List<CryptoType>
+    fun getEncryptionTypes(): List<CryptoType>
 
     suspend fun getNode(nodeId: Int): Node
 
@@ -34,9 +34,7 @@ interface AccountRepository {
 
     suspend fun getPreferredCryptoType(): CryptoType
 
-    fun isAccountSelected(): Single<Boolean>
-
-    suspend fun removeAccount(account: Account)
+    suspend fun isAccountSelected(): Boolean
 
     suspend fun createAccount(
         accountName: String,
@@ -75,17 +73,17 @@ interface AccountRepository {
         name: String
     )
 
-    fun isCodeSet(): Boolean
+    suspend fun isCodeSet(): Boolean
 
     suspend fun savePinCode(code: String)
 
-    fun getPinCode(): String?
+    suspend fun getPinCode(): String?
 
     suspend fun generateMnemonic(): List<String>
 
     suspend fun isInCurrentNetwork(address: String): Boolean
 
-    fun isBiometricEnabled(): Boolean
+    suspend fun isBiometricEnabled(): Boolean
 
     suspend fun setBiometricOn()
 
