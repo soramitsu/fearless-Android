@@ -13,15 +13,14 @@ import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.runtime.storageKey
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
-import jp.co.soramitsu.fearless_utils.wsrpc.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.string
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.subscription.SubscriptionChange
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -63,6 +62,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Submit
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.signedExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
+import kotlinx.coroutines.flow.Flow
 import org.bouncycastle.util.encoders.Hex
 import java.math.BigInteger
 
@@ -73,14 +73,14 @@ class WssSubstrateSource(
     private val sS58Encoder: SS58Encoder
 ) : SubstrateRemoteSource {
 
-    override fun fetchAccountInfo(
+    override suspend fun fetchAccountInfo(
         address: String,
         networkType: Node.NetworkType
-    ): Single<EncodableStruct<AccountInfo>> {
+    ): EncodableStruct<AccountInfo> {
         val publicKeyBytes = getAccountId(address)
         val request = AccountInfoRequest(publicKeyBytes)
 
-        return socketService.executeRequest(request, responseType = scale(AccountInfo))
+        return socketService.executeAsync(request, responseType = scale(AccountInfo))
             .map { response -> response.result ?: emptyAccountInfo() }
     }
 
@@ -109,10 +109,11 @@ class WssSubstrateSource(
         }
     }
 
-    override fun listenForAccountUpdates(address: String): Observable<BalanceChange> {
+    override fun listenForAccountUpdates(address: String): Flow<BalanceChange> {
         val key = Module.System.Account.storageKey(getAccountId(address))
         val request = SubscribeStorageRequest(key)
 
+        // TODO
         return socketService.subscribe(request)
             .map(::buildBalanceChange)
     }
@@ -124,10 +125,11 @@ class WssSubstrateSource(
             .map { block -> filterAccountTransactions(account, block.block.extrinsics) }
     }
 
-    override fun listenStakingLedger(stashAddress: String): Observable<EncodableStruct<StakingLedger>> {
+    override fun listenStakingLedger(stashAddress: String): Flow<EncodableStruct<StakingLedger>> {
         val key = Module.Staking.Bonded.storageKey(getAccountId(stashAddress))
         val request = SubscribeStorageRequest(key)
 
+        // TODO
         return socketService.subscribe(request)
             .map { it.params.result.getSingleChange() }
             .distinctUntilChanged()

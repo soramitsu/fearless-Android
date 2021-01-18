@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.asLiveData
-import jp.co.soramitsu.common.utils.asMutableLiveData
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.zipSimilar
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -40,12 +39,12 @@ class AccountListingProvider(
             AccountListing(groupedAccounts, selected)
         }
 
-    private fun getSelectedAccountModel() = accountInteractor.observeSelectedAccount()
+    private fun getSelectedAccountModel() = accountInteractor.selectedAccountFlow()
         .subscribeOn(Schedulers.computation())
         .flatMapSingle(::transformAccount)
         .observeOn(AndroidSchedulers.mainThread())
 
-    private fun getGroupedAccounts() = accountInteractor.observeGroupedAccounts()
+    private fun getGroupedAccounts() = accountInteractor.groupedAccountsFlow()
         .subscribeOn(Schedulers.computation())
         .flatMapSingle(::transformToModels)
         .observeOn(AndroidSchedulers.mainThread())

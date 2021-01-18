@@ -1,8 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.domain
 
-import io.reactivex.Completable
-import io.reactivex.Observable
-import io.reactivex.Single
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -11,51 +8,58 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStat
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.math.BigDecimal
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
-    private val fileProvider: FileProvider
+    private val fileProvider: FileProvider,
 ) : WalletInteractor {
 
-    companion object {
-        private const val QR_SHARE_PREFIX = "substrate"
-    }
-
-    override fun observeAssets(): Observable<List<Asset>> {
-        return walletRepository.observeAssets()
+    override fun assetsFlow(): Flow<List<Asset>> {
+        return walletRepository.assetsFlow()
             .filter { it.isNotEmpty() }
     }
 
-    override fun syncAssetsRates(): Completable {
-        return walletRepository.syncAssetsRates()
+    override suspend fun syncAssetsRates(): Result<Unit> {
+        return runCatching {
+            walletRepository.syncAssetsRates()
+        }
     }
 
-    override fun observeAsset(type: Token.Type): Observable<Asset> {
-        return walletRepository.observeAsset(type)
+    override suspend fun syncAssetRates(type: Token.Type): Result<Unit> {
+        return kotlin.runCatching {
+            walletRepository.syncAsset(type)
+        }
     }
 
-    override fun syncAssetRates(type: Token.Type): Completable {
-        return walletRepository.syncAsset(type)
+    override fun assetFlow(type: Token.Type): Flow<Asset> {
+        return walletRepository.assetFlow(type)
     }
 
-    override fun observeCurrentAsset(): Observable<Asset> {
-        return accountRepository.observeSelectedAccount()
+    override fun currentAssetFlow(): Flow<Asset> {
+        return accountRepository.selectedAccountFlow()
             .map { Token.Type.fromNetworkType(it.network.type) }
-            .switchMap(walletRepository::observeAsset)
+            .flatMapLatest(::assetFlow)
     }
 
-    override fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>> {
-        return walletRepository.observeTransactionsFirstPage(pageSize)
+    override fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>> {
+        return walletRepository.transactionsFirstPageFlow(pageSize)
             .distinctUntilChanged { previous, new -> areTransactionPagesTheSame(previous, new) }
     }
 
@@ -65,102 +69,108 @@ class WalletInteractorImpl(
         return previous.zip(new).all { (previousElement, currentElement) -> previousElement == currentElement }
     }
 
-    override fun syncTransactionsFirstPage(pageSize: Int): Completable {
-        return walletRepository.syncTransactionsFirstPage(pageSize)
-    }
-
-    override fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>> {
-        return walletRepository.getTransactionPage(pageSize, page)
-    }
-
-    override fun observeSelectedAccount(): Observable<Account> {
-        return accountRepository.observeSelectedAccount()
-    }
-
-    override fun getAddressId(address: String): Single<ByteArray> {
-        return accountRepository.getAddressId(address)
-    }
-
-    override fun getRecipients(query: String): Single<RecipientSearchResult> {
-        return accountRepository.getSelectedAccount().flatMap { account ->
-            walletRepository.getContacts(query).flatMap { contacts ->
-                accountRepository.getMyAccounts(query, account.network.type).map { myAddresses ->
-                    val contactsWithoutMyAddresses = contacts - myAddresses
-                    val myAddressesWithoutCurrent = myAddresses - account.address
-
-                    RecipientSearchResult(myAddressesWithoutCurrent.toList(), contactsWithoutMyAddresses.toList())
-                }
-            }
+    override suspend fun syncTransactionsFirstPage(pageSize: Int): Result<Unit> {
+        return runCatching {
+            walletRepository.syncTransactionsFirstPage(pageSize)
         }
     }
 
-    override fun validateSendAddress(address: String): Single<Boolean> {
-        return accountRepository.isInCurrentNetwork(address)
-            .onErrorReturnItem(false)
+    override suspend fun getTransactionPage(pageSize: Int, page: Int): Result<List<Transaction>> {
+        return runCatching {
+            walletRepository.getTransactionPage(pageSize, page)
+        }
     }
 
-    override fun getTransferFee(transfer: Transfer): Single<Fee> {
+    override fun selectedAccountFlow(): Flow<Account> {
+        return accountRepository.selectedAccountFlow()
+    }
+
+    override suspend fun getRecipients(query: String): RecipientSearchResult {
+        val account = accountRepository.getSelectedAccount()
+        val contacts = walletRepository.getContacts(query)
+        val myAddresses = accountRepository.getMyAccounts(query, account.network.type)
+
+        return with(Dispatchers.Default) {
+            val contactsWithoutMyAddresses = contacts - myAddresses
+            val myAddressesWithoutCurrent = myAddresses - account.address
+
+            RecipientSearchResult(
+                myAddressesWithoutCurrent.toList(),
+                contactsWithoutMyAddresses.toList()
+            )
+        }
+    }
+
+    override suspend fun validateSendAddress(address: String): Boolean {
+        return accountRepository.isInCurrentNetwork(address)
+    }
+
+    override suspend fun getTransferFee(transfer: Transfer): Fee {
         return walletRepository.getTransferFee(transfer)
     }
 
-    override fun performTransfer(
+    override suspend fun performTransfer(
         transfer: Transfer,
         fee: BigDecimal,
         maxAllowedLevel: TransferValidityLevel
-    ): Completable {
+    ): Result<Unit> {
+        val validityStatus = walletRepository.checkTransferValidity(transfer)
+
+        if (validityStatus.level > maxAllowedLevel) {
+            return Result.failure(NotValidTransferStatus(validityStatus))
+        }
+
+        return runCatching {
+            walletRepository.performTransfer(transfer, fee)
+        }
+    }
+
+    override suspend fun checkTransferValidityStatus(transfer: Transfer): TransferValidityStatus {
         return walletRepository.checkTransferValidity(transfer)
-            .flatMapCompletable {
-                if (it.level > maxAllowedLevel) {
-                    throw NotValidTransferStatus(it)
-                } else {
-                    walletRepository.performTransfer(transfer, fee)
-                }
-            }
     }
 
-    override fun checkEnoughAmountForTransfer(transfer: Transfer): Single<TransferValidityStatus> {
-        return walletRepository.checkTransferValidity(transfer)
+    override suspend fun getAccountsInCurrentNetwork(): List<Account> {
+        val account = accountRepository.getSelectedAccount()
+
+        return accountRepository.getAccountsByNetworkType(account.network.type)
     }
 
-    override fun getAccountsInCurrentNetwork(): Single<List<Account>> {
-        return accountRepository.observeSelectedAccount().firstOrError()
-            .flatMap {
-                accountRepository.getAccountsByNetworkType(it.network.type)
-            }
+    override suspend fun selectAccount(address: String) {
+        val account = accountRepository.getAccount(address)
+
+        accountRepository.selectAccount(account)
     }
 
-    override fun selectAccount(address: String): Completable {
-        return accountRepository.getAccount(address)
-            .flatMapCompletable(accountRepository::selectAccount)
+    override suspend fun getQrCodeSharingString(): String {
+        val account = accountRepository.getSelectedAccount()
+
+        return accountRepository.createQrAccountContent(account)
     }
 
-    override fun getQrCodeSharingString(): Single<String> {
-        return accountRepository.observeSelectedAccount()
-            .firstOrError()
-            .map(::formatQrAccountData)
+    override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<Pair<File, Asset>> {
+        return runCatching {
+            val file = fileProvider.createFileInTempStorage(fileName)
+
+            file to getCurrentAsset()!!
+        }
     }
 
-    private fun formatQrAccountData(account: Account): String {
-        return with(account) {
-            if (name.isNullOrEmpty()) {
-                "$QR_SHARE_PREFIX:$address:$publicKey"
-            } else {
-                "$QR_SHARE_PREFIX:$address:$publicKey:$name"
+    override suspend fun getRecipientFromQrCodeContent(content: String): Result<String> {
+        return withContext(Dispatchers.Default) {
+            runCatching {
+                QrSharing.decode(content).address
             }
         }
     }
 
-    override fun createFileInTempStorageAndRetrieveAsset(fileName: String): Single<Pair<File, Asset>> {
-        return fileProvider.createFileInTempStorage(fileName)
-            .flatMap { file ->
-                observeCurrentAsset()
-                    .firstOrError()
-                    .map { Pair(file, it) }
-            }
+    private suspend fun getCurrentAsset(): Asset? {
+        val account = accountRepository.getSelectedAccount()
+        val tokenType = getPrimaryTokenType(account)
+
+        return walletRepository.getAsset(tokenType)
     }
 
-    override fun getRecipientFromQrCodeContent(content: String): Single<String> {
-        return Single.fromCallable { QrSharing.decode(content) }
-            .map { it.address }
+    private fun getPrimaryTokenType(account: Account): Token.Type {
+        return Token.Type.fromNetworkType(account.network.type)
     }
 }

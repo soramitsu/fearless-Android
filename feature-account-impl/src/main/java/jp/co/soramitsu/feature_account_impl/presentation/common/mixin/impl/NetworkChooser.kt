@@ -8,8 +8,6 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
-import jp.co.soramitsu.common.utils.asMutableLiveData
-import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -19,14 +17,14 @@ import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.m
 
 class NetworkChooser(
     private val interactor: AccountInteractor,
-    private val selectedNetworkType: Node.NetworkType?
+    private val forcedNetworkType: Node.NetworkType?
 ) : NetworkChooserMixin {
 
     override val networkDisposable = CompositeDisposable()
 
     private val networkModelsLiveData = getNetworkModels().asLiveData(networkDisposable)
 
-    override val isNetworkTypeChangeAvailable = selectedNetworkType == null
+    override val isNetworkTypeChangeAvailable = forcedNetworkType == null
 
     override val selectedNetworkLiveData = getNetworkType()
         .subscribeOn(Schedulers.io())
@@ -53,9 +51,5 @@ class NetworkChooser(
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun getNetworkType() = if (selectedNetworkType == null) {
-        interactor.getSelectedNetworkType()
-    } else {
-        Single.just(selectedNetworkType)
-    }
+    private suspend fun getNetworkType() = forcedNetworkType ?: interactor.getSelectedNode().networkType
 }

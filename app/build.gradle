@@ -115,6 +115,8 @@ dependencies {
     implementation gifDep
 
     compileOnly wsDep
+
+    implementation coroutinesDep
 }
 
 task printVersion {

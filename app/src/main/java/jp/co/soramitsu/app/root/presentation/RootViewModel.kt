@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.presentation
 
+import androidx.lifecycle.viewModelScope
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -12,6 +13,13 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.plusAssign
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 class RootViewModel(
     private val interactor: RootInteractor,
@@ -20,7 +28,8 @@ class RootViewModel(
     private val resourceManager: ResourceManager,
     private val networkStateMixin: NetworkStateMixin
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
-    private var socketSourceDisposable: Disposable? = null
+
+    private var nodeScope = CoroutineScope(viewModelScope.coroutineContext)
 
     private var willBeClearedForLanguageChange = false
 
@@ -31,36 +40,33 @@ class RootViewModel(
     }
 
     private fun observeAllowedToConnect() {
-        disposables += connectionManager.observeLifecycleCondition()
+        connectionManager.lifecycleConditionFlow()
             .distinctUntilChanged()
-            .subscribe { lifecycleCondition ->
+            .onEach { lifecycleCondition ->
                 if (lifecycleCondition == LifecycleCondition.ALLOWED) {
                     bindConnectionToNode()
                 } else {
                     unbindConnection()
                 }
-            }
+            }.launchIn(viewModelScope)
     }
 
-    private fun bindConnectionToNode() {
-        socketSourceDisposable = interactor.observeSelectedNode()
-            .subscribeOn(Schedulers.io())
+    private fun bindConnectionToNode() = nodeScope.launch {
+        interactor.selectedNodeFlow()
             .distinctUntilChanged()
-            .doOnNext {
+            .onEach {
                 if (connectionManager.started()) {
                     connectionManager.switchUrl(it.link)
                 } else {
                     connectionManager.start(it.link)
                 }
-            }.switchMapCompletable {
+            }.collectLatest {
                 interactor.listenForAccountUpdates(it.networkType)
             }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe()
     }
 
     private fun unbindConnection() {
-        socketSourceDisposable?.dispose()
+        nodeScope.coroutineContext.cancelChildren()
 
         connectionManager.stop()
     }

@@ -11,6 +11,7 @@ import io.reactivex.Single
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction.Status
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class TransactionDao {
@@ -19,13 +20,13 @@ abstract class TransactionDao {
     abstract fun observeTransactions(
         accountAddress: String,
         statusUp: Status = Status.PENDING
-    ): Observable<List<TransactionLocal>>
+    ): Flow<List<TransactionLocal>>
 
     @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY date DESC")
-    abstract fun getTransactions(accountAddress: String): List<TransactionLocal>
+    abstract suspend fun getTransactions(accountAddress: String): List<TransactionLocal>
 
     @Query("SELECT * FROM transactions WHERE hash = :hash")
-    abstract fun getTransaction(hash: String): TransactionLocal?
+    abstract suspend fun getTransaction(hash: String): TransactionLocal?
 
     @Query(
         """
@@ -34,33 +35,30 @@ abstract class TransactionDao {
             SELECT DISTINCT senderAddress FROM transactions WHERE (senderAddress LIKE '%' || :query  || '%' AND senderAddress != accountAddress) AND accountAddress = :accountAddress
         """
     )
-    abstract fun getContacts(query: String, accountAddress: String): Single<List<String>>
+    abstract suspend fun getContacts(query: String, accountAddress: String): List<String>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(transaction: TransactionLocal): Completable
+    abstract suspend fun insert(transaction: TransactionLocal)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(transaction: List<TransactionLocal>): Completable
+    abstract suspend fun insert(transaction: List<TransactionLocal>)
 
     @Transaction
-    open fun insertFromSubscan(accountAddress: String, transactions: List<TransactionLocal>) {
+    open suspend fun insertFromSubScan(accountAddress: String, transactions: List<TransactionLocal>) {
         clear(accountAddress, TransactionSource.SUBSCAN)
 
-        if (transactions.isNotEmpty()) {
-            val oldest = transactions.minBy(TransactionLocal::date)!!
+        val oldest = transactions.minByOrNull(TransactionLocal::date)
 
+        oldest?.let {
             clearOld(accountAddress, oldest.date)
         }
 
-        insertBlocking(transactions)
+        insert(transactions)
     }
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    protected abstract fun insertBlocking(transactions: List<TransactionLocal>)
-
     @Query("DELETE FROM transactions WHERE accountAddress = :accountAddress AND source = :source")
-    protected abstract fun clear(accountAddress: String, source: TransactionSource): Int
+    protected abstract suspend fun clear(accountAddress: String, source: TransactionSource): Int
 
     @Query("DELETE FROM transactions WHERE date < :minDate AND accountAddress = :accountAddress")
-    protected abstract fun clearOld(accountAddress: String, minDate: Long): Int
+    protected abstract suspend fun clearOld(accountAddress: String, minDate: Long): Int
 }

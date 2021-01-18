@@ -58,14 +58,14 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun initViews() {
         transfersContainer.initializeBehavior(anchorView = balanceDetailContent)
 
-        transfersContainer.setScrollingListener(viewModel::scrolled)
+        transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
 
         transfersContainer.setSlidingStateListener(::setRefreshEnabled)
 
         transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
 
         balanceDetailContainer.setOnRefreshListener {
-            viewModel.refresh()
+            viewModel.sync()
         }
 
         balanceDetailBack.setOnClickListener { viewModel.backClicked() }
@@ -100,8 +100,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun subscribe(viewModel: BalanceDetailViewModel) {
-        viewModel.syncAssetRates()
-        viewModel.syncFirstTransactionsPage()
+        viewModel.sync()
 
         viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
 

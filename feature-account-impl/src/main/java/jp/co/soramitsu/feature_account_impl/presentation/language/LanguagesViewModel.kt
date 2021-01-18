@@ -36,7 +36,7 @@ class LanguagesViewModel(
         .map(::mapLanguageToLanguageModel)
         .observeOn(AndroidSchedulers.mainThread())
 
-    private fun getLanguages() = interactor.observeLanguages()
+    private fun getLanguages() = interactor.languagesFlow()
         .subscribeOn(Schedulers.computation())
         .map { it.map(::mapLanguageToLanguageModel) }
         .observeOn(AndroidSchedulers.mainThread())

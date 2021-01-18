@@ -4,7 +4,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.asMutableLiveData
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -27,12 +26,12 @@ class NodeListingProvider(
     override val selectedNodeLiveData = getSelectedNodeModel()
         .asMutableLiveData(nodeListingDisposable)
 
-    private fun getSelectedNodeModel() = accountInteractor.observeSelectedNode()
+    private fun getSelectedNodeModel() = accountInteractor.selectedNodeFlow()
         .subscribeOn(Schedulers.computation())
         .map(::transformNode)
         .observeOn(AndroidSchedulers.mainThread())
 
-    private fun getGroupedNodes() = accountInteractor.observeNodes()
+    private fun getGroupedNodes() = accountInteractor.nodesFlow()
         .subscribeOn(Schedulers.computation())
         .map(::transformToModels)
         .observeOn(AndroidSchedulers.mainThread())

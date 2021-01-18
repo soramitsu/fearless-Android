@@ -15,6 +15,8 @@ buildscript {
         cardViewVersion = '1.0.0'
         constraintVersion = '1.1.3'
 
+        coroutinesVersion = '1.4.2'
+
         rxJavaVersion = '2.2.7'
         rxAndroidVersion = '2.1.0'
 
@@ -41,7 +43,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.30'
+        fearlessLibVersion = '1.0.33'
 
         gifVersion = '1.2.19'
 
@@ -72,6 +74,15 @@ buildscript {
 
         lifecycleDep = "androidx.lifecycle:lifecycle-extensions:$architectureComponentVersion"
         lifecycleKapt = "androidx.lifecycle:lifecycle-compiler:$architectureComponentVersion"
+
+        coroutinesDep = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+        coroutinesAndroidDep = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
+
+        // viewModelScope
+        viewModelKtxDep = "androidx.lifecycle:lifecycle-viewmodel-ktx:$architectureComponentVersion"
+
+        // liveData builder
+        liveDataKtxDep = "androidx.lifecycle:lifecycle-livedata-ktx:$architectureComponentVersion"
 
         roomDep = "androidx.room:room-runtime:$architectureComponentVersion"
         rxRoomDep = "androidx.room:room-rxjava2:$architectureComponentVersion"

@@ -2,14 +2,12 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Observable
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.plusAssign
-import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
@@ -20,6 +18,11 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixi
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 private class TokenFilter(private val type: Token.Type) : TransactionFilter {
     override fun shouldInclude(model: TransactionHistoryElement): Boolean {
@@ -37,34 +40,22 @@ class BalanceDetailViewModel(
     TransactionHistoryUi by transactionHistoryMixin,
     BuyMixin by buyMixin {
 
-    private var transactionsRefreshed: Boolean = false
-    private var balanceRefreshed: Boolean = false
-
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
 
     private val _showFrozenDetailsEvent = MutableLiveData<Event<AssetModel>>()
     val showFrozenDetailsEvent: LiveData<Event<AssetModel>> = _showFrozenDetailsEvent
 
-    private val errorHandler: ErrorHandler = {
-        showError(it.message!!)
+    val assetLiveData = currentAssetFlow().asLiveData()
 
-        transactionsRefreshFinished()
-        balanceRefreshFinished()
-    }
-
-    val assetLiveData = observeAssetModel().asLiveData()
-
-    private val currentAccountLiveData = interactor.observeSelectedAccount().asLiveData()
+    private val currentAccountLiveData = interactor.selectedAccountFlow().asLiveData()
 
     val buyEnabled = buyMixin.buyEnabled(type)
 
     init {
-        disposables += transactionHistoryMixin.transferHistoryDisposable
+        transactionHistoryMixin.startObservingTransactions(viewModelScope)
 
-        transactionHistoryMixin.setTransactionErrorHandler(errorHandler)
-        transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
-        transactionHistoryMixin.addFilter(TokenFilter(type))
+        transactionHistoryMixin.addFilter(viewModelScope, TokenFilter(type))
     }
 
     override fun onCleared() {
@@ -73,20 +64,24 @@ class BalanceDetailViewModel(
         transactionHistoryMixin.clear()
     }
 
-    fun syncAssetRates() {
-        disposables += interactor.syncAssetRates(type)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnComplete { balanceRefreshFinished() }
-            .subscribeToError(errorHandler)
+    fun transactionsScrolled(index: Int) {
+        transactionHistoryMixin.scrolled(viewModelScope, index)
     }
 
-    fun refresh() {
-        transactionsRefreshed = false
-        balanceRefreshed = false
+    fun sync() {
+        viewModelScope.launch {
+            val deferredAssetSync = async { interactor.syncAssetRates(type) }
+            val deferredTransactionsSync = async { transactionHistoryMixin.syncFirstTransactionsPage() }
 
-        syncAssetRates()
-        syncFirstTransactionsPage()
+            val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
+
+            val firstError = results.mapNotNull { it.exceptionOrNull() }
+                .firstOrNull()
+
+            firstError?.let(::showError)
+
+            _hideRefreshEvent.value = Event(Unit)
+        }
     }
 
     fun backClicked() {
@@ -113,28 +108,8 @@ class BalanceDetailViewModel(
         }
     }
 
-    private fun observeAssetModel(): Observable<AssetModel> {
-        return interactor.observeAsset(type)
-            .subscribeOn(Schedulers.io())
+    private fun currentAssetFlow(): Flow<AssetModel> {
+        return interactor.assetFlow(type)
             .map(::mapAssetToAssetModel)
-            .observeOn(AndroidSchedulers.mainThread())
-    }
-
-    private fun transactionsRefreshFinished() {
-        transactionsRefreshed = true
-
-        maybeHideRefresh()
-    }
-
-    private fun balanceRefreshFinished() {
-        balanceRefreshed = true
-
-        maybeHideRefresh()
-    }
-
-    private fun maybeHideRefresh() {
-        if (transactionsRefreshed && balanceRefreshed) {
-            _hideRefreshEvent.value = Event(Unit)
-        }
     }
 }

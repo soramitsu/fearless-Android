@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.base
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
@@ -13,6 +14,7 @@ import jp.co.soramitsu.common.utils.Optional
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.asMutableLiveData
 import jp.co.soramitsu.common.utils.asOptionalLiveData
+import kotlinx.coroutines.CoroutineScope
 
 open class BaseViewModel : ViewModel() {
 
@@ -29,6 +31,7 @@ open class BaseViewModel : ViewModel() {
 
     override fun onCleared() {
         super.onCleared()
+
         if (!disposables.isDisposed) disposables.dispose()
     }
 

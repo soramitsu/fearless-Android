@@ -1,9 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
-import io.reactivex.Observable
-import io.reactivex.Single
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -13,33 +11,34 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Accoun
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ActiveEraInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.StakingLedger
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
+import kotlinx.coroutines.flow.Flow
 
 interface SubstrateRemoteSource {
-    fun fetchAccountInfo(address: String, networkType: Node.NetworkType): Single<EncodableStruct<AccountInfo>>
+    suspend fun fetchAccountInfo(address: String, networkType: Node.NetworkType): EncodableStruct<AccountInfo>
 
-    fun getTransferFee(
+    suspend fun getTransferFee(
         account: Account,
         transfer: Transfer
-    ): Single<FeeResponse>
+    ): FeeResponse
 
-    fun performTransfer(
+    suspend fun performTransfer(
         account: Account,
         transfer: Transfer,
         keypair: Keypair
-    ): Single<String>
+    ): String
 
     fun listenForAccountUpdates(
         address: String
-    ): Observable<BalanceChange>
+    ): Flow<BalanceChange>
 
     fun listenStakingLedger(
         stashAddress: String
-    ): Observable<EncodableStruct<StakingLedger>>
+    ): Flow<EncodableStruct<StakingLedger>>
 
-    fun getActiveEra(): Single<EncodableStruct<ActiveEraInfo>>
+    suspend fun getActiveEra(): EncodableStruct<ActiveEraInfo>
 
-    fun fetchAccountTransactionInBlock(
+    suspend fun fetchAccountTransactionInBlock(
         blockHash: String,
         account: Account
-    ): Single<List<EncodableStruct<SubmittableExtrinsic>>>
+    ): List<EncodableStruct<SubmittableExtrinsic>>
 }

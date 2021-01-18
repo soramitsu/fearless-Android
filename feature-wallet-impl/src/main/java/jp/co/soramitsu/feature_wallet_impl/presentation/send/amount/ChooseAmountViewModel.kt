@@ -16,7 +16,6 @@ import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.Optional
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapExcludingNull
 import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.view.ButtonState
@@ -28,7 +27,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Err
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Ok
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Warning
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -63,7 +61,7 @@ class ChooseAmountViewModel(
     private val amountEventsSubject = BehaviorSubject.createDefault("0")
     private val amountRawLiveData = amountEventsSubject.asLiveData()
 
-    private val currentAssetObservable = interactor.observeCurrentAsset()
+    private val currentAssetObservable = interactor.currentAssetFlow()
 
     private val _feeLoadingLiveData = MutableLiveData<Boolean>()
     val feeLoadingLiveData = _feeLoadingLiveData
@@ -176,7 +174,7 @@ class ChooseAmountViewModel(
         disposables += currentAssetObservable.firstOrError()
             .subscribeOn(Schedulers.io())
             .map { Transfer(recipientAddress, fee.transferAmount, it.token.type) }
-            .flatMap(interactor::checkEnoughAmountForTransfer)
+            .flatMap(interactor::checkTransferValidityStatus)
             .observeOn(AndroidSchedulers.mainThread())
             .doFinally { checkingEnoughFundsLiveData.value = false }
             .subscribe({

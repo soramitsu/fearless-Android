@@ -24,7 +24,7 @@ class ProfileViewModel(
     private val externalAccountActions: ExternalAccountActions.Presentation
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
-    private val selectedAccountObservable = interactor.observeSelectedAccount()
+    private val selectedAccountObservable = interactor.selectedAccountFlow()
 
     val selectedAccountLiveData: LiveData<Account> = selectedAccountObservable.subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())

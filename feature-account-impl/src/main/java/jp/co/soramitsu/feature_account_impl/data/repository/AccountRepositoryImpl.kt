@@ -18,6 +18,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
+import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
@@ -35,6 +37,8 @@ import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_account_api.domain.model.WithJson
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 
 class AccountRepositoryImpl(
@@ -109,12 +113,12 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun observeSelectedAccount(): Observable<Account> {
+    override fun selectedAccountFlow(): Observable<Account> {
         return accountDataSource.observeSelectedAccount()
     }
 
-    override fun getSelectedAccount(): Single<Account> {
-        return observeSelectedAccount().firstOrError()
+    override suspend fun getSelectedAccount(): Account {
+        return accountDataSource.getSelectedAccount()
     }
 
     override fun getPreferredCryptoType(): Single<CryptoType> {
@@ -148,7 +152,7 @@ class AccountRepositoryImpl(
         ).flatMapCompletable(this::switchToAccount)
     }
 
-    override fun observeAccounts(): Observable<List<Account>> {
+    override fun accountsFlow(): Observable<List<Account>> {
         return accountDao.observeAccounts()
             .map { it.map(::mapAccountLocalToAccount) }
     }
@@ -267,18 +271,16 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun getAddressId(address: String): Single<ByteArray> {
-        return Single.fromCallable {
-            sS58Encoder.decode(address)
-        }
-    }
+    override suspend fun isInCurrentNetwork(address: String): Boolean {
+        val currentAccount = getSelectedAccount()
 
-    override fun isInCurrentNetwork(address: String): Single<Boolean> {
-        return getSelectedAccount().map {
+        return try {
             val otherAddressByte = sS58Encoder.extractAddressByte(address)
-            val currentAddressByte = sS58Encoder.extractAddressByte(it.address)
+            val currentAddressByte = sS58Encoder.extractAddressByte(currentAccount.address)
 
             otherAddressByte == currentAddressByte
+        } catch (_: Exception) {
+            false
         }
     }
 
@@ -326,7 +328,7 @@ class AccountRepositoryImpl(
     }
 
     override fun getCurrentSecuritySource(): Single<SecuritySource> {
-        return observeSelectedAccount().firstOrError()
+        return selectedAccountFlow().firstOrError()
             .map { accountDataSource.getSecuritySource(it.address) }
     }
 
@@ -516,7 +518,7 @@ class AccountRepositoryImpl(
             .filter { it.isNotEmpty() }
     }
 
-    override fun observeSelectedNode(): Observable<Node> {
+    override fun selectedNodeFlow(): Observable<Node> {
         return accountDataSource.observeSelectedNode()
     }
 
@@ -549,7 +551,7 @@ class AccountRepositoryImpl(
         return nodeDao.checkNodeExists(nodeHost)
     }
 
-    override fun getNetworkName(nodeHost: String): Single<String> {
+    override suspend fun getNetworkName(nodeHost: String): String {
         return accountSubstrateSource.getNodeNetworkType(nodeHost)
     }
 
@@ -560,5 +562,11 @@ class AccountRepositoryImpl(
 
     override fun deleteNode(nodeId: Int): Completable {
         return nodeDao.deleteNode(nodeId)
+    }
+
+    override fun createQrAccountContent(account: Account): String {
+        val payload = QrSharing.Payload(account.address, account.publicKey.fromHex(), account.name)
+
+        return QrSharing.encode(payload)
     }
 }

@@ -51,7 +51,7 @@ class ConfirmTransferViewModel(
         }
     }
 
-    val assetLiveData = interactor.observeAsset(transferDraft.type)
+    val assetLiveData = interactor.assetFlow(transferDraft.type)
         .subscribeOn(Schedulers.io())
         .map(::mapAssetToAssetModel)
         .observeOn(AndroidSchedulers.mainThread())
@@ -119,7 +119,7 @@ class ConfirmTransferViewModel(
             Transfer(
                 recipient = recipientAddress,
                 amount = amount,
-                type = type
+                tokenType = type
             )
         }
     }

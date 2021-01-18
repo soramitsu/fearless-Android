@@ -33,6 +33,8 @@ interface AccountDataSource {
 
     fun observeSelectedAccount(): Observable<Account>
 
+    suspend fun getSelectedAccount() : Account
+
     fun getPreferredCryptoType(): Single<CryptoType>
 
     fun observeSelectedNode(): Observable<Node>

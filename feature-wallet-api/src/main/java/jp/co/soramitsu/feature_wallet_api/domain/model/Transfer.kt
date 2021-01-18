@@ -6,10 +6,10 @@ import java.math.BigInteger
 class Transfer(
     val recipient: String,
     val amount: BigDecimal,
-    val type: Token.Type
+    val tokenType: Token.Type
 ) {
 
-    val amountInPlanks: BigInteger = type.planksFromAmount(amount)
+    val amountInPlanks: BigInteger = tokenType.planksFromAmount(amount)
 
     fun validityStatus(
         senderTransferable: BigDecimal,
@@ -18,7 +18,7 @@ class Transfer(
         recipientBalance: BigDecimal
     ): TransferValidityStatus {
         val transactionTotal = fee + amount
-        val existentialDeposit = type.networkType.runtimeConfiguration.existentialDeposit
+        val existentialDeposit = tokenType.networkType.runtimeConfiguration.existentialDeposit
 
         return when {
             transactionTotal > senderTransferable -> TransferValidityLevel.Error.Status.NotEnoughFunds
