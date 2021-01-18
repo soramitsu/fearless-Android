@@ -1,9 +1,6 @@
 package jp.co.soramitsu.app.root.presentation
 
 import androidx.lifecycle.viewModelScope
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -12,7 +9,6 @@ import jp.co.soramitsu.common.data.network.rpc.LifecycleCondition
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.plusAssign
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.collectLatest
@@ -35,8 +31,6 @@ class RootViewModel(
 
     init {
         observeAllowedToConnect()
-
-        disposables += networkStateMixin.networkStateDisposable
     }
 
     private fun observeAllowedToConnect() {

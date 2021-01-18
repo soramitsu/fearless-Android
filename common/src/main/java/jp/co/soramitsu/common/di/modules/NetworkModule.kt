@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.data.network.ExternalAnalyzerLinks
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.RxCallAdapterFactory
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.network.rpc.WsConnectionManager
@@ -20,6 +19,8 @@ import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
+import jp.co.soramitsu.fearless_utils.wsrpc.recovery.Reconnector
+import jp.co.soramitsu.fearless_utils.wsrpc.request.RequestExecutor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
@@ -69,21 +70,14 @@ class NetworkModule {
 
     @Provides
     @ApplicationScope
-    fun provideRxCallAdapterFactory(resourceManager: ResourceManager): RxCallAdapterFactory {
-        return RxCallAdapterFactory(resourceManager)
-    }
-
-    @Provides
-    @ApplicationScope
     fun provideLogger(): Logger = AndroidLogger()
 
     @Provides
     @ApplicationScope
     fun provideApiCreator(
-        okHttpClient: OkHttpClient,
-        rxCallAdapterFactory: RxCallAdapterFactory
+        okHttpClient: OkHttpClient
     ): NetworkApiCreator {
-        return NetworkApiCreator(okHttpClient, "https://placeholder.com", rxCallAdapterFactory)
+        return NetworkApiCreator(okHttpClient, "https://placeholder.com")
     }
 
     @Provides
@@ -92,11 +86,21 @@ class NetworkModule {
 
     @Provides
     @ApplicationScope
+    fun provideReconnector() = Reconnector()
+
+    @Provides
+    @ApplicationScope
+    fun provideRequestExecutor() = RequestExecutor()
+
+    @Provides
+    @ApplicationScope
     fun provideSocketService(
         mapper: Gson,
         socketFactory: WebSocketFactory,
-        logger: Logger
-    ): SocketService = SocketService(mapper, logger, socketFactory)
+        logger: Logger,
+        reconnector: Reconnector,
+        requestExecutor: RequestExecutor,
+    ): SocketService = SocketService(mapper, logger, socketFactory, reconnector, requestExecutor)
 
     @Provides
     @ApplicationScope

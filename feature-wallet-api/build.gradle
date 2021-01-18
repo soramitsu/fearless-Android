@@ -8,9 +8,6 @@ compileKotlin {
 }
 
 dependencies {
-    implementation kotlinDep
-    implementation rxJavaDep
-
     implementation coroutinesDep
     
     implementation project(':feature-account-api')

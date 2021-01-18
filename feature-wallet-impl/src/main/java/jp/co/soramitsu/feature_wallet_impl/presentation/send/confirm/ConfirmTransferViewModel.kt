@@ -2,16 +2,16 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -22,6 +22,8 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 private const val ICON_IN_DP = 24
 
@@ -39,7 +41,7 @@ class ConfirmTransferViewModel(
     private val _showBalanceDetailsEvent = MutableLiveData<Event<Unit>>()
     val showBalanceDetailsEvent: LiveData<Event<Unit>> = _showBalanceDetailsEvent
 
-    val recipientModel = getAddressIcon().asLiveData()
+    val recipientModel = liveData { emit(getAddressIcon()) }
 
     private val _transferSubmittingLiveData = MutableLiveData(false)
 
@@ -52,9 +54,7 @@ class ConfirmTransferViewModel(
     }
 
     val assetLiveData = interactor.assetFlow(transferDraft.type)
-        .subscribeOn(Schedulers.io())
         .map(::mapAssetToAssetModel)
-        .observeOn(AndroidSchedulers.mainThread())
         .asLiveData()
 
     fun backClicked() {
@@ -88,19 +88,23 @@ class ConfirmTransferViewModel(
 
         _transferSubmittingLiveData.value = true
 
-        disposables += interactor.performTransfer(createTransfer(), transferDraft.fee, maxAllowedStatusLevel)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doFinally { _transferSubmittingLiveData.value = false }
-            .subscribe({
+        viewModelScope.launch {
+            val result = interactor.performTransfer(createTransfer(), transferDraft.fee, maxAllowedStatusLevel)
+
+            if (result.isSuccess) {
                 router.finishSendFlow()
-            }, {
-                if (it is NotValidTransferStatus) {
-                    processInvalidStatus(it.status)
+            } else {
+                val error = result.requireException()
+
+                if (error is NotValidTransferStatus) {
+                    processInvalidStatus(error.status)
                 } else {
-                    showError(it)
+                    showError(error)
                 }
-            })
+            }
+
+            _transferSubmittingLiveData.value = false
+        }
     }
 
     private fun processInvalidStatus(status: TransferValidityStatus) {
@@ -110,7 +114,7 @@ class ConfirmTransferViewModel(
         }
     }
 
-    private fun getAddressIcon(): Single<AddressModel> {
+    private suspend fun getAddressIcon(): AddressModel {
         return addressIconGenerator.createAddressModel(transferDraft.recipientAddress, ICON_IN_DP)
     }
 

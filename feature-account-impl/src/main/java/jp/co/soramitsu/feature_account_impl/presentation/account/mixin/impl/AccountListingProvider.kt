@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.mixin.impl
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
-import io.reactivex.Single
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -53,7 +52,7 @@ class AccountListingProvider(
         return list.map {
             when (it) {
                 is Account -> transformAccount(it)
-                is Node.NetworkType -> Single.just(mapNetworkTypeToNetworkModel(it))
+                is Node.NetworkType -> mapNetworkTypeToNetworkModel(it)
                 else -> throw IllegalArgumentException()
             }
         }

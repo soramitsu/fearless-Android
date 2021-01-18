@@ -1,8 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
 import androidx.lifecycle.LiveData
-import io.reactivex.disposables.Disposable
-import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 import kotlinx.coroutines.CoroutineScope
@@ -19,7 +17,7 @@ interface TransactionHistoryUi {
 
 interface TransactionHistoryMixin : TransactionHistoryUi {
 
-    suspend fun syncFirstTransactionsPage() : Result<Unit>
+    suspend fun syncFirstTransactionsPage(): Result<Unit>
 
     fun scrolled(scope: CoroutineScope, currentIndex: Int)
 

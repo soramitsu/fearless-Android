@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -37,11 +38,13 @@ class TransactionDetailViewModel(
 
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
-    val recipientAddressModelLiveData = getRecipientIcon()
-        .asLiveData()
+    val recipientAddressModelLiveData = liveData {
+        emit(getIcon(transaction.recipientAddress))
+    }
 
-    val senderAddressModelLiveData = getSenderIcon()
-        .asLiveData()
+    val senderAddressModelLiveData = liveData {
+        emit(getIcon(transaction.senderAddress))
+    }
 
     val retryAddressModelLiveData = if (transaction.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
 
@@ -59,11 +62,7 @@ class TransactionDetailViewModel(
         router.openRepeatTransaction(transaction.displayAddress)
     }
 
-    private fun getRecipientIcon() = getIcon(transaction.recipientAddress)
-
-    private fun getSenderIcon() = getIcon(transaction.senderAddress)
-
-    private fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP)
+    private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP)
 
     fun showExternalActionsClicked(externalActionsSource: ExternalActionsSource) {
         _showExternalViewEvent.value = Event(externalActionsSource)

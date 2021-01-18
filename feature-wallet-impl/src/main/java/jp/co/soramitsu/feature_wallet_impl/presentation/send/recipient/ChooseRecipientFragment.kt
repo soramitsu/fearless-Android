@@ -6,8 +6,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
 import com.google.zxing.integration.android.IntentIntegrator
-import com.tbruyelle.rxpermissions2.RxPermissions
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -16,10 +16,12 @@ import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.common.askPermissionsSafely
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientField
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientFlipper
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientList
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientToolbar
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val INDEX_WELCOME = 0
@@ -90,10 +92,6 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
                 .show()
         }
 
-        viewModel.cameraPermissionGrantedEvent.observeEvent {
-            initiateCameraScanner()
-        }
-
         viewModel.decodeAddressResult.observeEvent {
             searchRecipientField.setText(it)
         }
@@ -102,7 +100,13 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
     }
 
     private fun requestCameraPermission() {
-        viewModel.observePermissionRequest(RxPermissions(this).request(Manifest.permission.CAMERA))
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = askPermissionsSafely(Manifest.permission.CAMERA)
+
+            if (result.isSuccess) {
+                initiateCameraScanner()
+            }
+        }
     }
 
     private fun selectQrFromGallery() {
@@ -131,7 +135,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data?.data != null) {
-            viewModel.observeQrCodeDecoding(qrBitmapDecoder.decodeQrCodeFromUri(data.data!!))
+            viewModel.qrFileChosen(data.data!!)
         } else {
             val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
             result?.contents?.let {

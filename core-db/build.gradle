@@ -36,6 +36,6 @@ dependencies {
     kapt daggerKapt
 
     implementation roomDep
-    implementation rxRoomDep
+    implementation roomKtxDep
     kapt roomKapt
 }

@@ -17,9 +17,6 @@ buildscript {
 
         coroutinesVersion = '1.4.2'
 
-        rxJavaVersion = '2.2.7'
-        rxAndroidVersion = '2.1.0'
-
         biometricVersion = '1.0.1'
 
         progressButtonsVersion = '2.1.0'
@@ -49,7 +46,6 @@ buildscript {
 
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
-        rxPermssionVersion = '0.10.2'
 
         biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
@@ -58,6 +54,8 @@ buildscript {
 
         wsVersion = "2.10"
 
+        permissionsVersion = '1.1.2'
+
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
         androidDep = "androidx.appcompat:appcompat:$supportVersion"
@@ -65,9 +63,6 @@ buildscript {
         recyclerViewDep = "androidx.recyclerview:recyclerview:$supportVersion"
         constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
         materialDep = "com.google.android.material:material:$supportVersion"
-
-        rxJavaDep = "io.reactivex.rxjava2:rxjava:$rxJavaVersion"
-        rxAndroidDep = "io.reactivex.rxjava2:rxandroid:$rxAndroidVersion"
 
         daggerDep = "com.google.dagger:dagger:$daggerVersion"
         daggerKapt = "com.google.dagger:dagger-compiler:$daggerVersion"
@@ -84,8 +79,13 @@ buildscript {
         // liveData builder
         liveDataKtxDep = "androidx.lifecycle:lifecycle-livedata-ktx:$architectureComponentVersion"
 
+        // lifecycle scopes
+        lifeCycleKtxDep = "androidx.lifecycle:lifecycle-runtime-ktx:$architectureComponentVersion"
+
+        permissionsDep = "com.github.florent37:runtime-permission-kotlin:$permissionsVersion"
+
         roomDep = "androidx.room:room-runtime:$architectureComponentVersion"
-        rxRoomDep = "androidx.room:room-rxjava2:$architectureComponentVersion"
+        roomKtxDep = "androidx.room:room-ktx:$architectureComponentVersion"
         roomKapt = "androidx.room:room-compiler:$architectureComponentVersion"
 
         navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
@@ -95,13 +95,11 @@ buildscript {
 
         retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
         interceptorVersion = "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
-        rxCallAdapterDep = "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
         gsonConvertedDep = "com.squareup.retrofit2:converter-gson:$retrofitVersion"
         gsonDep = "com.google.code.gson:gson:$gsonVersion"
 
         zXingCoreDep = "com.google.zxing:core:$zXingVersion"
         zXingEmbeddedDep = "com.journeyapps:zxing-android-embedded:$zXingEmbeddedVersion"
-        rxPermissionsDep = "com.github.tbruyelle:rxpermissions:$rxPermssionVersion"
 
         fearlessLibDep = "jp.co.soramitsu.fearless-utils:fearless-utils:$fearlessLibVersion"
 

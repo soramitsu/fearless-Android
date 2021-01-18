@@ -24,6 +24,8 @@ interface WalletInteractor {
 
     fun assetFlow(type: Token.Type): Flow<Asset>
 
+    suspend fun getCurrentAsset() : Asset
+
     fun currentAssetFlow(): Flow<Asset>
 
     fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>>
@@ -46,7 +48,7 @@ interface WalletInteractor {
         maxAllowedLevel: TransferValidityLevel = TransferValidityLevel.Ok
     ): Result<Unit>
 
-    suspend fun checkTransferValidityStatus(transfer: Transfer): TransferValidityStatus
+    suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus>
 
     suspend fun getAccountsInCurrentNetwork(): List<Account>
 

@@ -44,7 +44,6 @@ dependencies {
 
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
-    implementation rxPermissionsDep
 
     implementation bouncyCastleDep
 
@@ -59,7 +58,6 @@ dependencies {
     kapt daggerKapt
 
     implementation roomDep
-    implementation rxRoomDep
     kapt roomKapt
 
     implementation lifecycleDep

@@ -26,9 +26,16 @@ class ChooseRecipientModule {
         interactor: WalletInteractor,
         router: WalletRouter,
         resourceManager: ResourceManager,
-        addressIconGenerator: AddressIconGenerator
+        addressIconGenerator: AddressIconGenerator,
+        qrBitmapDecoder: QrBitmapDecoder
     ): ViewModel {
-        return ChooseRecipientViewModel(interactor, router, resourceManager, addressIconGenerator)
+        return ChooseRecipientViewModel(
+            interactor,
+            router,
+            resourceManager,
+            addressIconGenerator,
+            qrBitmapDecoder
+        )
     }
 
     @Provides

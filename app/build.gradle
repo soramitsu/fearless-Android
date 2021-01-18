@@ -95,9 +95,6 @@ dependencies {
     implementation navigationFragmentDep
     implementation navigationUiDep
 
-    implementation rxJavaDep
-    implementation rxAndroidDep
-
     implementation roomDep
 
     implementation fearlessLibDep
@@ -110,7 +107,6 @@ dependencies {
 
     implementation retrofitDep
     implementation gsonConvertedDep
-    implementation rxCallAdapterDep
 
     implementation gifDep
 

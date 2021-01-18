@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.network.rpc
 
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.networkStateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class WsConnectionManager(
@@ -30,5 +31,5 @@ class WsConnectionManager(
         socketService.stop()
     }
 
-    override fun observeNetworkState() = socketService.observeNetworkState()
+    override fun networkStateFlow() = socketService.networkStateFlow()
 }

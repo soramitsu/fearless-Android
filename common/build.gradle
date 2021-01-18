@@ -61,10 +61,8 @@ dependencies {
 
     implementation fearlessLibDep
 
-    implementation rxJavaDep
-    implementation rxAndroidDep
-
     implementation coroutinesDep
+    implementation liveDataKtxDep
 
     implementation viewModelKtxDep
 
@@ -76,7 +74,6 @@ dependencies {
 
     implementation retrofitDep
     implementation gsonConvertedDep
-    implementation rxCallAdapterDep
     implementation interceptorVersion
 
     implementation zXingCoreDep

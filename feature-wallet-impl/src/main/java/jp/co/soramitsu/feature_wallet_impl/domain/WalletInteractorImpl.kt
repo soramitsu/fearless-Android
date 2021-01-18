@@ -106,7 +106,7 @@ class WalletInteractorImpl(
     }
 
     override suspend fun getTransferFee(transfer: Transfer): Fee {
-        return walletRepository.getTransferFee(transfer)
+        return  walletRepository.getTransferFee(transfer)
     }
 
     override suspend fun performTransfer(
@@ -125,8 +125,10 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun checkTransferValidityStatus(transfer: Transfer): TransferValidityStatus {
-        return walletRepository.checkTransferValidity(transfer)
+    override suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus> {
+        return runCatching {
+            walletRepository.checkTransferValidity(transfer)
+        }
     }
 
     override suspend fun getAccountsInCurrentNetwork(): List<Account> {
@@ -151,7 +153,7 @@ class WalletInteractorImpl(
         return runCatching {
             val file = fileProvider.createFileInTempStorage(fileName)
 
-            file to getCurrentAsset()!!
+            file to getCurrentAsset()
         }
     }
 
@@ -163,11 +165,11 @@ class WalletInteractorImpl(
         }
     }
 
-    private suspend fun getCurrentAsset(): Asset? {
+    override suspend fun getCurrentAsset(): Asset {
         val account = accountRepository.getSelectedAccount()
         val tokenType = getPrimaryTokenType(account)
 
-        return walletRepository.getAsset(tokenType)
+        return walletRepository.getAsset(tokenType)!!
     }
 
     private fun getPrimaryTokenType(account: Account): Token.Type {

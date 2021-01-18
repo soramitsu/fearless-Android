@@ -39,13 +39,11 @@ dependencies {
 
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
-    implementation rxPermissionsDep
 
     implementation daggerDep
     kapt daggerKapt
 
     implementation roomDep
-    implementation rxRoomDep
     kapt roomKapt
 
     implementation lifecycleDep

@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.language.mapper.mapLanguageToLanguageModel
 
 private const val AVATAR_SIZE_DP = 32
 
@@ -30,7 +31,9 @@ class ProfileViewModel(
     }
 
     val selectedLanguageLiveData = liveData {
-        emit(interactor.getSelectedLanguage())
+        val language = interactor.getSelectedLanguage()
+
+        emit(mapLanguageToLanguageModel(language))
     }
 
     fun aboutClicked() {

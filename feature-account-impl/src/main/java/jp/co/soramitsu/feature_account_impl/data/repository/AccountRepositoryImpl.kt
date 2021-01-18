@@ -38,7 +38,6 @@ import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDa
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
@@ -380,7 +379,7 @@ class AccountRepositoryImpl(
         val accounts = accountDao.getAccountsByNetworkType(networkType.ordinal)
 
         return withContext(Dispatchers.Default) {
-            accounts.map { it.map(::mapAccountLocalToAccount) }
+            accounts.map { mapAccountLocalToAccount(it) }
         }
     }
 

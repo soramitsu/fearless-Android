@@ -6,15 +6,13 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class NetworkApiCreator(
     private val okHttpClient: OkHttpClient,
-    private val baseUrl: String,
-    private val rxCallAdapter: RxCallAdapterFactory
-) {
+    private val baseUrl: String
+    ) {
 
     fun <T> create(service: Class<T>): T {
         val retrofit = Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(baseUrl)
-            .addCallAdapterFactory(rxCallAdapter)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
