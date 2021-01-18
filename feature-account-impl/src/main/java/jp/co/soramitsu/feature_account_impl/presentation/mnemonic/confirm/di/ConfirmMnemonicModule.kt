@@ -24,11 +24,10 @@ class ConfirmMnemonicModule {
     fun provideViewModel(
         interactor: AccountInteractor,
         router: AccountRouter,
-        resourceManager: ResourceManager,
         deviceVibrator: DeviceVibrator,
         payload: ConfirmMnemonicPayload
     ): ViewModel {
-        return ConfirmMnemonicViewModel(interactor, router, resourceManager, deviceVibrator, payload)
+        return ConfirmMnemonicViewModel(interactor, router, deviceVibrator, payload)
     }
 
     @Provides

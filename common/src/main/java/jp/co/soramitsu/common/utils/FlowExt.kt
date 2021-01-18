@@ -6,3 +6,7 @@ import kotlinx.coroutines.flow.map
 inline fun <T, R> Flow<List<T>>.mapList(crossinline mapper: suspend (T) -> R) = map { list ->
     list.map { item -> mapper(item) }
 }
+
+fun <T, R> Flow<List<T>>.mapList(mapper: (T) -> R) = map { list ->
+    list.map(mapper)
+}

@@ -7,8 +7,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 
 interface NodeListingMixin {
 
-    val nodeListingDisposable: CompositeDisposable
-
     val groupedNodeModelsLiveData: LiveData<List<Any>>
 
     val selectedNodeLiveData: MutableLiveData<NodeModel>

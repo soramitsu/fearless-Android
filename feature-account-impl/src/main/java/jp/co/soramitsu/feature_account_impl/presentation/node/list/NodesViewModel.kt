@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -23,6 +24,9 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val ICON_IN_DP = 24
 
@@ -68,14 +72,11 @@ class NodesViewModel(
     }
 
     fun selectNodeClicked(nodeModel: NodeModel) {
-        disposables += interactor.getAccountsByNetworkTypeWithSelectedNode(nodeModel.networkModelType.networkType)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ (accounts, selectedNode) ->
-                handleAccountsForNetwork(nodeModel, selectedNode, accounts)
-            }, {
-                it.message?.let(this::showError)
-            })
+        viewModelScope.launch {
+            val (accounts, selectedNode) = interactor.getAccountsByNetworkTypeWithSelectedNode(nodeModel.networkModelType.networkType)
+
+            handleAccountsForNetwork(nodeModel, selectedNode, accounts)
+        }
     }
 
     fun accountSelected(accountModel: AccountByNetworkModel) {
@@ -90,82 +91,62 @@ class NodesViewModel(
         router.createAccountForNetworkType(networkType)
     }
 
-    private fun handleAccountsForNetwork(nodeModel: NodeModel, selectedNode: Node, accounts: List<Account>) {
-        if (accounts.isEmpty()) {
-            _noAccountsEvent.value = Event(nodeModel.networkModelType.networkType)
-        } else {
-            if (accounts.size == 1) {
-                selectAccountForNode(nodeModel.id, accounts.first().address)
-            } else {
-                if (selectedNode.networkType == nodeModel.networkModelType.networkType) {
-                    selectNodeWithCurrentAccount(nodeModel.id)
-                } else {
-                    showAccountChooser(nodeModel, accounts)
-                }
-            }
-        }
-    }
-
-    private fun showAccountChooser(nodeModel: NodeModel, accounts: List<Account>) {
-        disposables += generateAccountModels(nodeModel, accounts)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ accountModels ->
-                _showAccountChooserLiveData.value = Event(Payload(accountModels))
-            }, {
-                it.message?.let(this::showError)
-            })
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun generateAccountModels(nodeModel: NodeModel, accounts: List<Account>): Single<List<AccountByNetworkModel>> {
-        val singles = accounts.map { mapAccountToAccountModel(nodeModel.id, it) }
-
-        return singles.zipSimilar()
-    }
-
-    private fun mapAccountToAccountModel(nodeId: Int, account: Account): Single<AccountByNetworkModel> {
-        return generateIconForAddress(account).map {
-            AccountByNetworkModel(nodeId, account.address, account.name, it)
-        }
-    }
-
-    private fun selectAccountForNode(nodeId: Int, accountAddress: String) {
-        disposables += interactor.selectNodeAndAccount(nodeId, accountAddress)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                router.returnToMain()
-            }, {
-                it.message?.let(this::showError)
-            })
-    }
-
-    private fun selectNodeWithCurrentAccount(nodeId: Int) {
-        disposables += interactor.selectNode(nodeId)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                router.returnToMain()
-            }, {
-                it.message?.let(this::showError)
-            })
-    }
-
-    private fun generateIconForAddress(account: Account): Single<AddressModel> {
-        return addressIconGenerator.createAddressModel(account.address, ICON_IN_DP)
-    }
-
     fun deleteNodeClicked(nodeModel: NodeModel) {
         _deleteNodeEvent.value = Event(nodeModel)
     }
 
     fun confirmNodeDeletion(nodeModel: NodeModel) {
-        disposables += interactor.deleteNode(nodeModel.id)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeToError {
-                it.message?.let { showError(it) }
-            }
+        viewModelScope.launch {
+            interactor.deleteNode(nodeModel.id)
+        }
+    }
+
+    private suspend fun generateIconForAddress(account: Account): AddressModel {
+        return addressIconGenerator.createAddressModel(account.address, ICON_IN_DP)
+    }
+
+    private fun handleAccountsForNetwork(nodeModel: NodeModel, selectedNode: Node, accounts: List<Account>) {
+        when {
+            accounts.isEmpty() -> _noAccountsEvent.value = Event(nodeModel.networkModelType.networkType)
+            accounts.size == 1 -> selectAccountForNode(nodeModel.id, accounts.first().address)
+            selectedNode.networkType == nodeModel.networkModelType.networkType -> selectNodeWithCurrentAccount(nodeModel.id)
+            else -> showAccountChooser(nodeModel, accounts)
+        }
+    }
+
+    private fun showAccountChooser(nodeModel: NodeModel, accounts: List<Account>) {
+        viewModelScope.launch {
+            val accountModels = generateAccountModels(nodeModel, accounts)
+
+            _showAccountChooserLiveData.value = Event(Payload(accountModels))
+        }
+    }
+
+    private suspend fun generateAccountModels(nodeModel: NodeModel, accounts: List<Account>): List<AccountByNetworkModel> {
+        return withContext(Dispatchers.Default) {
+            accounts.map { mapAccountToAccountModel(nodeModel.id, it) }
+        }
+    }
+
+    private suspend fun mapAccountToAccountModel(nodeId: Int, account: Account): AccountByNetworkModel {
+        val addressModel = generateIconForAddress(account)
+
+        return AccountByNetworkModel(nodeId, account.address, account.name, addressModel)
+    }
+
+    private fun selectAccountForNode(nodeId: Int, accountAddress: String) {
+        viewModelScope.launch {
+            interactor.selectNodeAndAccount(nodeId, accountAddress)
+
+            router.returnToMain()
+        }
+    }
+
+    private fun selectNodeWithCurrentAccount(nodeId: Int) {
+        viewModelScope.launch {
+            interactor.selectNode(nodeId)
+
+            router.returnToMain()
+        }
     }
 }

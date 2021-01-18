@@ -347,8 +347,8 @@ class AccountRepositoryImpl(
         return accountDataSource.selectedNodeFlow()
     }
 
-    override fun languagesFlow(): Flow<List<Language>> {
-        return flowOf(languagesHolder.getLanguages())
+    override fun getLanguages(): List<Language> {
+        return languagesHolder.getLanguages()
     }
 
     override suspend fun selectedLanguage(): Language {

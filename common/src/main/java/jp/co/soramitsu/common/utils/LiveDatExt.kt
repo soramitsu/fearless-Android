@@ -26,6 +26,18 @@ fun <FROM, TO> LiveData<FROM>.map(initial: TO?, mapper: (FROM) -> TO): LiveData<
     }
 }
 
+fun <T> mediatorLiveData(mediatorBuilder: MediatorLiveData<T>.() -> Unit): MediatorLiveData<T> {
+    val liveData = MediatorLiveData<T>()
+
+    mediatorBuilder.invoke(liveData)
+
+    return liveData
+}
+
+fun <T> MediatorLiveData<T>.setFrom(other: LiveData<T>) = addSource(other) {
+    value = it
+}
+
 /**
  * Supports up to N sources, where N is last componentN() in ComponentHolder
  * @see ComponentHolder

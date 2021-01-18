@@ -212,8 +212,8 @@ class AccountInteractorImpl(
         }
     }
 
-    override fun languagesFlow(): Flow<List<Language>> {
-        return accountRepository.languagesFlow()
+    override fun getLanguages(): List<Language> {
+        return accountRepository.getLanguages()
     }
 
     override suspend fun getSelectedLanguage(): Language {

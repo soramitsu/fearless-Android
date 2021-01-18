@@ -54,6 +54,9 @@ dependencies {
     implementation fearlessLibDep
 
     implementation coroutinesDep
+    implementation coroutinesAndroidDep
+    implementation viewModelKtxDep
+    implementation liveDataKtxDep
 
     implementation daggerDep
     kapt daggerKapt

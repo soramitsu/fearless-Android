@@ -3,16 +3,14 @@ package jp.co.soramitsu.feature_account_impl.presentation.importing
 import android.content.Intent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Completable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
@@ -30,6 +28,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
+import kotlinx.coroutines.launch
 
 class ImportAccountViewModel(
     private val interactor: AccountInteractor,
@@ -83,9 +82,6 @@ class ImportAccountViewModel(
     val advancedBlockExceptNetworkEnabled = _selectedSourceTypeLiveData.map { it !is JsonImportSource }
 
     init {
-        disposables += networkDisposable
-        disposables += cryptoDisposable
-
         _selectedSourceTypeLiveData.value = sourceTypes.first()
     }
 
@@ -113,13 +109,17 @@ class ImportAccountViewModel(
         val derivationPath = derivationPathLiveData.value.orEmpty()
         val name = nameLiveData.value!!
 
-        val importObservable = constructImportObservable(sourceType, name, derivationPath, cryptoType, networkType)
+        viewModelScope.launch {
+            val result = import(sourceType, name, derivationPath, cryptoType, networkType)
 
-        disposables += importObservable
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doFinally { importInProgressLiveData.value = false }
-            .subscribe(::continueBasedOnCodeStatus, ::handleCreateAccountError)
+            if (result.isSuccess) {
+                continueBasedOnCodeStatus()
+            } else {
+                handleCreateAccountError(result.requireException())
+            }
+
+            importInProgressLiveData.value = false
+        }
     }
 
     fun systemCallResultReceived(requestCode: Int, intent: Intent) {
@@ -134,7 +134,7 @@ class ImportAccountViewModel(
         }
     }
 
-    private fun continueBasedOnCodeStatus() {
+    private suspend fun continueBasedOnCodeStatus() {
         if (interactor.isCodeSet()) {
             router.openMain()
         } else {
@@ -172,19 +172,19 @@ class ImportAccountViewModel(
                 resourceManager,
                 clipboardManager,
                 fileReader,
-                disposables
+                viewModelScope
             ),
             RawSeedImportSource()
         )
     }
 
-    private fun constructImportObservable(
+    private suspend fun import(
         sourceType: ImportSource,
         name: String,
         derivationPath: String,
         cryptoType: CryptoType,
         networkType: Node.NetworkType
-    ): Completable {
+    ): Result<Unit> {
         return when (sourceType) {
             is MnemonicImportSource -> interactor.importFromMnemonic(
                 sourceType.mnemonicContentLiveData.value!!,

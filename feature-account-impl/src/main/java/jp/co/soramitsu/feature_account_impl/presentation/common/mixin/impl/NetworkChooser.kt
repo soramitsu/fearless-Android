@@ -2,35 +2,33 @@ package jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.asLiveData
+import jp.co.soramitsu.common.utils.mediatorLiveData
+import jp.co.soramitsu.common.utils.setFrom
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class NetworkChooser(
     private val interactor: AccountInteractor,
     private val forcedNetworkType: Node.NetworkType?
 ) : NetworkChooserMixin {
 
-    override val networkDisposable = CompositeDisposable()
-
-    private val networkModelsLiveData = getNetworkModels().asLiveData(networkDisposable)
+    private val networkModelsLiveData = liveData {
+        emit(getNetworkModels())
+    }
 
     override val isNetworkTypeChangeAvailable = forcedNetworkType == null
 
-    override val selectedNetworkLiveData = getNetworkType()
-        .subscribeOn(Schedulers.io())
-        .map(::mapNetworkTypeToNetworkModel)
-        .observeOn(AndroidSchedulers.mainThread())
-        .asMutableLiveData(networkDisposable)
+    override val selectedNetworkLiveData = mediatorLiveData<NetworkModel> {
+        setFrom(initialNetworkTypeLiveData())
+    }
 
     private val _networkChooserEvent = MutableLiveData<Event<Payload<NetworkModel>>>()
     override val networkChooserEvent: LiveData<Event<Payload<NetworkModel>>> = _networkChooserEvent
@@ -44,11 +42,15 @@ class NetworkChooser(
         }
     }
 
-    private fun getNetworkModels(): Single<List<NetworkModel>> {
-        return interactor.getNetworks()
-            .subscribeOn(Schedulers.io())
-            .mapList { mapNetworkTypeToNetworkModel(it.type) }
-            .observeOn(AndroidSchedulers.mainThread())
+    private fun initialNetworkTypeLiveData() = liveData {
+        val selectedType = getNetworkType()
+        val mapped = mapNetworkTypeToNetworkModel(selectedType)
+
+        emit(mapped)
+    }
+
+    private suspend fun getNetworkModels() = withContext(Dispatchers.Default) {
+        interactor.getNetworks().map { mapNetworkTypeToNetworkModel(it.type) }
     }
 
     private suspend fun getNetworkType() = forcedNetworkType ?: interactor.getSelectedNode().networkType

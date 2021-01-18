@@ -87,7 +87,7 @@ interface AccountInteractor {
 
     suspend fun processAccountJson(json: String): Result<ImportJsonData>
 
-    fun languagesFlow(): Flow<List<Language>>
+    fun getLanguages(): List<Language>
 
     suspend fun getSelectedLanguage(): Language
 

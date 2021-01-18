@@ -101,7 +101,7 @@ interface AccountRepository {
 
     suspend fun processAccountJson(json: String): ImportJsonData
 
-    fun languagesFlow(): Flow<List<Language>>
+    fun getLanguages(): List<Language>
 
     suspend fun selectedLanguage(): Language
 

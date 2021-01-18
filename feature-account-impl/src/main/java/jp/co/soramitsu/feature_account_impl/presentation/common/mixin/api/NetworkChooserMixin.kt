@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
 interface NetworkChooserMixin {
-    val networkDisposable: CompositeDisposable
 
     val selectedNetworkLiveData: MutableLiveData<NetworkModel>
 

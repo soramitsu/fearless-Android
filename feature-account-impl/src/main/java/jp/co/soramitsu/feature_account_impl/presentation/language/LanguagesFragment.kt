@@ -45,7 +45,7 @@ class LanguagesFragment : BaseFragment<LanguagesViewModel>(), LanguagesAdapter.L
     }
 
     override fun subscribe(viewModel: LanguagesViewModel) {
-        viewModel.languagesLiveData.observe(adapter::submitList)
+        adapter.submitList(viewModel.languagesModels)
 
         viewModel.selectedLanguageLiveData.observe(adapter::updateSelectedLanguage)
 

@@ -55,7 +55,7 @@ class WalletInteractorImpl(
     override fun currentAssetFlow(): Flow<Asset> {
         return accountRepository.selectedAccountFlow()
             .map { Token.Type.fromNetworkType(it.network.type) }
-            .flatMapLatest(::assetFlow)
+            .flatMapLatest { assetFlow(it) }
     }
 
     override fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>> {

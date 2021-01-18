@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -9,15 +10,16 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import kotlinx.coroutines.launch
 
 class ConfirmMnemonicViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
-    private val resourceManager: ResourceManager,
     private val deviceVibrator: DeviceVibrator,
     private val payload: ConfirmMnemonicPayload
 ) : BaseViewModel() {
@@ -106,13 +108,18 @@ class ConfirmMnemonicViewModel(
     }
 
     private fun createAccount(extras: ConfirmMnemonicPayload.CreateExtras) {
-        val mnemonicString = originMnemonic.joinToString(" ")
+        viewModelScope.launch {
+            val mnemonicString = originMnemonic.joinToString(" ")
 
-        with(extras) {
-            disposables += interactor.createAccount(accountName, mnemonicString, cryptoType, derivationPath, networkType)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(::continueBasedOnCodeStatus, Throwable::printStackTrace)
+            with(extras) {
+                val result = interactor.createAccount(accountName, mnemonicString, cryptoType, derivationPath, networkType)
+
+                if (result.isSuccess) {
+                    continueBasedOnCodeStatus()
+                } else {
+                    showError(result.requireException())
+                }
+            }
         }
     }
 
@@ -120,7 +127,7 @@ class ConfirmMnemonicViewModel(
         reset()
     }
 
-    private fun continueBasedOnCodeStatus() {
+    private suspend fun continueBasedOnCodeStatus() {
         if (interactor.isCodeSet()) {
             router.openMain()
         } else {

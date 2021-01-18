@@ -23,7 +23,7 @@ class AddressIconGenerator(
     }
 
     @Throws(AddressFormatException::class)
-    suspend fun createAddressIcon(accountAddress: String, sizeInDp: Int) = withContext(Dispatchers.IO) {
+    suspend fun createAddressIcon(accountAddress: String, sizeInDp: Int) = withContext(Dispatchers.Default) {
         val addressId = sS58Encoder.decode(accountAddress)
         val sizeInPx = resourceManager.measureInPx(sizeInDp)
 

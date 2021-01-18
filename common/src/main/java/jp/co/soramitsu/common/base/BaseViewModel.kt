@@ -27,14 +27,6 @@ open class BaseViewModel : ViewModel() {
     private val _messageLiveData = MutableLiveData<Event<String>>()
     val messageLiveData: LiveData<Event<String>> = _messageLiveData
 
-    protected val disposables = CompositeDisposable()
-
-    override fun onCleared() {
-        super.onCleared()
-
-        if (!disposables.isDisposed) disposables.dispose()
-    }
-
     fun showMessage(text: String) {
         _messageLiveData.value = Event(text)
     }
@@ -50,24 +42,4 @@ open class BaseViewModel : ViewModel() {
     fun showError(throwable: Throwable) {
         throwable.message?.let(this::showError)
     }
-
-    fun <T> Observable<Optional<T>>.asOptionalLiveData(
-        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) = asOptionalLiveData(disposables, errorHandler)
-
-    fun <T> Single<T>.asLiveData(
-        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) = asLiveData(disposables, errorHandler)
-
-    fun <T> Observable<T>.asLiveData(
-        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) = asLiveData(disposables, errorHandler)
-
-    fun <T> Single<T>.asMutableLiveData(
-        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) = asMutableLiveData(disposables, errorHandler)
-
-    fun <T> Observable<T>.asMutableLiveData(
-        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) = asMutableLiveData(disposables, errorHandler)
 }

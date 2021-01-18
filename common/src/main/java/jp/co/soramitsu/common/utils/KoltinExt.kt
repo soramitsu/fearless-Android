@@ -12,3 +12,7 @@ fun Long.daysFromMillis() = TimeUnit.MILLISECONDS.toDays(this)
 inline fun <T> List<T>.sumBy(extractor: (T) -> BigInteger) = fold(BigInteger.ZERO) { acc, element ->
     acc + extractor(element)
 }
+
+fun <T> Result<T>.requireException() = exceptionOrNull()!!
+
+fun <T> Result<T>.requireValue() = getOrThrow()!!

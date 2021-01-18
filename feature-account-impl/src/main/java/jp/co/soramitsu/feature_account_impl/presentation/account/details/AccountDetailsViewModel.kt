@@ -2,19 +2,14 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.details
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Completable
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.BehaviorSubject
+import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.WithJson
@@ -27,7 +22,14 @@ import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetwork
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
@@ -41,36 +43,37 @@ class AccountDetailsViewModel(
     private val resourceManager: ResourceManager,
     val accountAddress: String
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
-    private val accountNameChanges = BehaviorSubject.create<String>()
+    private val accountNameChanges = MutableSharedFlow<String>()
 
-    val accountLiveData = getAccount(accountAddress).asLiveData()
+    val accountLiveData = liveData {
+        emit(getAccount(accountAddress))
+    }
 
     val networkModel = accountLiveData.map { mapNetworkTypeToNetworkModel(it.network.type) }
 
     private val _showExportSourceChooser = MutableLiveData<Event<Payload<ExportSource>>>()
     val showExportSourceChooser: LiveData<Event<Payload<ExportSource>>> = _showExportSourceChooser
 
-    private val exportSourceTypesLiveData = buildExportSourceTypes().asLiveData()
-
     init {
-        disposables += observeNameChanges()
+        observeNameChanges()
     }
 
     fun nameChanged(name: String) {
-        accountNameChanges.onNext(name)
+        viewModelScope.launch {
+            accountNameChanges.emit(name)
+        }
     }
 
     fun backClicked() {
         accountRouter.back()
     }
 
-    private fun getAccount(accountAddress: String): Single<AccountModel> {
-        return accountInteractor.getAccount(accountAddress).flatMap { account ->
-            iconGenerator.createAddressModel(accountAddress, ACCOUNT_ICON_SIZE_DP).map { addressModel ->
-                mapAccountToAccountModel(account, addressModel.image, resourceManager)
-            }
-        }.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+    private suspend fun getAccount(accountAddress: String): AccountModel {
+        val account = accountInteractor.getAccount(accountAddress)
+
+        val icon = iconGenerator.createAddressIcon(accountAddress, ACCOUNT_ICON_SIZE_DP)
+
+        return mapAccountToAccountModel(account, icon, resourceManager)
     }
 
     fun addressClicked() {
@@ -82,43 +85,43 @@ class AccountDetailsViewModel(
     }
 
     fun exportClicked() {
-        val sources = exportSourceTypesLiveData.value ?: return
+        viewModelScope.launch {
+            val sources = buildExportSourceTypes()
 
-        _showExportSourceChooser.value = Event(Payload(sources))
+            _showExportSourceChooser.value = Event(Payload(sources))
+        }
     }
 
-    private fun observeNameChanges(): Disposable {
-        return accountNameChanges
-            .subscribeOn(Schedulers.io())
-            .skipWhile(::nameNotChanged)
-            .debounce(UPDATE_NAME_INTERVAL_SECONDS, TimeUnit.SECONDS)
-            .switchMapCompletable(::changeName)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe()
+    @OptIn(ExperimentalTime::class)
+    private fun observeNameChanges() {
+        accountNameChanges
+            .filter(::isNameChanged)
+            .debounce(UPDATE_NAME_INTERVAL_SECONDS.seconds)
+            .onEach { changeName(it) }
+            .launchIn(viewModelScope)
     }
 
-    private fun changeName(newName: String): Completable {
+    private suspend fun changeName(newName: String) {
         val accountModel = accountLiveData.value!!
 
-        return accountInteractor.updateAccountName(mapAccountModelToAccount(accountModel), newName)
+        accountInteractor.updateAccountName(mapAccountModelToAccount(accountModel), newName)
     }
 
-    private fun nameNotChanged(name: String): Boolean {
+    private fun isNameChanged(name: String): Boolean {
         val account = accountLiveData.value
 
-        return account == null || account.name == name
+        return account?.name != name
     }
 
-    private fun buildExportSourceTypes(): Single<List<ExportSource>> {
-        return accountInteractor.getSecuritySource(accountAddress).map {
-            val sources = mutableListOf<ExportSource>()
+    private suspend fun buildExportSourceTypes(): List<ExportSource> {
+        val securitySource = accountInteractor.getSecuritySource(accountAddress)
+        val options = mutableListOf<ExportSource>()
 
-            if (it is WithMnemonic) sources += ExportSource.Mnemonic
-            if (it is WithSeed && it.seed != null) sources += ExportSource.Seed
-            if (it is WithJson) sources += ExportSource.Json
+        if (securitySource is WithMnemonic) options += ExportSource.Mnemonic
+        if (securitySource is WithSeed && securitySource.seed != null) options += ExportSource.Seed
+        if (securitySource is WithJson) options += ExportSource.Json
 
-            sources
-        }
+        return options
     }
 
     fun exportTypeSelected(selected: ExportSource) {

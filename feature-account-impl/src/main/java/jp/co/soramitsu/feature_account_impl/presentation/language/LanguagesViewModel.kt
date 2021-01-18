@@ -2,27 +2,30 @@ package jp.co.soramitsu.feature_account_impl.presentation.language
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.language.mapper.mapLanguageToLanguageModel
 import jp.co.soramitsu.feature_account_impl.presentation.language.model.LanguageModel
+import kotlinx.coroutines.launch
 
 class LanguagesViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter
 ) : BaseViewModel() {
 
-    val languagesLiveData = getLanguages()
-        .asLiveData()
+    val languagesModels = getLanguages()
 
-    val selectedLanguageLiveData = getSelectedLanguageModel()
-        .asMutableLiveData()
+    val selectedLanguageLiveData = liveData {
+        val languages = interactor.getSelectedLanguage()
+        val mapped = mapLanguageToLanguageModel(languages)
+
+        emit(mapped)
+    }
 
     private val _languageChangedEvent = MutableLiveData<Event<Unit>>()
     val languageChangedEvent: LiveData<Event<Unit>> = _languageChangedEvent
@@ -31,23 +34,13 @@ class LanguagesViewModel(
         router.back()
     }
 
-    private fun getSelectedLanguageModel() = interactor.getSelectedLanguage()
-        .subscribeOn(Schedulers.computation())
-        .map(::mapLanguageToLanguageModel)
-        .observeOn(AndroidSchedulers.mainThread())
-
-    private fun getLanguages() = interactor.languagesFlow()
-        .subscribeOn(Schedulers.computation())
-        .map { it.map(::mapLanguageToLanguageModel) }
-        .observeOn(AndroidSchedulers.mainThread())
-
     fun selectLanguageClicked(languageModel: LanguageModel) {
-        disposables += interactor.changeSelectedLanguage(Language(languageModel.iso))
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                _languageChangedEvent.value = Event(Unit)
-            }, {
-                it.message?.let { showError(it) }
-            })
+        viewModelScope.launch {
+            interactor.changeSelectedLanguage(Language(languageModel.iso))
+
+            _languageChangedEvent.value = Event(Unit)
+        }
     }
+
+    private fun getLanguages() = interactor.getLanguages().map(::mapLanguageToLanguageModel)
 }

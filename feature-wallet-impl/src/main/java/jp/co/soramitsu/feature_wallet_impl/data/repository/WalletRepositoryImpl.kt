@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
 import jp.co.soramitsu.common.utils.encode
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
@@ -88,7 +89,7 @@ class WalletRepositoryImpl(
     override fun assetFlow(type: Token.Type): Flow<Asset> {
         return accountRepository.selectedAccountFlow()
             .flatMapLatest { account -> assetDao.observeAsset(account.address, type) }
-            .map(::mapAssetLocalToAsset)
+            .map { mapAssetLocalToAsset(it) }
     }
 
     override suspend fun getAsset(type: Token.Type): Asset? {

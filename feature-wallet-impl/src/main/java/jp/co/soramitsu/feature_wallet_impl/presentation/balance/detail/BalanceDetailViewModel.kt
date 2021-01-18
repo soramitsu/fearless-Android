@@ -110,6 +110,6 @@ class BalanceDetailViewModel(
 
     private fun currentAssetFlow(): Flow<AssetModel> {
         return interactor.assetFlow(type)
-            .map(::mapAssetToAssetModel)
+            .map { mapAssetToAssetModel(it) }
     }
 }
