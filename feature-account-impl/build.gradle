@@ -42,9 +42,6 @@ dependencies {
 
     implementation biometricDep
 
-    implementation rxJavaDep
-    implementation rxAndroidDep
-
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
     implementation rxPermissionsDep

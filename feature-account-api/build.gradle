@@ -8,8 +8,5 @@ compileKotlin {
 }
 
 dependencies {
-    implementation kotlinDep
-    implementation rxJavaDep
-
     implementation coroutinesDep
 }

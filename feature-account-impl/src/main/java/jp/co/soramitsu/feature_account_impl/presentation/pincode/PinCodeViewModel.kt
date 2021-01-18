@@ -26,7 +26,7 @@ class PinCodeViewModel(
         object Checking : ScreenState()
     }
 
-    private val _homeButtonVisibilityLiveData = MutableLiveData<Boolean>(pinCodeAction.toolbarConfiguration.backVisible)
+    private val _homeButtonVisibilityLiveData = MutableLiveData(pinCodeAction.toolbarConfiguration.backVisible)
     val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
 
     private val _resetInputEvent = MutableLiveData<Event<String>>()
