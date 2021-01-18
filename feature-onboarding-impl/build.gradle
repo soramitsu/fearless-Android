@@ -37,9 +37,6 @@ dependencies {
     implementation cardViewDep
     implementation constraintDep
 
-    implementation rxJavaDep
-    implementation rxAndroidDep
-
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
     implementation rxPermissionsDep
