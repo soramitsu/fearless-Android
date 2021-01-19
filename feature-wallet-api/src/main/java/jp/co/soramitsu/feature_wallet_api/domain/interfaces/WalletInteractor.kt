@@ -59,4 +59,6 @@ interface WalletInteractor {
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<Pair<File, Asset>>
 
     suspend fun getRecipientFromQrCodeContent(content: String): Result<String>
+
+    suspend fun getSelectedAccount(): Account
 }

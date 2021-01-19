@@ -46,8 +46,6 @@ class BalanceDetailViewModel(
 
     val assetLiveData = currentAssetFlow().asLiveData()
 
-    private val currentAccountLiveData = interactor.selectedAccountFlow().asLiveData()
-
     val buyEnabled = buyMixin.buyEnabled(type)
 
     init {
@@ -95,9 +93,11 @@ class BalanceDetailViewModel(
     }
 
     fun buyClicked() {
-        val address = currentAccountLiveData.value?.address ?: return
+        viewModelScope.launch {
+            val currentAccount = interactor.getSelectedAccount()
 
-        buyMixin.startBuyProcess(type, address)
+            buyMixin.startBuyProcess(type, currentAccount.address)
+        }
     }
 
     fun frozenInfoClicked() {

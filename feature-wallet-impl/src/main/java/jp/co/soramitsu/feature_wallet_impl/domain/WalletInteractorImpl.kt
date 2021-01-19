@@ -165,6 +165,10 @@ class WalletInteractorImpl(
         }
     }
 
+    override suspend fun getSelectedAccount(): Account {
+        return accountRepository.getSelectedAccount()
+    }
+
     override suspend fun getCurrentAsset(): Asset {
         val account = accountRepository.getSelectedAccount()
         val tokenType = getPrimaryTokenType(account)
