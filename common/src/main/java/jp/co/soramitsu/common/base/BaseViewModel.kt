@@ -3,9 +3,12 @@ package jp.co.soramitsu.common.base
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.utils.Event
+import kotlinx.coroutines.CoroutineScope
+import kotlin.coroutines.CoroutineContext
 
-open class BaseViewModel : ViewModel() {
+open class BaseViewModel : ViewModel(), CoroutineScope {
 
     private val _errorLiveData = MutableLiveData<Event<String>>()
     val errorLiveData: LiveData<Event<String>> = _errorLiveData
@@ -31,4 +34,7 @@ open class BaseViewModel : ViewModel() {
     fun showError(throwable: Throwable) {
         throwable.message?.let(this::showError)
     }
+
+    override val coroutineContext: CoroutineContext
+        get() = viewModelScope.coroutineContext
 }

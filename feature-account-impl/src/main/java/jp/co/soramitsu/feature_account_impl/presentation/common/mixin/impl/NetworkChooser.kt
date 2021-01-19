@@ -12,17 +12,15 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class NetworkChooser(
     private val interactor: AccountInteractor,
     private val forcedNetworkType: Node.NetworkType?
 ) : NetworkChooserMixin {
-
-    private val networkModelsLiveData = liveData {
-        emit(getNetworkModels())
-    }
 
     override val isNetworkTypeChangeAvailable = forcedNetworkType == null
 
@@ -33,11 +31,12 @@ class NetworkChooser(
     private val _networkChooserEvent = MutableLiveData<Event<Payload<NetworkModel>>>()
     override val networkChooserEvent: LiveData<Event<Payload<NetworkModel>>> = _networkChooserEvent
 
-    override fun chooseNetworkClicked() {
-        val selectedNode = selectedNetworkLiveData.value
-        val networkModels = networkModelsLiveData.value
+    override fun chooseNetworkClicked(scope: CoroutineScope) {
+        val selectedNode = selectedNetworkLiveData.value!!
 
-        if (selectedNode != null && networkModels != null) {
+        scope.launch {
+            val networkModels = getNetworkModels()
+
             _networkChooserEvent.value = Event(Payload(networkModels, selectedNode))
         }
     }

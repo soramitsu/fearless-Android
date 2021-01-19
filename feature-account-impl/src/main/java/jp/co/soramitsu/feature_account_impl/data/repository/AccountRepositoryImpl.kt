@@ -257,6 +257,8 @@ class AccountRepositoryImpl(
             val otherAddressByte = sS58Encoder.extractAddressByte(address)
             val currentAddressByte = sS58Encoder.extractAddressByte(currentAccount.address)
 
+            sS58Encoder.decode(address) // decoded without exception
+
             otherAddressByte == currentAddressByte
         } catch (_: Exception) {
             false

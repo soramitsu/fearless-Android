@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
+import kotlinx.coroutines.CoroutineScope
 
 interface NetworkChooserMixin {
 
@@ -14,5 +15,9 @@ interface NetworkChooserMixin {
 
     val isNetworkTypeChangeAvailable: Boolean
 
-    fun chooseNetworkClicked()
+    fun chooseNetworkClicked(scope: CoroutineScope)
+}
+
+fun <T> T.chooseNetworkClicked() where T : CoroutineScope, T : NetworkChooserMixin {
+    chooseNetworkClicked(this)
 }

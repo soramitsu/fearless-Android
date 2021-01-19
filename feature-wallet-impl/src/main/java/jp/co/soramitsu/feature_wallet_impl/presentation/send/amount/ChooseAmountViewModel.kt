@@ -69,7 +69,7 @@ class ChooseAmountViewModel(
     private val amountEvents = MutableStateFlow("0")
     private val amountRawLiveData = amountEvents.asLiveData()
 
-    private val _feeLoadingLiveData = MutableLiveData<Boolean>()
+    private val _feeLoadingLiveData = MutableLiveData<Boolean>(true)
     val feeLoadingLiveData = _feeLoadingLiveData
 
     val feeLiveData = feeFlow().asLiveData()
@@ -77,7 +77,7 @@ class ChooseAmountViewModel(
     private val _feeErrorLiveData = MutableLiveData<Event<RetryReason>>()
     val feeErrorLiveData = _feeErrorLiveData
 
-    private val checkingEnoughFundsLiveData = MutableLiveData<Boolean>(false)
+    private val checkingEnoughFundsLiveData = MutableLiveData(false)
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<TransferDraft>>()
     val showBalanceDetailsEvent: LiveData<Event<TransferDraft>> = _showBalanceDetailsEvent

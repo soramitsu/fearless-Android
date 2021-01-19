@@ -21,13 +21,11 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.Con
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 
 private const val ICON_SIZE_IN_DP = 24
 
@@ -123,7 +121,6 @@ class ChooseRecipientViewModel(
     @OptIn(ExperimentalTime::class)
     private fun observeSearchResults(): Flow<List<Any>> {
         return searchEvents
-            .debounce(DEBOUNCE_DURATION.milliseconds)
             .onEach { isQueryEmptyLiveData.postValue(it.isEmpty()) }
             .mapLatest(this::formSearchResults)
     }

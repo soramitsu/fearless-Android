@@ -34,17 +34,12 @@ dependencies {
 
     implementation androidDep
     implementation materialDep
-    implementation cardViewDep
     implementation constraintDep
 
-    implementation zXingCoreDep
-    implementation zXingEmbeddedDep
+    implementation coroutinesDep
 
     implementation daggerDep
     kapt daggerKapt
-
-    implementation roomDep
-    kapt roomKapt
 
     implementation lifecycleDep
     kapt lifecycleKapt

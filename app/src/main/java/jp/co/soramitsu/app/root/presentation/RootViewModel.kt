@@ -10,12 +10,15 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlin.coroutines.EmptyCoroutineContext
 
 class RootViewModel(
     private val interactor: RootInteractor,
@@ -25,7 +28,7 @@ class RootViewModel(
     private val networkStateMixin: NetworkStateMixin
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
 
-    private var nodeScope = CoroutineScope(viewModelScope.coroutineContext)
+    private var nodeScope = CoroutineScope(EmptyCoroutineContext)
 
     private var willBeClearedForLanguageChange = false
 
@@ -42,7 +45,9 @@ class RootViewModel(
                 } else {
                     unbindConnection()
                 }
-            }.launchIn(viewModelScope)
+            }
+            .flowOn(Dispatchers.IO)
+            .launchIn(viewModelScope)
     }
 
     private fun bindConnectionToNode() = nodeScope.launch {
@@ -54,7 +59,8 @@ class RootViewModel(
                 } else {
                     connectionManager.start(it.link)
                 }
-            }.collectLatest {
+            }.flowOn(Dispatchers.IO)
+            .collectLatest {
                 interactor.listenForAccountUpdates(it.networkType)
             }
     }

@@ -206,11 +206,11 @@ class AccountDataSourceImpl(
     }
 
     private fun createAccountFlow(): MutableSharedFlow<Account> {
-        val flow = MutableSharedFlow<Account>()
+        val flow = MutableSharedFlow<Account>(replay = 1)
 
         async {
             if (preferences.contains(PREFS_SELECTED_ACCOUNT)) {
-                flow.tryEmit(getSelectedAccount())
+                flow.emit(getSelectedAccount())
             }
         }
 
@@ -218,12 +218,12 @@ class AccountDataSourceImpl(
     }
 
     private fun createNodeFlow(): MutableSharedFlow<Node> {
-        val flow = MutableSharedFlow<Node>()
+        val flow = MutableSharedFlow<Node>(replay = 1)
 
         async {
             if (preferences.contains(PREFS_SELECTED_NODE)) {
                 val selectedNode = getSelectedNode() ?: throw IllegalArgumentException("No node selected")
-                flow.tryEmit(selectedNode)
+                flow.emit(selectedNode)
             }
         }
 
