@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.di
 
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -52,14 +53,16 @@ class WalletFeatureModule {
         assetDao: AssetDao,
         transactionDao: TransactionDao,
         subscanNetworkApi: SubscanNetworkApi,
-        sS58Encoder: SS58Encoder
+        sS58Encoder: SS58Encoder,
+        httpExceptionHandler: HttpExceptionHandler,
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         accountRepository,
         assetDao,
         transactionDao,
         subscanNetworkApi,
-        sS58Encoder
+        sS58Encoder,
+        httpExceptionHandler
     )
 
     @Provides

@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -65,4 +66,6 @@ interface WalletFeatureDependencies {
     fun fileProvider(): FileProvider
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
+
+    fun httpExceptionHandler() : HttpExceptionHandler
 }

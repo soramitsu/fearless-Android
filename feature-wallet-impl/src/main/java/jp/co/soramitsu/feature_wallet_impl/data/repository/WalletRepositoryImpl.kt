@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
+import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.utils.encode
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
@@ -71,7 +71,8 @@ class WalletRepositoryImpl(
     private val assetDao: AssetDao,
     private val transactionsDao: TransactionDao,
     private val subscanApi: SubscanNetworkApi,
-    private val sS58Encoder: SS58Encoder
+    private val sS58Encoder: SS58Encoder,
+    private val httpExceptionHandler: HttpExceptionHandler,
 ) : WalletRepository {
 
     override fun assetsFlow(): Flow<List<Asset>> {
@@ -237,7 +238,7 @@ class WalletRepositoryImpl(
         val subDomain = subDomainFor(account.network.type)
         val request = TransactionHistoryRequest(account.address, pageSize, page)
 
-        val response = subscanApi.getTransactionHistory(subDomain, request)
+        val response = apiCall { subscanApi.getTransactionHistory(subDomain, request) }
 
         val transfers = response.content?.transfers
         val transactions = transfers?.map { transfer -> mapTransferToTransaction(transfer, account) }
@@ -377,7 +378,7 @@ class WalletRepositoryImpl(
 
     private suspend fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): SubscanResponse<AssetPriceStatistics> {
         return try {
-            subscanApi.getAssetPrice(subDomainFor(networkType), request)
+            apiCall { subscanApi.getAssetPrice(subDomainFor(networkType), request) }
         } catch (_: Exception) {
             SubscanResponse.createEmptyResponse()
         }
@@ -396,4 +397,6 @@ class WalletRepositoryImpl(
     private fun subDomainFor(networkType: Node.NetworkType): String {
         return networkType.readableName.toLowerCase(Locale.ROOT)
     }
+
+    private suspend fun <T> apiCall(block: suspend () -> T) : T = httpExceptionHandler.wrap(block)
 }

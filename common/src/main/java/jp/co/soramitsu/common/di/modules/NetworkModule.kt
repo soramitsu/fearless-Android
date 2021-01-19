@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.data.network.ExternalAnalyzerLinks
+import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
@@ -79,6 +80,12 @@ class NetworkModule {
     ): NetworkApiCreator {
         return NetworkApiCreator(okHttpClient, "https://placeholder.com")
     }
+
+    @Provides
+    @ApplicationScope
+    fun httpExceptionHandler(
+        resourceManager: ResourceManager
+    ) : HttpExceptionHandler = HttpExceptionHandler(resourceManager)
 
     @Provides
     @ApplicationScope
