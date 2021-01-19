@@ -88,5 +88,5 @@ interface CommonApi {
 
     fun contentResolver(): ContentResolver
 
-    fun httpExceptionHandler() : HttpExceptionHandler
+    fun httpExceptionHandler(): HttpExceptionHandler
 }

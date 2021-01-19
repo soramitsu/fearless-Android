@@ -54,7 +54,7 @@ class WalletFeatureModule {
         transactionDao: TransactionDao,
         subscanNetworkApi: SubscanNetworkApi,
         sS58Encoder: SS58Encoder,
-        httpExceptionHandler: HttpExceptionHandler,
+        httpExceptionHandler: HttpExceptionHandler
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         accountRepository,

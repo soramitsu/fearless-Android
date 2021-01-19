@@ -67,5 +67,5 @@ interface WalletFeatureDependencies {
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
 
-    fun httpExceptionHandler() : HttpExceptionHandler
+    fun httpExceptionHandler(): HttpExceptionHandler
 }

@@ -85,7 +85,7 @@ class NetworkModule {
     @ApplicationScope
     fun httpExceptionHandler(
         resourceManager: ResourceManager
-    ) : HttpExceptionHandler = HttpExceptionHandler(resourceManager)
+    ): HttpExceptionHandler = HttpExceptionHandler(resourceManager)
 
     @Provides
     @ApplicationScope

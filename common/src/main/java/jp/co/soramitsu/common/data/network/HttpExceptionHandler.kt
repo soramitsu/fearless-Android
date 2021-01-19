@@ -9,7 +9,7 @@ import java.io.IOException
 class HttpExceptionHandler(
     private val resourceManager: ResourceManager
 ) {
-    suspend fun <T> wrap(block: suspend () -> T) : T {
+    suspend fun <T> wrap(block: suspend () -> T): T {
         return try {
             block()
         } catch (e: Throwable) {

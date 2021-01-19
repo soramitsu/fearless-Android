@@ -72,7 +72,7 @@ class WalletRepositoryImpl(
     private val transactionsDao: TransactionDao,
     private val subscanApi: SubscanNetworkApi,
     private val sS58Encoder: SS58Encoder,
-    private val httpExceptionHandler: HttpExceptionHandler,
+    private val httpExceptionHandler: HttpExceptionHandler
 ) : WalletRepository {
 
     override fun assetsFlow(): Flow<List<Asset>> {
@@ -398,5 +398,5 @@ class WalletRepositoryImpl(
         return networkType.readableName.toLowerCase(Locale.ROOT)
     }
 
-    private suspend fun <T> apiCall(block: suspend () -> T) : T = httpExceptionHandler.wrap(block)
+    private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
 }
