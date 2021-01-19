@@ -24,7 +24,7 @@ interface WalletInteractor {
 
     fun assetFlow(type: Token.Type): Flow<Asset>
 
-    suspend fun getCurrentAsset() : Asset
+    suspend fun getCurrentAsset(): Asset
 
     fun currentAssetFlow(): Flow<Asset>
 

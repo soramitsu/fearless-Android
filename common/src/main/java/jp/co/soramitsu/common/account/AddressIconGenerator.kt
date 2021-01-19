@@ -1,13 +1,11 @@
 package jp.co.soramitsu.common.account
 
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.fearless_utils.encrypt.Base58
 import jp.co.soramitsu.fearless_utils.exceptions.AddressFormatException
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.jvm.Throws
 
 class AddressIconGenerator(
     private val iconGenerator: IconGenerator,

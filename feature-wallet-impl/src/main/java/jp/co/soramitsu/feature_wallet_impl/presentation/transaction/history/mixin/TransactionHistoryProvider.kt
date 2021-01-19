@@ -45,7 +45,6 @@ class TransactionHistoryProvider(
         currentPage = 0
         isLoading = true
 
-
         walletInteractor.transactionsFirstPageFlow(PAGE_SIZE)
             .map { transformNewPage(it, true) }
             .onEach {

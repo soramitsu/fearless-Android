@@ -99,7 +99,7 @@ class NetworkModule {
         socketFactory: WebSocketFactory,
         logger: Logger,
         reconnector: Reconnector,
-        requestExecutor: RequestExecutor,
+        requestExecutor: RequestExecutor
     ): SocketService = SocketService(mapper, logger, socketFactory, reconnector, requestExecutor)
 
     @Provides

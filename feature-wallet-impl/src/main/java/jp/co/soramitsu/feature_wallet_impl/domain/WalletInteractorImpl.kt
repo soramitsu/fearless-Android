@@ -28,7 +28,7 @@ import java.math.BigDecimal
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
-    private val fileProvider: FileProvider,
+    private val fileProvider: FileProvider
 ) : WalletInteractor {
 
     override fun assetsFlow(): Flow<List<Asset>> {
@@ -106,7 +106,7 @@ class WalletInteractorImpl(
     }
 
     override suspend fun getTransferFee(transfer: Transfer): Fee {
-        return  walletRepository.getTransferFee(transfer)
+        return walletRepository.getTransferFee(transfer)
     }
 
     override suspend fun performTransfer(

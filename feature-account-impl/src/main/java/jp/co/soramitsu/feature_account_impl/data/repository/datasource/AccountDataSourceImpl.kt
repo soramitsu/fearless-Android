@@ -196,7 +196,6 @@ class AccountDataSourceImpl(
         jsonMapper.fromJson(raw, Account::class.java)
     }
 
-
     override suspend fun getSelectedLanguage(): Language = withContext(Dispatchers.IO) {
         preferences.getCurrentLanguage() ?: throw IllegalArgumentException("No language selected")
     }
