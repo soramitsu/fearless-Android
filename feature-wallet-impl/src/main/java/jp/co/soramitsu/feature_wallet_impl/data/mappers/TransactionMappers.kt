@@ -14,7 +14,7 @@ fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel
     return with(transaction) {
         TransactionModel(
             hash = hash,
-            type = type,
+            type = tokenType,
             senderAddress = senderAddress,
             recipientAddress = recipientAddress,
             isIncome = isIncome,
@@ -38,7 +38,7 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal): Transa
             date = date,
             fee = feeInPlanks?.let(token::amountFromPlanks),
             status = status,
-            type = token
+            tokenType = token
         )
     }
 }
@@ -58,8 +58,8 @@ fun mapTransactionToTransactionLocal(
             amount = amount,
             date = date,
             source = source,
-            token = type,
-            feeInPlanks = fee?.let(type::planksFromAmount)
+            token = tokenType,
+            feeInPlanks = fee?.let(tokenType::planksFromAmount)
         )
     }
 }
@@ -70,7 +70,7 @@ fun mapTransferToTransaction(transfer: TransactionRemote, account: Account): Tra
     return with(transfer) {
         Transaction(
             hash = hash,
-            type = token,
+            tokenType = token,
             date = timeInMillis,
             amount = amount,
             status = Transaction.Status.fromSuccess(success),

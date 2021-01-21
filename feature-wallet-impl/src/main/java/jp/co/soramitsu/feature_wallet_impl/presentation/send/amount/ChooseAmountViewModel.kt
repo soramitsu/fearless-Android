@@ -2,26 +2,19 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.amount
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.BiFunction
-import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.BehaviorSubject
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.Optional
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.utils.mapExcludingNull
-import jp.co.soramitsu.common.utils.plusAssign
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Error
@@ -34,9 +27,20 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.util.concurrent.TimeUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.milliseconds
 
 private const val AVATAR_SIZE_DP = 24
 
@@ -58,31 +62,31 @@ class ChooseAmountViewModel(
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks {
 
-    val recipientModelLiveData = generateAddressModel(recipientAddress).asLiveData()
+    val recipientModelLiveData = liveData {
+        emit(generateAddressModel(recipientAddress))
+    }
 
-    private val amountEventsSubject = BehaviorSubject.createDefault("0")
-    private val amountRawLiveData = amountEventsSubject.asLiveData()
+    private val amountEvents = MutableStateFlow("0")
+    private val amountRawLiveData = amountEvents.asLiveData()
 
-    private val currentAssetObservable = interactor.observeCurrentAsset()
-
-    private val _feeLoadingLiveData = MutableLiveData<Boolean>()
+    private val _feeLoadingLiveData = MutableLiveData<Boolean>(true)
     val feeLoadingLiveData = _feeLoadingLiveData
 
-    val feeLiveData = observeFee().asOptionalLiveData()
+    val feeLiveData = feeFlow().asLiveData()
 
     private val _feeErrorLiveData = MutableLiveData<Event<RetryReason>>()
     val feeErrorLiveData = _feeErrorLiveData
 
-    private val checkingEnoughFundsLiveData = MutableLiveData<Boolean>(false)
+    private val checkingEnoughFundsLiveData = MutableLiveData(false)
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<TransferDraft>>()
     val showBalanceDetailsEvent: LiveData<Event<TransferDraft>> = _showBalanceDetailsEvent
 
-    val assetLiveData = currentAssetObservable
-        .subscribeOn(Schedulers.io())
-        .map(::mapAssetToAssetModel)
-        .observeOn(AndroidSchedulers.mainThread())
-        .asLiveData()
+    val assetLiveData = liveData {
+        val asset = interactor.getCurrentAsset()
+
+        emit(mapAssetToAssetModel(asset))
+    }
 
     private val minimumPossibleAmountLiveData = assetLiveData.map {
         it.token.type.amountFromPlanks(BigInteger.ONE)
@@ -108,7 +112,9 @@ class ChooseAmountViewModel(
     }
 
     fun amountChanged(newAmountRaw: String) {
-        amountEventsSubject.onNext(newAmountRaw)
+        viewModelScope.launch {
+            amountEvents.emit(newAmountRaw)
+        }
     }
 
     fun backClicked() {
@@ -139,32 +145,28 @@ class ChooseAmountViewModel(
         openConfirmationScreen()
     }
 
-    private fun observeFee(): Observable<Optional<Fee>> {
-        val debouncedAmountEvents = amountEventsSubject
-            .subscribeOn(Schedulers.io())
-            .mapExcludingNull(String::toBigDecimalOrNull)
-            .throttleLatest(500, TimeUnit.MILLISECONDS)
-            .distinctUntilChanged()
-            .doOnNext { _feeLoadingLiveData.postValue(true) }
+    @OptIn(ExperimentalTime::class)
+    private fun feeFlow(): Flow<Fee?> = amountEvents
+        .mapNotNull(String::toBigDecimalOrNull)
+        .debounce(500.milliseconds)
+        .distinctUntilChanged()
+        .onEach { _feeLoadingLiveData.postValue(true) }
+        .mapLatest<BigDecimal, Fee?> { amount ->
+            val asset = interactor.getCurrentAsset()
+            val transfer = Transfer(recipientAddress, amount, asset.token.type)
 
-        return Observable.combineLatest(debouncedAmountEvents, currentAssetObservable, BiFunction<BigDecimal, Asset, Transfer> { amount, asset ->
-            Transfer(recipientAddress, amount, asset.token.type)
-        })
-            .switchMapSingle { transfer ->
-                interactor.getTransferFee(transfer)
-                    .retry(RETRY_TIMES)
-                    .doOnError {
-                        _feeErrorLiveData.postValue(Event(RetryReason.LOAD_FEE))
-                        DEFAULT_ERROR_HANDLER(it)
-                    }
-                    .map { Optional(it) }
-                    .onErrorReturn { Optional(null) }
-            }
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext { _feeLoadingLiveData.value = false }
-    }
+            interactor.getTransferFee(transfer)
+        }
+        .retry(RETRY_TIMES)
+        .catch {
+            _feeErrorLiveData.postValue(Event(RetryReason.LOAD_FEE))
 
-    private fun generateAddressModel(address: String): Single<AddressModel> {
+            emit(null)
+        }.onEach {
+            _feeLoadingLiveData.value = false
+        }
+
+    private suspend fun generateAddressModel(address: String): AddressModel {
         return addressIconGenerator.createAddressModel(address, AVATAR_SIZE_DP)
     }
 
@@ -173,17 +175,20 @@ class ChooseAmountViewModel(
 
         checkingEnoughFundsLiveData.value = true
 
-        disposables += currentAssetObservable.firstOrError()
-            .subscribeOn(Schedulers.io())
-            .map { Transfer(recipientAddress, fee.transferAmount, it.token.type) }
-            .flatMap(interactor::checkEnoughAmountForTransfer)
-            .observeOn(AndroidSchedulers.mainThread())
-            .doFinally { checkingEnoughFundsLiveData.value = false }
-            .subscribe({
-                processHasEnoughFunds(it)
-            }, {
+        viewModelScope.launch {
+            val asset = interactor.getCurrentAsset()
+            val transfer = Transfer(recipientAddress, fee.transferAmount, asset.token.type)
+
+            val result = interactor.checkTransferValidityStatus(transfer)
+
+            if (result.isSuccess) {
+                processHasEnoughFunds(result.requireValue())
+            } else {
                 _feeErrorLiveData.value = Event(RetryReason.CHECK_ENOUGH_FUNDS)
-            })
+            }
+
+            checkingEnoughFundsLiveData.value = false
+        }
     }
 
     private fun processHasEnoughFunds(status: TransferValidityStatus) {
@@ -208,6 +213,6 @@ class ChooseAmountViewModel(
     }
 
     private fun retryLoadFee() {
-        amountEventsSubject.onNext(amountEventsSubject.value!!)
+        amountChanged(amountEvents.value)
     }
 }

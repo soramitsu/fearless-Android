@@ -1,10 +1,5 @@
 package jp.co.soramitsu.feature_account_impl.domain
 
-import io.reactivex.Completable
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -16,283 +11,291 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
 import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {
-    override fun getSecuritySource(accountAddress: String): Single<SecuritySource> {
+    override suspend fun getSecuritySource(accountAddress: String): SecuritySource {
         return accountRepository.getSecuritySource(accountAddress)
     }
 
-    override fun generateMnemonic(): Single<List<String>> {
+    override suspend fun generateMnemonic(): List<String> {
         return accountRepository.generateMnemonic()
     }
 
-    override fun getCryptoTypes(): Single<List<CryptoType>> {
+    override fun getCryptoTypes(): List<CryptoType> {
         return accountRepository.getEncryptionTypes()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
     }
 
-    override fun getPreferredCryptoType(): Single<CryptoType> {
+    override suspend fun getPreferredCryptoType(): CryptoType {
         return accountRepository.getPreferredCryptoType()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
     }
 
-    override fun createAccount(
+    override suspend fun createAccount(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
         networkType: Node.NetworkType
-    ): Completable {
-        return accountRepository.createAccount(
-            accountName,
-            mnemonic,
-            encryptionType,
-            derivationPath,
-            networkType
-        )
+    ): Result<Unit> {
+        return runCatching {
+            accountRepository.createAccount(
+                accountName,
+                mnemonic,
+                encryptionType,
+                derivationPath,
+                networkType
+            )
+        }
     }
 
-    override fun importFromMnemonic(
+    override suspend fun importFromMnemonic(
         keyString: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         networkType: Node.NetworkType
-    ): Completable {
-        return accountRepository.importFromMnemonic(
-            keyString,
-            username,
-            derivationPath,
-            selectedEncryptionType,
-            networkType
-        )
+    ): Result<Unit> {
+        return runCatching {
+            accountRepository.importFromMnemonic(
+                keyString,
+                username,
+                derivationPath,
+                selectedEncryptionType,
+                networkType
+            )
+        }
     }
 
-    override fun importFromSeed(
+    override suspend fun importFromSeed(
         keyString: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         networkType: Node.NetworkType
-    ): Completable {
-        return accountRepository.importFromSeed(
-            keyString,
-            username,
-            derivationPath,
-            selectedEncryptionType,
-            networkType
-        )
+    ): Result<Unit> {
+        return runCatching {
+            accountRepository.importFromSeed(
+                keyString,
+                username,
+                derivationPath,
+                selectedEncryptionType,
+                networkType
+            )
+        }
     }
 
-    override fun importFromJson(
+    override suspend fun importFromJson(
         json: String,
         password: String,
         networkType: Node.NetworkType,
         name: String
-    ): Completable {
-        return accountRepository.importFromJson(json, password, networkType, name)
-    }
-
-    override fun getAddressId(address: String): Single<ByteArray> {
-        return accountRepository.getAddressId(address)
-    }
-
-    override fun isCodeSet(): Boolean {
-        return accountRepository.isCodeSet()
-    }
-
-    override fun savePin(code: String): Completable {
-        return accountRepository.savePinCode(code)
-    }
-
-    override fun isPinCorrect(code: String): Single<Boolean> {
-        return Single.fromCallable {
-            val pinCode = accountRepository.getPinCode()
-            pinCode == code
+    ): Result<Unit> {
+        return runCatching {
+            accountRepository.importFromJson(json, password, networkType, name)
         }
     }
 
-    override fun isBiometricEnabled(): Boolean {
+    override suspend fun isCodeSet(): Boolean {
+        return accountRepository.isCodeSet()
+    }
+
+    override suspend fun savePin(code: String) {
+        return accountRepository.savePinCode(code)
+    }
+
+    override suspend fun isPinCorrect(code: String): Boolean {
+        val pinCode = accountRepository.getPinCode()
+
+        return pinCode == code
+    }
+
+    override suspend fun isBiometricEnabled(): Boolean {
         return accountRepository.isBiometricEnabled()
     }
 
-    override fun setBiometricOn(): Completable {
+    override suspend fun setBiometricOn() {
         return accountRepository.setBiometricOn()
     }
 
-    override fun setBiometricOff(): Completable {
+    override suspend fun setBiometricOff() {
         return accountRepository.setBiometricOff()
     }
 
-    override fun getAccount(address: String): Single<Account> {
+    override suspend fun getAccount(address: String): Account {
         return accountRepository.getAccount(address)
     }
 
-    override fun observeSelectedAccount() = accountRepository.observeSelectedAccount()
+    override fun selectedAccountFlow() = accountRepository.selectedAccountFlow()
 
-    override fun getNetworks(): Single<List<Network>> {
+    override suspend fun getSelectedAccount() = accountRepository.getSelectedAccount()
+
+    override suspend fun getNetworks(): List<Network> {
         return accountRepository.getNetworks()
     }
 
-    override fun getSelectedNode() = accountRepository.getSelectedNode()
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
+    override suspend fun getSelectedNode() = accountRepository.getSelectedNode()
 
-    override fun getSelectedNetworkType(): Single<Node.NetworkType> {
-        return getSelectedNode().map(Node::networkType)
-    }
-
-    override fun shouldOpenOnboarding(): Single<Boolean> {
-        return accountRepository.isAccountSelected()
-            .map(Boolean::not)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-    }
-
-    override fun observeGroupedAccounts(): Observable<List<Any>> {
-        return accountRepository.observeAccounts()
+    override fun groupedAccountsFlow(): Flow<List<Any>> {
+        return accountRepository.accountsFlow()
             .map(::mergeAccountsWithNetworks)
     }
 
-    override fun selectAccount(address: String): Completable {
-        return accountRepository.getAccount(address)
-            .subscribeOn(Schedulers.io())
-            .flatMapCompletable(::selectAccount)
-            .observeOn(AndroidSchedulers.mainThread())
+    override suspend fun selectAccount(address: String) {
+        val account = accountRepository.getAccount(address)
+
+        selectAccount(account)
     }
 
-    override fun updateAccountName(account: Account, newName: String): Completable {
+    override suspend fun updateAccountName(account: Account, newName: String) {
         val newAccount = account.copy(name = newName)
 
-        return accountRepository.updateAccount(newAccount)
-            .andThen(maybeUpdateSelectedAccount(newAccount))
+        accountRepository.updateAccount(newAccount)
+
+        maybeUpdateSelectedAccount(newAccount)
     }
 
-    override fun deleteAccount(address: String): Completable {
+    override suspend fun deleteAccount(address: String) {
         return accountRepository.deleteAccount(address)
     }
 
-    override fun updateAccountPositionsInNetwork(newOrdering: List<Account>): Completable {
-        return Single.fromCallable {
-            newOrdering.mapIndexed { index: Int, account: Account ->
-                account.copy(position = index)
-            }
-        }.flatMapCompletable(accountRepository::updateAccounts)
+    override suspend fun updateAccountPositionsInNetwork(newOrdering: List<Account>) {
+        val updatedAccounts = withContext(Dispatchers.Default) {
+            newOrdering.mapIndexed { index, account -> account.copy(position = index) }
+        }
+
+        accountRepository.updateAccounts(updatedAccounts)
     }
 
-    private fun maybeUpdateSelectedAccount(newAccount: Account): Completable {
-        return accountRepository.observeSelectedAccount()
-            .firstOrError()
-            .flatMapCompletable {
-                if (it.address == newAccount.address) {
-                    accountRepository.selectAccount(newAccount)
-                } else {
-                    Completable.complete()
-                }
-            }
+    // TODO refactor - now logic relies on the implementation of AccountRepository
+    //  (that after selecting account its info will be updated)
+    private suspend fun maybeUpdateSelectedAccount(newAccount: Account) {
+        val account = accountRepository.getSelectedAccount()
+
+        if (account.address == newAccount.address) {
+            accountRepository.selectAccount(newAccount)
+        }
     }
 
-    private fun selectAccount(account: Account): Completable {
-        return accountRepository.getDefaultNode(account.network.type)
-            .flatMapCompletable(accountRepository::selectNode)
-            .andThen(accountRepository.selectAccount(account))
+    private suspend fun selectAccount(account: Account) {
+        val node = accountRepository.getDefaultNode(account.network.type)
+
+        accountRepository.selectNode(node)
+        accountRepository.selectAccount(account)
     }
 
-    private fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
-        return accounts.groupBy { it.network.type }
-            .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
-            .flatten()
+    private suspend fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
+        return withContext(Dispatchers.Default) {
+            accounts.groupBy { it.network.type }
+                .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
+                .flatten()
+        }
     }
 
-    override fun observeNodes(): Observable<List<Node>> {
-        return accountRepository.observeNodes()
+    override fun nodesFlow(): Flow<List<Node>> {
+        return accountRepository.nodesFlow()
     }
 
-    override fun observeSelectedNode(): Observable<Node> {
-        return accountRepository.observeSelectedNode()
+    override fun selectedNodeFlow(): Flow<Node> {
+        return accountRepository.selectedNodeFlow()
     }
 
-    override fun getNode(nodeId: Int): Single<Node> {
+    override suspend fun getNode(nodeId: Int): Node {
         return accountRepository.getNode(nodeId)
     }
 
-    override fun processAccountJson(json: String): Single<ImportJsonData> {
-        return accountRepository.processAccountJson(json)
+    override suspend fun processAccountJson(json: String): Result<ImportJsonData> {
+        return runCatching {
+            accountRepository.processAccountJson(json)
+        }
     }
 
-    override fun observeLanguages(): Observable<List<Language>> {
-        return accountRepository.observeLanguages()
+    override fun getLanguages(): List<Language> {
+        return accountRepository.getLanguages()
     }
 
-    override fun getSelectedLanguage(): Single<Language> {
-        return accountRepository.getSelectedLanguage()
+    override suspend fun getSelectedLanguage(): Language {
+        return accountRepository.selectedLanguage()
     }
 
-    override fun changeSelectedLanguage(language: Language): Completable {
+    override suspend fun changeSelectedLanguage(language: Language) {
         return accountRepository.changeLanguage(language)
     }
 
-    override fun addNode(nodeName: String, nodeHost: String): Completable {
-        return accountRepository.checkNodeExists(nodeHost)
-            .flatMap { nodeExists ->
-                if (nodeExists) {
-                    throw NodeAlreadyExistsException()
-                } else {
-                    getNetworkTypeByNodeHost(nodeHost)
-                }
+    override suspend fun addNode(nodeName: String, nodeHost: String): Result<Unit> {
+        return ensureUniqueNode(nodeHost) {
+            val networkType = getNetworkTypeByNodeHost(nodeHost)
+
+            accountRepository.addNode(nodeName, nodeHost, networkType)
+        }
+    }
+
+    override suspend fun updateNode(nodeId: Int, newName: String, newHost: String): Result<Unit> {
+        return ensureUniqueNode(newHost) {
+            val networkType = getNetworkTypeByNodeHost(newHost)
+
+            accountRepository.updateNode(nodeId, newName, newHost, networkType)
+        }
+    }
+
+    private suspend fun ensureUniqueNode(nodeHost: String, action: suspend () -> Unit): Result<Unit> {
+        val nodeExists = accountRepository.checkNodeExists(nodeHost)
+
+        return runCatching {
+            if (nodeExists) {
+                throw NodeAlreadyExistsException()
+            } else {
+                action()
             }
-            .flatMapCompletable { networkType -> accountRepository.addNode(nodeName, nodeHost, networkType) }
+        }
     }
 
-    override fun updateNode(nodeId: Int, newName: String, newHost: String): Completable {
-        return getNetworkTypeByNodeHost(newHost)
-            .flatMapCompletable { networkType -> accountRepository.updateNode(nodeId, newName, newHost, networkType) }
+    /**
+     * @throws UnsupportedNetworkException, if node network is not supported
+     * @throws FearlessException - in case of network issues
+     */
+    private suspend fun getNetworkTypeByNodeHost(nodeHost: String): Node.NetworkType {
+        val networkName = accountRepository.getNetworkName(nodeHost)
+
+        val supportedNetworks = Node.NetworkType.values()
+        val networkType = supportedNetworks.firstOrNull { networkName == it.readableName }
+
+        return networkType ?: throw UnsupportedNetworkException()
     }
 
-    private fun getNetworkTypeByNodeHost(nodeHost: String): Single<Node.NetworkType> {
-        return accountRepository.getNetworkName(nodeHost)
-            .map { networkName ->
-                val supportedNetworks = Node.NetworkType.values()
-                val networkType = supportedNetworks.firstOrNull { networkName == it.readableName }
-                networkType ?: throw UnsupportedNetworkException()
-            }
+    override suspend fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Pair<List<Account>, Node> {
+        val accounts = accountRepository.getAccountsByNetworkType(networkType)
+        val node = accountRepository.getSelectedNode()
+        return Pair(accounts, node)
     }
 
-    override fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Single<Pair<List<Account>, Node>> {
-        return accountRepository.getAccountsByNetworkType(networkType)
-            .flatMap { accounts ->
-                accountRepository.observeSelectedNode()
-                    .firstOrError()
-                    .map { Pair(accounts, it) }
-            }
+    override suspend fun selectNodeAndAccount(nodeId: Int, accountAddress: String) {
+        val account = accountRepository.getAccount(accountAddress)
+        val node = accountRepository.getNode(nodeId)
+
+        accountRepository.selectNode(node)
+        accountRepository.selectAccount(account)
     }
 
-    override fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable {
-        return accountRepository.getAccount(accountAddress)
-            .flatMapCompletable { account ->
-                accountRepository.getNode(nodeId)
-                    .flatMapCompletable { node ->
-                        accountRepository.selectNode(node)
-                            .andThen(accountRepository.selectAccount(account))
-                    }
-            }
+    override suspend fun selectNode(nodeId: Int) {
+        val node = accountRepository.getNode(nodeId)
+
+        accountRepository.selectNode(node)
     }
 
-    override fun selectNode(nodeId: Int): Completable {
-        return accountRepository.getNode(nodeId)
-            .flatMapCompletable(accountRepository::selectNode)
-    }
-
-    override fun deleteNode(nodeId: Int): Completable {
+    override suspend fun deleteNode(nodeId: Int) {
         return accountRepository.deleteNode(nodeId)
     }
 
-    override fun generateRestoreJson(accountAddress: String, password: String): Single<String> {
-        return accountRepository.getAccount(accountAddress)
-            .flatMap { accountRepository.generateRestoreJson(it, password) }
+    override suspend fun generateRestoreJson(accountAddress: String, password: String): Result<String> {
+        val account = accountRepository.getAccount(accountAddress)
+
+        return runCatching {
+            accountRepository.generateRestoreJson(account, password)
+        }
     }
 }

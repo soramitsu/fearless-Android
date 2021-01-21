@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
@@ -86,4 +87,6 @@ interface CommonApi {
     fun externalAccountActions(): ExternalAccountActions.Presentation
 
     fun contentResolver(): ContentResolver
+
+    fun httpExceptionHandler(): HttpExceptionHandler
 }

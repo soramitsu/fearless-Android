@@ -5,39 +5,40 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import io.reactivex.Completable
-import io.reactivex.Observable
-import io.reactivex.Single
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.feature_account_api.domain.model.Node
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class AccountDao {
 
     @Query("select * from users order by networkType, position")
-    abstract fun observeAccounts(): Observable<List<AccountLocal>>
+    abstract fun accountsFlow(): Flow<List<AccountLocal>>
+
+    @Query("select * from users order by networkType, position")
+    abstract suspend fun getAccounts(): List<AccountLocal>
 
     @Query("select * from users where address = :address")
-    abstract fun getAccount(address: String): Single<AccountLocal>
+    abstract suspend fun getAccount(address: String): AccountLocal
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    abstract fun insert(account: AccountLocal): Long
+    abstract suspend fun insert(account: AccountLocal): Long
 
     @Query("DELETE FROM users where address = :address")
-    abstract fun remove(address: String): Completable
+    abstract suspend fun remove(address: String)
 
     @Update
-    abstract fun updateAccount(account: AccountLocal): Completable
+    abstract suspend fun updateAccount(account: AccountLocal)
 
     @Update
-    abstract fun updateAccounts(accounts: List<AccountLocal>): Completable
+    abstract suspend fun updateAccounts(accounts: List<AccountLocal>)
 
     @Query("SELECT COALESCE(MAX(position), 0)  + 1 from users")
-    abstract fun getNextPosition(): Int
+    abstract suspend fun getNextPosition(): Int
 
     @Query("select * from users where networkType = :networkType")
-    abstract fun getAccountsByNetworkType(networkType: Int): Single<List<AccountLocal>>
+    abstract suspend fun getAccountsByNetworkType(networkType: Int): List<AccountLocal>
 
     @Query("select address from users where (address LIKE '%' || :query  || '%') AND networkType = :networkType")
-    abstract fun getAddresses(query: String, networkType: Node.NetworkType): Single<List<String>>
+    abstract suspend fun getAddresses(query: String, networkType: Node.NetworkType): List<String>
 }

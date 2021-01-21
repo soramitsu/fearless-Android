@@ -7,20 +7,21 @@ import com.google.zxing.BinaryBitmap
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
-import io.reactivex.Single
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class QrBitmapDecoder(
     private val contentResolver: ContentResolver
 ) {
     class DecodeException : Exception()
 
-    fun decodeQrCodeFromUri(data: Uri): Single<String> {
-        return decode(data)
-            .onErrorResumeNext { Single.error(DecodeException()) }
+    suspend fun decodeQrCodeFromUri(data: Uri) = runCatching {
+        decode(data)
     }
 
-    private fun decode(data: Uri): Single<String> {
-        return Single.create {
+    @Suppress("BlockingMethodInNonBlockingContext")
+    private suspend fun decode(data: Uri): String {
+        return withContext(Dispatchers.IO) {
             val qrBitmap = MediaStore.Images.Media.getBitmap(contentResolver, data)
 
             val pixels = IntArray(qrBitmap.height * qrBitmap.width)
@@ -33,9 +34,9 @@ class QrBitmapDecoder(
             val textResult = reader.decode(bBitmap).text
 
             if (textResult.isNullOrEmpty()) {
-                it.onError(DecodeException())
+                throw DecodeException()
             } else {
-                it.onSuccess(textResult)
+                textResult
             }
         }
     }

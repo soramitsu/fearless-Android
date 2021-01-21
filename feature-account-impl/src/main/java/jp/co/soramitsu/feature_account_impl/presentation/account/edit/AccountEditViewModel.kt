@@ -2,17 +2,15 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.edit
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.plusAssign
-import jp.co.soramitsu.common.utils.subscribeToError
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapAccountModelToAccount
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
-import jp.co.soramitsu.feature_account_impl.data.mappers.mapAccountModelToAccount
+import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -21,8 +19,8 @@ data class UnsyncedSwapPayload(val newState: List<Any>, val from: Int, val to: I
 class EditAccountsViewModel(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
-    private val accountListingMixin: AccountListingMixin
-) : BaseViewModel(), AccountListingMixin by accountListingMixin {
+    accountListingMixin: AccountListingMixin
+) : BaseViewModel() {
 
     private val _deleteConfirmationLiveData = MutableLiveData<Event<AccountModel>>()
     val deleteConfirmationLiveData: LiveData<Event<AccountModel>> = _deleteConfirmationLiveData
@@ -30,9 +28,7 @@ class EditAccountsViewModel(
     private val _unsyncedSwapLiveData = MutableLiveData<UnsyncedSwapPayload?>()
     val unsyncedSwapLiveData: LiveData<UnsyncedSwapPayload?> = _unsyncedSwapLiveData
 
-    init {
-        disposables += accountListingDisposable
-    }
+    val accountListingLiveData = accountListingMixin.accountListingFlow().asLiveData()
 
     fun doneClicked() {
         accountRouter.back()
@@ -43,18 +39,19 @@ class EditAccountsViewModel(
     }
 
     fun deleteClicked(account: AccountModel) {
-        val selectedAccount = selectedAccountLiveData.value!!
+        viewModelScope.launch {
+            val selectedAccount = accountInteractor.getSelectedAccount()
 
-        if (selectedAccount.address != account.address) {
-            _deleteConfirmationLiveData.value = Event(account)
+            if (selectedAccount.address != account.address) {
+                _deleteConfirmationLiveData.value = Event(account)
+            }
         }
     }
 
     fun deleteConfirmed(account: AccountModel) {
-        disposables += accountInteractor.deleteAccount(account.address)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeToError { showError(it.message!!) }
+        viewModelScope.launch {
+            accountInteractor.deleteAccount(account.address)
+        }
     }
 
     fun onItemDrag(from: Int, to: Int) {
@@ -76,19 +73,14 @@ class EditAccountsViewModel(
     fun onItemDrop() {
         val unsyncedState = _unsyncedSwapLiveData.value?.newState ?: return
 
-        val accountsToUpdate = unsyncedState.filterIsInstance<AccountModel>()
-            .mapIndexed { index: Int, accountModel: AccountModel ->
-                mapAccountModelToAccount(accountModel, index)
-            }
+        viewModelScope.launch {
+            val accountsToUpdate = unsyncedState.filterIsInstance<AccountModel>()
+                .mapIndexed { index: Int, accountModel: AccountModel ->
+                    mapAccountModelToAccount(accountModel, index)
+                }
 
-        disposables += accountInteractor.updateAccountPositionsInNetwork(accountsToUpdate)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                _unsyncedSwapLiveData.value = null
-            }, {
-                showError(it.message!!)
-            })
+            accountInteractor.updateAccountPositionsInNetwork(accountsToUpdate)
+        }
     }
 
     fun addAccountClicked() {
@@ -96,7 +88,7 @@ class EditAccountsViewModel(
     }
 }
 
-@UseExperimental(ExperimentalContracts::class)
+@OptIn(ExperimentalContracts::class)
 private fun isSwapable(fromElement: Any, toElement: Any): Boolean {
     contract {
         returns(true) implies (fromElement is AccountModel && toElement is AccountModel)

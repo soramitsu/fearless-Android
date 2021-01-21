@@ -26,6 +26,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    kotlinOptions {
+        freeCompilerArgs = ["-Xallow-result-return-type"]
+    }
 }
 
 dependencies {
@@ -41,17 +45,19 @@ dependencies {
     implementation cardViewDep
     implementation constraintDep
 
-    implementation rxJavaDep
-    implementation rxAndroidDep
+    implementation permissionsDep
 
-    implementation rxPermissionsDep
+    implementation coroutinesDep
+    implementation coroutinesAndroidDep
+    implementation viewModelKtxDep
+    implementation liveDataKtxDep
+    implementation lifeCycleKtxDep
 
     implementation daggerDep
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt daggerKapt
 
     implementation roomDep
-    implementation rxRoomDep
     kapt roomKapt
 
     implementation lifecycleDep

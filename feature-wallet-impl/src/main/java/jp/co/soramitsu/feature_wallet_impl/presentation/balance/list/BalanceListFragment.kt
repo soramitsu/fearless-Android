@@ -40,14 +40,14 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         transfersContainer.initializeBehavior(anchorView = balanceListContent)
 
-        transfersContainer.setScrollingListener(viewModel::scrolled)
+        transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
 
         transfersContainer.setSlidingStateListener(this::setRefreshEnabled)
 
         transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
 
         walletContainer.setOnRefreshListener {
-            viewModel.refresh()
+            viewModel.sync()
         }
 
         balanceListActions.send.setOnClickListener {
@@ -83,8 +83,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     }
 
     override fun subscribe(viewModel: BalanceListViewModel) {
-        viewModel.syncAssetsRates()
-        viewModel.syncFirstTransactionsPage()
+        viewModel.sync()
 
         setupBuyIntegration(viewModel)
 

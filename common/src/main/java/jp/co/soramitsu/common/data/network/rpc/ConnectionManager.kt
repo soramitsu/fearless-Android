@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data.network.rpc
 
-import io.reactivex.Observable
-import jp.co.soramitsu.fearless_utils.wsrpc.State
+import jp.co.soramitsu.fearless_utils.wsrpc.state.SocketStateMachine
+import kotlinx.coroutines.flow.Flow
 
 enum class LifecycleCondition {
     ALLOWED, FORBIDDEN, STOPPED
@@ -10,7 +10,7 @@ enum class LifecycleCondition {
 interface ConnectionManager {
     fun setLifecycleCondition(condition: LifecycleCondition)
 
-    fun observeLifecycleCondition(): Observable<LifecycleCondition>
+    fun lifecycleConditionFlow(): Flow<LifecycleCondition>
 
     fun getLifecycleCondition(): LifecycleCondition
 
@@ -22,5 +22,5 @@ interface ConnectionManager {
 
     fun stop()
 
-    fun observeNetworkState(): Observable<State>
+    fun networkStateFlow(): Flow<SocketStateMachine.State>
 }

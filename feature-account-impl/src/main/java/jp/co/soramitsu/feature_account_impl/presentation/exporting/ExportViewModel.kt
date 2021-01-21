@@ -2,9 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.exporting
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -22,16 +20,16 @@ abstract class ExportViewModel(
     protected val resourceManager: ResourceManager,
     val exportSource: ExportSource
 ) : BaseViewModel() {
-    protected val securityTypeLiveData = loadSecuritySource().asLiveData()
+    protected val securityTypeLiveData = liveData { emit(loadSecuritySource()) }
 
     private val _exportEvent = MutableLiveData<Event<String>>()
     val exportEvent: LiveData<Event<String>> = _exportEvent
 
-    private val account = loadAccount().asLiveData()
+    private val accountLiveData = liveData { emit(loadAccount()) }
 
-    val cryptoTypeLiveData = account.map { mapCryptoTypeToCryptoTypeModel(resourceManager, it.cryptoType) }
+    val cryptoTypeLiveData = accountLiveData.map { mapCryptoTypeToCryptoTypeModel(resourceManager, it.cryptoType) }
 
-    val networkTypeLiveData = account.map { mapNetworkTypeToNetworkModel(it.network.type) }
+    val networkTypeLiveData = accountLiveData.map { mapNetworkTypeToNetworkModel(it.network.type) }
 
     private val _showSecurityWarningEvent = MutableLiveData<Event<Unit>>()
     val showSecurityWarningEvent = _showSecurityWarningEvent
@@ -48,15 +46,11 @@ abstract class ExportViewModel(
         // optional override
     }
 
-    private fun loadAccount(): Single<Account> {
+    private suspend fun loadAccount(): Account {
         return accountInteractor.getAccount(accountAddress)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
     }
 
-    private fun loadSecuritySource(): Single<SecuritySource> {
+    private suspend fun loadSecuritySource(): SecuritySource {
         return accountInteractor.getSecuritySource(accountAddress)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
     }
 }

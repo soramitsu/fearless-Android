@@ -2,19 +2,22 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.integration
 
 import com.google.gson.Gson
 import com.neovisionaries.ws.client.WebSocketFactory
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scaleCollection
+import jp.co.soramitsu.fearless_utils.wsrpc.recovery.Reconnector
+import jp.co.soramitsu.fearless_utils.wsrpc.request.RequestExecutor
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.PendingExtrinsicsRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
@@ -37,6 +40,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Submit
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.amount
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
+import kotlinx.coroutines.runBlocking
 import org.bouncycastle.util.encoders.Hex
 import org.junit.After
 import org.junit.Before
@@ -48,7 +52,6 @@ import org.mockito.BDDMockito.given
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import java.math.BigDecimal
-import java.math.BigInteger
 
 private const val PUBLIC_KEY = "f65a7d560102f2019da9b9d8993f53f51cc38d50cdff3d0b8e71997d7f911ff1"
 private const val PRIVATE_KEY = "ae4093af3c40f2ecc32c14d4dada9628a4a42b28ca1a5b200b89321cbc883182"
@@ -72,7 +75,7 @@ class SendIntegrationTest {
     fun setup() {
         given(resourceManager.getString(anyInt())).willReturn("Mock")
 
-        rxWebSocket = SocketService(mapper, StdoutLogger(), WebSocketFactory())
+        rxWebSocket = SocketService(mapper, StdoutLogger(), WebSocketFactory(), Reconnector(), RequestExecutor())
 
         rxWebSocket.start(URL)
     }
@@ -83,20 +86,20 @@ class SendIntegrationTest {
     }
 
     @Test
-    fun `should perform transfer`() {
+    fun `should perform transfer`() = runBlocking {
         val keyPair = Keypair(Hex.decode(PRIVATE_KEY), Hex.decode(PUBLIC_KEY))
 
         val submittableExtrinsic = generateExtrinsic(keyPair)
 
         val feeRequest = TransferRequest(submittableExtrinsic)
 
-        val result = rxWebSocket.executeRequest(feeRequest).blockingGet().result
+        val result = rxWebSocket.executeAsync(feeRequest).result
 
         assert(result != null)
     }
 
     @Test
-    fun `should calculate fee`() {
+    fun `should calculate fee`() = runBlocking {
         val seed = ByteArray(32) { 1 }
         val keyPair = KeypairFactory().generate(EncryptionType.ECDSA, seed, "")
 
@@ -104,12 +107,12 @@ class SendIntegrationTest {
 
         val feeRequest = FeeCalculationRequest(submittableExtrinsic)
 
-        val result = rxWebSocket.executeRequest(feeRequest).blockingGet().result
+        val result = rxWebSocket.executeAsync(feeRequest).result
 
         assert(result != null)
     }
 
-    private fun generateExtrinsic(keypair: Keypair): EncodableStruct<SubmittableExtrinsic> {
+    private suspend fun generateExtrinsic(keypair: Keypair): EncodableStruct<SubmittableExtrinsic> {
         val accountId = Hex.decode(PUBLIC_KEY)
 
         val genesis = Node.NetworkType.WESTEND.runtimeConfiguration.genesisHash
@@ -118,21 +121,20 @@ class SendIntegrationTest {
         val transferAmount = BigDecimal("0.001").scaleByPowerOfTen(Token.Type.WND.mantissa)
 
         val runtimeInfo = rxWebSocket
-            .executeRequest(RuntimeVersionRequest(), pojo<RuntimeVersion>().nonNull())
-            .blockingGet()
+            .executeAsync(RuntimeVersionRequest(), mapper = pojo<RuntimeVersion>().nonNull())
 
         val specVersion = runtimeInfo.specVersion
         val transactionVersion = runtimeInfo.transactionVersion
 
         val pendingExtrinsics = rxWebSocket
-            .executeRequest(PendingExtrinsicsRequest(), scaleCollection(SubmittableExtrinsic))
-            .blockingGet().result!!
+            .executeAsync(PendingExtrinsicsRequest(), mapper = scaleCollection(SubmittableExtrinsic))
+            .result!!
 
         val pendingForCurrent = pendingExtrinsics.count { it[signedExtrinsic][SignedExtrinsic.accountId].contentEquals(accountId) }
 
         val accountInfo = rxWebSocket
-            .executeRequest(AccountInfoRequest(accountId), scale(AccountInfo))
-            .blockingGet().result!!
+            .executeAsync(AccountInfoRequest(accountId), mapper = scale(AccountInfo))
+            .result!!
 
         val nonce = accountInfo[nonce] + pendingForCurrent.toUInt()
         val nonceBigInt = nonce.toLong().toBigInteger()
@@ -160,7 +162,7 @@ class SendIntegrationTest {
 
         val signature = Signature(
             encryptionType = EncryptionType.ECDSA,
-            value =  signer.signExtrinsic(payload, keypair, EncryptionType.ECDSA)
+            value = signer.signExtrinsic(payload, keypair, EncryptionType.ECDSA)
         )
 
         val extrinsic = SignedExtrinsic { extrinsic ->

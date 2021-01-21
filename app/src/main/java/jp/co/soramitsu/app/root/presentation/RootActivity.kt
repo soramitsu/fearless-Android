@@ -2,7 +2,6 @@ package jp.co.soramitsu.app.root.presentation
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import jp.co.soramitsu.app.R
@@ -88,9 +87,9 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
     }
 
     override fun subscribe(viewModel: RootViewModel) {
-        viewModel.showConnectingBarLiveData.observe(this, Observer { show ->
+        viewModel.showConnectingBarLiveData.observe(this) { show ->
             rootNetworkBar.setVisible(show)
-        })
+        }
 
         viewModel.messageLiveData.observe(this, EventObserver {
             showToast(it)

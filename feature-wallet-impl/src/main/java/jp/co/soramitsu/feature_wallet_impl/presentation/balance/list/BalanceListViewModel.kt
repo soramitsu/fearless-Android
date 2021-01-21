@@ -2,20 +2,12 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.common.utils.plusAssign
-import jp.co.soramitsu.common.utils.subscribeToError
-import jp.co.soramitsu.common.utils.zipSimilar
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -26,6 +18,11 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.Balan
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
 private const val CHOOSER_ICON_SIZE = 24
@@ -40,25 +37,15 @@ class BalanceListViewModel(
     TransactionHistoryUi by transactionHistoryMixin,
     BuyMixin by buyMixin {
 
-    private var transactionsRefreshed: Boolean = false
-    private var balanceRefreshed: Boolean = false
-
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
 
     private val _showAccountChooser = MutableLiveData<Event<Payload<AddressModel>>>()
     val showAccountChooser: LiveData<Event<Payload<AddressModel>>> = _showAccountChooser
 
-    private val errorHandler: ErrorHandler = {
-        showError(it.message!!)
+    val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
-        transactionsRefreshFinished()
-        balanceRefreshFinished()
-    }
-
-    val currentAddressModelLiveData = getCurrentAddressModel().asLiveData { showError(it.message!!) }
-
-    val balanceLiveData = getBalance().asLiveData()
+    val balanceLiveData = balanceFlow().asLiveData()
 
     private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token.type }
 
@@ -67,26 +54,27 @@ class BalanceListViewModel(
     }
 
     init {
-        disposables += transactionHistoryMixin.transferHistoryDisposable
-
-        transactionHistoryMixin.setTransactionErrorHandler(errorHandler)
-        transactionHistoryMixin.setTransactionSyncedInterceptor { transactionsRefreshFinished() }
+        transactionHistoryMixin.startObservingTransactions(viewModelScope)
     }
 
-    fun syncAssetsRates() {
-        disposables += interactor.syncAssetsRates()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnComplete { balanceRefreshFinished() }
-            .subscribeToError(errorHandler)
+    fun sync() {
+        viewModelScope.launch {
+            val deferredAssetSync = async { interactor.syncAssetsRates() }
+            val deferredTransactionsSync = async { transactionHistoryMixin.syncFirstTransactionsPage() }
+
+            val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
+
+            val firstError = results.mapNotNull { it.exceptionOrNull() }
+                .firstOrNull()
+
+            firstError?.let(::showError)
+
+            _hideRefreshEvent.value = Event(Unit)
+        }
     }
 
-    fun refresh() {
-        transactionsRefreshed = false
-        balanceRefreshed = false
-
-        syncAssetsRates()
-        syncFirstTransactionsPage()
+    fun transactionsScrolled(index: Int) {
+        transactionHistoryMixin.scrolled(viewModelScope, index)
     }
 
     fun assetClicked(asset: AssetModel) {
@@ -109,72 +97,44 @@ class BalanceListViewModel(
     }
 
     fun accountSelected(addressModel: AddressModel) {
-        disposables += interactor.selectAccount(addressModel.address)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                syncFirstTransactionsPage()
-            }, {
-                showError(it.message!!)
-            })
-    }
+        viewModelScope.launch {
+            interactor.selectAccount(addressModel.address)
 
-    fun avatarClicked() {
-        val currentAddressModel = currentAddressModelLiveData.value ?: return
+            val result = transactionHistoryMixin.syncFirstTransactionsPage()
 
-        disposables += interactor.getAccountsInCurrentNetwork()
-            .subscribeOn(Schedulers.io())
-            .flatMap { accounts ->
-                accounts.map { account -> generateAddressModel(account, CHOOSER_ICON_SIZE) }
-                    .zipSimilar()
-            }
-            .map { models ->
-                val selected = models.first { it.address == currentAddressModel.address }
-
-                Payload(models, selected)
-            }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                _showAccountChooser.value = Event(it)
-            }, {
-                showError(it.message!!)
-            })
-    }
-
-    private fun transactionsRefreshFinished() {
-        transactionsRefreshed = true
-
-        maybeHideRefresh()
-    }
-
-    private fun balanceRefreshFinished() {
-        balanceRefreshed = true
-
-        maybeHideRefresh()
-    }
-
-    private fun maybeHideRefresh() {
-        if (transactionsRefreshed && balanceRefreshed) {
-            _hideRefreshEvent.value = Event(Unit)
+            result.exceptionOrNull()?.let(::showError)
         }
     }
 
-    private fun getCurrentAddressModel(): Observable<AddressModel> {
-        return interactor.observeSelectedAccount()
-            .subscribeOn(Schedulers.io())
-            .flatMapSingle { generateAddressModel(it, CURRENT_ICON_SIZE) }
-            .observeOn(AndroidSchedulers.mainThread())
+    fun avatarClicked() {
+        val currentAddressModel = currentAddressModelLiveData.value!!
+
+        viewModelScope.launch {
+            val accounts = interactor.getAccountsInCurrentNetwork()
+
+            val addressModels = accounts.map { generateAddressModel(it, CHOOSER_ICON_SIZE) }
+
+            val chooserPayload = Payload(addressModels, currentAddressModel)
+
+            _showAccountChooser.value = Event(chooserPayload)
+        }
     }
 
-    private fun generateAddressModel(account: Account, sizeInDp: Int): Single<AddressModel> {
+    private fun currentAddressModelFlow(): Flow<AddressModel> {
+        return interactor.selectedAccountFlow()
+            .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
+    }
+
+    private suspend fun generateAddressModel(account: Account, sizeInDp: Int): AddressModel {
         return addressIconGenerator.createAddressModel(account.address, sizeInDp)
     }
 
-    private fun getBalance(): Observable<BalanceModel> {
-        return interactor.observeAssets()
-            .subscribeOn(Schedulers.io())
-            .mapList(::mapAssetToAssetModel)
-            .map(::BalanceModel)
-            .observeOn(AndroidSchedulers.mainThread())
+    private fun balanceFlow(): Flow<BalanceModel> {
+        return interactor.assetsFlow()
+            .map {
+                val assetModels = it.map(::mapAssetToAssetModel)
+
+                BalanceModel(assetModels)
+            }
     }
 }

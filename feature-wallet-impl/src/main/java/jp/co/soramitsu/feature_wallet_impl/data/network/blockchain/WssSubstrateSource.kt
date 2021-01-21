@@ -2,9 +2,6 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
-import io.reactivex.Observable
-import io.reactivex.Single
-import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
@@ -12,16 +9,19 @@ import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.runtime.storageKey
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
-import jp.co.soramitsu.fearless_utils.wsrpc.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.string
+import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.subscription.SubscriptionChange
+import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionChange
+import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -63,6 +63,13 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Submit
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic.signedExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs.recipientId
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 import java.math.BigInteger
 
@@ -73,90 +80,91 @@ class WssSubstrateSource(
     private val sS58Encoder: SS58Encoder
 ) : SubstrateRemoteSource {
 
-    override fun fetchAccountInfo(
+    override suspend fun fetchAccountInfo(
         address: String,
         networkType: Node.NetworkType
-    ): Single<EncodableStruct<AccountInfo>> {
+    ): EncodableStruct<AccountInfo> {
         val publicKeyBytes = getAccountId(address)
         val request = AccountInfoRequest(publicKeyBytes)
 
-        return socketService.executeRequest(request, responseType = scale(AccountInfo))
-            .map { response -> response.result ?: emptyAccountInfo() }
+        val response = socketService.executeAsync(request, mapper = scale(AccountInfo))
+
+        return response.result ?: emptyAccountInfo()
     }
 
-    override fun getTransferFee(account: Account, transfer: Transfer): Single<FeeResponse> {
-        return generateFakeKeyPair(account).flatMap { keypair ->
-            buildSubmittableExtrinsic(account, transfer, keypair)
-        }.flatMap { extrinsic ->
-            val request = FeeCalculationRequest(extrinsic)
+    override suspend fun getTransferFee(account: Account, transfer: Transfer): FeeResponse {
+        val keypair = generateFakeKeyPair(account)
+        val extrinsic = buildSubmittableExtrinsic(account, transfer, keypair)
 
-            socketService.executeRequest(request, responseType = pojo<FeeResponse>().nonNull())
-        }
+        val request = FeeCalculationRequest(extrinsic)
+
+        return socketService.executeAsync(request, mapper = pojo<FeeResponse>().nonNull())
     }
 
-    override fun performTransfer(
+    override suspend fun performTransfer(
         account: Account,
         transfer: Transfer,
         keypair: Keypair
-    ): Single<String> {
-        return buildSubmittableExtrinsic(account, transfer, keypair).map { extrinsic ->
-            TransferRequest(extrinsic)
-        }.flatMap { transferRequest ->
-            socketService.executeRequest(transferRequest,
-                responseType = string().nonNull(),
-                deliveryType = DeliveryType.AT_MOST_ONCE
-            )
-        }
+    ): String {
+        val extrinsic = buildSubmittableExtrinsic(account, transfer, keypair)
+        val transferRequest = TransferRequest(extrinsic)
+
+        return socketService.executeAsync(
+            transferRequest,
+            mapper = string().nonNull(),
+            deliveryType = DeliveryType.AT_MOST_ONCE
+        )
     }
 
-    override fun listenForAccountUpdates(address: String): Observable<BalanceChange> {
+    override suspend fun listenForAccountUpdates(address: String): Flow<BalanceChange> {
         val key = Module.System.Account.storageKey(getAccountId(address))
         val request = SubscribeStorageRequest(key)
 
-        return socketService.subscribe(request)
+        return socketService.subscriptionFlow(request)
             .map(::buildBalanceChange)
     }
 
-    override fun fetchAccountTransactionInBlock(blockHash: String, account: Account): Single<List<EncodableStruct<SubmittableExtrinsic>>> {
+    override suspend fun fetchAccountTransactionInBlock(blockHash: String, account: Account): List<EncodableStruct<SubmittableExtrinsic>> {
         val request = GetBlockRequest(blockHash)
 
-        return socketService.executeRequest(request, responseType = pojo<SignedBlock>().nonNull())
-            .map { block -> filterAccountTransactions(account, block.block.extrinsics) }
+        val block = socketService.executeAsync(request, mapper = pojo<SignedBlock>().nonNull())
+
+        return filterAccountTransactions(account, block.block.extrinsics)
     }
 
-    override fun listenStakingLedger(stashAddress: String): Observable<EncodableStruct<StakingLedger>> {
+    override suspend fun listenStakingLedger(stashAddress: String): Flow<EncodableStruct<StakingLedger>> {
         val key = Module.Staking.Bonded.storageKey(getAccountId(stashAddress))
         val request = SubscribeStorageRequest(key)
 
-        return socketService.subscribe(request)
+        return socketService.subscriptionFlow(request)
             .map { it.params.result.getSingleChange() }
             .distinctUntilChanged()
-            .switchMap { change ->
+            .flatMapLatest { change ->
                 val controllerId = change.value
 
                 if (controllerId != null) {
                     subscribeToLedger(stashAddress, controllerId)
                 } else {
-                    Observable.just(createEmptyLedger(stashAddress))
+                    flowOf(createEmptyLedger(stashAddress))
                 }
             }
     }
 
-    override fun getActiveEra(): Single<EncodableStruct<ActiveEraInfo>> {
+    override suspend fun getActiveEra(): EncodableStruct<ActiveEraInfo> {
         val key = Module.Staking.ActiveEra.storageKey()
         val request = GetStorageRequest(key)
 
-        return socketService.executeRequest(request, responseType = scale(ActiveEraInfo).nonNull())
+        return socketService.executeAsync(request, mapper = scale(ActiveEraInfo).nonNull())
     }
 
-    private fun subscribeToLedger(stashAddress: String, controllerId: String): Observable<EncodableStruct<StakingLedger>> {
+    private fun subscribeToLedger(stashAddress: String, controllerId: String): Flow<EncodableStruct<StakingLedger>> {
         val accountId = AccountId.read(controllerId)
         val bytes = AccountId.toByteArray(accountId)
 
         val key = Module.Staking.Ledger.storageKey(bytes)
         val request = SubscribeStorageRequest(key)
 
-        return socketService.subscribe(request)
+        return socketService.subscriptionFlow(request)
             .map { it.params.result.getSingleChange() }
             .map { change ->
                 if (change.value.isNullOrBlank()) {
@@ -187,58 +195,56 @@ class WssSubstrateSource(
         return BalanceChange(block, accountInfo)
     }
 
-    private fun getAccountId(address: String): ByteArray {
-        return sS58Encoder.decode(address)
+    private suspend fun getAccountId(address: String) = withContext(Dispatchers.Default) {
+        sS58Encoder.decode(address)
     }
 
-    private fun buildSubmittableExtrinsic(
+    private suspend fun buildSubmittableExtrinsic(
         account: Account,
         transfer: Transfer,
         keypair: Keypair
-    ): Single<EncodableStruct<SubmittableExtrinsic>> {
-        return getRuntimeVersion().flatMap { runtimeInfo ->
-            val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-            val accountIdValue = getAccountId(account.address)
+    ): EncodableStruct<SubmittableExtrinsic> = withContext(Dispatchers.Default) {
+        val runtimeInfo = getRuntimeVersion()
+        val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
+        val accountIdValue = getAccountId(account.address)
 
-            getNonce(account).map { currentNonce ->
-                val genesis = account.network.type.runtimeConfiguration.genesisHash
-                val genesisBytes = Hex.decode(genesis)
+        val currentNonce = getNonce(account)
+        val genesis = account.network.type.runtimeConfiguration.genesisHash
+        val genesisBytes = Hex.decode(genesis)
 
-                val callStruct = createTransferCall(account.network.type, transfer.recipient, transfer.amountInPlanks)
+        val callStruct = createTransferCall(account.network.type, transfer.recipient, transfer.amountInPlanks)
 
-                val payload = ExtrinsicPayloadValue { payload ->
-                    payload[ExtrinsicPayloadValue.call] = callStruct
-                    payload[ExtrinsicPayloadValue.nonce] = currentNonce
-                    payload[ExtrinsicPayloadValue.specVersion] = runtimeInfo.specVersion.toUInt()
-                    payload[ExtrinsicPayloadValue.transactionVersion] = runtimeInfo.transactionVersion.toUInt()
+        val payload = ExtrinsicPayloadValue { payload ->
+            payload[ExtrinsicPayloadValue.call] = callStruct
+            payload[ExtrinsicPayloadValue.nonce] = currentNonce
+            payload[ExtrinsicPayloadValue.specVersion] = runtimeInfo.specVersion.toUInt()
+            payload[ExtrinsicPayloadValue.transactionVersion] = runtimeInfo.transactionVersion.toUInt()
 
-                    payload[ExtrinsicPayloadValue.genesis] = genesisBytes
-                    payload[ExtrinsicPayloadValue.blockHash] = genesisBytes
-                }
-
-                val signatureValue = Signature(
-                    encryptionType = cryptoType,
-                    value = signer.signExtrinsic(payload, keypair, cryptoType)
-                )
-
-                val extrinsic = SignedExtrinsic { extrinsic ->
-                    extrinsic[accountId] = accountIdValue
-                    extrinsic[signature] = signatureValue
-                    extrinsic[SignedExtrinsic.nonce] = currentNonce
-                    extrinsic[call] = callStruct
-                }
-
-                val extrinsicBytes = SignedExtrinsic.toByteArray(extrinsic)
-                val byteLengthValue = extrinsicBytes.size.toBigInteger()
-
-                val submittableExtrinsic = SubmittableExtrinsic { struct ->
-                    struct[byteLength] = byteLengthValue
-                    struct[signedExtrinsic] = extrinsic
-                }
-
-                submittableExtrinsic
-            }
+            payload[ExtrinsicPayloadValue.genesis] = genesisBytes
+            payload[ExtrinsicPayloadValue.blockHash] = genesisBytes
         }
+
+        val signatureValue = Signature(
+            encryptionType = cryptoType,
+            value = signer.signExtrinsic(payload, keypair, cryptoType)
+        )
+
+        val extrinsic = SignedExtrinsic { extrinsic ->
+            extrinsic[accountId] = accountIdValue
+            extrinsic[signature] = signatureValue
+            extrinsic[SignedExtrinsic.nonce] = currentNonce
+            extrinsic[call] = callStruct
+        }
+
+        val extrinsicBytes = SignedExtrinsic.toByteArray(extrinsic)
+        val byteLengthValue = extrinsicBytes.size.toBigInteger()
+
+        val submittableExtrinsic = SubmittableExtrinsic { struct ->
+            struct[byteLength] = byteLengthValue
+            struct[signedExtrinsic] = extrinsic
+        }
+
+        submittableExtrinsic
     }
 
     private fun createTransferCall(
@@ -256,27 +262,26 @@ class WssSubstrateSource(
         }
     }
 
-    private fun getNonce(account: Account): Single<BigInteger> {
+    private suspend fun getNonce(account: Account): BigInteger {
         val nonceRequest = NextAccountIndexRequest(account.address)
 
-        return socketService.executeRequest(nonceRequest)
-            .map {
-                val doubleResult = it.result as Double
+        val response = socketService.executeAsync(nonceRequest)
+        val doubleResult = response.result as Double
 
-                doubleResult.toInt().toBigInteger()
-            }
+        return doubleResult.toInt().toBigInteger()
     }
 
-    private fun generateFakeKeyPair(account: Account) = Single.fromCallable {
+    private suspend fun generateFakeKeyPair(account: Account) = withContext(Dispatchers.Default) {
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-        val emptySeed = ByteArray(32)
+        val emptySeed = ByteArray(32) { 1 }
+
         keypairFactory.generate(cryptoType, emptySeed, "")
     }
 
-    private fun getRuntimeVersion(): Single<RuntimeVersion> {
+    private suspend fun getRuntimeVersion(): RuntimeVersion {
         val request = RuntimeVersionRequest()
 
-        return socketService.executeRequest(request, pojo<RuntimeVersion>().nonNull())
+        return socketService.executeAsync(request, mapper = pojo<RuntimeVersion>().nonNull())
     }
 
     private fun emptyAccountInfo() = AccountInfo { info ->
@@ -299,24 +304,26 @@ class WssSubstrateSource(
         }
     }
 
-    private fun filterAccountTransactions(account: Account, extrinsics: List<String>): List<EncodableStruct<SubmittableExtrinsic>> {
-        val currentPublicKey = getAccountId(account.address)
-        val transfersPalette = account.network.type.runtimeConfiguration.pallets.transfers
+    private suspend fun filterAccountTransactions(account: Account, extrinsics: List<String>): List<EncodableStruct<SubmittableExtrinsic>> {
+        return withContext(Dispatchers.Default) {
+            val currentPublicKey = getAccountId(account.address)
+            val transfersPalette = account.network.type.runtimeConfiguration.pallets.transfers
 
-        return extrinsics.filter { hex ->
-            val stub = SubmittableExtrinsic.readOrNull(hex) ?: return@filter false
+            extrinsics.filter { hex ->
+                val stub = SubmittableExtrinsic.readOrNull(hex) ?: return@filter false
 
-            val callIndex = stub[signedExtrinsic][call][callIndex]
+                val callIndex = stub[signedExtrinsic][call][callIndex]
 
-            callIndex in transfersPalette
-        }
-            .map(SubmittableExtrinsic::read)
-            .filter { transfer ->
-                val signed = transfer[signedExtrinsic]
-                val sender = signed[accountId]
-                val receiver = signed[call][args][recipientId]
-
-                sender.contentEquals(currentPublicKey) || receiver.contentEquals(currentPublicKey)
+                callIndex in transfersPalette
             }
+                .map(SubmittableExtrinsic::read)
+                .filter { transfer ->
+                    val signed = transfer[signedExtrinsic]
+                    val sender = signed[accountId]
+                    val receiver = signed[call][args][recipientId]
+
+                    sender.contentEquals(currentPublicKey) || receiver.contentEquals(currentPublicKey)
+                }
+        }
     }
 }

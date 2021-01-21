@@ -40,6 +40,5 @@ abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
 
     abstract fun subscribe(viewModel: T)
 
-    open fun changeLanguage() {
-    }
+    abstract fun changeLanguage()
 }

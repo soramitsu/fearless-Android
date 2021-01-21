@@ -1,11 +1,9 @@
 package jp.co.soramitsu.feature_account_impl.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
-import io.reactivex.Completable
-import io.reactivex.Observable
-import io.reactivex.Single
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.encode
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
@@ -18,6 +16,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
+import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
@@ -35,6 +35,11 @@ import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_account_api.domain.model.WithJson
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 
 class AccountRepositoryImpl(
@@ -51,142 +56,123 @@ class AccountRepositoryImpl(
     private val accountSubstrateSource: AccountSubstrateSource
 ) : AccountRepository {
 
-    override fun getEncryptionTypes(): Single<List<CryptoType>> {
-        return Single.just(listOf(CryptoType.SR25519, CryptoType.ED25519, CryptoType.ECDSA))
+    override fun getEncryptionTypes(): List<CryptoType> {
+        return CryptoType.values().toList()
     }
 
-    override fun getNodes(): Observable<List<Node>> {
-        return nodeDao.getNodes()
-            .map { it.map(::mapNodeLocalToNode) }
-    }
+    override suspend fun getNode(nodeId: Int): Node {
+        return withContext(Dispatchers.IO) {
+            val node = nodeDao.getNodeById(nodeId)
 
-    override fun getNode(nodeId: Int): Single<Node> {
-        return nodeDao.getNodeById(nodeId)
-            .map(::mapNodeLocalToNode)
-    }
-
-    override fun getNetworks(): Single<List<Network>> {
-        return getNodes()
-            .filter { it.isNotEmpty() }
-            .map { it.map(Node::networkType) }
-            .map { it.map(::getNetworkForType).distinct() }
-            .firstOrError()
-    }
-
-    override fun getSelectedNode(): Single<Node> {
-        return Single.fromCallable {
-            accountDataSource.getSelectedNode() ?: mapNodeLocalToNode(nodeDao.getFirstNode())
+            mapNodeLocalToNode(node)
         }
     }
 
-    override fun saveNode(node: Node): Completable {
-        return Completable.fromCallable {
-            nodeDao.insert(mapNetworkToNodeLocal(node))
+    override suspend fun getNetworks(): List<Network> {
+        return withContext(Dispatchers.Default) {
+            nodeDao.getNodes()
+                .map(::mapNodeLocalToNode)
+                .map(Node::networkType)
+                .distinct()
+                .map { getNetworkForType(it) }
         }
     }
 
-    override fun removeNode(node: Node): Completable {
-        return Completable.fromCallable {
-            nodeDao.remove(node.link)
-        }
+    override suspend fun getSelectedNode(): Node {
+        return accountDataSource.getSelectedNode() ?: mapNodeLocalToNode(nodeDao.getFirstNode())
     }
 
-    override fun selectNode(node: Node): Completable {
-        return Completable.fromAction {
-            accountDataSource.saveSelectedNode(node)
-        }
+    override suspend fun selectNode(node: Node) {
+        accountDataSource.saveSelectedNode(node)
     }
 
-    override fun getDefaultNode(networkType: Node.NetworkType): Single<Node> {
-        return Single.fromCallable {
-            getNetworkForType(networkType).defaultNode
-        }
+    override suspend fun getDefaultNode(networkType: Node.NetworkType): Node {
+        return getNetworkForType(networkType).defaultNode
     }
 
-    override fun selectAccount(account: Account): Completable {
-        return Completable.fromCallable {
-            accountDataSource.saveSelectedAccount(account)
-        }
+    override suspend fun selectAccount(account: Account) {
+        accountDataSource.saveSelectedAccount(account)
     }
 
-    override fun observeSelectedAccount(): Observable<Account> {
-        return accountDataSource.observeSelectedAccount()
+    override fun selectedAccountFlow(): Flow<Account> {
+        return accountDataSource.selectedAccountFlow()
     }
 
-    override fun getSelectedAccount(): Single<Account> {
-        return observeSelectedAccount().firstOrError()
+    override suspend fun getSelectedAccount(): Account {
+        return accountDataSource.getSelectedAccount()
     }
 
-    override fun getPreferredCryptoType(): Single<CryptoType> {
+    override suspend fun getPreferredCryptoType(): CryptoType {
         return accountDataSource.getPreferredCryptoType()
     }
 
-    override fun isAccountSelected(): Single<Boolean> {
-        return Single.fromCallable(accountDataSource::anyAccountSelected)
+    override suspend fun isAccountSelected(): Boolean {
+        return accountDataSource.anyAccountSelected()
     }
 
-    override fun removeAccount(account: Account): Completable {
-        return Completable.fromCallable {
-            accountDao.remove(account.address)
-        }
-    }
-
-    override fun createAccount(
+    override suspend fun createAccount(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
         networkType: Node.NetworkType
-    ): Completable {
-        return saveFromMnemonic(
+    ) {
+        val account = saveFromMnemonic(
             accountName,
             mnemonic,
             derivationPath,
             encryptionType,
             networkType,
             isImport = false
-        ).flatMapCompletable(this::switchToAccount)
+        )
+
+        switchToAccount(account)
     }
 
-    override fun observeAccounts(): Observable<List<Account>> {
-        return accountDao.observeAccounts()
-            .map { it.map(::mapAccountLocalToAccount) }
+    override fun accountsFlow(): Flow<List<Account>> {
+        return accountDao.accountsFlow()
+            .mapList(::mapAccountLocalToAccount)
+            .flowOn(Dispatchers.Default)
     }
 
-    override fun getAccount(address: String): Single<Account> {
-        return accountDao.getAccount(address)
-            .map(::mapAccountLocalToAccount)
+    override suspend fun getAccount(address: String): Account {
+        val account = accountDao.getAccount(address)
+        return mapAccountLocalToAccount(account)
     }
 
-    override fun getMyAccounts(query: String, networkType: Node.NetworkType): Single<Set<String>> {
-        return accountDao.getAddresses(query, networkType).map { it.toSet() }
+    override suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<String> {
+        return withContext(Dispatchers.Default) {
+            accountDao.getAddresses(query, networkType).toSet()
+        }
     }
 
-    override fun importFromMnemonic(
+    override suspend fun importFromMnemonic(
         keyString: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         networkType: Node.NetworkType
-    ): Completable {
-        return saveFromMnemonic(
+    ) {
+        val account = saveFromMnemonic(
             username,
             keyString,
             derivationPath,
             selectedEncryptionType,
             networkType,
             isImport = true
-        ).flatMapCompletable { switchToAccount(it) }
+        )
+
+        switchToAccount(account)
     }
 
-    override fun importFromSeed(
+    override suspend fun importFromSeed(
         seed: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         networkType: Node.NetworkType
-    ): Completable {
-        return Single.fromCallable {
+    ) {
+        return withContext(Dispatchers.Default) {
             val seedBytes = Hex.decode(seed.removePrefix("0x"))
 
             val keys = keypairFactory.generate(
@@ -207,20 +193,22 @@ class AccountRepositoryImpl(
 
             accountDataSource.saveSecuritySource(address, securitySource)
 
-            mapAccountLocalToAccount(accountLocal)
-        }.flatMapCompletable(this::switchToAccount)
+            val account = mapAccountLocalToAccount(accountLocal)
+
+            switchToAccount(account)
+        }
     }
 
-    override fun importFromJson(
+    override suspend fun importFromJson(
         json: String,
         password: String,
         networkType: Node.NetworkType,
         name: String
-    ): Completable {
-        return Single.fromCallable {
+    ) {
+        return withContext(Dispatchers.Default) {
             val importData = jsonSeedDecoder.decode(json, password)
 
-            with(importData) {
+            val newAccount = with(importData) {
                 val publicKeyEncoded = Hex.toHexString(keypair.publicKey)
 
                 val cryptoType = mapEncryptionToCryptoType(encryptionType)
@@ -237,83 +225,74 @@ class AccountRepositoryImpl(
 
                 mapAccountLocalToAccount(accountLocal)
             }
-        }.flatMapCompletable(this::switchToAccount)
+
+            switchToAccount(newAccount)
+        }
     }
 
-    override fun isCodeSet(): Boolean {
+    override suspend fun isCodeSet(): Boolean {
         return accountDataSource.getPinCode() != null
     }
 
-    override fun savePinCode(code: String): Completable {
-        return Completable.fromCallable {
-            accountDataSource.savePinCode(code)
-        }
+    override suspend fun savePinCode(code: String) {
+        return accountDataSource.savePinCode(code)
     }
 
-    override fun isPinCorrect(code: String): Single<Boolean> {
-        return Single.fromCallable {
-            accountDataSource.getPinCode() == code
-        }
-    }
-
-    override fun getPinCode(): String? {
+    override suspend fun getPinCode(): String? {
         return accountDataSource.getPinCode()
     }
 
-    override fun generateMnemonic(): Single<List<String>> {
-        return Single.fromCallable {
+    override suspend fun generateMnemonic(): List<String> {
+        return withContext(Dispatchers.Default) {
             val mnemonic = bip39.generateMnemonic(MnemonicLength.TWELVE)
+
             mnemonic.split(" ")
         }
     }
 
-    override fun getAddressId(address: String): Single<ByteArray> {
-        return Single.fromCallable {
-            sS58Encoder.decode(address)
-        }
-    }
+    override suspend fun isInCurrentNetwork(address: String): Boolean {
+        val currentAccount = getSelectedAccount()
 
-    override fun isInCurrentNetwork(address: String): Single<Boolean> {
-        return getSelectedAccount().map {
+        return try {
             val otherAddressByte = sS58Encoder.extractAddressByte(address)
-            val currentAddressByte = sS58Encoder.extractAddressByte(it.address)
+            val currentAddressByte = sS58Encoder.extractAddressByte(currentAccount.address)
+
+            sS58Encoder.decode(address) // decoded without exception
 
             otherAddressByte == currentAddressByte
+        } catch (_: Exception) {
+            false
         }
     }
 
-    override fun isBiometricEnabled(): Boolean {
+    override suspend fun isBiometricEnabled(): Boolean {
         return accountDataSource.getAuthType() == AuthType.BIOMETRY
     }
 
-    override fun setBiometricOn(): Completable {
-        return Completable.fromAction {
-            accountDataSource.saveAuthType(AuthType.BIOMETRY)
-        }
+    override suspend fun setBiometricOn() {
+        return accountDataSource.saveAuthType(AuthType.BIOMETRY)
     }
 
-    override fun setBiometricOff(): Completable {
-        return Completable.fromAction {
-            accountDataSource.saveAuthType(AuthType.PINCODE)
-        }
+    override suspend fun setBiometricOff() {
+        return accountDataSource.saveAuthType(AuthType.PINCODE)
     }
 
-    override fun updateAccount(newAccount: Account): Completable {
+    override suspend fun updateAccount(newAccount: Account) {
         return accountDao.updateAccount(mapAccountToAccountLocal(newAccount))
     }
 
-    override fun updateAccounts(accounts: List<Account>): Completable {
+    override suspend fun updateAccounts(accounts: List<Account>) {
         val accountsLocal = accounts.map(::mapAccountToAccountLocal)
 
         return accountDao.updateAccounts(accountsLocal)
     }
 
-    override fun deleteAccount(address: String): Completable {
+    override suspend fun deleteAccount(address: String) {
         return accountDao.remove(address)
     }
 
-    override fun processAccountJson(json: String): Single<ImportJsonData> {
-        return Single.fromCallable {
+    override suspend fun processAccountJson(json: String): ImportJsonData {
+        return withContext(Dispatchers.Default) {
             val importAccountMeta = jsonSeedDecoder.extractImportMetaData(json)
 
             with(importAccountMeta) {
@@ -325,23 +304,23 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun getCurrentSecuritySource(): Single<SecuritySource> {
-        return observeSelectedAccount().firstOrError()
-            .map { accountDataSource.getSecuritySource(it.address) }
+    override suspend fun getCurrentSecuritySource(): SecuritySource {
+        val account = getSelectedAccount()
+
+        return accountDataSource.getSecuritySource(account.address)!!
     }
 
-    override fun getSecuritySource(accountAddress: String): Single<SecuritySource> {
-        return Single.fromCallable {
-            accountDataSource.getSecuritySource(accountAddress)
-        }
+    override suspend fun getSecuritySource(accountAddress: String): SecuritySource {
+        return accountDataSource.getSecuritySource(accountAddress)!!
     }
 
-    override fun generateRestoreJson(account: Account, password: String): Single<String> {
-        return getSecuritySource(account.address).map {
-            require(it is WithJson)
+    override suspend fun generateRestoreJson(account: Account, password: String): String {
+        return withContext(Dispatchers.Default) {
+            val securitySource = getSecuritySource(account.address)
+            require(securitySource is WithJson)
 
-            val seed = (it.jsonFormer() as? JsonFormer.Seed)?.seed
-            val keypair = mapSigningDataToKeypair(it.signingData)
+            val seed = (securitySource.jsonFormer() as? JsonFormer.Seed)?.seed
+            val keypair = mapSigningDataToKeypair(securitySource.signingData)
 
             val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
             val runtimeConfiguration = account.network.type.runtimeConfiguration
@@ -358,15 +337,73 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun saveFromMnemonic(
+    override fun nodesFlow(): Flow<List<Node>> {
+        return nodeDao.nodesFlow()
+            .mapList { mapNodeLocalToNode(it) }
+            .filter { it.isNotEmpty() }
+            .flowOn(Dispatchers.Default)
+    }
+
+    override fun selectedNodeFlow(): Flow<Node> {
+        return accountDataSource.selectedNodeFlow()
+    }
+
+    override fun getLanguages(): List<Language> {
+        return languagesHolder.getLanguages()
+    }
+
+    override suspend fun selectedLanguage(): Language {
+        return accountDataSource.getSelectedLanguage()
+    }
+
+    override suspend fun changeLanguage(language: Language) {
+        return accountDataSource.changeSelectedLanguage(language)
+    }
+
+    override suspend fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType) {
+        val nodeLocal = NodeLocal(nodeName, nodeHost, networkType.ordinal, false)
+        nodeDao.insert(nodeLocal)
+    }
+
+    override suspend fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType) {
+        nodeDao.updateNode(nodeId, newName, newHost, networkType.ordinal)
+    }
+
+    override suspend fun checkNodeExists(nodeHost: String): Boolean {
+        return nodeDao.checkNodeExists(nodeHost)
+    }
+
+    override suspend fun getNetworkName(nodeHost: String): String {
+        return accountSubstrateSource.getNodeNetworkType(nodeHost)
+    }
+
+    override suspend fun getAccountsByNetworkType(networkType: Node.NetworkType): List<Account> {
+        val accounts = accountDao.getAccountsByNetworkType(networkType.ordinal)
+
+        return withContext(Dispatchers.Default) {
+            accounts.map { mapAccountLocalToAccount(it) }
+        }
+    }
+
+    override suspend fun deleteNode(nodeId: Int) {
+        return nodeDao.deleteNode(nodeId)
+    }
+
+    override fun createQrAccountContent(account: Account): String {
+        val payload = QrSharing.Payload(account.address, account.publicKey.fromHex(), account.name)
+
+        return QrSharing.encode(payload)
+    }
+
+    private suspend fun saveFromMnemonic(
         accountName: String,
         mnemonic: String,
         derivationPath: String,
         cryptoType: CryptoType,
         networkType: Node.NetworkType,
         isImport: Boolean
-    ): Single<Account> {
-        return Single.fromCallable {
+    ): Account {
+        return withContext(Dispatchers.Default) {
             val entropy = bip39.generateEntropy(mnemonic)
             val password = junctionDecoder.getPassword(derivationPath)
             val seed = bip39.generateSeed(entropy, password)
@@ -433,7 +470,7 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapAccountLocalToAccount(accountLocal: AccountLocal): Account {
+    private suspend fun mapAccountLocalToAccount(accountLocal: AccountLocal): Account {
         val network = getNetworkForType(accountLocal.networkType)
 
         return with(accountLocal) {
@@ -463,12 +500,13 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun switchToAccount(account: Account): Completable {
-        return selectAccount(account)
-            .andThen(selectNode(account.network.defaultNode))
+    private suspend fun switchToAccount(account: Account) {
+        selectAccount(account)
+
+        selectNode(account.network.defaultNode)
     }
 
-    private fun insertAccount(
+    private suspend fun insertAccount(
         address: String,
         accountName: String,
         publicKeyEncoded: String,
@@ -495,7 +533,7 @@ class AccountRepositoryImpl(
         throw AccountAlreadyExistsException()
     }
 
-    private fun getNetworkForType(networkType: Node.NetworkType): Network {
+    private suspend fun getNetworkForType(networkType: Node.NetworkType): Network {
         val defaultNode = nodeDao.getDefaultNodeFor(networkType.ordinal)
 
         return Network(networkType, mapNodeLocalToNode(defaultNode))
@@ -505,60 +543,5 @@ class AccountRepositoryImpl(
         val networkType = Node.NetworkType.values()[it.networkType]
 
         return Node(it.id, it.name, networkType, it.link, it.isDefault)
-    }
-
-    private fun mapNetworkToNodeLocal(it: Node): NodeLocal {
-        return NodeLocal(it.name, it.link, it.networkType.ordinal, it.isDefault)
-    }
-
-    override fun observeNodes(): Observable<List<Node>> {
-        return getNodes()
-            .filter { it.isNotEmpty() }
-    }
-
-    override fun observeSelectedNode(): Observable<Node> {
-        return accountDataSource.observeSelectedNode()
-    }
-
-    override fun observeLanguages(): Observable<List<Language>> {
-        return Observable.just(languagesHolder.getLanguages())
-    }
-
-    override fun getSelectedLanguage(): Single<Language> {
-        return Single.just(accountDataSource.getSelectedLanguage())
-    }
-
-    override fun changeLanguage(language: Language): Completable {
-        return Completable.fromAction {
-            accountDataSource.changeSelectedLanguage(language)
-        }
-    }
-
-    override fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable {
-        return Completable.fromAction {
-            val nodeLocal = NodeLocal(nodeName, nodeHost, networkType.ordinal, false)
-            nodeDao.insert(nodeLocal)
-        }
-    }
-
-    override fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType): Completable {
-        return nodeDao.updateNode(nodeId, newName, newHost, networkType.ordinal)
-    }
-
-    override fun checkNodeExists(nodeHost: String): Single<Boolean> {
-        return nodeDao.checkNodeExists(nodeHost)
-    }
-
-    override fun getNetworkName(nodeHost: String): Single<String> {
-        return accountSubstrateSource.getNodeNetworkType(nodeHost)
-    }
-
-    override fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>> {
-        return accountDao.getAccountsByNetworkType(networkType.ordinal)
-            .map { it.map(::mapAccountLocalToAccount) }
-    }
-
-    override fun deleteNode(nodeId: Int): Completable {
-        return nodeDao.deleteNode(nodeId)
     }
 }
