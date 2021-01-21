@@ -189,11 +189,8 @@ class AccountDataSourceImpl(
         return selectedNodeFlow
     }
 
-    override suspend fun getSelectedAccount(): Account = withContext(Dispatchers.Default) {
-        val raw = preferences.getString(PREFS_SELECTED_ACCOUNT)
-            ?: throw IllegalArgumentException("No account selected")
-
-        jsonMapper.fromJson(raw, Account::class.java)
+    override suspend fun getSelectedAccount(): Account {
+        return selectedAccountSubject.replayCache.firstOrNull() ?: retrieveAccountFromStorage()
     }
 
     override suspend fun getSelectedLanguage(): Language = withContext(Dispatchers.IO) {
@@ -209,11 +206,18 @@ class AccountDataSourceImpl(
 
         async {
             if (preferences.contains(PREFS_SELECTED_ACCOUNT)) {
-                flow.emit(getSelectedAccount())
+                flow.emit(retrieveAccountFromStorage())
             }
         }
 
         return flow
+    }
+
+    private suspend fun retrieveAccountFromStorage(): Account = withContext(Dispatchers.Default) {
+        val raw = preferences.getString(PREFS_SELECTED_ACCOUNT)
+            ?: throw IllegalArgumentException("No account selected")
+
+        jsonMapper.fromJson(raw, Account::class.java)
     }
 
     private fun createNodeFlow(): MutableSharedFlow<Node> {
