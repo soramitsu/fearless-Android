@@ -132,6 +132,8 @@ class AccountInteractorImpl(
 
     override fun selectedAccountFlow() = accountRepository.selectedAccountFlow()
 
+    override suspend fun getSelectedAccount() = accountRepository.getSelectedAccount()
+
     override suspend fun getNetworks(): List<Network> {
         return accountRepository.getNetworks()
     }

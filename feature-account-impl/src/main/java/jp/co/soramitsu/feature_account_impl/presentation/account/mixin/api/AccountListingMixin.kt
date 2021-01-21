@@ -1,14 +1,13 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
+import kotlinx.coroutines.flow.Flow
 
 class AccountListing(val groupedAccounts: List<Any>, val selectedAccount: AccountModel)
 
 interface AccountListingMixin {
 
-    val selectedAccountLiveData: MutableLiveData<AccountModel>
+    fun selectedAccountFlow(): Flow<AccountModel>
 
-    val accountListingLiveData: LiveData<AccountListing>
+    fun accountListingFlow(): Flow<AccountListing>
 }

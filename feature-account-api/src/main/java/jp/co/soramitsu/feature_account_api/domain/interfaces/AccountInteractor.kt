@@ -65,6 +65,8 @@ interface AccountInteractor {
 
     fun selectedAccountFlow(): Flow<Account>
 
+    suspend fun getSelectedAccount(): Account
+
     suspend fun getNetworks(): List<Network>
 
     suspend fun getSelectedNode(): Node

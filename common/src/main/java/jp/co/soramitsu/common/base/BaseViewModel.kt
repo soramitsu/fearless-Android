@@ -5,7 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.asLiveData
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlin.coroutines.CoroutineContext
 
 open class BaseViewModel : ViewModel(), CoroutineScope {
@@ -37,4 +39,8 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
 
     override val coroutineContext: CoroutineContext
         get() = viewModelScope.coroutineContext
+
+    fun <T> Flow<T>.asLiveData(): LiveData<T> {
+        return asLiveData(viewModelScope)
+    }
 }

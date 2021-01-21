@@ -1,13 +1,8 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.mixin.impl
 
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.mediatorLiveData
-import jp.co.soramitsu.common.utils.setFrom
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
@@ -17,6 +12,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.Accou
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 
@@ -29,19 +25,12 @@ class AccountListingProvider(
     private val addressIconGenerator: AddressIconGenerator
 ) : AccountListingMixin {
 
-    private val groupedAccountModelsLiveData = getGroupedAccounts()
-        .asLiveData()
-
-    override val selectedAccountLiveData: MutableLiveData<AccountModel> = mediatorLiveData {
-        setFrom(getSelectedAccountModel().asLiveData())
-    }
-
-    override val accountListingLiveData = groupedAccountModelsLiveData
-        .combine(selectedAccountLiveData) { groupedAccounts, selected ->
+    override fun accountListingFlow() = getGroupedAccounts()
+        .combine(selectedAccountFlow()) { groupedAccounts, selected ->
             AccountListing(groupedAccounts, selected)
         }
 
-    private fun getSelectedAccountModel() = accountInteractor.selectedAccountFlow()
+    override fun selectedAccountFlow() = accountInteractor.selectedAccountFlow()
         .mapLatest { transformAccount(it) }
 
     private fun getGroupedAccounts() = accountInteractor.groupedAccountsFlow()

@@ -11,8 +11,12 @@ import kotlinx.coroutines.launch
 class AccountListViewModel(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
-    private val accountListingMixin: AccountListingMixin
-) : BaseViewModel(), AccountListingMixin by accountListingMixin {
+    accountListingMixin: AccountListingMixin
+) : BaseViewModel() {
+
+    val accountListingLiveData = accountListingMixin.accountListingFlow().asLiveData()
+
+    val selectedAccountLiveData = accountListingMixin.selectedAccountFlow().asLiveData()
 
     fun infoClicked(accountModel: AccountModel) {
         accountRouter.openAccountDetails(accountModel.address)

@@ -19,14 +19,16 @@ data class UnsyncedSwapPayload(val newState: List<Any>, val from: Int, val to: I
 class EditAccountsViewModel(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
-    private val accountListingMixin: AccountListingMixin
-) : BaseViewModel(), AccountListingMixin by accountListingMixin {
+    accountListingMixin: AccountListingMixin
+) : BaseViewModel() {
 
     private val _deleteConfirmationLiveData = MutableLiveData<Event<AccountModel>>()
     val deleteConfirmationLiveData: LiveData<Event<AccountModel>> = _deleteConfirmationLiveData
 
     private val _unsyncedSwapLiveData = MutableLiveData<UnsyncedSwapPayload?>()
     val unsyncedSwapLiveData: LiveData<UnsyncedSwapPayload?> = _unsyncedSwapLiveData
+
+    val accountListingLiveData = accountListingMixin.accountListingFlow().asLiveData()
 
     fun doneClicked() {
         accountRouter.back()
@@ -37,10 +39,12 @@ class EditAccountsViewModel(
     }
 
     fun deleteClicked(account: AccountModel) {
-        val selectedAccount = selectedAccountLiveData.value!!
+        viewModelScope.launch {
+            val selectedAccount = accountInteractor.getSelectedAccount()
 
-        if (selectedAccount.address != account.address) {
-            _deleteConfirmationLiveData.value = Event(account)
+            if (selectedAccount.address != account.address) {
+                _deleteConfirmationLiveData.value = Event(account)
+            }
         }
     }
 

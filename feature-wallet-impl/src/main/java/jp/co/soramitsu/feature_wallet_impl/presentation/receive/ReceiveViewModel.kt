@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.receive
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
