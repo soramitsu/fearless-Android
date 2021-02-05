@@ -1,7 +1,7 @@
 package jp.co.soramitsu.app.root.domain
 
-import jp.co.soramitsu.common.data.network.runtime.RuntimeHolder
-import jp.co.soramitsu.common.data.network.runtime.RuntimeProvider
+import jp.co.soramitsu.app.root.data.runtime.RuntimeHolder
+import jp.co.soramitsu.app.root.data.runtime.RuntimeProvider
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository

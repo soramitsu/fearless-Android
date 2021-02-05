@@ -5,4 +5,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation kotlinDep
+
+    api jUnitDep
+    api mockitoDep
 }

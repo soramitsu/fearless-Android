@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.data.network.runtime
+package jp.co.soramitsu.app.root.data.runtime
 
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.channels.BufferOverflow

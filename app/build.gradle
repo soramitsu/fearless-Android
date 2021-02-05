@@ -117,6 +117,8 @@ dependencies {
     compileOnly wsDep
 
     implementation coroutinesDep
+
+    testImplementation project(':test-shared')
 }
 
 task printVersion {

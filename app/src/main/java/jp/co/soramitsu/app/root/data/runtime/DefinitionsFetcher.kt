@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.data.network.runtime
+package jp.co.soramitsu.app.root.data.runtime
 
 import retrofit2.http.GET
 import retrofit2.http.Path

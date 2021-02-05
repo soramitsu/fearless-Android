@@ -1,11 +1,15 @@
 package jp.co.soramitsu.app.root.di
 
+import com.google.gson.Gson
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
-import jp.co.soramitsu.common.data.network.runtime.RuntimeHolder
-import jp.co.soramitsu.common.data.network.runtime.RuntimeProvider
+import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core_db.dao.RuntimeDao
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
@@ -25,7 +29,10 @@ interface RootDependencies {
 
     fun resourceManager(): ResourceManager
 
-    fun runtimeHolder() : RuntimeHolder
-
-    fun runtimeProvider() : RuntimeProvider
+    fun preferences(): Preferences
+    fun fileProvider(): FileProvider
+    fun networkApiCreator(): NetworkApiCreator
+    fun socketService(): SocketService
+    fun gson(): Gson
+    fun runtimeDao(): RuntimeDao
 }

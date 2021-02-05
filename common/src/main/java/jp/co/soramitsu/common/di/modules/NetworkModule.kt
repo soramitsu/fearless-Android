@@ -14,13 +14,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.network.rpc.WsConnectionManager
-import jp.co.soramitsu.common.data.network.runtime.DefinitionsFetcher
-import jp.co.soramitsu.common.data.network.runtime.RuntimeCache
-import jp.co.soramitsu.common.data.network.runtime.RuntimeHolder
-import jp.co.soramitsu.common.data.network.runtime.RuntimeProvider
-import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
-import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -138,31 +132,4 @@ class NetworkModule {
     @Provides
     @ApplicationScope
     fun provideJsonMapper() = Gson()
-
-    @Provides
-    @ApplicationScope
-    fun provideRuntimeCache(
-        preferences: Preferences,
-        fileProvider: FileProvider
-    ) = RuntimeCache(preferences, fileProvider)
-
-    @Provides
-    @ApplicationScope
-    fun provideDefinitionsFetcher(
-        apiCreator: NetworkApiCreator
-    ) = apiCreator.create(DefinitionsFetcher::class.java)
-
-    @Provides
-    @ApplicationScope
-    fun provideRuntimeProvider(
-        socketService: SocketService,
-        gson: Gson,
-        connectionManager: ConnectionManager,
-        definitionsFetcher: DefinitionsFetcher,
-        runtimeCache: RuntimeCache
-    ) = RuntimeProvider(socketService, definitionsFetcher, gson, connectionManager, runtimeCache)
-
-    @Provides
-    @ApplicationScope
-    fun provideRuntimeHolder() = RuntimeHolder()
 }

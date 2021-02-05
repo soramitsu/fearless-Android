@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common
+package jp.co.soramitsu.test
 
 import org.mockito.Mockito
 
