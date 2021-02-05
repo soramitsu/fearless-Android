@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.integration
 
 import com.google.gson.Gson
 import com.neovisionaries.ws.client.WebSocketFactory
+import jp.co.soramitsu.common.data.network.runtime.RuntimeVersion
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
@@ -26,7 +27,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.nonce
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call

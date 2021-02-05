@@ -6,8 +6,8 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.dialog.DialogClickHandler
-import jp.co.soramitsu.common.view.dialog.showErrorDialog
-import jp.co.soramitsu.common.view.dialog.showWarningDialog
+import jp.co.soramitsu.common.view.dialog.errorDialog
+import jp.co.soramitsu.common.view.dialog.warningDialog
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_impl.R
 
@@ -60,7 +60,7 @@ private fun BaseFragment<*>.showTransferError(
         TransferValidityLevel.Error.Status.DeadRecipient -> R.string.wallet_send_dead_recipient_title to R.string.wallet_send_dead_recipient_message
     }
 
-    showErrorDialog(errorConfirmed) {
+    errorDialog(requireContext(), errorConfirmed) {
         setTitle(titleRes)
         setMessage(messageRes)
     }
@@ -74,7 +74,7 @@ private fun BaseFragment<*>.showTransferWarning(
         TransferValidityLevel.Warning.Status.WillRemoveAccount -> R.string.wallet_send_existential_warning_title to R.string.wallet_send_existential_warning_message
     }
 
-    showWarningDialog(warningConfirmed) {
+    warningDialog(requireContext(), warningConfirmed) {
         setTitle(title)
         setMessage(message)
     }

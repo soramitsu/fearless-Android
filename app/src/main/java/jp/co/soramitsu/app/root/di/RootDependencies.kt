@@ -2,6 +2,8 @@ package jp.co.soramitsu.app.root.di
 
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
+import jp.co.soramitsu.common.data.network.runtime.RuntimeHolder
+import jp.co.soramitsu.common.data.network.runtime.RuntimeProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -22,4 +24,8 @@ interface RootDependencies {
     fun buyTokenRegistry(): BuyTokenRegistry
 
     fun resourceManager(): ResourceManager
+
+    fun runtimeHolder() : RuntimeHolder
+
+    fun runtimeProvider() : RuntimeProvider
 }

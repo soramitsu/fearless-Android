@@ -40,7 +40,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.35'
+        fearlessLibVersion = '1.0.45'
 
         gifVersion = '1.2.19'
 
@@ -96,6 +96,8 @@ buildscript {
         retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
         interceptorVersion = "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
         gsonConvertedDep = "com.squareup.retrofit2:converter-gson:$retrofitVersion"
+        scalarsConverterDep = "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
+
         gsonDep = "com.google.code.gson:gson:$gsonVersion"
 
         zXingCoreDep = "com.google.zxing:core:$zXingVersion"

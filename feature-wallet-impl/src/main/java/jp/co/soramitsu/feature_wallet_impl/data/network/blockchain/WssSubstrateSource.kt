@@ -2,6 +2,8 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
+import jp.co.soramitsu.common.data.network.rpc.subscribeStorageResult
+import jp.co.soramitsu.common.data.network.runtime.RuntimeVersion
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
@@ -16,7 +18,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.string
 import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
@@ -35,7 +36,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.Next
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.SubscribeStorageRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.BalanceChange
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.feeFrozen
@@ -111,7 +111,7 @@ class WssSubstrateSource(
 
         return socketService.executeAsync(
             transferRequest,
-            mapper = string().nonNull(),
+            mapper = pojo<String>().nonNull(),
             deliveryType = DeliveryType.AT_MOST_ONCE
         )
     }
@@ -137,11 +137,9 @@ class WssSubstrateSource(
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscriptionFlow(request)
-            .map { it.params.result.getSingleChange() }
+            .map { it.subscribeStorageResult().getSingleChange() }
             .distinctUntilChanged()
-            .flatMapLatest { change ->
-                val controllerId = change.value
-
+            .flatMapLatest { controllerId ->
                 if (controllerId != null) {
                     subscribeToLedger(stashAddress, controllerId)
                 } else {
@@ -165,12 +163,12 @@ class WssSubstrateSource(
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscriptionFlow(request)
-            .map { it.params.result.getSingleChange() }
+            .map { it.subscribeStorageResult().getSingleChange() }
             .map { change ->
-                if (change.value.isNullOrBlank()) {
+                if (change.isNullOrBlank()) {
                     createEmptyLedger(stashAddress)
                 } else {
-                    StakingLedger.read(change.value!!)
+                    StakingLedger.read(change)
                 }
             }
     }
@@ -186,11 +184,12 @@ class WssSubstrateSource(
     }
 
     private fun buildBalanceChange(subscriptionChange: SubscriptionChange): BalanceChange {
-        val block = subscriptionChange.params.result.block
+        val subscribeStorageResult = subscriptionChange.subscribeStorageResult()
 
-        val change = subscriptionChange.params.result.getSingleChange()
+        val block = subscribeStorageResult.block
+        val change = subscribeStorageResult.getSingleChange()
 
-        val accountInfo = if (change.value != null) AccountInfo.read(change.value!!) else emptyAccountInfo()
+        val accountInfo = if (change != null) AccountInfo.read(change) else emptyAccountInfo()
 
         return BalanceChange(block, accountInfo)
     }
