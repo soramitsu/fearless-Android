@@ -1,9 +1,7 @@
 package jp.co.soramitsu.app.root.data.runtime
 
 import com.google.gson.Gson
-import jp.co.soramitsu.common.data.network.runtime.RuntimeVersion
 import jp.co.soramitsu.core_db.dao.RuntimeDao
-import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
@@ -16,9 +14,6 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadataSchema
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -41,14 +36,29 @@ class RuntimeProvider(
 
     class Prepared(val runtime: RuntimeSnapshot, val isNewest: Boolean)
 
-    suspend fun prepareRuntime(networkName: String): Prepared = withContext(Dispatchers.Default) {
-        val runtimeParams = getRuntimeParams(networkName)
+    suspend fun prepareRuntime(
+        networkName: String
+    ) : Prepared {
+        val latestRuntimeVersion = runtimeDao.getCacheEntry(networkName).latestKnownVersion
+
+        return prepareRuntime(latestRuntimeVersion, networkName)
+    }
+
+    suspend fun prepareRuntime(
+        latestRuntimeVersion: Int,
+        networkName: String
+    ): Prepared = withContext(Dispatchers.IO) {
+
+        runtimeDao.maybeRegisterNewNetwork(networkName)
+
+        runtimeDao.updateLatestKnownVersion(networkName, latestRuntimeVersion)
+
+        val runtimeParams = getRuntimeParams(latestRuntimeVersion, networkName)
 
         val typeRegistry = constructTypeRegistry(runtimeParams)
 
         val runtimeMetadataStruct = RuntimeMetadataSchema.read(runtimeParams.metadataRaw)
         val runtimeMetadata = RuntimeMetadata(typeRegistry, runtimeMetadataStruct)
-
 
         val runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata)
 
@@ -58,16 +68,8 @@ class RuntimeProvider(
         )
     }
 
-    private suspend fun getRuntimeParams(networkName: String): RuntimeParams {
-        val runtimeInfo = socketService.executeAsync(RuntimeVersionRequest(), mapper = pojo<RuntimeVersion>().nonNull())
-
-        val latestRuntimeVersion = runtimeInfo.specVersion
-
-        val cacheInfo = cacheInfoOrCreateDefault(networkName)
-
-        if (latestRuntimeVersion > cacheInfo.latestKnownVersion) {
-            runtimeDao.updateLatestKnownVersion(networkName, latestRuntimeVersion)
-        }
+    private suspend fun getRuntimeParams(latestRuntimeVersion: Int, networkName: String): RuntimeParams {
+        val cacheInfo = runtimeDao.getCacheEntry(networkName)
 
         val metadataRaw = if (latestRuntimeVersion <= cacheInfo.latestAppliedVersion) {
             val metadataRaw = runtimeCache.getRuntimeMetadata(networkName)!!
@@ -108,20 +110,6 @@ class RuntimeProvider(
             networkTree,
             areNewest = latestRuntimeVersion <= typesVersion
         )
-    }
-
-    private suspend fun cacheInfoOrCreateDefault(networkName: String): RuntimeCacheEntry {
-        val cacheEntry = runtimeDao.getCacheEntry(networkName)
-
-        return if (cacheEntry != null) {
-            cacheEntry
-        } else {
-            val default = RuntimeCacheEntry.default(networkName)
-
-            runtimeDao.insertCacheEntry(default)
-
-            default
-        }
     }
 
     private suspend fun networkTypesFromCache(networkName: String): Pair<TypeDefinitionsTree, TypeDefinitionsTree> {

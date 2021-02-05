@@ -4,8 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.data.runtime.RuntimePreparationStatus
 import jp.co.soramitsu.app.root.domain.RootInteractor
-import jp.co.soramitsu.app.root.domain.RuntimePreparationStatus
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.LifecycleCondition
@@ -16,7 +16,10 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
@@ -39,10 +42,10 @@ class RootViewModel(
     private var willBeClearedForLanguageChange = false
 
     private val _outdatedTypesWarningLiveData = MutableLiveData<Event<Unit>>()
-    val outdatedTypesWarningLiveData : LiveData<Event<Unit>> = _outdatedTypesWarningLiveData
+    val outdatedTypesWarningLiveData: LiveData<Event<Unit>> = _outdatedTypesWarningLiveData
 
     private val _runtimeUpdateFailedLiveData = MutableLiveData<Event<Unit>>()
-    val runtimeUpdateFailedLiveData : LiveData<Event<Unit>> = _runtimeUpdateFailedLiveData
+    val runtimeUpdateFailedLiveData: LiveData<Event<Unit>> = _runtimeUpdateFailedLiveData
 
     init {
         observeAllowedToConnect()
@@ -79,16 +82,27 @@ class RootViewModel(
     }
 
     private suspend fun nodeChanged(networkType: Node.NetworkType) {
-        tryPrepareRuntime()
+        val accountListening = nodeScope.async { interactor.listenForAccountUpdates(networkType) }
 
-        interactor.listenForAccountUpdates(networkType)
+        val runtimeListening = nodeScope.async {
+            interactor.listenForRuntimeUpdates(networkType)
+                .collect(::handleRuntimePreparationStatus)
+        }
+
+        awaitAll(accountListening, runtimeListening)
+    }
+
+    private suspend fun tryPrepareRuntime() {
+        val status = interactor.manualRuntimeUpdate()
+
+        handleRuntimePreparationStatus(status)
     }
 
     @Suppress("NON_EXHAUSTIVE_WHEN")
-    private suspend fun tryPrepareRuntime() {
-        when(interactor.prepareRuntime()) {
-            RuntimePreparationStatus.ERROR -> _runtimeUpdateFailedLiveData.value = Event(Unit)
-            RuntimePreparationStatus.OUTDATED -> _outdatedTypesWarningLiveData.value = Event(Unit)
+    private fun handleRuntimePreparationStatus(status: RuntimePreparationStatus) {
+        when (status) {
+            RuntimePreparationStatus.ERROR -> _runtimeUpdateFailedLiveData.postValue(Event(Unit))
+            RuntimePreparationStatus.OUTDATED -> _outdatedTypesWarningLiveData.postValue(Event(Unit))
         }
     }
 

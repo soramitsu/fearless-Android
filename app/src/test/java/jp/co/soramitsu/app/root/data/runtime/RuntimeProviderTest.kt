@@ -1,7 +1,6 @@
 package jp.co.soramitsu.app.root.data.runtime
 
 import com.google.gson.Gson
-import jp.co.soramitsu.common.data.network.runtime.RuntimeVersion
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree

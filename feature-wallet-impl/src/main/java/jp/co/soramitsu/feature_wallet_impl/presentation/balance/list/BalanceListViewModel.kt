@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.Balan
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -59,8 +60,8 @@ class BalanceListViewModel(
 
     fun sync() {
         viewModelScope.launch {
-            val deferredAssetSync = async { interactor.syncAssetsRates() }
-            val deferredTransactionsSync = async { transactionHistoryMixin.syncFirstTransactionsPage() }
+            val deferredAssetSync = async(Dispatchers.Default) { interactor.syncAssetsRates() }
+            val deferredTransactionsSync = async(Dispatchers.Default) { transactionHistoryMixin.syncFirstTransactionsPage() }
 
             val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
 

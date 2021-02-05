@@ -10,7 +10,7 @@ import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
 abstract class RuntimeDao {
 
     @Query("SELECT * FROM runtimeCache WHERE networkName = :networkName")
-    abstract suspend fun getCacheEntry(networkName: String) : RuntimeCacheEntry?
+    abstract suspend fun getCacheEntry(networkName: String) : RuntimeCacheEntry
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertCacheEntry(cacheEntry: RuntimeCacheEntry)
@@ -23,4 +23,11 @@ abstract class RuntimeDao {
 
     @Query("UPDATE runtimeCache SET typesVersion = :typesVersion WHERE networkName = :networkName")
     abstract suspend fun updateTypesVersion(networkName: String, typesVersion: Int)
+
+    suspend fun maybeRegisterNewNetwork(networkName: String) {
+        insertOrSkipCacheEntry(RuntimeCacheEntry.default(networkName))
+    }
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    protected abstract suspend fun insertOrSkipCacheEntry(cacheEntry: RuntimeCacheEntry)
 }

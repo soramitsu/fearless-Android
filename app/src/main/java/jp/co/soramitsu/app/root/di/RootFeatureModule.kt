@@ -7,6 +7,7 @@ import jp.co.soramitsu.app.root.data.runtime.DefinitionsFetcher
 import jp.co.soramitsu.app.root.data.runtime.RuntimeCache
 import jp.co.soramitsu.app.root.data.runtime.RuntimeHolder
 import jp.co.soramitsu.app.root.data.runtime.RuntimeProvider
+import jp.co.soramitsu.app.root.data.runtime.RuntimeUpdater
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -26,16 +27,14 @@ class RootFeatureModule {
     fun provideRootInteractor(
         accountRepository: AccountRepository,
         walletRepository: WalletRepository,
-        runtimeHolder: RuntimeHolder,
-        runtimeProvider: RuntimeProvider,
+        runtimeUpdater: RuntimeUpdater,
         buyTokenRegistry: BuyTokenRegistry
     ): RootInteractor {
         return RootInteractor(
             accountRepository,
             buyTokenRegistry,
             walletRepository,
-            runtimeHolder,
-            runtimeProvider
+            runtimeUpdater
         )
     }
 
@@ -66,6 +65,18 @@ class RootFeatureModule {
         gson,
         runtimeDao,
         runtimeCache
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideRuntimeUpdater(
+        socketService: SocketService,
+        runtimeProvider: RuntimeProvider,
+        runtimeHolder: RuntimeHolder
+    ) = RuntimeUpdater(
+        runtimeProvider,
+        socketService,
+        runtimeHolder
     )
 
     @Provides

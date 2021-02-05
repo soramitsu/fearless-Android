@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.integration
 
 import com.google.gson.Gson
 import com.neovisionaries.ws.client.WebSocketFactory
-import jp.co.soramitsu.common.data.network.runtime.RuntimeVersion
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
@@ -13,7 +12,6 @@ import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scaleCollection

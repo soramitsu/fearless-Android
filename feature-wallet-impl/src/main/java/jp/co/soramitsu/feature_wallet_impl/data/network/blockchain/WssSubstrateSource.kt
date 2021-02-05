@@ -2,8 +2,6 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
-import jp.co.soramitsu.common.data.network.rpc.subscribeStorageResult
-import jp.co.soramitsu.common.data.network.runtime.RuntimeVersion
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
@@ -20,7 +18,9 @@ import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
 import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -137,7 +137,7 @@ class WssSubstrateSource(
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscriptionFlow(request)
-            .map { it.subscribeStorageResult().getSingleChange() }
+            .map { it.storageChange().getSingleChange() }
             .distinctUntilChanged()
             .flatMapLatest { controllerId ->
                 if (controllerId != null) {
@@ -163,7 +163,7 @@ class WssSubstrateSource(
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscriptionFlow(request)
-            .map { it.subscribeStorageResult().getSingleChange() }
+            .map { it.storageChange().getSingleChange() }
             .map { change ->
                 if (change.isNullOrBlank()) {
                     createEmptyLedger(stashAddress)
@@ -184,7 +184,7 @@ class WssSubstrateSource(
     }
 
     private fun buildBalanceChange(subscriptionChange: SubscriptionChange): BalanceChange {
-        val subscribeStorageResult = subscriptionChange.subscribeStorageResult()
+        val subscribeStorageResult = subscriptionChange.storageChange()
 
         val block = subscribeStorageResult.block
         val change = subscribeStorageResult.getSingleChange()
