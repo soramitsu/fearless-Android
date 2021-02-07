@@ -27,4 +27,6 @@ class RootInteractor(
     fun isBuyProviderRedirectLink(link: String) = buyTokenRegistry.availableProviders
         .filterIsInstance<ExternalProvider>()
         .any { it.redirectLink == link }
+
+    suspend fun updatePhishingAddresses() = walletRepository.updateFishingAddresses()
 }

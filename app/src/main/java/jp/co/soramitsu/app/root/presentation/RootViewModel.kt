@@ -34,6 +34,7 @@ class RootViewModel(
 
     init {
         observeAllowedToConnect()
+        updatePhishingAddresses()
     }
 
     private fun observeAllowedToConnect() {
@@ -69,6 +70,12 @@ class RootViewModel(
         nodeScope.coroutineContext.cancelChildren()
 
         connectionManager.stop()
+    }
+
+    private fun updatePhishingAddresses() {
+        viewModelScope.launch {
+            interactor.updatePhishingAddresses()
+        }
     }
 
     fun jsonFileOpened(content: String?) {}

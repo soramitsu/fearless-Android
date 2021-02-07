@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
@@ -60,11 +59,26 @@ class ChooseRecipientViewModel(
     private val _decodeAddressResult = MutableLiveData<Event<String>>()
     val decodeAddressResult: LiveData<Event<String>> = _decodeAddressResult
 
+    private val _showFishingWarningEvent = MutableLiveData<Event<String>>()
+    val showFishingWarningEvent: LiveData<Event<String>> = _showFishingWarningEvent
+
     fun backClicked() {
         router.back()
     }
 
     fun recipientSelected(address: String) {
+        viewModelScope.launch {
+            val fishingAddress = interactor.isAddressFromFishingList(address)
+
+            if (fishingAddress) {
+                _showFishingWarningEvent.value = Event(address)
+            } else {
+                router.openChooseAmount(address)
+            }
+        }
+    }
+
+    fun proceedPhishingAddress(address: String) {
         router.openChooseAmount(address)
     }
 

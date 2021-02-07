@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
@@ -19,6 +20,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
+import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
@@ -34,6 +36,12 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideSubscanApi(networkApiCreator: NetworkApiCreator): SubscanNetworkApi {
         return networkApiCreator.create(SubscanNetworkApi::class.java)
+    }
+
+    @Provides
+    @FeatureScope
+    fun providePhishingApi(networkApiCreator: NetworkApiCreator): PhishingApi {
+        return networkApiCreator.create(PhishingApi::class.java)
     }
 
     @Provides
@@ -54,7 +62,9 @@ class WalletFeatureModule {
         transactionDao: TransactionDao,
         subscanNetworkApi: SubscanNetworkApi,
         sS58Encoder: SS58Encoder,
-        httpExceptionHandler: HttpExceptionHandler
+        httpExceptionHandler: HttpExceptionHandler,
+        phishingApi: PhishingApi,
+        phishingAddressDao: PhishingAddressDao
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         accountRepository,
@@ -62,7 +72,9 @@ class WalletFeatureModule {
         transactionDao,
         subscanNetworkApi,
         sS58Encoder,
-        httpExceptionHandler
+        httpExceptionHandler,
+        phishingApi,
+        phishingAddressDao
     )
 
     @Provides

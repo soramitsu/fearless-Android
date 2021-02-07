@@ -40,6 +40,8 @@ interface WalletInteractor {
 
     suspend fun validateSendAddress(address: String): Boolean
 
+    suspend fun isAddressFromFishingList(address: String): Boolean
+
     suspend fun getTransferFee(transfer: Transfer): Fee
 
     suspend fun performTransfer(

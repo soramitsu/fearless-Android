@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onDoneClicked
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.view.dialog.showWarningDialog
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
@@ -94,6 +95,15 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
 
         viewModel.decodeAddressResult.observeEvent {
             searchRecipientField.setText(it)
+        }
+
+        viewModel.showFishingWarningEvent.observeEvent {
+            showWarningDialog(
+                { viewModel.proceedPhishingAddress(it) }
+            ) {
+                setTitle("Scam alert")
+                setMessage("Following address: $it is known to be used in phishing activities, thus we are not recommending to send tokens to that address. Would you like to proceed anyway?")
+            }
         }
 
         searchRecipientField.onTextChanged(viewModel::queryChanged)
