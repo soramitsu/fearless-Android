@@ -9,15 +9,14 @@ import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import com.google.zxing.integration.android.IntentIntegrator
 import jp.co.soramitsu.common.account.AddressModel
-import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onDoneClicked
 import jp.co.soramitsu.common.utils.onTextChanged
-import jp.co.soramitsu.common.view.dialog.showWarningDialog
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.askPermissionsSafely
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.PhishingWarningReactionFragment
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientField
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientFlipper
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientList
@@ -29,7 +28,7 @@ private const val INDEX_WELCOME = 0
 private const val INDEX_CONTENT = 1
 private const val INDEX_EMPTY = 2
 
-class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), ChooseRecipientAdapter.NodeItemHandler {
+class ChooseRecipientFragment : PhishingWarningReactionFragment<ChooseRecipientViewModel>(), ChooseRecipientAdapter.NodeItemHandler {
 
     companion object {
         private const val PICK_IMAGE_REQUEST = 101
@@ -76,6 +75,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
     }
 
     override fun subscribe(viewModel: ChooseRecipientViewModel) {
+        super.subscribe(viewModel)
         viewModel.screenStateLiveData.observe {
             val index = when (it) {
                 State.WELCOME -> INDEX_WELCOME
@@ -95,15 +95,6 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
 
         viewModel.decodeAddressResult.observeEvent {
             searchRecipientField.setText(it)
-        }
-
-        viewModel.showPhishingWarningEvent.observeEvent {
-            showWarningDialog(
-                { viewModel.proceedWithPhishingAddress(it) }
-            ) {
-                setTitle(R.string.wallet_send_phishing_warning_title)
-                setMessage(getString(R.string.wallet_send_phishing_warning_text, it))
-            }
         }
 
         searchRecipientField.onTextChanged(viewModel::queryChanged)

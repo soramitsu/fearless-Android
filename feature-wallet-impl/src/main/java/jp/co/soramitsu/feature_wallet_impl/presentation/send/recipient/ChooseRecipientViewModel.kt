@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarning
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -40,8 +41,10 @@ class ChooseRecipientViewModel(
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
-    private val qrBitmapDecoder: QrBitmapDecoder
-) : BaseViewModel() {
+    private val qrBitmapDecoder: QrBitmapDecoder,
+    private val phishingWarning: PhishingWarning
+) : BaseViewModel(),
+    PhishingWarning by phishingWarning {
 
     private val searchEvents = MutableStateFlow(INITIAL_QUERY)
 
@@ -59,26 +62,17 @@ class ChooseRecipientViewModel(
     private val _decodeAddressResult = MutableLiveData<Event<String>>()
     val decodeAddressResult: LiveData<Event<String>> = _decodeAddressResult
 
-    private val _showPhishingWarningEvent = MutableLiveData<Event<String>>()
-    val showPhishingWarningEvent: LiveData<Event<String>> = _showPhishingWarningEvent
-
     fun backClicked() {
         router.back()
     }
 
     fun recipientSelected(address: String) {
         viewModelScope.launch {
-            val phishingAddress = interactor.isAddressFromPhishingList(address)
-
-            if (phishingAddress) {
-                _showPhishingWarningEvent.value = Event(address)
-            } else {
-                router.openChooseAmount(address)
-            }
+            checkAddressForPhishing(address)
         }
     }
 
-    fun proceedWithPhishingAddress(address: String) {
+    override fun proceedAddress(address: String) {
         router.openChooseAmount(address)
     }
 

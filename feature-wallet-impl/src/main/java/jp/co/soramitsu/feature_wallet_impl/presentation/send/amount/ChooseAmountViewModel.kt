@@ -26,6 +26,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarning
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.mapNotNull
@@ -50,10 +51,12 @@ class ChooseAmountViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
-    private val recipientAddress: String
+    private val recipientAddress: String,
+    private val phishingAddress: PhishingWarning
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
-    TransferValidityChecks by transferValidityChecks {
+    TransferValidityChecks by transferValidityChecks,
+    PhishingWarning by phishingAddress {
 
     val recipientModelLiveData = liveData {
         emit(generateAddressModel(recipientAddress))
@@ -74,9 +77,6 @@ class ChooseAmountViewModel(
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<TransferDraft>>()
     val showBalanceDetailsEvent: LiveData<Event<TransferDraft>> = _showBalanceDetailsEvent
-
-    private val _showPhishingWarningEvent = MutableLiveData<Event<TransferDraft>>()
-    val showPhishingWarningEvent: LiveData<Event<TransferDraft>> = _showPhishingWarningEvent
 
     val assetLiveData = liveData {
         val asset = interactor.getCurrentAsset()
@@ -141,7 +141,8 @@ class ChooseAmountViewModel(
         openConfirmationScreen()
     }
 
-    fun proceedWithPhishingAddress(transferDraft: TransferDraft) {
+    override fun proceedAddress(address: String) {
+        val transferDraft = buildTransferDraft() ?: return
         router.openConfirmTransfer(transferDraft)
     }
 
@@ -200,16 +201,8 @@ class ChooseAmountViewModel(
     }
 
     private fun openConfirmationScreen() {
-        val transferDraft = buildTransferDraft() ?: return
-
         viewModelScope.launch {
-            val phishingAddress = interactor.isAddressFromPhishingList(recipientAddress)
-
-            if (phishingAddress) {
-                _showPhishingWarningEvent.value = Event(transferDraft)
-            } else {
-                router.openConfirmTransfer(transferDraft)
-            }
+            checkAddressForPhishing(recipientAddress)
         }
     }
 
