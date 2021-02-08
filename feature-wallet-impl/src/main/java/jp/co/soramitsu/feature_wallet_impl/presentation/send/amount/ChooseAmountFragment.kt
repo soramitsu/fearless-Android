@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.view.dialog.showWarningDialog
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
@@ -106,6 +107,15 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
             val asset = viewModel.assetLiveData.value!!
 
             BalanceDetailsBottomSheet(requireContext(), asset, it).show()
+        }
+
+        viewModel.showPhishingWarningEvent.observeEvent {
+            showWarningDialog(
+                { viewModel.proceedWithPhishingAddress(it) }
+            ) {
+                setTitle("Scam alert")
+                setMessage("Following address: $it is known to be used in phishing activities, thus we are not recommending to send tokens to that address. Would you like to proceed anyway?")
+            }
         }
 
         chooseAmountField.content.onTextChanged(viewModel::amountChanged)

@@ -28,5 +28,5 @@ class RootInteractor(
         .filterIsInstance<ExternalProvider>()
         .any { it.redirectLink == link }
 
-    suspend fun updatePhishingAddresses() = walletRepository.updateFishingAddresses()
+    suspend fun updatePhishingAddresses() = walletRepository.updatePhishingAddresses()
 }

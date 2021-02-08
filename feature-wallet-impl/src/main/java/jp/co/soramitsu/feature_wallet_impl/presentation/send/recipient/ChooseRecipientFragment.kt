@@ -97,9 +97,9 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
             searchRecipientField.setText(it)
         }
 
-        viewModel.showFishingWarningEvent.observeEvent {
+        viewModel.showPhishingWarningEvent.observeEvent {
             showWarningDialog(
-                { viewModel.proceedPhishingAddress(it) }
+                { viewModel.proceedWithPhishingAddress(it) }
             ) {
                 setTitle("Scam alert")
                 setMessage("Following address: $it is known to be used in phishing activities, thus we are not recommending to send tokens to that address. Would you like to proceed anyway?")

@@ -59,8 +59,8 @@ class ChooseRecipientViewModel(
     private val _decodeAddressResult = MutableLiveData<Event<String>>()
     val decodeAddressResult: LiveData<Event<String>> = _decodeAddressResult
 
-    private val _showFishingWarningEvent = MutableLiveData<Event<String>>()
-    val showFishingWarningEvent: LiveData<Event<String>> = _showFishingWarningEvent
+    private val _showPhishingWarningEvent = MutableLiveData<Event<String>>()
+    val showPhishingWarningEvent: LiveData<Event<String>> = _showPhishingWarningEvent
 
     fun backClicked() {
         router.back()
@@ -68,17 +68,17 @@ class ChooseRecipientViewModel(
 
     fun recipientSelected(address: String) {
         viewModelScope.launch {
-            val fishingAddress = interactor.isAddressFromFishingList(address)
+            val phishingAddress = interactor.isAddressFromPhishingList(address)
 
-            if (fishingAddress) {
-                _showFishingWarningEvent.value = Event(address)
+            if (phishingAddress) {
+                _showPhishingWarningEvent.value = Event(address)
             } else {
                 router.openChooseAmount(address)
             }
         }
     }
 
-    fun proceedPhishingAddress(address: String) {
+    fun proceedWithPhishingAddress(address: String) {
         router.openChooseAmount(address)
     }
 
