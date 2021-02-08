@@ -30,19 +30,11 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTra
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.feeFrozen
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.free
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.miscFrozen
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountData.reserved
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo.data
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ActiveEraInfo
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Call
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignedExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.StakingLedger
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.TransferArgs
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.hash
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountData
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
@@ -54,8 +46,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flattenMerge
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
@@ -166,22 +156,22 @@ class WalletRepositoryImpl(
         return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance)
     }
 
-    override suspend fun listenForUpdates(account: Account) {
-        val accountUpdatesFlow = substrateSource.listenForAccountUpdates(account.address)
+    override suspend fun listenForAccountInfoUpdates(account: Account) {
+        substrateSource.listenForAccountUpdates(account.address)
             .onEach { change ->
                 updateAssetBalance(account, change.newAccountInfo)
 
-                fetchTransactions(account, change.block)
-            }
+                fetchTransfers(account, change.block)
+            }.collect()
+    }
 
-        val stakingLedgerUpdates = substrateSource.listenStakingLedger(account.address)
+    override suspend fun listenForStakingLedgerUpdates(account: Account) {
+        substrateSource.listenStakingLedger(account.address)
             .onEach { stakingLedger ->
                 val era = substrateSource.getActiveEra()
 
                 updateAssetStaking(account, stakingLedger, era)
-            }
-
-        flowOf(accountUpdatesFlow, stakingLedgerUpdates).flattenMerge().collect()
+            }.collect()
     }
 
     private suspend fun updateAssetStaking(
@@ -203,8 +193,8 @@ class WalletRepositoryImpl(
         }
     }
 
-    private suspend fun fetchTransactions(account: Account, blockHash: String) {
-        val transactions = substrateSource.fetchAccountTransactionInBlock(blockHash, account)
+    private suspend fun fetchTransfers(account: Account, blockHash: String) {
+        val transactions = substrateSource.fetchAccountTransfersInBlock(blockHash, account)
         val local = transactions.map { createTransactionLocal(it, account) }
 
         transactionsDao.insert(local)
@@ -287,15 +277,15 @@ class WalletRepositoryImpl(
 
     private suspend fun updateAssetBalance(
         account: Account,
-        accountInfo: EncodableStruct<AccountInfo>
+        accountInfo: EncodableStruct<AccountInfoSchema>
     ) = updateLocalAssetCopy(account) { cachedAsset ->
-        val data = accountInfo[data]
+        val data = accountInfo[accountInfo.schema.data]
 
         cachedAsset.copy(
-            freeInPlanks = data[free],
-            reservedInPlanks = data[reserved],
-            miscFrozenInPlanks = data[miscFrozen],
-            feeFrozenInPlanks = data[feeFrozen]
+            freeInPlanks = data[AccountData.free],
+            reservedInPlanks = data[AccountData.reserved],
+            miscFrozenInPlanks = data[AccountData.miscFrozen],
+            feeFrozenInPlanks = data[AccountData.feeFrozen]
         )
     }
 
@@ -336,28 +326,21 @@ class WalletRepositoryImpl(
     }
 
     private suspend fun createTransactionLocal(
-        extrinsic: EncodableStruct<SubmittableExtrinsic>,
+        extrinsic: TransferExtrinsic,
         account: Account
     ): TransactionLocal {
-        val hash = extrinsic.hash()
-
-        val localCopy = transactionsDao.getTransaction(hash)
+        val localCopy = transactionsDao.getTransaction(extrinsic.hash)
 
         val fee = localCopy?.feeInPlanks
 
         val networkType = account.network.type
         val token = Token.Type.fromNetworkType(networkType)
 
-        val signed = extrinsic[SubmittableExtrinsic.signedExtrinsic]
-        val transferArgs = signed[SignedExtrinsic.call][Call.args]
-
-        val senderAddress = sS58Encoder.encode(signed[SignedExtrinsic.accountId], networkType)
-        val recipientAddress = sS58Encoder.encode(transferArgs[TransferArgs.recipientId], networkType)
-
-        val amountInPlanks = transferArgs[TransferArgs.amount]
+        val senderAddress = sS58Encoder.encode(extrinsic.senderId, networkType)
+        val recipientAddress = sS58Encoder.encode(extrinsic.recipientId, networkType)
 
         return TransactionLocal(
-            hash = hash,
+            hash = extrinsic.hash,
             accountAddress = account.address,
             senderAddress = senderAddress,
             recipientAddress = recipientAddress,
@@ -365,7 +348,7 @@ class WalletRepositoryImpl(
             status = Transaction.Status.COMPLETED,
             feeInPlanks = fee,
             token = token,
-            amount = token.amountFromPlanks(amountInPlanks),
+            amount = token.amountFromPlanks(extrinsic.amountInPlanks),
             date = System.currentTimeMillis(),
             networkType = networkType
         )

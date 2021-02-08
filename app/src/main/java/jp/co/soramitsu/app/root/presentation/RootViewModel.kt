@@ -61,7 +61,7 @@ class RootViewModel(
                 }
             }.flowOn(Dispatchers.IO)
             .collectLatest {
-                interactor.listenForAccountUpdates(it.networkType)
+                interactor.listenForUpdates()
             }
     }
 
