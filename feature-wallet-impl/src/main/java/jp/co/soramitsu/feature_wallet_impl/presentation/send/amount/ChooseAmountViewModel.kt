@@ -75,8 +75,8 @@ class ChooseAmountViewModel(
     private val _showBalanceDetailsEvent = MutableLiveData<Event<TransferDraft>>()
     val showBalanceDetailsEvent: LiveData<Event<TransferDraft>> = _showBalanceDetailsEvent
 
-    private val _showPhishingWarningEvent = MutableLiveData<Event<String>>()
-    val showPhishingWarningEvent: LiveData<Event<String>> = _showPhishingWarningEvent
+    private val _showPhishingWarningEvent = MutableLiveData<Event<TransferDraft>>()
+    val showPhishingWarningEvent: LiveData<Event<TransferDraft>> = _showPhishingWarningEvent
 
     val assetLiveData = liveData {
         val asset = interactor.getCurrentAsset()
@@ -141,8 +141,8 @@ class ChooseAmountViewModel(
         openConfirmationScreen()
     }
 
-    fun proceedWithPhishingAddress(address: String) {
-        router.openChooseAmount(address)
+    fun proceedWithPhishingAddress(transferDraft: TransferDraft) {
+        router.openConfirmTransfer(transferDraft)
     }
 
     @OptIn(ExperimentalTime::class)
@@ -206,7 +206,7 @@ class ChooseAmountViewModel(
             val phishingAddress = interactor.isAddressFromPhishingList(recipientAddress)
 
             if (phishingAddress) {
-                _showPhishingWarningEvent.value = Event(recipientAddress)
+                _showPhishingWarningEvent.value = Event(transferDraft)
             } else {
                 router.openConfirmTransfer(transferDraft)
             }

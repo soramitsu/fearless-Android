@@ -101,8 +101,8 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
             showWarningDialog(
                 { viewModel.proceedWithPhishingAddress(it) }
             ) {
-                setTitle("Scam alert")
-                setMessage("Following address: $it is known to be used in phishing activities, thus we are not recommending to send tokens to that address. Would you like to proceed anyway?")
+                setTitle(R.string.wallet_send_phishing_warning_title)
+                setMessage(getString(R.string.wallet_send_phishing_warning_text, it))
             }
         }
 

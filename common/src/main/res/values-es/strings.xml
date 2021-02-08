@@ -212,4 +212,6 @@
     <string name="wallet_send_dead_recipient_message">Su transferencia fallará ya que el monto final en la cuenta de destino será menor que el depósito existente. Por favor, intente aumentar la cantidad.</string>
     <string name="wallet_asset_buy">Comprar</string>
     <string name="buy_completed">Compra iniciada! Espere hasta 60 minutos. Puede realizar un seguimiento del estado en el correo electrónico.</string>
+    <string name="wallet_send_phishing_warning_title">Alerta de fraude</string>
+    <string name="wallet_send_phishing_warning_text">Siguiente dirección: Se sabe que %s se usa en actividades de phishing, por lo que no recomendamos enviar tokens a esa dirección. ¿Le gustaría continuar de todos modos?</string>
 </resources>
