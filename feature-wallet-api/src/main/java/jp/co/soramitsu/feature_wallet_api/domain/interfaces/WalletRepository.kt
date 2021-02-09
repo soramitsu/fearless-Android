@@ -39,4 +39,8 @@ interface WalletRepository {
     suspend fun listenForAccountInfoUpdates(account: Account)
 
     suspend fun listenForStakingLedgerUpdates(account: Account)
+
+    suspend fun updatePhishingAddresses()
+
+    suspend fun isAddressFromPhishingList(address: String): Boolean
 }

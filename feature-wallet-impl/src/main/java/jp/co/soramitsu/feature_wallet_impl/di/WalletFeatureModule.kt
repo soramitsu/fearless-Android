@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
@@ -25,6 +26,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.accoun
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountBalanceUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountInfoSchemaUpdater
+import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
@@ -61,6 +63,12 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
+    fun providePhishingApi(networkApiCreator: NetworkApiCreator): PhishingApi {
+        return networkApiCreator.create(PhishingApi::class.java)
+    }
+
+    @Provides
+    @FeatureScope
     fun provideSubstrateSource(
         socketService: SocketService,
         keypairFactory: KeypairFactory,
@@ -84,7 +92,9 @@ class WalletFeatureModule {
         transactionDao: TransactionDao,
         subscanNetworkApi: SubscanNetworkApi,
         sS58Encoder: SS58Encoder,
-        httpExceptionHandler: HttpExceptionHandler
+        httpExceptionHandler: HttpExceptionHandler,
+        phishingApi: PhishingApi,
+        phishingAddressDao: PhishingAddressDao
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         accountRepository,
@@ -92,7 +102,9 @@ class WalletFeatureModule {
         transactionDao,
         subscanNetworkApi,
         sS58Encoder,
-        httpExceptionHandler
+        httpExceptionHandler,
+        phishingApi,
+        phishingAddressDao
     )
 
     @Provides

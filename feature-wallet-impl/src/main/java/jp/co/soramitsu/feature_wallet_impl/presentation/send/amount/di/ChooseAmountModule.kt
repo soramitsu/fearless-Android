@@ -14,9 +14,16 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountViewModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarning
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.impl.PhishingWarningProvider
 
 @Module(includes = [ViewModelModule::class])
 class ChooseAmountModule {
+
+    @Provides
+    fun providePhishingAddressMixin(interactor: WalletInteractor): PhishingWarning {
+        return PhishingWarningProvider(interactor)
+    }
 
     @Provides
     @IntoMap
@@ -27,7 +34,8 @@ class ChooseAmountModule {
         addressModelGenerator: AddressIconGenerator,
         externalAccountActions: ExternalAccountActions.Presentation,
         transferValidityChecks: TransferValidityChecks.Presentation,
-        recipientAddress: String
+        recipientAddress: String,
+        phishingWarning: PhishingWarning
     ): ViewModel {
         return ChooseAmountViewModel(
             interactor,
@@ -35,7 +43,8 @@ class ChooseAmountModule {
             addressModelGenerator,
             externalAccountActions,
             transferValidityChecks,
-            recipientAddress
+            recipientAddress,
+            phishingWarning
         )
     }
 

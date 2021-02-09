@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
@@ -17,6 +16,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarning
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -41,8 +41,10 @@ class ChooseRecipientViewModel(
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
-    private val qrBitmapDecoder: QrBitmapDecoder
-) : BaseViewModel() {
+    private val qrBitmapDecoder: QrBitmapDecoder,
+    private val phishingWarning: PhishingWarning
+) : BaseViewModel(),
+    PhishingWarning by phishingWarning {
 
     private val searchEvents = MutableStateFlow(INITIAL_QUERY)
 
@@ -65,6 +67,12 @@ class ChooseRecipientViewModel(
     }
 
     fun recipientSelected(address: String) {
+        viewModelScope.launch {
+            checkAddressForPhishing(address)
+        }
+    }
+
+    override fun proceedAddress(address: String) {
         router.openChooseAmount(address)
     }
 

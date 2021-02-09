@@ -212,4 +212,6 @@
     <string name="wallet_send_dead_recipient_message">Il tuo trasferimento non andrà a buon fine poiché l\'importo finale sul conto di destinazione sarà inferiore al deposito esistenziale. Per favore, prova ad aumentare l\'importo.</string>
     <string name="wallet_asset_buy">Acquistare</string>
     <string name="buy_completed">Acquisto avviato! Attendi fino a 60 minuti. Puoi tenere traccia dello stato sull\'e-mail.</string>
+    <string name="wallet_send_phishing_warning_title">Avviso di truffa</string>
+    <string name="wallet_send_phishing_warning_text">Il seguente indirizzo: %s è noto per essere utilizzato in attività di phishing, quindi non consigliamo di inviare token a tale indirizzo. Vuoi continuare comunque?</string>
 </resources>

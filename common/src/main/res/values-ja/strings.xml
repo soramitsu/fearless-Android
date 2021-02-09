@@ -212,4 +212,6 @@
     <string name="wallet_send_dead_recipient_message">宛先アカウントの最終金額が既存の預金より少ないため、転送は失敗します。量を増やしてみてください。</string>
     <string name="wallet_asset_buy">購入</string>
     <string name="buy_completed">購入開始！ 60分ほどお待ちください。メールでステータスを追跡できます。</string>
+    <string name="wallet_send_phishing_warning_title">詐欺警告</string>
+    <string name="wallet_send_phishing_warning_text">次のアドレス： %sはフィッシング活動で使用されることがわかっているため、そのアドレスにトークンを送信することはお勧めしません。とにかく続行しますか？</string>
 </resources>
