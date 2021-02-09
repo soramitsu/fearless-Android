@@ -76,9 +76,14 @@ class RootViewModel(
             }.flowOn(Dispatchers.IO)
             .collectLatest {
                 nodeScope.coroutineContext.cancelChildren()
+                interactor.listenForUpdates()
+            }
+    }
+
+    private fun unbindConnection() {
+        nodeScope.coroutineContext.cancelChildren()
 
                 nodeChanged(it.networkType)
-            }
     }
 
     private suspend fun nodeChanged(networkType: Node.NetworkType) {

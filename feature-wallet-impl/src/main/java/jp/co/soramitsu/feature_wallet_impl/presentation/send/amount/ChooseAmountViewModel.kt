@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.amount
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
@@ -160,6 +159,8 @@ class ChooseAmountViewModel(
         .retry(RETRY_TIMES)
         .catch {
             _feeErrorLiveData.postValue(Event(RetryReason.LOAD_FEE))
+
+            it.printStackTrace()
 
             emit(null)
         }.onEach {

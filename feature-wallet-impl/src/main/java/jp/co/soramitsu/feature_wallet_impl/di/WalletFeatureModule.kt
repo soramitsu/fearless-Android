@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
@@ -13,12 +14,17 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountBalanceUpdater
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountInfoSchemaUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
@@ -38,12 +44,36 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideDualRefCountProperty() = SuspendableProperty<Boolean>()
+
+    @Provides
+    @FeatureScope
+    fun provideExtrinsicFactory(
+        dualRefCountProperty: SuspendableProperty<Boolean>,
+        signer: Signer
+    ) = TransferExtrinsicFactory(dualRefCountProperty, signer)
+
+    @Provides
+    @FeatureScope
+    fun provideAccountInfoFactory(
+        dualRefCountProperty: SuspendableProperty<Boolean>
+    ) = AccountInfoFactory(dualRefCountProperty)
+
+    @Provides
+    @FeatureScope
     fun provideSubstrateSource(
         socketService: SocketService,
         keypairFactory: KeypairFactory,
-        signer: Signer,
+        accountInfoFactory: AccountInfoFactory,
+        extrinsicFactory: TransferExtrinsicFactory,
         sS58Encoder: SS58Encoder
-    ) = WssSubstrateSource(socketService, signer, keypairFactory, sS58Encoder)
+    ) = WssSubstrateSource(
+        socketService,
+        keypairFactory,
+        accountInfoFactory,
+        extrinsicFactory,
+        sS58Encoder
+    )
 
     @Provides
     @FeatureScope
@@ -91,4 +121,29 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideTransferChecks(): TransferValidityChecks.Presentation = TransferValidityChecksProvider()
+
+    @Provides
+    @FeatureScope
+    fun provideAccountSchemaUpdater(
+        accountInfoFactory: AccountInfoFactory,
+        socketService: SocketService
+    ): AccountInfoSchemaUpdater {
+        return AccountInfoSchemaUpdater(accountInfoFactory, socketService)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideBalanceUpdater(
+        accountRepository: AccountRepository,
+        walletRepository: WalletRepository
+    ): AccountBalanceUpdater {
+        return AccountBalanceUpdater(accountRepository, walletRepository)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideFeatureUpdaters(
+        schemaUpdater: AccountInfoSchemaUpdater,
+        balanceUpdater: AccountBalanceUpdater
+    ): WalletUpdaters = WalletUpdaters(listOf(schemaUpdater, balanceUpdater))
 }

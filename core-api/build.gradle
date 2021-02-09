@@ -9,7 +9,4 @@ compileKotlin {
 
 dependencies {
     implementation coroutinesDep
-    
-    implementation project(':feature-account-api')
-    api project(':core-api')
 }

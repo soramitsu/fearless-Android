@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 
@@ -35,4 +36,6 @@ interface RootDependencies {
     fun socketService(): SocketService
     fun gson(): Gson
     fun runtimeDao(): RuntimeDao
+
+    fun walletUpdaters(): WalletUpdaters
 }
