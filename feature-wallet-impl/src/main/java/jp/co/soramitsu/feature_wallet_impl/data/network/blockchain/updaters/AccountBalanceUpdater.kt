@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
-import jp.co.soramitsu.core.data.network.Updater
+import jp.co.soramitsu.core_api.data.network.Updater
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import kotlinx.coroutines.Dispatchers

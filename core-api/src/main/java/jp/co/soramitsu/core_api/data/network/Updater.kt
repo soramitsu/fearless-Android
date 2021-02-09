@@ -1,4 +1,4 @@
-package jp.co.soramitsu.core.data.network
+package jp.co.soramitsu.core_api.data.network
 
 interface Updater {
     /**
