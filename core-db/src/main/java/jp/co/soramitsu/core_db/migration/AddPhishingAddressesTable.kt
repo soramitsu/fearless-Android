@@ -8,9 +8,8 @@ object AddPhishingAddressesTable : Migration(10, 11) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("""
             CREATE TABLE `phishing_addresses` (
-            `id` INTEGER NOT NULL,
             `publicKey` TEXT NOT NULL,
-            PRIMARY KEY(`id`) );
+            PRIMARY KEY(`publicKey`) );
         """.trimIndent())
     }
 }

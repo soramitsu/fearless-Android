@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.view.dialog.showErrorDialog
 import jp.co.soramitsu.common.view.dialog.showWarningDialog
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarning
 
 interface TransferValidityChecks {
     val showTransferWarning: LiveData<Event<TransferValidityLevel.Warning.Status>>
@@ -48,6 +49,18 @@ fun <T> BaseFragment<T>.observeTransferChecks(
 
     viewModel.showTransferError.observeEvent {
         showTransferError(it, errorConfirmed)
+    }
+}
+
+fun <T> BaseFragment<T>.showPhishingWarning(
+    viewModel: T,
+    address: String
+) where T : BaseViewModel, T : PhishingWarning {
+    showWarningDialog({
+        viewModel.proceedAddress(address)
+    }) {
+        setTitle(R.string.wallet_send_phishing_warning_title)
+        setMessage(getString(R.string.wallet_send_phishing_warning_text, address))
     }
 }
 

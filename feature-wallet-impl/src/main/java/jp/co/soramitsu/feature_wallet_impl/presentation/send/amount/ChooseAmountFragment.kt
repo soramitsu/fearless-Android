@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import jp.co.soramitsu.common.account.external.actions.setupExternalActions
+import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.setTextColorRes
@@ -15,7 +16,6 @@ import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.PhishingWarningReactionFragment
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalance
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalanceLabel
@@ -29,7 +29,7 @@ import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToolbar
 
 private const val KEY_ADDRESS = "KEY_ADDRESS"
 
-class ChooseAmountFragment : PhishingWarningReactionFragment<ChooseAmountViewModel>() {
+class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
     companion object {
         fun getBundle(recipientAddress: String) = Bundle().apply {
@@ -68,7 +68,6 @@ class ChooseAmountFragment : PhishingWarningReactionFragment<ChooseAmountViewMod
     }
 
     override fun subscribe(viewModel: ChooseAmountViewModel) {
-        super.subscribe(viewModel)
         setupExternalActions(viewModel)
 
         observeTransferChecks(viewModel, viewModel::warningConfirmed)
