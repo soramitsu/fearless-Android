@@ -180,7 +180,7 @@ class WalletRepositoryImpl(
             }.collect()
     }
 
-    override suspend fun updatePhishingAddresses() = withContext(Dispatchers.IO) {
+    override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
         val publicKeys = phishingApi.getPhishingAddresses().entries.map { it.value }.flatten()
             .map { sS58Encoder.decode(it).toHexString(withPrefix = true) }
 
@@ -190,7 +190,7 @@ class WalletRepositoryImpl(
         phishingAddressDao.insert(phishingAddressesLocal)
     }
 
-    override suspend fun isAddressFromPhishingList(address: String) = withContext(Dispatchers.IO) {
+    override suspend fun isAddressFromPhishingList(address: String) = withContext(Dispatchers.Default) {
         val phishingAddresses = phishingAddressDao.getAll()
 
         val addressPublicKey = sS58Encoder.decode(address).toHexString(withPrefix = true)
