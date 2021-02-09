@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.create
+package jp.co.soramitsu.feature_account_impl.presentation.account.create
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,10 +10,10 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
-import jp.co.soramitsu.feature_onboarding_impl.R
-import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureComponent
+import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_create_account.accountNameInput
 import kotlinx.android.synthetic.main.fragment_create_account.nextBtn
 import kotlinx.android.synthetic.main.fragment_create_account.toolbar
@@ -53,13 +53,13 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
     override fun inject() {
         val networkType = argument<Node.NetworkType?>(KEY_NETWORK_TYPE)
 
-        FeatureUtils.getFeature<OnboardingFeatureComponent>(context!!, OnboardingFeatureApi::class.java)
+        FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .createAccountComponentFactory()
             .create(this, networkType)
             .inject(this)
     }
 
-    override fun subscribe(viewModel: CreateAccountViewModel) {
+    override fun subscribe(viewModel: jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountViewModel) {
         viewModel.nextButtonEnabledLiveData.observe {
             nextBtn.isEnabled = it
         }

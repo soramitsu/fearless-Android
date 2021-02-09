@@ -1,16 +1,16 @@
-package jp.co.soramitsu.feature_onboarding_impl.presentation.create
+package jp.co.soramitsu.feature_account_impl.presentation.account.create
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_onboarding_api.domain.OnboardingInteractor
-import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
+import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 class CreateAccountViewModel(
-    private val interactor: OnboardingInteractor,
-    private val router: OnboardingRouter,
+    private val interactor: AccountInteractor,
+    private val router: AccountRouter,
     private val selectedNetworkType: Node.NetworkType?
 ) : BaseViewModel() {
 
