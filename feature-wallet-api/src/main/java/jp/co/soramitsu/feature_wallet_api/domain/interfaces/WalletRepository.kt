@@ -36,6 +36,10 @@ interface WalletRepository {
 
     suspend fun checkTransferValidity(transfer: Transfer): TransferValidityStatus
 
+    suspend fun listenForAccountInfoUpdates(account: Account)
+
+    suspend fun listenForStakingLedgerUpdates(account: Account)
+
     suspend fun listenForUpdates(account: Account)
 
     suspend fun updatePhishingAddresses()
