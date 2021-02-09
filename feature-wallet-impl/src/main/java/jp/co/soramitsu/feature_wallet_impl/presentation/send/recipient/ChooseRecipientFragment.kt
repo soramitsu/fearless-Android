@@ -17,7 +17,7 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.askPermissionsSafely
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.showPhishingWarning
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientField
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientFlipper
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientList
@@ -94,9 +94,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
             searchRecipientField.setText(it)
         }
 
-        viewModel.showPhishingWarning.observeEvent {
-            showPhishingWarning(viewModel, it)
-        }
+        observePhishingCheck(viewModel)
 
         searchRecipientField.onTextChanged(viewModel::queryChanged)
     }
