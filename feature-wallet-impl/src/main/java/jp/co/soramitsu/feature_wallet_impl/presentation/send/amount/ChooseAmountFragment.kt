@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.showPhishingWarning
 import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalance
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalanceLabel
@@ -106,6 +107,10 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
             val asset = viewModel.assetLiveData.value!!
 
             BalanceDetailsBottomSheet(requireContext(), asset, it).show()
+        }
+
+        viewModel.showPhishingWarning.observeEvent {
+            showPhishingWarning(viewModel, it)
         }
 
         chooseAmountField.content.onTextChanged(viewModel::amountChanged)
