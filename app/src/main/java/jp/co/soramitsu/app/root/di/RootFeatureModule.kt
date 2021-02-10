@@ -101,7 +101,7 @@ class RootFeatureModule {
         accountRepository: AccountRepository,
         socketService: SocketService,
         runtimeConstructor: RuntimeConstructor,
-        runtimeProperty:  SuspendableProperty<RuntimeSnapshot>
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
     ) = RuntimeUpdater(
         runtimeConstructor,
         socketService,
