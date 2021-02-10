@@ -8,7 +8,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.chooseNetworkClicked
@@ -52,12 +51,6 @@ abstract class ImportSourceView @JvmOverloads constructor(
     }
 
     private fun changeNetworkInputState(enable: Boolean, networkInputView: LabeledTextView) {
-        if (enable) {
-            networkInputView.isEnabled = true
-            networkInputView.makeVisible()
-        } else {
-            networkInputView.isEnabled = false
-            networkInputView.makeVisible()
-        }
+        networkInputView.isEnabled = enable
     }
 }

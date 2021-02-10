@@ -8,7 +8,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
-import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -83,13 +82,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
             networkInput.setMessage(it.name)
         }
 
-        if (viewModel.isNetworkTypeChangeAvailable) {
-            networkInput.isEnabled = true
-            networkInput.makeVisible()
-        } else {
-            networkInput.isEnabled = false
-            networkInput.makeVisible()
-        }
+        networkInput.isEnabled = viewModel.isNetworkTypeChangeAvailable
 
         viewModel.networkChooserEvent.observeEvent(::showNetworkChooser)
     }
