@@ -26,6 +26,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarning
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -56,10 +57,12 @@ class ChooseAmountViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
-    private val recipientAddress: String
+    private val recipientAddress: String,
+    private val phishingAddress: PhishingWarning
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
-    TransferValidityChecks by transferValidityChecks {
+    TransferValidityChecks by transferValidityChecks,
+    PhishingWarning by phishingAddress {
 
     val recipientModelLiveData = liveData {
         emit(generateAddressModel(recipientAddress))
@@ -144,6 +147,11 @@ class ChooseAmountViewModel(
         openConfirmationScreen()
     }
 
+    override fun proceedAddress(address: String) {
+        val transferDraft = buildTransferDraft() ?: return
+        router.openConfirmTransfer(transferDraft)
+    }
+
     @OptIn(ExperimentalTime::class)
     private fun feeFlow(): Flow<Fee?> = amountEvents
         .mapNotNull(String::toBigDecimalOrNull)
@@ -201,9 +209,9 @@ class ChooseAmountViewModel(
     }
 
     private fun openConfirmationScreen() {
-        val transferDraft = buildTransferDraft() ?: return
-
-        router.openConfirmTransfer(transferDraft)
+        viewModelScope.launch {
+            checkAddressForPhishing(recipientAddress)
+        }
     }
 
     private fun buildTransferDraft(): TransferDraft? {

@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
@@ -68,4 +69,6 @@ interface WalletFeatureDependencies {
     fun externalAccountActions(): ExternalAccountActions.Presentation
 
     fun httpExceptionHandler(): HttpExceptionHandler
+
+    fun phishingAddressesDao(): PhishingAddressDao
 }

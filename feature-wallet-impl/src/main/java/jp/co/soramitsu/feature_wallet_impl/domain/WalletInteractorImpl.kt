@@ -105,6 +105,10 @@ class WalletInteractorImpl(
         return accountRepository.isInCurrentNetwork(address)
     }
 
+    override suspend fun isAddressFromPhishingList(address: String): Boolean {
+        return walletRepository.isAddressFromPhishingList(address)
+    }
+
     override suspend fun getTransferFee(transfer: Transfer): Fee {
         return walletRepository.getTransferFee(transfer)
     }

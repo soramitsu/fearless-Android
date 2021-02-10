@@ -213,4 +213,6 @@
     <string name="wallet_send_dead_recipient_message">Ваш перевод не состоится, так как окончательная сумма на целевом счете будет меньше, чем существующий депозит. Пожалуйста, попробуйте увеличить сумму.</string>
     <string name="wallet_asset_buy">Купить</string>
     <string name="buy_completed">Покупка началась! Подождите до 60 минут. Вы можете отслеживать статус по электронной почте.</string>
+    <string name="wallet_send_phishing_warning_title">Предупреждение о мошенничестве</string>
+    <string name="wallet_send_phishing_warning_text">Следующий адрес: %s как известно, используется для фишинга, поэтому мы не рекомендуем отправлять токены на этот адрес. Вы все равно хотите продолжить?</string>
 </resources>

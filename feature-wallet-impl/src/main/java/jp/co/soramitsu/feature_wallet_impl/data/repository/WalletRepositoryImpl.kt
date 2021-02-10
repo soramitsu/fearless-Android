@@ -4,12 +4,15 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.utils.encode
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.AssetLocal
+import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -39,6 +42,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPrice
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubscanResponse
+import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -62,7 +66,9 @@ class WalletRepositoryImpl(
     private val transactionsDao: TransactionDao,
     private val subscanApi: SubscanNetworkApi,
     private val sS58Encoder: SS58Encoder,
-    private val httpExceptionHandler: HttpExceptionHandler
+    private val httpExceptionHandler: HttpExceptionHandler,
+    private val phishingApi: PhishingApi,
+    private val phishingAddressDao: PhishingAddressDao
 ) : WalletRepository {
 
     override fun assetsFlow(): Flow<List<Asset>> {
@@ -172,6 +178,24 @@ class WalletRepositoryImpl(
 
                 updateAssetStaking(account, stakingLedger, era)
             }.collect()
+    }
+
+    override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
+        val publicKeys = phishingApi.getPhishingAddresses().entries.map { it.value }.flatten()
+            .map { sS58Encoder.decode(it).toHexString(withPrefix = true) }
+
+        val phishingAddressesLocal = publicKeys.map { PhishingAddressLocal(it) }
+
+        phishingAddressDao.clearTable()
+        phishingAddressDao.insert(phishingAddressesLocal)
+    }
+
+    override suspend fun isAddressFromPhishingList(address: String) = withContext(Dispatchers.Default) {
+        val phishingAddresses = phishingAddressDao.getAll()
+
+        val addressPublicKey = sS58Encoder.decode(address).toHexString(withPrefix = true)
+
+        phishingAddresses.map { it.publicKey }.contains(addressPublicKey)
     }
 
     private suspend fun updateAssetStaking(

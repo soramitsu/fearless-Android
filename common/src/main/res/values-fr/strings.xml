@@ -213,4 +213,6 @@
     <string name="wallet_send_dead_recipient_message">Votre transfert échouera car le montant final sur le compte de destination sera inférieur au dépôt existentiel. S\'il vous plaît, essayez d\'augmenter le montant.</string>
     <string name="wallet_asset_buy">Acheter</string>
     <string name="buy_completed">Achat lancé! Veuillez patienter jusqu\'à 60 minutes. Vous pouvez suivre le statut sur l\'e-mail.</string>
+    <string name="wallet_send_phishing_warning_title">Alerte aux arnaques</string>
+    <string name="wallet_send_phishing_warning_text">Adresse suivante: %s est connu pour être utilisé dans des activités de phishing, nous ne recommandons donc pas d\'envoyer des jetons à cette adresse. Souhaitez-vous quand même continuer?</string>
 </resources>

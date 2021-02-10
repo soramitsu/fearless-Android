@@ -9,6 +9,7 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.RuntimeDao
+import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
@@ -54,4 +55,10 @@ class DbModule {
         return appDatabase.runtimeDao()
     }
 
+
+    @Provides
+    @ApplicationScope
+    fun providePhishingAddressDao(appDatabase: AppDatabase): PhishingAddressDao {
+        return appDatabase.phishingAddressesDao()
+    }
 }

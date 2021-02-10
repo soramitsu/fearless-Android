@@ -213,4 +213,6 @@
     <string name="wallet_send_dead_recipient_message">Ваш переказ не вдасться, оскільки остаточна сума на цільовому рахунку буде меншою за екзистенційний депозит. Спробуйте збільшити суму.</string>
     <string name="wallet_asset_buy">Купуйте</string>
     <string name="buy_completed">Покупку розпочато! Зачекайте до 60 хвилин. Ви можете відстежувати стан за електронною поштою.</string>
+    <string name="wallet_send_phishing_warning_title">Попередження про шахрайство</string>
+    <string name="wallet_send_phishing_warning_text">Наступна адреса: %s як відомо, використовується у фішинг-діях, тому ми не рекомендуємо надсилати токени на цю адресу. Ви хочете всеодно продовжити?</string>
 </resources>

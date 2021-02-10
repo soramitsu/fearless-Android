@@ -14,6 +14,7 @@ import java.io.File
 import java.math.BigDecimal
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
+class PhishingAddress() : Exception()
 
 interface WalletInteractor {
     fun assetsFlow(): Flow<List<Asset>>
@@ -39,6 +40,8 @@ interface WalletInteractor {
     suspend fun getRecipients(query: String): RecipientSearchResult
 
     suspend fun validateSendAddress(address: String): Boolean
+
+    suspend fun isAddressFromPhishingList(address: String): Boolean
 
     suspend fun getTransferFee(transfer: Transfer): Fee
 
