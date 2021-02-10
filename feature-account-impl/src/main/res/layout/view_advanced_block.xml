@@ -57,16 +57,6 @@
             android:layout_marginTop="16dp"
             android:hint="@string/common_secret_derivation_path" />
 
-        <jp.co.soramitsu.common.view.LabeledTextView
-            android:id="@+id/networkInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:actionIcon="@drawable/ic_pin_white_24"
-            app:label="@string/common_choose_network"
-            tools:message="Kusama"
-            tools:textIcon="@drawable/ic_ksm_24" />
-
     </LinearLayout>
 
 </merge>

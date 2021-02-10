@@ -12,17 +12,10 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.NetworkChooser
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicViewModel
 
 @Module(includes = [ViewModelModule::class])
 class BackupMnemonicModule {
-
-    @Provides
-    fun provideNetworkChooserMixin(interactor: AccountInteractor, networkType: Node.NetworkType?): NetworkChooserMixin {
-        return NetworkChooser(interactor, networkType)
-    }
 
     @Provides
     @IntoMap
@@ -31,15 +24,15 @@ class BackupMnemonicModule {
         interactor: AccountInteractor,
         router: AccountRouter,
         accountName: String,
-        networkChooserMixin: NetworkChooserMixin,
+        networkType: Node.NetworkType,
         cryptoTypeChooserMixin: CryptoTypeChooserMixin
     ): ViewModel {
         return BackupMnemonicViewModel(
             interactor,
             router,
             accountName,
-            cryptoTypeChooserMixin,
-            networkChooserMixin
+            networkType,
+            cryptoTypeChooserMixin
         )
     }
 

@@ -17,7 +17,7 @@ interface AccountRouter : SecureRouter {
 
     fun openCreatePincode()
 
-    fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType?)
+    fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType)
 
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
 

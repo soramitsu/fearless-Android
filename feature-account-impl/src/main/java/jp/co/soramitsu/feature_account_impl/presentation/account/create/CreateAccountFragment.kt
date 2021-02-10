@@ -8,25 +8,31 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.chooseNetworkClicked
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.android.synthetic.main.fragment_create_account.accountNameInput
+import kotlinx.android.synthetic.main.fragment_create_account.networkInput
 import kotlinx.android.synthetic.main.fragment_create_account.nextBtn
 import kotlinx.android.synthetic.main.fragment_create_account.toolbar
 
 class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
 
     companion object {
-        private const val KEY_NETWORK_TYPE = "network_type"
+        private const val KEY_FORCED_NETWORK_TYPE = "forced_network_type"
 
         fun getBundle(networkType: Node.NetworkType?): Bundle {
 
             return Bundle().apply {
-                putSerializable(KEY_NETWORK_TYPE, networkType)
+                putSerializable(KEY_FORCED_NETWORK_TYPE, networkType)
             }
         }
     }
@@ -47,11 +53,15 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
             viewModel.accountNameChanged(it)
         }
 
+        networkInput.setWholeClickListener {
+            viewModel.chooseNetworkClicked()
+        }
+
         accountNameInput.content.filters = nameInputFilters()
     }
 
     override fun inject() {
-        val networkType = argument<Node.NetworkType?>(KEY_NETWORK_TYPE)
+        val networkType = argument<Node.NetworkType?>(KEY_FORCED_NETWORK_TYPE)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .createAccountComponentFactory()
@@ -59,7 +69,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
             .inject(this)
     }
 
-    override fun subscribe(viewModel: jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountViewModel) {
+    override fun subscribe(viewModel: CreateAccountViewModel) {
         viewModel.nextButtonEnabledLiveData.observe {
             nextBtn.isEnabled = it
         }
@@ -67,6 +77,28 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
         viewModel.showScreenshotsWarningEvent.observeEvent {
             showScreenshotWarningDialog()
         }
+
+        viewModel.selectedNetworkLiveData.observe {
+            networkInput.setTextIcon(it.networkTypeUI.icon)
+            networkInput.setMessage(it.name)
+        }
+
+        if (viewModel.isNetworkTypeChangeAvailable) {
+            networkInput.isEnabled = true
+            networkInput.makeVisible()
+        } else {
+            networkInput.isEnabled = false
+            networkInput.makeVisible()
+        }
+
+        viewModel.networkChooserEvent.observeEvent(::showNetworkChooser)
+    }
+
+    private fun showNetworkChooser(payload: DynamicListBottomSheet.Payload<NetworkModel>) {
+        NetworkChooserBottomSheetDialog(
+            requireActivity(), payload,
+            viewModel.selectedNetworkLiveData::setValue
+        ).show()
     }
 
     private fun showScreenshotWarningDialog() {

@@ -119,7 +119,7 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.importAction, ImportAccountFragment.getBundle(selectedNetworkType))
     }
 
-    override fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType?) {
+    override fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType) {
         val bundle = BackupMnemonicFragment.getBundle(accountName, selectedNetworkType)
         navController?.navigate(R.id.action_createAccountFragment_to_backupMnemonicFragment, bundle)
     }

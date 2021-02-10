@@ -7,18 +7,29 @@
     tools:background="@color/black"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/importMnemonicNetworkInput"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:actionIcon="@drawable/ic_pin_white_24"
+        app:label="@string/common_choose_network"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:message="Kusama"
+        tools:textIcon="@drawable/ic_ksm_24" />
+
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/importMnemonicUsernameInput"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:hint="@string/username_setup_choose_title"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-    </jp.co.soramitsu.common.view.InputField>
+        app:layout_constraintTop_toBottomOf="@+id/importMnemonicNetworkInput" />
 
     <TextView
         android:id="@+id/usernameHintTv"
@@ -61,12 +72,12 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:background="@null"
-            android:textCursorDrawable="@null"
             android:gravity="top"
             android:inputType="textMultiLine|textVisiblePassword"
             android:minLines="5"
             android:padding="0dp"
             android:textColor="@color/white"
+            android:textCursorDrawable="@null"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/importMnemonicTitle"
             app:layout_constraintStart_toStartOf="@+id/importMnemonicTitle"
