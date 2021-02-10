@@ -16,7 +16,9 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarning
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -42,9 +44,9 @@ class ChooseRecipientViewModel(
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val qrBitmapDecoder: QrBitmapDecoder,
-    private val phishingWarning: PhishingWarning
+    private val phishingWarning: PhishingWarningMixin
 ) : BaseViewModel(),
-    PhishingWarning by phishingWarning {
+    PhishingWarningMixin by phishingWarning, PhishingWarningPresentation {
 
     private val searchEvents = MutableStateFlow(INITIAL_QUERY)
 
@@ -68,7 +70,7 @@ class ChooseRecipientViewModel(
 
     fun recipientSelected(address: String) {
         viewModelScope.launch {
-            checkAddressForPhishing(address)
+            proceedOrShowPhishingWarning(address)
         }
     }
 
