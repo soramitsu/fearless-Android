@@ -10,6 +10,6 @@ interface Updater {
     suspend fun listenForUpdates() : Flow<SideEffect>
 
     interface SideEffect
-}
 
-fun <T> Flow<T>.noSideAffects() : Flow<Updater.SideEffect> = transform {  }
+    fun <T> Flow<T>.noSideAffects() : Flow<SideEffect> = transform {  }
+}

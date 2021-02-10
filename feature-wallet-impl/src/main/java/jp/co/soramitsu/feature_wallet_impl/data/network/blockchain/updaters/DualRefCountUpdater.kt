@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
 import jp.co.soramitsu.common.utils.fromHex
 import jp.co.soramitsu.core_api.data.network.Updater
-import jp.co.soramitsu.core_api.data.network.noSideAffects
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.runtime.Service
 import jp.co.soramitsu.fearless_utils.runtime.StorageUtils
@@ -41,10 +40,10 @@ class AccountInfoSchemaUpdater(
     private val socketService: SocketService
 ) : Updater {
 
-    override suspend fun listenForUpdates() : Flow<Updater.SideEffect> {
+    override suspend fun listenForUpdates(): Flow<Updater.SideEffect> {
         accountInfoFactory.isUpgradedToDualRefCount.invalidate()
 
-       return socketService.subscriptionFlow(upgradedToDualRefCountRequest)
+        return socketService.subscriptionFlow(upgradedToDualRefCountRequest)
             .map { it.dualRefCountChange() }
             .onEach(accountInfoFactory.isUpgradedToDualRefCount::set)
             .noSideAffects()

@@ -42,8 +42,9 @@ class RuntimeUpdater(
             .catch { emit(errorStatus()) }
     }
 
-    suspend fun manualRuntimeUpdate() = try {
+    private suspend fun manualRuntimeUpdate() = try {
         runtimeHolder.invalidate()
+
 
         val result = runtimeProvider.prepareRuntime(getCurrentNetworkName())
 

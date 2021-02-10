@@ -12,9 +12,7 @@ class CompositeUpdater(
     constructor(vararg updaters: Updater) : this(updaters.toList())
 
     override suspend fun listenForUpdates() = withContext(Dispatchers.IO) {
-        val flows = updaters.map {
-            it.listenForUpdates()
-        }
+        val flows = updaters.map { it.listenForUpdates() }
 
         flows.merge()
     }
