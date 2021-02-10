@@ -19,14 +19,14 @@ import kotlinx.coroutines.withContext
 
 private const val TYPE_DEFINITIONS_DEFAULT = "default"
 
-class RuntimeParams(
+class ConstructionParams(
     val metadataRaw: String,
     val defaultDefinitions: TypeDefinitionsTree,
     val networkDefinitions: TypeDefinitionsTree,
     val areNewest: Boolean
 )
 
-class RuntimeProvider(
+class RuntimeConstructor(
     private val socketService: SocketService,
     private val definitionsFetcher: DefinitionsFetcher,
     private val gson: Gson,
@@ -35,25 +35,25 @@ class RuntimeProvider(
     private val runtimeCache: RuntimeCache
 ) {
 
-    class Prepared(val runtime: RuntimeSnapshot, val isNewest: Boolean)
+    class Constructed(val runtime: RuntimeSnapshot, val isNewest: Boolean)
 
-    suspend fun prepareRuntime(
+    suspend fun constructRuntime(
         networkName: String
-    ): Prepared {
+    ): Constructed {
         val latestRuntimeVersion = runtimeDao.getCacheEntry(networkName).latestKnownVersion
 
-        return prepareRuntime(latestRuntimeVersion, networkName)
+        return constructRuntime(latestRuntimeVersion, networkName)
     }
 
-    suspend fun prepareRuntime(
-        latestRuntimeVersion: Int,
+    suspend fun constructRuntime(
+        newRuntimeVersion: Int,
         networkName: String
-    ): Prepared = withContext(Dispatchers.IO) {
+    ): Constructed = withContext(Dispatchers.IO) {
         runtimePrepopulator.maybePrepopulateCache()
 
-        runtimeDao.updateLatestKnownVersion(networkName, latestRuntimeVersion)
+        runtimeDao.updateLatestKnownVersion(networkName, newRuntimeVersion)
 
-        val runtimeParams = getRuntimeParams(latestRuntimeVersion, networkName)
+        val runtimeParams = getRuntimeParams(newRuntimeVersion, networkName)
 
         val typeRegistry = constructTypeRegistry(runtimeParams)
 
@@ -62,13 +62,13 @@ class RuntimeProvider(
 
         val runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata)
 
-        Prepared(
+        Constructed(
             runtime,
             isNewest = runtimeParams.areNewest
         )
     }
 
-    private suspend fun getRuntimeParams(latestRuntimeVersion: Int, networkName: String): RuntimeParams {
+    private suspend fun getRuntimeParams(latestRuntimeVersion: Int, networkName: String): ConstructionParams {
         val cacheInfo = runtimeDao.getCacheEntry(networkName)
 
         val metadataRaw = if (latestRuntimeVersion <= cacheInfo.latestAppliedVersion) {
@@ -77,7 +77,7 @@ class RuntimeProvider(
             if (latestRuntimeVersion <= cacheInfo.typesVersion) {
                 val (default, network) = networkTypesFromCache(networkName)
 
-                return RuntimeParams(metadataRaw, default, network, areNewest = true)
+                return ConstructionParams(metadataRaw, default, network, areNewest = true)
             }
 
             metadataRaw
@@ -104,7 +104,7 @@ class RuntimeProvider(
 
         runtimeCache.saveTypeDefinitions(networkName, networkTreeRaw)
 
-        return RuntimeParams(
+        return ConstructionParams(
             metadataRaw,
             defaultTree,
             networkTree,
@@ -124,9 +124,9 @@ class RuntimeProvider(
 
     private fun typesFromJson(typeDefinitions: String) = gson.fromJson(typeDefinitions, TypeDefinitionsTree::class.java)
 
-    private fun constructTypeRegistry(runtimeParams: RuntimeParams): TypeRegistry {
-        val defaultTypePreset = TypeDefinitionParser.parseTypeDefinitions(runtimeParams.defaultDefinitions, substratePreParsePreset()).typePreset
-        val networkTypePreset = TypeDefinitionParser.parseTypeDefinitions(runtimeParams.networkDefinitions, defaultTypePreset).typePreset
+    private fun constructTypeRegistry(constructionParams: ConstructionParams): TypeRegistry {
+        val defaultTypePreset = TypeDefinitionParser.parseTypeDefinitions(constructionParams.defaultDefinitions, substratePreParsePreset()).typePreset
+        val networkTypePreset = TypeDefinitionParser.parseTypeDefinitions(constructionParams.networkDefinitions, defaultTypePreset).typePreset
 
         return TypeRegistry(
             types = networkTypePreset,

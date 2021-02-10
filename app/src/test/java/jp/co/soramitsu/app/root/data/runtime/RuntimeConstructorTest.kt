@@ -26,7 +26,7 @@ import org.mockito.junit.MockitoJUnitRunner
 private const val EMPTY_METADATA = "0x1111111122001100"
 
 @RunWith(MockitoJUnitRunner::class)
-class RuntimeProviderTest {
+class RuntimeConstructorTest {
 
     @Mock
     lateinit var cache: RuntimeCache
@@ -49,7 +49,7 @@ class RuntimeProviderTest {
     @Mock
     lateinit var runtimePrepopulator: RuntimePrepopulator
 
-    lateinit var runtimeProvider: RuntimeProvider
+    lateinit var runtimeConstructor: RuntimeConstructor
 
     @Suppress("UNCHECKED_CAST")
     @Before
@@ -71,7 +71,7 @@ class RuntimeProviderTest {
 
             `when`(runtimePrepopulator.maybePrepopulateCache()).thenReturn(Unit) // no pre population in test
 
-            runtimeProvider = RuntimeProvider(socketService, definitionsFetcher, gson, runtimeDao, runtimePrepopulator, cache)
+            runtimeConstructor = RuntimeConstructor(socketService, definitionsFetcher, gson, runtimeDao, runtimePrepopulator, cache)
         }
     }
 
@@ -81,7 +81,7 @@ class RuntimeProviderTest {
             dbReturnsCacheInfo(lastKnownVersion = 1, lastAppliedVersion = 1, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
 
-            val result = runtimeProvider.prepareRuntime(latestRuntimeVersion = 1,"kusama")
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 1,"kusama")
 
             assertEquals(true, result.isNewest)
 
@@ -98,7 +98,7 @@ class RuntimeProviderTest {
             cacheReturnsMetadata(EMPTY_METADATA)
             serverReturnsTypes(runtimeId = 1)
 
-            val result = runtimeProvider.prepareRuntime(latestRuntimeVersion = 2, "kusama")
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
             assertEquals(false, result.isNewest)
 
@@ -117,7 +117,7 @@ class RuntimeProviderTest {
             cacheReturnsMetadata(EMPTY_METADATA)
             serverReturnsTypes(runtimeId = 2)
 
-            val result = runtimeProvider.prepareRuntime(latestRuntimeVersion = 2, "kusama")
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
             assertEquals(true, result.isNewest)
 
@@ -137,7 +137,7 @@ class RuntimeProviderTest {
             nodeReturnsMetadata(EMPTY_METADATA)
             serverReturnsTypes(runtimeId = 1)
 
-            val result = runtimeProvider.prepareRuntime(latestRuntimeVersion = 2, "kusama")
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
             assertEquals(false, result.isNewest)
 
@@ -157,7 +157,7 @@ class RuntimeProviderTest {
             nodeReturnsMetadata(EMPTY_METADATA)
             serverReturnsTypes(runtimeId = 2)
 
-            val result = runtimeProvider.prepareRuntime(latestRuntimeVersion = 2, "kusama")
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
             assertEquals(true, result.isNewest)
 

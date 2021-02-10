@@ -1,6 +1,8 @@
 package jp.co.soramitsu.app.root.data.runtime
 
+import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_api.data.network.Updater
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.runtimeVersionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
@@ -9,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import java.util.Locale
 
 typealias RuntimeUpdateRetry = suspend () -> RuntimePreparationStatus
@@ -23,38 +24,42 @@ sealed class RuntimePreparationStatus : Updater.SideEffect {
 }
 
 class RuntimeUpdater(
-    private val runtimeProvider: RuntimeProvider,
+    private val runtimeConstructor: RuntimeConstructor,
     private val socketService: SocketService,
     private val accountRepository: AccountRepository,
-    private val runtimeHolder: RuntimeHolder
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
 ) : Updater {
 
     override suspend fun listenForUpdates(): Flow<RuntimePreparationStatus> {
-        runtimeHolder.invalidate()
+        runtimeProperty.invalidate()
 
         return socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
             .map { it.runtimeVersionChange().specVersion }
             .distinctUntilChanged()
-            .onEach { runtimeHolder.invalidate() }
-            .map { runtimeProvider.prepareRuntime(it, getCurrentNetworkName()) }
-            .onEach { runtimeHolder.set(it.runtime) }
-            .map(::preparationStatus)
+            .map { performUpdate(it) }
             .catch { emit(errorStatus()) }
     }
 
-    private suspend fun manualRuntimeUpdate() = try {
-        runtimeHolder.invalidate()
+    // cannot use default parameter because of the bug in the compiler (https://youtrack.jetbrains.com/issue/KT-44849)
+    private suspend fun performUpdate() = performUpdate(null)
 
-        val result = runtimeProvider.prepareRuntime(getCurrentNetworkName())
+    private suspend fun performUpdate(newRuntimeVersion: Int?) = try {
+        runtimeProperty.invalidate()
 
-        runtimeHolder.set(result.runtime)
+        val result = if (newRuntimeVersion != null) {
+            runtimeConstructor.constructRuntime(newRuntimeVersion, getCurrentNetworkName())
+        } else {
+            runtimeConstructor.constructRuntime(getCurrentNetworkName())
+        }
 
-        preparationStatus(result)
+        runtimeProperty.set(result.runtime)
+
+        getPreparationStatus(result)
     } catch (_: Exception) {
         errorStatus()
     }
 
-    private fun errorStatus(): RuntimePreparationStatus.Error = RuntimePreparationStatus.Error(::manualRuntimeUpdate)
+    private fun errorStatus(): RuntimePreparationStatus.Error = RuntimePreparationStatus.Error(::performUpdate)
 
     private suspend fun getCurrentNetworkName(): String {
         val networkType = accountRepository.getSelectedNode().networkType
@@ -62,7 +67,7 @@ class RuntimeUpdater(
         return networkType.readableName.toLowerCase(Locale.ROOT)
     }
 
-    private fun preparationStatus(prepared: RuntimeProvider.Prepared) = if (prepared.isNewest) {
+    private fun getPreparationStatus(constructed: RuntimeConstructor.Constructed) = if (constructed.isNewest) {
         RuntimePreparationStatus.Ok
     } else {
         RuntimePreparationStatus.Outdated

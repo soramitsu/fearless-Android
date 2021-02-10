@@ -6,9 +6,8 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.app.root.data.runtime.DefinitionsFetcher
 import jp.co.soramitsu.app.root.data.runtime.RuntimeCache
-import jp.co.soramitsu.app.root.data.runtime.RuntimeHolder
+import jp.co.soramitsu.app.root.data.runtime.RuntimeConstructor
 import jp.co.soramitsu.app.root.data.runtime.RuntimePrepopulator
-import jp.co.soramitsu.app.root.data.runtime.RuntimeProvider
 import jp.co.soramitsu.app.root.data.runtime.RuntimeUpdater
 import jp.co.soramitsu.app.root.domain.CompositeUpdater
 import jp.co.soramitsu.app.root.domain.RootInteractor
@@ -16,8 +15,10 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_api.data.network.Updater
 import jp.co.soramitsu.core_db.dao.RuntimeDao
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
@@ -78,14 +79,14 @@ class RootFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideRuntimeProvider(
+    fun provideRuntimeContructor(
         socketService: SocketService,
         gson: Gson,
         definitionsFetcher: DefinitionsFetcher,
         runtimeDao: RuntimeDao,
         runtimePrepopulator: RuntimePrepopulator,
         runtimeCache: RuntimeCache
-    ) = RuntimeProvider(
+    ) = RuntimeConstructor(
         socketService,
         definitionsFetcher,
         gson,
@@ -99,16 +100,16 @@ class RootFeatureModule {
     fun provideRuntimeUpdater(
         accountRepository: AccountRepository,
         socketService: SocketService,
-        runtimeProvider: RuntimeProvider,
-        runtimeHolder: RuntimeHolder
+        runtimeConstructor: RuntimeConstructor,
+        runtimeProperty:  SuspendableProperty<RuntimeSnapshot>
     ) = RuntimeUpdater(
-        runtimeProvider,
+        runtimeConstructor,
         socketService,
         accountRepository,
-        runtimeHolder
+        runtimeProperty
     )
 
     @Provides
     @FeatureScope
-    fun provideRuntimeHolder() = RuntimeHolder()
+    fun provideRuntimeProperty() = SuspendableProperty<RuntimeSnapshot>()
 }
