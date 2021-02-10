@@ -7,7 +7,9 @@ import androidx.annotation.LayoutRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
+import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.chooseNetworkClicked
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
@@ -20,23 +22,30 @@ abstract class ImportSourceView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
+    protected abstract val networkInputView: LabeledTextView
+
+    protected abstract val nameInputView: InputField
+
     init {
         View.inflate(context, layoutId, this)
     }
 
     abstract fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner)
 
-    abstract fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner)
+    fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {
+        nameInputView.content.bindTo(viewModel.nameLiveData, lifecycleOwner)
 
-    fun configureNetworkInput(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner, networkInputView: LabeledTextView) {
+        changeNetworkInputState(viewModel.isNetworkTypeChangeAvailable, networkInputView)
+
+        networkInputView.setWholeClickListener {
+            viewModel.chooseNetworkClicked()
+        }
+
         viewModel.selectedNetworkLiveData.observe(lifecycleOwner, Observer {
             networkInputView.setTextIcon(it.networkTypeUI.icon)
             networkInputView.setMessage(it.name)
         })
-        networkInputView.setWholeClickListener {
-            viewModel.chooseNetworkClicked()
-        }
-        changeNetworkInputState(viewModel.isNetworkTypeChangeAvailable, networkInputView)
+
         viewModel.networkChooserEnabledLiveData.observe(lifecycleOwner, Observer { enabled ->
             changeNetworkInputState(enabled, networkInputView)
         })
