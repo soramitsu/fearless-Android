@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.data.runtime.RuntimePreparationStatus
+import jp.co.soramitsu.app.root.data.runtime.RuntimeUpdateRetry
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
@@ -13,11 +14,9 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core_api.data.network.Updater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -44,8 +43,8 @@ class RootViewModel(
     private val _outdatedTypesWarningLiveData = MutableLiveData<Event<Unit>>()
     val outdatedTypesWarningLiveData: LiveData<Event<Unit>> = _outdatedTypesWarningLiveData
 
-    private val _runtimeUpdateFailedLiveData = MutableLiveData<Event<Unit>>()
-    val runtimeUpdateFailedLiveData: LiveData<Event<Unit>> = _runtimeUpdateFailedLiveData
+    private val _runtimeUpdateFailedLiveData = MutableLiveData<Event<RuntimeUpdateRetry>>()
+    val runtimeUpdateFailedLiveData: LiveData<Event<RuntimeUpdateRetry>> = _runtimeUpdateFailedLiveData
 
     init {
         observeAllowedToConnect()
@@ -76,38 +75,27 @@ class RootViewModel(
             }.flowOn(Dispatchers.IO)
             .collectLatest {
                 nodeScope.coroutineContext.cancelChildren()
-                interactor.listenForUpdates()
+
+                listenForUpdates()
             }
     }
 
-    private fun unbindConnection() {
-        nodeScope.coroutineContext.cancelChildren()
-
-                nodeChanged(it.networkType)
+    private suspend fun listenForUpdates() {
+        interactor.listenForUpdates()
+            .collect { handleUpdatesSideEffect(it) }
     }
 
-    private suspend fun nodeChanged(networkType: Node.NetworkType) {
-        val accountListening = nodeScope.async { interactor.listenForAccountUpdates(networkType) }
-
-        val runtimeListening = nodeScope.async {
-            interactor.listenForRuntimeUpdates(networkType)
-                .collect(::handleRuntimePreparationStatus)
+    private fun handleUpdatesSideEffect(sideEffect: Updater.SideEffect) {
+        when(sideEffect) {
+            is RuntimePreparationStatus -> handleRuntimePreparationStatus(sideEffect)
         }
-
-        awaitAll(accountListening, runtimeListening)
-    }
-
-    private suspend fun tryPrepareRuntime() {
-        val status = interactor.manualRuntimeUpdate()
-
-        handleRuntimePreparationStatus(status)
     }
 
     @Suppress("NON_EXHAUSTIVE_WHEN")
     private fun handleRuntimePreparationStatus(status: RuntimePreparationStatus) {
         when (status) {
-            RuntimePreparationStatus.ERROR -> _runtimeUpdateFailedLiveData.postValue(Event(Unit))
-            RuntimePreparationStatus.OUTDATED -> _outdatedTypesWarningLiveData.postValue(Event(Unit))
+            is RuntimePreparationStatus.Error -> _runtimeUpdateFailedLiveData.postValue(Event(status.retry))
+            RuntimePreparationStatus.Outdated -> _outdatedTypesWarningLiveData.postValue(Event(Unit))
         }
     }
 
@@ -125,8 +113,12 @@ class RootViewModel(
         connectionManager.setLifecycleCondition(LifecycleCondition.FORBIDDEN)
     }
 
-    fun retryConfirmed() {
-        nodeScope.launch { tryPrepareRuntime() }
+    fun retryConfirmed(retry: RuntimeUpdateRetry) {
+        nodeScope.launch {
+            val status = retry.invoke()
+
+            handleRuntimePreparationStatus(status)
+        }
     }
 
     fun noticeInBackground() {

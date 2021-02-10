@@ -17,6 +17,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
 import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
@@ -33,7 +34,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetB
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.NextAccountIndexRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.BalanceChange
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountId
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ActiveEraInfo

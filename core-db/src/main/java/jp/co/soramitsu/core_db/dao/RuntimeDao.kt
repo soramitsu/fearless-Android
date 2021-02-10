@@ -12,9 +12,6 @@ abstract class RuntimeDao {
     @Query("SELECT * FROM runtimeCache WHERE networkName = :networkName")
     abstract suspend fun getCacheEntry(networkName: String) : RuntimeCacheEntry
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun insertCacheEntry(cacheEntry: RuntimeCacheEntry)
-
     @Query("UPDATE runtimeCache SET latestKnownVersion = :latestKnownVersion WHERE networkName = :networkName")
     abstract suspend fun updateLatestKnownVersion(networkName: String, latestKnownVersion: Int)
 

@@ -104,8 +104,8 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
             }
         })
 
-        viewModel.runtimeUpdateFailedLiveData.observe(this, EventObserver {
-            retryDialog(this, viewModel::retryConfirmed) {
+        viewModel.runtimeUpdateFailedLiveData.observe(this, EventObserver { onRetry ->
+            retryDialog(this, { viewModel.retryConfirmed(onRetry) }) {
                 setMessage(R.string.runtime_update_failure)
             }
         })

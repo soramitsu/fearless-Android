@@ -6,7 +6,6 @@ import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
 import jp.co.soramitsu.test.any
 import jp.co.soramitsu.test.eq
@@ -45,9 +44,6 @@ class RuntimeProviderTest {
     lateinit var metadataResponse: RpcResponse
 
     @Mock
-    lateinit var runtimeVersionResponse: RpcResponse
-
-    @Mock
     lateinit var gson: Gson
 
     lateinit var runtimeProvider: RuntimeProvider
@@ -64,19 +60,8 @@ class RuntimeProviderTest {
                 null
             }
 
-            `when`(socketService.executeRequest(isA(RuntimeVersionRequest::class.java), deliveryType = any(), callback = any())).thenAnswer {
-                val callback = it.arguments[2] as SocketService.ResponseListener<RpcResponse>
-
-                callback.onNext(runtimeVersionResponse)
-
-                null
-            }
-
-
             `when`(cache.getTypeDefinitions(anyString())).thenReturn("")
             `when`(gson.fromJson(anyString(), eq(TypeDefinitionsTree::class.java))).thenReturn(TypeDefinitionsTree(1, emptyMap()))
-
-            `when`(socketService.jsonMapper).thenReturn(gson)
 
             `when`(definitionsFetcher.getDefinitionsByNetwork(anyString())).thenReturn("server")
             `when`(definitionsFetcher.getDefinitionsByFile(anyString())).thenReturn("server")
@@ -88,11 +73,10 @@ class RuntimeProviderTest {
     @Test
     fun `should use cache when runtime version is not changed and types are actual`() {
         runBlocking {
-            nodeReturnsRuntimeVersion(1)
             dbReturnsCacheInfo(lastKnownVersion = 1, lastAppliedVersion = 1, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
 
-            val result = runtimeProvider.prepareRuntime("kusama")
+            val result = runtimeProvider.prepareRuntime(latestRuntimeVersion = 1,"kusama")
 
             assertEquals(true, result.isNewest)
 
@@ -105,12 +89,11 @@ class RuntimeProviderTest {
     @Test
     fun `should fetch only types and mark not actual`() {
         runBlocking {
-            nodeReturnsRuntimeVersion(2)
             dbReturnsCacheInfo(lastKnownVersion = 2, lastAppliedVersion = 2, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
             serverReturnsTypes(runtimeId = 1)
 
-            val result = runtimeProvider.prepareRuntime("kusama")
+            val result = runtimeProvider.prepareRuntime(latestRuntimeVersion = 2, "kusama")
 
             assertEquals(false, result.isNewest)
 
@@ -125,12 +108,11 @@ class RuntimeProviderTest {
     @Test
     fun `should fetch only types and mark actual`() {
         runBlocking {
-            nodeReturnsRuntimeVersion(2)
             dbReturnsCacheInfo(lastKnownVersion = 2, lastAppliedVersion = 2, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
             serverReturnsTypes(runtimeId = 2)
 
-            val result = runtimeProvider.prepareRuntime("kusama")
+            val result = runtimeProvider.prepareRuntime(latestRuntimeVersion = 2, "kusama")
 
             assertEquals(true, result.isNewest)
 
@@ -145,13 +127,12 @@ class RuntimeProviderTest {
     @Test
     fun `should fetch runtime if outdated and mark that types are outdated`() {
         runBlocking {
-            nodeReturnsRuntimeVersion(2)
             dbReturnsCacheInfo(lastKnownVersion = 1, lastAppliedVersion = 1, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
             nodeReturnsMetadata(EMPTY_METADATA)
             serverReturnsTypes(runtimeId = 1)
 
-            val result = runtimeProvider.prepareRuntime("kusama")
+            val result = runtimeProvider.prepareRuntime(latestRuntimeVersion = 2, "kusama")
 
             assertEquals(false, result.isNewest)
 
@@ -166,13 +147,12 @@ class RuntimeProviderTest {
     @Test
     fun `should fetch runtime if outdated and mark that types are actual`() {
         runBlocking {
-            nodeReturnsRuntimeVersion(2)
             dbReturnsCacheInfo(lastKnownVersion = 1, lastAppliedVersion = 1, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
             nodeReturnsMetadata(EMPTY_METADATA)
             serverReturnsTypes(runtimeId = 2)
 
-            val result = runtimeProvider.prepareRuntime("kusama")
+            val result = runtimeProvider.prepareRuntime(latestRuntimeVersion = 2, "kusama")
 
             assertEquals(true, result.isNewest)
 
@@ -191,8 +171,6 @@ class RuntimeProviderTest {
     private fun serverReturnsTypes(runtimeId: Int) {
         `when`(gson.fromJson(eq("server"), eq(TypeDefinitionsTree::class.java))).thenReturn(TypeDefinitionsTree(runtimeId, emptyMap()))
     }
-
-    private fun nodeReturnsRuntimeVersion(runtimeVersion: Int) = `when`(runtimeVersionResponse.result).thenReturn(RuntimeVersion(runtimeVersion, 0))
 
     private suspend fun dbReturnsCacheInfo(
         lastKnownVersion: Int,

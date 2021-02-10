@@ -145,5 +145,5 @@ class WalletFeatureModule {
     fun provideFeatureUpdaters(
         schemaUpdater: AccountInfoSchemaUpdater,
         balanceUpdater: AccountBalanceUpdater
-    ): WalletUpdaters = WalletUpdaters(listOf(schemaUpdater, balanceUpdater))
+    ): WalletUpdaters = WalletUpdaters(arrayOf(schemaUpdater, balanceUpdater))
 }

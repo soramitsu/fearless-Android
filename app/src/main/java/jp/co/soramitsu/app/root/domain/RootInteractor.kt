@@ -4,6 +4,7 @@ import jp.co.soramitsu.core_api.data.network.Updater
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.ExternalProvider
+import kotlinx.coroutines.flow.Flow
 
 class RootInteractor(
     private val accountRepository: AccountRepository,
@@ -13,8 +14,8 @@ class RootInteractor(
 
     fun selectedNodeFlow() = accountRepository.selectedNodeFlow()
 
-    suspend fun listenForUpdates() {
-        rootUpdater.listenForUpdates()
+    suspend fun listenForUpdates() : Flow<Updater.SideEffect> {
+        return rootUpdater.listenForUpdates()
     }
 
     fun isBuyProviderRedirectLink(link: String) = buyTokenRegistry.availableProviders

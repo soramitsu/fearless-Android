@@ -13,8 +13,8 @@ import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
-import jp.co.soramitsu.core_api.data.network.Updater
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.core_api.data.network.Updater
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -27,9 +27,13 @@ class RootFeatureModule {
     @Provides
     @FeatureScope
     fun provideRootUpdater(
-        walletUpdaters: WalletUpdaters
+        walletUpdaters: WalletUpdaters,
+        runtimeUpdater: RuntimeUpdater
     ): Updater {
-        return CompositeUpdater(walletUpdaters.updaters)
+        return CompositeUpdater(
+            *walletUpdaters.updaters,
+            runtimeUpdater
+        )
     }
 
     @Provides
@@ -74,12 +78,14 @@ class RootFeatureModule {
     @Provides
     @FeatureScope
     fun provideRuntimeUpdater(
+        accountRepository: AccountRepository,
         socketService: SocketService,
         runtimeProvider: RuntimeProvider,
         runtimeHolder: RuntimeHolder
     ) = RuntimeUpdater(
         runtimeProvider,
         socketService,
+        accountRepository,
         runtimeHolder
     )
 
