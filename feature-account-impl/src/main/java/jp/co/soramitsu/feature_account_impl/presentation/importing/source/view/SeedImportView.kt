@@ -3,13 +3,10 @@ package jp.co.soramitsu.feature_account_impl.presentation.importing.source.view
 import android.content.Context
 import android.util.AttributeSet
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.chooseNetworkClicked
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
@@ -32,29 +29,7 @@ class SeedImportView @JvmOverloads constructor(
 
     override fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {
         importSeedUsernameInput.content.bindTo(viewModel.nameLiveData, lifecycleOwner)
-        viewModel.selectedNetworkLiveData.observe(lifecycleOwner, Observer {
-            importSeedNetworkInput.setTextIcon(it.networkTypeUI.icon)
-            importSeedNetworkInput.setMessage(it.name)
-        })
-        importSeedNetworkInput.setWholeClickListener {
-            viewModel.chooseNetworkClicked()
-        }
-        if (viewModel.isNetworkTypeChangeAvailable) {
-            importSeedNetworkInput.isEnabled = true
-            importSeedNetworkInput.makeVisible()
-        } else {
-            importSeedNetworkInput.isEnabled = false
-            importSeedNetworkInput.makeVisible()
-        }
-        viewModel.networkChooserEnabledLiveData.observe(lifecycleOwner, Observer { enabled ->
-            if (viewModel.isNetworkTypeChangeAvailable) {
-                importSeedNetworkInput.isEnabled = true
-                importSeedNetworkInput.makeVisible()
-            } else {
-                importSeedNetworkInput.isEnabled = false
-                importSeedNetworkInput.makeVisible()
-            }
-        })
+        configureNetworkInput(viewModel, lifecycleOwner, importSeedNetworkInput)
     }
 
     override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {

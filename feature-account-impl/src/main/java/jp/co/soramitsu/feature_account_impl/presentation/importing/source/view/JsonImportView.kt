@@ -6,11 +6,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.chooseNetworkClicked
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
@@ -61,29 +59,6 @@ class JsonImportView @JvmOverloads constructor(
 
     override fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {
         importJsonUsernameInput.editText!!.bindTo(viewModel.nameLiveData, lifecycleOwner)
-        viewModel.selectedNetworkLiveData.observe(lifecycleOwner, Observer {
-            importJsonNetworkInput.setTextIcon(it.networkTypeUI.icon)
-            importJsonNetworkInput.setMessage(it.name)
-        })
-
-        importJsonNetworkInput.setWholeClickListener {
-            viewModel.chooseNetworkClicked()
-        }
-        if (viewModel.isNetworkTypeChangeAvailable) {
-            importJsonNetworkInput.isEnabled = true
-            importJsonNetworkInput.makeVisible()
-        } else {
-            importJsonNetworkInput.isEnabled = false
-            importJsonNetworkInput.makeVisible()
-        }
-        viewModel.networkChooserEnabledLiveData.observe(lifecycleOwner, Observer { enabled ->
-            if (viewModel.isNetworkTypeChangeAvailable) {
-                importJsonNetworkInput.isEnabled = true
-                importJsonNetworkInput.makeVisible()
-            } else {
-                importJsonNetworkInput.isEnabled = false
-                importJsonNetworkInput.makeVisible()
-            }
-        })
+        configureNetworkInput(viewModel, lifecycleOwner, importJsonNetworkInput)
     }
 }
