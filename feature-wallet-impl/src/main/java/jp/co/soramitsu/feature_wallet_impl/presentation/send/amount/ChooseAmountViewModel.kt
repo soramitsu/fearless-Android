@@ -26,7 +26,9 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarning
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -58,11 +60,11 @@ class ChooseAmountViewModel(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
     private val recipientAddress: String,
-    private val phishingAddress: PhishingWarning
+    private val phishingAddress: PhishingWarningMixin
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
-    PhishingWarning by phishingAddress {
+    PhishingWarningMixin by phishingAddress, PhishingWarningPresentation {
 
     val recipientModelLiveData = liveData {
         emit(generateAddressModel(recipientAddress))
@@ -149,6 +151,7 @@ class ChooseAmountViewModel(
 
     override fun proceedAddress(address: String) {
         val transferDraft = buildTransferDraft() ?: return
+
         router.openConfirmTransfer(transferDraft)
     }
 
@@ -210,7 +213,7 @@ class ChooseAmountViewModel(
 
     private fun openConfirmationScreen() {
         viewModelScope.launch {
-            checkAddressForPhishing(recipientAddress)
+            proceedOrShowPhishingWarning(recipientAddress)
         }
     }
 

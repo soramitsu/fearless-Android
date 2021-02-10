@@ -13,7 +13,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarning
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.impl.PhishingWarningProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.ChooseRecipientViewModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.QrBitmapDecoder
@@ -22,7 +22,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.QrBitmapD
 class ChooseRecipientModule {
 
     @Provides
-    fun providePhishingAddressMixin(interactor: WalletInteractor): PhishingWarning {
+    fun providePhishingAddressMixin(interactor: WalletInteractor): PhishingWarningMixin {
         return PhishingWarningProvider(interactor)
     }
 
@@ -35,7 +35,7 @@ class ChooseRecipientModule {
         resourceManager: ResourceManager,
         addressIconGenerator: AddressIconGenerator,
         qrBitmapDecoder: QrBitmapDecoder,
-        phishingWarning: PhishingWarning
+        phishingWarning: PhishingWarningMixin
     ): ViewModel {
         return ChooseRecipientViewModel(
             interactor,
