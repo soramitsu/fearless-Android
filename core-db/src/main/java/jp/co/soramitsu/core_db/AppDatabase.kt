@@ -13,11 +13,11 @@ import jp.co.soramitsu.core_db.converters.TransactionConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.NodeDao
-import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
+import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
-import jp.co.soramitsu.core_db.migration.AddPhishingAddressesTable
-import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_10_11
+import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
+import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_11_12
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
@@ -36,7 +36,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
         TransactionLocal::class,
         AssetLocal::class,
         TokenLocal::class,
-        RuntimeCacheEntry::class
+        RuntimeCacheEntry::class,
         PhishingAddressLocal::class
     ])
 @TypeConverters(
@@ -62,7 +62,7 @@ abstract class AppDatabase : RoomDatabase() {
                             db.execSQL(defaultNodes.prepopulateQuery)
                         }
                     })
-                    .addMigrations(AddTokenTable, AddPhishingAddressesTable, AddRuntimeCacheTable_10_11)
+                    .addMigrations(AddTokenTable_9_10, AddPhishingAddressesTable_10_11, AddRuntimeCacheTable_11_12)
                     .build()
             }
             return instance!!

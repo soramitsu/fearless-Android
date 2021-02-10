@@ -3,6 +3,31 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val AddRuntimeCacheTable_11_12 = object : Migration(11, 12) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("""
+            CREATE TABLE `runtimeCache` (
+                `networkName` TEXT NOT NULL PRIMARY KEY,
+                `latestKnownVersion` INTEGER NOT NULL,
+                `latestAppliedVersion` INTEGER NOT NULL,
+                `typesVersion` INTEGER NOT NULL
+            )
+            """.trimIndent()
+        )
+    }
+}
+
+val AddPhishingAddressesTable_10_11 = object : Migration(10, 11) {
+
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("""
+            CREATE TABLE `phishing_addresses` (
+            `publicKey` TEXT NOT NULL,
+            PRIMARY KEY(`publicKey`) );
+        """.trimIndent())
+    }
+}
+
 val AddTokenTable_9_10 = object : Migration(9, 10) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("""
@@ -32,19 +57,5 @@ val AddTokenTable_9_10 = object : Migration(9, 10) {
             .trimIndent())
 
         database.execSQL("CREATE INDEX index_assets_accountAddress ON assets(accountAddress);")
-    }
-}
-
-val AddRuntimeCacheTable_10_11 = object : Migration(10, 11) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("""
-            CREATE TABLE `runtimeCache` (
-                `networkName` TEXT NOT NULL PRIMARY KEY,
-                `latestKnownVersion` INTEGER NOT NULL,
-                `latestAppliedVersion` INTEGER NOT NULL,
-                `typesVersion` INTEGER NOT NULL
-            )
-            """.trimIndent()
-        )
     }
 }
