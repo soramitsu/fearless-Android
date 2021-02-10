@@ -7,9 +7,9 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
-import jp.co.soramitsu.test.any
-import jp.co.soramitsu.test.eq
-import jp.co.soramitsu.test.isA
+import jp.co.soramitsu.test_shared.any
+import jp.co.soramitsu.test_shared.eq
+import jp.co.soramitsu.test_shared.isA
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -46,6 +46,9 @@ class RuntimeProviderTest {
     @Mock
     lateinit var gson: Gson
 
+    @Mock
+    lateinit var runtimePrepopulator: RuntimePrepopulator
+
     lateinit var runtimeProvider: RuntimeProvider
 
     @Suppress("UNCHECKED_CAST")
@@ -66,7 +69,9 @@ class RuntimeProviderTest {
             `when`(definitionsFetcher.getDefinitionsByNetwork(anyString())).thenReturn("server")
             `when`(definitionsFetcher.getDefinitionsByFile(anyString())).thenReturn("server")
 
-            runtimeProvider = RuntimeProvider(socketService, definitionsFetcher, gson, runtimeDao, cache)
+            `when`(runtimePrepopulator.maybePrepopulateCache()).thenReturn(Unit) // no pre population in test
+
+            runtimeProvider = RuntimeProvider(socketService, definitionsFetcher, gson, runtimeDao, runtimePrepopulator, cache)
         }
     }
 

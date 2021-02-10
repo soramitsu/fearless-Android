@@ -31,3 +31,5 @@ fun Int.dp(context: Context): Int {
 
     return inPx.toInt()
 }
+
+fun Context.readAssetFile(name: String) = assets.open(name).readText()

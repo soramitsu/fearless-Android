@@ -1,8 +1,8 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.integration
+package jp.co.soramitsu.test_shared
 
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 
-class StdoutLogger : Logger {
+object StdoutLogger : Logger {
     override fun log(message: String?) {
         println(message)
     }
@@ -12,7 +12,7 @@ class StdoutLogger : Logger {
     }
 }
 
-class NoOpLogger: Logger {
+object NoOpLogger : Logger {
     override fun log(message: String?) {
         // pass
     }

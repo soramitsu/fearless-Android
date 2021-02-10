@@ -77,7 +77,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun transactionsDao(): TransactionDao
 
-    abstract fun runtimeDao() : RuntimeDao
+    abstract fun runtimeDao(): RuntimeDao
 
     abstract fun phishingAddressesDao(): PhishingAddressDao
 }

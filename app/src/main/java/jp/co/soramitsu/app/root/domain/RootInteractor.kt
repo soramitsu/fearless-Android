@@ -16,7 +16,7 @@ class RootInteractor(
 
     fun selectedNodeFlow() = accountRepository.selectedNodeFlow()
 
-    suspend fun listenForUpdates() : Flow<Updater.SideEffect> {
+    suspend fun listenForUpdates(): Flow<Updater.SideEffect> {
         return rootUpdater.listenForUpdates()
     }
 

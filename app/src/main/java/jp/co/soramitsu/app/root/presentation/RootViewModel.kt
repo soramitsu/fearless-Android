@@ -87,7 +87,7 @@ class RootViewModel(
     }
 
     private fun handleUpdatesSideEffect(sideEffect: Updater.SideEffect) {
-        when(sideEffect) {
+        when (sideEffect) {
             is RuntimePreparationStatus -> handleRuntimePreparationStatus(sideEffect)
         }
     }

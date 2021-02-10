@@ -38,4 +38,6 @@ dependencies {
     implementation roomDep
     implementation roomKtxDep
     kapt roomKapt
+
+    testImplementation project(':test-shared')
 }

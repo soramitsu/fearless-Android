@@ -1,6 +1,5 @@
 package jp.co.soramitsu.app.root.data.runtime
 
-import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -9,8 +8,7 @@ private const val METADATA_FILE_MASK = "metadata_%s.cache"
 private const val TYPE_DEFINITIONS_FILE_MASK = "definitions_%s.cache"
 
 class RuntimeCache(
-    private val preferences: Preferences,
-    private val fileProvider: FileProvider,
+    private val fileProvider: FileProvider
 ) {
 
     suspend fun saveRuntimeMetadata(networkType: String, metadataEncoded: String) {
@@ -36,7 +34,6 @@ class RuntimeCache(
 
         return readCacheFile(fileName)
     }
-
 
     private suspend fun writeToCacheFile(name: String, content: String) {
         return withContext(Dispatchers.IO) {

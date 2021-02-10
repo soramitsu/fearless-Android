@@ -14,10 +14,10 @@ import java.util.Locale
 
 typealias RuntimeUpdateRetry = suspend () -> RuntimePreparationStatus
 
-sealed class RuntimePreparationStatus: Updater.SideEffect {
+sealed class RuntimePreparationStatus : Updater.SideEffect {
     object Ok : RuntimePreparationStatus()
 
-    object Outdated: RuntimePreparationStatus()
+    object Outdated : RuntimePreparationStatus()
 
     class Error(val retry: RuntimeUpdateRetry) : RuntimePreparationStatus()
 }
@@ -45,7 +45,6 @@ class RuntimeUpdater(
     private suspend fun manualRuntimeUpdate() = try {
         runtimeHolder.invalidate()
 
-
         val result = runtimeProvider.prepareRuntime(getCurrentNetworkName())
 
         runtimeHolder.set(result.runtime)
@@ -55,9 +54,9 @@ class RuntimeUpdater(
         errorStatus()
     }
 
-    private fun errorStatus() : RuntimePreparationStatus.Error = RuntimePreparationStatus.Error(::manualRuntimeUpdate)
+    private fun errorStatus(): RuntimePreparationStatus.Error = RuntimePreparationStatus.Error(::manualRuntimeUpdate)
 
-    private suspend fun getCurrentNetworkName() : String {
+    private suspend fun getCurrentNetworkName(): String {
         val networkType = accountRepository.getSelectedNode().networkType
 
         return networkType.readableName.toLowerCase(Locale.ROOT)

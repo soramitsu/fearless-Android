@@ -31,6 +31,7 @@ class RuntimeProvider(
     private val definitionsFetcher: DefinitionsFetcher,
     private val gson: Gson,
     private val runtimeDao: RuntimeDao,
+    private val runtimePrepopulator: RuntimePrepopulator,
     private val runtimeCache: RuntimeCache
 ) {
 
@@ -38,7 +39,7 @@ class RuntimeProvider(
 
     suspend fun prepareRuntime(
         networkName: String
-    ) : Prepared {
+    ): Prepared {
         val latestRuntimeVersion = runtimeDao.getCacheEntry(networkName).latestKnownVersion
 
         return prepareRuntime(latestRuntimeVersion, networkName)
@@ -48,8 +49,7 @@ class RuntimeProvider(
         latestRuntimeVersion: Int,
         networkName: String
     ): Prepared = withContext(Dispatchers.IO) {
-
-        runtimeDao.maybeRegisterNewNetwork(networkName)
+        runtimePrepopulator.maybePrepopulateCache()
 
         runtimeDao.updateLatestKnownVersion(networkName, latestRuntimeVersion)
 

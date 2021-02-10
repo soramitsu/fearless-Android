@@ -7,9 +7,9 @@ interface Updater {
     /**
      * Implementations should be aware of cancellation
      */
-    suspend fun listenForUpdates() : Flow<SideEffect>
+    suspend fun listenForUpdates(): Flow<SideEffect>
 
     interface SideEffect
 
-    fun <T> Flow<T>.noSideAffects() : Flow<SideEffect> = transform {  }
+    fun <T> Flow<T>.noSideAffects(): Flow<SideEffect> = transform { }
 }

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.di
 
+import android.content.Context
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
@@ -30,12 +31,13 @@ interface RootDependencies {
 
     fun resourceManager(): ResourceManager
 
-    fun preferences(): Preferences
-    fun fileProvider(): FileProvider
     fun networkApiCreator(): NetworkApiCreator
     fun socketService(): SocketService
     fun gson(): Gson
     fun runtimeDao(): RuntimeDao
+    fun preferences(): Preferences
+    fun context(): Context
+    fun fileProvider(): FileProvider
 
     fun walletUpdaters(): WalletUpdaters
 }
