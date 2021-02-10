@@ -1,8 +1,5 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
-import io.reactivex.Completable
-import io.reactivex.Observable
-import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
@@ -10,108 +7,105 @@ import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
+import kotlinx.coroutines.flow.Flow
 
 interface AccountInteractor {
-    fun getSecuritySource(accountAddress: String): Single<SecuritySource>
+    suspend fun getSecuritySource(accountAddress: String): SecuritySource
 
-    fun generateMnemonic(): Single<List<String>>
+    suspend fun generateMnemonic(): List<String>
 
-    fun getCryptoTypes(): Single<List<CryptoType>>
+    fun getCryptoTypes(): List<CryptoType>
 
-    fun getPreferredCryptoType(): Single<CryptoType>
+    suspend fun getPreferredCryptoType(): CryptoType
 
-    fun createAccount(
+    suspend fun createAccount(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
         networkType: Node.NetworkType
-    ): Completable
+    ): Result<Unit>
 
-    fun importFromMnemonic(
+    suspend fun importFromMnemonic(
         keyString: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         networkType: Node.NetworkType
-    ): Completable
+    ): Result<Unit>
 
-    fun importFromSeed(
+    suspend fun importFromSeed(
         keyString: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         networkType: Node.NetworkType
-    ): Completable
+    ): Result<Unit>
 
-    fun importFromJson(
+    suspend fun importFromJson(
         json: String,
         password: String,
         networkType: Node.NetworkType,
         name: String
-    ): Completable
+    ): Result<Unit>
 
-    fun getAddressId(address: String): Single<ByteArray>
+    suspend fun isCodeSet(): Boolean
 
-    fun isCodeSet(): Boolean
+    suspend fun savePin(code: String)
 
-    fun savePin(code: String): Completable
+    suspend fun isPinCorrect(code: String): Boolean
 
-    fun isPinCorrect(code: String): Single<Boolean>
+    suspend fun isBiometricEnabled(): Boolean
 
-    fun isBiometricEnabled(): Boolean
+    suspend fun setBiometricOn()
 
-    fun setBiometricOn(): Completable
+    suspend fun setBiometricOff()
 
-    fun setBiometricOff(): Completable
+    suspend fun getAccount(address: String): Account
 
-    fun getAccount(address: String): Single<Account>
+    fun selectedAccountFlow(): Flow<Account>
 
-    fun observeSelectedAccount(): Observable<Account>
+    suspend fun getSelectedAccount(): Account
 
-    fun getNetworks(): Single<List<Network>>
+    suspend fun getNetworks(): List<Network>
 
-    fun getSelectedNode(): Single<Node>
+    suspend fun getSelectedNode(): Node
 
-    fun getSelectedNetworkType(): Single<Node.NetworkType>
+    fun groupedAccountsFlow(): Flow<List<Any>>
 
-    fun shouldOpenOnboarding(): Single<Boolean>
+    suspend fun selectAccount(address: String)
 
-    fun observeGroupedAccounts(): Observable<List<Any>>
+    suspend fun updateAccountName(account: Account, newName: String)
 
-    fun selectAccount(address: String): Completable
+    suspend fun deleteAccount(address: String)
 
-    fun updateAccountName(account: Account, newName: String): Completable
+    suspend fun updateAccountPositionsInNetwork(newOrdering: List<Account>)
 
-    fun deleteAccount(address: String): Completable
+    fun nodesFlow(): Flow<List<Node>>
 
-    fun updateAccountPositionsInNetwork(newOrdering: List<Account>): Completable
+    fun selectedNodeFlow(): Flow<Node>
 
-    fun observeNodes(): Observable<List<Node>>
+    suspend fun getNode(nodeId: Int): Node
 
-    fun observeSelectedNode(): Observable<Node>
+    suspend fun processAccountJson(json: String): Result<ImportJsonData>
 
-    fun getNode(nodeId: Int): Single<Node>
+    fun getLanguages(): List<Language>
 
-    fun processAccountJson(json: String): Single<ImportJsonData>
+    suspend fun getSelectedLanguage(): Language
 
-    fun observeLanguages(): Observable<List<Language>>
+    suspend fun changeSelectedLanguage(language: Language)
 
-    fun getSelectedLanguage(): Single<Language>
+    suspend fun addNode(nodeName: String, nodeHost: String): Result<Unit>
 
-    fun changeSelectedLanguage(language: Language): Completable
+    suspend fun updateNode(nodeId: Int, newName: String, newHost: String): Result<Unit>
 
-    fun addNode(nodeName: String, nodeHost: String): Completable
+    suspend fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Pair<List<Account>, Node>
 
-    fun updateNode(nodeId: Int, newName: String, newHost: String): Completable
+    suspend fun selectNodeAndAccount(nodeId: Int, accountAddress: String)
 
-    fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Single<Pair<List<Account>, Node>>
+    suspend fun selectNode(nodeId: Int)
 
-    fun selectNodeAndAccount(nodeId: Int, accountAddress: String): Completable
+    suspend fun deleteNode(nodeId: Int)
 
-    fun selectNode(nodeId: Int): Completable
-
-    fun deleteNode(nodeId: Int): Completable
-
-    fun generateRestoreJson(accountAddress: String, password: String): Single<String>
+    suspend fun generateRestoreJson(accountAddress: String, password: String): Result<String>
 }

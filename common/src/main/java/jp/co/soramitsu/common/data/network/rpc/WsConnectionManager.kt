@@ -1,20 +1,21 @@
 package jp.co.soramitsu.common.data.network.rpc
 
-import io.reactivex.subjects.BehaviorSubject
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.networkStateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class WsConnectionManager(
     val socketService: SocketService
 ) : ConnectionManager {
-    private val lifecycleConditionSubject = BehaviorSubject.createDefault(LifecycleCondition.FORBIDDEN)
+    private val lifecycleConditionSubject = MutableStateFlow(LifecycleCondition.FORBIDDEN)
 
     override fun setLifecycleCondition(condition: LifecycleCondition) {
-        lifecycleConditionSubject.onNext(condition)
+        lifecycleConditionSubject.value = condition
     }
 
-    override fun observeLifecycleCondition() = lifecycleConditionSubject
+    override fun lifecycleConditionFlow() = lifecycleConditionSubject
 
-    override fun getLifecycleCondition() = lifecycleConditionSubject.value!!
+    override fun getLifecycleCondition() = lifecycleConditionSubject.value
 
     override fun start(url: String) {
         socketService.start(url)
@@ -30,5 +31,5 @@ class WsConnectionManager(
         socketService.stop()
     }
 
-    override fun observeNetworkState() = socketService.observeNetworkState()
+    override fun networkStateFlow() = socketService.networkStateFlow()
 }

@@ -1,13 +1,12 @@
 package jp.co.soramitsu.splash.presentation
 
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.splash.SplashRouter
+import kotlinx.coroutines.launch
 
 class SplashViewModel(
     private val router: SplashRouter,
@@ -22,21 +21,18 @@ class SplashViewModel(
     }
 
     private fun openInitialDestination() {
-        disposables += repository.isAccountSelected()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { isSelected ->
-                _removeSplashBackgroundLiveData.value = Event(Unit)
-
-                if (isSelected) {
-                    if (repository.isCodeSet()) {
-                        router.openInitialCheckPincode()
-                    } else {
-                        router.openCreatePincode()
-                    }
+        viewModelScope.launch {
+            if (repository.isAccountSelected()) {
+                if (repository.isCodeSet()) {
+                    router.openInitialCheckPincode()
                 } else {
-                    router.openAddFirstAccount()
+                    router.openCreatePincode()
                 }
+            } else {
+                router.openAddFirstAccount()
             }
+
+            _removeSplashBackgroundLiveData.value = Event(Unit)
+        }
     }
 }

@@ -1,12 +1,9 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
 import androidx.lifecycle.LiveData
-import io.reactivex.disposables.Disposable
-import jp.co.soramitsu.common.utils.ErrorHandler
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
-
-typealias Interceptor = () -> Unit
+import kotlinx.coroutines.CoroutineScope
 
 interface TransactionFilter {
     fun shouldInclude(model: TransactionHistoryElement): Boolean
@@ -15,21 +12,18 @@ interface TransactionFilter {
 interface TransactionHistoryUi {
     val transactionsLiveData: LiveData<List<Any>>
 
-    fun scrolled(currentIndex: Int)
-
-    fun syncFirstTransactionsPage()
-
     fun transactionClicked(transactionModel: TransactionModel)
 }
 
 interface TransactionHistoryMixin : TransactionHistoryUi {
-    val transferHistoryDisposable: Disposable
 
-    fun setTransactionErrorHandler(handler: ErrorHandler)
+    suspend fun syncFirstTransactionsPage(): Result<Unit>
 
-    fun setTransactionSyncedInterceptor(interceptor: Interceptor)
+    fun scrolled(scope: CoroutineScope, currentIndex: Int)
 
-    fun addFilter(filter: TransactionFilter)
+    fun startObservingTransactions(scope: CoroutineScope)
+
+    fun addFilter(scope: CoroutineScope, filter: TransactionFilter)
 
     fun clear()
 }

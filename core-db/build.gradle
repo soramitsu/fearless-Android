@@ -30,10 +30,12 @@ dependencies {
 
     implementation kotlinDep
 
+    implementation coroutinesDep
+
     implementation daggerDep
     kapt daggerKapt
 
     implementation roomDep
-    implementation rxRoomDep
+    implementation roomKtxDep
     kapt roomKapt
 }

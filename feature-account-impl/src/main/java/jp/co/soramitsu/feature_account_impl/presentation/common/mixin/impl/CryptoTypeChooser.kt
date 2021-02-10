@@ -2,14 +2,11 @@ package jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.asLiveData
-import jp.co.soramitsu.common.utils.asMutableLiveData
+import jp.co.soramitsu.common.utils.mediatorLiveData
+import jp.co.soramitsu.common.utils.setFrom
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapCryptoTypeToCryptoTypeModel
@@ -20,13 +17,12 @@ class CryptoTypeChooser(
     private val interactor: AccountInteractor,
     private val resourceManager: ResourceManager
 ) : CryptoTypeChooserMixin {
-    override var cryptoDisposable: CompositeDisposable = CompositeDisposable()
 
-    private val encryptionTypesLiveData = getCryptoTypeModels().asLiveData(cryptoDisposable)
+    private val encryptionTypes = getCryptoTypeModels()
 
-    override val selectedEncryptionTypeLiveData = interactor.getPreferredCryptoType()
-        .map { mapCryptoTypeToCryptoTypeModel(resourceManager, it) }
-        .asMutableLiveData(cryptoDisposable)
+    override val selectedEncryptionTypeLiveData = mediatorLiveData<CryptoTypeModel> {
+        setFrom(preferredTypeLiveData())
+    }
 
     private val _encryptionTypeChooserEvent = MutableLiveData<Event<Payload<CryptoTypeModel>>>()
 
@@ -34,18 +30,23 @@ class CryptoTypeChooser(
         _encryptionTypeChooserEvent
 
     override fun chooseEncryptionClicked() {
-        val encryptionTypes = encryptionTypesLiveData.value
         val selectedType = selectedEncryptionTypeLiveData.value
 
-        if (encryptionTypes != null && selectedType != null) {
+        if (selectedType != null) {
             _encryptionTypeChooserEvent.value = Event(Payload(encryptionTypes, selectedType))
         }
     }
 
-    private fun getCryptoTypeModels(): Single<List<CryptoTypeModel>> {
-        return interactor.getCryptoTypes()
-            .subscribeOn(Schedulers.io())
-            .map { list -> list.map { mapCryptoTypeToCryptoTypeModel(resourceManager, it) } }
-            .observeOn(AndroidSchedulers.mainThread())
+    private fun preferredTypeLiveData() = liveData {
+        val cryptoType = interactor.getPreferredCryptoType()
+        val mapped = mapCryptoTypeToCryptoTypeModel(resourceManager, cryptoType)
+
+        emit(mapped)
+    }
+
+    private fun getCryptoTypeModels(): List<CryptoTypeModel> {
+        val types = interactor.getCryptoTypes()
+
+        return types.map { mapCryptoTypeToCryptoTypeModel(resourceManager, it) }
     }
 }

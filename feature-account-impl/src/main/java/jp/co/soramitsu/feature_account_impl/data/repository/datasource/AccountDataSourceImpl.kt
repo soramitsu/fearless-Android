@@ -1,15 +1,12 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
 import com.google.gson.Gson
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.subjects.BehaviorSubject
+import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
 import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.fearless_utils.scale.string
-import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
@@ -21,6 +18,12 @@ import jp.co.soramitsu.feature_account_api.domain.model.WithDerivationPath
 import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
 import jp.co.soramitsu.feature_account_api.domain.model.WithSeed
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val PREFS_AUTH_TYPE = "auth_type"
 private const val PREFS_PIN_CODE = "pin_code"
@@ -59,49 +62,57 @@ class AccountDataSourceImpl(
 ) : AccountDataSource {
 
     init {
-        if (accountDataMigration.migrationNeeded()) {
-            accountDataMigration.migrate(::saveSecuritySource)
+        migrateIfNeeded(accountDataMigration)
+    }
+
+    private fun migrateIfNeeded(migration: AccountDataMigration) = async {
+        if (migration.migrationNeeded()) {
+            migration.migrate(::saveSecuritySource)
         }
     }
 
-    private val selectedAccountSubject = createAccountBehaviorSubject()
+    private var selectedAccountSubject = createAccountFlow()
 
-    private val selectedNodeSubject = createNodeBehaviorSubject()
+    private var selectedNodeFlow = createNodeFlow()
 
-    override fun saveAuthType(authType: AuthType) {
+    override suspend fun saveAuthType(authType: AuthType) = withContext(Dispatchers.IO) {
         preferences.putString(PREFS_AUTH_TYPE, authType.toString())
     }
 
-    override fun getAuthType(): AuthType {
+    override suspend fun getAuthType(): AuthType = withContext(Dispatchers.IO) {
         val savedValue = preferences.getString(PREFS_AUTH_TYPE)
-        return if (savedValue == null) {
+
+        if (savedValue == null) {
             AuthType.PINCODE
         } else {
             AuthType.valueOf(savedValue)
         }
     }
 
-    override fun savePinCode(pinCode: String) {
+    override suspend fun savePinCode(pinCode: String) = withContext(Dispatchers.IO) {
         encryptedPreferences.putEncryptedString(PREFS_PIN_CODE, pinCode)
     }
 
-    override fun getPinCode(): String? {
-        return encryptedPreferences.getDecryptedString(PREFS_PIN_CODE)
+    override suspend fun getPinCode(): String? {
+        return withContext(Dispatchers.IO) {
+            encryptedPreferences.getDecryptedString(PREFS_PIN_CODE)
+        }
     }
 
-    override fun saveSelectedNode(node: Node) {
-        selectedNodeSubject.onNext(node)
-
+    override suspend fun saveSelectedNode(node: Node) = withContext(Dispatchers.Default) {
         val raw = jsonMapper.toJson(node)
         preferences.putString(PREFS_SELECTED_NODE, raw)
+
+        selectedNodeFlow.emit(node)
     }
 
-    override fun getSelectedNode(): Node? {
-        val raw = preferences.getString(PREFS_SELECTED_NODE) ?: return null
-        return jsonMapper.fromJson(raw, Node::class.java)
+    override suspend fun getSelectedNode(): Node? = withContext(Dispatchers.Default) {
+        val raw = preferences.getString(PREFS_SELECTED_NODE) ?: return@withContext null
+
+        jsonMapper.fromJson(raw, Node::class.java)
     }
 
-    override fun saveSecuritySource(accountAddress: String, source: SecuritySource) {
+    override suspend fun saveSecuritySource(accountAddress: String, source: SecuritySource) = withContext(Dispatchers.Default) {
         val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
         val signingData = source.signingData
@@ -126,10 +137,10 @@ class AccountDataSourceImpl(
         encryptedPreferences.putEncryptedString(key, raw)
     }
 
-    override fun getSecuritySource(accountAddress: String): SecuritySource? {
+    override suspend fun getSecuritySource(accountAddress: String): SecuritySource? = withContext(Dispatchers.Default) {
         val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
-        val raw = encryptedPreferences.getDecryptedString(key) ?: return null
+        val raw = encryptedPreferences.getDecryptedString(key) ?: return@withContext null
         val internalSource = SourceInternal.read(raw)
 
         val signingData = SigningData(
@@ -142,7 +153,7 @@ class AccountDataSourceImpl(
         val mnemonic = internalSource[SourceInternal.Mnemonic]
         val derivationPath = internalSource[SourceInternal.DerivationPath]
 
-        return when (SourceType.valueOf(internalSource[SourceInternal.Type])) {
+        when (SourceType.valueOf(internalSource[SourceInternal.Type])) {
             SourceType.CREATE -> SecuritySource.Specified.Create(seed, signingData, mnemonic!!, derivationPath)
             SourceType.SEED -> SecuritySource.Specified.Seed(seed, signingData, derivationPath)
             SourceType.JSON -> SecuritySource.Specified.Json(seed, signingData)
@@ -151,70 +162,75 @@ class AccountDataSourceImpl(
         }
     }
 
-    override fun anyAccountSelected(): Boolean {
-        return preferences.contains(PREFS_SELECTED_ACCOUNT)
+    override suspend fun anyAccountSelected(): Boolean = withContext(Dispatchers.IO) {
+        preferences.contains(PREFS_SELECTED_ACCOUNT)
     }
 
-    override fun saveSelectedAccount(account: Account) {
+    override suspend fun saveSelectedAccount(account: Account) = withContext(Dispatchers.Default) {
         val raw = jsonMapper.toJson(account)
         preferences.putString(PREFS_SELECTED_ACCOUNT, raw)
 
-        selectedAccountSubject.onNext(account)
+        selectedAccountSubject.emit(account)
     }
 
-    override fun observeSelectedAccount(): Observable<Account> {
+    override fun selectedAccountFlow(): Flow<Account> {
         return selectedAccountSubject
     }
 
-    override fun getPreferredCryptoType(): Single<CryptoType> {
+    override suspend fun getPreferredCryptoType(): CryptoType {
         return if (anyAccountSelected()) {
-            selectedAccountSubject
-                .firstOrError()
-                .map(Account::cryptoType)
+            getSelectedAccount().cryptoType
         } else {
-            Single.just(DEFAULT_CRYPTO_TYPE)
+            DEFAULT_CRYPTO_TYPE
         }
     }
 
-    override fun observeSelectedNode(): Observable<Node> {
-        return selectedNodeSubject
+    override fun selectedNodeFlow(): Flow<Node> {
+        return selectedNodeFlow
     }
 
-    private fun getSelectedAccount(): Account {
+    override suspend fun getSelectedAccount(): Account {
+        return selectedAccountSubject.replayCache.firstOrNull() ?: retrieveAccountFromStorage()
+    }
+
+    override suspend fun getSelectedLanguage(): Language = withContext(Dispatchers.IO) {
+        preferences.getCurrentLanguage() ?: throw IllegalArgumentException("No language selected")
+    }
+
+    override suspend fun changeSelectedLanguage(language: Language) = withContext(Dispatchers.IO) {
+        preferences.saveCurrentLanguage(language.iso)
+    }
+
+    private fun createAccountFlow(): MutableSharedFlow<Account> {
+        val flow = MutableSharedFlow<Account>(replay = 1)
+
+        async {
+            if (preferences.contains(PREFS_SELECTED_ACCOUNT)) {
+                flow.emit(retrieveAccountFromStorage())
+            }
+        }
+
+        return flow
+    }
+
+    private suspend fun retrieveAccountFromStorage(): Account = withContext(Dispatchers.Default) {
         val raw = preferences.getString(PREFS_SELECTED_ACCOUNT)
             ?: throw IllegalArgumentException("No account selected")
 
-        return jsonMapper.fromJson(raw, Account::class.java)
+        jsonMapper.fromJson(raw, Account::class.java)
     }
 
-    private fun createAccountBehaviorSubject(): BehaviorSubject<Account> {
-        val subject = BehaviorSubject.create<Account>()
+    private fun createNodeFlow(): MutableSharedFlow<Node> {
+        val flow = MutableSharedFlow<Node>(replay = 1)
 
-        if (preferences.contains(PREFS_SELECTED_ACCOUNT)) {
-            subject.onNext(getSelectedAccount())
+        async {
+            if (preferences.contains(PREFS_SELECTED_NODE)) {
+                val selectedNode = getSelectedNode() ?: throw IllegalArgumentException("No node selected")
+                flow.emit(selectedNode)
+            }
         }
 
-        return subject
-    }
-
-    private fun createNodeBehaviorSubject(): BehaviorSubject<Node> {
-        val subject = BehaviorSubject.create<Node>()
-
-        if (preferences.contains(PREFS_SELECTED_NODE)) {
-            val selectedNode = getSelectedNode()
-                ?: throw IllegalArgumentException("No node selected")
-            subject.onNext(selectedNode)
-        }
-
-        return subject
-    }
-
-    override fun getSelectedLanguage(): Language {
-        return preferences.getCurrentLanguage() ?: throw IllegalArgumentException("No language selected")
-    }
-
-    override fun changeSelectedLanguage(language: Language) {
-        preferences.saveCurrentLanguage(language.iso)
+        return flow
     }
 
     private fun getSourceType(securitySource: SecuritySource): SourceType {
@@ -224,6 +240,12 @@ class AccountDataSourceImpl(
             is SecuritySource.Specified.Json -> SourceType.JSON
             is SecuritySource.Specified.Seed -> SourceType.SEED
             else -> SourceType.UNSPECIFIED
+        }
+    }
+
+    private inline fun async(crossinline action: suspend () -> Unit) {
+        GlobalScope.launch(Dispatchers.Default) {
+            action()
         }
     }
 }

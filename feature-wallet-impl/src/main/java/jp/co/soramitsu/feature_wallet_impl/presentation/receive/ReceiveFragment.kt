@@ -18,11 +18,6 @@ import kotlinx.android.synthetic.main.fragment_receive.qrImg
 
 class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
 
-    companion object {
-        private const val QR_TEMP_IMAGE_NAME = "address.png"
-        private const val QR_TEMP_IMAGE_QUALITY = 100
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

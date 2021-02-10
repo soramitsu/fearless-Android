@@ -1,8 +1,8 @@
 buildscript {
     ext {
         // App version
-        versionName = '1.2.0'
-        versionCode = 8
+        versionName = '1.2.1'
+        versionCode = 10
 
         // SDK and tools
         compileSdkVersion = 29
@@ -15,8 +15,7 @@ buildscript {
         cardViewVersion = '1.0.0'
         constraintVersion = '1.1.3'
 
-        rxJavaVersion = '2.2.7'
-        rxAndroidVersion = '2.1.0'
+        coroutinesVersion = '1.4.2'
 
         biometricVersion = '1.0.1'
 
@@ -27,7 +26,7 @@ buildscript {
 
         architectureComponentVersion = '2.2.0'
 
-        retrofitVersion = '2.4.0'
+        retrofitVersion = '2.9.0'
         okhttpVersion = '3.8.0'
         gsonVersion = '2.8.2'
 
@@ -41,13 +40,12 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.30'
+        fearlessLibVersion = '1.0.48'
 
         gifVersion = '1.2.19'
 
         zXingVersion = '3.4.0'
         zXingEmbeddedVersion = '3.5.0@aar'
-        rxPermssionVersion = '0.10.2'
 
         biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
@@ -55,6 +53,8 @@ buildscript {
         playPublisherVersion = '2.5.0'
 
         wsVersion = "2.10"
+
+        permissionsVersion = '1.1.2'
 
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
@@ -64,17 +64,28 @@ buildscript {
         constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
         materialDep = "com.google.android.material:material:$supportVersion"
 
-        rxJavaDep = "io.reactivex.rxjava2:rxjava:$rxJavaVersion"
-        rxAndroidDep = "io.reactivex.rxjava2:rxandroid:$rxAndroidVersion"
-
         daggerDep = "com.google.dagger:dagger:$daggerVersion"
         daggerKapt = "com.google.dagger:dagger-compiler:$daggerVersion"
 
         lifecycleDep = "androidx.lifecycle:lifecycle-extensions:$architectureComponentVersion"
         lifecycleKapt = "androidx.lifecycle:lifecycle-compiler:$architectureComponentVersion"
 
+        coroutinesDep = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+        coroutinesAndroidDep = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
+
+        // viewModelScope
+        viewModelKtxDep = "androidx.lifecycle:lifecycle-viewmodel-ktx:$architectureComponentVersion"
+
+        // liveData builder
+        liveDataKtxDep = "androidx.lifecycle:lifecycle-livedata-ktx:$architectureComponentVersion"
+
+        // lifecycle scopes
+        lifeCycleKtxDep = "androidx.lifecycle:lifecycle-runtime-ktx:$architectureComponentVersion"
+
+        permissionsDep = "com.github.florent37:runtime-permission-kotlin:$permissionsVersion"
+
         roomDep = "androidx.room:room-runtime:$architectureComponentVersion"
-        rxRoomDep = "androidx.room:room-rxjava2:$architectureComponentVersion"
+        roomKtxDep = "androidx.room:room-ktx:$architectureComponentVersion"
         roomKapt = "androidx.room:room-compiler:$architectureComponentVersion"
 
         navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
@@ -84,13 +95,11 @@ buildscript {
 
         retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
         interceptorVersion = "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
-        rxCallAdapterDep = "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
         gsonConvertedDep = "com.squareup.retrofit2:converter-gson:$retrofitVersion"
         gsonDep = "com.google.code.gson:gson:$gsonVersion"
 
         zXingCoreDep = "com.google.zxing:core:$zXingVersion"
         zXingEmbeddedDep = "com.journeyapps:zxing-android-embedded:$zXingEmbeddedVersion"
-        rxPermissionsDep = "com.github.tbruyelle:rxpermissions:$rxPermssionVersion"
 
         fearlessLibDep = "jp.co.soramitsu.fearless-utils:fearless-utils:$fearlessLibVersion"
 

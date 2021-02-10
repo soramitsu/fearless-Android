@@ -21,6 +21,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    kotlinOptions {
+        freeCompilerArgs = ["-Xallow-result-return-type"]
+    }
 }
 
 dependencies {
@@ -38,22 +42,22 @@ dependencies {
 
     implementation biometricDep
 
-    implementation rxJavaDep
-    implementation rxAndroidDep
-
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
-    implementation rxPermissionsDep
 
     implementation bouncyCastleDep
 
     implementation fearlessLibDep
 
+    implementation coroutinesDep
+    implementation coroutinesAndroidDep
+    implementation viewModelKtxDep
+    implementation liveDataKtxDep
+
     implementation daggerDep
     kapt daggerKapt
 
     implementation roomDep
-    implementation rxRoomDep
     kapt roomKapt
 
     implementation lifecycleDep

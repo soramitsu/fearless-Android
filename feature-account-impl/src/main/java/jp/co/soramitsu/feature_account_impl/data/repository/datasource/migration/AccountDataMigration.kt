@@ -1,18 +1,17 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration
 
 import android.annotation.SuppressLint
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
-import jp.co.soramitsu.fearless_utils.scale.Schema
-import jp.co.soramitsu.fearless_utils.scale.byteArray
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
-import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
+import jp.co.soramitsu.fearless_utils.scale.Schema
+import jp.co.soramitsu.fearless_utils.scale.byteArray
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.SigningData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 
 private const val PREFS_PRIVATE_KEY = "private_%s"
@@ -28,6 +27,8 @@ private object ScaleSigningData : Schema<ScaleSigningData>() {
     val Nonce by byteArray().optional()
 }
 
+typealias SaveSourceCallback = suspend (String, SecuritySource) -> Unit
+
 @SuppressLint("CheckResult")
 class AccountDataMigration(
     private val preferences: Preferences,
@@ -36,28 +37,25 @@ class AccountDataMigration(
     private val accountsDao: AccountDao
 ) {
 
-    fun migrationNeeded(): Boolean {
+    suspend fun migrationNeeded(): Boolean = withContext(Dispatchers.Default) {
         val migrated = preferences.getBoolean(PREFS_MIGRATED_FROM_0_4_1_TO_1_0_0, false)
 
-        return !migrated
+        !migrated
     }
 
-    fun migrate(saveSourceCallback: (String, SecuritySource) -> Unit) {
-        accountsDao.observeAccounts()
-            .subscribeOn(Schedulers.io())
-            .firstOrError()
-            .map { migrateAllAccounts(it, saveSourceCallback) }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                preferences.putBoolean(PREFS_MIGRATED_FROM_0_4_1_TO_1_0_0, true)
-            }, DEFAULT_ERROR_HANDLER)
+    suspend fun migrate(saveSourceCallback: SaveSourceCallback) = withContext(Dispatchers.Default) {
+        val accounts = accountsDao.getAccounts()
+
+        migrateAllAccounts(accounts, saveSourceCallback)
+
+        preferences.putBoolean(PREFS_MIGRATED_FROM_0_4_1_TO_1_0_0, true)
     }
 
-    private fun migrateAllAccounts(accounts: List<AccountLocal>, saveSourceCallback: (String, SecuritySource) -> Unit) {
+    private suspend fun migrateAllAccounts(accounts: List<AccountLocal>, saveSourceCallback: SaveSourceCallback) {
         accounts.forEach { migrateAccount(it.address, saveSourceCallback) }
     }
 
-    private fun migrateAccount(accountAddress: String, saveSourceCallback: (String, SecuritySource) -> Unit) {
+    private suspend fun migrateAccount(accountAddress: String, saveSourceCallback: SaveSourceCallback) {
         val oldKey = PREFS_PRIVATE_KEY.format(accountAddress)
         val oldRaw = encryptedPreferences.getDecryptedString(oldKey) ?: return
         val data = ScaleSigningData.read(oldRaw)

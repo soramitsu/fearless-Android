@@ -1,11 +1,10 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.mixin.impl
 
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.asLiveData
-import jp.co.soramitsu.common.utils.asMutableLiveData
+import jp.co.soramitsu.common.utils.mediatorLiveData
+import jp.co.soramitsu.common.utils.setFrom
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
@@ -13,29 +12,28 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeList
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeHeaderModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 
 class NodeListingProvider(
     private val accountInteractor: AccountInteractor,
     private val resourceManager: ResourceManager
 ) : NodeListingMixin {
 
-    override val nodeListingDisposable: CompositeDisposable = CompositeDisposable()
-
     override val groupedNodeModelsLiveData = getGroupedNodes()
-        .asLiveData(nodeListingDisposable)
+        .asLiveData()
 
-    override val selectedNodeLiveData = getSelectedNodeModel()
-        .asMutableLiveData(nodeListingDisposable)
+    override val selectedNodeLiveData: MutableLiveData<NodeModel> = mediatorLiveData {
+        setFrom(getSelectedNodeModel().asLiveData())
+    }
 
-    private fun getSelectedNodeModel() = accountInteractor.observeSelectedNode()
-        .subscribeOn(Schedulers.computation())
+    private fun getSelectedNodeModel() = accountInteractor.selectedNodeFlow()
         .map(::transformNode)
-        .observeOn(AndroidSchedulers.mainThread())
 
-    private fun getGroupedNodes() = accountInteractor.observeNodes()
-        .subscribeOn(Schedulers.computation())
+    private fun getGroupedNodes() = accountInteractor.nodesFlow()
         .map(::transformToModels)
-        .observeOn(AndroidSchedulers.mainThread())
+        .flowOn(Dispatchers.Default)
 
     private fun transformToModels(list: List<Node>): List<Any> {
         val defaultHeader = NodeHeaderModel(resourceManager.getString(R.string.connection_management_default_title))
@@ -47,6 +45,7 @@ class NodeListingProvider(
         return mutableListOf<Any>().apply {
             add(defaultHeader)
             addAll(defaultNodes.map(::transformNode))
+
             if (customNodes.isNotEmpty()) {
                 add(customHeader)
                 addAll(customNodes.map(::transformNode))
@@ -60,6 +59,7 @@ class NodeListingProvider(
             Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
             Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
         }
+
         return NodeModel(node.id, node.name, node.link, networkModelType, node.isDefault)
     }
 }

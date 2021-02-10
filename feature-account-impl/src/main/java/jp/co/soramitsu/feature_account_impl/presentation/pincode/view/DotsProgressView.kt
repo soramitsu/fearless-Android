@@ -50,7 +50,7 @@ class DotsProgressView @JvmOverloads constructor(
         for (circle in circles) {
             circle?.background = emptyDrawable
         }
-        if (currentProgress == 0) {
+        if (currentProgress == 0 || currentProgress > MAX_PROGRESS) {
             return
         }
         for (i in 0 until currentProgress) {

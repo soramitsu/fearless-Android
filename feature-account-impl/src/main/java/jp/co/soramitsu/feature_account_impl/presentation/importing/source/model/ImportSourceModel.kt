@@ -5,28 +5,25 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.isNotEmpty
-import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.common.utils.sendEvent
-import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.InvalidJsonException
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.IncorrectPasswordException
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.InvalidJsonException
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.AccountSource
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapCryptoTypeToCryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetworkModel
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.AccountSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.FileReader
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.bouncycastle.util.encoders.DecoderException
 
 class ImportError(
@@ -64,7 +61,7 @@ class JsonImportSource(
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val fileReader: FileReader,
-    private val disposables: CompositeDisposable
+    private val scope: CoroutineScope
 ) : ImportSource(R.string.recovery_json), FileRequester {
 
     val jsonContentLiveData = MutableLiveData<String>()
@@ -105,10 +102,11 @@ class JsonImportSource(
     }
 
     override fun fileChosen(uri: Uri) {
-        disposables += fileReader.readFile(uri)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(::jsonReceived)
+        scope.launch {
+            val content = fileReader.readFile(uri)!!
+
+            jsonReceived(content)
+        }
     }
 
     fun jsonClicked() {
@@ -126,10 +124,13 @@ class JsonImportSource(
     private fun jsonReceived(newJson: String) {
         jsonContentLiveData.value = newJson
 
-        disposables += interactor.processAccountJson(newJson)
-            .subscribeOn(Schedulers.computation())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(::handleParsedImportData, DEFAULT_ERROR_HANDLER)
+        scope.launch {
+            val result = interactor.processAccountJson(newJson)
+
+            if (result.isSuccess) {
+                handleParsedImportData(result.getOrThrow())
+            }
+        }
     }
 
     private fun handleParsedImportData(importJsonData: ImportJsonData) {

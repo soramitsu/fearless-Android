@@ -1,8 +1,5 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
-import io.reactivex.Completable
-import io.reactivex.Observable
-import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
@@ -10,131 +7,125 @@ import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_api.domain.model.Network
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
+import kotlinx.coroutines.flow.Flow
 
 class AccountAlreadyExistsException : Exception()
 
 interface AccountRepository {
 
-    fun getEncryptionTypes(): Single<List<CryptoType>>
+    fun getEncryptionTypes(): List<CryptoType>
 
-    fun getNodes(): Observable<List<Node>>
+    suspend fun getNode(nodeId: Int): Node
 
-    fun getNode(nodeId: Int): Single<Node>
+    suspend fun getNetworks(): List<Network>
 
-    fun getNetworks(): Single<List<Network>>
+    suspend fun getSelectedNode(): Node
 
-    fun getSelectedNode(): Single<Node>
+    suspend fun selectNode(node: Node)
 
-    fun saveNode(node: Node): Completable
+    suspend fun getDefaultNode(networkType: Node.NetworkType): Node
 
-    fun removeNode(node: Node): Completable
+    suspend fun selectAccount(account: Account)
 
-    fun selectNode(node: Node): Completable
+    fun selectedAccountFlow(): Flow<Account>
 
-    fun getDefaultNode(networkType: Node.NetworkType): Single<Node>
+    suspend fun getSelectedAccount(): Account
 
-    fun selectAccount(account: Account): Completable
+    suspend fun getPreferredCryptoType(): CryptoType
 
-    fun observeSelectedAccount(): Observable<Account>
+    suspend fun isAccountSelected(): Boolean
 
-    fun getSelectedAccount(): Single<Account>
-
-    fun getPreferredCryptoType(): Single<CryptoType>
-
-    fun isAccountSelected(): Single<Boolean>
-
-    fun removeAccount(account: Account): Completable
-
-    fun createAccount(
+    suspend fun createAccount(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
         networkType: Node.NetworkType
-    ): Completable
+    )
 
-    fun observeAccounts(): Observable<List<Account>>
+    fun accountsFlow(): Flow<List<Account>>
 
-    fun getAccount(address: String): Single<Account>
+    suspend fun getAccount(address: String): Account
 
-    fun getMyAccounts(query: String, networkType: Node.NetworkType): Single<Set<String>>
+    suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<String>
 
-    fun importFromMnemonic(
+    suspend fun importFromMnemonic(
         keyString: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         networkType: Node.NetworkType
-    ): Completable
+    )
 
-    fun importFromSeed(
+    suspend fun importFromSeed(
         seed: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         networkType: Node.NetworkType
-    ): Completable
+    )
 
-    fun importFromJson(
+    suspend fun importFromJson(
         json: String,
         password: String,
         networkType: Node.NetworkType,
         name: String
-    ): Completable
+    )
 
-    fun isCodeSet(): Boolean
+    suspend fun isCodeSet(): Boolean
 
-    fun savePinCode(code: String): Completable
+    suspend fun savePinCode(code: String)
 
-    fun getPinCode(): String?
+    suspend fun getPinCode(): String?
 
-    fun isPinCorrect(code: String): Single<Boolean>
+    suspend fun generateMnemonic(): List<String>
 
-    fun generateMnemonic(): Single<List<String>>
+    suspend fun isInCurrentNetwork(address: String): Boolean
 
-    fun getAddressId(address: String): Single<ByteArray>
+    suspend fun isBiometricEnabled(): Boolean
 
-    fun isInCurrentNetwork(address: String): Single<Boolean>
+    suspend fun setBiometricOn()
 
-    fun isBiometricEnabled(): Boolean
+    suspend fun setBiometricOff()
 
-    fun setBiometricOn(): Completable
+    suspend fun updateAccount(newAccount: Account)
 
-    fun setBiometricOff(): Completable
+    fun nodesFlow(): Flow<List<Node>>
 
-    fun updateAccount(newAccount: Account): Completable
+    fun selectedNodeFlow(): Flow<Node>
 
-    fun observeNodes(): Observable<List<Node>>
+    suspend fun updateAccounts(accounts: List<Account>)
 
-    fun observeSelectedNode(): Observable<Node>
+    suspend fun deleteAccount(address: String)
 
-    fun updateAccounts(accounts: List<Account>): Completable
+    suspend fun processAccountJson(json: String): ImportJsonData
 
-    fun deleteAccount(address: String): Completable
+    fun getLanguages(): List<Language>
 
-    fun processAccountJson(json: String): Single<ImportJsonData>
+    suspend fun selectedLanguage(): Language
 
-    fun observeLanguages(): Observable<List<Language>>
+    suspend fun changeLanguage(language: Language)
 
-    fun getSelectedLanguage(): Single<Language>
+    suspend fun getCurrentSecuritySource(): SecuritySource
 
-    fun changeLanguage(language: Language): Completable
+    suspend fun getSecuritySource(accountAddress: String): SecuritySource
 
-    fun getCurrentSecuritySource(): Single<SecuritySource>
+    suspend fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType)
 
-    fun getSecuritySource(accountAddress: String): Single<SecuritySource>
+    suspend fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType)
 
-    fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType): Completable
+    suspend fun checkNodeExists(nodeHost: String): Boolean
 
-    fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType): Completable
+    /**
+     * @throws FearlessException
+     */
+    suspend fun getNetworkName(nodeHost: String): String
 
-    fun checkNodeExists(nodeHost: String): Single<Boolean>
+    suspend fun getAccountsByNetworkType(networkType: Node.NetworkType): List<Account>
 
-    fun getNetworkName(nodeHost: String): Single<String>
+    suspend fun deleteNode(nodeId: Int)
 
-    fun getAccountsByNetworkType(networkType: Node.NetworkType): Single<List<Account>>
+    fun createQrAccountContent(account: Account): String
 
-    fun deleteNode(nodeId: Int): Completable
-
-    fun generateRestoreJson(account: Account, password: String): Single<String>
+    suspend fun generateRestoreJson(account: Account, password: String): String
 }

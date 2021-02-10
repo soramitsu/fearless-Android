@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.chooseNetworkClicked
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource

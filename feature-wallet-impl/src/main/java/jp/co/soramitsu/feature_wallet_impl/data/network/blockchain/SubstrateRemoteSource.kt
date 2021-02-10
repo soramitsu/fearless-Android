@@ -1,45 +1,44 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
-import io.reactivex.Observable
-import io.reactivex.Single
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.BalanceChange
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ActiveEraInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.StakingLedger
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SubmittableExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsic
+import kotlinx.coroutines.flow.Flow
 
 interface SubstrateRemoteSource {
-    fun fetchAccountInfo(address: String, networkType: Node.NetworkType): Single<EncodableStruct<AccountInfo>>
+    suspend fun fetchAccountInfo(address: String, networkType: Node.NetworkType): EncodableStruct<AccountInfoSchema>
 
-    fun getTransferFee(
+    suspend fun getTransferFee(
         account: Account,
         transfer: Transfer
-    ): Single<FeeResponse>
+    ): FeeResponse
 
-    fun performTransfer(
+    suspend fun performTransfer(
         account: Account,
         transfer: Transfer,
         keypair: Keypair
-    ): Single<String>
+    ): String
 
-    fun listenForAccountUpdates(
+    suspend fun listenForAccountUpdates(
         address: String
-    ): Observable<BalanceChange>
+    ): Flow<BalanceChange>
 
-    fun listenStakingLedger(
+    suspend fun listenStakingLedger(
         stashAddress: String
-    ): Observable<EncodableStruct<StakingLedger>>
+    ): Flow<EncodableStruct<StakingLedger>>
 
-    fun getActiveEra(): Single<EncodableStruct<ActiveEraInfo>>
+    suspend fun getActiveEra(): EncodableStruct<ActiveEraInfo>
 
-    fun fetchAccountTransactionInBlock(
+    suspend fun fetchAccountTransfersInBlock(
         blockHash: String,
         account: Account
-    ): Single<List<EncodableStruct<SubmittableExtrinsic>>>
+    ): List<TransferExtrinsic>
 }

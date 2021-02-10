@@ -38,6 +38,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    kotlinOptions {
+        freeCompilerArgs = ["-Xallow-result-return-type"]
+    }
 }
 
 dependencies {
@@ -57,8 +61,10 @@ dependencies {
 
     implementation fearlessLibDep
 
-    implementation rxJavaDep
-    implementation rxAndroidDep
+    implementation coroutinesDep
+    implementation liveDataKtxDep
+
+    implementation viewModelKtxDep
 
     implementation daggerDep
     kapt daggerKapt
@@ -68,7 +74,6 @@ dependencies {
 
     implementation retrofitDep
     implementation gsonConvertedDep
-    implementation rxCallAdapterDep
     implementation interceptorVersion
 
     implementation zXingCoreDep

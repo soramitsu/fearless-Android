@@ -2,20 +2,19 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.account.mnemonicViewer.MnemonicWordModel
 import jp.co.soramitsu.common.account.mnemonicViewer.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.plusAssign
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload.CreateExtras
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class BackupMnemonicViewModel(
     private val interactor: AccountInteractor,
@@ -27,15 +26,12 @@ class BackupMnemonicViewModel(
     CryptoTypeChooserMixin by cryptoTypeChooserMixin,
     NetworkChooserMixin by networkChooserMixin {
 
-    val mnemonicLiveData = generateMnemonic().asLiveData()
+    val mnemonicLiveData = liveData {
+        emit(generateMnemonic())
+    }
 
     private val _showInfoEvent = MutableLiveData<Event<Unit>>()
     val showInfoEvent: LiveData<Event<Unit>> = _showInfoEvent
-
-    init {
-        disposables += networkDisposable
-        disposables += cryptoDisposable
-    }
 
     fun homeButtonClicked() {
         router.backToCreateAccountScreen()
@@ -65,10 +61,11 @@ class BackupMnemonicViewModel(
         router.openConfirmMnemonicOnCreate(payload)
     }
 
-    private fun generateMnemonic(): Single<List<MnemonicWordModel>> {
-        return interactor.generateMnemonic()
-            .subscribeOn(Schedulers.io())
-            .map(::mapMnemonicToMnemonicWords)
-            .observeOn(AndroidSchedulers.mainThread())
+    private suspend fun generateMnemonic(): List<MnemonicWordModel> {
+        val mnemonic = interactor.generateMnemonic()
+
+        return withContext(Dispatchers.Default) {
+            mapMnemonicToMnemonicWords(mnemonic)
+        }
     }
 }

@@ -3,18 +3,14 @@ package jp.co.soramitsu.common.base
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.disposables.CompositeDisposable
-import jp.co.soramitsu.common.utils.DEFAULT_ERROR_HANDLER
-import jp.co.soramitsu.common.utils.ErrorHandler
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.Optional
 import jp.co.soramitsu.common.utils.asLiveData
-import jp.co.soramitsu.common.utils.asMutableLiveData
-import jp.co.soramitsu.common.utils.asOptionalLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlin.coroutines.CoroutineContext
 
-open class BaseViewModel : ViewModel() {
+open class BaseViewModel : ViewModel(), CoroutineScope {
 
     private val _errorLiveData = MutableLiveData<Event<String>>()
     val errorLiveData: LiveData<Event<String>> = _errorLiveData
@@ -24,13 +20,6 @@ open class BaseViewModel : ViewModel() {
 
     private val _messageLiveData = MutableLiveData<Event<String>>()
     val messageLiveData: LiveData<Event<String>> = _messageLiveData
-
-    protected val disposables = CompositeDisposable()
-
-    override fun onCleared() {
-        super.onCleared()
-        if (!disposables.isDisposed) disposables.dispose()
-    }
 
     fun showMessage(text: String) {
         _messageLiveData.value = Event(text)
@@ -48,23 +37,10 @@ open class BaseViewModel : ViewModel() {
         throwable.message?.let(this::showError)
     }
 
-    fun <T> Observable<Optional<T>>.asOptionalLiveData(
-        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) = asOptionalLiveData(disposables, errorHandler)
+    override val coroutineContext: CoroutineContext
+        get() = viewModelScope.coroutineContext
 
-    fun <T> Single<T>.asLiveData(
-        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) = asLiveData(disposables, errorHandler)
-
-    fun <T> Observable<T>.asLiveData(
-        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) = asLiveData(disposables, errorHandler)
-
-    fun <T> Single<T>.asMutableLiveData(
-        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) = asMutableLiveData(disposables, errorHandler)
-
-    fun <T> Observable<T>.asMutableLiveData(
-        errorHandler: ErrorHandler = DEFAULT_ERROR_HANDLER
-    ) = asMutableLiveData(disposables, errorHandler)
+    fun <T> Flow<T>.asLiveData(): LiveData<T> {
+        return asLiveData(viewModelScope)
+    }
 }

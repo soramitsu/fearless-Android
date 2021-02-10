@@ -1,9 +1,15 @@
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
 
-dependencies {
-    implementation kotlinDep
-    implementation rxJavaDep
+compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-Xallow-result-return-type"]
+    }
+}
 
+dependencies {
+    implementation coroutinesDep
+    
     implementation project(':feature-account-api')
+    api project(':core-api')
 }

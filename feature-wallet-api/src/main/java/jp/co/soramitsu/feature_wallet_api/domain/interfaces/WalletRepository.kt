@@ -1,8 +1,5 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
-import io.reactivex.Completable
-import io.reactivex.Observable
-import io.reactivex.Single
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
@@ -10,30 +7,36 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
+import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
 interface WalletRepository {
-    fun observeAssets(): Observable<List<Asset>>
 
-    fun syncAssetsRates(): Completable
+    fun assetsFlow(): Flow<List<Asset>>
 
-    fun observeAsset(type: Token.Type): Observable<Asset>
+    suspend fun syncAssetsRates()
 
-    fun syncAsset(type: Token.Type): Completable
+    fun assetFlow(type: Token.Type): Flow<Asset>
 
-    fun observeTransactionsFirstPage(pageSize: Int): Observable<List<Transaction>>
+    suspend fun getAsset(type: Token.Type): Asset?
 
-    fun syncTransactionsFirstPage(pageSize: Int): Completable
+    suspend fun syncAsset(type: Token.Type)
 
-    fun getTransactionPage(pageSize: Int, page: Int): Single<List<Transaction>>
+    fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>>
 
-    fun getContacts(query: String): Single<Set<String>>
+    suspend fun syncTransactionsFirstPage(pageSize: Int)
 
-    fun getTransferFee(transfer: Transfer): Single<Fee>
+    suspend fun getTransactionPage(pageSize: Int, page: Int): List<Transaction>
 
-    fun performTransfer(transfer: Transfer, fee: BigDecimal): Completable
+    suspend fun getContacts(query: String): Set<String>
 
-    fun checkTransferValidity(transfer: Transfer): Single<TransferValidityStatus>
+    suspend fun getTransferFee(transfer: Transfer): Fee
 
-    fun listenForUpdates(account: Account): Completable
+    suspend fun performTransfer(transfer: Transfer, fee: BigDecimal)
+
+    suspend fun checkTransferValidity(transfer: Transfer): TransferValidityStatus
+
+    suspend fun listenForAccountInfoUpdates(account: Account)
+
+    suspend fun listenForStakingLedgerUpdates(account: Account)
 }
