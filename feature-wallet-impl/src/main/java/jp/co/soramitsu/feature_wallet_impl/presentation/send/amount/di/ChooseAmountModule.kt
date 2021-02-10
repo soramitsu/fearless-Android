@@ -14,14 +14,14 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountViewModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarning
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.impl.PhishingWarningProvider
 
 @Module(includes = [ViewModelModule::class])
 class ChooseAmountModule {
 
     @Provides
-    fun providePhishingAddressMixin(interactor: WalletInteractor): PhishingWarning {
+    fun providePhishingAddressMixin(interactor: WalletInteractor): PhishingWarningMixin {
         return PhishingWarningProvider(interactor)
     }
 
@@ -35,7 +35,7 @@ class ChooseAmountModule {
         externalAccountActions: ExternalAccountActions.Presentation,
         transferValidityChecks: TransferValidityChecks.Presentation,
         recipientAddress: String,
-        phishingWarning: PhishingWarning
+        phishingWarning: PhishingWarningMixin
     ): ViewModel {
         return ChooseAmountViewModel(
             interactor,
