@@ -171,8 +171,6 @@ class ChooseAmountViewModel(
         .catch {
             _feeErrorLiveData.postValue(Event(RetryReason.LOAD_FEE))
 
-            it.printStackTrace()
-
             emit(null)
         }.onEach {
             _feeLoadingLiveData.value = false

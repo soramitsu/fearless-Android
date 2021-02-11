@@ -14,25 +14,29 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
+import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
-import jp.co.soramitsu.core_db.migration.AddPhishingAddressesTable
-import jp.co.soramitsu.core_db.migration.AddTokenTable
+import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
+import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_11_12
+import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
+import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Database(
-    version = 11,
+    version = 12,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
         TransactionLocal::class,
         AssetLocal::class,
         TokenLocal::class,
+        RuntimeCacheEntry::class,
         PhishingAddressLocal::class
     ])
 @TypeConverters(
@@ -55,11 +59,10 @@ abstract class AppDatabase : RoomDatabase() {
                     .fallbackToDestructiveMigration()
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
                             db.execSQL(defaultNodes.prepopulateQuery)
                         }
                     })
-                    .addMigrations(AddTokenTable, AddPhishingAddressesTable)
+                    .addMigrations(AddTokenTable_9_10, AddPhishingAddressesTable_10_11, AddRuntimeCacheTable_11_12)
                     .build()
             }
             return instance!!
@@ -73,6 +76,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun assetDao(): AssetDao
 
     abstract fun transactionsDao(): TransactionDao
+
+    abstract fun runtimeDao(): RuntimeDao
 
     abstract fun phishingAddressesDao(): PhishingAddressDao
 }

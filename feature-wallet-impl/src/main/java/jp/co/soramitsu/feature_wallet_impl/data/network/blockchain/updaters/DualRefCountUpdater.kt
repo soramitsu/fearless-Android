@@ -13,7 +13,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChang
 import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
@@ -40,12 +40,12 @@ class AccountInfoSchemaUpdater(
     private val socketService: SocketService
 ) : Updater {
 
-    override suspend fun listenForUpdates() {
+    override suspend fun listenForUpdates(): Flow<Updater.SideEffect> {
         accountInfoFactory.isUpgradedToDualRefCount.invalidate()
 
-        socketService.subscriptionFlow(upgradedToDualRefCountRequest)
+        return socketService.subscriptionFlow(upgradedToDualRefCountRequest)
             .map { it.dualRefCountChange() }
             .onEach(accountInfoFactory.isUpgradedToDualRefCount::set)
-            .collect()
+            .noSideAffects()
     }
 }

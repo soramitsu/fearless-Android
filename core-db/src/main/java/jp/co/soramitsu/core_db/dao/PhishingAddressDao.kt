@@ -15,6 +15,6 @@ interface PhishingAddressDao {
     @Query("delete from phishing_addresses")
     suspend fun clearTable()
 
-    @Query("select * from phishing_addresses")
-    suspend fun getAll(): List<PhishingAddressLocal>
+    @Query("select publicKey from phishing_addresses")
+    suspend fun getAllAddresses(): List<String>
 }

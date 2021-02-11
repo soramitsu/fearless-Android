@@ -5,5 +5,5 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "phishing_addresses")
 data class PhishingAddressLocal(
-    @PrimaryKey() val publicKey: String
+    @PrimaryKey val publicKey: String
 )

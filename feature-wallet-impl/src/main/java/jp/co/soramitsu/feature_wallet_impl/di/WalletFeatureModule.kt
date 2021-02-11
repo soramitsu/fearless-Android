@@ -26,6 +26,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.accoun
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountBalanceUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountInfoSchemaUpdater
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
@@ -154,8 +155,18 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideStakingUpdater(
+        accountRepository: AccountRepository,
+        walletRepository: WalletRepository
+    ): StakingLedgerUpdater {
+        return StakingLedgerUpdater(accountRepository, walletRepository)
+    }
+
+    @Provides
+    @FeatureScope
     fun provideFeatureUpdaters(
         schemaUpdater: AccountInfoSchemaUpdater,
-        balanceUpdater: AccountBalanceUpdater
-    ): WalletUpdaters = WalletUpdaters(listOf(schemaUpdater, balanceUpdater))
+        balanceUpdater: AccountBalanceUpdater,
+        stakingLedgerUpdater: StakingLedgerUpdater
+    ): WalletUpdaters = WalletUpdaters(arrayOf(schemaUpdater, balanceUpdater, stakingLedgerUpdater))
 }

@@ -74,6 +74,7 @@ dependencies {
 
     implementation retrofitDep
     implementation gsonConvertedDep
+    implementation scalarsConverterDep
     implementation interceptorVersion
 
     implementation zXingCoreDep

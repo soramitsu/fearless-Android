@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing
 
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.view.dialog.showWarningDialog
+import jp.co.soramitsu.common.view.dialog.warningDialog
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 
@@ -18,9 +18,10 @@ private fun <T> BaseFragment<T>.showPhishingWarning(
     viewModel: T,
     address: String
 ) where T : BaseViewModel, T : PhishingWarningPresentation {
-    showWarningDialog({
-        viewModel.proceedAddress(address)
-    }) {
+    warningDialog(
+        requireContext(),
+        { viewModel.proceedAddress(address) }
+    ) {
         setTitle(R.string.wallet_send_phishing_warning_title)
         setMessage(getString(R.string.wallet_send_phishing_warning_text, address))
     }

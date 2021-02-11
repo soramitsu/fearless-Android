@@ -62,6 +62,10 @@ android {
             }
         }
     }
+
+    kotlinOptions {
+        freeCompilerArgs = ["-Xallow-result-return-type"]
+    }
 }
 
 play {
@@ -113,6 +117,8 @@ dependencies {
     compileOnly wsDep
 
     implementation coroutinesDep
+
+    testImplementation project(':test-shared')
 }
 
 task printVersion {

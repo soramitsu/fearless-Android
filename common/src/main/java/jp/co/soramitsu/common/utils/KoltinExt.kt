@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.utils
 
+import java.io.InputStream
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.concurrent.TimeUnit
@@ -16,3 +17,5 @@ inline fun <T> List<T>.sumBy(extractor: (T) -> BigInteger) = fold(BigInteger.ZER
 fun <T> Result<T>.requireException() = exceptionOrNull()!!
 
 fun <T> Result<T>.requireValue() = getOrThrow()!!
+
+fun InputStream.readText() = bufferedReader().use { it.readText() }
