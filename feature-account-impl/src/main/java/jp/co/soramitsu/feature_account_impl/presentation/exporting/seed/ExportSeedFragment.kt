@@ -79,10 +79,5 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
         viewModel.cryptoTypeLiveData.observe {
             exportSeedAdvanced.setEncryption(it.name)
         }
-
-        viewModel.networkTypeLiveData.observe {
-            exportSeedAdvanced.setNetworkName(it.name)
-            exportSeedAdvanced.setNetworkIconResource(it.networkTypeUI.icon)
-        }
     }
 }

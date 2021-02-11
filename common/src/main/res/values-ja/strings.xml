@@ -191,7 +191,7 @@
     <string name="common_copy_address">コピーアドレス</string>
     <string name="common_choose_file">ファイルをアップロードする</string>
     <string name="import_json_paste">jsonを貼り付け</string>
-    <string name="account_import_json_no_network">JSONにはネットワーク情報は含まれていません。高度なブロックで指定してください。</string>
+    <string name="account_import_json_no_network">JSONにはネットワーク情報は含まれていません。 以下に指定してください。</string>
     <string name="pincode_enter_new_pin_code">新しいPINコードを入力してください</string>
     <string name="pincode_changed_message">PINコードは正常に変更されました</string>
     <string name="common_share">シェア</string>

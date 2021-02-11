@@ -25,8 +25,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccount
 class ImportAccountModule {
 
     @Provides
-    fun provideNetworkChooserMixin(interactor: AccountInteractor, networkType: Node.NetworkType?): NetworkChooserMixin {
-        return NetworkChooser(interactor, networkType)
+    fun provideNetworkChooserMixin(interactor: AccountInteractor, forcedNetworkType: Node.NetworkType?): NetworkChooserMixin {
+        return NetworkChooser(interactor, forcedNetworkType)
     }
 
     @Provides

@@ -192,7 +192,7 @@
     <string name="common_choose_file">Téléverser un fichier</string>
     <string name="import_json_paste">Coller json</string>
     <string name="account_export_password_change">Changer le mot de passe</string>
-    <string name="account_import_json_no_network">JSON ne contient aucune information sur le réseau. Veuillez le spécifier dans le bloc avancé.</string>
+    <string name="account_import_json_no_network">JSON ne contient aucune information sur le réseau. Veuillez le préciser ci-dessous.</string>
     <string name="pincode_enter_new_pin_code">Entrez le nouveau code PIN</string>
     <string name="pincode_changed_message">Le code PIN a été modifié avec succès</string>
     <string name="common_share">Partager</string>

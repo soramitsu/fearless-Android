@@ -33,7 +33,7 @@
 
     <string name="account_export_password_change">Change password</string>
 
-    <string name="account_import_json_no_network">No network information. Please specify it in advanced block</string>
+    <string name="account_import_json_no_network">No network information. Please specify it below</string>
 
     <string name="import_json_paste">Paste JSON</string>
     <string name="common_choose_file">Upload file</string>

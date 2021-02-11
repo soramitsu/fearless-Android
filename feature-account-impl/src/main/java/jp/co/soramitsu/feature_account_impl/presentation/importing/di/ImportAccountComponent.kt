@@ -20,7 +20,7 @@ interface ImportAccountComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance networkType: Node.NetworkType?
+            @BindsInstance forcedNetworkType: Node.NetworkType?
         ): ImportAccountComponent
     }
 

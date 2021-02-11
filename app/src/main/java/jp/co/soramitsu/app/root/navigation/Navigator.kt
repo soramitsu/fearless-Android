@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
@@ -25,7 +26,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfiguration
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
-import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -119,7 +119,7 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.importAction, ImportAccountFragment.getBundle(selectedNetworkType))
     }
 
-    override fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType?) {
+    override fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType) {
         val bundle = BackupMnemonicFragment.getBundle(accountName, selectedNetworkType)
         navController?.navigate(R.id.action_createAccountFragment_to_backupMnemonicFragment, bundle)
     }
