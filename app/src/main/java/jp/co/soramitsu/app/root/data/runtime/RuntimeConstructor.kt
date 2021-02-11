@@ -1,0 +1,138 @@
+package jp.co.soramitsu.app.root.data.runtime
+
+import com.google.gson.Gson
+import jp.co.soramitsu.core_db.dao.RuntimeDao
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser
+import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
+import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.DynamicTypeResolver
+import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.extentsions.GenericsExtension
+import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
+import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.substratePreParsePreset
+import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
+import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
+import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadataSchema
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+private const val TYPE_DEFINITIONS_DEFAULT = "default"
+
+class ConstructionParams(
+    val metadataRaw: String,
+    val defaultDefinitions: TypeDefinitionsTree,
+    val networkDefinitions: TypeDefinitionsTree,
+    val areNewest: Boolean
+)
+
+class RuntimeConstructor(
+    private val socketService: SocketService,
+    private val definitionsFetcher: DefinitionsFetcher,
+    private val gson: Gson,
+    private val runtimeDao: RuntimeDao,
+    private val runtimePrepopulator: RuntimePrepopulator,
+    private val runtimeCache: RuntimeCache
+) {
+
+    class Constructed(val runtime: RuntimeSnapshot, val isNewest: Boolean)
+
+    suspend fun constructRuntime(
+        networkName: String
+    ): Constructed {
+        val latestRuntimeVersion = runtimeDao.getCacheEntry(networkName).latestKnownVersion
+
+        return constructRuntime(latestRuntimeVersion, networkName)
+    }
+
+    suspend fun constructRuntime(
+        newRuntimeVersion: Int,
+        networkName: String
+    ): Constructed = withContext(Dispatchers.IO) {
+        runtimePrepopulator.maybePrepopulateCache()
+
+        runtimeDao.updateLatestKnownVersion(networkName, newRuntimeVersion)
+
+        val runtimeParams = getRuntimeParams(newRuntimeVersion, networkName)
+
+        val typeRegistry = constructTypeRegistry(runtimeParams)
+
+        val runtimeMetadataStruct = RuntimeMetadataSchema.read(runtimeParams.metadataRaw)
+        val runtimeMetadata = RuntimeMetadata(typeRegistry, runtimeMetadataStruct)
+
+        val runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata)
+
+        Constructed(
+            runtime,
+            isNewest = runtimeParams.areNewest
+        )
+    }
+
+    private suspend fun getRuntimeParams(latestRuntimeVersion: Int, networkName: String): ConstructionParams {
+        val cacheInfo = runtimeDao.getCacheEntry(networkName)
+
+        val metadataRaw = if (latestRuntimeVersion <= cacheInfo.latestAppliedVersion) {
+            val metadataRaw = runtimeCache.getRuntimeMetadata(networkName)!!
+
+            if (latestRuntimeVersion <= cacheInfo.typesVersion) {
+                val (default, network) = networkTypesFromCache(networkName)
+
+                return ConstructionParams(metadataRaw, default, network, areNewest = true)
+            }
+
+            metadataRaw
+        } else {
+            val metadataRaw = socketService.executeAsync(GetMetadataRequest).result as String
+
+            runtimeCache.saveRuntimeMetadata(networkName, metadataRaw)
+            runtimeDao.updateLatestAppliedVersion(networkName, latestRuntimeVersion)
+
+            metadataRaw
+        }
+
+        val defaultTreeRaw = definitionsFetcher.getDefinitionsByNetwork(TYPE_DEFINITIONS_DEFAULT)
+        val networkTreeRaw = definitionsFetcher.getDefinitionsByNetwork(networkName)
+
+        val defaultTree = typesFromJson(defaultTreeRaw)
+        val networkTree = typesFromJson(networkTreeRaw)
+
+        val typesVersion = networkTree.runtimeId!!
+
+        runtimeDao.updateTypesVersion(networkName, typesVersion)
+
+        runtimeCache.saveTypeDefinitions(TYPE_DEFINITIONS_DEFAULT, defaultTreeRaw)
+
+        runtimeCache.saveTypeDefinitions(networkName, networkTreeRaw)
+
+        return ConstructionParams(
+            metadataRaw,
+            defaultTree,
+            networkTree,
+            areNewest = latestRuntimeVersion <= typesVersion
+        )
+    }
+
+    private suspend fun networkTypesFromCache(networkName: String): Pair<TypeDefinitionsTree, TypeDefinitionsTree> {
+        val defaultRaw = runtimeCache.getTypeDefinitions(TYPE_DEFINITIONS_DEFAULT)!!
+        val defaultTree = typesFromJson(defaultRaw)
+
+        val networkRaw = runtimeCache.getTypeDefinitions(networkName)!!
+        val networkTree = typesFromJson(networkRaw)
+
+        return defaultTree to networkTree
+    }
+
+    private fun typesFromJson(typeDefinitions: String) = gson.fromJson(typeDefinitions, TypeDefinitionsTree::class.java)
+
+    private fun constructTypeRegistry(constructionParams: ConstructionParams): TypeRegistry {
+        val defaultTypePreset = TypeDefinitionParser.parseTypeDefinitions(constructionParams.defaultDefinitions, substratePreParsePreset()).typePreset
+        val networkTypePreset = TypeDefinitionParser.parseTypeDefinitions(constructionParams.networkDefinitions, defaultTypePreset).typePreset
+
+        return TypeRegistry(
+            types = networkTypePreset,
+            dynamicTypeResolver = DynamicTypeResolver(
+                DynamicTypeResolver.DEFAULT_COMPOUND_EXTENSIONS + GenericsExtension
+            )
+        )
+    }
+}

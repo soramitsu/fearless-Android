@@ -2,8 +2,7 @@ package jp.co.soramitsu.app.root.domain
 
 import jp.co.soramitsu.core_api.data.network.Updater
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.withContext
 
 class CompositeUpdater(
@@ -12,11 +11,9 @@ class CompositeUpdater(
 
     constructor(vararg updaters: Updater) : this(updaters.toList())
 
-    override suspend fun listenForUpdates(): Unit = withContext(Dispatchers.IO) {
-        val coroutines = updaters.map {
-            async { it.listenForUpdates() }
-        }
+    override suspend fun listenForUpdates() = withContext(Dispatchers.IO) {
+        val flows = updaters.map { it.listenForUpdates() }
 
-        coroutines.awaitAll()
+        flows.merge()
     }
 }

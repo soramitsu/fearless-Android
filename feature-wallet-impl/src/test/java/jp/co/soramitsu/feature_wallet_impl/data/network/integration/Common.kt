@@ -11,3 +11,13 @@ class StdoutLogger : Logger {
         throwable?.printStackTrace()
     }
 }
+
+class NoOpLogger: Logger {
+    override fun log(message: String?) {
+        // pass
+    }
+
+    override fun log(throwable: Throwable?) {
+        // pass
+    }
+}

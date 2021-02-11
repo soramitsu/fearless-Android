@@ -17,6 +17,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.recovery.Reconnector
 import jp.co.soramitsu.fearless_utils.wsrpc.request.RequestExecutor
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -24,7 +25,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.Tr
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.NextAccountIndexRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Signature
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.ExtrinsicPayloadValue
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.MultiAddress

@@ -1,39 +1,73 @@
 package jp.co.soramitsu.common.view.dialog
 
+import android.content.Context
 import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.Fragment
 import jp.co.soramitsu.common.R
 
 typealias DialogClickHandler = () -> Unit
 
-fun Fragment.showWarningDialog(
-    onConfirm: DialogClickHandler,
-    onCancel: DialogClickHandler? = null,
-    decorated: AlertDialog.Builder.() -> Unit
+typealias DialogDecorator = AlertDialog.Builder.() -> Unit
+
+inline fun dialog(
+    context: Context,
+    decorator: DialogDecorator
 ) {
-    val builder = AlertDialog.Builder(requireContext())
-
-    builder
+    val builder = AlertDialog.Builder(context)
         .setCancelable(false)
-        .setPositiveButton(R.string.common_continue) { _, _ -> onConfirm() }
-        .setNegativeButton(R.string.common_cancel) { _, _ -> onCancel?.invoke() }
 
-    builder.decorated()
+    builder.decorator()
 
     builder.show()
 }
 
-fun Fragment.showErrorDialog(
-    onConfirm: DialogClickHandler? = null,
-    decorated: AlertDialog.Builder.() -> Unit
+fun infoDialog(
+    context: Context,
+    decorator: DialogDecorator
 ) {
-    val builder = AlertDialog.Builder(requireContext())
+    dialog(context) {
+        setPositiveButton(R.string.common_ok, null)
 
-    builder.setCancelable(false)
-        .setTitle(R.string.common_error_general_title)
-        .setPositiveButton(R.string.common_ok) { _, _ -> onConfirm?.invoke() }
+        decorator()
+    }
+}
 
-    builder.decorated()
+fun warningDialog(
+    context: Context,
+    onConfirm: DialogClickHandler,
+    onCancel: DialogClickHandler? = null,
+    decorator: DialogDecorator? = null
+) {
+    dialog(context) {
+        setPositiveButton(R.string.common_continue) { _, _ -> onConfirm() }
+        setNegativeButton(R.string.common_cancel) { _, _ -> onCancel?.invoke() }
 
-    builder.show()
+        decorator?.invoke(this)
+    }
+}
+
+fun errorDialog(
+    context: Context,
+    onConfirm: DialogClickHandler? = null,
+    decorator: DialogDecorator? = null
+) {
+    dialog(context) {
+        setTitle(R.string.common_error_general_title)
+        setPositiveButton(R.string.common_ok) { _, _ -> onConfirm?.invoke() }
+
+        decorator?.invoke(this)
+    }
+}
+
+fun retryDialog(
+    context: Context,
+    onRetry: DialogClickHandler? = null,
+    decorator: DialogDecorator? = null
+) {
+    dialog(context) {
+        setTitle(R.string.common_error_general_title)
+        setPositiveButton(R.string.common_retry) { _, _ -> onRetry?.invoke() }
+        setNegativeButton(R.string.common_ok) { dialogInterface, _ -> dialogInterface.cancel() }
+
+        decorator?.invoke(this)
+    }
 }

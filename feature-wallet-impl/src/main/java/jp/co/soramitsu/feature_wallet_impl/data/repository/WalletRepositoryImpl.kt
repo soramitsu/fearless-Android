@@ -181,21 +181,21 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
-        val publicKeys = phishingApi.getPhishingAddresses().entries.map { it.value }.flatten()
+        val publicKeys = phishingApi.getPhishingAddresses().values.flatten()
             .map { sS58Encoder.decode(it).toHexString(withPrefix = true) }
 
-        val phishingAddressesLocal = publicKeys.map { PhishingAddressLocal(it) }
+        val phishingAddressesLocal = publicKeys.map(::PhishingAddressLocal)
 
         phishingAddressDao.clearTable()
         phishingAddressDao.insert(phishingAddressesLocal)
     }
 
     override suspend fun isAddressFromPhishingList(address: String) = withContext(Dispatchers.Default) {
-        val phishingAddresses = phishingAddressDao.getAll()
+        val phishingAddresses = phishingAddressDao.getAllAddresses()
 
         val addressPublicKey = sS58Encoder.decode(address).toHexString(withPrefix = true)
 
-        phishingAddresses.map { it.publicKey }.contains(addressPublicKey)
+        phishingAddresses.contains(addressPublicKey)
     }
 
     private suspend fun updateAssetStaking(
