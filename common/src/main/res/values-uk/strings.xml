@@ -195,7 +195,7 @@
     <string name="pincode_changed_message">Успіх зміни пін-коду</string>
     <string name="common_share">Поділіться</string>
     <string name="import_json_paste">Вставити json</string>
-    <string name="account_import_json_no_network">JSON не містить інформації про мережу. Будь ласка, вкажіть це в розширеному блоці.</string>
+    <string name="account_import_json_no_network">JSON не містить інформації про мережу. Будь ласка, вкажіть це нижче.</string>
     <string name="invoice_scan_upload">Завантажити з галереї</string>
     <string name="invoice_scan_camera">Камера</string>
     <string name="invoice_scan_gallery">Галерея</string>
