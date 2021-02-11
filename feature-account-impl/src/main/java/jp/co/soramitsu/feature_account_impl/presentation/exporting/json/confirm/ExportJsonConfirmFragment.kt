@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedB
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmAdvanced
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmChangePassword
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmExport
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmNetworkInput
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmToolbar
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmValue
 
@@ -43,6 +44,8 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
             configure(encryptionTypeField, FieldState.DISABLED)
             configure(derivationPathField, FieldState.HIDDEN)
         }
+
+        exportJsonConfirmNetworkInput.isEnabled = false
     }
 
     override fun inject() {
@@ -59,6 +62,11 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
 
         viewModel.cryptoTypeLiveData.observe {
             exportJsonConfirmAdvanced.setEncryption(it.name)
+        }
+
+        viewModel.networkTypeLiveData.observe {
+            exportJsonConfirmNetworkInput.setTextIcon(it.networkTypeUI.icon)
+            exportJsonConfirmNetworkInput.setMessage(it.name)
         }
 
         exportJsonConfirmValue.setMessage(viewModel.json)

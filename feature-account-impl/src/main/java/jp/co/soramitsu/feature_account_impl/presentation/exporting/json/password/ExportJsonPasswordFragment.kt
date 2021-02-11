@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordConfirmField
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordMatchingError
+import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNetworkInput
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNewField
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNext
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordToolbar
@@ -39,6 +40,8 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
         exportJsonPasswordNext.setOnClickListener { viewModel.nextClicked() }
 
         exportJsonPasswordMatchingError.setDrawableStart(R.drawable.ic_red_cross, 24)
+
+        exportJsonPasswordNetworkInput.isEnabled = false
     }
 
     override fun inject() {
@@ -58,6 +61,11 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
 
         viewModel.showDoNotMatchingErrorLiveData.observe {
             exportJsonPasswordMatchingError.setVisible(it, falseState = View.INVISIBLE)
+        }
+
+        viewModel.networkTypeLiveData.observe {
+            exportJsonPasswordNetworkInput.setTextIcon(it.networkTypeUI.icon)
+            exportJsonPasswordNetworkInput.setMessage(it.name)
         }
     }
 }
