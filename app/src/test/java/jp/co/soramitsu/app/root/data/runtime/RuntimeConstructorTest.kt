@@ -15,8 +15,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.BDDMockito.given
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
@@ -55,7 +55,7 @@ class RuntimeConstructorTest {
     @Before
     fun setup() {
         runBlocking {
-            `when`(socketService.executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())).thenAnswer {
+            given(socketService.executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())).willAnswer {
                 val callback = it.arguments[2] as SocketService.ResponseListener<RpcResponse>
 
                 callback.onNext(metadataResponse)
@@ -63,13 +63,13 @@ class RuntimeConstructorTest {
                 null
             }
 
-            `when`(cache.getTypeDefinitions(anyString())).thenReturn("")
-            `when`(gson.fromJson(anyString(), eq(TypeDefinitionsTree::class.java))).thenReturn(TypeDefinitionsTree(1, emptyMap()))
+            given(cache.getTypeDefinitions(anyString())).willReturn("")
+            given(gson.fromJson(anyString(), eq(TypeDefinitionsTree::class.java))).willReturn(TypeDefinitionsTree(1, emptyMap()))
 
-            `when`(definitionsFetcher.getDefinitionsByNetwork(anyString())).thenReturn("server")
-            `when`(definitionsFetcher.getDefinitionsByFile(anyString())).thenReturn("server")
+            given(definitionsFetcher.getDefinitionsByNetwork(anyString())).willReturn("server")
+            given(definitionsFetcher.getDefinitionsByFile(anyString())).willReturn("server")
 
-            `when`(runtimePrepopulator.maybePrepopulateCache()).thenReturn(Unit) // no pre population in test
+            given(runtimePrepopulator.maybePrepopulateCache()).willReturn(Unit) // no pre population in test
 
             runtimeConstructor = RuntimeConstructor(socketService, definitionsFetcher, gson, runtimeDao, runtimePrepopulator, cache)
         }
@@ -81,7 +81,7 @@ class RuntimeConstructorTest {
             dbReturnsCacheInfo(lastKnownVersion = 1, lastAppliedVersion = 1, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
 
-            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 1,"kusama")
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 1, "kusama")
 
             assertEquals(true, result.isNewest)
 
@@ -169,17 +169,17 @@ class RuntimeConstructorTest {
         }
     }
 
-    private suspend fun cacheReturnsMetadata(metadata: String) = `when`(cache.getRuntimeMetadata(anyString())).thenReturn(metadata)
+    private suspend fun cacheReturnsMetadata(metadata: String) = given(cache.getRuntimeMetadata(anyString())).willReturn(metadata)
 
-    private fun nodeReturnsMetadata(metadata: String) = `when`(metadataResponse.result).thenReturn(metadata)
+    private fun nodeReturnsMetadata(metadata: String) = given(metadataResponse.result).willReturn(metadata)
 
     private fun serverReturnsTypes(runtimeId: Int) {
-        `when`(gson.fromJson(eq("server"), eq(TypeDefinitionsTree::class.java))).thenReturn(TypeDefinitionsTree(runtimeId, emptyMap()))
+        given(gson.fromJson(eq("server"), eq(TypeDefinitionsTree::class.java))).willReturn(TypeDefinitionsTree(runtimeId, emptyMap()))
     }
 
     private suspend fun dbReturnsCacheInfo(
         lastKnownVersion: Int,
         lastAppliedVersion: Int,
         typesVersion: Int
-    ) = `when`(runtimeDao.getCacheEntry(anyString())).thenReturn(RuntimeCacheEntry("test", lastKnownVersion, lastAppliedVersion, typesVersion))
+    ) = given(runtimeDao.getCacheEntry(anyString())).willReturn(RuntimeCacheEntry("test", lastKnownVersion, lastAppliedVersion, typesVersion))
 }
