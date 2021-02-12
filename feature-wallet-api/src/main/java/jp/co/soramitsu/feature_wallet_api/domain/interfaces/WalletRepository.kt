@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -35,10 +34,6 @@ interface WalletRepository {
     suspend fun performTransfer(transfer: Transfer, fee: BigDecimal)
 
     suspend fun checkTransferValidity(transfer: Transfer): TransferValidityStatus
-
-    suspend fun listenForAccountInfoUpdates(account: Account)
-
-    suspend fun listenForStakingLedgerUpdates(account: Account)
 
     suspend fun updatePhishingAddresses()
 

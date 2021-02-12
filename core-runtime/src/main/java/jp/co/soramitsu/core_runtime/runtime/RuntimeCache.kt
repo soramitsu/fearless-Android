@@ -1,4 +1,4 @@
-package jp.co.soramitsu.app.root.data.runtime
+package jp.co.soramitsu.core_runtime.runtime
 
 import jp.co.soramitsu.common.interfaces.FileProvider
 import kotlinx.coroutines.Dispatchers

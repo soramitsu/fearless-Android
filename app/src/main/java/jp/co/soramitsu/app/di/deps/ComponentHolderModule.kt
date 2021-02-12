@@ -12,6 +12,8 @@ import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.core_db.di.DbHolder
+import jp.co.soramitsu.core_runtime.di.RuntimeApi
+import jp.co.soramitsu.core_runtime.di.RuntimeHolder
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureHolder
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
@@ -63,4 +65,10 @@ interface ComponentHolderModule {
     @ClassKey(RootApi::class)
     @IntoMap
     fun provideMainFeature(accountFeatureHolder: RootFeatureHolder): FeatureApiHolder
+
+    @ApplicationScope
+    @Binds
+    @ClassKey(RuntimeApi::class)
+    @IntoMap
+    fun provideARuntimeFeature(runtimeHolder: RuntimeHolder): FeatureApiHolder
 }

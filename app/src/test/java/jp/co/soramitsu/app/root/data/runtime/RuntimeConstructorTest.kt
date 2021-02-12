@@ -3,6 +3,7 @@ package jp.co.soramitsu.app.root.data.runtime
 import com.google.gson.Gson
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
+import jp.co.soramitsu.core_runtime.runtime.getDefinitionsByNetwork
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
@@ -29,13 +30,13 @@ private const val EMPTY_METADATA = "0x1111111122001100"
 class RuntimeConstructorTest {
 
     @Mock
-    lateinit var cache: RuntimeCache
+    lateinit var cache: jp.co.soramitsu.core_runtime.runtime.RuntimeCache
 
     @Mock
     lateinit var runtimeDao: RuntimeDao
 
     @Mock
-    lateinit var definitionsFetcher: DefinitionsFetcher
+    lateinit var definitionsFetcher: jp.co.soramitsu.core_runtime.runtime.DefinitionsFetcher
 
     @Mock
     lateinit var socketService: SocketService
@@ -47,9 +48,9 @@ class RuntimeConstructorTest {
     lateinit var gson: Gson
 
     @Mock
-    lateinit var runtimePrepopulator: RuntimePrepopulator
+    lateinit var runtimePrepopulator: jp.co.soramitsu.core_runtime.runtime.RuntimePrepopulator
 
-    lateinit var runtimeConstructor: RuntimeConstructor
+    lateinit var runtimeConstructor: jp.co.soramitsu.core_runtime.runtime.RuntimeConstructor
 
     @Suppress("UNCHECKED_CAST")
     @Before
@@ -71,7 +72,7 @@ class RuntimeConstructorTest {
 
             given(runtimePrepopulator.maybePrepopulateCache()).willReturn(Unit) // no pre population in test
 
-            runtimeConstructor = RuntimeConstructor(socketService, definitionsFetcher, gson, runtimeDao, runtimePrepopulator, cache)
+            runtimeConstructor = jp.co.soramitsu.core_runtime.runtime.RuntimeConstructor(socketService, definitionsFetcher, gson, runtimeDao, runtimePrepopulator, cache)
         }
     }
 
