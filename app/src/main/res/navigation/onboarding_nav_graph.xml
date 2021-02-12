@@ -32,7 +32,7 @@
 
     <fragment
         android:id="@+id/createAccountFragment"
-        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountFragment"
         android:label="fragment_create_account"
         tools:layout="@layout/fragment_create_account">
 

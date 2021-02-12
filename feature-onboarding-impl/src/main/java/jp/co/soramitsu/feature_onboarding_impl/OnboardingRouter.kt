@@ -8,8 +8,6 @@ interface OnboardingRouter {
 
     fun backToWelcomeScreen()
 
-    fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType?)
-
     fun openImportAccountScreen(selectedNetworkType: Node.NetworkType?)
 
     fun back()

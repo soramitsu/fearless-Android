@@ -191,7 +191,7 @@
     <string name="common_copy_address">Copiar dirección</string>
     <string name="common_choose_file">Subir archivo</string>
     <string name="import_json_paste">Pegar json</string>
-    <string name="account_import_json_no_network">JSON no contiene información de red. Especifíquelo en el bloque avanzado.</string>
+    <string name="account_import_json_no_network">JSON no contiene información de red. Especifíquelo a continuación.</string>
     <string name="pincode_enter_new_pin_code">Ingrese un nuevo código pin</string>
     <string name="pincode_changed_message">El código PIN se ha cambiado correctamente</string>
     <string name="common_share">Compartir</string>

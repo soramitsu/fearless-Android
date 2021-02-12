@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedB
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmAdvanced
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmChangePassword
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmExport
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmNetworkInput
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmToolbar
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmValue
 
@@ -40,10 +41,11 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
         exportJsonConfirmChangePassword.setOnClickListener { viewModel.changePasswordClicked() }
 
         with(exportJsonConfirmAdvanced) {
-            configure(networkTypeField, FieldState.DISABLED)
             configure(encryptionTypeField, FieldState.DISABLED)
             configure(derivationPathField, FieldState.HIDDEN)
         }
+
+        exportJsonConfirmNetworkInput.isEnabled = false
     }
 
     override fun inject() {
@@ -63,8 +65,8 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
         }
 
         viewModel.networkTypeLiveData.observe {
-            exportJsonConfirmAdvanced.setNetworkName(it.name)
-            exportJsonConfirmAdvanced.setNetworkIconResource(it.networkTypeUI.icon)
+            exportJsonConfirmNetworkInput.setTextIcon(it.networkTypeUI.icon)
+            exportJsonConfirmNetworkInput.setMessage(it.name)
         }
 
         exportJsonConfirmValue.setMessage(viewModel.json)

@@ -8,6 +8,7 @@ import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.about.di.AboutComponent
+import jp.co.soramitsu.feature_account_impl.presentation.account.create.di.CreateAccountComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.di.AccountDetailsComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.edit.di.AccountEditComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.di.AccountListComponent
@@ -36,6 +37,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.profile.di.ProfileCompo
 )
 @FeatureScope
 interface AccountFeatureComponent : AccountFeatureApi {
+
+    fun createAccountComponentFactory(): CreateAccountComponent.Factory
 
     fun aboutComponentFactory(): AboutComponent.Factory
 

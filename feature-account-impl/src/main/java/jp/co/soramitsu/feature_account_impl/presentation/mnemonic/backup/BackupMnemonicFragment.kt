@@ -12,11 +12,8 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.chooseNetworkClicked
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserBottomSheetDialog
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.advancedBlockView
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.backupMnemonicViewer
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.nextBtn
@@ -28,7 +25,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         private const val KEY_ACCOUNT_NAME = "account_name"
         private const val KEY_NETWORK_TYPE = "network_type"
 
-        fun getBundle(accountName: String, selectedNetworkType: Node.NetworkType?): Bundle {
+        fun getBundle(accountName: String, selectedNetworkType: Node.NetworkType): Bundle {
             return Bundle().apply {
                 putString(KEY_ACCOUNT_NAME, accountName)
                 putSerializable(KEY_NETWORK_TYPE, selectedNetworkType)
@@ -57,10 +54,6 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
             viewModel.chooseEncryptionClicked()
         }
 
-        advancedBlockView.setOnNetworkClickListener {
-            viewModel.chooseNetworkClicked()
-        }
-
         nextBtn.setOnClickListener {
             viewModel.nextClicked(advancedBlockView.getDerivationPath())
         }
@@ -68,46 +61,28 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
 
     override fun inject() {
         val accountName = argument<String>(KEY_ACCOUNT_NAME)
-        val networkType = argument<Node.NetworkType?>(KEY_NETWORK_TYPE)
+        val selectedNetworkType = argument<Node.NetworkType>(KEY_NETWORK_TYPE)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .backupMnemonicComponentFactory()
-            .create(this, accountName, networkType)
+            .create(this, accountName, selectedNetworkType)
             .inject(this)
     }
 
     override fun subscribe(viewModel: BackupMnemonicViewModel) {
-        with(advancedBlockView) {
-            setEnabled(networkTypeField, viewModel.isNetworkTypeChangeAvailable)
-        }
-
         viewModel.mnemonicLiveData.observe {
             backupMnemonicViewer.submitList(it)
         }
 
         viewModel.encryptionTypeChooserEvent.observeEvent(::showEncryptionChooser)
 
-        viewModel.networkChooserEvent.observeEvent(::showNetworkChooser)
-
         viewModel.selectedEncryptionTypeLiveData.observe {
             advancedBlockView.setEncryption(it.name)
-        }
-
-        viewModel.selectedNetworkLiveData.observe {
-            advancedBlockView.setNetworkIconResource(it.networkTypeUI.icon)
-            advancedBlockView.setNetworkName(it.name)
         }
 
         viewModel.showInfoEvent.observeEvent {
             showMnemonicInfoDialog()
         }
-    }
-
-    private fun showNetworkChooser(payload: Payload<NetworkModel>) {
-        NetworkChooserBottomSheetDialog(
-            requireActivity(), payload,
-            viewModel.selectedNetworkLiveData::setValue
-        ).show()
     }
 
     private fun showEncryptionChooser(payload: Payload<CryptoTypeModel>) {

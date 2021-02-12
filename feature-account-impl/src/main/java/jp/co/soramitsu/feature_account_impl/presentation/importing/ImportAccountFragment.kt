@@ -14,7 +14,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.chooseNetworkClicked
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
@@ -37,12 +36,12 @@ import kotlinx.android.synthetic.main.fragment_import_account.toolbar
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     companion object {
-        private const val KEY_NETWORK_TYPE = "network_type"
+        private const val KEY_FORCED_NETWORK_TYPE = "network_type"
 
         fun getBundle(networkType: Node.NetworkType?): Bundle {
 
             return Bundle().apply {
-                putSerializable(KEY_NETWORK_TYPE, networkType)
+                putSerializable(KEY_FORCED_NETWORK_TYPE, networkType)
             }
         }
     }
@@ -66,32 +65,24 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             viewModel.chooseEncryptionClicked()
         }
 
-        advancedBlockView.setOnNetworkClickListener {
-            viewModel.chooseNetworkClicked()
-        }
-
         nextBtn.setOnClickListener { viewModel.nextClicked() }
 
         nextBtn.prepareForProgress(viewLifecycleOwner)
     }
 
     override fun inject() {
-        val networkType = argument<Node.NetworkType?>(KEY_NETWORK_TYPE)
+        val forcedNetworkType = argument<Node.NetworkType?>(KEY_FORCED_NETWORK_TYPE)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .importAccountComponentFactory()
-            .create(this, networkType)
+            .create(this, forcedNetworkType)
             .inject(this)
     }
 
     override fun subscribe(viewModel: ImportAccountViewModel) {
-        with(advancedBlockView) {
-            setEnabled(networkTypeField, viewModel.isNetworkTypeChangeAvailable)
-        }
-
         sourceViews = viewModel.sourceTypes.map {
             val view = createSourceView(it)
 
@@ -135,20 +126,9 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             ).show()
         }
 
-        viewModel.selectedNetworkLiveData.observe {
-            advancedBlockView.setNetworkIconResource(it.networkTypeUI.icon)
-            advancedBlockView.setNetworkName(it.name)
-        }
-
         viewModel.nextButtonState.observe(nextBtn::setState)
 
         viewModel.advancedBlockExceptNetworkEnabled.observe(::setSelectorsEnabled)
-
-        viewModel.networkChooserEnabledLiveData.observe { enabled ->
-            with(advancedBlockView) {
-                configure(networkTypeField, getFieldState(enabled))
-            }
-        }
 
         advancedBlockView.derivationPathEditText.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)
     }

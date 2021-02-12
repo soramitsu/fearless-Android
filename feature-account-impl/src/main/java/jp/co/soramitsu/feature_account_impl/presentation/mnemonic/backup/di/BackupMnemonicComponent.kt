@@ -21,7 +21,7 @@ interface BackupMnemonicComponent {
         fun create(
             @BindsInstance fragment: Fragment,
             @BindsInstance accountName: String,
-            @BindsInstance networkType: Node.NetworkType?
+            @BindsInstance selectedNetworkType: Node.NetworkType
         ): BackupMnemonicComponent
     }
 
