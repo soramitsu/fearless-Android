@@ -1,4 +1,4 @@
-package jp.co.soramitsu.core_runtime.di
+package jp.co.soramitsu.runtime.di
 
 import android.content.Context
 import com.google.gson.Gson
@@ -10,14 +10,14 @@ import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.RuntimeDao
-import jp.co.soramitsu.core_runtime.runtime.DefinitionsFetcher
-import jp.co.soramitsu.core_runtime.runtime.RuntimeCache
-import jp.co.soramitsu.core_runtime.runtime.RuntimeConstructor
-import jp.co.soramitsu.core_runtime.runtime.RuntimePrepopulator
-import jp.co.soramitsu.core_runtime.runtime.RuntimeUpdater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.runtime.DefinitionsFetcher
+import jp.co.soramitsu.runtime.RuntimeCache
+import jp.co.soramitsu.runtime.RuntimeConstructor
+import jp.co.soramitsu.runtime.RuntimePrepopulator
+import jp.co.soramitsu.runtime.RuntimeUpdater
 
 @Module
 class RuntimeModule {

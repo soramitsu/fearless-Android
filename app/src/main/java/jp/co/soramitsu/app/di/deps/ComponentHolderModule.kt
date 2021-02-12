@@ -12,14 +12,14 @@ import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.core_db.di.DbHolder
-import jp.co.soramitsu.core_runtime.di.RuntimeApi
-import jp.co.soramitsu.core_runtime.di.RuntimeHolder
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureHolder
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureHolder
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureHolder
+import jp.co.soramitsu.runtime.di.RuntimeApi
+import jp.co.soramitsu.runtime.di.RuntimeHolder
 import jp.co.soramitsu.splash.di.SplashFeatureApi
 import jp.co.soramitsu.splash.di.SplashFeatureHolder
 

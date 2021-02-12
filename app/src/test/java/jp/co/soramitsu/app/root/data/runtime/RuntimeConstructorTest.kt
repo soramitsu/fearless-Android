@@ -3,11 +3,15 @@ package jp.co.soramitsu.app.root.data.runtime
 import com.google.gson.Gson
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
-import jp.co.soramitsu.core_runtime.runtime.getDefinitionsByNetwork
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
+import jp.co.soramitsu.runtime.DefinitionsFetcher
+import jp.co.soramitsu.runtime.RuntimeCache
+import jp.co.soramitsu.runtime.RuntimeConstructor
+import jp.co.soramitsu.runtime.RuntimePrepopulator
+import jp.co.soramitsu.runtime.getDefinitionsByNetwork
 import jp.co.soramitsu.test_shared.any
 import jp.co.soramitsu.test_shared.eq
 import jp.co.soramitsu.test_shared.isA
@@ -30,13 +34,13 @@ private const val EMPTY_METADATA = "0x1111111122001100"
 class RuntimeConstructorTest {
 
     @Mock
-    lateinit var cache: jp.co.soramitsu.core_runtime.runtime.RuntimeCache
+    lateinit var cache: RuntimeCache
 
     @Mock
     lateinit var runtimeDao: RuntimeDao
 
     @Mock
-    lateinit var definitionsFetcher: jp.co.soramitsu.core_runtime.runtime.DefinitionsFetcher
+    lateinit var definitionsFetcher: DefinitionsFetcher
 
     @Mock
     lateinit var socketService: SocketService
@@ -48,9 +52,9 @@ class RuntimeConstructorTest {
     lateinit var gson: Gson
 
     @Mock
-    lateinit var runtimePrepopulator: jp.co.soramitsu.core_runtime.runtime.RuntimePrepopulator
+    lateinit var runtimePrepopulator: RuntimePrepopulator
 
-    lateinit var runtimeConstructor: jp.co.soramitsu.core_runtime.runtime.RuntimeConstructor
+    lateinit var runtimeConstructor: RuntimeConstructor
 
     @Suppress("UNCHECKED_CAST")
     @Before
@@ -72,7 +76,7 @@ class RuntimeConstructorTest {
 
             given(runtimePrepopulator.maybePrepopulateCache()).willReturn(Unit) // no pre population in test
 
-            runtimeConstructor = jp.co.soramitsu.core_runtime.runtime.RuntimeConstructor(socketService, definitionsFetcher, gson, runtimeDao, runtimePrepopulator, cache)
+            runtimeConstructor = RuntimeConstructor(socketService, definitionsFetcher, gson, runtimeDao, runtimePrepopulator, cache)
         }
     }
 

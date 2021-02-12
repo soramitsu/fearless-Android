@@ -1,4 +1,4 @@
-package jp.co.soramitsu.core_runtime.di
+package jp.co.soramitsu.runtime.di
 
 import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer

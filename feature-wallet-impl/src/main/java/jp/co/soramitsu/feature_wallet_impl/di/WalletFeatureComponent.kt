@@ -5,7 +5,6 @@ import dagger.Component
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core_db.di.DbApi
-import jp.co.soramitsu.core_runtime.di.RuntimeApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -16,6 +15,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.di.ChooseAmo
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.di.ConfirmTransferComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.di.ChooseRecipientComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.di.TransactionDetailComponent
+import jp.co.soramitsu.runtime.di.RuntimeApi
 
 @Component(
     dependencies = [

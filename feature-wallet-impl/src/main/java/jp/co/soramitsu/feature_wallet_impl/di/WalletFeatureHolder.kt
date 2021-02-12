@@ -4,9 +4,9 @@ import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
-import jp.co.soramitsu.core_runtime.di.RuntimeApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.runtime.di.RuntimeApi
 import javax.inject.Inject
 
 @ApplicationScope

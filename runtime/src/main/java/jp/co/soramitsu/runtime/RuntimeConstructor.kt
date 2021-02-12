@@ -1,4 +1,4 @@
-package jp.co.soramitsu.core_runtime.runtime
+package jp.co.soramitsu.runtime
 
 import com.google.gson.Gson
 import jp.co.soramitsu.core_db.dao.RuntimeDao

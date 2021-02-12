@@ -1,8 +1,8 @@
-package jp.co.soramitsu.core_runtime.di
+package jp.co.soramitsu.runtime.di
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.core_runtime.runtime.RuntimeUpdater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.runtime.RuntimeUpdater
 
 interface RuntimeApi {
 

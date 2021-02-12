@@ -1,4 +1,4 @@
-package jp.co.soramitsu.core_runtime.runtime
+package jp.co.soramitsu.runtime
 
 import retrofit2.http.GET
 import retrofit2.http.Path

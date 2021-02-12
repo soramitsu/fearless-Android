@@ -13,6 +13,8 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core_api.data.network.Updater
+import jp.co.soramitsu.runtime.RuntimePreparationStatus
+import jp.co.soramitsu.runtime.RuntimeUpdateRetry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
@@ -41,8 +43,8 @@ class RootViewModel(
     private val _outdatedTypesWarningLiveData = MutableLiveData<Event<Unit>>()
     val outdatedTypesWarningLiveData: LiveData<Event<Unit>> = _outdatedTypesWarningLiveData
 
-    private val _runtimeUpdateFailedLiveData = MutableLiveData<Event<jp.co.soramitsu.core_runtime.runtime.RuntimeUpdateRetry>>()
-    val runtimeUpdateFailedLiveData: LiveData<Event<jp.co.soramitsu.core_runtime.runtime.RuntimeUpdateRetry>> = _runtimeUpdateFailedLiveData
+    private val _runtimeUpdateFailedLiveData = MutableLiveData<Event<RuntimeUpdateRetry>>()
+    val runtimeUpdateFailedLiveData: LiveData<Event<RuntimeUpdateRetry>> = _runtimeUpdateFailedLiveData
 
     init {
         observeAllowedToConnect()
@@ -86,15 +88,15 @@ class RootViewModel(
 
     private fun handleUpdatesSideEffect(sideEffect: Updater.SideEffect) {
         when (sideEffect) {
-            is jp.co.soramitsu.core_runtime.runtime.RuntimePreparationStatus -> handleRuntimePreparationStatus(sideEffect)
+            is RuntimePreparationStatus -> handleRuntimePreparationStatus(sideEffect)
         }
     }
 
     @Suppress("NON_EXHAUSTIVE_WHEN")
-    private fun handleRuntimePreparationStatus(status: jp.co.soramitsu.core_runtime.runtime.RuntimePreparationStatus) {
+    private fun handleRuntimePreparationStatus(status: RuntimePreparationStatus) {
         when (status) {
-            is jp.co.soramitsu.core_runtime.runtime.RuntimePreparationStatus.Error -> _runtimeUpdateFailedLiveData.postValue(Event(status.retry))
-            jp.co.soramitsu.core_runtime.runtime.RuntimePreparationStatus.Outdated -> _outdatedTypesWarningLiveData.postValue(Event(Unit))
+            is RuntimePreparationStatus.Error -> _runtimeUpdateFailedLiveData.postValue(Event(status.retry))
+            RuntimePreparationStatus.Outdated -> _outdatedTypesWarningLiveData.postValue(Event(Unit))
         }
     }
 
@@ -118,7 +120,7 @@ class RootViewModel(
         connectionManager.setLifecycleCondition(LifecycleCondition.FORBIDDEN)
     }
 
-    fun retryConfirmed(retry: jp.co.soramitsu.core_runtime.runtime.RuntimeUpdateRetry) {
+    fun retryConfirmed(retry: RuntimeUpdateRetry) {
         nodeScope.launch {
             val status = retry.invoke()
 

@@ -89,7 +89,7 @@ dependencies {
     implementation project(':feature-wallet-api')
     implementation project(':feature-wallet-impl')
 
-    implementation project(':core-runtime')
+    implementation project(':runtime')
 
     implementation kotlinDep
 

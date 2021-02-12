@@ -1,4 +1,4 @@
-package jp.co.soramitsu.core_runtime.runtime
+package jp.co.soramitsu.runtime
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_api.data.network.Updater

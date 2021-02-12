@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
+import jp.co.soramitsu.runtime.RuntimeUpdater
 
 @Module
 class RootFeatureModule {
@@ -18,7 +19,7 @@ class RootFeatureModule {
     @FeatureScope
     fun provideRootUpdater(
         walletUpdaters: WalletUpdaters,
-        runtimeUpdater: jp.co.soramitsu.core_runtime.runtime.RuntimeUpdater
+        runtimeUpdater: RuntimeUpdater
     ): Updater {
         return CompositeUpdater(
             *walletUpdaters.updaters,

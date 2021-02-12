@@ -1,4 +1,4 @@
-package jp.co.soramitsu.core_runtime.runtime
+package jp.co.soramitsu.runtime
 
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
 

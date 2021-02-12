@@ -1,4 +1,4 @@
-package jp.co.soramitsu.core_runtime.di
+package jp.co.soramitsu.runtime.di
 
 import android.content.Context
 import com.google.gson.Gson
