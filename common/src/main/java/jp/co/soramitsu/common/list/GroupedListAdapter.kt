@@ -15,7 +15,7 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
 
     abstract fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder
 
-    abstract fun createChildViewHolder(parent: ViewGroup, viewType: Int): GroupedListHolder
+    abstract fun createChildViewHolder(parent: ViewGroup): GroupedListHolder
 
     abstract fun bindGroup(holder: GroupedListHolder, group: GROUP)
     abstract fun bindChild(holder: GroupedListHolder, child: CHILD)
@@ -23,11 +23,7 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
     override fun getItemViewType(position: Int): Int {
         val item = getItem(position)
 
-        return if (diffCallback.isGroup(item)) TYPE_GROUP else getChildItemViewType(position)
-    }
-
-    protected open fun getChildItemViewType(position: Int): Int {
-        return TYPE_CHILD
+        return if (diffCallback.isGroup(item)) TYPE_GROUP else TYPE_CHILD
     }
 
     override fun onCreateViewHolder(
@@ -37,7 +33,7 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
         return if (viewType == TYPE_GROUP) {
             createGroupViewHolder(parent)
         } else {
-            createChildViewHolder(parent, viewType)
+            createChildViewHolder(parent)
         }
     }
 

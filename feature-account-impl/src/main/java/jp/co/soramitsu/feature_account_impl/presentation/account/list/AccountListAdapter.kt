@@ -46,7 +46,7 @@ class AccountsAdapter(
         return AccountGroupHolder(parent)
     }
 
-    override fun createChildViewHolder(parent: ViewGroup, viewType: Int): GroupedListHolder {
+    override fun createChildViewHolder(parent: ViewGroup): GroupedListHolder {
         return AccountHolder(parent.inflateChild(R.layout.item_account))
     }
 
