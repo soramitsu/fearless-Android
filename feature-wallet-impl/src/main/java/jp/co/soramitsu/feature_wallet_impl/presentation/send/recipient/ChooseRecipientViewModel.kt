@@ -156,7 +156,7 @@ class ChooseRecipientViewModel(
     }
 
     private suspend fun generateAccountModelsWithHeader(@StringRes headerRes: Int, accounts: List<RecipientSearchResult.Account>): List<Any> {
-        val models = accounts.map { generateAccountAddressModel(it) }
+        val models = accounts.map { generateAddressModel(it.address, it.name) }
 
         return maybeAppendHeader(headerRes, models)
     }
@@ -181,11 +181,7 @@ class ChooseRecipientViewModel(
 
     private fun getHeader(@StringRes resId: Int) = ContactsHeader(resourceManager.getString(resId))
 
-    private suspend fun generateAccountAddressModel(account: RecipientSearchResult.Account): AddressModel {
-        return addressIconGenerator.createAddressModel(account.address, ICON_SIZE_IN_DP, account.name)
-    }
-
-    private suspend fun generateAddressModel(address: String): AddressModel {
-        return addressIconGenerator.createAddressModel(address, ICON_SIZE_IN_DP)
+    private suspend fun generateAddressModel(address: String, accountName: String? = null): AddressModel {
+        return addressIconGenerator.createAddressModel(address, ICON_SIZE_IN_DP, accountName)
     }
 }

@@ -6,7 +6,7 @@ class RecipientSearchResult(
 ) {
 
     class Account(
-        val name: String,
+        val name: String?,
         val address: String
     )
 }

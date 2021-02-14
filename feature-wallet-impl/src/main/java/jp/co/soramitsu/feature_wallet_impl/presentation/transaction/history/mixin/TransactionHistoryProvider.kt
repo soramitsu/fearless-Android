@@ -121,7 +121,7 @@ class TransactionHistoryProvider(
         val transactions = page.map(::mapTransactionToTransactionModel)
 
         val filteredHistoryElements = transactions.map { transaction ->
-            val addressModel = createIcon(transaction.accountName, transaction.displayAddress)
+            val addressModel = createIcon(transaction.displayAddress, transaction.accountName)
 
             TransactionHistoryElement(addressModel, transaction)
         }.filter(filters)
@@ -142,7 +142,7 @@ class TransactionHistoryProvider(
             }.flatten()
     }
 
-    private suspend fun createIcon(accountName: String?, address: String): AddressModel {
+    private suspend fun createIcon(address: String, accountName: String?): AddressModel {
         return iconGenerator.createAddressModel(address, ICON_SIZE_DP, accountName)
     }
 
