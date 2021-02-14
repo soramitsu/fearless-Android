@@ -78,6 +78,10 @@ class ChooseRecipientViewModel(
         router.openChooseAmount(address)
     }
 
+    override fun declinePhishingAddress() {
+        _decodeAddressResult.value = Event("")
+    }
+
     private fun determineState(queryEmpty: Boolean, searchResult: List<Any>): State {
         return when {
             queryEmpty && searchResult.isEmpty() -> State.WELCOME
