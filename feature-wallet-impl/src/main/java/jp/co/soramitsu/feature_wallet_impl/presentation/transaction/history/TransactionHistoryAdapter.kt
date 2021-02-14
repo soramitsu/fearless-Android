@@ -52,7 +52,7 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
     fun bind(item: TransactionHistoryElement, handler: TransactionHistoryAdapter.Handler) {
         with(containerView) {
             with(item.transactionModel) {
-                itemTransactionAddress.text = displayAddress
+                itemTransactionAddress.text = item.displayAddressModel.name ?: displayAddress
 
                 itemTransactionAmount.setTextColorRes(amountColorRes)
                 itemTransactionAmount.text = formattedAmount
