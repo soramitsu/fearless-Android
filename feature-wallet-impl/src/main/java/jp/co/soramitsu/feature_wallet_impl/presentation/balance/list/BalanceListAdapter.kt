@@ -31,7 +31,9 @@ import java.math.BigDecimal
 val dollarRateExtractor = { assetModel: AssetModel -> assetModel.token.dollarRate }
 val recentChangeExtractor = { assetModel: AssetModel -> assetModel.token.recentRateChange }
 
-class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapter<AssetModel, AssetViewHolder>(AssetDiffCallback) {
+class BalanceListAdapter(
+    private val itemHandler: ItemAssetHandler
+) : ListAdapter<AssetModel, AssetViewHolder>(AssetDiffCallback) {
 
     interface ItemAssetHandler {
         fun assetClicked(asset: AssetModel)

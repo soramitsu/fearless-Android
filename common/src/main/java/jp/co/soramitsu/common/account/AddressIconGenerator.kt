@@ -21,6 +21,13 @@ class AddressIconGenerator(
     }
 
     @Throws(AddressFormatException::class)
+    suspend fun createAccountAddressModel(accountName: String, accountAddress: String, sizeInDp: Int): AccountAddressModel {
+        val icon = createAddressIcon(accountAddress, sizeInDp)
+
+        return AccountAddressModel(accountName, accountAddress, icon)
+    }
+
+    @Throws(AddressFormatException::class)
     suspend fun createAddressIcon(accountAddress: String, sizeInDp: Int) = withContext(Dispatchers.Default) {
         val addressId = sS58Encoder.decode(accountAddress)
         val sizeInPx = resourceManager.measureInPx(sizeInDp)

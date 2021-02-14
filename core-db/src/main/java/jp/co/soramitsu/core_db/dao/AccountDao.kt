@@ -39,6 +39,6 @@ abstract class AccountDao {
     @Query("select * from users where networkType = :networkType")
     abstract suspend fun getAccountsByNetworkType(networkType: Int): List<AccountLocal>
 
-    @Query("select address from users where (address LIKE '%' || :query  || '%') AND networkType = :networkType")
-    abstract suspend fun getAddresses(query: String, networkType: Node.NetworkType): List<String>
+    @Query("select * from users where (address LIKE '%' || :query  || '%') AND networkType = :networkType")
+    abstract suspend fun getAccounts(query: String, networkType: Node.NetworkType): List<AccountLocal>
 }

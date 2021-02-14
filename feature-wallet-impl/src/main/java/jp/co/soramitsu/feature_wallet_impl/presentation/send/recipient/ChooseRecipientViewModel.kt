@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import jp.co.soramitsu.common.account.AccountAddressModel
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -14,6 +15,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.distinctUntilChanged
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
@@ -140,8 +142,8 @@ class ChooseRecipientViewModel(
         val searchResult = interactor.getRecipients(address)
 
         val resultWithHeader = maybeAppendResultHeader(isValidAddress, address)
-        val myAccountsWithHeader = generateModelsWithHeader(R.string.search_header_my_accounts, searchResult.myAccounts)
-        val contactsWithHeader = generateModelsWithHeader(R.string.search_contacts, searchResult.contacts)
+        val myAccountsWithHeader = generateAccountModelsWithHeader(R.string.search_header_my_accounts, searchResult.myAccounts)
+        val contactsWithHeader = generateAddressModelsWithHeader(R.string.search_contacts, searchResult.contacts)
 
         val result = resultWithHeader + myAccountsWithHeader + contactsWithHeader
 
@@ -151,11 +153,17 @@ class ChooseRecipientViewModel(
     private suspend fun maybeAppendResultHeader(validAddress: Boolean, address: String): List<Any> {
         if (!validAddress) return emptyList()
 
-        return generateModelsWithHeader(R.string.search_result_header, listOf(address))
+        return generateAddressModelsWithHeader(R.string.search_result_header, listOf(address))
     }
 
-    private suspend fun generateModelsWithHeader(@StringRes headerRes: Int, addresses: List<String>): List<Any> {
-        val models = addresses.map { generateModel(it) }
+    private suspend fun generateAccountModelsWithHeader(@StringRes headerRes: Int, accounts: List<RecipientSearchResult.Account>): List<Any> {
+        val models = accounts.map { generateAccountAddressModel(it) }
+
+        return maybeAppendHeader(headerRes, models)
+    }
+
+    private suspend fun generateAddressModelsWithHeader(@StringRes headerRes: Int, addresses: List<String>): List<Any> {
+        val models = addresses.map { generateAddressModel(it) }
 
         return maybeAppendHeader(headerRes, models)
     }
@@ -174,7 +182,11 @@ class ChooseRecipientViewModel(
 
     private fun getHeader(@StringRes resId: Int) = ContactsHeader(resourceManager.getString(resId))
 
-    private suspend fun generateModel(address: String): AddressModel {
+    private suspend fun generateAccountAddressModel(account: RecipientSearchResult.Account): AccountAddressModel {
+        return addressIconGenerator.createAccountAddressModel(account.name, account.address, ICON_SIZE_IN_DP)
+    }
+
+    private suspend fun generateAddressModel(address: String): AddressModel {
         return addressIconGenerator.createAddressModel(address, ICON_SIZE_IN_DP)
     }
 }

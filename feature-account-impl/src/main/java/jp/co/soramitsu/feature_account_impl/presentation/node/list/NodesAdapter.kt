@@ -63,7 +63,7 @@ class NodesAdapter(
         return NodeGroupHolder(parent.inflateChild(R.layout.item_node_group))
     }
 
-    override fun createChildViewHolder(parent: ViewGroup): GroupedListHolder {
+    override fun createChildViewHolder(parent: ViewGroup, viewType: Int): GroupedListHolder {
         return NodeHolder(parent.inflateChild(R.layout.item_node))
     }
 

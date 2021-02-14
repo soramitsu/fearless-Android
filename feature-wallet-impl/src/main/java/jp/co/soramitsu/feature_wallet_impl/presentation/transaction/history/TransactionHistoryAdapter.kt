@@ -35,7 +35,7 @@ class TransactionHistoryAdapter(
         return DayHolder(parent.inflateChild(R.layout.item_day_header))
     }
 
-    override fun createChildViewHolder(parent: ViewGroup): GroupedListHolder {
+    override fun createChildViewHolder(parent: ViewGroup, viewType: Int): GroupedListHolder {
         return TransactionHolder(parent.inflateChild(R.layout.item_transaction))
     }
 

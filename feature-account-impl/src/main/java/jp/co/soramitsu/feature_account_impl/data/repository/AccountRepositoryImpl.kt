@@ -140,9 +140,11 @@ class AccountRepositoryImpl(
         return mapAccountLocalToAccount(account)
     }
 
-    override suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<String> {
+    override suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<Account> {
         return withContext(Dispatchers.Default) {
-            accountDao.getAddresses(query, networkType).toSet()
+            accountDao.getAccounts(query, networkType)
+                .map { mapAccountLocalToAccount(it) }
+                .toSet()
         }
     }
 

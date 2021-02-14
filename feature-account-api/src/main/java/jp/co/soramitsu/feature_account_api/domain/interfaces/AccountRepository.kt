@@ -47,7 +47,7 @@ interface AccountRepository {
 
     suspend fun getAccount(address: String): Account
 
-    suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<String>
+    suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<Account>
 
     suspend fun importFromMnemonic(
         keyString: String,

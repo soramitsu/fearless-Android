@@ -88,14 +88,14 @@ class WalletInteractorImpl(
     override suspend fun getRecipients(query: String): RecipientSearchResult {
         val account = accountRepository.getSelectedAccount()
         val contacts = walletRepository.getContacts(query)
-        val myAddresses = accountRepository.getMyAccounts(query, account.network.type)
+        val myAccounts = accountRepository.getMyAccounts(query, account.network.type)
 
         return with(Dispatchers.Default) {
-            val contactsWithoutMyAddresses = contacts - myAddresses
-            val myAddressesWithoutCurrent = myAddresses - account.address
+            val contactsWithoutMyAddresses = contacts - myAccounts.map { it.address }
+            val myAddressesWithoutCurrent = myAccounts - account
 
             RecipientSearchResult(
-                myAddressesWithoutCurrent.toList(),
+                myAddressesWithoutCurrent.toList().map { RecipientSearchResult.Account(it.name ?: "", it.address) },
                 contactsWithoutMyAddresses.toList()
             )
         }
