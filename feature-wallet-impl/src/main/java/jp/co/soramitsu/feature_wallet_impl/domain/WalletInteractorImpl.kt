@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -59,8 +60,22 @@ class WalletInteractorImpl(
     }
 
     override fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>> {
-        return walletRepository.transactionsFirstPageFlow(pageSize)
+        return accountRepository.selectedAccountFlow()
+            .flatMapLatest {
+                val accounts = accountRepository.accountsFlow().first()
+                walletRepository.transactionsFirstPageFlow(it.address, pageSize)
+                    .map { it.map { defineAccountNameForTransaction(accounts, it) } }
+            }
             .distinctUntilChanged { previous, new -> areTransactionPagesTheSame(previous, new) }
+    }
+
+    private fun defineAccountNameForTransaction(accounts: List<Account>, transaction: Transaction): Transaction {
+        transaction.accountName = if (transaction.isIncome) {
+            accounts.firstOrNull { it.address == transaction.senderAddress }?.name
+        } else {
+            accounts.firstOrNull { it.address == transaction.recipientAddress }?.name
+        }
+        return transaction
     }
 
     private fun areTransactionPagesTheSame(previous: List<Transaction>, new: List<Transaction>): Boolean {
@@ -77,7 +92,9 @@ class WalletInteractorImpl(
 
     override suspend fun getTransactionPage(pageSize: Int, page: Int): Result<List<Transaction>> {
         return runCatching {
+            val accounts = accountRepository.accountsFlow().first()
             walletRepository.getTransactionPage(pageSize, page)
+                .map { defineAccountNameForTransaction(accounts, it) }
         }
     }
 

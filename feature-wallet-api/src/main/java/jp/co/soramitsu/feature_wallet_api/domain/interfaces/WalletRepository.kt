@@ -22,7 +22,7 @@ interface WalletRepository {
 
     suspend fun syncAsset(type: Token.Type)
 
-    fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>>
+    fun transactionsFirstPageFlow(accountAddress: String, pageSize: Int): Flow<List<Transaction>>
 
     suspend fun syncTransactionsFirstPage(pageSize: Int)
 

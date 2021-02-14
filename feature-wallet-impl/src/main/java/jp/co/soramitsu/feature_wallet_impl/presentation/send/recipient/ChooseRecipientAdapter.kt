@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 
 import android.view.View
 import android.view.ViewGroup
-import jp.co.soramitsu.common.account.AccountAddressModel
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
@@ -19,7 +18,7 @@ import kotlinx.android.synthetic.main.item_contact_group.view.contactGroupTitle
 
 class ChooseRecipientAdapter(
     private val itemHandler: RecipientItemHandler
-) : GroupedListAdapter<ContactsHeader, Any>(RecipientsDiffCallback) {
+) : GroupedListAdapter<ContactsHeader, AddressModel>(RecipientsDiffCallback) {
 
     interface RecipientItemHandler {
 
@@ -27,10 +26,11 @@ class ChooseRecipientAdapter(
     }
 
     override fun getChildItemViewType(position: Int): Int {
-        return when (getItem(position)) {
-            is AccountAddressModel -> R.layout.item_contact_account
-            is AddressModel -> R.layout.item_contact_address
-            else -> super.getChildItemViewType(position)
+        val item = getItem(position)
+        return if (item is AddressModel) {
+            if (item.name == null) R.layout.item_contact_address else R.layout.item_contact_account
+        } else {
+            super.getChildItemViewType(position)
         }
     }
 
@@ -50,10 +50,10 @@ class ChooseRecipientAdapter(
         (holder as RecipientGroupHolder).bind(group)
     }
 
-    override fun bindChild(holder: GroupedListHolder, child: Any) {
+    override fun bindChild(holder: GroupedListHolder, child: AddressModel) {
         when (holder) {
-            is RecipientHolder.MyAccountViewHolder -> holder.bind(child as AccountAddressModel, itemHandler)
-            is RecipientHolder.AddressViewHolder -> holder.bind(child as AddressModel, itemHandler)
+            is RecipientHolder.MyAccountViewHolder -> holder.bind(child, itemHandler)
+            is RecipientHolder.AddressViewHolder -> holder.bind(child, itemHandler)
         }
     }
 }
@@ -68,16 +68,16 @@ sealed class RecipientHolder(view: View) : GroupedListHolder(view) {
 
     class MyAccountViewHolder(view: View) : RecipientHolder(view) {
         fun bind(
-            accountModel: AccountAddressModel,
+            addressModel: AddressModel,
             handler: ChooseRecipientAdapter.RecipientItemHandler
         ) {
             with(containerView) {
-                itemContactAccountName.text = accountModel.name
-                itemContactAccountAddress.text = accountModel.address
+                itemContactAccountName.text = addressModel.name
+                itemContactAccountAddress.text = addressModel.address
 
-                itemContactAccountIcon.setImageDrawable(accountModel.image)
+                itemContactAccountIcon.setImageDrawable(addressModel.image)
 
-                setOnClickListener { handler.contactClicked(accountModel.address) }
+                setOnClickListener { handler.contactClicked(addressModel.address) }
             }
         }
     }
@@ -97,7 +97,7 @@ sealed class RecipientHolder(view: View) : GroupedListHolder(view) {
     }
 }
 
-private object RecipientsDiffCallback : BaseGroupedDiffCallback<ContactsHeader, Any>(ContactsHeader::class.java) {
+private object RecipientsDiffCallback : BaseGroupedDiffCallback<ContactsHeader, AddressModel>(ContactsHeader::class.java) {
     override fun areGroupItemsTheSame(oldItem: ContactsHeader, newItem: ContactsHeader): Boolean {
         return oldItem.title == newItem.title
     }
@@ -106,15 +106,11 @@ private object RecipientsDiffCallback : BaseGroupedDiffCallback<ContactsHeader, 
         return true
     }
 
-    override fun areChildItemsTheSame(oldItem: Any, newItem: Any): Boolean {
-        return when {
-            oldItem is AddressModel && newItem is AddressModel -> oldItem.address == newItem.address
-            oldItem is AccountAddressModel && newItem is AccountAddressModel -> oldItem.address == newItem.address
-            else -> false
-        }
+    override fun areChildItemsTheSame(oldItem: AddressModel, newItem: AddressModel): Boolean {
+        return oldItem.address == newItem.address
     }
 
-    override fun areChildContentsTheSame(oldItem: Any, newItem: Any): Boolean {
+    override fun areChildContentsTheSame(oldItem: AddressModel, newItem: AddressModel): Boolean {
         return true
     }
 }

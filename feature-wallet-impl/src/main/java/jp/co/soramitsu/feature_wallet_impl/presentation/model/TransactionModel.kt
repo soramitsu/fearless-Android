@@ -17,6 +17,7 @@ data class TransactionModel(
     val type: Token.Type,
     val senderAddress: String,
     val recipientAddress: String,
+    val accountName: String?,
     val amount: BigDecimal,
     val date: Long,
     val status: Transaction.Status,
@@ -24,6 +25,7 @@ data class TransactionModel(
     val isIncome: Boolean,
     val total: BigDecimal?
 ) : Parcelable {
+
     @IgnoredOnParcel
     val displayAddress = if (isIncome) senderAddress else recipientAddress
 

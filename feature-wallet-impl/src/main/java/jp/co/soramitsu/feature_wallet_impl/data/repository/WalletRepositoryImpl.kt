@@ -101,9 +101,8 @@ class WalletRepositoryImpl(
         return syncAssetsRates()
     }
 
-    override fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>> {
-        return accountRepository.selectedAccountFlow()
-            .flatMapLatest { observeTransactions(it.address) }
+    override fun transactionsFirstPageFlow(accountAddress: String, pageSize: Int): Flow<List<Transaction>> {
+        return observeTransactions(accountAddress)
     }
 
     override suspend fun syncTransactionsFirstPage(pageSize: Int) {

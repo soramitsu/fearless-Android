@@ -5,7 +5,6 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.account.AccountAddressModel
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -182,8 +181,8 @@ class ChooseRecipientViewModel(
 
     private fun getHeader(@StringRes resId: Int) = ContactsHeader(resourceManager.getString(resId))
 
-    private suspend fun generateAccountAddressModel(account: RecipientSearchResult.Account): AccountAddressModel {
-        return addressIconGenerator.createAccountAddressModel(account.name, account.address, ICON_SIZE_IN_DP)
+    private suspend fun generateAccountAddressModel(account: RecipientSearchResult.Account): AddressModel {
+        return addressIconGenerator.createAddressModel(account.address, ICON_SIZE_IN_DP, account.name)
     }
 
     private suspend fun generateAddressModel(address: String): AddressModel {

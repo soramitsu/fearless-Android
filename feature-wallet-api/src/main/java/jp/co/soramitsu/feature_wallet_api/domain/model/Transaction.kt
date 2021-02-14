@@ -15,6 +15,8 @@ data class Transaction(
 ) {
     val total = fee?.plus(amount)
 
+    var accountName: String? = null
+
     enum class Status {
         PENDING, COMPLETED, FAILED;
 

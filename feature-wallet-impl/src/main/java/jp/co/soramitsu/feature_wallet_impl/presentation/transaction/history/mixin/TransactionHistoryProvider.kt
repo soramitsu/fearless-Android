@@ -118,12 +118,12 @@ class TransactionHistoryProvider(
     }
 
     private suspend fun transformNewPage(page: List<Transaction>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
-        val models = page.map(::mapTransactionToTransactionModel)
+        val transactions = page.map(::mapTransactionToTransactionModel)
 
-        val filteredHistoryElements = models.map { model ->
-            val addressModel = createIcon(model.displayAddress)
+        val filteredHistoryElements = transactions.map { transaction ->
+            val addressModel = createIcon(transaction.accountName, transaction.displayAddress)
 
-            TransactionHistoryElement(addressModel, model)
+            TransactionHistoryElement(addressModel, transaction)
         }.filter(filters)
 
         regroup(filteredHistoryElements, reset)
@@ -142,8 +142,8 @@ class TransactionHistoryProvider(
             }.flatten()
     }
 
-    private suspend fun createIcon(address: String): AddressModel {
-        return iconGenerator.createAddressModel(address, ICON_SIZE_DP)
+    private suspend fun createIcon(accountName: String?, address: String): AddressModel {
+        return iconGenerator.createAddressModel(address, ICON_SIZE_DP, accountName)
     }
 
     private fun List<TransactionHistoryElement>.filter(filters: List<TransactionFilter>): List<TransactionHistoryElement> {

@@ -17,6 +17,7 @@ fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel
             type = tokenType,
             senderAddress = senderAddress,
             recipientAddress = recipientAddress,
+            accountName = accountName,
             isIncome = isIncome,
             date = date,
             amount = amount,
