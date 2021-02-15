@@ -27,6 +27,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfiguration
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
@@ -41,7 +42,9 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
 
-class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, RootRouter {
+class Navigator :
+    SplashRouter, OnboardingRouter, AccountRouter,
+    WalletRouter, RootRouter, StakingRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null

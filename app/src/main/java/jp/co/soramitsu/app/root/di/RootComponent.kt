@@ -9,6 +9,7 @@ import jp.co.soramitsu.app.root.presentation.main.di.MainFragmentComponent
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core_db.di.DbApi
+import jp.co.soramitsu.di.StakingFeatureApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 
@@ -41,6 +42,7 @@ interface RootComponent {
         dependencies = [
             AccountFeatureApi::class,
             WalletFeatureApi::class,
+            StakingFeatureApi::class,
             DbApi::class,
             CommonApi::class
         ]
