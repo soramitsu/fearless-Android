@@ -94,6 +94,10 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
             searchRecipientField.setText(it)
         }
 
+        viewModel.declinePhishingAddress.observeEvent {
+            searchRecipientField.setText("")
+        }
+
         observePhishingCheck(viewModel)
 
         searchRecipientField.onTextChanged(viewModel::queryChanged)
