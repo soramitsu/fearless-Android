@@ -42,12 +42,12 @@ class RuntimeUpdater(
             .map { performUpdate(it) }
             .catch { emit(errorStatus()) }
 
-       return flow {
-           runtimePrepopulator.maybePrepopulateCache()
-           initFromCache()
+        return flow {
+            runtimePrepopulator.maybePrepopulateCache()
+            initFromCache()
 
-           emitAll(subscriptionFlow)
-       }
+            emitAll(subscriptionFlow)
+        }
     }
 
     private suspend fun initFromCache() {
