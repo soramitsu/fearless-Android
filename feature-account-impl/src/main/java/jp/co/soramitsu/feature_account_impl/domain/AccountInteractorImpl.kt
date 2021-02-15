@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.domain
 
 import jp.co.soramitsu.domain.model.CryptoType
+import jp.co.soramitsu.domain.model.Network
 import jp.co.soramitsu.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -133,7 +134,7 @@ class AccountInteractorImpl(
 
     override suspend fun getSelectedAccount() = accountRepository.getSelectedAccount()
 
-    override suspend fun getNetworks(): List<jp.co.soramitsu.domain.model.Network> {
+    override suspend fun getNetworks(): List<Network> {
         return accountRepository.getNetworks()
     }
 

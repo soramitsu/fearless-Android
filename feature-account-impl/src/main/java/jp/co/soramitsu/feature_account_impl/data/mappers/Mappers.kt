@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_account_impl.data.mappers
 
 import android.graphics.drawable.PictureDrawable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.domain.model.CryptoType
+import jp.co.soramitsu.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
@@ -9,11 +11,11 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
-fun mapNetworkTypeToNetworkModel(networkType: jp.co.soramitsu.domain.model.Node.NetworkType): NetworkModel {
+fun mapNetworkTypeToNetworkModel(networkType: Node.NetworkType): NetworkModel {
     val type = when (networkType) {
-        jp.co.soramitsu.domain.model.Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
-        jp.co.soramitsu.domain.model.Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
-        jp.co.soramitsu.domain.model.Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
+        Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
+        Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
+        Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
     }
 
     return NetworkModel(networkType.readableName, type)
@@ -21,17 +23,17 @@ fun mapNetworkTypeToNetworkModel(networkType: jp.co.soramitsu.domain.model.Node.
 
 fun mapCryptoTypeToCryptoTypeModel(
     resourceManager: ResourceManager,
-    encryptionType: jp.co.soramitsu.domain.model.CryptoType
+    encryptionType: CryptoType
 ): CryptoTypeModel {
 
     val name = when (encryptionType) {
-        jp.co.soramitsu.domain.model.CryptoType.SR25519 -> "${resourceManager.getString(R.string.sr25519_selection_title)} ${resourceManager.getString(
+        CryptoType.SR25519 -> "${resourceManager.getString(R.string.sr25519_selection_title)} ${resourceManager.getString(
             R.string.sr25519_selection_subtitle
         )}"
-        jp.co.soramitsu.domain.model.CryptoType.ED25519 -> "${resourceManager.getString(R.string.ed25519_selection_title)} ${resourceManager.getString(
+        CryptoType.ED25519 -> "${resourceManager.getString(R.string.ed25519_selection_title)} ${resourceManager.getString(
             R.string.ed25519_selection_subtitle
         )}"
-        jp.co.soramitsu.domain.model.CryptoType.ECDSA -> "${resourceManager.getString(R.string.ecdsa_selection_title)} ${resourceManager.getString(
+        CryptoType.ECDSA -> "${resourceManager.getString(R.string.ecdsa_selection_title)} ${resourceManager.getString(
             R.string.ecdsa_selection_subtitle
         )}"
     }
@@ -63,11 +65,11 @@ fun mapAccountToAccountModel(
     }
 }
 
-fun mapNodeToNodeModel(node: jp.co.soramitsu.domain.model.Node): NodeModel {
+fun mapNodeToNodeModel(node: Node): NodeModel {
     val networkModelType = when (node.networkType) {
-        jp.co.soramitsu.domain.model.Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
-        jp.co.soramitsu.domain.model.Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
-        jp.co.soramitsu.domain.model.Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
+        Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
+        Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
+        Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
     }
 
     return with(node) {

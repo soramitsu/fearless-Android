@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.mediatorLiveData
 import jp.co.soramitsu.common.utils.setFrom
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
@@ -18,7 +19,7 @@ import kotlinx.coroutines.withContext
 
 class NetworkChooser(
     private val interactor: AccountInteractor,
-    private val forcedNetworkType: jp.co.soramitsu.domain.model.Node.NetworkType?
+    private val forcedNetworkType: Node.NetworkType?
 ) : NetworkChooserMixin {
 
     override val isNetworkTypeChangeAvailable = forcedNetworkType == null

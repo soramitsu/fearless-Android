@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.model.AccountLocal
+import jp.co.soramitsu.domain.model.SigningData
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
@@ -59,7 +60,7 @@ class AccountDataMigration(
         val oldRaw = encryptedPreferences.getDecryptedString(oldKey) ?: return
         val data = ScaleSigningData.read(oldRaw)
 
-        val signingData = jp.co.soramitsu.domain.model.SigningData(
+        val signingData = SigningData(
             publicKey = data[ScaleSigningData.PublicKey],
             privateKey = data[ScaleSigningData.PrivateKey],
             nonce = data[ScaleSigningData.Nonce]

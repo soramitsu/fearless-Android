@@ -9,7 +9,9 @@ import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.domain.model.CryptoType
+import jp.co.soramitsu.domain.model.Network
 import jp.co.soramitsu.domain.model.Node
+import jp.co.soramitsu.domain.model.SigningData
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -66,7 +68,7 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getNetworks(): List<jp.co.soramitsu.domain.model.Network> {
+    override suspend fun getNetworks(): List<Network> {
         return withContext(Dispatchers.Default) {
             nodeDao.getNodes()
                 .map(::mapNodeLocalToNode)
@@ -455,9 +457,9 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapKeyPairToSigningData(keyPair: Keypair): jp.co.soramitsu.domain.model.SigningData {
+    private fun mapKeyPairToSigningData(keyPair: Keypair): SigningData {
         return with(keyPair) {
-            jp.co.soramitsu.domain.model.SigningData(
+            SigningData(
                 publicKey = publicKey,
                 privateKey = privateKey,
                 nonce = nonce
@@ -465,7 +467,7 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapSigningDataToKeypair(singingData: jp.co.soramitsu.domain.model.SigningData): Keypair {
+    private fun mapSigningDataToKeypair(singingData: SigningData): Keypair {
         return with(singingData) {
             Keypair(
                 publicKey = publicKey,
@@ -538,10 +540,10 @@ class AccountRepositoryImpl(
         throw AccountAlreadyExistsException()
     }
 
-    private suspend fun getNetworkForType(networkType: Node.NetworkType): jp.co.soramitsu.domain.model.Network {
+    private suspend fun getNetworkForType(networkType: Node.NetworkType): Network {
         val defaultNode = nodeDao.getDefaultNodeFor(networkType.ordinal)
 
-        return jp.co.soramitsu.domain.model.Network(networkType, mapNodeLocalToNode(defaultNode))
+        return Network(networkType, mapNodeLocalToNode(defaultNode))
     }
 
     private fun mapNodeLocalToNode(it: NodeLocal): Node {

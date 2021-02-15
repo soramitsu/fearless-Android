@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm
 
 import android.os.Parcelable
+import jp.co.soramitsu.domain.model.CryptoType
+import jp.co.soramitsu.domain.model.Node
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
@@ -11,8 +13,8 @@ class ConfirmMnemonicPayload(
     @Parcelize
     class CreateExtras(
         val accountName: String,
-        val cryptoType: jp.co.soramitsu.domain.model.CryptoType,
-        val networkType: jp.co.soramitsu.domain.model.Node.NetworkType,
+        val cryptoType: CryptoType,
+        val networkType: Node.NetworkType,
         val derivationPath: String
     ) : Parcelable
 }

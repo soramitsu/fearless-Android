@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.R
@@ -31,8 +32,8 @@ class NodesViewModel(
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), NodeListingMixin by nodeListingMixin {
 
-    private val _noAccountsEvent = MutableLiveData<Event<jp.co.soramitsu.domain.model.Node.NetworkType>>()
-    val noAccountsEvent: LiveData<Event<jp.co.soramitsu.domain.model.Node.NetworkType>> = _noAccountsEvent
+    private val _noAccountsEvent = MutableLiveData<Event<Node.NetworkType>>()
+    val noAccountsEvent: LiveData<Event<Node.NetworkType>> = _noAccountsEvent
 
     private val _showAccountChooserLiveData = MutableLiveData<Event<Payload<AccountByNetworkModel>>>()
     val showAccountChooserLiveData: LiveData<Event<Payload<AccountByNetworkModel>>> = _showAccountChooserLiveData
@@ -80,7 +81,7 @@ class NodesViewModel(
         router.openAddNode()
     }
 
-    fun createAccountForNetworkType(networkType: jp.co.soramitsu.domain.model.Node.NetworkType) {
+    fun createAccountForNetworkType(networkType: Node.NetworkType) {
         router.createAccountForNetworkType(networkType)
     }
 
@@ -98,7 +99,7 @@ class NodesViewModel(
         return addressIconGenerator.createAddressModel(account.address, ICON_IN_DP)
     }
 
-    private fun handleAccountsForNetwork(nodeModel: NodeModel, selectedNode: jp.co.soramitsu.domain.model.Node, accounts: List<Account>) {
+    private fun handleAccountsForNetwork(nodeModel: NodeModel, selectedNode: Node, accounts: List<Account>) {
         when {
             accounts.isEmpty() -> _noAccountsEvent.value = Event(nodeModel.networkModelType.networkType)
             accounts.size == 1 -> selectAccountForNode(nodeModel.id, accounts.first().address)

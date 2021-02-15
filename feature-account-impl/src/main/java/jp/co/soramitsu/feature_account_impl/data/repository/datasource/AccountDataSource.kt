@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
+import jp.co.soramitsu.domain.model.CryptoType
+import jp.co.soramitsu.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.Language
@@ -16,9 +18,9 @@ interface AccountDataSource {
 
     suspend fun getPinCode(): String?
 
-    suspend fun saveSelectedNode(node: jp.co.soramitsu.domain.model.Node)
+    suspend fun saveSelectedNode(node: Node)
 
-    suspend fun getSelectedNode(): jp.co.soramitsu.domain.model.Node?
+    suspend fun getSelectedNode(): Node?
 
     suspend fun saveSecuritySource(accountAddress: String, source: SecuritySource)
 
@@ -32,9 +34,9 @@ interface AccountDataSource {
 
     suspend fun getSelectedAccount(): Account
 
-    suspend fun getPreferredCryptoType(): jp.co.soramitsu.domain.model.CryptoType
+    suspend fun getPreferredCryptoType(): CryptoType
 
-    fun selectedNodeFlow(): Flow<jp.co.soramitsu.domain.model.Node>
+    fun selectedNodeFlow(): Flow<Node>
 
     suspend fun getSelectedLanguage(): Language
 

@@ -3,6 +3,9 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.domain.model.CryptoType
+import jp.co.soramitsu.domain.model.Node
+import jp.co.soramitsu.domain.model.SigningData
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
 import jp.co.soramitsu.fearless_utils.scale.invoke
@@ -31,7 +34,7 @@ private const val PREFS_SELECTED_NODE = "node"
 
 private const val PREFS_SECURITY_SOURCE_MASK = "security_source_%s"
 
-private val DEFAULT_CRYPTO_TYPE = jp.co.soramitsu.domain.model.CryptoType.SR25519
+private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 
 enum class SourceType {
     CREATE, SEED, MNEMONIC, JSON, UNSPECIFIED
@@ -96,17 +99,17 @@ class AccountDataSourceImpl(
         }
     }
 
-    override suspend fun saveSelectedNode(node: jp.co.soramitsu.domain.model.Node) = withContext(Dispatchers.Default) {
+    override suspend fun saveSelectedNode(node: Node) = withContext(Dispatchers.Default) {
         val raw = jsonMapper.toJson(node)
         preferences.putString(PREFS_SELECTED_NODE, raw)
 
         selectedNodeFlow.emit(node)
     }
 
-    override suspend fun getSelectedNode(): jp.co.soramitsu.domain.model.Node? = withContext(Dispatchers.Default) {
+    override suspend fun getSelectedNode(): Node? = withContext(Dispatchers.Default) {
         val raw = preferences.getString(PREFS_SELECTED_NODE) ?: return@withContext null
 
-        jsonMapper.fromJson(raw, jp.co.soramitsu.domain.model.Node::class.java)
+        jsonMapper.fromJson(raw, Node::class.java)
     }
 
     override suspend fun saveSecuritySource(accountAddress: String, source: SecuritySource) = withContext(Dispatchers.Default) {
@@ -140,7 +143,7 @@ class AccountDataSourceImpl(
         val raw = encryptedPreferences.getDecryptedString(key) ?: return@withContext null
         val internalSource = SourceInternal.read(raw)
 
-        val signingData = jp.co.soramitsu.domain.model.SigningData(
+        val signingData = SigningData(
             publicKey = internalSource[SourceInternal.PublicKey],
             privateKey = internalSource[SourceInternal.PrivateKey],
             nonce = internalSource[SourceInternal.Nonce]
@@ -174,7 +177,7 @@ class AccountDataSourceImpl(
         return selectedAccountSubject
     }
 
-    override suspend fun getPreferredCryptoType(): jp.co.soramitsu.domain.model.CryptoType {
+    override suspend fun getPreferredCryptoType(): CryptoType {
         return if (anyAccountSelected()) {
             getSelectedAccount().cryptoType
         } else {
@@ -182,7 +185,7 @@ class AccountDataSourceImpl(
         }
     }
 
-    override fun selectedNodeFlow(): Flow<jp.co.soramitsu.domain.model.Node> {
+    override fun selectedNodeFlow(): Flow<Node> {
         return selectedNodeFlow
     }
 
@@ -217,8 +220,8 @@ class AccountDataSourceImpl(
         jsonMapper.fromJson(raw, Account::class.java)
     }
 
-    private fun createNodeFlow(): MutableSharedFlow<jp.co.soramitsu.domain.model.Node> {
-        val flow = MutableSharedFlow<jp.co.soramitsu.domain.model.Node>(replay = 1)
+    private fun createNodeFlow(): MutableSharedFlow<Node> {
+        val flow = MutableSharedFlow<Node>(replay = 1)
 
         async {
             if (preferences.contains(PREFS_SELECTED_NODE)) {

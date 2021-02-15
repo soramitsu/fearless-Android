@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
+import jp.co.soramitsu.domain.model.Node
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 
 @Subcomponent(
@@ -20,7 +21,7 @@ interface WelcomeComponent {
         fun create(
             @BindsInstance fragment: Fragment,
             @BindsInstance shouldShowBack: Boolean,
-            @BindsInstance networkType: jp.co.soramitsu.domain.model.Node.NetworkType?
+            @BindsInstance networkType: Node.NetworkType?
         ): WelcomeComponent
     }
 

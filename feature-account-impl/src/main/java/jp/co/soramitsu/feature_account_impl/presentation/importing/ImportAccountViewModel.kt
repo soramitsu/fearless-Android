@@ -14,6 +14,8 @@ import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.domain.model.CryptoType
+import jp.co.soramitsu.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
@@ -180,8 +182,8 @@ class ImportAccountViewModel(
         sourceType: ImportSource,
         name: String,
         derivationPath: String,
-        cryptoType: jp.co.soramitsu.domain.model.CryptoType,
-        networkType: jp.co.soramitsu.domain.model.Node.NetworkType
+        cryptoType: CryptoType,
+        networkType: Node.NetworkType
     ): Result<Unit> {
         return when (sourceType) {
             is MnemonicImportSource -> interactor.importFromMnemonic(

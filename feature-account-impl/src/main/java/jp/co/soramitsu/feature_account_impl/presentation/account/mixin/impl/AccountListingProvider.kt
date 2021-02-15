@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.mixin.impl
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapAccountToAccountModel
@@ -40,7 +41,7 @@ class AccountListingProvider(
         return list.map {
             when (it) {
                 is Account -> transformAccount(it)
-                is jp.co.soramitsu.domain.model.Node.NetworkType -> mapNetworkTypeToNetworkModel(it)
+                is Node.NetworkType -> mapNetworkTypeToNetworkModel(it)
                 else -> throw IllegalArgumentException()
             }
         }

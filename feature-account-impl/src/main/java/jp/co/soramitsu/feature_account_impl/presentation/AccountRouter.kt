@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
+import jp.co.soramitsu.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 
@@ -16,7 +17,7 @@ interface AccountRouter : SecureRouter {
 
     fun openCreatePincode()
 
-    fun openMnemonicScreen(accountName: String, selectedNetworkType: jp.co.soramitsu.domain.model.Node.NetworkType)
+    fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType)
 
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
 
@@ -46,7 +47,7 @@ interface AccountRouter : SecureRouter {
 
     fun openAddNode()
 
-    fun createAccountForNetworkType(networkType: jp.co.soramitsu.domain.model.Node.NetworkType)
+    fun createAccountForNetworkType(networkType: Node.NetworkType)
 
     @PinRequired
     fun openExportMnemonic(accountAddress: String): DelayedNavigation

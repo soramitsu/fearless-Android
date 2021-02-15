@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.domain.model.Node
 
 class ExternalAccountActionsProvider(
     val clipboardManager: ClipboardManager,
@@ -33,7 +34,7 @@ class ExternalAccountActionsProvider(
         messageShower.invoke(message)
     }
 
-    override fun viewExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: jp.co.soramitsu.domain.model.Node.NetworkType) {
+    override fun viewExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: Node.NetworkType) {
         val url = appLinksProvider.getExternalAddressUrl(analyzer, address, networkType)
 
         openBrowserEvent.value = Event(url)
