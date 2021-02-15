@@ -1,4 +1,4 @@
-package jp.co.soramitsu.app.root.data.runtime
+package jp.co.soramitsu.runtime
 
 import com.google.gson.Gson
 import jp.co.soramitsu.core_db.dao.RuntimeDao
@@ -7,11 +7,6 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
-import jp.co.soramitsu.runtime.DefinitionsFetcher
-import jp.co.soramitsu.runtime.RuntimeCache
-import jp.co.soramitsu.runtime.RuntimeConstructor
-import jp.co.soramitsu.runtime.RuntimePrepopulator
-import jp.co.soramitsu.runtime.getDefinitionsByNetwork
 import jp.co.soramitsu.test_shared.any
 import jp.co.soramitsu.test_shared.eq
 import jp.co.soramitsu.test_shared.isA
@@ -51,9 +46,6 @@ class RuntimeConstructorTest {
     @Mock
     lateinit var gson: Gson
 
-    @Mock
-    lateinit var runtimePrepopulator: RuntimePrepopulator
-
     lateinit var runtimeConstructor: RuntimeConstructor
 
     @Suppress("UNCHECKED_CAST")
@@ -74,9 +66,7 @@ class RuntimeConstructorTest {
             given(definitionsFetcher.getDefinitionsByNetwork(anyString())).willReturn("server")
             given(definitionsFetcher.getDefinitionsByFile(anyString())).willReturn("server")
 
-            given(runtimePrepopulator.maybePrepopulateCache()).willReturn(Unit) // no pre population in test
-
-            runtimeConstructor = RuntimeConstructor(socketService, definitionsFetcher, gson, runtimeDao, runtimePrepopulator, cache)
+            runtimeConstructor = RuntimeConstructor(socketService, definitionsFetcher, gson, runtimeDao, cache)
         }
     }
 
@@ -165,6 +155,46 @@ class RuntimeConstructorTest {
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
             assertEquals(true, result.isNewest)
+
+            verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
+            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
+            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("kusama.json"))
+
+            verify(runtimeDao, times(1)).updateTypesVersion(eq("kusama"), eq(2))
+        }
+    }
+
+    @Test
+    fun `should fetch runtime if node runtime version is lower and mark actual`() {
+        runBlocking {
+            dbReturnsCacheInfo(lastKnownVersion = 2, lastAppliedVersion = 2, typesVersion = 2)
+            cacheReturnsMetadata(EMPTY_METADATA)
+            nodeReturnsMetadata(EMPTY_METADATA)
+            serverReturnsTypes(runtimeId = 1)
+
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 1, "kusama")
+
+            assertEquals(true, result.isNewest)
+
+            verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
+            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
+            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("kusama.json"))
+
+            verify(runtimeDao, times(1)).updateTypesVersion(eq("kusama"), eq(1))
+        }
+    }
+
+    @Test
+    fun `should fetch runtime if node runtime version is lower and mark outdated`() {
+        runBlocking {
+            dbReturnsCacheInfo(lastKnownVersion = 2, lastAppliedVersion = 2, typesVersion = 2)
+            cacheReturnsMetadata(EMPTY_METADATA)
+            nodeReturnsMetadata(EMPTY_METADATA)
+            serverReturnsTypes(runtimeId = 2)
+
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 1, "kusama")
+
+            assertEquals(false, result.isNewest)
 
             verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))

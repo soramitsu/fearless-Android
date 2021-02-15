@@ -31,7 +31,6 @@ class RuntimeConstructor(
     private val definitionsFetcher: DefinitionsFetcher,
     private val gson: Gson,
     private val runtimeDao: RuntimeDao,
-    private val runtimePrepopulator: RuntimePrepopulator,
     private val runtimeCache: RuntimeCache
 ) {
 
@@ -49,29 +48,39 @@ class RuntimeConstructor(
         newRuntimeVersion: Int,
         networkName: String
     ): Constructed = withContext(Dispatchers.IO) {
-        runtimePrepopulator.maybePrepopulateCache()
-
         runtimeDao.updateLatestKnownVersion(networkName, newRuntimeVersion)
 
         val runtimeParams = getRuntimeParams(newRuntimeVersion, networkName)
 
-        val typeRegistry = constructTypeRegistry(runtimeParams)
+        constructRuntime(runtimeParams)
+    }
 
-        val runtimeMetadataStruct = RuntimeMetadataSchema.read(runtimeParams.metadataRaw)
+    suspend fun constructFromCache(networkName: String) = withContext(Dispatchers.Default) {
+        val (defaultTree, networkTree) = networkTypesFromCache(networkName)
+        val metadata = runtimeCache.getRuntimeMetadata(networkName)!!
+
+        constructRuntime(ConstructionParams(metadata, defaultTree, networkTree, areNewest = true))
+            .runtime
+    }
+
+    private fun constructRuntime(params: ConstructionParams): Constructed {
+        val typeRegistry = constructTypeRegistry(params)
+
+        val runtimeMetadataStruct = RuntimeMetadataSchema.read(params.metadataRaw)
         val runtimeMetadata = RuntimeMetadata(typeRegistry, runtimeMetadataStruct)
 
         val runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata)
 
-        Constructed(
+        return Constructed(
             runtime,
-            isNewest = runtimeParams.areNewest
+            isNewest = params.areNewest
         )
     }
 
     private suspend fun getRuntimeParams(latestRuntimeVersion: Int, networkName: String): ConstructionParams {
         val cacheInfo = runtimeDao.getCacheEntry(networkName)
 
-        val metadataRaw = if (latestRuntimeVersion <= cacheInfo.latestAppliedVersion) {
+        val metadataRaw = if (latestRuntimeVersion == cacheInfo.latestAppliedVersion) {
             val metadataRaw = runtimeCache.getRuntimeMetadata(networkName)!!
 
             if (latestRuntimeVersion <= cacheInfo.typesVersion) {
@@ -108,7 +117,7 @@ class RuntimeConstructor(
             metadataRaw,
             defaultTree,
             networkTree,
-            areNewest = latestRuntimeVersion <= typesVersion
+            areNewest = latestRuntimeVersion == typesVersion
         )
     }
 
