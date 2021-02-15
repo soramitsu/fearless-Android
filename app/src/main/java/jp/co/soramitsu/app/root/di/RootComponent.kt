@@ -12,6 +12,7 @@ import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.di.StakingFeatureApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
+import jp.co.soramitsu.runtime.di.RuntimeApi
 
 @Component(
     dependencies = [
@@ -44,7 +45,8 @@ interface RootComponent {
             WalletFeatureApi::class,
             StakingFeatureApi::class,
             DbApi::class,
-            CommonApi::class
+            CommonApi::class,
+            RuntimeApi::class
         ]
     )
     interface RootFeatureDependenciesComponent : RootDependencies

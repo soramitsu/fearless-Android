@@ -89,6 +89,8 @@ dependencies {
     implementation project(':feature-wallet-api')
     implementation project(':feature-wallet-impl')
 
+    implementation project(':runtime')
+
     implementation project(':feature-staking-api')
     implementation project(':feature-staking-impl')
 

@@ -4,8 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.app.root.data.runtime.RuntimePreparationStatus
-import jp.co.soramitsu.app.root.data.runtime.RuntimeUpdateRetry
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
@@ -15,6 +13,8 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core_api.data.network.Updater
+import jp.co.soramitsu.runtime.RuntimePreparationStatus
+import jp.co.soramitsu.runtime.RuntimeUpdateRetry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren

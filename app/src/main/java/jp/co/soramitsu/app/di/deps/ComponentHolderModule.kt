@@ -20,6 +20,8 @@ import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureHolder
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureHolder
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureHolder
+import jp.co.soramitsu.runtime.di.RuntimeApi
+import jp.co.soramitsu.runtime.di.RuntimeHolder
 import jp.co.soramitsu.splash.di.SplashFeatureApi
 import jp.co.soramitsu.splash.di.SplashFeatureHolder
 
@@ -71,4 +73,10 @@ interface ComponentHolderModule {
     @ClassKey(StakingFeatureApi::class)
     @IntoMap
     fun provideStakingFeature(holder: StakingFeatureHolder): FeatureApiHolder
+
+    @ApplicationScope
+    @Binds
+    @ClassKey(RuntimeApi::class)
+    @IntoMap
+    fun provideARuntimeFeature(runtimeHolder: RuntimeHolder): FeatureApiHolder
 }

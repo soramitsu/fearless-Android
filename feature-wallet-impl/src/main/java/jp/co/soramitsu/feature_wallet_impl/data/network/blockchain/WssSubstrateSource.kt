@@ -2,10 +2,20 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
+import jp.co.soramitsu.common.data.network.runtime.binding.EventRecord
+import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
+import jp.co.soramitsu.common.data.network.runtime.binding.Phase
+import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
+import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.common.utils.preBinder
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.runtime.Module
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.runtime.storageKey
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.invoke
@@ -43,7 +53,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.accoun
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchemaV28
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.EncodeExtrinsicParams
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -60,6 +69,7 @@ class WssSubstrateSource(
     private val keypairFactory: KeypairFactory,
     private val accountInfoFactory: AccountInfoFactory,
     private val extrinsicFactory: TransferExtrinsicFactory,
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val sS58Encoder: SS58Encoder
 ) : SubstrateRemoteSource {
 
@@ -108,12 +118,23 @@ class WssSubstrateSource(
             .map(::buildBalanceChange)
     }
 
-    override suspend fun fetchAccountTransfersInBlock(blockHash: String, account: Account): List<TransferExtrinsic> {
-        val request = GetBlockRequest(blockHash)
+    override suspend fun fetchAccountTransfersInBlock(blockHash: String, account: Account): Result<List<TransferExtrinsicWithStatus>> = runCatching {
+        val blockRequest = GetBlockRequest(blockHash)
 
-        val block = socketService.executeAsync(request, mapper = pojo<SignedBlock>().nonNull())
+        val block = socketService.executeAsync(blockRequest, mapper = pojo<SignedBlock>().nonNull())
 
-        return filterAccountTransactions(account, block.block.extrinsics)
+        val runtime = runtimeProperty.get()
+
+        val eventsKey = runtime.metadata.module("System").storage("Events").storageKey()
+        val eventsRequest = GetStorageRequest(listOf(eventsKey, blockHash))
+
+        val rawResponse = socketService.executeAsync(eventsRequest, mapper = preBinder())
+
+        val statusesByExtrinsicId = bindExtrinsicStatusEventRecords(rawResponse, runtime)
+            .filter { it.phase is Phase.ApplyExtrinsic }
+            .associateBy { (it.phase as Phase.ApplyExtrinsic).extrinsicId.toInt() }
+
+        filterAccountTransactions(account, block.block.extrinsics, statusesByExtrinsicId)
     }
 
     override suspend fun listenStakingLedger(stashAddress: String): Flow<EncodableStruct<StakingLedger>> {
@@ -256,16 +277,31 @@ class WssSubstrateSource(
         }
     }
 
-    private suspend fun filterAccountTransactions(account: Account, extrinsics: List<String>): List<TransferExtrinsic> {
+    private suspend fun filterAccountTransactions(
+        account: Account,
+        extrinsics: List<String>,
+        statuesByExtrinsicIndex: Map<Int, EventRecord<ExtrinsicStatusEvent>>
+    ): List<TransferExtrinsicWithStatus> {
         return withContext(Dispatchers.Default) {
             val currentPublicKey = getAccountId(account.address)
             val transfersPalette = account.network.type.runtimeConfiguration.pallets.transfers
 
-            extrinsics.mapNotNull { hex -> extrinsicFactory.decode(hex) }
-                .filter { transfer ->
-                    if (transfer.index !in transfersPalette) return@filter false
+            extrinsics.mapIndexed { index, hex ->
+                val transferExtrinsic = extrinsicFactory.decode(hex)
 
-                    transfer.senderId.contentEquals(currentPublicKey) || transfer.recipientId.contentEquals(currentPublicKey)
+                transferExtrinsic?.let {
+                    val status = statuesByExtrinsicIndex[index]?.event ?: ExtrinsicStatusEvent.SUCCESS
+
+                    TransferExtrinsicWithStatus(transferExtrinsic, status)
+                }
+            }
+                .filterNotNull()
+                .filter { transferWithStatus ->
+                    val extrinsic = transferWithStatus.extrinsic
+
+                    if (extrinsic.index !in transfersPalette) return@filter false
+
+                    extrinsic.senderId.contentEquals(currentPublicKey) || extrinsic.recipientId.contentEquals(currentPublicKey)
                 }
         }
     }

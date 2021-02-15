@@ -7,6 +7,11 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
+import jp.co.soramitsu.runtime.DefinitionsFetcher
+import jp.co.soramitsu.runtime.RuntimeCache
+import jp.co.soramitsu.runtime.RuntimeConstructor
+import jp.co.soramitsu.runtime.RuntimePrepopulator
+import jp.co.soramitsu.runtime.getDefinitionsByNetwork
 import jp.co.soramitsu.test_shared.any
 import jp.co.soramitsu.test_shared.eq
 import jp.co.soramitsu.test_shared.isA
