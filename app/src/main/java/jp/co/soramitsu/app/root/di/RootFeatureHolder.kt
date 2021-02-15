@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
+import jp.co.soramitsu.di.StakingFeatureApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.runtime.di.RuntimeApi
@@ -22,6 +23,7 @@ class RootFeatureHolder @Inject constructor(
             .dbApi(getFeature(DbApi::class.java))
             .accountFeatureApi(getFeature(AccountFeatureApi::class.java))
             .walletFeatureApi(getFeature(WalletFeatureApi::class.java))
+            .stakingFeatureApi(getFeature(StakingFeatureApi::class.java))
             .runtimeApi(getFeature(RuntimeApi::class.java))
             .build()
         return DaggerRootComponent.factory()
