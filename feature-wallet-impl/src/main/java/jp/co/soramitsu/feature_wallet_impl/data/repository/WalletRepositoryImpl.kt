@@ -240,7 +240,6 @@ class WalletRepositoryImpl(
         )
     }
 
-
     private fun observeTransactions(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Transaction>> {
         return transactionsDao.observeTransactions(currentAccount.address)
             .mapList { mapTransactionLocalToTransaction(it, defineAccountNameForTransaction(currentAccount, accounts, it)) }
@@ -270,4 +269,3 @@ class WalletRepositoryImpl(
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
 }
-
