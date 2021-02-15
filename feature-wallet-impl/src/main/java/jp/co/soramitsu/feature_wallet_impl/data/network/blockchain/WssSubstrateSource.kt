@@ -2,6 +2,8 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
+import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.common.data.network.runtime.binding.EventRecord
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.Phase
@@ -35,8 +37,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChang
 import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest

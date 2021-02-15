@@ -7,7 +7,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 
 typealias ExternalViewCallback = (ExternalAnalyzer, String, Node.NetworkType) -> Unit
 typealias CopyCallback = (String) -> Unit

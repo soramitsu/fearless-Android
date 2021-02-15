@@ -1,7 +1,7 @@
 package jp.co.soramitsu.runtime
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.core_api.data.network.Updater
+import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.runtimeVersionChange

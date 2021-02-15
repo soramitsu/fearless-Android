@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.core_api.data.network.Updater
+import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.runtime.RuntimePreparationStatus
 import jp.co.soramitsu.runtime.RuntimeUpdateRetry
 import kotlinx.coroutines.CoroutineScope

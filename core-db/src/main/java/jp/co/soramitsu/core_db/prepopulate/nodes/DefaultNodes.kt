@@ -1,7 +1,7 @@
 package jp.co.soramitsu.core_db.prepopulate.nodes
 
 import jp.co.soramitsu.core_db.model.NodeLocal
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 
 class DefaultNodes {
 

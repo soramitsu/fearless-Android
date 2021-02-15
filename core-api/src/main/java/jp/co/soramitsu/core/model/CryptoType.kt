@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_api.domain.model
+package jp.co.soramitsu.core.model
 
 enum class CryptoType {
     SR25519,

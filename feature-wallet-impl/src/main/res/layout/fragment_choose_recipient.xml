@@ -82,7 +82,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_contact" />
+            tools:listitem="@layout/item_contact_address" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/searchRecipientEmpty"

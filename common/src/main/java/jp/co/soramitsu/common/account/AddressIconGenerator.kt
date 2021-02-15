@@ -14,10 +14,10 @@ class AddressIconGenerator(
 ) {
 
     @Throws(AddressFormatException::class)
-    suspend fun createAddressModel(accountAddress: String, sizeInDp: Int): AddressModel {
+    suspend fun createAddressModel(accountAddress: String, sizeInDp: Int, accountName: String? = null): AddressModel {
         val icon = createAddressIcon(accountAddress, sizeInDp)
 
-        return AddressModel(accountAddress, icon)
+        return AddressModel(accountAddress, icon, accountName)
     }
 
     @Throws(AddressFormatException::class)

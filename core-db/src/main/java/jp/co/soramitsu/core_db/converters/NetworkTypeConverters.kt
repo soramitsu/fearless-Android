@@ -1,7 +1,7 @@
 package jp.co.soramitsu.core_db.converters
 
 import androidx.room.TypeConverter
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 
 class NetworkTypeConverters {
 

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_onboarding_impl
 
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 
 interface OnboardingRouter {
 

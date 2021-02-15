@@ -2,7 +2,7 @@ package jp.co.soramitsu.core_db.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 
 @Entity(tableName = "users")
 data class AccountLocal(
