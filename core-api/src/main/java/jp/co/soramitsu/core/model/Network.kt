@@ -1,4 +1,4 @@
-package jp.co.soramitsu.domain.model
+package jp.co.soramitsu.core.model
 
 data class Network(
     val type: Node.NetworkType,

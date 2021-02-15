@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
-import jp.co.soramitsu.domain.model.CryptoType
-import jp.co.soramitsu.domain.model.Node
+import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.Language

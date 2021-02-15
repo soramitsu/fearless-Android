@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_account_api.domain.model
 
-import jp.co.soramitsu.domain.model.CryptoType
-import jp.co.soramitsu.domain.model.Node
+import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.Node
 
 class ImportJsonData(
     val name: String?,

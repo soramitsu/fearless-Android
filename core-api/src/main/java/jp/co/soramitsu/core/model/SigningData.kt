@@ -1,4 +1,4 @@
-package jp.co.soramitsu.domain.model
+package jp.co.soramitsu.core.model
 
 class SigningData(
     val publicKey: ByteArray,

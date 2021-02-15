@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.mediatorLiveData
 import jp.co.soramitsu.common.utils.setFrom
-import jp.co.soramitsu.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin

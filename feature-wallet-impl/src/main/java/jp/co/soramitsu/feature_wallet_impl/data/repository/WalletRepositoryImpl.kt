@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.utils.encode
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
@@ -11,8 +13,6 @@ import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
-import jp.co.soramitsu.domain.model.Node
-import jp.co.soramitsu.domain.model.SigningData
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct

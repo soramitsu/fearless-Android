@@ -3,9 +3,9 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource.migratio
 import android.annotation.SuppressLint
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.domain.model.SigningData
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray

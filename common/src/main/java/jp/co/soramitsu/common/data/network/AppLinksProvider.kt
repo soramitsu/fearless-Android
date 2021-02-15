@@ -1,6 +1,6 @@
 package jp.co.soramitsu.common.data.network
 
-import jp.co.soramitsu.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.requirePrefix
 
 class AppLinksProvider(

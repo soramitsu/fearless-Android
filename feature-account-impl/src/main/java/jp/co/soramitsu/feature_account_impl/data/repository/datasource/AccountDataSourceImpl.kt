@@ -3,9 +3,9 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
-import jp.co.soramitsu.domain.model.CryptoType
-import jp.co.soramitsu.domain.model.Node
-import jp.co.soramitsu.domain.model.SigningData
+import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
 import jp.co.soramitsu.fearless_utils.scale.invoke

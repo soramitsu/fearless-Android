@@ -2,8 +2,8 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
-import jp.co.soramitsu.domain.model.CryptoType
-import jp.co.soramitsu.domain.model.Node
+import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair

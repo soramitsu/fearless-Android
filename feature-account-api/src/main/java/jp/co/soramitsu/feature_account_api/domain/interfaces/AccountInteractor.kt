@@ -1,8 +1,8 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
-import jp.co.soramitsu.domain.model.CryptoType
-import jp.co.soramitsu.domain.model.Network
-import jp.co.soramitsu.domain.model.Node
+import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.Network
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
