@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mode
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -47,6 +48,7 @@ class TransactionHistoryProvider(
 
         walletInteractor.transactionsFirstPageFlow(PAGE_SIZE)
             .map { transformNewPage(it, true) }
+            .flowOn(Dispatchers.Default)
             .onEach {
                 lastPageLoaded = false
                 isLoading = false

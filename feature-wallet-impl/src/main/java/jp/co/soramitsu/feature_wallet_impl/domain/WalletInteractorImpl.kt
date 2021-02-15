@@ -103,12 +103,12 @@ class WalletInteractorImpl(
         val contacts = walletRepository.getContacts(query)
         val myAccounts = accountRepository.getMyAccounts(query, account.network.type)
 
-        return with(Dispatchers.Default) {
+        return withContext(Dispatchers.Default) {
             val contactsWithoutMyAccounts = contacts - myAccounts.map { it.address }
             val myAddressesWithoutCurrent = myAccounts - account
 
             RecipientSearchResult(
-                myAddressesWithoutCurrent.toList().map { WalletAccount(it.address, it.name, account.network) },
+                myAddressesWithoutCurrent.toList().map { mapAccountToWalletAccount(it) },
                 contactsWithoutMyAccounts.toList()
             )
         }

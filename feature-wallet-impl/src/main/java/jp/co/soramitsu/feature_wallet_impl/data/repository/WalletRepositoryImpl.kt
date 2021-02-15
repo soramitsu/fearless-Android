@@ -105,15 +105,17 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun getTransactionPage(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
-        val subDomain = subDomainFor(currentAccount.network.type)
-        val request = TransactionHistoryRequest(currentAccount.address, pageSize, page)
+        return withContext(Dispatchers.Default) {
+            val subDomain = subDomainFor(currentAccount.network.type)
+            val request = TransactionHistoryRequest(currentAccount.address, pageSize, page)
 
-        val response = apiCall { subscanApi.getTransactionHistory(subDomain, request) }
+            val response = apiCall { subscanApi.getTransactionHistory(subDomain, request) }
 
-        val transfers = response.content?.transfers
-        val transactions = transfers?.map { transfer -> mapTransferToTransaction(transfer, currentAccount) }
+            val transfers = response.content?.transfers
+            val transactions = transfers?.map { transfer -> mapTransferToTransaction(transfer, currentAccount) }
 
-        return transactions ?: getCachedTransactions(page, currentAccount, accounts)
+            transactions ?: getCachedTransactions(page, currentAccount, accounts)
+        }
     }
 
     override suspend fun getContacts(query: String): Set<String> {
@@ -137,9 +139,9 @@ class WalletRepositoryImpl(
 
         val transactionHash = substrateSource.performTransfer(account, transfer, keypair)
 
-        val transaction = createTransaction(transactionHash, transfer, senderAddress = account.address, fee)
+        val transaction = createTransaction(transactionHash, transfer, account.address, fee)
 
-        val transactionLocal = mapTransactionToTransactionLocal(transaction, accountAddress = account.address, TransactionSource.APP)
+        val transactionLocal = mapTransactionToTransactionLocal(transaction, account.address, TransactionSource.APP)
 
         transactionsDao.insert(transactionLocal)
     }
@@ -178,11 +180,11 @@ class WalletRepositoryImpl(
         phishingAddresses.contains(addressPublicKey)
     }
 
-    private fun defineAccountNameForTransaction(currentAccount: WalletAccount, accounts: List<WalletAccount>, transaction: TransactionLocal): String? {
-        return if (currentAccount.address == transaction.recipientAddress) {
-            accounts.firstOrNull { it.address == transaction.senderAddress }?.name
+    private fun defineAccountNameForTransaction(accountsByAddress: Map<String, WalletAccount>, transaction: TransactionLocal): String? {
+        return if (transaction.accountAddress == transaction.recipientAddress) {
+            accountsByAddress[transaction.senderAddress]?.name
         } else {
-            accounts.firstOrNull { it.address == transaction.recipientAddress }?.name
+            accountsByAddress[transaction.recipientAddress]?.name
         }
     }
 
@@ -202,8 +204,9 @@ class WalletRepositoryImpl(
 
     private suspend fun getCachedTransactions(page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
         return if (page == 0) {
+            val accountsByAddress = accounts.associateBy { it.address }
             transactionsDao.getTransactions(currentAccount.address)
-                .map { mapTransactionLocalToTransaction(it, defineAccountNameForTransaction(currentAccount, accounts, it)) }
+                .map { mapTransactionLocalToTransaction(it, defineAccountNameForTransaction(accountsByAddress, it)) }
         } else {
             emptyList()
         }
@@ -242,7 +245,10 @@ class WalletRepositoryImpl(
 
     private fun observeTransactions(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Transaction>> {
         return transactionsDao.observeTransactions(currentAccount.address)
-            .mapList { mapTransactionLocalToTransaction(it, defineAccountNameForTransaction(currentAccount, accounts, it)) }
+            .map {
+                val accountsByAddress = accounts.associateBy { it.address }
+                it.map { mapTransactionLocalToTransaction(it, defineAccountNameForTransaction(accountsByAddress, it)) }
+            }
     }
 
     private suspend fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): SubscanResponse<AssetPriceStatistics> {
