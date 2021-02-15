@@ -181,11 +181,12 @@ class WalletRepositoryImpl(
     }
 
     private fun defineAccountNameForTransaction(accountsByAddress: Map<String, WalletAccount>, transaction: TransactionLocal): String? {
-        return if (transaction.accountAddress == transaction.recipientAddress) {
-            accountsByAddress[transaction.senderAddress]?.name
+        val accountAddress = if (transaction.accountAddress == transaction.recipientAddress) {
+            transaction.senderAddress
         } else {
-            accountsByAddress[transaction.recipientAddress]?.name
+            transaction.recipientAddress
         }
+        return accountsByAddress[accountAddress]?.name
     }
 
     private fun createTransaction(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal) =
