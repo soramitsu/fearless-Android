@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.runtime.di.RuntimeApi
 import javax.inject.Inject
 
 @ApplicationScope
@@ -18,6 +19,7 @@ class WalletFeatureHolder @Inject constructor(
         val dependencies = DaggerWalletFeatureComponent_WalletFeatureDependenciesComponent.builder()
             .commonApi(commonApi())
             .dbApi(getFeature(DbApi::class.java))
+            .runtimeApi(getFeature(RuntimeApi::class.java))
             .accountFeatureApi(getFeature(AccountFeatureApi::class.java))
             .build()
         return DaggerWalletFeatureComponent.factory()

@@ -155,6 +155,10 @@ class ChooseAmountViewModel(
         router.openConfirmTransfer(transferDraft)
     }
 
+    override fun declinePhishingAddress() {
+        router.back()
+    }
+
     @OptIn(ExperimentalTime::class)
     private fun feeFlow(): Flow<Fee?> = amountEvents
         .mapNotNull(String::toBigDecimalOrNull)

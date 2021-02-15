@@ -1,21 +1,15 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
-import jp.co.soramitsu.common.utils.encode
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
-import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
-import jp.co.soramitsu.core_db.model.TokenLocal
-import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -28,17 +22,13 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_impl.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ActiveEraInfo
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.StakingLedger
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountData
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
@@ -49,12 +39,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.util.Locale
@@ -63,18 +49,18 @@ import java.util.Locale
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
     private val accountRepository: AccountRepository,
-    private val assetDao: AssetDao,
     private val transactionsDao: TransactionDao,
     private val subscanApi: SubscanNetworkApi,
     private val sS58Encoder: SS58Encoder,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
+    private val assetCache: AssetCache,
     private val phishingAddressDao: PhishingAddressDao
 ) : WalletRepository {
 
     override fun assetsFlow(): Flow<List<Asset>> {
         return accountRepository.selectedAccountFlow()
-            .flatMapLatest { account -> assetDao.observeAssets(account.address) }
+            .flatMapLatest { account -> assetCache.observeAssets(account.address) }
             .mapList(::mapAssetLocalToAsset)
     }
 
@@ -86,14 +72,14 @@ class WalletRepositoryImpl(
 
     override fun assetFlow(type: Token.Type): Flow<Asset> {
         return accountRepository.selectedAccountFlow()
-            .flatMapLatest { account -> assetDao.observeAsset(account.address, type) }
+            .flatMapLatest { account -> assetCache.observeAsset(account.address, type) }
             .map { mapAssetLocalToAsset(it) }
     }
 
     override suspend fun getAsset(type: Token.Type): Asset? {
         val account = accountRepository.getSelectedAccount()
 
-        val assetLocal = assetDao.getAsset(account.address, type)
+        val assetLocal = assetCache.getAsset(account.address, type)
 
         return assetLocal?.let(::mapAssetLocalToAsset)
     }
@@ -167,28 +153,10 @@ class WalletRepositoryImpl(
         val totalRecipientBalanceInPlanks = recipientInfo.totalBalanceInPlanks()
         val totalRecipientBalance = tokenType.amountFromPlanks(totalRecipientBalanceInPlanks)
 
-        val assetLocal = assetDao.getAsset(account.address, transfer.tokenType)!!
+        val assetLocal = assetCache.getAsset(account.address, transfer.tokenType)!!
         val asset = mapAssetLocalToAsset(assetLocal)
 
         return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance)
-    }
-
-    override suspend fun listenForAccountInfoUpdates(account: Account) {
-        substrateSource.listenForAccountUpdates(account.address)
-            .onEach { change ->
-                updateAssetBalance(account, change.newAccountInfo)
-
-                fetchTransfers(account, change.block)
-            }.collect()
-    }
-
-    override suspend fun listenForStakingLedgerUpdates(account: Account) {
-        substrateSource.listenStakingLedger(account.address)
-            .onEach { stakingLedger ->
-                val era = substrateSource.getActiveEra()
-
-                updateAssetStaking(account, stakingLedger, era)
-            }.collect()
     }
 
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
@@ -279,7 +247,7 @@ class WalletRepositoryImpl(
         account: Account,
         todayResponse: SubscanResponse<AssetPriceStatistics>?,
         yesterdayResponse: SubscanResponse<AssetPriceStatistics>?
-    ) = updateLocalTokenCopy(account) { cached ->
+    ) = assetCache.updateToken(account) { cached ->
         val todayStats = todayResponse?.content
         val yesterdayStats = yesterdayResponse?.content
 
@@ -379,6 +347,9 @@ class WalletRepositoryImpl(
     private fun observeTransactions(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Transaction>> {
         return transactionsDao.observeTransactions(currentAccount.address)
             .mapList { mapTransactionLocalToTransaction(it, defineAccountNameForTransaction(currentAccount, accounts, it)) }
+    private fun observeTransactions(accountAddress: String): Flow<List<Transaction>> {
+        return transactionsDao.observeTransactions(accountAddress)
+            .mapList(::mapTransactionLocalToTransaction)
     }
 
     private suspend fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): SubscanResponse<AssetPriceStatistics> {

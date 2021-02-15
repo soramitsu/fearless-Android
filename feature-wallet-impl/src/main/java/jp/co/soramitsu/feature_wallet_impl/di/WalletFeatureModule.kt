@@ -12,6 +12,7 @@ import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -21,11 +22,13 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
+import jp.co.soramitsu.feature_wallet_impl.data.cache.AssetCache
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountBalanceUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountInfoSchemaUpdater
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
@@ -43,6 +46,12 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideSubscanApi(networkApiCreator: NetworkApiCreator): SubscanNetworkApi {
         return networkApiCreator.create(SubscanNetworkApi::class.java)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideAssetCache(assetDao: AssetDao): AssetCache {
+        return AssetCache(assetDao)
     }
 
     @Provides
@@ -75,36 +84,38 @@ class WalletFeatureModule {
         keypairFactory: KeypairFactory,
         accountInfoFactory: AccountInfoFactory,
         extrinsicFactory: TransferExtrinsicFactory,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         sS58Encoder: SS58Encoder
-    ) = WssSubstrateSource(
+    ): SubstrateRemoteSource = WssSubstrateSource(
         socketService,
         keypairFactory,
         accountInfoFactory,
         extrinsicFactory,
+        runtimeProperty,
         sS58Encoder
     )
 
     @Provides
     @FeatureScope
     fun provideWalletRepository(
-        substrateSource: WssSubstrateSource,
+        substrateSource: SubstrateRemoteSource,
         accountRepository: AccountRepository,
-        assetDao: AssetDao,
         transactionDao: TransactionDao,
         subscanNetworkApi: SubscanNetworkApi,
         sS58Encoder: SS58Encoder,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
-        phishingAddressDao: PhishingAddressDao
+        phishingAddressDao: PhishingAddressDao,
+        assetCache: AssetCache
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         accountRepository,
-        assetDao,
         transactionDao,
         subscanNetworkApi,
         sS58Encoder,
         httpExceptionHandler,
         phishingApi,
+        assetCache,
         phishingAddressDao
     )
 
@@ -146,27 +157,41 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideBalanceUpdater(
+    fun providePaymentUpdater(
         accountRepository: AccountRepository,
-        walletRepository: WalletRepository
-    ): AccountBalanceUpdater {
-        return AccountBalanceUpdater(accountRepository, walletRepository)
+        remoteSource: SubstrateRemoteSource,
+        sS58Encoder: SS58Encoder,
+        assetCache: AssetCache,
+        transactionDao: TransactionDao
+    ): PaymentUpdater {
+        return PaymentUpdater(
+            accountRepository,
+            remoteSource,
+            sS58Encoder,
+            assetCache,
+            transactionDao
+        )
     }
 
     @Provides
     @FeatureScope
     fun provideStakingUpdater(
         accountRepository: AccountRepository,
-        walletRepository: WalletRepository
+        remoteSource: SubstrateRemoteSource,
+        assetCache: AssetCache
     ): StakingLedgerUpdater {
-        return StakingLedgerUpdater(accountRepository, walletRepository)
+        return StakingLedgerUpdater(
+            accountRepository,
+            remoteSource,
+            assetCache
+        )
     }
 
     @Provides
     @FeatureScope
     fun provideFeatureUpdaters(
         schemaUpdater: AccountInfoSchemaUpdater,
-        balanceUpdater: AccountBalanceUpdater,
+        balanceUpdater: PaymentUpdater,
         stakingLedgerUpdater: StakingLedgerUpdater
     ): WalletUpdaters = WalletUpdaters(arrayOf(schemaUpdater, balanceUpdater, stakingLedgerUpdater))
 }

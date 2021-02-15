@@ -1,0 +1,50 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion rootProject.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        debug {
+
+        }
+
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation project(":common")
+    implementation project(":core-db")
+    implementation project(":feature-account-api")
+
+    implementation project(":core-api")
+
+    implementation gsonDep
+    implementation fearlessLibDep
+
+    implementation kotlinDep
+
+    implementation coroutinesDep
+
+    implementation retrofitDep
+
+    implementation daggerDep
+    kapt daggerKapt
+
+    testImplementation project(':test-shared')
+}

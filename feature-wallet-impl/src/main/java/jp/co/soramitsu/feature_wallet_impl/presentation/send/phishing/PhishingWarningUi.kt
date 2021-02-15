@@ -20,7 +20,8 @@ private fun <T> BaseFragment<T>.showPhishingWarning(
 ) where T : BaseViewModel, T : PhishingWarningPresentation {
     warningDialog(
         requireContext(),
-        { viewModel.proceedAddress(address) }
+        { viewModel.proceedAddress(address) },
+        viewModel::declinePhishingAddress
     ) {
         setTitle(R.string.wallet_send_phishing_warning_title)
         setMessage(getString(R.string.wallet_send_phishing_warning_text, address))

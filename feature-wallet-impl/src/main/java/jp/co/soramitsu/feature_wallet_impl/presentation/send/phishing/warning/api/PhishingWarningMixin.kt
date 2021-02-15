@@ -13,6 +13,8 @@ interface PhishingWarningMixin {
 interface PhishingWarningPresentation : PhishingWarningMixin {
 
     fun proceedAddress(address: String)
+
+    fun declinePhishingAddress()
 }
 
 suspend fun PhishingWarningPresentation.proceedOrShowPhishingWarning(address: String) {
