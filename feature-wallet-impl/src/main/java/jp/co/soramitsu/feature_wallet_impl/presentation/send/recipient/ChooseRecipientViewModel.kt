@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.distinctUntilChanged
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
@@ -155,7 +155,7 @@ class ChooseRecipientViewModel(
         return generateAddressModelsWithHeader(R.string.search_result_header, listOf(address))
     }
 
-    private suspend fun generateAccountModelsWithHeader(@StringRes headerRes: Int, accounts: List<RecipientSearchResult.Account>): List<Any> {
+    private suspend fun generateAccountModelsWithHeader(@StringRes headerRes: Int, accounts: List<WalletAccount>): List<Any> {
         val models = accounts.map { generateAddressModel(it.address, it.name) }
 
         return maybeAppendHeader(headerRes, models)

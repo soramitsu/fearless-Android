@@ -108,7 +108,7 @@ class WalletInteractorImpl(
             val myAddressesWithoutCurrent = myAccounts - account
 
             RecipientSearchResult(
-                myAddressesWithoutCurrent.toList().map { RecipientSearchResult.Account(it.name, it.address) },
+                myAddressesWithoutCurrent.toList().map { WalletAccount(it.address, it.name, account.network) },
                 contactsWithoutMyAccounts.toList()
             )
         }
