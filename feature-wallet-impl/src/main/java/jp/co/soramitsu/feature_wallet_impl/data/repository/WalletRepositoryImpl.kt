@@ -2,12 +2,13 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
+import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
@@ -185,32 +186,6 @@ class WalletRepositoryImpl(
         }
     }
 
-    private suspend fun updateAssetStaking(
-        account: Account,
-        stakingLedger: EncodableStruct<StakingLedger>,
-        era: EncodableStruct<ActiveEraInfo>
-    ) {
-        return updateLocalAssetCopy(account) { cached ->
-            val eraIndex = era[ActiveEraInfo.index].toLong()
-
-            val redeemable = stakingLedger.sumStaking { it <= eraIndex }
-            val unbonding = stakingLedger.sumStaking { it > eraIndex }
-
-            cached.copy(
-                redeemableInPlanks = redeemable,
-                unbondingInPlanks = unbonding,
-                bondedInPlanks = stakingLedger[StakingLedger.active]
-            )
-        }
-    }
-
-    private suspend fun fetchTransfers(account: Account, blockHash: String) {
-        val transactions = substrateSource.fetchAccountTransfersInBlock(blockHash, account)
-        val local = transactions.map { createTransactionLocal(it, account) }
-
-        transactionsDao.insert(local)
-    }
-
     private fun createTransaction(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal) =
         Transaction(
             hash = hash,
@@ -265,91 +240,10 @@ class WalletRepositoryImpl(
         )
     }
 
-    private suspend fun updateAssetBalance(
-        account: Account,
-        accountInfo: EncodableStruct<AccountInfoSchema>
-    ) = updateLocalAssetCopy(account) { cachedAsset ->
-        val data = accountInfo[accountInfo.schema.data]
-
-        cachedAsset.copy(
-            freeInPlanks = data[AccountData.free],
-            reservedInPlanks = data[AccountData.reserved],
-            miscFrozenInPlanks = data[AccountData.miscFrozen],
-            feeFrozenInPlanks = data[AccountData.feeFrozen]
-        )
-    }
-
-    private val assetUpdateMutex = Mutex()
-
-    private suspend fun updateLocalAssetCopy(
-        account: Account,
-        builder: (local: AssetLocal) -> AssetLocal
-    ) = withContext(Dispatchers.IO) {
-        assetUpdateMutex.withLock {
-            val tokenType = Token.Type.fromNetworkType(account.network.type)
-
-            if (!assetDao.isTokenExists(tokenType)) {
-                assetDao.insertToken(TokenLocal.createEmpty(tokenType))
-            }
-
-            val cachedAsset = assetDao.getAsset(account.address, tokenType)?.asset ?: AssetLocal.createEmpty(tokenType, account.address)
-
-            val newAsset = builder.invoke(cachedAsset)
-
-            assetDao.insertAsset(newAsset)
-        }
-    }
-
-    private suspend fun updateLocalTokenCopy(
-        account: Account,
-        builder: (local: TokenLocal) -> TokenLocal
-    ) = withContext(Dispatchers.IO) {
-        assetUpdateMutex.withLock {
-            val tokenType = Token.Type.fromNetworkType(account.network.type)
-
-            val tokenLocal = assetDao.getToken(tokenType) ?: TokenLocal.createEmpty(tokenType)
-
-            val newAsset = builder.invoke(tokenLocal)
-
-            assetDao.insertToken(newAsset)
-        }
-    }
-
-    private suspend fun createTransactionLocal(
-        extrinsic: TransferExtrinsic,
-        account: Account
-    ): TransactionLocal {
-        val localCopy = transactionsDao.getTransaction(extrinsic.hash)
-
-        val fee = localCopy?.feeInPlanks
-
-        val networkType = account.network.type
-        val token = Token.Type.fromNetworkType(networkType)
-
-        val senderAddress = sS58Encoder.encode(extrinsic.senderId, networkType)
-        val recipientAddress = sS58Encoder.encode(extrinsic.recipientId, networkType)
-
-        return TransactionLocal(
-            hash = extrinsic.hash,
-            accountAddress = account.address,
-            senderAddress = senderAddress,
-            recipientAddress = recipientAddress,
-            source = TransactionSource.BLOCKCHAIN,
-            status = Transaction.Status.COMPLETED,
-            feeInPlanks = fee,
-            token = token,
-            amount = token.amountFromPlanks(extrinsic.amountInPlanks),
-            date = System.currentTimeMillis(),
-            networkType = networkType
-        )
-    }
 
     private fun observeTransactions(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Transaction>> {
         return transactionsDao.observeTransactions(currentAccount.address)
             .mapList { mapTransactionLocalToTransaction(it, defineAccountNameForTransaction(currentAccount, accounts, it)) }
-    private fun observeTransactions(accountAddress: String): Flow<List<Transaction>> {
-        return transactionsDao.observeTransactions(accountAddress)
-            .mapList(::mapTransactionLocalToTransaction)
     }
 
     private suspend fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): SubscanResponse<AssetPriceStatistics> {
@@ -376,3 +270,4 @@ class WalletRepositoryImpl(
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
 }
+
