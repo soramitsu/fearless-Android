@@ -64,6 +64,9 @@ class ChooseRecipientViewModel(
     private val _decodeAddressResult = MutableLiveData<Event<String>>()
     val decodeAddressResult: LiveData<Event<String>> = _decodeAddressResult
 
+    private val _declinePhishingAddress = MutableLiveData<Event<Unit>>()
+    val declinePhishingAddress: LiveData<Event<Unit>> = _declinePhishingAddress
+
     fun backClicked() {
         router.back()
     }
@@ -76,6 +79,10 @@ class ChooseRecipientViewModel(
 
     override fun proceedAddress(address: String) {
         router.openChooseAmount(address)
+    }
+
+    override fun declinePhishingAddress() {
+        _declinePhishingAddress.value = Event(Unit)
     }
 
     private fun determineState(queryEmpty: Boolean, searchResult: List<Any>): State {
