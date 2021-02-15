@@ -89,6 +89,9 @@ dependencies {
     implementation project(':feature-wallet-api')
     implementation project(':feature-wallet-impl')
 
+    implementation project(':feature-staking-api')
+    implementation project(':feature-staking-impl')
+
     implementation kotlinDep
 
     implementation androidDep
