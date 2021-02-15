@@ -13,7 +13,7 @@ class RuntimeHolder @Inject constructor(
 ) : FeatureApiHolder(featureContainer) {
 
     override fun initializeDependencies(): Any {
-        val dbDependencies = DaggerRuntimeComponent_DbDependenciesComponent.builder()
+        val dbDependencies = DaggerRuntimeComponent_RuntimeDependenciesComponent.builder()
             .commonApi(commonApi())
             .dbApi(getFeature(DbApi::class.java))
             .accountFeatureApi(getFeature(AccountFeatureApi::class.java))

@@ -24,5 +24,5 @@ abstract class RuntimeComponent : RuntimeApi {
             AccountFeatureApi::class
         ]
     )
-    interface DbDependenciesComponent : RuntimeDependencies
+    interface RuntimeDependenciesComponent : RuntimeDependencies
 }
