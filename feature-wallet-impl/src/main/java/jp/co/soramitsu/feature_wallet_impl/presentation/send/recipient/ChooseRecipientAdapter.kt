@@ -11,9 +11,9 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
-import kotlinx.android.synthetic.main.item_contact.view.itemContactAddress
+import kotlinx.android.synthetic.main.item_contact.view.itemContactBody
 import kotlinx.android.synthetic.main.item_contact.view.itemContactIcon
-import kotlinx.android.synthetic.main.item_contact.view.itemContactName
+import kotlinx.android.synthetic.main.item_contact.view.itemContactTitle
 import kotlinx.android.synthetic.main.item_contact_group.view.contactGroupTitle
 
 class ChooseRecipientAdapter(
@@ -55,13 +55,13 @@ class RecipientHolder(view: View) : GroupedListHolder(view) {
     ) {
         with(containerView) {
             if (addressModel.name == null) {
-                itemContactName.text = addressModel.address
-                itemContactAddress.text = ""
-                itemContactAddress.makeGone()
+                itemContactTitle.text = addressModel.address
+                itemContactBody.text = ""
+                itemContactBody.makeGone()
             } else {
-                itemContactName.text = addressModel.name
-                itemContactAddress.text = addressModel.address
-                itemContactAddress.makeVisible()
+                itemContactTitle.text = addressModel.name
+                itemContactBody.text = addressModel.address
+                itemContactBody.makeVisible()
             }
             itemContactIcon.setImageDrawable(addressModel.image)
 
