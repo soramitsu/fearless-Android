@@ -6,14 +6,13 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 
 class WelcomeViewModel(
     shouldShowBack: Boolean,
     private val router: OnboardingRouter,
     private val appLinksProvider: AppLinksProvider,
-    private val selectedNetworkType: Node.NetworkType?
+    private val selectedNetworkType: jp.co.soramitsu.domain.model.Node.NetworkType?
 ) : BaseViewModel(), Browserable {
 
     val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(shouldShowBack)

@@ -8,6 +8,8 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.domain.model.CryptoType
+import jp.co.soramitsu.domain.model.Node
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -24,14 +26,10 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExist
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.JsonFormer
 import jp.co.soramitsu.feature_account_api.domain.model.Language
-import jp.co.soramitsu.feature_account_api.domain.model.Network
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
-import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_account_api.domain.model.WithJson
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
@@ -68,7 +66,7 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getNetworks(): List<Network> {
+    override suspend fun getNetworks(): List<jp.co.soramitsu.domain.model.Network> {
         return withContext(Dispatchers.Default) {
             nodeDao.getNodes()
                 .map(::mapNodeLocalToNode)
@@ -133,6 +131,11 @@ class AccountRepositoryImpl(
         return accountDao.accountsFlow()
             .mapList(::mapAccountLocalToAccount)
             .flowOn(Dispatchers.Default)
+    }
+
+    override suspend fun getAccounts(): List<Account> {
+        return accountDao.getAccounts()
+            .map { mapAccountLocalToAccount(it) }
     }
 
     override suspend fun getAccount(address: String): Account {
@@ -452,9 +455,9 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapKeyPairToSigningData(keyPair: Keypair): SigningData {
+    private fun mapKeyPairToSigningData(keyPair: Keypair): jp.co.soramitsu.domain.model.SigningData {
         return with(keyPair) {
-            SigningData(
+            jp.co.soramitsu.domain.model.SigningData(
                 publicKey = publicKey,
                 privateKey = privateKey,
                 nonce = nonce
@@ -462,7 +465,7 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapSigningDataToKeypair(singingData: SigningData): Keypair {
+    private fun mapSigningDataToKeypair(singingData: jp.co.soramitsu.domain.model.SigningData): Keypair {
         return with(singingData) {
             Keypair(
                 publicKey = publicKey,
@@ -535,10 +538,10 @@ class AccountRepositoryImpl(
         throw AccountAlreadyExistsException()
     }
 
-    private suspend fun getNetworkForType(networkType: Node.NetworkType): Network {
+    private suspend fun getNetworkForType(networkType: Node.NetworkType): jp.co.soramitsu.domain.model.Network {
         val defaultNode = nodeDao.getDefaultNodeFor(networkType.ordinal)
 
-        return Network(networkType, mapNodeLocalToNode(defaultNode))
+        return jp.co.soramitsu.domain.model.Network(networkType, mapNodeLocalToNode(defaultNode))
     }
 
     private fun mapNodeLocalToNode(it: NodeLocal): Node {

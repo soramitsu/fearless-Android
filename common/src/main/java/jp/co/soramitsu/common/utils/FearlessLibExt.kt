@@ -9,10 +9,9 @@ import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import java.io.ByteArrayOutputStream
 
-fun SS58Encoder.encode(publicKey: ByteArray, networkType: Node.NetworkType): String {
+fun SS58Encoder.encode(publicKey: ByteArray, networkType: jp.co.soramitsu.domain.model.Node.NetworkType): String {
     return encode(publicKey, networkType.runtimeConfiguration.addressByte)
 }
 

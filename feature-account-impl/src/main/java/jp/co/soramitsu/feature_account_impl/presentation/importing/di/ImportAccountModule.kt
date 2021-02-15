@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
@@ -25,7 +24,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccount
 class ImportAccountModule {
 
     @Provides
-    fun provideNetworkChooserMixin(interactor: AccountInteractor, forcedNetworkType: Node.NetworkType?): NetworkChooserMixin {
+    fun provideNetworkChooserMixin(interactor: AccountInteractor, forcedNetworkType: jp.co.soramitsu.domain.model.Node.NetworkType?): NetworkChooserMixin {
         return NetworkChooser(interactor, forcedNetworkType)
     }
 
@@ -44,7 +43,7 @@ class ImportAccountModule {
         cryptoChooserMixin: CryptoTypeChooserMixin,
         clipboardManager: ClipboardManager,
         fileReader: FileReader,
-        networkType: Node.NetworkType?
+        networkType: jp.co.soramitsu.domain.model.Node.NetworkType?
     ): ViewModel {
         return ImportAccountViewModel(
             interactor,

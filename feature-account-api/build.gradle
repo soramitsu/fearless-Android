@@ -10,5 +10,5 @@ compileKotlin {
 dependencies {
     implementation coroutinesDep
 
-    implementation project(':core-api')
+    api project(':core-api')
 }

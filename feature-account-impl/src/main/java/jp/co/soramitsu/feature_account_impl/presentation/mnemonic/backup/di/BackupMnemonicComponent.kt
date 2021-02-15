@@ -4,7 +4,6 @@ import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 
 @Subcomponent(
@@ -21,7 +20,7 @@ interface BackupMnemonicComponent {
         fun create(
             @BindsInstance fragment: Fragment,
             @BindsInstance accountName: String,
-            @BindsInstance selectedNetworkType: Node.NetworkType
+            @BindsInstance selectedNetworkType: jp.co.soramitsu.domain.model.Node.NetworkType
         ): BackupMnemonicComponent
     }
 

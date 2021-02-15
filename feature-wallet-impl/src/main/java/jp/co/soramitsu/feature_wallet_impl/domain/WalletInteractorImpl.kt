@@ -15,11 +15,11 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -62,20 +62,14 @@ class WalletInteractorImpl(
     override fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>> {
         return accountRepository.selectedAccountFlow()
             .flatMapLatest {
-                val accounts = accountRepository.accountsFlow().first()
-                walletRepository.transactionsFirstPageFlow(it.address, pageSize)
-                    .map { it.map { defineAccountNameForTransaction(accounts, it) } }
+                val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
+                walletRepository.transactionsFirstPageFlow(mapAccountToWalletAccount(it), pageSize, accounts)
             }
             .distinctUntilChanged { previous, new -> areTransactionPagesTheSame(previous, new) }
     }
 
-    private fun defineAccountNameForTransaction(accounts: List<Account>, transaction: Transaction): Transaction {
-        transaction.accountName = if (transaction.isIncome) {
-            accounts.firstOrNull { it.address == transaction.senderAddress }?.name
-        } else {
-            accounts.firstOrNull { it.address == transaction.recipientAddress }?.name
-        }
-        return transaction
+    private fun mapAccountToWalletAccount(account: Account) = with(account) {
+        WalletAccount(address, name, network)
     }
 
     private fun areTransactionPagesTheSame(previous: List<Transaction>, new: List<Transaction>): Boolean {
@@ -86,15 +80,17 @@ class WalletInteractorImpl(
 
     override suspend fun syncTransactionsFirstPage(pageSize: Int): Result<Unit> {
         return runCatching {
-            walletRepository.syncTransactionsFirstPage(pageSize)
+            val account = accountRepository.getSelectedAccount()
+            val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
+            walletRepository.syncTransactionsFirstPage(pageSize, mapAccountToWalletAccount(account), accounts)
         }
     }
 
     override suspend fun getTransactionPage(pageSize: Int, page: Int): Result<List<Transaction>> {
         return runCatching {
-            val accounts = accountRepository.accountsFlow().first()
-            walletRepository.getTransactionPage(pageSize, page)
-                .map { defineAccountNameForTransaction(accounts, it) }
+            val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
+            val myAccount = accountRepository.getSelectedAccount()
+            walletRepository.getTransactionPage(pageSize, page, mapAccountToWalletAccount(myAccount), accounts)
         }
     }
 

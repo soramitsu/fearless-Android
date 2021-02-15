@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
@@ -38,7 +37,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     companion object {
         private const val KEY_FORCED_NETWORK_TYPE = "network_type"
 
-        fun getBundle(networkType: Node.NetworkType?): Bundle {
+        fun getBundle(networkType: jp.co.soramitsu.domain.model.Node.NetworkType?): Bundle {
 
             return Bundle().apply {
                 putSerializable(KEY_FORCED_NETWORK_TYPE, networkType)
@@ -71,7 +70,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun inject() {
-        val forcedNetworkType = argument<Node.NetworkType?>(KEY_FORCED_NETWORK_TYPE)
+        val forcedNetworkType = argument<jp.co.soramitsu.domain.model.Node.NetworkType?>(KEY_FORCED_NETWORK_TYPE)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),

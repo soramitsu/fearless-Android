@@ -9,7 +9,6 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeViewModel
 
@@ -23,7 +22,7 @@ class WelcomeModule {
         router: OnboardingRouter,
         appLinksProvider: AppLinksProvider,
         shouldShowBack: Boolean,
-        networkType: Node.NetworkType?
+        networkType: jp.co.soramitsu.domain.model.Node.NetworkType?
     ): ViewModel {
         return WelcomeViewModel(shouldShowBack, router, appLinksProvider, networkType)
     }

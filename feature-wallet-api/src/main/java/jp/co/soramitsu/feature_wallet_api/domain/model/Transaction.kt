@@ -11,11 +11,10 @@ data class Transaction(
     val date: Long,
     val status: Status,
     val fee: BigDecimal?,
-    val isIncome: Boolean
+    val isIncome: Boolean,
+    val accountName: String?
 ) {
     val total = fee?.plus(amount)
-
-    var accountName: String? = null
 
     enum class Status {
         PENDING, COMPLETED, FAILED;

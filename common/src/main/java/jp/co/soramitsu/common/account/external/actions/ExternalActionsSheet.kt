@@ -7,9 +7,8 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 
-typealias ExternalViewCallback = (ExternalAnalyzer, String, Node.NetworkType) -> Unit
+typealias ExternalViewCallback = (ExternalAnalyzer, String, jp.co.soramitsu.domain.model.Node.NetworkType) -> Unit
 typealias CopyCallback = (String) -> Unit
 
 open class ExternalActionsSheet(

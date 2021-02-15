@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.account.mnemonicViewer.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
@@ -20,7 +19,7 @@ class BackupMnemonicViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val accountName: String,
-    private val selectedNetworkType: Node.NetworkType,
+    private val selectedNetworkType: jp.co.soramitsu.domain.model.Node.NetworkType,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {

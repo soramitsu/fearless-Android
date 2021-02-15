@@ -16,8 +16,6 @@ import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
@@ -182,8 +180,8 @@ class ImportAccountViewModel(
         sourceType: ImportSource,
         name: String,
         derivationPath: String,
-        cryptoType: CryptoType,
-        networkType: Node.NetworkType
+        cryptoType: jp.co.soramitsu.domain.model.CryptoType,
+        networkType: jp.co.soramitsu.domain.model.Node.NetworkType
     ): Result<Unit> {
         return when (sourceType) {
             is MnemonicImportSource -> interactor.importFromMnemonic(

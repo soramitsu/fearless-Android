@@ -7,6 +7,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
@@ -22,11 +23,11 @@ interface WalletRepository {
 
     suspend fun syncAsset(type: Token.Type)
 
-    fun transactionsFirstPageFlow(accountAddress: String, pageSize: Int): Flow<List<Transaction>>
+    fun transactionsFirstPageFlow(myAccount: WalletAccount, pageSize: Int, accounts: List<WalletAccount>): Flow<List<Transaction>>
 
-    suspend fun syncTransactionsFirstPage(pageSize: Int)
+    suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>)
 
-    suspend fun getTransactionPage(pageSize: Int, page: Int): List<Transaction>
+    suspend fun getTransactionPage(pageSize: Int, page: Int, myAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction>
 
     suspend fun getContacts(query: String): Set<String>
 

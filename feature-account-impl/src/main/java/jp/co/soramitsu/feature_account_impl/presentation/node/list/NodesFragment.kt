@@ -7,7 +7,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserBottomSheetDialog
@@ -105,7 +104,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
             .show()
     }
 
-    private fun showNoAccountsDialog(networkType: Node.NetworkType) {
+    private fun showNoAccountsDialog(networkType: jp.co.soramitsu.domain.model.Node.NetworkType) {
         MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
             .setTitle(R.string.account_needed_title)
             .setMessage(R.string.account_needed_message)

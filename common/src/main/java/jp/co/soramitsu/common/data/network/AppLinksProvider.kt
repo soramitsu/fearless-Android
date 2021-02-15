@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.data.network
 
 import jp.co.soramitsu.fearless_utils.extensions.requirePrefix
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 
 class AppLinksProvider(
     val termsUrl: String,
@@ -16,19 +15,19 @@ class AppLinksProvider(
     fun getExternalTransactionUrl(
         analyzer: ExternalAnalyzer,
         hash: String,
-        networkType: Node.NetworkType
+        networkType: jp.co.soramitsu.domain.model.Node.NetworkType
     ) = getExternalUrl(analyzer, hashWithPrefix(hash), networkType, ExternalAnalyzerLinks::transaction)
 
     fun getExternalAddressUrl(
         analyzer: ExternalAnalyzer,
         address: String,
-        networkType: Node.NetworkType
+        networkType: jp.co.soramitsu.domain.model.Node.NetworkType
     ) = getExternalUrl(analyzer, address, networkType, ExternalAnalyzerLinks::account)
 
     private fun getExternalUrl(
         analyzer: ExternalAnalyzer,
         value: String,
-        networkType: Node.NetworkType,
+        networkType: jp.co.soramitsu.domain.model.Node.NetworkType,
         extractor: (ExternalAnalyzerLinks) -> String
     ): String {
         val template = externalAnalyzerTemplates[analyzer] ?: error("No template for $analyzer")
@@ -39,18 +38,18 @@ class AppLinksProvider(
 
 class ExternalAnalyzerLinks(val transaction: String, val account: String)
 
-enum class ExternalAnalyzer(val supportedNetworks: List<Node.NetworkType>) {
+enum class ExternalAnalyzer(val supportedNetworks: List<jp.co.soramitsu.domain.model.Node.NetworkType>) {
     SUBSCAN(
-        supportedNetworks = listOf(Node.NetworkType.KUSAMA, Node.NetworkType.WESTEND, Node.NetworkType.POLKADOT)
+        supportedNetworks = listOf(jp.co.soramitsu.domain.model.Node.NetworkType.KUSAMA, jp.co.soramitsu.domain.model.Node.NetworkType.WESTEND, jp.co.soramitsu.domain.model.Node.NetworkType.POLKADOT)
     ),
 
     POLKASCAN(
-        supportedNetworks = listOf(Node.NetworkType.KUSAMA, Node.NetworkType.POLKADOT)
+        supportedNetworks = listOf(jp.co.soramitsu.domain.model.Node.NetworkType.KUSAMA, jp.co.soramitsu.domain.model.Node.NetworkType.POLKADOT)
     );
 
-    fun isNetworkSupported(networkType: Node.NetworkType) = networkType in supportedNetworks
+    fun isNetworkSupported(networkType: jp.co.soramitsu.domain.model.Node.NetworkType) = networkType in supportedNetworks
 }
 
-private fun networkPathSegment(networkType: Node.NetworkType) = networkType.readableName.toLowerCase()
+private fun networkPathSegment(networkType: jp.co.soramitsu.domain.model.Node.NetworkType) = networkType.readableName.toLowerCase()
 
 private fun hashWithPrefix(hash: String) = hash.requirePrefix("0x")

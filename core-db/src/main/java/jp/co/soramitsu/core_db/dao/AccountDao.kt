@@ -6,7 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.domain.model.Node
 import kotlinx.coroutines.flow.Flow
 
 @Dao

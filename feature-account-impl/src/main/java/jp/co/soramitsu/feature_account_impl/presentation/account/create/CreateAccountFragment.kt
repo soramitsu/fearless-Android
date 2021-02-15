@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.chooseNetworkClicked
@@ -28,7 +27,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
     companion object {
         private const val KEY_FORCED_NETWORK_TYPE = "forced_network_type"
 
-        fun getBundle(networkType: Node.NetworkType?): Bundle {
+        fun getBundle(networkType: jp.co.soramitsu.domain.model.Node.NetworkType?): Bundle {
 
             return Bundle().apply {
                 putSerializable(KEY_FORCED_NETWORK_TYPE, networkType)
@@ -60,7 +59,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
     }
 
     override fun inject() {
-        val networkType = argument<Node.NetworkType?>(KEY_FORCED_NETWORK_TYPE)
+        val networkType = argument<jp.co.soramitsu.domain.model.Node.NetworkType?>(KEY_FORCED_NETWORK_TYPE)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
             .createAccountComponentFactory()

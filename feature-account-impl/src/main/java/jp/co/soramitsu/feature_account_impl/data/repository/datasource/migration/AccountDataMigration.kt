@@ -9,7 +9,6 @@ import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
-import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
@@ -60,7 +59,7 @@ class AccountDataMigration(
         val oldRaw = encryptedPreferences.getDecryptedString(oldKey) ?: return
         val data = ScaleSigningData.read(oldRaw)
 
-        val signingData = SigningData(
+        val signingData = jp.co.soramitsu.domain.model.SigningData(
             publicKey = data[ScaleSigningData.PublicKey],
             privateKey = data[ScaleSigningData.PrivateKey],
             nonce = data[ScaleSigningData.Nonce]
