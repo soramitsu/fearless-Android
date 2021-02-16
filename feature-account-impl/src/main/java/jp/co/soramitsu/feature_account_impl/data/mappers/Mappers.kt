@@ -2,9 +2,9 @@ package jp.co.soramitsu.feature_account_impl.data.mappers
 
 import android.graphics.drawable.PictureDrawable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel

@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.utils
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
@@ -12,7 +13,6 @@ import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import java.io.ByteArrayOutputStream
 
 fun SS58Encoder.encode(publicKey: ByteArray, networkType: Node.NetworkType): String {

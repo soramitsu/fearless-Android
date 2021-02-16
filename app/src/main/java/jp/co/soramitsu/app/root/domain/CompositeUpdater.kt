@@ -1,6 +1,6 @@
 package jp.co.soramitsu.app.root.domain
 
-import jp.co.soramitsu.core_api.data.network.Updater
+import jp.co.soramitsu.core.updater.Updater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.withContext

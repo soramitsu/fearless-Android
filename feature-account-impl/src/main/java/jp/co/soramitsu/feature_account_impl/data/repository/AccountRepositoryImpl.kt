@@ -8,6 +8,10 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.Network
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -24,14 +28,10 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExist
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.JsonFormer
 import jp.co.soramitsu.feature_account_api.domain.model.Language
-import jp.co.soramitsu.feature_account_api.domain.model.Network
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
-import jp.co.soramitsu.feature_account_api.domain.model.SigningData
 import jp.co.soramitsu.feature_account_api.domain.model.WithJson
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
@@ -135,14 +135,21 @@ class AccountRepositoryImpl(
             .flowOn(Dispatchers.Default)
     }
 
+    override suspend fun getAccounts(): List<Account> {
+        return accountDao.getAccounts()
+            .map { mapAccountLocalToAccount(it) }
+    }
+
     override suspend fun getAccount(address: String): Account {
         val account = accountDao.getAccount(address)
         return mapAccountLocalToAccount(account)
     }
 
-    override suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<String> {
+    override suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<Account> {
         return withContext(Dispatchers.Default) {
-            accountDao.getAddresses(query, networkType).toSet()
+            accountDao.getAccounts(query, networkType)
+                .map { mapAccountLocalToAccount(it) }
+                .toSet()
         }
     }
 

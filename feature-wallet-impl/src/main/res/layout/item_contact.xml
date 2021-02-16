@@ -12,8 +12,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -22,27 +20,42 @@
         tools:src="@color/colorAccent" />
 
     <TextView
-        android:id="@+id/itemContactAddress"
+        android:id="@+id/itemContactTitle"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:includeFontPadding="false"
         android:textColor="@color/white"
-        android:singleLine="true"
-        android:ellipsize="middle"
-        app:layout_constraintBottom_toBottomOf="@+id/itemContactIcon"
-        app:layout_constraintEnd_toStartOf="@+id/itemContactArrow"
+        app:layout_constraintBottom_toTopOf="@+id/itemContactBody"
+        app:layout_constraintEnd_toStartOf="@+id/itemContactAccountArrow"
         app:layout_constraintStart_toEndOf="@+id/itemContactIcon"
-        app:layout_constraintTop_toTopOf="@+id/itemContactIcon"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
         tools:text="Account Name" />
 
+    <TextView
+        android:id="@+id/itemContactBody"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="48dp"
+        android:ellipsize="middle"
+        android:includeFontPadding="false"
+        android:singleLine="true"
+        android:textColor="@color/colorHint"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/itemContactTitle"
+        app:layout_constraintStart_toStartOf="@+id/itemContactTitle"
+        app:layout_constraintTop_toBottomOf="@+id/itemContactTitle"
+        tools:text="GybH55zsi5nAGybH55zsi5nAGybH55zsi5nAGybH55zsi5nA" />
+
     <ImageView
-        android:id="@+id/itemContactArrow"
+        android:id="@+id/itemContactAccountArrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:padding="16dp"
         android:src="@drawable/ic_arrow_right_24"
         android:tint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -50,9 +63,11 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <View
-        android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/dividerGray"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

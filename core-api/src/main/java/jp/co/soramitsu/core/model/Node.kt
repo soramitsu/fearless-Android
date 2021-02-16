@@ -1,6 +1,6 @@
 @file:Suppress("EXPERIMENTAL_UNSIGNED_LITERALS")
 
-package jp.co.soramitsu.feature_account_api.domain.model
+package jp.co.soramitsu.core.model
 
 import java.math.BigDecimal
 

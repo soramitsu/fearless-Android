@@ -1,4 +1,4 @@
-package jp.co.soramitsu.core_api.data.network
+package jp.co.soramitsu.core.updater
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.transform

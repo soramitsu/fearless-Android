@@ -3,7 +3,7 @@ package jp.co.soramitsu.core_db.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import java.math.BigDecimal

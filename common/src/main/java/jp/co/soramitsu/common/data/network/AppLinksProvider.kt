@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data.network
 
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.requirePrefix
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 
 class AppLinksProvider(
     val termsUrl: String,

@@ -2,12 +2,12 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extri
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.hash
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Signature
 import java.math.BigInteger

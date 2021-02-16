@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import com.google.zxing.integration.android.IntentIntegrator
-import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onDoneClicked
@@ -28,7 +27,7 @@ private const val INDEX_WELCOME = 0
 private const val INDEX_CONTENT = 1
 private const val INDEX_EMPTY = 2
 
-class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), ChooseRecipientAdapter.NodeItemHandler {
+class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), ChooseRecipientAdapter.RecipientItemHandler {
 
     companion object {
         private const val PICK_IMAGE_REQUEST = 101
@@ -131,8 +130,8 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
         integrator.initiateScan()
     }
 
-    override fun contactClicked(addressModel: AddressModel) {
-        viewModel.recipientSelected(addressModel.address)
+    override fun contactClicked(address: String) {
+        viewModel.recipientSelected(address)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

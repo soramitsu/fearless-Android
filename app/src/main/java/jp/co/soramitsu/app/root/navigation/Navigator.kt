@@ -8,7 +8,7 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.utils.postToUiThread
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment

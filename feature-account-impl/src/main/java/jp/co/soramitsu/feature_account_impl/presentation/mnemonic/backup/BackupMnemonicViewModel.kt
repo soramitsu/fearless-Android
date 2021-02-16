@@ -7,8 +7,8 @@ import jp.co.soramitsu.common.account.mnemonicViewer.MnemonicWordModel
 import jp.co.soramitsu.common.account.mnemonicViewer.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
