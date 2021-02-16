@@ -10,6 +10,8 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.util.Locale
 
@@ -27,17 +29,33 @@ class RuntimeUpdater(
     private val runtimeConstructor: RuntimeConstructor,
     private val socketService: SocketService,
     private val accountRepository: AccountRepository,
+    private val runtimePrepopulator: RuntimePrepopulator,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
 ) : Updater {
 
     override suspend fun listenForUpdates(): Flow<RuntimePreparationStatus> {
         runtimeProperty.invalidate()
 
-        return socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
+        val subscriptionFlow = socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
             .map { it.runtimeVersionChange().specVersion }
             .distinctUntilChanged()
             .map { performUpdate(it) }
             .catch { emit(errorStatus()) }
+
+        return flow {
+            runtimePrepopulator.maybePrepopulateCache()
+            initFromCache()
+
+            emitAll(subscriptionFlow)
+        }
+    }
+
+    private suspend fun initFromCache() {
+        val result = runCatching { runtimeConstructor.constructFromCache(getCurrentNetworkName()) }
+
+        val runtime = result.getOrNull() ?: return
+
+        runtimeProperty.set(runtime)
     }
 
     // cannot use default parameter because of the bug in the compiler (https://youtrack.jetbrains.com/issue/KT-44849)

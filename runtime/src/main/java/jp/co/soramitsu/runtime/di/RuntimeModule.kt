@@ -55,14 +55,12 @@ class RuntimeModule {
         gson: Gson,
         definitionsFetcher: DefinitionsFetcher,
         runtimeDao: RuntimeDao,
-        runtimePrepopulator: RuntimePrepopulator,
         runtimeCache: RuntimeCache
     ) = RuntimeConstructor(
         socketService,
         definitionsFetcher,
         gson,
         runtimeDao,
-        runtimePrepopulator,
         runtimeCache
     )
 
@@ -72,11 +70,13 @@ class RuntimeModule {
         accountRepository: AccountRepository,
         socketService: SocketService,
         runtimeConstructor: RuntimeConstructor,
+        runtimePrepopulator: RuntimePrepopulator,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>
     ) = RuntimeUpdater(
         runtimeConstructor,
         socketService,
         accountRepository,
+        runtimePrepopulator,
         runtimeProperty
     )
 
