@@ -3,6 +3,19 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val AddStorageCacheTable_12_13 = object : Migration(12, 13) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("""
+            CREATE TABLE `storage` (
+                `storageKey` TEXT NOT NULL,
+                `content` TEXT,
+                `runtimeVersion` INTEGER NOT NULL,
+                PRIMARY KEY(`storageKey`)
+            )
+        """.trimIndent())
+    }
+}
+
 val AddRuntimeCacheTable_11_12 = object : Migration(11, 12) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("""
