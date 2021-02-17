@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.domain
 
+import jp.co.soramitsu.common.data.network.StorageSubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.StorageSubscriptionMultiplexer

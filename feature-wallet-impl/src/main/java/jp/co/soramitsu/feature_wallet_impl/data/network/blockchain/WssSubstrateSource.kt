@@ -20,7 +20,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.runtime.storageKey
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
@@ -54,15 +54,14 @@ class WssSubstrateSource(
     private val keypairFactory: KeypairFactory,
     private val accountInfoFactory: AccountInfoFactory,
     private val extrinsicFactory: TransferExtrinsicFactory,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    private val sS58Encoder: SS58Encoder
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
 ) : SubstrateRemoteSource {
 
     override suspend fun fetchAccountInfo(
         address: String,
         networkType: Node.NetworkType
     ): EncodableStruct<AccountInfoSchema> {
-        val publicKeyBytes = getAccountId(address)
+        val publicKeyBytes = address.toAccountId()
         val request = AccountInfoRequest(publicKeyBytes)
 
         val response = socketService.executeAsync(request)
@@ -121,10 +120,6 @@ class WssSubstrateSource(
         return socketService.executeAsync(request, mapper = scale(ActiveEraInfo).nonNull())
     }
 
-    private suspend fun getAccountId(address: String) = withContext(Dispatchers.Default) {
-        sS58Encoder.decode(address)
-    }
-
     private suspend fun buildSubmittableExtrinsic(
         account: Account,
         transfer: Transfer,
@@ -132,7 +127,7 @@ class WssSubstrateSource(
     ): String = withContext(Dispatchers.Default) {
         val runtimeVersion = getRuntimeVersion()
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-        val accountIdValue = getAccountId(account.address)
+        val accountIdValue = account.address.toAccountId()
 
         val currentNonce = getNonce(account)
         val genesis = account.network.type.runtimeConfiguration.genesisHash
@@ -140,7 +135,7 @@ class WssSubstrateSource(
 
         val params = EncodeExtrinsicParams(
             senderId = accountIdValue,
-            recipientId = getAccountId(transfer.recipient),
+            recipientId = transfer.recipient.toAccountId(),
             amountInPlanks = transfer.amountInPlanks,
             nonce = currentNonce,
             runtimeVersion = runtimeVersion,
@@ -188,7 +183,7 @@ class WssSubstrateSource(
         statuesByExtrinsicIndex: Map<Int, EventRecord<ExtrinsicStatusEvent>>
     ): List<TransferExtrinsicWithStatus> {
         return withContext(Dispatchers.Default) {
-            val currentPublicKey = getAccountId(account.address)
+            val currentPublicKey = account.address.toAccountId()
             val transfersPalette = account.network.type.runtimeConfiguration.pallets.transfers
 
             extrinsics.mapIndexed { index, hex ->

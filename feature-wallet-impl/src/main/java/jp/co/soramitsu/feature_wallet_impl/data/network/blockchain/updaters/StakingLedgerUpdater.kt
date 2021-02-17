@@ -6,12 +6,11 @@ import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.invoke
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_impl.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
@@ -28,21 +27,16 @@ import kotlinx.coroutines.flow.onEach
 import java.math.BigInteger
 
 class StakingLedgerUpdater(
-    accountRepository: AccountRepository,
     private val substrateSource: SubstrateRemoteSource,
     private val socketService: SocketService,
-    sS58Encoder: SS58Encoder,
     private val assetCache: AssetCache
-) : AccountUpdater(accountRepository, sS58Encoder) {
+) : AccountUpdater {
 
-    override suspend fun listenForUpdates(
-        storageSubscriptionBuilder: SubscriptionBuilder,
-        account: Account
-    ): Flow<Updater.SideEffect> {
+    override fun listenAccountUpdates(accountSubscriptionBuilder: SubscriptionBuilder, account: Account): Flow<Updater.SideEffect> {
         val stashAddress = account.address
-        val key = Module.Staking.Bonded.storageKey(getAccountId(stashAddress))
+        val key = Module.Staking.Bonded.storageKey(stashAddress.toAccountId())
 
-        return storageSubscriptionBuilder.subscribe(key)
+        return accountSubscriptionBuilder.subscribe(key)
             .flatMapLatest { change ->
                 val controllerId = change.value
 
@@ -79,7 +73,7 @@ class StakingLedgerUpdater(
 
     private fun createEmptyLedger(address: String): EncodableStruct<StakingLedger> {
         return StakingLedger { ledger ->
-            ledger[StakingLedger.stash] = sS58Encoder.decode(address)
+            ledger[StakingLedger.stash] = address.toAccountId()
             ledger[StakingLedger.active] = BigInteger.ZERO
             ledger[StakingLedger.claimedRewards] = emptyList()
             ledger[StakingLedger.total] = BigInteger.ZERO

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
-import jp.co.soramitsu.common.utils.encode
+import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.TransactionDao
@@ -9,8 +9,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
@@ -27,21 +26,16 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
 
 class PaymentUpdater(
-    accountRepository: AccountRepository,
     private val substrateSource: SubstrateRemoteSource,
     private val assetCache: AssetCache,
     private val accountInfoFactory: AccountInfoFactory,
-    private val transactionsDao: TransactionDao,
-    sS58Encoder: SS58Encoder
-) : AccountUpdater(accountRepository, sS58Encoder) {
+    private val transactionsDao: TransactionDao
+) : AccountUpdater {
 
-    override suspend fun listenForUpdates(
-        storageSubscriptionBuilder: SubscriptionBuilder,
-        account: Account
-    ): Flow<Updater.SideEffect> {
-        val key = Module.System.Account.storageKey(getAccountId(account.address))
+    override fun listenAccountUpdates(accountSubscriptionBuilder: SubscriptionBuilder, account: Account): Flow<Updater.SideEffect> {
+        val key = Module.System.Account.storageKey(account.address.toAccountId())
 
-        return storageSubscriptionBuilder.subscribe(key)
+        return accountSubscriptionBuilder.subscribe(key)
             .onEach { change ->
                 val newAccountInfo = readAccountInfo(change.value)
 
@@ -101,8 +95,8 @@ class PaymentUpdater(
         val networkType = account.network.type
         val token = Token.Type.fromNetworkType(networkType)
 
-        val senderAddress = sS58Encoder.encode(extrinsic.senderId, networkType)
-        val recipientAddress = sS58Encoder.encode(extrinsic.recipientId, networkType)
+        val senderAddress = extrinsic.senderId.toAddress(networkType)
+        val recipientAddress = extrinsic.recipientId.toAddress(networkType)
 
         return TransactionLocal(
             hash = extrinsic.hash,

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.app.root.domain
+package jp.co.soramitsu.common.data.network
 
 import jp.co.soramitsu.core.model.StorageChange
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
@@ -10,6 +10,15 @@ import kotlinx.coroutines.flow.map
 class StorageSubscriptionBuilder(
     val proxy: StorageSubscriptionMultiplexer.Builder
 ): SubscriptionBuilder {
+
+    companion object {
+
+        fun create() : StorageSubscriptionBuilder {
+            val proxy = StorageSubscriptionMultiplexer.Builder()
+
+            return StorageSubscriptionBuilder(proxy)
+        }
+    }
 
     override fun subscribe(key: String): Flow<StorageChange> {
         return proxy.subscribe(key)
