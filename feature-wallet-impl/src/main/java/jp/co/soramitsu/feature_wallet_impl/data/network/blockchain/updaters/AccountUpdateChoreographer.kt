@@ -20,7 +20,7 @@ interface AccountUpdater : SideEffectScope {
     fun listenAccountUpdates(
         accountSubscriptionBuilder: SubscriptionBuilder,
         account: Account
-    ) : Flow<Updater.SideEffect>
+    ): Flow<Updater.SideEffect>
 }
 
 class AccountUpdateChoreographer(

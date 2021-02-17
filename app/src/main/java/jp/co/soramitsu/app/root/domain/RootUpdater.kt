@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.onCompletion
 
 class RootUpdater(
     private val wrapped: Updater,
-    private val socketService: SocketService,
+    private val socketService: SocketService
 ) {
 
     suspend fun listenForUpdates(): Flow<Updater.SideEffect> {

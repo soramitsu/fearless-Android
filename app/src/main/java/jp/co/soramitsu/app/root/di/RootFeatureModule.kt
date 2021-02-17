@@ -21,14 +21,14 @@ class RootFeatureModule {
     fun provideRootUpdater(
         walletUpdaters: WalletUpdaters,
         runtimeUpdater: RuntimeUpdater,
-        socketService: SocketService,
+        socketService: SocketService
     ): RootUpdater {
         return RootUpdater(
             wrapped = CompositeUpdater(
                 *walletUpdaters.updaters,
                 runtimeUpdater
             ),
-            socketService,
+            socketService
         )
     }
 

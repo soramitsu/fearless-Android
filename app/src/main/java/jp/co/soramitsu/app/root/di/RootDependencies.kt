@@ -30,5 +30,5 @@ interface RootDependencies {
 
     fun runtimeUpdater(): RuntimeUpdater
 
-    fun socketService() : SocketService
+    fun socketService(): SocketService
 }

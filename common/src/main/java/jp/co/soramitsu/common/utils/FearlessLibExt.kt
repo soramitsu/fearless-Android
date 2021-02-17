@@ -15,7 +15,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import java.io.ByteArrayOutputStream
 
-fun ByteArray.toAddress(networkType: Node.NetworkType)  = toAddress(networkType.runtimeConfiguration.addressByte)
+fun ByteArray.toAddress(networkType: Node.NetworkType) = toAddress(networkType.runtimeConfiguration.addressByte)
 
 fun <T> DataType<T>.fromHex(hex: String): T {
     val codecReader = ScaleCodecReader(hex.fromHex())

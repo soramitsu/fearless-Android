@@ -145,7 +145,7 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideAccountSchemaUpdater(
-        accountInfoFactory: AccountInfoFactory,
+        accountInfoFactory: AccountInfoFactory
     ): AccountInfoSchemaUpdater {
         return AccountInfoSchemaUpdater(accountInfoFactory)
     }
@@ -187,7 +187,7 @@ class WalletFeatureModule {
         socketService: SocketService,
         stakingLedgerUpdater: StakingLedgerUpdater,
         paymentUpdater: PaymentUpdater
-    ) : AccountUpdateChoreographer {
+    ): AccountUpdateChoreographer {
         return AccountUpdateChoreographer(
             accountRepository = accountRepository,
             socketService = socketService,
@@ -202,6 +202,6 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideFeatureUpdaters(
         schemaUpdater: AccountInfoSchemaUpdater,
-        accountUpdateChoreographer: AccountUpdateChoreographer,
+        accountUpdateChoreographer: AccountUpdateChoreographer
     ): WalletUpdaters = WalletUpdaters(arrayOf(schemaUpdater, accountUpdateChoreographer))
 }

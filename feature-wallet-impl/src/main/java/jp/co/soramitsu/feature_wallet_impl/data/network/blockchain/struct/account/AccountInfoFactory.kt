@@ -17,7 +17,7 @@ class AccountInfoFactory(
         }
     }
 
-    suspend fun createEmpty() : EncodableStruct<AccountInfoSchema> = AccountInfoSchemaV28 { info ->
+    fun createEmpty(): EncodableStruct<AccountInfoSchema> = AccountInfoSchemaV28 { info ->
         info[AccountInfoSchemaV28.nonce] = 0.toUInt()
         info[AccountInfoSchemaV28.providers] = 0.toUInt()
         info[AccountInfoSchemaV28.consumers] = 0.toUInt()

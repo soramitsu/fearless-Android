@@ -9,11 +9,11 @@ import kotlinx.coroutines.flow.map
 
 class StorageSubscriptionBuilder(
     val proxy: StorageSubscriptionMultiplexer.Builder
-): SubscriptionBuilder {
+) : SubscriptionBuilder {
 
     companion object {
 
-        fun create() : StorageSubscriptionBuilder {
+        fun create(): StorageSubscriptionBuilder {
             val proxy = StorageSubscriptionMultiplexer.Builder()
 
             return StorageSubscriptionBuilder(proxy)
