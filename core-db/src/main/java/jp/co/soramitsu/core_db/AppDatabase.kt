@@ -32,7 +32,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Database(
-    version = 12,
+    version = 13,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
