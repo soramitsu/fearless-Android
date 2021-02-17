@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.domain
 
+import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.merge
@@ -11,8 +12,10 @@ class CompositeUpdater(
 
     constructor(vararg updaters: Updater) : this(updaters.toList())
 
-    override suspend fun listenForUpdates() = withContext(Dispatchers.IO) {
-        val flows = updaters.map { it.listenForUpdates() }
+    override suspend fun listenForUpdates(
+        storageSubscriptionBuilder: SubscriptionBuilder
+    ) = withContext(Dispatchers.IO) {
+        val flows = updaters.map { it.listenForUpdates(storageSubscriptionBuilder) }
 
         flows.merge()
     }

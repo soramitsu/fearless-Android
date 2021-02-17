@@ -2,10 +2,12 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.utils.encode
+import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
+import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -16,6 +18,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountData
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsic
 import kotlinx.coroutines.Dispatchers
@@ -26,20 +29,32 @@ import kotlinx.coroutines.flow.onEach
 class PaymentUpdater(
     accountRepository: AccountRepository,
     private val substrateSource: SubstrateRemoteSource,
-    private val sS58Encoder: SS58Encoder,
     private val assetCache: AssetCache,
-    private val transactionsDao: TransactionDao
-) : AccountUpdater(accountRepository) {
+    private val accountInfoFactory: AccountInfoFactory,
+    private val transactionsDao: TransactionDao,
+    sS58Encoder: SS58Encoder
+) : AccountUpdater(accountRepository, sS58Encoder) {
 
-    override suspend fun listenForUpdates(account: Account): Flow<Updater.SideEffect> {
-        return substrateSource.listenForAccountUpdates(account.address)
+    override suspend fun listenForUpdates(
+        storageSubscriptionBuilder: SubscriptionBuilder,
+        account: Account
+    ): Flow<Updater.SideEffect> {
+        val key = Module.System.Account.storageKey(getAccountId(account.address))
+
+        return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
-                updateAssetBalance(account, change.newAccountInfo)
+                val newAccountInfo = readAccountInfo(change.value)
+
+                updateAssetBalance(account, newAccountInfo)
 
                 fetchTransfers(account, change.block)
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()
+    }
+
+    private suspend fun readAccountInfo(hex: String?): EncodableStruct<AccountInfoSchema> {
+        return hex?.let { accountInfoFactory.decode(it) } ?: accountInfoFactory.createEmpty()
     }
 
     private suspend fun updateAssetBalance(
@@ -65,6 +80,7 @@ class PaymentUpdater(
             val localStatus = when (it.statusEvent) {
                 ExtrinsicStatusEvent.SUCCESS -> Transaction.Status.COMPLETED
                 ExtrinsicStatusEvent.FAILURE -> Transaction.Status.FAILED
+                null -> Transaction.Status.PENDING
             }
 
             createTransactionLocal(it.extrinsic, localStatus, account)

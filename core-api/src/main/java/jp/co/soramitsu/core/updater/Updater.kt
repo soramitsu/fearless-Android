@@ -4,10 +4,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.transform
 
 interface Updater {
+
     /**
      * Implementations should be aware of cancellation
      */
-    suspend fun listenForUpdates(): Flow<SideEffect>
+    suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<SideEffect>
 
     interface SideEffect
 

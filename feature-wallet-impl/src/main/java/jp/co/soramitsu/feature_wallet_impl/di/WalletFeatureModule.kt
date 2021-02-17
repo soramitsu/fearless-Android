@@ -150,9 +150,8 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideAccountSchemaUpdater(
         accountInfoFactory: AccountInfoFactory,
-        socketService: SocketService
     ): AccountInfoSchemaUpdater {
-        return AccountInfoSchemaUpdater(accountInfoFactory, socketService)
+        return AccountInfoSchemaUpdater(accountInfoFactory)
     }
 
     @Provides
@@ -161,15 +160,17 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         remoteSource: SubstrateRemoteSource,
         sS58Encoder: SS58Encoder,
+        accountInfoFactory: AccountInfoFactory,
         assetCache: AssetCache,
         transactionDao: TransactionDao
     ): PaymentUpdater {
         return PaymentUpdater(
             accountRepository,
             remoteSource,
-            sS58Encoder,
             assetCache,
-            transactionDao
+            accountInfoFactory,
+            transactionDao,
+            sS58Encoder
         )
     }
 
@@ -178,11 +179,15 @@ class WalletFeatureModule {
     fun provideStakingUpdater(
         accountRepository: AccountRepository,
         remoteSource: SubstrateRemoteSource,
+        socketService: SocketService,
+        sS58Encoder: SS58Encoder,
         assetCache: AssetCache
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
             accountRepository,
             remoteSource,
+            socketService,
+            sS58Encoder,
             assetCache
         )
     }

@@ -100,7 +100,7 @@ class CommonModule {
     @Provides
     @ApplicationScope
     fun provideSigner(): Signer {
-        return Signer()
+        return Signer
     }
 
     @Provides
