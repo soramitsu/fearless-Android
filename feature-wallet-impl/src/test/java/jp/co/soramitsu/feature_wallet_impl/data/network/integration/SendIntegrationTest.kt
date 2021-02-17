@@ -11,7 +11,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.fearless_utils.scale.toHexString
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
@@ -54,8 +55,6 @@ private const val URL = "wss://westend-rpc.polkadot.io"
 @RunWith(MockitoJUnitRunner::class)
 @Ignore("Manual run only")
 class SendIntegrationTest {
-    private val sS58Encoder = SS58Encoder()
-    private val signer = Signer()
 
     private val mapper = Gson()
 
@@ -121,12 +120,12 @@ class SendIntegrationTest {
         val specVersion = runtimeInfo.specVersion
         val transactionVersion = runtimeInfo.transactionVersion
 
-        val address = sS58Encoder.encode(accountId, addressByte)
+        val address = accountId.toAddress(addressByte)
 
         val nonce = socketService.executeAsync(NextAccountIndexRequest(address), mapper = pojo<Double>().nonNull())
         val nonceBigInt = nonce.toInt().toBigInteger()
 
-        val receiverPublicKey = sS58Encoder.decode(TO_ADDRESS)
+        val receiverPublicKey = TO_ADDRESS.toAccountId()
 
         val callStruct = TransferCallV28 { call ->
             call[TransferCallV28.callIndex] = Pair(4.toUByte(), 0.toUByte())
@@ -151,7 +150,7 @@ class SendIntegrationTest {
 
         val signature = Signature(
             encryptionType = EncryptionType.ECDSA,
-            value = signer.signExtrinsic(payload, keypair, EncryptionType.ECDSA)
+            value = Signer.signExtrinsic(payload, keypair, EncryptionType.ECDSA)
         )
 
         val extrinsic = SignedExtrinsicV28 { extrinsic ->
