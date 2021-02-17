@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
+import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -13,8 +14,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChang
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_impl.data.cache.AssetCache
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ActiveEraInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.StakingLedger
 import jp.co.soramitsu.feature_wallet_impl.data.repository.sumStaking
 import kotlinx.coroutines.Dispatchers
@@ -27,8 +26,8 @@ import kotlinx.coroutines.flow.onEach
 import java.math.BigInteger
 
 class StakingLedgerUpdater(
-    private val substrateSource: SubstrateRemoteSource,
     private val socketService: SocketService,
+    private val substrateCalls: SubstrateCalls,
     private val assetCache: AssetCache
 ) : AccountUpdater {
 
@@ -46,7 +45,7 @@ class StakingLedgerUpdater(
                     flowOf(createEmptyLedger(stashAddress))
                 }
             }.onEach { stakingLedger ->
-                val era = substrateSource.getActiveEra()
+                val era = substrateCalls.getActiveEra()
 
                 updateAssetStaking(account, stakingLedger, era)
             }
@@ -84,13 +83,12 @@ class StakingLedgerUpdater(
     private suspend fun updateAssetStaking(
         account: Account,
         stakingLedger: EncodableStruct<StakingLedger>,
-        era: EncodableStruct<ActiveEraInfo>
+        era: Long
     ) {
         return assetCache.updateAsset(account) { cached ->
-            val eraIndex = era[ActiveEraInfo.index].toLong()
 
-            val redeemable = stakingLedger.sumStaking { it <= eraIndex }
-            val unbonding = stakingLedger.sumStaking { it > eraIndex }
+            val redeemable = stakingLedger.sumStaking { it <= era }
+            val unbonding = stakingLedger.sumStaking { it > era }
 
             cached.copy(
                 redeemableInPlanks = redeemable,

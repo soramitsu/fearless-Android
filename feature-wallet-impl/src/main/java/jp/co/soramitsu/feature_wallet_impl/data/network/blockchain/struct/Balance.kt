@@ -4,7 +4,6 @@ import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.compactInt
 import jp.co.soramitsu.fearless_utils.scale.dataType.uint32
 import jp.co.soramitsu.fearless_utils.scale.sizedByteArray
-import jp.co.soramitsu.fearless_utils.scale.uint32
 import jp.co.soramitsu.fearless_utils.scale.vector
 
 object StakingLedger : Schema<StakingLedger>() {
@@ -21,10 +20,6 @@ object StakingLedger : Schema<StakingLedger>() {
 object UnlockChunk : Schema<UnlockChunk>() {
     val value by compactInt()
     val era by compactInt()
-}
-
-object ActiveEraInfo : Schema<ActiveEraInfo>() {
-    val index by uint32()
 }
 
 object AccountId : Schema<AccountId>() {

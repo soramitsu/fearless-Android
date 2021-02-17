@@ -1,14 +1,13 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
+import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
-import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -270,16 +269,6 @@ class WalletRepositoryImpl(
             apiCall { subscanApi.getAssetPrice(subDomainFor(networkType), request) }
         } catch (_: Exception) {
             SubscanResponse.createEmptyResponse()
-        }
-    }
-
-    private fun mapSigningDataToKeypair(singingData: SigningData): Keypair {
-        return with(singingData) {
-            Keypair(
-                publicKey = publicKey,
-                privateKey = privateKey,
-                nonce = nonce
-            )
         }
     }
 

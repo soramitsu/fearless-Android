@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -84,13 +85,15 @@ class WalletFeatureModule {
         keypairFactory: KeypairFactory,
         accountInfoFactory: AccountInfoFactory,
         extrinsicFactory: TransferExtrinsicFactory,
+        substrateCalls: SubstrateCalls,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>
     ): SubstrateRemoteSource = WssSubstrateSource(
         socketService,
         keypairFactory,
         accountInfoFactory,
         extrinsicFactory,
-        runtimeProperty
+        runtimeProperty,
+        substrateCalls
     )
 
     @Provides
@@ -169,13 +172,13 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideStakingUpdater(
-        remoteSource: SubstrateRemoteSource,
+        substrateCalls: SubstrateCalls,
         socketService: SocketService,
         assetCache: AssetCache
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
-            remoteSource,
             socketService,
+            substrateCalls,
             assetCache
         )
     }
