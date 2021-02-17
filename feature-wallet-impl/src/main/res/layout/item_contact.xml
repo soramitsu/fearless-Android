@@ -27,6 +27,8 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:includeFontPadding="false"
+        android:ellipsize="middle"
+        android:singleLine="true"
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/itemContactBody"
         app:layout_constraintEnd_toStartOf="@+id/itemContactAccountArrow"
