@@ -44,7 +44,7 @@ private class AddressModelHolder(parent: View) : DynamicListSheetAdapter.Holder<
         super.bind(item, isSelected, handler)
 
         with(itemView) {
-            accountTitle.text = item.address
+            accountTitle.text = item.name ?: item.address
             accountIcon.setImageDrawable(item.image)
             accountChecked.visibility = if (isSelected) View.VISIBLE else View.INVISIBLE
         }

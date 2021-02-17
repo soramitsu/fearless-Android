@@ -127,7 +127,7 @@ class BalanceListViewModel(
     }
 
     private suspend fun generateAddressModel(account: Account, sizeInDp: Int): AddressModel {
-        return addressIconGenerator.createAddressModel(account.address, sizeInDp)
+        return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
     }
 
     private fun balanceFlow(): Flow<BalanceModel> {
