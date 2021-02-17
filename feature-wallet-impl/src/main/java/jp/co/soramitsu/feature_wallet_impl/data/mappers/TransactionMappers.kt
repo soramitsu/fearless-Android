@@ -66,7 +66,7 @@ fun mapTransactionToTransactionLocal(
     }
 }
 
-fun mapTransferToTransaction(transfer: TransactionRemote, account: WalletAccount): Transaction {
+fun mapTransferToTransaction(transfer: TransactionRemote, account: WalletAccount, accountName: String?): Transaction {
     val token = Token.Type.fromNetworkType(account.network.type)
 
     return with(transfer) {
@@ -80,7 +80,7 @@ fun mapTransferToTransaction(transfer: TransactionRemote, account: WalletAccount
             recipientAddress = to,
             fee = token.amountFromPlanks(feeInPlanks),
             isIncome = account.address == to,
-            accountName = null
+            accountName = accountName
         )
     }
 }

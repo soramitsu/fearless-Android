@@ -7,7 +7,6 @@ import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
-import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -112,7 +111,11 @@ class WalletRepositoryImpl(
             val response = apiCall { subscanApi.getTransactionHistory(subDomain, request) }
 
             val transfers = response.content?.transfers
-            val transactions = transfers?.map { transfer -> mapTransferToTransaction(transfer, currentAccount) }
+            val accountsByAddress = accounts.associateBy { it.address }
+            val transactions = transfers?.map {
+                val accountName = defineAccountNameForTransaction(accountsByAddress, currentAccount.address, it.from, it.to)
+                mapTransferToTransaction(it, currentAccount, accountName)
+            }
 
             transactions ?: getCachedTransactions(page, currentAccount, accounts)
         }
@@ -180,11 +183,16 @@ class WalletRepositoryImpl(
         phishingAddresses.contains(addressPublicKey)
     }
 
-    private fun defineAccountNameForTransaction(accountsByAddress: Map<String, WalletAccount>, transaction: TransactionLocal): String? {
-        val accountAddress = if (transaction.accountAddress == transaction.recipientAddress) {
-            transaction.senderAddress
+    private fun defineAccountNameForTransaction(
+        accountsByAddress: Map<String, WalletAccount>,
+        transactionAccountAddress: String,
+        recipientAddress: String,
+        senderAddress: String
+    ): String? {
+        val accountAddress = if (transactionAccountAddress == recipientAddress) {
+            senderAddress
         } else {
-            transaction.recipientAddress
+            recipientAddress
         }
         return accountsByAddress[accountAddress]?.name
     }
@@ -207,7 +215,10 @@ class WalletRepositoryImpl(
         return if (page == 0) {
             val accountsByAddress = accounts.associateBy { it.address }
             transactionsDao.getTransactions(currentAccount.address)
-                .map { mapTransactionLocalToTransaction(it, defineAccountNameForTransaction(accountsByAddress, it)) }
+                .map {
+                    val accountName = defineAccountNameForTransaction(accountsByAddress, it.accountAddress, it.recipientAddress, it.senderAddress)
+                    mapTransactionLocalToTransaction(it, accountName)
+                }
         } else {
             emptyList()
         }
@@ -248,7 +259,10 @@ class WalletRepositoryImpl(
         return transactionsDao.observeTransactions(currentAccount.address)
             .map {
                 val accountsByAddress = accounts.associateBy { it.address }
-                it.map { mapTransactionLocalToTransaction(it, defineAccountNameForTransaction(accountsByAddress, it)) }
+                it.map {
+                    val accountName = defineAccountNameForTransaction(accountsByAddress, it.accountAddress, it.recipientAddress, it.senderAddress)
+                    mapTransactionLocalToTransaction(it, accountName)
+                }
             }
     }
 
