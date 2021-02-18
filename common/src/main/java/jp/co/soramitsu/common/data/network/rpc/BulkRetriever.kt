@@ -37,7 +37,7 @@ class QueryStorageAtResponse(
     val block: String,
     val changes: List<List<String>>
 ) {
-    fun changesAsMap() : Map<String, String> {
+    fun changesAsMap(): Map<String, String> {
         return changes.map { it[0] to it[1] }.toMap()
     }
 }

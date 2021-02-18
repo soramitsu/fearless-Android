@@ -17,7 +17,6 @@ val AddNetworkTypeToStorageCache_13_14 = object : Migration(13, 14) {
             )
         """)
     }
-
 }
 
 val AddStorageCacheTable_12_13 = object : Migration(12, 13) {

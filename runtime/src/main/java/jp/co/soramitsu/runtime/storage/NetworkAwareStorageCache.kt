@@ -22,7 +22,7 @@ import java.math.BigInteger
 class NetworkAwareStorageCache(
     private val storageDao: StorageDao,
     private val runtimeDao: RuntimeDao,
-    private val accountRepository: AccountRepository,
+    private val accountRepository: AccountRepository
 ) : StorageCache {
 
     private suspend fun currentNetwork() = accountRepository.getSelectedNode().networkType
@@ -88,7 +88,7 @@ private fun mapStorageEntryToLocal(
 }
 
 private fun mapStorageEntryFromLocal(
-    storageEntryLocal: StorageEntryLocal,
+    storageEntryLocal: StorageEntryLocal
 ) = with(storageEntryLocal) {
     StorageEntry(
         storageKey = storageKey,

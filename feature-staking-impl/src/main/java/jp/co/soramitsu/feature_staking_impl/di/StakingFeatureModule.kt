@@ -50,6 +50,6 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideStakingUpdaters(
         activeEraUpdater: ActiveEraUpdater,
-        electedNominatorsUpdater: ElectedNominatorsUpdater,
+        electedNominatorsUpdater: ElectedNominatorsUpdater
     ) = StakingUpdaters(arrayOf(activeEraUpdater, electedNominatorsUpdater))
 }

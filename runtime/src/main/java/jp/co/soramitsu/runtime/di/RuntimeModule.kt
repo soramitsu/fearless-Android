@@ -110,5 +110,5 @@ class RuntimeModule {
         storageDao: StorageDao,
         runtimeDao: RuntimeDao,
         accountRepository: AccountRepository
-    ) : StorageCache = NetworkAwareStorageCache(storageDao, runtimeDao, accountRepository)
+    ): StorageCache = NetworkAwareStorageCache(storageDao, runtimeDao, accountRepository)
 }

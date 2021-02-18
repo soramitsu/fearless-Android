@@ -6,7 +6,7 @@ import java.math.BigInteger
 
 interface StorageCache {
 
-    suspend fun isPrefixInCache(prefixKey: String) : Boolean
+    suspend fun isPrefixInCache(prefixKey: String): Boolean
 
     suspend fun isFullKeyInCache(fullKey: String): Boolean
 
@@ -32,5 +32,5 @@ interface StorageCache {
      */
     suspend fun getEntries(keyPrefix: String): List<StorageEntry>
 
-    suspend fun currentRuntimeVersion() : BigInteger
+    suspend fun currentRuntimeVersion(): BigInteger
 }

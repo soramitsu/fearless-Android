@@ -81,7 +81,7 @@ class RuntimeUpdater(
     private suspend fun getCurrentNetworkName(): String {
         val networkType = accountRepository.getSelectedNode().networkType
 
-       return networkType.runtimeCacheName()
+        return networkType.runtimeCacheName()
     }
 
     private fun getPreparationStatus(constructed: RuntimeConstructor.Constructed) = if (constructed.isNewest) {

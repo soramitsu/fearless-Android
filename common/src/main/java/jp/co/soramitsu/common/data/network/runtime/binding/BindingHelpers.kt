@@ -32,6 +32,6 @@ inline fun <reified R> Struct.Instance.getOfType(key: String) = get<R>(key) ?: i
 
 inline fun <T> bindOrNull(binder: () -> T): T? = runCatching(binder).getOrNull()
 
-fun RuntimeMetadata.storageReturnType(moduleName: String, storageName: String) : Type<*> {
+fun RuntimeMetadata.storageReturnType(moduleName: String, storageName: String): Type<*> {
     return module(moduleName).storage(storageName).type.value ?: incompatible()
 }

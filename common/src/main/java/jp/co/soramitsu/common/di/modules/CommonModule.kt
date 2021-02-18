@@ -168,7 +168,7 @@ class CommonModule {
     @ApplicationScope
     fun provideDefaultPagedKeysRetriever(
         socketService: SocketService
-    ) : BulkRetriever {
+    ): BulkRetriever {
         return BulkRetriever(socketService)
     }
 }

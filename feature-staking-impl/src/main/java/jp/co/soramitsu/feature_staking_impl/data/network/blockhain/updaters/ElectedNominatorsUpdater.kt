@@ -23,7 +23,7 @@ import java.math.BigInteger
 class ElectedNominatorsUpdater(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val bulkRetriever: BulkRetriever,
-    private val storageCache: StorageCache,
+    private val storageCache: StorageCache
 ) : Updater {
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
