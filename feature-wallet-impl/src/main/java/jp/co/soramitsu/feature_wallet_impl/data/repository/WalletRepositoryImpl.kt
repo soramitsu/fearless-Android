@@ -10,7 +10,7 @@ import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -51,7 +51,6 @@ class WalletRepositoryImpl(
     private val accountRepository: AccountRepository,
     private val transactionsDao: TransactionDao,
     private val subscanApi: SubscanNetworkApi,
-    private val sS58Encoder: SS58Encoder,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
@@ -167,7 +166,7 @@ class WalletRepositoryImpl(
 
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
         val publicKeys = phishingApi.getPhishingAddresses().values.flatten()
-            .map { sS58Encoder.decode(it).toHexString(withPrefix = true) }
+            .map { it.toAccountId().toHexString(withPrefix = true) }
 
         val phishingAddressesLocal = publicKeys.map(::PhishingAddressLocal)
 
@@ -178,7 +177,7 @@ class WalletRepositoryImpl(
     override suspend fun isAddressFromPhishingList(address: String) = withContext(Dispatchers.Default) {
         val phishingAddresses = phishingAddressDao.getAllAddresses()
 
-        val addressPublicKey = sS58Encoder.decode(address).toHexString(withPrefix = true)
+        val addressPublicKey = address.toAccountId().toHexString(withPrefix = true)
 
         phishingAddresses.contains(addressPublicKey)
     }

@@ -16,7 +16,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
@@ -40,10 +39,6 @@ class AccountFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideSs58Encoder() = SS58Encoder()
-
-    @Provides
-    @FeatureScope
     fun provideJunctionDecoder() = JunctionDecoder()
 
     @Provides
@@ -53,18 +48,16 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideJsonDecoder(
-        sS58Encoder: SS58Encoder,
         keypairFactory: KeypairFactory,
         jsonMapper: Gson
-    ) = JsonSeedDecoder(jsonMapper, sS58Encoder, keypairFactory)
+    ) = JsonSeedDecoder(jsonMapper, keypairFactory)
 
     @Provides
     @FeatureScope
     fun provideJsonEncoder(
-        sS58Encoder: SS58Encoder,
         random: Random,
         jsonMapper: Gson
-    ) = JsonSeedEncoder(jsonMapper, sS58Encoder, random)
+    ) = JsonSeedEncoder(jsonMapper, random)
 
     @Provides
     fun provideCryptoChooserMixin(
@@ -76,7 +69,6 @@ class AccountFeatureModule {
     @FeatureScope
     fun provideAccountRepository(
         bip39: Bip39,
-        sS58Encoder: SS58Encoder,
         junctionDecoder: JunctionDecoder,
         keypairFactory: KeypairFactory,
         accountDataSource: AccountDataSource,
@@ -92,7 +84,6 @@ class AccountFeatureModule {
             accountDao,
             nodeDao,
             bip39,
-            sS58Encoder,
             junctionDecoder,
             keypairFactory,
             jsonSeedDecoder,

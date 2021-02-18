@@ -1,17 +1,15 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
 import jp.co.soramitsu.common.utils.fromHex
+import jp.co.soramitsu.core.model.StorageChange
+import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.runtime.Service
 import jp.co.soramitsu.fearless_utils.runtime.StorageUtils
 import jp.co.soramitsu.fearless_utils.runtime.storageKey
 import jp.co.soramitsu.fearless_utils.scale.dataType.boolean
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
-import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionChange
-import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -25,25 +23,20 @@ object DualRefCountService : Service<Unit>(Module.System, "UpgradedToDualRefCoun
 
 private const val DEFAULT_DUAL_REF_COUNT = false
 
-private val upgradedToDualRefCountRequest = SubscribeStorageRequest(DualRefCountService.storageKey())
+private val upgradedToDualRefCountRequest = SubscribeStorageRequest()
 
-private fun SubscriptionChange.dualRefCountChange(): Boolean {
-    val storageChange = storageChange()
-
-    val raw = storageChange.getSingleChange()
-
-    return raw?.let(boolean::fromHex) ?: DEFAULT_DUAL_REF_COUNT
+private fun StorageChange.dualRefCountChange(): Boolean {
+    return value?.let(boolean::fromHex) ?: DEFAULT_DUAL_REF_COUNT
 }
 
 class AccountInfoSchemaUpdater(
-    private val accountInfoFactory: AccountInfoFactory,
-    private val socketService: SocketService
+    private val accountInfoFactory: AccountInfoFactory
 ) : Updater {
 
-    override suspend fun listenForUpdates(): Flow<Updater.SideEffect> {
+    override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         accountInfoFactory.isUpgradedToDualRefCount.invalidate()
 
-        return socketService.subscriptionFlow(upgradedToDualRefCountRequest)
+        return storageSubscriptionBuilder.subscribe(DualRefCountService.storageKey())
             .map { it.dualRefCountChange() }
             .onEach(accountInfoFactory.isUpgradedToDualRefCount::set)
             .noSideAffects()

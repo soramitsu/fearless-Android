@@ -31,7 +31,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import java.security.SecureRandom
 import java.util.Random
 
@@ -87,12 +86,6 @@ class CommonModule {
 
     @Provides
     @ApplicationScope
-    fun provideSS58Encoder(): SS58Encoder {
-        return SS58Encoder()
-    }
-
-    @Provides
-    @ApplicationScope
     fun provideJunctionDecoder(): JunctionDecoder {
         return JunctionDecoder()
     }
@@ -100,7 +93,7 @@ class CommonModule {
     @Provides
     @ApplicationScope
     fun provideSigner(): Signer {
-        return Signer()
+        return Signer
     }
 
     @Provides
@@ -132,9 +125,8 @@ class CommonModule {
     @ApplicationScope
     fun provideAddressModelCreator(
         resourceManager: ResourceManager,
-        sS58Encoder: SS58Encoder,
         iconGenerator: IconGenerator
-    ): AddressIconGenerator = AddressIconGenerator(iconGenerator, sS58Encoder, resourceManager)
+    ): AddressIconGenerator = AddressIconGenerator(iconGenerator, resourceManager)
 
     @Provides
     @ApplicationScope

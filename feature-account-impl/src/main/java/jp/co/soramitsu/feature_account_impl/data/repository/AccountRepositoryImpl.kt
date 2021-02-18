@@ -2,16 +2,16 @@ package jp.co.soramitsu.feature_account_impl.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
 import jp.co.soramitsu.common.resources.LanguagesHolder
-import jp.co.soramitsu.common.utils.encode
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.core_db.dao.AccountDao
-import jp.co.soramitsu.core_db.dao.NodeDao
-import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Network
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SigningData
+import jp.co.soramitsu.core_db.dao.AccountDao
+import jp.co.soramitsu.core_db.dao.NodeDao
+import jp.co.soramitsu.core_db.model.AccountLocal
+import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -23,7 +23,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -47,7 +48,6 @@ class AccountRepositoryImpl(
     private val accountDao: AccountDao,
     private val nodeDao: NodeDao,
     private val bip39: Bip39,
-    private val sS58Encoder: SS58Encoder,
     private val junctionDecoder: JunctionDecoder,
     private val keypairFactory: KeypairFactory,
     private val jsonSeedDecoder: JsonSeedDecoder,
@@ -190,7 +190,7 @@ class AccountRepositoryImpl(
 
             val signingData = mapKeyPairToSigningData(keys)
 
-            val address = sS58Encoder.encode(keys.publicKey, networkType)
+            val address = keys.publicKey.toAddress(networkType)
 
             val securitySource = SecuritySource.Specified.Seed(seedBytes, signingData, derivationPath)
 
@@ -224,7 +224,7 @@ class AccountRepositoryImpl(
 
                 val securitySource = SecuritySource.Specified.Json(seed, signingData)
 
-                val actualAddress = sS58Encoder.encode(keypair.publicKey, networkType)
+                val actualAddress = keypair.publicKey.toAddress(networkType)
 
                 val accountLocal = insertAccount(actualAddress, name, publicKeyEncoded, cryptoType, networkType)
 
@@ -261,10 +261,10 @@ class AccountRepositoryImpl(
         val currentAccount = getSelectedAccount()
 
         return try {
-            val otherAddressByte = sS58Encoder.extractAddressByte(address)
-            val currentAddressByte = sS58Encoder.extractAddressByte(currentAccount.address)
+            val otherAddressByte = address.addressByte()
+            val currentAddressByte = currentAccount.address.addressByte()
 
-            sS58Encoder.decode(address) // decoded without exception
+            address.toAccountId() // decoded without exception
 
             otherAddressByte == currentAddressByte
         } catch (_: Exception) {
@@ -415,7 +415,7 @@ class AccountRepositoryImpl(
             val password = junctionDecoder.getPassword(derivationPath)
             val seed = bip39.generateSeed(entropy, password)
             val keys = keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
-            val address = sS58Encoder.encode(keys.publicKey, networkType)
+            val address = keys.publicKey.toAddress(networkType)
             val signingData = mapKeyPairToSigningData(keys)
 
             val securitySource: SecuritySource.Specified = if (isImport) {

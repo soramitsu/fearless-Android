@@ -13,7 +13,6 @@ import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
@@ -28,6 +27,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateS
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountInfoSchemaUpdater
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountUpdateChoreographer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
@@ -84,15 +84,13 @@ class WalletFeatureModule {
         keypairFactory: KeypairFactory,
         accountInfoFactory: AccountInfoFactory,
         extrinsicFactory: TransferExtrinsicFactory,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        sS58Encoder: SS58Encoder
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
     ): SubstrateRemoteSource = WssSubstrateSource(
         socketService,
         keypairFactory,
         accountInfoFactory,
         extrinsicFactory,
-        runtimeProperty,
-        sS58Encoder
+        runtimeProperty
     )
 
     @Provides
@@ -102,7 +100,6 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         transactionDao: TransactionDao,
         subscanNetworkApi: SubscanNetworkApi,
-        sS58Encoder: SS58Encoder,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingAddressDao: PhishingAddressDao,
@@ -112,7 +109,6 @@ class WalletFeatureModule {
         accountRepository,
         transactionDao,
         subscanNetworkApi,
-        sS58Encoder,
         httpExceptionHandler,
         phishingApi,
         assetCache,
@@ -149,26 +145,23 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideAccountSchemaUpdater(
-        accountInfoFactory: AccountInfoFactory,
-        socketService: SocketService
+        accountInfoFactory: AccountInfoFactory
     ): AccountInfoSchemaUpdater {
-        return AccountInfoSchemaUpdater(accountInfoFactory, socketService)
+        return AccountInfoSchemaUpdater(accountInfoFactory)
     }
 
     @Provides
     @FeatureScope
     fun providePaymentUpdater(
-        accountRepository: AccountRepository,
         remoteSource: SubstrateRemoteSource,
-        sS58Encoder: SS58Encoder,
+        accountInfoFactory: AccountInfoFactory,
         assetCache: AssetCache,
         transactionDao: TransactionDao
     ): PaymentUpdater {
         return PaymentUpdater(
-            accountRepository,
             remoteSource,
-            sS58Encoder,
             assetCache,
+            accountInfoFactory,
             transactionDao
         )
     }
@@ -176,14 +169,32 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideStakingUpdater(
-        accountRepository: AccountRepository,
         remoteSource: SubstrateRemoteSource,
+        socketService: SocketService,
         assetCache: AssetCache
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
-            accountRepository,
             remoteSource,
+            socketService,
             assetCache
+        )
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideAccountUpdatesChoreographer(
+        accountRepository: AccountRepository,
+        socketService: SocketService,
+        stakingLedgerUpdater: StakingLedgerUpdater,
+        paymentUpdater: PaymentUpdater
+    ): AccountUpdateChoreographer {
+        return AccountUpdateChoreographer(
+            accountRepository = accountRepository,
+            socketService = socketService,
+            updaters = listOf(
+                stakingLedgerUpdater,
+                paymentUpdater
+            )
         )
     }
 
@@ -191,7 +202,6 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideFeatureUpdaters(
         schemaUpdater: AccountInfoSchemaUpdater,
-        balanceUpdater: PaymentUpdater,
-        stakingLedgerUpdater: StakingLedgerUpdater
-    ): WalletUpdaters = WalletUpdaters(arrayOf(schemaUpdater, balanceUpdater, stakingLedgerUpdater))
+        accountUpdateChoreographer: AccountUpdateChoreographer
+    ): WalletUpdaters = WalletUpdaters(arrayOf(schemaUpdater, accountUpdateChoreographer))
 }

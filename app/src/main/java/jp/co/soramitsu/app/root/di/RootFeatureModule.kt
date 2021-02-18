@@ -4,8 +4,9 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.app.root.domain.CompositeUpdater
 import jp.co.soramitsu.app.root.domain.RootInteractor
+import jp.co.soramitsu.app.root.domain.RootUpdater
 import jp.co.soramitsu.common.di.scope.FeatureScope
-import jp.co.soramitsu.core.updater.Updater
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -19,11 +20,15 @@ class RootFeatureModule {
     @FeatureScope
     fun provideRootUpdater(
         walletUpdaters: WalletUpdaters,
-        runtimeUpdater: RuntimeUpdater
-    ): Updater {
-        return CompositeUpdater(
-            *walletUpdaters.updaters,
-            runtimeUpdater
+        runtimeUpdater: RuntimeUpdater,
+        socketService: SocketService
+    ): RootUpdater {
+        return RootUpdater(
+            wrapped = CompositeUpdater(
+                *walletUpdaters.updaters,
+                runtimeUpdater
+            ),
+            socketService
         )
     }
 
@@ -31,7 +36,7 @@ class RootFeatureModule {
     @FeatureScope
     fun provideRootInteractor(
         accountRepository: AccountRepository,
-        rootUpdater: Updater,
+        rootUpdater: RootUpdater,
         buyTokenRegistry: BuyTokenRegistry,
         walletRepository: WalletRepository
     ): RootInteractor {

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 class RootInteractor(
     private val accountRepository: AccountRepository,
-    private val rootUpdater: Updater,
+    private val rootUpdater: RootUpdater,
     private val buyTokenRegistry: BuyTokenRegistry,
     private val walletRepository: WalletRepository
 ) {

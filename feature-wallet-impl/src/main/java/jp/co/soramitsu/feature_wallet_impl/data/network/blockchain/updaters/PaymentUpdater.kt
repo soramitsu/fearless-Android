@@ -1,14 +1,15 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
-import jp.co.soramitsu.common.utils.encode
+import jp.co.soramitsu.common.utils.toAddress
+import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
+import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
@@ -16,6 +17,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountData
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsic
 import kotlinx.coroutines.Dispatchers
@@ -24,22 +26,29 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
 
 class PaymentUpdater(
-    accountRepository: AccountRepository,
     private val substrateSource: SubstrateRemoteSource,
-    private val sS58Encoder: SS58Encoder,
     private val assetCache: AssetCache,
+    private val accountInfoFactory: AccountInfoFactory,
     private val transactionsDao: TransactionDao
-) : AccountUpdater(accountRepository) {
+) : AccountUpdater {
 
-    override suspend fun listenForUpdates(account: Account): Flow<Updater.SideEffect> {
-        return substrateSource.listenForAccountUpdates(account.address)
+    override fun listenAccountUpdates(accountSubscriptionBuilder: SubscriptionBuilder, account: Account): Flow<Updater.SideEffect> {
+        val key = Module.System.Account.storageKey(account.address.toAccountId())
+
+        return accountSubscriptionBuilder.subscribe(key)
             .onEach { change ->
-                updateAssetBalance(account, change.newAccountInfo)
+                val newAccountInfo = readAccountInfo(change.value)
+
+                updateAssetBalance(account, newAccountInfo)
 
                 fetchTransfers(account, change.block)
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()
+    }
+
+    private suspend fun readAccountInfo(hex: String?): EncodableStruct<AccountInfoSchema> {
+        return hex?.let { accountInfoFactory.decode(it) } ?: accountInfoFactory.createEmpty()
     }
 
     private suspend fun updateAssetBalance(
@@ -65,6 +74,7 @@ class PaymentUpdater(
             val localStatus = when (it.statusEvent) {
                 ExtrinsicStatusEvent.SUCCESS -> Transaction.Status.COMPLETED
                 ExtrinsicStatusEvent.FAILURE -> Transaction.Status.FAILED
+                null -> Transaction.Status.PENDING
             }
 
             createTransactionLocal(it.extrinsic, localStatus, account)
@@ -85,8 +95,8 @@ class PaymentUpdater(
         val networkType = account.network.type
         val token = Token.Type.fromNetworkType(networkType)
 
-        val senderAddress = sS58Encoder.encode(extrinsic.senderId, networkType)
-        val recipientAddress = sS58Encoder.encode(extrinsic.recipientId, networkType)
+        val senderAddress = extrinsic.senderId.toAddress(networkType)
+        val recipientAddress = extrinsic.recipientId.toAddress(networkType)
 
         return TransactionLocal(
             hash = extrinsic.hash,

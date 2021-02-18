@@ -1,17 +1,20 @@
 package jp.co.soramitsu.runtime
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.runtimeVersionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import java.util.Locale
 
@@ -33,7 +36,9 @@ class RuntimeUpdater(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
 ) : Updater {
 
-    override suspend fun listenForUpdates(): Flow<RuntimePreparationStatus> {
+    override suspend fun listenForUpdates(
+        storageSubscriptionBuilder: SubscriptionBuilder
+    ): Flow<RuntimePreparationStatus> {
         runtimeProperty.invalidate()
 
         val subscriptionFlow = socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
@@ -47,7 +52,7 @@ class RuntimeUpdater(
             initFromCache()
 
             emitAll(subscriptionFlow)
-        }
+        }.flowOn(Dispatchers.Default)
     }
 
     private suspend fun initFromCache() {
