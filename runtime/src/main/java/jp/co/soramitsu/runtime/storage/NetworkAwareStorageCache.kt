@@ -27,6 +27,14 @@ class NetworkAwareStorageCache(
 
     private suspend fun currentNetwork() = accountRepository.getSelectedNode().networkType
 
+    override suspend fun isPrefixInCache(prefixKey: String): Boolean {
+        return storageDao.isPrefixInCache(currentNetwork(), prefixKey)
+    }
+
+    override suspend fun isFullKeyInCache(fullKey: String): Boolean {
+        return storageDao.isFullKeyInCache(currentNetwork(), fullKey)
+    }
+
     override suspend fun insert(entry: StorageEntry) = withContext(Dispatchers.IO) {
         storageDao.insert(mapStorageEntryToLocal(entry))
     }

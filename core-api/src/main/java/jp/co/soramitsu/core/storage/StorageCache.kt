@@ -6,6 +6,10 @@ import java.math.BigInteger
 
 interface StorageCache {
 
+    suspend fun isPrefixInCache(prefixKey: String) : Boolean
+
+    suspend fun isFullKeyInCache(fullKey: String): Boolean
+
     suspend fun insert(entry: StorageEntry)
 
     suspend fun insert(entries: List<StorageEntry>)
