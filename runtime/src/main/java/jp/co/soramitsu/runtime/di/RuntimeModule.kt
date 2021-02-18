@@ -108,6 +108,7 @@ class RuntimeModule {
     @ApplicationScope
     fun provideStorageCache(
         storageDao: StorageDao,
+        runtimeDao: RuntimeDao,
         accountRepository: AccountRepository
-    ) : StorageCache = NetworkAwareStorageCache(storageDao, accountRepository)
+    ) : StorageCache = NetworkAwareStorageCache(storageDao, runtimeDao, accountRepository)
 }

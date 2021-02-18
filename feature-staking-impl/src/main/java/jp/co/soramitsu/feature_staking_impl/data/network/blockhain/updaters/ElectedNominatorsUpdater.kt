@@ -43,7 +43,7 @@ class ElectedNominatorsUpdater(
 
         val allValues = bulkRetriever.retrieveAllValues(keyPrefix)
 
-        val runtimeVersion = runtime.metadata.runtimeVersion
+        val runtimeVersion = storageCache.currentRuntimeVersion()
 
         val toInsert = allValues.map { (key, value) ->
             StorageEntry(key, value, runtimeVersion)

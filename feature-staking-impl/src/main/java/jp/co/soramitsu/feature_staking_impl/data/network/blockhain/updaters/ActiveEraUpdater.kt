@@ -26,7 +26,7 @@ class ActiveEraUpdater(
                 val storageEntry = StorageEntry(
                     storageKey = activeEraKey,
                     content = it.value,
-                    runtimeVersion = runtime.metadata.runtimeVersion
+                    runtimeVersion = storageCache.currentRuntimeVersion()
                 )
 
                 storageCache.insert(storageEntry)

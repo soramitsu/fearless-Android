@@ -8,13 +8,13 @@ import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.runtimeVersionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.runtime.ext.runtimeCacheName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import java.util.Locale
 
 typealias RuntimeUpdateRetry = suspend () -> RuntimePreparationStatus
 
@@ -81,7 +81,7 @@ class RuntimeUpdater(
     private suspend fun getCurrentNetworkName(): String {
         val networkType = accountRepository.getSelectedNode().networkType
 
-        return networkType.readableName.toLowerCase(Locale.ROOT)
+       return networkType.runtimeCacheName()
     }
 
     private fun getPreparationStatus(constructed: RuntimeConstructor.Constructed) = if (constructed.isNewest) {

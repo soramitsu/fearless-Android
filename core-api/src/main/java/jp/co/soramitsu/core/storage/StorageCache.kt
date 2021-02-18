@@ -2,6 +2,7 @@ package jp.co.soramitsu.core.storage
 
 import jp.co.soramitsu.core.model.StorageEntry
 import kotlinx.coroutines.flow.Flow
+import java.math.BigInteger
 
 interface StorageCache {
 
@@ -26,4 +27,6 @@ interface StorageCache {
      * Thus, will not be empty
      */
     suspend fun getEntries(keyPrefix: String): List<StorageEntry>
+
+    suspend fun currentRuntimeVersion() : BigInteger
 }
