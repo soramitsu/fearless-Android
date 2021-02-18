@@ -5,7 +5,7 @@ import jp.co.soramitsu.core.model.Node
 
 @Entity(
     tableName = "storage",
-    primaryKeys = ["networkType", "storageKey"]
+    primaryKeys = ["storageKey", "networkType"]
 )
 class StorageEntryLocal(
     val storageKey: String,
