@@ -4,32 +4,22 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import jp.co.soramitsu.core_db.model.StorageEntry
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 
 @Dao
 abstract class StorageDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun insert(entry: StorageEntry)
+    abstract suspend fun insert(entry: StorageEntryLocal)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun insert(entries: List<StorageEntry>)
+    abstract suspend fun insert(entries: List<StorageEntryLocal>)
 
-    @Query("SELECT * from storage WHERE storageKey = :key")
-    abstract fun observeEntry(key: String): Flow<StorageEntry?>
+    @Query("SELECT * from storage WHERE networkType = :networkType AND storageKey = :key")
+    abstract fun observeEntry(networkType: Node.NetworkType, key: String): Flow<StorageEntryLocal?>
 
-    @Query("SELECT * from storage WHERE storageKey LIKE :keyPrefix || '%'")
-    abstract fun observeEntries(keyPrefix: String): Flow<List<StorageEntry>>
-
-    suspend fun waitForEntry(key: String) = observeEntry(key)
-        .filterNotNull()
-        .first()
-
-    suspend fun waitForEntries(keyPrefix: String) = observeEntries(keyPrefix)
-        .filter { it.isNotEmpty() }
-        .first()
+    @Query("SELECT * from storage WHERE networkType = :networkType AND storageKey LIKE :keyPrefix || '%'")
+    abstract fun observeEntries(networkType: Node.NetworkType, keyPrefix: String): Flow<List<StorageEntryLocal>>
 }

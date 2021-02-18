@@ -8,6 +8,7 @@ import jp.co.soramitsu.app.root.domain.RootUpdater
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
@@ -20,12 +21,15 @@ class RootFeatureModule {
     @FeatureScope
     fun provideRootUpdater(
         walletUpdaters: WalletUpdaters,
+        stakingUpdaters: StakingUpdaters,
         runtimeUpdater: RuntimeUpdater,
         socketService: SocketService
     ): RootUpdater {
         return RootUpdater(
-            wrapped = CompositeUpdater(
+            runtimeUpdater,
+            updaters = CompositeUpdater(
                 *walletUpdaters.updaters,
+                *stakingUpdaters.updaters,
                 runtimeUpdater
             ),
             socketService
