@@ -22,11 +22,31 @@ class GetKeysPagedRequest(
     )
 )
 
+class QueryStorageAtRequest(
+    keys: List<String>,
+    at: String? = null
+) : RuntimeRequest(
+    method = "state_queryStorageAt",
+    params = listOfNotNull(
+        keys,
+        at
+    )
+)
+
+class QueryStorageAtResponse(
+    val block: String,
+    val changes: List<List<String>>
+) {
+    fun changesAsMap() : Map<String, String> {
+        return changes.map { it[0] to it[1] }.toMap()
+    }
+}
+
 private const val DEFAULT_PAGE_SIZE = 1000
 
-class PagedKeysRetriever(
-    val socketService: SocketService,
-    val pageSize: Int = DEFAULT_PAGE_SIZE
+class BulkRetriever(
+    private val socketService: SocketService,
+    private val pageSize: Int = DEFAULT_PAGE_SIZE
 ) {
 
     suspend fun retrieveAllKeys(keyPrefix: String): List<String> = withContext(Dispatchers.IO) {
@@ -49,6 +69,23 @@ class PagedKeysRetriever(
         }
 
         result
+    }
+
+    suspend fun queryKeys(keys: List<String>): Map<String, String> = withContext(Dispatchers.IO) {
+        val chunks = keys.chunked(pageSize)
+
+        chunks.fold(mutableMapOf()) { acc, chunk ->
+            ensureActive()
+
+            val request = QueryStorageAtRequest(chunk)
+
+            val chunkValues = socketService.executeAsync(request, mapper = pojoList<QueryStorageAtResponse>().nonNull())
+                .first().changesAsMap()
+
+            acc.putAll(chunkValues)
+
+            acc
+        }
     }
 
     private fun isLastPage(page: List<String>) = page.size < pageSize

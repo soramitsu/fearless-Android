@@ -2,12 +2,14 @@ package jp.co.soramitsu.feature_staking_impl.di
 
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ElectedNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractorImpl
 
@@ -34,7 +36,20 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideElectedNominatorsUpdater(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        bulkRetriever: BulkRetriever,
+        storageCache: StorageCache
+    ) = ElectedNominatorsUpdater(
+        runtimeProperty,
+        bulkRetriever,
+        storageCache
+    )
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaters(
-        activeEraUpdater: ActiveEraUpdater
-    ) = StakingUpdaters(arrayOf(activeEraUpdater))
+        activeEraUpdater: ActiveEraUpdater,
+        electedNominatorsUpdater: ElectedNominatorsUpdater,
+    ) = StakingUpdaters(arrayOf(activeEraUpdater, electedNominatorsUpdater))
 }

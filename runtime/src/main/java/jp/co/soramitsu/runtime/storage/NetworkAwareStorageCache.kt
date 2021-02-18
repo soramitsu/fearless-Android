@@ -9,6 +9,7 @@ import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -36,6 +37,7 @@ class NetworkAwareStorageCache(
         return storageDao.observeEntry(currentNetwork(), key)
             .filterNotNull()
             .map { mapStorageEntryFromLocal(it) }
+            .distinctUntilChangedBy(StorageEntry::content)
     }
 
     override suspend fun observeEntries(keyPrefix: String): Flow<List<StorageEntry>> {
