@@ -1,24 +1,25 @@
 package jp.co.soramitsu.feature_account_impl.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
+import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
+import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
+import jp.co.soramitsu.common.data.mappers.mapKeyPairToSigningData
+import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Network
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
-import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
-import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -433,47 +434,11 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapCryptoTypeToEncryption(cryptoType: CryptoType): EncryptionType {
-        return when (cryptoType) {
-            CryptoType.SR25519 -> EncryptionType.SR25519
-            CryptoType.ED25519 -> EncryptionType.ED25519
-            CryptoType.ECDSA -> EncryptionType.ECDSA
-        }
-    }
-
-    private fun mapEncryptionToCryptoType(cryptoType: EncryptionType): CryptoType {
-        return when (cryptoType) {
-            EncryptionType.SR25519 -> CryptoType.SR25519
-            EncryptionType.ED25519 -> CryptoType.ED25519
-            EncryptionType.ECDSA -> CryptoType.ECDSA
-        }
-    }
-
     private fun constructNetworkType(identifier: NetworkTypeIdentifier): Node.NetworkType? {
         return when (identifier) {
             is NetworkTypeIdentifier.Genesis -> Node.NetworkType.findByGenesis(identifier.genesis)
             is NetworkTypeIdentifier.AddressByte -> Node.NetworkType.findByAddressByte(identifier.addressByte)
             is NetworkTypeIdentifier.Undefined -> null
-        }
-    }
-
-    private fun mapKeyPairToSigningData(keyPair: Keypair): SigningData {
-        return with(keyPair) {
-            SigningData(
-                publicKey = publicKey,
-                privateKey = privateKey,
-                nonce = nonce
-            )
-        }
-    }
-
-    private fun mapSigningDataToKeypair(singingData: SigningData): Keypair {
-        return with(singingData) {
-            Keypair(
-                publicKey = publicKey,
-                privateKey = privateKey,
-                nonce = nonce
-            )
         }
     }
 

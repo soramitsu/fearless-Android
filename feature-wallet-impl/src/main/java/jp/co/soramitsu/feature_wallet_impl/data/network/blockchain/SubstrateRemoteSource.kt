@@ -7,7 +7,6 @@ import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ActiveEraInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsic
 
@@ -29,8 +28,6 @@ interface SubstrateRemoteSource {
         transfer: Transfer,
         keypair: Keypair
     ): String
-
-    suspend fun getActiveEra(): EncodableStruct<ActiveEraInfo>
 
     suspend fun fetchAccountTransfersInBlock(
         blockHash: String,

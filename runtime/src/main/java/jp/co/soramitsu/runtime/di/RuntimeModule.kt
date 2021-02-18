@@ -5,11 +5,13 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.RuntimeDao
+import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -18,6 +20,7 @@ import jp.co.soramitsu.runtime.RuntimeCache
 import jp.co.soramitsu.runtime.RuntimeConstructor
 import jp.co.soramitsu.runtime.RuntimePrepopulator
 import jp.co.soramitsu.runtime.RuntimeUpdater
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
 @Module
 class RuntimeModule {
@@ -83,4 +86,18 @@ class RuntimeModule {
     @Provides
     @ApplicationScope
     fun provideRuntimeProperty() = SuspendableProperty<RuntimeSnapshot>()
+
+    @Provides
+    @ApplicationScope
+    fun provideExtrinsicBuilderFactory(
+        accountRepository: AccountRepository,
+        substrateCalls: SubstrateCalls,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        keypairFactory: KeypairFactory
+    ) = ExtrinsicBuilderFactory(
+        accountRepository,
+        substrateCalls,
+        keypairFactory,
+        runtimeProperty
+    )
 }

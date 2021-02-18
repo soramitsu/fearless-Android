@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.network.rpc.WsConnectionManager
+import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
@@ -132,4 +133,8 @@ class NetworkModule {
     @Provides
     @ApplicationScope
     fun provideJsonMapper() = Gson()
+
+    @Provides
+    @ApplicationScope
+    fun provideSubstrateCalls(socketService: SocketService) = SubstrateCalls(socketService)
 }

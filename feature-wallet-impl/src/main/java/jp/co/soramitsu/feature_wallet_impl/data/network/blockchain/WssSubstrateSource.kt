@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.EventRecord
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.Phase
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
+import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.preBinder
 import jp.co.soramitsu.core.model.CryptoType
@@ -13,33 +14,26 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
-import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.fearless_utils.runtime.storageKey
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
 import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetBlockRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.NextAccountIndexRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.FeeResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.ActiveEraInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.EncodeExtrinsicParams
@@ -47,14 +41,14 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
-import java.math.BigInteger
 
 class WssSubstrateSource(
     private val socketService: SocketService,
     private val keypairFactory: KeypairFactory,
     private val accountInfoFactory: AccountInfoFactory,
     private val extrinsicFactory: TransferExtrinsicFactory,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    private val substrateCalls: SubstrateCalls
 ) : SubstrateRemoteSource {
 
     override suspend fun fetchAccountInfo(
@@ -113,23 +107,16 @@ class WssSubstrateSource(
         filterAccountTransactions(account, block.block.extrinsics, statusesByExtrinsicId)
     }
 
-    override suspend fun getActiveEra(): EncodableStruct<ActiveEraInfo> {
-        val key = Module.Staking.ActiveEra.storageKey()
-        val request = GetStorageRequest(listOf(key))
-
-        return socketService.executeAsync(request, mapper = scale(ActiveEraInfo).nonNull())
-    }
-
     private suspend fun buildSubmittableExtrinsic(
         account: Account,
         transfer: Transfer,
         keypair: Keypair
     ): String = withContext(Dispatchers.Default) {
-        val runtimeVersion = getRuntimeVersion()
+        val runtimeVersion = substrateCalls.getRuntimeVersion()
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
         val accountIdValue = account.address.toAccountId()
 
-        val currentNonce = getNonce(account)
+        val currentNonce = substrateCalls.getNonce(account)
         val genesis = account.network.type.runtimeConfiguration.genesisHash
         val genesisBytes = Hex.decode(genesis)
 
@@ -147,26 +134,11 @@ class WssSubstrateSource(
         extrinsicFactory.createEncodedExtrinsic(params, keypair)
     }
 
-    private suspend fun getNonce(account: Account): BigInteger {
-        val nonceRequest = NextAccountIndexRequest(account.address)
-
-        val response = socketService.executeAsync(nonceRequest)
-        val doubleResult = response.result as Double
-
-        return doubleResult.toInt().toBigInteger()
-    }
-
     private suspend fun generateFakeKeyPair(account: Account) = withContext(Dispatchers.Default) {
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
         val emptySeed = ByteArray(32) { 1 }
 
         keypairFactory.generate(cryptoType, emptySeed, "")
-    }
-
-    private suspend fun getRuntimeVersion(): RuntimeVersion {
-        val request = RuntimeVersionRequest()
-
-        return socketService.executeAsync(request, mapper = pojo<RuntimeVersion>().nonNull())
     }
 
     private fun mapCryptoTypeToEncryption(cryptoType: CryptoType): EncryptionType {
