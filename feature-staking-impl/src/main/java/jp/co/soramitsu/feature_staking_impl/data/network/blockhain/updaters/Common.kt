@@ -16,7 +16,7 @@ import java.math.BigInteger
 
 fun RuntimeMetadata.activeEraStorageKey() = module("Staking").storage("ActiveEra").storageKey()
 
-suspend fun StorageCache.observeEraIndex(runtime: RuntimeSnapshot) : Flow<BigInteger> {
+suspend fun StorageCache.observeEraIndex(runtime: RuntimeSnapshot): Flow<BigInteger> {
     return observeEntry(runtime.metadata.activeEraStorageKey())
         .map { bindActiveEraIndex(it.content!!, runtime) }
 }
