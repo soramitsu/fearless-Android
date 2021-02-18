@@ -10,6 +10,7 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ElectedNominatorsUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorPrefsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractorImpl
 
@@ -48,8 +49,27 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideValidatorPrefsUpdater(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        bulkRetriever: BulkRetriever,
+        storageCache: StorageCache
+    ) = ValidatorPrefsUpdater(
+        runtimeProperty,
+        bulkRetriever,
+        storageCache
+    )
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaters(
         activeEraUpdater: ActiveEraUpdater,
-        electedNominatorsUpdater: ElectedNominatorsUpdater
-    ) = StakingUpdaters(arrayOf(activeEraUpdater, electedNominatorsUpdater))
+        electedNominatorsUpdater: ElectedNominatorsUpdater,
+        validatorPrefsUpdater: ValidatorPrefsUpdater
+    ) = StakingUpdaters(
+        updaters = arrayOf(
+            activeEraUpdater,
+            electedNominatorsUpdater,
+            validatorPrefsUpdater
+        )
+    )
 }

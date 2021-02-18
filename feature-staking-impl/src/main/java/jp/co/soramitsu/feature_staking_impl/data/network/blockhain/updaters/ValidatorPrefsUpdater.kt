@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import java.math.BigInteger
 
-class ElectedNominatorsUpdater(
+class ValidatorPrefsUpdater(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val bulkRetriever: BulkRetriever,
     private val storageCache: StorageCache
@@ -27,18 +27,18 @@ class ElectedNominatorsUpdater(
         val runtime = runtimeProperty.get()
 
         return storageCache.observeEraIndex(runtime)
-            .map { eraStakersPrefix(runtime, it) }
+            .map { validatorPrefsKey(runtime, it) }
             .filterNot(storageCache::isPrefixInCache)
-            .onEach(::updateNominatorsForEra)
+            .onEach(::updateValidatorPrefs)
             .flowOn(Dispatchers.IO)
             .noSideAffects()
     }
 
-    private fun eraStakersPrefix(runtime: RuntimeSnapshot, activeEraIndex: BigInteger): String {
-        return runtime.metadata.module("Staking").storage("ErasStakers").storageKey(runtime, activeEraIndex)
+    private fun validatorPrefsKey(runtime: RuntimeSnapshot, activeEraIndex: BigInteger): String {
+        return runtime.metadata.module("Staking").storage("ErasValidatorPrefs").storageKey(runtime, activeEraIndex)
     }
 
-    private suspend fun updateNominatorsForEra(eraStakersPrefix: String) = runCatching {
-        bulkRetriever.fetchPrefixValuesToCache(eraStakersPrefix, storageCache)
+    private suspend fun updateValidatorPrefs(fullKey: String) {
+        bulkRetriever.fetchPrefixValuesToCache(fullKey, storageCache)
     }
 }
