@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
-import android.util.Log
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.rpc.retrieveAllValues
 import jp.co.soramitsu.common.data.network.runtime.binding.bindActiveEraIndex
@@ -48,8 +47,6 @@ class ElectedNominatorsUpdater(
     }
 
     private suspend fun updateNominatorsForEra(eraStakersPrefix: String) = runCatching {
-        Log.d("RX", "Updating elected nominators")
-
         val allValues = bulkRetriever.retrieveAllValues(eraStakersPrefix)
 
         val runtimeVersion = storageCache.currentRuntimeVersion()
