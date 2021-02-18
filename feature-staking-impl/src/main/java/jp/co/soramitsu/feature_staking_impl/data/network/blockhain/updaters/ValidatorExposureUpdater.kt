@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import java.math.BigInteger
 
-class ElectedNominatorsUpdater(
+class ValidatorExposureUpdater(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val bulkRetriever: BulkRetriever,
     private val storageCache: StorageCache
