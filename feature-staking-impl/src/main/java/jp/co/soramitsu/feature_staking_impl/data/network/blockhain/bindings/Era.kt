@@ -5,7 +5,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.storageReturnType
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import java.math.BigInteger
 
 /*
@@ -29,7 +29,7 @@ fun bindActiveEra(
     runtime: RuntimeSnapshot
 ): BigInteger {
     val returnType = runtime.metadata.storageReturnType("Staking", "ActiveEra")
-    val decoded = returnType.fromHex(runtime, scale) as? Struct.Instance ?: incompatible()
+    val decoded = returnType.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
 
     return decoded.get<BigInteger>("index") ?: incompatible()
 }
@@ -44,5 +44,5 @@ fun bindCurrentEraIndex(
 ): BigInteger {
     val returnType = runtime.metadata.storageReturnType("Staking", "CurrentEra")
 
-    return returnType.fromHex(runtime, scale) as? BigInteger ?: incompatible()
+    return returnType.fromHexOrNull(runtime, scale) as? BigInteger ?: incompatible()
 }
