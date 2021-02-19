@@ -41,7 +41,7 @@ EraIndex
 fun bindCurrentEraIndex(
     scale: String,
     runtime: RuntimeSnapshot
-) : BigInteger {
+): BigInteger {
     val returnType = runtime.metadata.storageReturnType("Staking", "CurrentEra")
 
     return returnType.fromHex(runtime, scale) as? BigInteger ?: incompatible()

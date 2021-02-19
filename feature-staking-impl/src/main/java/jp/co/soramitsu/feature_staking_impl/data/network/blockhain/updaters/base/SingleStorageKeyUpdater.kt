@@ -14,7 +14,7 @@ abstract class SingleStorageKeyUpdater(
     private val storageCache: StorageCache
 ) : Updater {
 
-    abstract fun storageKey(runtime: RuntimeSnapshot) : String
+    abstract fun storageKey(runtime: RuntimeSnapshot): String
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()
