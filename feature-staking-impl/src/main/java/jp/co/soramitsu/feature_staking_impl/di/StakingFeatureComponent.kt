@@ -15,7 +15,8 @@ import jp.co.soramitsu.runtime.di.RuntimeApi
         StakingFeatureDependencies::class
     ],
     modules = [
-        StakingFeatureModule::class
+        StakingFeatureModule::class,
+        StakingUpdatersModule::class
     ]
 )
 @FeatureScope
