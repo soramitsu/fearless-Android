@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.runtime.di.RuntimeApi
 import javax.inject.Inject
 
 @ApplicationScope
@@ -17,6 +18,7 @@ class StakingFeatureHolder @Inject constructor(
     override fun initializeDependencies(): Any {
         val dependencies = DaggerStakingFeatureComponent_StakingFeatureDependenciesComponent.builder()
             .commonApi(commonApi())
+            .runtimeApi(getFeature(RuntimeApi::class.java))
             .dbApi(getFeature(DbApi::class.java))
             .accountFeatureApi(getFeature(AccountFeatureApi::class.java))
             .build()

@@ -1,6 +1,10 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -27,3 +31,7 @@ inline fun <reified T> Any?.cast(): T {
 inline fun <reified R> Struct.Instance.getOfType(key: String) = get<R>(key) ?: incompatible()
 
 inline fun <T> bindOrNull(binder: () -> T): T? = runCatching(binder).getOrNull()
+
+fun RuntimeMetadata.storageReturnType(moduleName: String, storageName: String): Type<*> {
+    return module(moduleName).storage(storageName).type.value ?: incompatible()
+}

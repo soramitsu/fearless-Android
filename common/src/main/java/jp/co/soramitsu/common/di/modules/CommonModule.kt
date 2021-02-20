@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.account.external.actions.ExternalAccountActionsProvider
 import jp.co.soramitsu.common.data.FileProviderImpl
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -31,6 +32,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import java.security.SecureRandom
 import java.util.Random
 
@@ -160,5 +162,13 @@ class CommonModule {
         context: Context
     ): ContentResolver {
         return context.contentResolver
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideDefaultPagedKeysRetriever(
+        socketService: SocketService
+    ): BulkRetriever {
+        return BulkRetriever(socketService)
     }
 }

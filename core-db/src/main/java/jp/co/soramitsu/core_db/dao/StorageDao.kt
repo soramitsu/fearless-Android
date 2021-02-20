@@ -4,32 +4,31 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import jp.co.soramitsu.core_db.model.StorageEntry
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
+
+private const val SELECT_FULL_KEY_QUERY = "SELECT * from storage WHERE networkType = :networkType AND storageKey = :fullKey"
+private const val SELECT_PREFIX_KEY_QUERY = "SELECT * from storage WHERE networkType = :networkType  AND storageKey LIKE :keyPrefix || '%'"
 
 @Dao
 abstract class StorageDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun insert(entry: StorageEntry)
+    @Query("SELECT EXISTS($SELECT_PREFIX_KEY_QUERY)")
+    abstract suspend fun isPrefixInCache(networkType: Node.NetworkType, keyPrefix: String): Boolean
+
+    @Query("SELECT EXISTS($SELECT_FULL_KEY_QUERY)")
+    abstract suspend fun isFullKeyInCache(networkType: Node.NetworkType, fullKey: String): Boolean
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun insert(entries: List<StorageEntry>)
+    abstract suspend fun insert(entry: StorageEntryLocal)
 
-    @Query("SELECT * from storage WHERE storageKey = :key")
-    abstract fun observeEntry(key: String): Flow<StorageEntry?>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insert(entries: List<StorageEntryLocal>)
 
-    @Query("SELECT * from storage WHERE storageKey LIKE :keyPrefix || '%'")
-    abstract fun observeEntries(keyPrefix: String): Flow<List<StorageEntry>>
+    @Query(SELECT_FULL_KEY_QUERY)
+    abstract fun observeEntry(networkType: Node.NetworkType, fullKey: String): Flow<StorageEntryLocal?>
 
-    suspend fun waitForEntry(key: String) = observeEntry(key)
-        .filterNotNull()
-        .first()
-
-    suspend fun waitForEntries(keyPrefix: String) = observeEntries(keyPrefix)
-        .filter { it.isNotEmpty() }
-        .first()
+    @Query(SELECT_PREFIX_KEY_QUERY)
+    abstract fun observeEntries(networkType: Node.NetworkType, keyPrefix: String): Flow<List<StorageEntryLocal>>
 }

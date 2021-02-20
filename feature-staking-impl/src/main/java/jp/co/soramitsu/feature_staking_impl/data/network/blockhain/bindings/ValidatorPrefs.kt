@@ -1,0 +1,29 @@
+package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings
+
+import jp.co.soramitsu.common.data.network.runtime.binding.HelperBinding
+import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
+import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
+import java.math.BigDecimal
+import java.math.BigInteger
+
+typealias Commission = BigDecimal
+
+private const val PERBILL_MANTISSA_SIZE = 9
+
+@HelperBinding
+fun bindPerbill(value: BigInteger): BigDecimal {
+    return value.toBigDecimal(scale = PERBILL_MANTISSA_SIZE)
+}
+
+@UseCaseBinding
+fun bindValidatorPrefs(scale: String, runtime: RuntimeSnapshot): Commission {
+    val type = runtime.typeRegistry["ValidatorPrefs"] ?: incompatible()
+    val decoded = type.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
+
+    val commission = decoded.get<BigInteger>("commission") ?: incompatible()
+
+    return bindPerbill(commission)
+}

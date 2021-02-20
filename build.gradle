@@ -40,7 +40,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.53'
+        fearlessLibVersion = '1.0.55'
 
         gifVersion = '1.2.19'
 
@@ -139,6 +139,7 @@ allprojects {
         maven { url "https://jitpack.io" }
         maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
         mavenCentral()
+        mavenLocal()
     }
 }
 
