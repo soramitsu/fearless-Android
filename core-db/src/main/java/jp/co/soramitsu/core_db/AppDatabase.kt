@@ -17,6 +17,7 @@ import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
 import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
 import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_11_12
 import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
@@ -26,13 +27,13 @@ import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
-import jp.co.soramitsu.core_db.model.StorageEntry
+import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Database(
-    version = 13,
+    version = 14,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
@@ -41,7 +42,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
         TokenLocal::class,
         RuntimeCacheEntry::class,
         PhishingAddressLocal::class,
-        StorageEntry::class
+        StorageEntryLocal::class
     ])
 @TypeConverters(
     LongMathConverters::class,
@@ -67,7 +68,7 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     })
                     .addMigrations(AddTokenTable_9_10, AddPhishingAddressesTable_10_11, AddRuntimeCacheTable_11_12)
-                    .addMigrations(AddStorageCacheTable_12_13)
+                    .addMigrations(AddStorageCacheTable_12_13, AddNetworkTypeToStorageCache_13_14)
                     .build()
             }
             return instance!!

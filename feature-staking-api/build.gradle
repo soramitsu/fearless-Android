@@ -1,13 +1,14 @@
-plugins {
-    id 'java-library'
-    id 'kotlin'
-}
+apply plugin: 'java-library'
+apply plugin: 'kotlin'
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_7
-    targetCompatibility = JavaVersion.VERSION_1_7
+compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-Xallow-result-return-type"]
+    }
 }
 
 dependencies {
     implementation coroutinesDep
+
+    api project(':core-api')
 }

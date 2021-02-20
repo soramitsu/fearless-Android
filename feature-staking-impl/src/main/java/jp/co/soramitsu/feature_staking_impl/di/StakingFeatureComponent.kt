@@ -5,9 +5,10 @@ import dagger.Component
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core_db.di.DbApi
-import jp.co.soramitsu.di.StakingFeatureApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.runtime.di.RuntimeApi
 
 @Component(
     dependencies = [
@@ -33,6 +34,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
         dependencies = [
             CommonApi::class,
             DbApi::class,
+            RuntimeApi::class,
             AccountFeatureApi::class
         ]
     )

@@ -31,6 +31,7 @@ dependencies {
     implementation project(':common')
     implementation project(':feature-staking-api')
     implementation project(':feature-account-api')
+    implementation project(':runtime')
 
     implementation kotlinDep
 

@@ -3,6 +3,22 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val AddNetworkTypeToStorageCache_13_14 = object : Migration(13, 14) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE storage")
+
+        database.execSQL("""
+            CREATE TABLE `storage` (
+                `storageKey` TEXT NOT NULL,
+                `networkType` INTEGER NOT NULL,
+                `content` TEXT,
+                `runtimeVersion` INTEGER NOT NULL,
+                PRIMARY KEY(`storageKey`, `networkType`)
+            )
+        """)
+    }
+}
+
 val AddStorageCacheTable_12_13 = object : Migration(12, 13) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("""

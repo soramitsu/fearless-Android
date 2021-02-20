@@ -5,8 +5,8 @@ import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
-import jp.co.soramitsu.di.StakingFeatureApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.runtime.di.RuntimeApi
 import javax.inject.Inject

@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core_db.dao.RuntimeDao
+import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -32,4 +33,6 @@ interface RuntimeDependencies {
     fun substrateCalls(): SubstrateCalls
 
     fun keypairFactory(): KeypairFactory
+
+    fun storageDao(): StorageDao
 }
