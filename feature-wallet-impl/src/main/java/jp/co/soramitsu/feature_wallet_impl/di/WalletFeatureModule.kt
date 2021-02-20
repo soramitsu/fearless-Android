@@ -100,7 +100,6 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
-        accountRepository: AccountRepository,
         transactionDao: TransactionDao,
         subscanNetworkApi: SubscanNetworkApi,
         httpExceptionHandler: HttpExceptionHandler,
@@ -109,7 +108,6 @@ class WalletFeatureModule {
         assetCache: AssetCache
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
-        accountRepository,
         transactionDao,
         subscanNetworkApi,
         httpExceptionHandler,

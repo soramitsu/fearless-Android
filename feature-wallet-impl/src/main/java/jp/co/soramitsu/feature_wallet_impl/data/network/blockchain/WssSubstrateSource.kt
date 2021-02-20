@@ -29,6 +29,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoR
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetBlockRequest
@@ -64,7 +65,7 @@ class WssSubstrateSource(
         return accountInfo ?: accountInfoFactory.createEmpty()
     }
 
-    override suspend fun getTransferFee(account: Account, transfer: Transfer): FeeResponse {
+    override suspend fun getTransferFee(account: WalletAccount, transfer: Transfer): FeeResponse {
         val keypair = generateFakeKeyPair(account)
         val extrinsic = buildSubmittableExtrinsic(account, transfer, keypair)
 
@@ -74,7 +75,7 @@ class WssSubstrateSource(
     }
 
     override suspend fun performTransfer(
-        account: Account,
+        account: WalletAccount,
         transfer: Transfer,
         keypair: Keypair
     ): String {
@@ -108,7 +109,7 @@ class WssSubstrateSource(
     }
 
     private suspend fun buildSubmittableExtrinsic(
-        account: Account,
+        account: WalletAccount,
         transfer: Transfer,
         keypair: Keypair
     ): String = withContext(Dispatchers.Default) {
@@ -134,7 +135,7 @@ class WssSubstrateSource(
         extrinsicFactory.createEncodedExtrinsic(params, keypair)
     }
 
-    private suspend fun generateFakeKeyPair(account: Account) = withContext(Dispatchers.Default) {
+    private suspend fun generateFakeKeyPair(account: WalletAccount) = withContext(Dispatchers.Default) {
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
         val emptySeed = ByteArray(32) { 1 }
 

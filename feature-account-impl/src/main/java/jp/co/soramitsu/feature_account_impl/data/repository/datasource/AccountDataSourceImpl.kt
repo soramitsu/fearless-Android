@@ -13,10 +13,10 @@ import jp.co.soramitsu.fearless_utils.scale.string
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.Language
-import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
-import jp.co.soramitsu.feature_account_api.domain.model.WithDerivationPath
-import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
-import jp.co.soramitsu.feature_account_api.domain.model.WithSeed
+import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.core.model.WithDerivationPath
+import jp.co.soramitsu.core.model.WithMnemonic
+import jp.co.soramitsu.core.model.WithSeed
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope

@@ -11,7 +11,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
-import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import java.math.BigInteger
 
 @Suppress("EXPERIMENTAL_API_USAGE")
@@ -19,7 +19,7 @@ class SubstrateCalls(
     val socketService: SocketService
 ) {
 
-    suspend fun getNonce(account: Account): BigInteger {
+    suspend fun getNonce(account: WalletAccount): BigInteger {
         val nonceRequest = NextAccountIndexRequest(account.address)
 
         val response = socketService.executeAsync(nonceRequest)

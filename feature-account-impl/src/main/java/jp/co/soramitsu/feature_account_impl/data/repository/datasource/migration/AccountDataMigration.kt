@@ -9,7 +9,7 @@ import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
-import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
+import jp.co.soramitsu.core.model.SecuritySource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex

@@ -1,6 +1,4 @@
-package jp.co.soramitsu.feature_account_api.domain.model
-
-import jp.co.soramitsu.core.model.SigningData
+package jp.co.soramitsu.core.model
 
 sealed class SecuritySource(
     val signingData: SigningData

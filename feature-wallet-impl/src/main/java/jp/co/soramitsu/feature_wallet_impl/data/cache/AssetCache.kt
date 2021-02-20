@@ -6,6 +6,7 @@ import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -37,7 +38,7 @@ class AssetCache(
     }
 
     suspend fun updateToken(
-        account: Account,
+        account: WalletAccount,
         builder: (local: TokenLocal) -> TokenLocal
     ) = withContext(Dispatchers.IO) {
         assetUpdateMutex.withLock {
