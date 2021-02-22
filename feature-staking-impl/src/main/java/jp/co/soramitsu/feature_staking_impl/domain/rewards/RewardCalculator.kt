@@ -3,20 +3,12 @@ package jp.co.soramitsu.feature_staking_impl.domain.rewards
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumBy
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.IndividualExposure
+import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.math.pow
-
-class Validator(
-    val accountIdHex: String,
-    val totalStake: BigInteger,
-    val ownStake: BigInteger,
-    val nominatorStakes: List<IndividualExposure>,
-    val commission: BigDecimal
-)
 
 private const val PARACHAINS_ENABLED = false
 
@@ -33,6 +25,14 @@ class RewardCalculator(
     val validators: List<Validator>,
     val totalIssuance: BigInteger
 ) {
+
+    class Validator(
+        val accountIdHex: String,
+        val totalStake: BigInteger,
+        val ownStake: BigInteger,
+        val nominatorStakes: List<IndividualExposure>,
+        val commission: BigDecimal
+    )
 
     private val totalStaked = validators.sumBy(Validator::totalStake).toDouble()
 

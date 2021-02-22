@@ -4,10 +4,11 @@ import jp.co.soramitsu.common.data.network.runtime.binding.HelperBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
+import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import java.math.BigInteger
 
 /*
@@ -25,10 +26,6 @@ fun bindIndividualExposure(dynamicInstance: Any?, runtime: RuntimeSnapshot): Ind
 
     return IndividualExposure(who, value)
 }
-
-class IndividualExposure(val who: AccountId, val value: BigInteger)
-
-class Exposure(val total: BigInteger, val own: BigInteger, val others: List<IndividualExposure>)
 
 /*
  Exposure: {
