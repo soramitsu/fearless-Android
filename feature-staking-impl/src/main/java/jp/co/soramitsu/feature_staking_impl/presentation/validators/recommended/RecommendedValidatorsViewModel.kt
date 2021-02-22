@@ -58,7 +58,6 @@ class RecommendedValidatorsViewModel(
     private suspend fun convertToModels(
         validators: List<Validator>,
         networkType: Node.NetworkType
-
     ): List<ValidatorModel> {
         return validators.map {
             val address = it.accountIdHex.fromHex().toAddress(networkType)
