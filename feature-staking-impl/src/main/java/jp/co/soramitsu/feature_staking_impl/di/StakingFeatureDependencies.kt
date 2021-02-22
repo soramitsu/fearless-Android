@@ -14,5 +14,5 @@ interface StakingFeatureDependencies {
 
     fun storageCache(): StorageCache
 
-    fun defaultPagedKeysRetriever(): BulkRetriever
+    fun bulkRetriever(): BulkRetriever
 }
