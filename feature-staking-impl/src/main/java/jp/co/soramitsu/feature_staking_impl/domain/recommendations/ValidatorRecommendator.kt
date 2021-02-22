@@ -7,13 +7,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class ValidatorRecommendator(
-    private val allRecommendedValidators: List<Validator>,
-    private val recommendationLimit: Int
+    private val allRecommendedValidators: List<Validator>
 ) {
 
     suspend fun recommendations(settings: RecommendationSettings) = withContext(Dispatchers.Default) {
-        allRecommendedValidators.applyFilters(settings.filters)
+        val all = allRecommendedValidators.applyFilters(settings.filters)
             .sortedWith(settings.sorting)
-            .take(recommendationLimit)
+
+        settings.limit?.let(all::take) ?: all
     }
 }

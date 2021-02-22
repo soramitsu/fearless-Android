@@ -9,5 +9,6 @@ typealias RecommendationSorting = Comparator<Validator>
 
 class RecommendationSettings(
     val filters: List<RecommendationFilter>,
-    val sorting: RecommendationSorting
+    val sorting: RecommendationSorting,
+    val limit: Int? = null
 )

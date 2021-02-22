@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import java.math.BigInteger
 
 class RecommendationSettingsProvider(
-    maximumRewardedNominators: BigInteger
+    maximumRewardedNominators: BigInteger,
+    private val defaultValidatorsPerNominatorLimit: Int
 ) {
 
     private val allFilters = listOf(
@@ -41,7 +42,8 @@ class RecommendationSettingsProvider(
     fun defaultSettings(): RecommendationSettings {
         return RecommendationSettings(
             filters = allFilters,
-            sorting = APYSorting
+            sorting = APYSorting,
+            limit = defaultValidatorsPerNominatorLimit
         )
     }
 }
