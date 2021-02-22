@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.di
 
+import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
@@ -15,4 +17,8 @@ interface StakingFeatureDependencies {
     fun storageCache(): StorageCache
 
     fun bulkRetriever(): BulkRetriever
+
+    fun addressIconGenerator(): AddressIconGenerator
+
+    fun appLinksProvider() : AppLinksProvider
 }

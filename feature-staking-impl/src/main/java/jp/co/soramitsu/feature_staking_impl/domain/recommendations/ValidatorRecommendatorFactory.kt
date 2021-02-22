@@ -7,6 +7,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFacto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+private const val RECOMMENDATION_LIMIT = 16
+
 class ValidatorRecommendatorFactory(
     private val stakingRepository: StakingRepository,
     private val rewardCalculatorFactory: RewardCalculatorFactory
@@ -41,6 +43,6 @@ class ValidatorRecommendatorFactory(
             )
         }
 
-        ValidatorRecommendator(validators)
+        ValidatorRecommendator(validators, RECOMMENDATION_LIMIT)
     }
 }

@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings
 import jp.co.soramitsu.common.data.network.runtime.binding.HelperBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
@@ -39,20 +40,22 @@ fun bindIdentity(
 
     val identityInfo = decoded.get<Struct.Instance>("info") ?: incompatible()
 
+    val pgpFingerprint = identityInfo.get<ByteArray?>("pgpFingerprint")
+
     return Identity(
-        display = bindIdentityField(identityInfo, "display"),
-        legal = bindIdentityField(identityInfo, "legal"),
-        web = bindIdentityField(identityInfo, "web"),
-        riot = bindIdentityField(identityInfo, "riot"),
-        email = bindIdentityField(identityInfo, "email"),
-        pgpFingerprint = bindIdentityField(identityInfo, "pgpFingerprint"),
-        image = bindIdentityField(identityInfo, "image"),
-        twitter = bindIdentityField(identityInfo, "twitter")
+        display = bindIdentityData(identityInfo, "display"),
+        legal = bindIdentityData(identityInfo, "legal"),
+        web = bindIdentityData(identityInfo, "web"),
+        riot = bindIdentityData(identityInfo, "riot"),
+        email = bindIdentityData(identityInfo, "email"),
+        pgpFingerprint = pgpFingerprint?.toHexString(withPrefix = true),
+        image = bindIdentityData(identityInfo, "image"),
+        twitter = bindIdentityData(identityInfo, "twitter")
     )
 }
 
 @HelperBinding
-fun bindIdentityField(identityInfo: Struct.Instance, field: String): String? {
+fun bindIdentityData(identityInfo: Struct.Instance, field: String): String? {
     val value = identityInfo.get<Any?>(field) ?: incompatible()
 
     return bindData(value).asString()

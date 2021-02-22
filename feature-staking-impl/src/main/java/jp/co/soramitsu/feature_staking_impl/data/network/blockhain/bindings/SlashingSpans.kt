@@ -6,27 +6,12 @@ import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromByteArrayOrNull
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.fearless_utils.runtime.metadata.Constant
 import java.math.BigInteger
 
 class SlashingSpan(
     val lastNonZeroSlash: BigInteger // era index
 )
-
-/*
-SlashDeferDuration = EraIndex
- */
-@UseCaseBinding
-fun bindSlashDeferDuration(
-    constant: Constant,
-    runtime: RuntimeSnapshot
-): BigInteger {
-    val decoded = constant.type?.fromByteArrayOrNull(runtime, constant.value) ?: incompatible()
-
-    return bindEra(decoded)
-}
 
 @UseCaseBinding
 fun bindSlashingSpans(

@@ -93,7 +93,7 @@ class StakingRepositoryImpl(
     override suspend fun getSlashes(accountIdsHex: List<String>) = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 
-        val storage = runtime.metadata.module("Identity").storage("IdentityOf")
+        val storage = runtime.metadata.module("Staking").storage("SlashingSpans")
         val fullKeys = storage.storageKeys(runtime, accountIdsHex)
 
         val activeEraIndex = getActiveEraIndex()

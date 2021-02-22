@@ -8,22 +8,23 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sort
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.StakeSorting
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.math.BigInteger
 
-private const val MAX_SUBSCRIBERS = 64
+class RecommendationSettingsProvider(
+    maximumRewardedNominators: BigInteger
+) {
 
-private val ALL_FILTERS = listOf(
-    NotSlashedFilter,
-    HasIdentityFilter,
-    NotOverSubscribedFilter(MAX_SUBSCRIBERS)
-)
+    private val allFilters = listOf(
+        NotSlashedFilter,
+        HasIdentityFilter,
+        NotOverSubscribedFilter(maximumRewardedNominators.toInt())
+    )
 
-private val ALL_SORTINGS = listOf(
-    APYSorting,
-    StakeSorting,
-    CommissionSorting
-)
-
-class RecommendationSettingsProvider {
+    private val allSortings = listOf(
+        APYSorting,
+        StakeSorting,
+        CommissionSorting
+    )
 
     private val settingsFlow = MutableStateFlow(defaultSettings())
 
@@ -33,13 +34,13 @@ class RecommendationSettingsProvider {
 
     fun observeRecommendationSettings(): Flow<RecommendationSettings> = settingsFlow
 
-    fun getAllFilters(): List<RecommendationFilter> = ALL_FILTERS
+    fun getAllFilters(): List<RecommendationFilter> = allFilters
 
-    fun getAllSortings(): List<RecommendationSorting> = ALL_SORTINGS
+    fun getAllSortings(): List<RecommendationSorting> = allSortings
 
-    private fun defaultSettings(): RecommendationSettings {
+    fun defaultSettings(): RecommendationSettings {
         return RecommendationSettings(
-            filters = ALL_FILTERS,
+            filters = allFilters,
             sorting = APYSorting
         )
     }

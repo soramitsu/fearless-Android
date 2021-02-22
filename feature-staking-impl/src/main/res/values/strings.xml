@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="staking_selected_accounts_mask">Accounts(%d)</string>
+
+    <string name="staking_recommended_validators_title">Recommended validators</string>
+    <string name="staking_recommended_validators_description">These validators will have maximum profit for you and less chances of scam or fail.</string>
+    <string name="common_learn_more">Learn more</string>
+    <string name="staking_custom_validators_title">Select custom validators</string>
+    <string name="staking_recommended_validators_apy">Estimated reward, APY</string>
+</resources>

@@ -20,7 +20,7 @@
     <fragment
         android:id="@+id/stackingFragment"
         tools:layout="@layout/fragment_coming_soon"
-        android:name="jp.co.soramitsu.app.root.presentation.main.coming_soon.ComingSoonFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.RecommendedValidatorsFragment"
         android:label="StackingFragment" />
 
     <fragment

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    tools:background="@color/black">
+
+    <ImageView
+        android:id="@+id/itemValidatorIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="16dp"
+        tools:src="@color/colorAccent" />
+
+    <TextView
+        android:id="@+id/itemValidatorName"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="16dp"
+        android:layout_weight="1"
+        android:singleLine="true"
+        android:ellipsize="middle"
+        tools:text="SUPERSYMMETRY" />
+
+    <TextView
+        android:id="@+id/itemValidatorApy"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        tools:text="17.81%" />
+
+    <ImageView
+        android:id="@+id/itemValidatorInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="12dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp"
+        android:src="@drawable/ic_info_grey_24" />
+</LinearLayout>

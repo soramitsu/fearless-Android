@@ -27,6 +27,8 @@ android {
 
         buildConfigField "String", "POLKSASCAN_TRANSACTION_TEMPLATE", "\"https://polkascan.io/%1\$s/extrinsic/%2\$s\""
         buildConfigField "String", "POLKSASCAN_ACCOUNT_TEMPLATE", "\"https://polkascan.io/%1\$s/account/%2\$s\""
+
+        buildConfigField "String", "STAKING_LEARN_MORE", "\"https://wiki.polkadot.network/docs/en/learn-nominator\""
     }
 
     buildTypes {
