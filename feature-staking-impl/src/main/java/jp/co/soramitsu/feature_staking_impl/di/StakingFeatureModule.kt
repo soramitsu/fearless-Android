@@ -25,13 +25,13 @@ class StakingFeatureModule {
         storageCache: StorageCache,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         bulkRetriever: BulkRetriever
-    ) : StakingRepository = StakingRepositoryImpl(storageCache, runtimeProperty, bulkRetriever)
+    ): StakingRepository = StakingRepositoryImpl(storageCache, runtimeProperty, bulkRetriever)
 
     @Provides
     @FeatureScope
     fun provideStakingInteractor(
         accountRepository: AccountRepository
-    ) : StakingInteractor = StakingInteractorImpl(accountRepository)
+    ): StakingInteractor = StakingInteractorImpl(accountRepository)
 
     @Provides
     @FeatureScope

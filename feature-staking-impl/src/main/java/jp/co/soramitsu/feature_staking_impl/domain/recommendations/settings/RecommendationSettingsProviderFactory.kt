@@ -13,18 +13,16 @@ class RecommendationSettingsProviderFactory(
     private var instance: RecommendationSettingsProvider? = null
 
     @Synchronized
-    suspend fun get() : RecommendationSettingsProvider {
-        if (instance != null) {
-            return instance!!
-        }
-        
+    suspend fun get(): RecommendationSettingsProvider {
+        if (instance != null) return instance!!
+
         val runtime = runtimeProperty.get()
 
         val constant = runtime.metadata.module("Staking").constant("MaxNominatorRewardedPerValidator")
         val maxNominatorRewardedPerValidator = bindMaximumRewardedNominators(constant, runtime)
-        
+
         instance = RecommendationSettingsProvider(maxNominatorRewardedPerValidator)
-        
+
         return instance!!
     }
 }

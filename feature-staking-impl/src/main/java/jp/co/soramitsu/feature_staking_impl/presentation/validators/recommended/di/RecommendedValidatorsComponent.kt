@@ -17,9 +17,7 @@ interface RecommendedValidatorsComponent {
     @Subcomponent.Factory
     interface Factory {
 
-        fun create(
-            @BindsInstance fragment: Fragment,
-        ): RecommendedValidatorsComponent
+        fun create(@BindsInstance fragment: Fragment): RecommendedValidatorsComponent
     }
 
     fun inject(fragment: RecommendedValidatorsFragment)

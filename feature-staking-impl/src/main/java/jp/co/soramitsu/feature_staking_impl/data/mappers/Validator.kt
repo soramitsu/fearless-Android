@@ -4,7 +4,7 @@ import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.ValidatorModel
 
-fun mapValidatorToValidatorModel(validator: Validator, addressModel: AddressModel) : ValidatorModel {
+fun mapValidatorToValidatorModel(validator: Validator, addressModel: AddressModel): ValidatorModel {
     return with(validator) {
         ValidatorModel(
             slashed = slashed,

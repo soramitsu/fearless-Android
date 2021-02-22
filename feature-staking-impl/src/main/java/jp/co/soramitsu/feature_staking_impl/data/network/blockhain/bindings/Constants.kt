@@ -21,13 +21,13 @@ fun bindSlashDeferDuration(
 fun bindMaximumRewardedNominators(
     constant: Constant,
     runtime: RuntimeSnapshot
-) : BigInteger = bindNumberConstant(constant, runtime)
+): BigInteger = bindNumberConstant(constant, runtime)
 
 @HelperBinding
 fun bindNumberConstant(
     constant: Constant,
     runtime: RuntimeSnapshot
-) : BigInteger {
+): BigInteger {
     val decoded = constant.type?.fromByteArrayOrNull(runtime, constant.value) ?: incompatible()
 
     return decoded as? BigInteger ?: incompatible()

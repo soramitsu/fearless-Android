@@ -14,7 +14,8 @@ import kotlinx.android.synthetic.main.item_validator.view.itemValidatorIcon
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorInfo
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorName
 
-class ValidatorsAdapter(private val itemHandler: ItemAssetHandler
+class ValidatorsAdapter(
+    private val itemHandler: ItemAssetHandler
 ) : ListAdapter<ValidatorModel, ValidatorViewHolder>(ValidatorDiffCallback) {
 
     interface ItemAssetHandler {

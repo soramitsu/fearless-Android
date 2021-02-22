@@ -38,7 +38,7 @@ fun BigDecimal.formatAsChange(): String {
     return prefix + formatAsPercentage()
 }
 
-fun BigDecimal.formatAsPercentage() : String {
+fun BigDecimal.formatAsPercentage(): String {
     val formatted = format(precision = 2)
 
     return "$formatted%"

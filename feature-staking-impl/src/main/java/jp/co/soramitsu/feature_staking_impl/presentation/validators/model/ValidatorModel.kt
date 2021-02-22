@@ -6,6 +6,8 @@ import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
 import java.math.BigDecimal
 
+private val PERCENT_MULTIPLIER = 100.toBigDecimal()
+
 data class ValidatorModel(
     val slashed: Boolean,
     val identity: Identity?,
@@ -16,8 +18,7 @@ data class ValidatorModel(
 
     val title = identity?.display ?: address
 
-    val apy = (100.toBigDecimal() * apyDecimal).formatAsPercentage()
-
+    val apy = (PERCENT_MULTIPLIER * apyDecimal).formatAsPercentage()
 }
 
 object ValidatorDiffCallback : DiffUtil.ItemCallback<ValidatorModel>() {

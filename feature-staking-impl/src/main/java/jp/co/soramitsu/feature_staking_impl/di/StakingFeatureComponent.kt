@@ -23,7 +23,7 @@ import jp.co.soramitsu.runtime.di.RuntimeApi
 @FeatureScope
 interface StakingFeatureComponent : StakingFeatureApi {
 
-    fun recommendedValidatorsComponentFactory() : RecommendedValidatorsComponent.Factory
+    fun recommendedValidatorsComponentFactory(): RecommendedValidatorsComponent.Factory
 
     @Component.Factory
     interface Factory {

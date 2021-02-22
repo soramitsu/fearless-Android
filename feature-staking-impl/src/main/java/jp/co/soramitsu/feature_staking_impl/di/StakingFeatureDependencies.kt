@@ -20,5 +20,5 @@ interface StakingFeatureDependencies {
 
     fun addressIconGenerator(): AddressIconGenerator
 
-    fun appLinksProvider() : AppLinksProvider
+    fun appLinksProvider(): AppLinksProvider
 }
