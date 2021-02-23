@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_recommended_validators_title">Рекомендовані валідатори</string>
+    <string name="staking_recommended_validators_description">Ці валідатори матимуть для вас максимальний прибуток і менше шансів на шахрайство або невдачу.</string>
+    <string name="common_learn_more">Вчи більше</string>
+    <string name="staking_custom_validators_title">Виберіть власні валідатори</string>
+    <string name="staking_recommended_validators_apy">Орієнтовна винагорода, APY</string>
+    <string name="staking_selected_accounts_mask">Рахунки ( %d )</string>
+
+    <string name="runtime_update_failure_description">Не вдалося оновити інформацію про час роботи блокчейну. Деякі функції можуть не працювати.</string>
+    <string name="runtime_update_not_actual_title">Застаріла конфігурація</string>
+    <string name="runtime_update_not_actual_description">Не вдається отримати найновішу інформацію про час роботи блокчейну, буде використана застаріла версія. Деякі функції можуть не працювати.</string>
+    <string name="runtime_update_failure_title">Помилка виконання під час виконання</string>
+
     <string name="export_seed_with_derivation" formatted="false">Мережа: %s\nНасіння: %s\nШлях виведення: %s</string>
     <string name="export_seed_without_derivation" formatted="false">Мережа: %s\nНасіння: %s</string>
     <string name="export_mnemonic_without_derivation" formatted="false">Мережа: %s\nМнемоніка: %s</string>

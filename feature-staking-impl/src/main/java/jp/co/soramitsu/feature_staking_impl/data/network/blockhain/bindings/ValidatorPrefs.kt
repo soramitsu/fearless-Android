@@ -6,10 +6,9 @@ import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import java.math.BigDecimal
 import java.math.BigInteger
-
-typealias Commission = BigDecimal
 
 private const val PERBILL_MANTISSA_SIZE = 9
 
@@ -19,7 +18,7 @@ fun bindPerbill(value: BigInteger): BigDecimal {
 }
 
 @UseCaseBinding
-fun bindValidatorPrefs(scale: String, runtime: RuntimeSnapshot): Commission {
+fun bindValidatorPrefs(scale: String, runtime: RuntimeSnapshot): ValidatorPrefs {
     val type = runtime.typeRegistry["ValidatorPrefs"] ?: incompatible()
     val decoded = type.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
 
