@@ -53,13 +53,11 @@
                     android:id="@+id/balanceListAvatar"
                     android:layout_width="@dimen/avatar_size"
                     android:layout_height="@dimen/avatar_size"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="28dp"
                     android:layout_marginEnd="16dp"
-                    android:layout_marginBottom="8dp"
                     android:src="@color/white"
-                    app:layout_constraintBottom_toBottomOf="@+id/balanceListTotalAmount"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/balanceListTotalTitle" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/balanceListAssets"

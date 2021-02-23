@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:background="@color/black"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <TextView
+        android:id="@+id/stakingTitle"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/common_amount"
+        android:textColor="@color/white_50"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/stakingNetworkBalance"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        tools:text="$418,9"
+        android:textColor="@color/white_50"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/stakingNetworkIcon"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="16dp"
+        android:src="@drawable/ic_token_ksm"
+        app:layout_constraintBottom_toBottomOf="@id/stakingNetworkName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/stakingNetworkName" />
+
+    <TextView
+        android:id="@+id/stakingNetworkName"
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:layout_marginTop="8dp"
+        tools:text="KSM"
+        app:layout_constraintStart_toEndOf="@id/stakingNetworkIcon"
+        app:layout_constraintTop_toBottomOf="@id/stakingTitle" />
+
+    <EditText
+        android:id="@+id/stakingAmountInput"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:background="@null"
+        android:inputType="numberDecimal"
+        tools:text="10"
+        android:textCursorDrawable="@null"
+        style="@style/TextAppearance.Soramitsu.Header4"
+        app:layout_constraintBottom_toBottomOf="@id/stakingNetworkName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/stakingNetworkName" />
+
+    <TextView
+        android:id="@+id/stakingBalance"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@null"
+        tools:text="Balance: 100 KSM"
+        android:textColor="@color/white_50"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stakingNetworkName"
+        app:layout_goneMarginTop="8dp" />
+
+</merge>

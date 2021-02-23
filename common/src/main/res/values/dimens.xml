@@ -19,4 +19,6 @@
     <dimen name="x3">24dp</dimen>
 
     <dimen name="element_chooser_padding">16dp</dimen>
+
+    <dimen name="avatar_size">40dp</dimen>
 </resources>

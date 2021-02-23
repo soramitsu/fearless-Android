@@ -255,4 +255,5 @@
     <string name="common_options_title">Select an option</string>
     <string name="wallet_send_phishing_warning_title">Scam alert</string>
     <string name="wallet_send_phishing_warning_text">Following address: %s is known to be used in phishing activities, thus we are not recommending sending tokens to that address. Would you like to proceed anyway?</string>
+    <string name="common_balance_format">Balance: %s</string>
 </resources>

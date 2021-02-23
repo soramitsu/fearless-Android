@@ -227,4 +227,5 @@
     <string name="buy_completed">Покупка началась! Подождите до 60 минут. Вы можете отслеживать статус по электронной почте.</string>
     <string name="wallet_send_phishing_warning_title">Предупреждение о мошенничестве</string>
     <string name="wallet_send_phishing_warning_text">Следующий адрес: %s как известно, используется для фишинга, поэтому мы не рекомендуем отправлять токены на этот адрес. Вы все равно хотите продолжить?</string>
+    <string name="common_balance_format">Баланс: %s</string>
 </resources>

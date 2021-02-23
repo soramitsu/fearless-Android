@@ -228,4 +228,5 @@
     <string name="buy_completed">Покупка началась! Подождите до 60 минут. Вы можете отслеживать статус по электронной почте.</string>
     <string name="wallet_send_phishing_warning_title">Мутлыҡ тураһында иҫкәртеү</string>
     <string name="wallet_send_phishing_warning_text">Сираттағы адрес: %s фишинга ҡулланыла, шуға күрә беҙ ошо адресҡа ебәрергә кәңәш итмәйбеҙ. Һеҙ барыбер дауам итергә теләйһегеҙ?</string>
+    <string name="common_balance_format">Баланс: %s</string>
 </resources>

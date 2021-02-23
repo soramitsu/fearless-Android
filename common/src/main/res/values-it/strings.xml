@@ -226,4 +226,5 @@
     <string name="buy_completed">Acquisto avviato! Attendi fino a 60 minuti. Puoi tenere traccia dello stato sull\'e-mail.</string>
     <string name="wallet_send_phishing_warning_title">Avviso di truffa</string>
     <string name="wallet_send_phishing_warning_text">Il seguente indirizzo: %s è noto per essere utilizzato in attività di phishing, quindi non consigliamo di inviare token a tale indirizzo. Vuoi continuare comunque?</string>
+    <string name="common_balance_format">Saldo: %s</string>
 </resources>
