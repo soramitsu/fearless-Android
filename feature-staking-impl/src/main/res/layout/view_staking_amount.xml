@@ -26,17 +26,17 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        tools:text="$418,9"
         android:textColor="@color/white_50"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="$418,9" />
 
     <ImageView
         android:id="@+id/stakingNetworkIcon"
         android:layout_width="18dp"
         android:layout_height="18dp"
         android:layout_marginStart="16dp"
-        android:src="@drawable/ic_token_ksm"
+        tools:src="@drawable/ic_token_ksm"
         app:layout_constraintBottom_toBottomOf="@id/stakingNetworkName"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/stakingNetworkName" />
@@ -48,23 +48,24 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
         android:layout_marginTop="8dp"
-        tools:text="KSM"
         app:layout_constraintStart_toEndOf="@id/stakingNetworkIcon"
-        app:layout_constraintTop_toBottomOf="@id/stakingTitle" />
+        app:layout_constraintTop_toBottomOf="@id/stakingTitle"
+        tools:text="KSM" />
 
     <EditText
         android:id="@+id/stakingAmountInput"
+        style="@style/TextAppearance.Soramitsu.Header4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:background="@null"
         android:inputType="numberDecimal"
-        tools:text="10"
+        android:text="0"
         android:textCursorDrawable="@null"
-        style="@style/TextAppearance.Soramitsu.Header4"
         app:layout_constraintBottom_toBottomOf="@id/stakingNetworkName"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/stakingNetworkName" />
+        app:layout_constraintTop_toTopOf="@id/stakingNetworkName"
+        tools:text="10" />
 
     <TextView
         android:id="@+id/stakingBalance"
@@ -74,12 +75,11 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:background="@null"
-        tools:text="Balance: 100 KSM"
         android:textColor="@color/white_50"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/stakingNetworkName"
-        app:layout_goneMarginTop="8dp" />
+        app:layout_goneMarginTop="8dp"
+        tools:text="Balance: 100 KSM" />
 
 </merge>

@@ -227,4 +227,5 @@
     <string name="wallet_send_phishing_warning_title">Alerta de fraude</string>
     <string name="wallet_send_phishing_warning_text">Siguiente dirección: Se sabe que %s se usa en actividades de phishing, por lo que no recomendamos enviar tokens a esa dirección. ¿Le gustaría continuar de todos modos?</string>
     <string name="common_balance_format">Saldo: %s</string>
+    <string name="staking_start_title">Empiece a apostar</string>
 </resources>

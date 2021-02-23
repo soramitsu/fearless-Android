@@ -26,7 +26,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
     override fun initViews() {
         val background = with(requireContext()) {
-            addRipple(getCutCornerDrawable())
+            addRipple(getCutCornerDrawable(R.color.blurColor))
         }
         stakingNetworkInfo.background = background
     }

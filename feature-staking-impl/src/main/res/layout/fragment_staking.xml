@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/stakingContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -30,17 +31,21 @@
 
     <TextView
         android:id="@+id/stakingNetworkInfo"
+        style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:text="Kusama network info"
+        android:includeFontPadding="false"
+        android:padding="16dp"
+        tools:text="Kusama network info"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/stakingTitle" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.EstimateEarningView
+        android:id="@+id/stakingEstimate"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -49,5 +54,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/stakingNetworkInfo" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/startStakingBtn"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/staking_start_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stakingEstimate" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

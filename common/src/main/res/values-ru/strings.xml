@@ -228,4 +228,5 @@
     <string name="wallet_send_phishing_warning_title">Предупреждение о мошенничестве</string>
     <string name="wallet_send_phishing_warning_text">Следующий адрес: %s как известно, используется для фишинга, поэтому мы не рекомендуем отправлять токены на этот адрес. Вы все равно хотите продолжить?</string>
     <string name="common_balance_format">Баланс: %s</string>
+    <string name="staking_start_title">Начать стекинг</string>
 </resources>
