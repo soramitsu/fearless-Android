@@ -35,10 +35,10 @@ class QueryStorageAtRequest(
 
 class QueryStorageAtResponse(
     val block: String,
-    val changes: List<List<String>>
+    val changes: List<List<String?>>
 ) {
-    fun changesAsMap(): Map<String, String> {
-        return changes.map { it[0] to it[1] }.toMap()
+    fun changesAsMap(): Map<String, String?> {
+        return changes.map { it[0]!! to it[1] }.toMap()
     }
 }
 
@@ -71,7 +71,7 @@ class BulkRetriever(
         result
     }
 
-    suspend fun queryKeys(keys: List<String>): Map<String, String> = withContext(Dispatchers.IO) {
+    suspend fun queryKeys(keys: List<String>): Map<String, String?> = withContext(Dispatchers.IO) {
         val chunks = keys.chunked(pageSize)
 
         chunks.fold(mutableMapOf()) { acc, chunk ->

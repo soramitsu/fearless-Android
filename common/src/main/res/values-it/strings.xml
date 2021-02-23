@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_recommended_validators_title">Validatori consigliati</string>
+    <string name="staking_recommended_validators_description">Questi validatori avranno il massimo profitto per te e meno possibilità di truffa o fallimento.</string>
+    <string name="common_learn_more">Per saperne di più</string>
+    <string name="staking_custom_validators_title">Seleziona validatori personalizzati</string>
+    <string name="staking_recommended_validators_apy">Ricompensa stimata, APY</string>
+    <string name="staking_selected_accounts_mask">Account ( %d )</string>
+
+    <string name="runtime_update_failure_description">Impossibile aggiornare le informazioni sul runtime blockchain. Alcune funzionalità potrebbero non funzionare.</string>
+    <string name="runtime_update_not_actual_title">Configurazione obsoleta</string>
+    <string name="runtime_update_not_actual_description">Impossibile recuperare le informazioni più recenti sul runtime blockchain, verrà utilizzata la versione obsoleta. Alcune funzionalità potrebbero non funzionare.</string>
+    <string name="runtime_update_failure_title">Errore di aggiornamento del runtime</string>
+
     <string name="export_seed_with_derivation" formatted="false">Rete: %s\nSeme: %s\nPercorso di derivazione: %s</string>
     <string name="export_seed_without_derivation" formatted="false">Rete: %s\nSeme: %s</string>
     <string name="export_mnemonic_without_derivation" formatted="false">Rete: %s\nMnemonico: %s</string>
