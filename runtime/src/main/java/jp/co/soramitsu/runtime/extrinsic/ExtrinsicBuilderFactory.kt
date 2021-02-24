@@ -38,7 +38,7 @@ class ExtrinsicBuilderFactory(
         account: WalletAccount,
         keypairProvider: KeypairProvider = accountKeypairProvider()
     ): ExtrinsicBuilder {
-        val nonce = substrateCalls.getNonce(account)
+        val nonce = substrateCalls.getNonce(account.address)
         val runtimeVersion = substrateCalls.getRuntimeVersion()
 
         val runtimeConfiguration = account.network.type.runtimeConfiguration

@@ -117,7 +117,7 @@ class WssSubstrateSource(
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
         val accountIdValue = account.address.toAccountId()
 
-        val currentNonce = substrateCalls.getNonce(account)
+        val currentNonce = substrateCalls.getNonce(account.address)
         val genesis = account.network.type.runtimeConfiguration.genesisHash
         val genesisBytes = Hex.decode(genesis)
 
