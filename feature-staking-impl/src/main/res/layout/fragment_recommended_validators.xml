@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/recommendedValidatorsToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:titleText="@string/staking_recommended_validators_title" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/staking_recommended_validators_description"
+        android:textColor="@color/gray1" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:id="@+id/recommendedValidatorLearnMore"
+        android:paddingBottom="12dp"
+        android:background="@drawable/bg_primary_list_item"
+        android:layout_marginTop="12dp"
+        android:paddingEnd="16dp"
+        android:drawableStart="@drawable/ic_fearless"
+        android:drawableEnd="@drawable/ic_arrow_top_right_white_16"
+        android:drawablePadding="16dp"
+        android:text="@string/common_learn_more" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/gray3" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/recommendedValidatorsAccounts"
+            style="@style/TextAppearance.Soramitsu.Body3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:text="@string/profile_accounts_title"
+            android:textAllCaps="true"
+            android:textColor="@color/gray1" />
+
+        <TextView
+            style="@style/TextAppearance.Soramitsu.Body3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginStart="16dp"
+            android:text="@string/staking_recommended_validators_apy"
+            android:textAllCaps="true"
+            android:textColor="@color/gray1" />
+    </FrameLayout>
+
+    <ProgressBar
+        android:id="@+id/recommendedValidatorsProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/white" />
+
+    <androidx.recyclerview.widget.RecyclerView xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/recommendedValidatorsList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="6dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:itemCount="15"
+        tools:listitem="@layout/item_validator" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/recommendedValidatorsNext"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/common_next"
+        android:theme="@style/PinkOverlay"
+        android:visibility="gone" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/recommendedValidatorsSelectCustom"
+        style="@style/Widget.Fearless.Button.Outline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/staking_custom_validators_title" />
+</LinearLayout>

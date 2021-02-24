@@ -7,6 +7,7 @@ import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericEvent
+import jp.co.soramitsu.fearless_utils.runtime.metadata.Module
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
@@ -40,3 +41,7 @@ fun preBinder() = pojo<String>().nonNull()
 
 val GenericEvent.Instance.index
     get() = moduleIndex to eventIndex
+
+fun Module.constant(name: String) = constantOrNull(name) ?: throw NoSuchElementException()
+
+fun Module.constantOrNull(name: String) = constants[name]

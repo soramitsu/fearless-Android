@@ -2,8 +2,9 @@
 <resources>
 
     <style name="Theme.Soramitsu.Fearless" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
 
-<!--        <item name="android:windowTranslucentStatus">true</item>-->
+        <!--        <item name="android:windowTranslucentStatus">true</item>-->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowTranslucentNavigation">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
@@ -29,7 +30,9 @@
         <item name="fontExtraBold">@font/soramitsu_extrabold</item>
         <item name="fontRegular">@font/soramitsu_regular</item>
         <!--fonts-->
-
     </style>
 
+    <style name="PinkOverlay" parent="ThemeOverlay.AppCompat">
+        <item name="colorPrimary">@color/colorAccent</item>
+    </style>
 </resources>

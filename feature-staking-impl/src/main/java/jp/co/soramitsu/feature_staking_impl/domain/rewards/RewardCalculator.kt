@@ -2,21 +2,11 @@ package jp.co.soramitsu.feature_staking_impl.domain.rewards
 
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumBy
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.IndividualExposure
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.math.pow
-
-class Validator(
-    val accountIdHex: String,
-    val totalStake: BigInteger,
-    val ownStake: BigInteger,
-    val nominatorStakes: List<IndividualExposure>,
-    val commission: BigDecimal
-)
 
 private const val PARACHAINS_ENABLED = false
 
@@ -30,11 +20,11 @@ private const val DECAY_RATE = 0.05
 private const val DAYS_IN_YEAR = 365
 
 class RewardCalculator(
-    val validators: List<Validator>,
+    val validators: List<RewardCalculationTarget>,
     val totalIssuance: BigInteger
 ) {
 
-    private val totalStaked = validators.sumBy(Validator::totalStake).toDouble()
+    private val totalStaked = validators.sumBy(RewardCalculationTarget::totalStake).toDouble()
 
     private val stakedPortion = totalStaked / totalIssuance.toDouble()
 
@@ -45,7 +35,7 @@ class RewardCalculator(
     private val averageValidatorRewardPercentage = yearlyInflation / stakedPortion
 
     private val apyByValidator = validators.associateBy(
-        keySelector = Validator::accountIdHex,
+        keySelector = RewardCalculationTarget::accountIdHex,
         valueTransform = ::calculateValidatorAPY
     )
 
@@ -57,7 +47,7 @@ class RewardCalculator(
         return averageValidatorRewardPercentage * (1 - medianCommission)
     }
 
-    private fun calculateValidatorAPY(validator: Validator): Double {
+    private fun calculateValidatorAPY(validator: RewardCalculationTarget): Double {
         val yearlyRewardPercentage = averageValidatorRewardPercentage * averageValidatorStake / validator.totalStake.toDouble()
 
         return yearlyRewardPercentage * (1 - validator.commission.toDouble())
@@ -71,8 +61,8 @@ class RewardCalculator(
         }
     }
 
-    fun validatorAPY(validatorIdHex: String): BigDecimal {
-        return apyByValidator[validatorIdHex]?.toBigDecimal() ?: error("Validator $validatorIdHex was not found")
+    fun getApyFor(targetIdHex: String): BigDecimal {
+        return apyByValidator[targetIdHex]?.toBigDecimal() ?: error("Validator $targetIdHex was not found")
     }
 
     suspend fun calculateReturns(
@@ -89,9 +79,9 @@ class RewardCalculator(
         amount: Double,
         days: Int,
         isCompound: Boolean,
-        validatorId: AccountId
+        targetIdHex: String
     ): BigDecimal = withContext(Dispatchers.Default) {
-        val validatorAPY = apyByValidator[validatorId] ?: error("Validator with $validatorId was not found")
+        val validatorAPY = apyByValidator[targetIdHex] ?: error("Validator with $targetIdHex was not found")
         val dailyPercentage = validatorAPY / DAYS_IN_YEAR
 
         calculateReward(amount, days, dailyPercentage, isCompound).toBigDecimal()

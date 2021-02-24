@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
+import jp.co.soramitsu.common.utils.formatDateTime
+import jp.co.soramitsu.common.utils.formatDaysSinceEpoch
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -14,8 +16,6 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
-import jp.co.soramitsu.feature_wallet_impl.util.formatDateTime
-import jp.co.soramitsu.feature_wallet_impl.util.formatDaysSinceEpoch
 import kotlinx.android.synthetic.main.item_day_header.view.itemDayHeader
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAddress
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAmount

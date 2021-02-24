@@ -50,7 +50,8 @@ class NetworkModule {
             privacyUrl = BuildConfig.PRIVACY_URL,
             externalAnalyzerTemplates = externalAnalyzerTemplates,
             roadMapUrl = BuildConfig.ROADMAP_URL,
-            devStatusUrl = BuildConfig.DEV_STATUS_URL
+            devStatusUrl = BuildConfig.DEV_STATUS_URL,
+            stakingLearnMore = BuildConfig.STAKING_LEARN_MORE
         )
     }
 

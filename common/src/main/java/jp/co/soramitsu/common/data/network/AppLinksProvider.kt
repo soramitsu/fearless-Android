@@ -10,7 +10,9 @@ class AppLinksProvider(
     private val externalAnalyzerTemplates: Map<ExternalAnalyzer, ExternalAnalyzerLinks>,
 
     val roadMapUrl: String,
-    val devStatusUrl: String
+    val devStatusUrl: String,
+
+    val stakingLearnMore: String
 ) {
 
     fun getExternalTransactionUrl(

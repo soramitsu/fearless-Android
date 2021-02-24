@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mix
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.utils.applyFilters
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
@@ -71,7 +72,7 @@ class TransactionHistoryProvider(
 
         scope.launch {
             val filtered = withContext(Dispatchers.Default) {
-                currentTransactions.filter(filters)
+                currentTransactions.applyFilters(filters)
             }
 
             transactionsLiveData.value = filtered
@@ -126,7 +127,7 @@ class TransactionHistoryProvider(
             val addressModel = createIcon(transaction.displayAddress, transaction.accountName)
 
             TransactionHistoryElement(addressModel, transaction)
-        }.filter(filters)
+        }.applyFilters(filters)
 
         regroup(filteredHistoryElements, reset)
     }
@@ -146,9 +147,5 @@ class TransactionHistoryProvider(
 
     private suspend fun createIcon(address: String, accountName: String?): AddressModel {
         return iconGenerator.createAddressModel(address, ICON_SIZE_DP, accountName)
-    }
-
-    private fun List<TransactionHistoryElement>.filter(filters: List<TransactionFilter>): List<TransactionHistoryElement> {
-        return filter { item -> filters.all { filter -> filter.shouldInclude(item) } }
     }
 }

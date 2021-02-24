@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_recommended_validators_title">推奨されるバリデータ</string>
+    <string name="staking_recommended_validators_description">これらのバリデーターはあなたにとって最大の利益をもたらし、詐欺や失敗の可能性を減らします。</string>
+    <string name="common_learn_more">もっと詳しく知る</string>
+    <string name="staking_custom_validators_title">カスタムバリデーターを選択する</string>
+    <string name="staking_recommended_validators_apy">推定報酬、APY</string>
+    <string name="staking_selected_accounts_mask">アカウント（ %d ）</string>
+
+    <string name="runtime_update_failure_description">ブロックチェーンランタイムに関する情報の更新に失敗しました。一部の機能が動作しない場合があります。</string>
+    <string name="runtime_update_not_actual_title">古い構成</string>
+    <string name="runtime_update_not_actual_description">ブロックチェーンランタイムに関する最新情報を取得できません。古いバージョンが使用されます。一部の機能が動作しない場合があります。</string>
+    <string name="runtime_update_failure_title">ランタイム更新の失敗</string>
+
     <string name="export_seed_with_derivation" formatted="false">ネットワーク： %s\nシード： %s\n派生パス： %s</string>
     <string name="export_seed_without_derivation" formatted="false">ネットワーク： %s\nシード： %s</string>
     <string name="export_mnemonic_without_derivation" formatted="false">ネットワーク： %s\nニーモニック： %s</string>
