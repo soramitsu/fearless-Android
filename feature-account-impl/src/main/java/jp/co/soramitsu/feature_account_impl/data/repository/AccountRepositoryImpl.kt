@@ -31,10 +31,10 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
-import jp.co.soramitsu.feature_account_api.domain.model.JsonFormer
+import jp.co.soramitsu.core.model.JsonFormer
 import jp.co.soramitsu.feature_account_api.domain.model.Language
-import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
-import jp.co.soramitsu.feature_account_api.domain.model.WithJson
+import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.core.model.WithJson
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import kotlinx.coroutines.Dispatchers

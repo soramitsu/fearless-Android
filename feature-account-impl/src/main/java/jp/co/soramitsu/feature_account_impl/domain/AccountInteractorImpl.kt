@@ -8,7 +8,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.Language
-import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
+import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
 import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
 import kotlinx.coroutines.Dispatchers

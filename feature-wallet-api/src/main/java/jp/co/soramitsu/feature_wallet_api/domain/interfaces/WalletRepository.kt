@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
+import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -12,15 +13,15 @@ import java.math.BigDecimal
 
 interface WalletRepository {
 
-    fun assetsFlow(): Flow<List<Asset>>
+    fun assetsFlow(account: WalletAccount): Flow<List<Asset>>
 
-    suspend fun syncAssetsRates()
+    suspend fun syncAssetsRates(account: WalletAccount)
 
-    fun assetFlow(type: Token.Type): Flow<Asset>
+    fun assetFlow(account: WalletAccount, type: Token.Type): Flow<Asset>
 
-    suspend fun getAsset(type: Token.Type): Asset?
+    suspend fun getAsset(account: WalletAccount, type: Token.Type): Asset?
 
-    suspend fun syncAsset(type: Token.Type)
+    suspend fun syncAsset(account: WalletAccount, type: Token.Type)
 
     fun transactionsFirstPageFlow(currentAccount: WalletAccount, pageSize: Int, accounts: List<WalletAccount>): Flow<List<Transaction>>
 
@@ -28,13 +29,13 @@ interface WalletRepository {
 
     suspend fun getTransactionPage(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction>
 
-    suspend fun getContacts(query: String): Set<String>
+    suspend fun getContacts(account: WalletAccount, query: String): Set<String>
 
-    suspend fun getTransferFee(transfer: Transfer): Fee
+    suspend fun getTransferFee(account: WalletAccount, transfer: Transfer): Fee
 
-    suspend fun performTransfer(transfer: Transfer, fee: BigDecimal)
+    suspend fun performTransfer(account: WalletAccount, signingData: SigningData, transfer: Transfer, fee: BigDecimal)
 
-    suspend fun checkTransferValidity(transfer: Transfer): TransferValidityStatus
+    suspend fun checkTransferValidity(account: WalletAccount, transfer: Transfer): TransferValidityStatus
 
     suspend fun updatePhishingAddresses()
 

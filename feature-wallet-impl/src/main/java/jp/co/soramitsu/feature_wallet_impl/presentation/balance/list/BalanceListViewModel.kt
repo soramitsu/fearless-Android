@@ -9,8 +9,8 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixin
@@ -126,7 +126,7 @@ class BalanceListViewModel(
             .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
     }
 
-    private suspend fun generateAddressModel(account: Account, sizeInDp: Int): AddressModel {
+    private suspend fun generateAddressModel(account: WalletAccount, sizeInDp: Int): AddressModel {
         return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
     }
 

@@ -12,11 +12,11 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.multiAd
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-typealias KeypairProvider = suspend (Account) -> Keypair
+typealias KeypairProvider = suspend (WalletAccount) -> Keypair
 
 class ExtrinsicBuilderFactory(
     private val accountRepository: AccountRepository,
@@ -25,7 +25,7 @@ class ExtrinsicBuilderFactory(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
 ) {
 
-    fun accountKeypairProvider(): KeypairProvider = { account: Account ->
+    fun accountKeypairProvider(): KeypairProvider = { account: WalletAccount ->
         val securitySource = accountRepository.getSecuritySource(account.address)
         mapSigningDataToKeypair(securitySource.signingData)
     }
@@ -35,10 +35,10 @@ class ExtrinsicBuilderFactory(
     }
 
     suspend fun create(
-        account: Account,
+        account: WalletAccount,
         keypairProvider: KeypairProvider = accountKeypairProvider()
     ): ExtrinsicBuilder {
-        val nonce = substrateCalls.getNonce(account)
+        val nonce = substrateCalls.getNonce(account.address)
         val runtimeVersion = substrateCalls.getRuntimeVersion()
 
         val runtimeConfiguration = account.network.type.runtimeConfiguration
@@ -54,7 +54,7 @@ class ExtrinsicBuilderFactory(
         )
     }
 
-    private suspend fun generateFakeKeyPair(account: Account) = withContext(Dispatchers.Default) {
+    private suspend fun generateFakeKeyPair(account: WalletAccount) = withContext(Dispatchers.Default) {
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
         val emptySeed = ByteArray(32) { 1 }
 
