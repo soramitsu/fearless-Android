@@ -20,7 +20,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/stakingNetworkBalance"
+        android:id="@+id/stakingAssetDollarAmount"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -32,23 +32,23 @@
         tools:text="$418,9" />
 
     <ImageView
-        android:id="@+id/stakingNetworkIcon"
+        android:id="@+id/stakingAssetImage"
         android:layout_width="18dp"
         android:layout_height="18dp"
         android:layout_marginStart="16dp"
         tools:src="@drawable/ic_token_ksm"
-        app:layout_constraintBottom_toBottomOf="@id/stakingNetworkName"
+        app:layout_constraintBottom_toBottomOf="@id/stakingAssetToken"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/stakingNetworkName" />
+        app:layout_constraintTop_toTopOf="@id/stakingAssetToken" />
 
     <TextView
-        android:id="@+id/stakingNetworkName"
+        android:id="@+id/stakingAssetToken"
         style="@style/TextAppearance.Soramitsu.Header4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintStart_toEndOf="@id/stakingNetworkIcon"
+        app:layout_constraintStart_toEndOf="@id/stakingAssetImage"
         app:layout_constraintTop_toBottomOf="@id/stakingTitle"
         tools:text="KSM" />
 
@@ -62,13 +62,13 @@
         android:inputType="numberDecimal"
         android:text="0"
         android:textCursorDrawable="@null"
-        app:layout_constraintBottom_toBottomOf="@id/stakingNetworkName"
+        app:layout_constraintBottom_toBottomOf="@id/stakingAssetToken"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/stakingNetworkName"
+        app:layout_constraintTop_toTopOf="@id/stakingAssetToken"
         tools:text="10" />
 
     <TextView
-        android:id="@+id/stakingBalance"
+        android:id="@+id/stakingAssetBalance"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -78,7 +78,7 @@
         android:textColor="@color/white_50"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/stakingNetworkName"
+        app:layout_constraintTop_toBottomOf="@id/stakingAssetToken"
         app:layout_goneMarginTop="8dp"
         tools:text="Balance: 100 KSM" />
 

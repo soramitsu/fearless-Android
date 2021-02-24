@@ -8,7 +8,10 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_staking_amount.view.stakingNetworkIcon
+import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetBalance
+import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetDollarAmount
+import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetImage
+import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetToken
 
 class StakingAmountView @JvmOverloads constructor(
     context: Context,
@@ -25,6 +28,8 @@ class StakingAmountView @JvmOverloads constructor(
                 R.color.gray2
             ))
         }
+
+        attrs?.let { applyAttributes(it) }
     }
 
     private fun applyAttributes(attributeSet: AttributeSet) {
@@ -33,9 +38,19 @@ class StakingAmountView @JvmOverloads constructor(
         typedArray.recycle()
     }
 
-    fun setNetworkDrawable(icon: Drawable) {
-        stakingNetworkIcon.setImageDrawable(icon)
+    fun setAssetImage(image: Drawable) {
+        stakingAssetImage.setImageDrawable(image)
     }
 
+    fun setAssetName(name: String) {
+        stakingAssetToken.text = name
+    }
 
+    fun setAssetBalance(balance: String) {
+        stakingAssetBalance.text = balance
+    }
+
+    fun setAssetBalanceDollarAmount(dollarAmount: String) {
+        stakingAssetDollarAmount.text = dollarAmount
+    }
 }
