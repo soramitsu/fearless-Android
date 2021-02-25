@@ -19,6 +19,8 @@ private const val DECAY_RATE = 0.05
 
 private const val DAYS_IN_YEAR = 365
 
+private val PERCENTAGE_MULTIPLIER = 100.toBigDecimal()
+
 class PeriodReturns(
     val gainAmount: BigDecimal,
     val gainPercentage: BigDecimal
@@ -107,7 +109,7 @@ class RewardCalculator(
         val gainPercentage = if (amount == 0.0) {
             BigDecimal.ZERO
         } else {
-            gainAmount / amount.toBigDecimal()
+            gainAmount / amount.toBigDecimal() * PERCENTAGE_MULTIPLIER
         }
 
         return PeriodReturns(
@@ -121,6 +123,6 @@ class RewardCalculator(
     }
 
     private fun calculateCompoundReward(amount: Double, days: Int, dailyPercentage: Double): Double {
-        return amount * ((1 + dailyPercentage).pow(days))
+        return amount * ((1 + dailyPercentage).pow(days)) - amount
     }
 }

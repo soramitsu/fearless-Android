@@ -13,18 +13,19 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.AssetModel
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.ReturnsModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.TokenModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -52,12 +53,17 @@ class StakingViewModel(
 
     private val currentAsset = interactor.getCurrentAsset()
 
-    private val stakingReturnsFlow = MutableSharedFlow<StakingReturns>()
+    private val enteredAmountFlow = MutableStateFlow(BigDecimal.ONE)
 
     private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
 
     init {
-        currentAsset.combine(stakingReturnsFlow) { asset, returns ->
+
+        currentAsset.combine(enteredAmountFlow) { asset, amount ->
+            val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
+            val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
+            val returns = StakingReturns(monthly, yearly)
+
             _returns.value = mapReturns(asset, returns)
         }.launchIn(viewModelScope)
     }
@@ -74,9 +80,7 @@ class StakingViewModel(
     fun onAmountChanged(text: String) {
         text.toBigDecimalOrNull()?.let {
             viewModelScope.launch {
-                val monthly = rewardCalculator().calculateReturns(it, PERIOD_MONTH, true)
-                val yearly = rewardCalculator().calculateReturns(it, PERIOD_YEAR, true)
-                stakingReturnsFlow.emit(StakingReturns(monthly, yearly))
+                enteredAmountFlow.emit(it)
             }
         }
     }
