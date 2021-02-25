@@ -8,8 +8,10 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingInteractor
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.repository.IdentityRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractorImpl
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
@@ -29,6 +31,13 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideIdentityRepository(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        bulkRetriever: BulkRetriever
+    ): IdentityRepository = IdentityRepositoryImpl(runtimeProperty, bulkRetriever)
+
+    @Provides
+    @FeatureScope
     fun provideStakingInteractor(
         accountRepository: AccountRepository
     ): StakingInteractor = StakingInteractorImpl(accountRepository)
@@ -42,9 +51,10 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideValidatorRecommendatorFactory(
-        repository: StakingRepository,
+        stakingRepository: StakingRepository,
+        identityRepository: IdentityRepository,
         rewardCalculatorFactory: RewardCalculatorFactory
-    ) = ValidatorRecommendatorFactory(repository, rewardCalculatorFactory)
+    ) = ValidatorRecommendatorFactory(stakingRepository, identityRepository, rewardCalculatorFactory)
 
     @Provides
     @FeatureScope
