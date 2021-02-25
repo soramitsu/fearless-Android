@@ -5,6 +5,8 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
@@ -42,6 +44,10 @@ class StakingAmountView @JvmOverloads constructor(
         stakingAssetImage.setImageDrawable(image)
     }
 
+    fun setAssetImageResource(imageRes: Int) {
+        stakingAssetImage.setImageResource(imageRes)
+    }
+
     fun setAssetName(name: String) {
         stakingAssetToken.text = name
     }
@@ -52,5 +58,13 @@ class StakingAmountView @JvmOverloads constructor(
 
     fun setAssetBalanceDollarAmount(dollarAmount: String) {
         stakingAssetDollarAmount.text = dollarAmount
+    }
+
+    fun hideAssetDollarAmount() {
+        stakingAssetDollarAmount.makeGone()
+    }
+
+    fun showAssetDollarAmount() {
+        stakingAssetDollarAmount.makeVisible()
     }
 }

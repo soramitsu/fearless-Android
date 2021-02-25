@@ -43,6 +43,10 @@ class EstimateEarningView @JvmOverloads constructor(
         estimateEarningAmount.setAssetImage(image)
     }
 
+    fun setAssetImageResource(imageRes: Int) {
+        estimateEarningAmount.setAssetImageResource(imageRes)
+    }
+
     fun setAssetName(name: String) {
         estimateEarningAmount.setAssetName(name)
     }
@@ -53,6 +57,14 @@ class EstimateEarningView @JvmOverloads constructor(
 
     fun setAssetBalanceDollarAmount(dollarAmount: String) {
         estimateEarningAmount.setAssetBalanceDollarAmount(dollarAmount)
+    }
+
+    fun hideAssetBalanceDollarAmount() {
+        estimateEarningAmount.hideAssetDollarAmount()
+    }
+
+    fun showAssetBalanceDollarAmount() {
+        estimateEarningAmount.showAssetDollarAmount()
     }
 
     fun setMonthlyGainAsset(gain: String) {
