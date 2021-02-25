@@ -36,10 +36,10 @@
         android:layout_width="18dp"
         android:layout_height="18dp"
         android:layout_marginStart="16dp"
-        tools:src="@drawable/ic_token_ksm"
         app:layout_constraintBottom_toBottomOf="@id/stakingAssetToken"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/stakingAssetToken" />
+        app:layout_constraintTop_toTopOf="@id/stakingAssetToken"
+        tools:src="@drawable/ic_token_ksm" />
 
     <TextView
         android:id="@+id/stakingAssetToken"
@@ -55,15 +55,18 @@
     <EditText
         android:id="@+id/stakingAmountInput"
         style="@style/TextAppearance.Soramitsu.Header4"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:background="@null"
         android:inputType="numberDecimal"
-        android:text="0"
         android:textCursorDrawable="@null"
+        android:gravity="end"
+        android:text="@string/choose_amount_initial"
         app:layout_constraintBottom_toBottomOf="@id/stakingAssetToken"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/stakingAssetToken"
         app:layout_constraintTop_toTopOf="@id/stakingAssetToken"
         tools:text="10" />
 

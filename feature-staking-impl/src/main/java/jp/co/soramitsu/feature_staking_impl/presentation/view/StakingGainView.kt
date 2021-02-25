@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingGainAssetRate
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingGainAssetRateChange
@@ -37,15 +39,23 @@ class StakingGainView @JvmOverloads constructor(
         stakingGainTitle.text = title
     }
 
-    fun setPeriodIncome(income: String) {
-        stakingGainValue.text = income
+    fun setPeriodGain(gain: String) {
+        stakingGainValue.text = gain
     }
 
-    fun setAssetRate(assetRate: String) {
+    fun setGainFiat(assetRate: String) {
         stakingGainAssetRate.text = assetRate
     }
 
-    fun setAssetRateChange(rateChange: String) {
+    fun showGainFiat() {
+        stakingGainAssetRate.makeVisible()
+    }
+
+    fun hideGainFiat() {
+        stakingGainAssetRate.makeGone()
+    }
+
+    fun setGainPercentage(rateChange: String) {
         stakingGainAssetRateChange.text = rateChange
     }
 }

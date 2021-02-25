@@ -6,12 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
+import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
@@ -45,5 +47,28 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         viewModel.currentAddressModelLiveData.observe {
             stakingAvatar.setImageDrawable(it.image)
         }
+
+        viewModel.rewards.observe { rewards ->
+            stakingEstimate.setMonthlyGainAsset(rewards.monthly.amount)
+            if (rewards.monthly.fiatAmount == null) {
+                stakingEstimate.hideMonthlyGainFiat()
+            } else {
+                stakingEstimate.showMonthlyGainFiat()
+                stakingEstimate.setMonthlyGainFiat(rewards.monthly.fiatAmount)
+            }
+            stakingEstimate.setMonthlyGainPercentage(rewards.monthly.gain)
+
+            stakingEstimate.setYearlyGainAsset(rewards.yearly.amount)
+            if (rewards.yearly.fiatAmount == null) {
+                stakingEstimate.hideYearlyGainFiat()
+            } else {
+                stakingEstimate.showYearlyGainFiat()
+                stakingEstimate.setYearlyGainFiat(rewards.yearly.fiatAmount)
+
+            }
+            stakingEstimate.setYearlyGainPercentage(rewards.yearly.gain)
+        }
+
+        stakingEstimate.amountInput.onTextChanged(viewModel::onAmountChanged)
     }
 }

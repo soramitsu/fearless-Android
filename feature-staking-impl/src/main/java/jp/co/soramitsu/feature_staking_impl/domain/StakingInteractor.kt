@@ -17,7 +17,8 @@ class StakingInteractor(
 ) {
 
     fun getCurrentAsset() = accountRepository.selectedAccountFlow()
-        .flatMapLatest { walletRepository.assetsFlow(mapAccountToWalletAccount(it)) }
+        .map { mapAccountToWalletAccount(it) }
+        .flatMapLatest { walletRepository.assetsFlow(it) }
         .filter { it.isNotEmpty() }
         .map { it.first() }
 

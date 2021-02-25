@@ -24,6 +24,11 @@ class Returns(
     val gainPercentage: BigDecimal
 )
 
+class AllReturns(
+    val monthly: Returns,
+    val yearly: Returns
+)
+
 class RewardCalculator(
     val validators: List<RewardCalculationTarget>,
     val totalIssuance: BigInteger
@@ -104,9 +109,15 @@ class RewardCalculator(
             calculateSimpleReward(amount, days, dailyPercentage)
         }.toBigDecimal()
 
+        val gainPercentage = if (amount == 0.0) {
+            BigDecimal.ZERO
+        } else {
+            gainAmount / amount.toBigDecimal()
+        }
+
         return Returns(
             gainAmount = gainAmount,
-            gainPercentage = gainAmount / amount.toBigDecimal()
+            gainPercentage = gainPercentage
         )
     }
 

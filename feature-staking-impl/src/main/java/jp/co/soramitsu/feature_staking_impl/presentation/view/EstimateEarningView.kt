@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
+import android.widget.EditText
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
@@ -11,12 +12,16 @@ import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_estimate_earning.view.estimateEarningAmount
 import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingMonthGain
 import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingYearGain
+import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAmountInput
 
 class EstimateEarningView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
 ) : ConstraintLayout(context, attrs, defStyle) {
+
+    val amountInput: EditText
+        get() = estimateEarningAmount.stakingAmountInput
 
     init {
         View.inflate(context, R.layout.view_estimate_earning, this)
@@ -50,27 +55,43 @@ class EstimateEarningView @JvmOverloads constructor(
         estimateEarningAmount.setAssetBalanceDollarAmount(dollarAmount)
     }
 
-    fun setMonthlyPeriodIncome(income: String) {
-        stakingMonthGain.setPeriodIncome(income)
+    fun setMonthlyGainAsset(gain: String) {
+        stakingMonthGain.setPeriodGain(gain)
     }
 
-    fun setMonthlyAssetRate(assetRate: String) {
-        stakingMonthGain.setAssetRate(assetRate)
+    fun setMonthlyGainFiat(gain: String) {
+        stakingMonthGain.setGainFiat(gain)
     }
 
-    fun setMonthlyAssetRateChange(rateChange: String) {
-        stakingMonthGain.setAssetRateChange(rateChange)
+    fun showMonthlyGainFiat() {
+        stakingMonthGain.showGainFiat()
     }
 
-    fun setYearlyPeriodIncome(income: String) {
-        stakingYearGain.setPeriodIncome(income)
+    fun hideMonthlyGainFiat() {
+        stakingMonthGain.hideGainFiat()
     }
 
-    fun setYearlyAssetRate(assetRate: String) {
-        stakingYearGain.setAssetRate(assetRate)
+    fun setMonthlyGainPercentage(rateChange: String) {
+        stakingMonthGain.setGainPercentage(rateChange)
     }
 
-    fun setYearlyAssetRateChange(rateChange: String) {
-        stakingYearGain.setAssetRateChange(rateChange)
+    fun setYearlyGainAsset(income: String) {
+        stakingYearGain.setPeriodGain(income)
+    }
+
+    fun setYearlyGainFiat(assetRate: String) {
+        stakingYearGain.setGainFiat(assetRate)
+    }
+
+    fun showYearlyGainFiat() {
+        stakingYearGain.showGainFiat()
+    }
+
+    fun hideYearlyGainFiat() {
+        stakingYearGain.hideGainFiat()
+    }
+
+    fun setYearlyGainPercentage(rateChange: String) {
+        stakingYearGain.setGainPercentage(rateChange)
     }
 }
