@@ -33,24 +33,30 @@ class WalletInteractorImpl(
 ) : WalletInteractor {
 
     override fun assetsFlow(): Flow<List<Asset>> {
-        return walletRepository.assetsFlow()
+        return accountRepository.selectedAccountFlow()
+            .map { mapAccountToWalletAccount(it) }
+            .flatMapLatest { walletRepository.assetsFlow(it) }
             .filter { it.isNotEmpty() }
     }
 
     override suspend fun syncAssetsRates(): Result<Unit> {
         return runCatching {
-            walletRepository.syncAssetsRates()
+            val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
+            walletRepository.syncAssetsRates(account)
         }
     }
 
     override suspend fun syncAssetRates(type: Token.Type): Result<Unit> {
         return kotlin.runCatching {
-            walletRepository.syncAsset(type)
+            val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
+            walletRepository.syncAsset(account, type)
         }
     }
 
     override fun assetFlow(type: Token.Type): Flow<Asset> {
-        return walletRepository.assetFlow(type)
+        return accountRepository.selectedAccountFlow()
+            .map { mapAccountToWalletAccount(it) }
+            .flatMapLatest { walletRepository.assetFlow(it, type) }
     }
 
     override fun currentAssetFlow(): Flow<Asset> {
@@ -69,7 +75,7 @@ class WalletInteractorImpl(
     }
 
     private fun mapAccountToWalletAccount(account: Account) = with(account) {
-        WalletAccount(address, name, network)
+        WalletAccount(address, name, cryptoType, network)
     }
 
     private fun areTransactionPagesTheSame(previous: List<Transaction>, new: List<Transaction>): Boolean {
@@ -94,13 +100,15 @@ class WalletInteractorImpl(
         }
     }
 
-    override fun selectedAccountFlow(): Flow<Account> {
+    override fun selectedAccountFlow(): Flow<WalletAccount> {
         return accountRepository.selectedAccountFlow()
+            .map { mapAccountToWalletAccount(it) }
     }
 
     override suspend fun getRecipients(query: String): RecipientSearchResult {
         val account = accountRepository.getSelectedAccount()
-        val contacts = walletRepository.getContacts(query)
+        val walletAccount = mapAccountToWalletAccount(account)
+        val contacts = walletRepository.getContacts(walletAccount, query)
         val myAccounts = accountRepository.getMyAccounts(query, account.network.type)
 
         return withContext(Dispatchers.Default) {
@@ -123,7 +131,8 @@ class WalletInteractorImpl(
     }
 
     override suspend fun getTransferFee(transfer: Transfer): Fee {
-        return walletRepository.getTransferFee(transfer)
+        val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
+        return walletRepository.getTransferFee(account, transfer)
     }
 
     override suspend fun performTransfer(
@@ -131,27 +140,31 @@ class WalletInteractorImpl(
         fee: BigDecimal,
         maxAllowedLevel: TransferValidityLevel
     ): Result<Unit> {
-        val validityStatus = walletRepository.checkTransferValidity(transfer)
+        val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
+        val validityStatus = walletRepository.checkTransferValidity(account, transfer)
 
         if (validityStatus.level > maxAllowedLevel) {
             return Result.failure(NotValidTransferStatus(validityStatus))
         }
 
         return runCatching {
-            walletRepository.performTransfer(transfer, fee)
+            val signingData = accountRepository.getCurrentSecuritySource().signingData
+            walletRepository.performTransfer(account, signingData, transfer, fee)
         }
     }
 
     override suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus> {
         return runCatching {
-            walletRepository.checkTransferValidity(transfer)
+            val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
+            walletRepository.checkTransferValidity(account, transfer)
         }
     }
 
-    override suspend fun getAccountsInCurrentNetwork(): List<Account> {
+    override suspend fun getAccountsInCurrentNetwork(): List<WalletAccount> {
         val account = accountRepository.getSelectedAccount()
 
         return accountRepository.getAccountsByNetworkType(account.network.type)
+            .map { mapAccountToWalletAccount(it) }
     }
 
     override suspend fun selectAccount(address: String) {
@@ -182,18 +195,18 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun getSelectedAccount(): Account {
-        return accountRepository.getSelectedAccount()
+    override suspend fun getSelectedAccount(): WalletAccount {
+        return mapAccountToWalletAccount(accountRepository.getSelectedAccount())
     }
 
     override suspend fun getCurrentAsset(): Asset {
-        val account = accountRepository.getSelectedAccount()
+        val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
         val tokenType = getPrimaryTokenType(account)
 
-        return walletRepository.getAsset(tokenType)!!
+        return walletRepository.getAsset(account, tokenType)!!
     }
 
-    private fun getPrimaryTokenType(account: Account): Token.Type {
+    private fun getPrimaryTokenType(account: WalletAccount): Token.Type {
         return Token.Type.fromNetworkType(account.network.type)
     }
 }

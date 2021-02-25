@@ -5,7 +5,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.Language
-import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
+import jp.co.soramitsu.core.model.SecuritySource
 import kotlinx.coroutines.flow.Flow
 
 interface AccountDataSource {

@@ -4,14 +4,13 @@ import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
@@ -38,7 +37,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -47,7 +45,6 @@ import java.util.Locale
 @Suppress("EXPERIMENTAL_API_USAGE")
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
-    private val accountRepository: AccountRepository,
     private val transactionsDao: TransactionDao,
     private val subscanApi: SubscanNetworkApi,
     private val httpExceptionHandler: HttpExceptionHandler,
@@ -56,34 +53,33 @@ class WalletRepositoryImpl(
     private val phishingAddressDao: PhishingAddressDao
 ) : WalletRepository {
 
-    override fun assetsFlow(): Flow<List<Asset>> {
-        return accountRepository.selectedAccountFlow()
-            .flatMapLatest { account -> assetCache.observeAssets(account.address) }
+    override fun assetsFlow(account: WalletAccount): Flow<List<Asset>> {
+        return assetCache.observeAssets(account.address)
             .mapList(::mapAssetLocalToAsset)
     }
 
-    override suspend fun syncAssetsRates() {
-        val account = accountRepository.getSelectedAccount()
+    override suspend fun syncAssetsRates(account: WalletAccount) = coroutineScope {
+        val networkType = account.network.type
 
-        syncAssetRates(account)
+        val currentPriceStatsDeferred = async { getAssetPrice(networkType, AssetPriceRequest.createForNow()) }
+        val yesterdayPriceStatsDeferred = async { getAssetPrice(networkType, AssetPriceRequest.createForYesterday()) }
+
+        updateAssetRates(account, currentPriceStatsDeferred.await(), yesterdayPriceStatsDeferred.await())
     }
 
-    override fun assetFlow(type: Token.Type): Flow<Asset> {
-        return accountRepository.selectedAccountFlow()
-            .flatMapLatest { account -> assetCache.observeAsset(account.address, type) }
+    override fun assetFlow(account: WalletAccount, type: Token.Type): Flow<Asset> {
+        return assetCache.observeAsset(account.address, type)
             .map { mapAssetLocalToAsset(it) }
     }
 
-    override suspend fun getAsset(type: Token.Type): Asset? {
-        val account = accountRepository.getSelectedAccount()
-
+    override suspend fun getAsset(account: WalletAccount, type: Token.Type): Asset? {
         val assetLocal = assetCache.getAsset(account.address, type)
 
         return assetLocal?.let(::mapAssetLocalToAsset)
     }
 
-    override suspend fun syncAsset(type: Token.Type) {
-        return syncAssetsRates()
+    override suspend fun syncAsset(account: WalletAccount, type: Token.Type) {
+        return syncAssetsRates(account)
     }
 
     override fun transactionsFirstPageFlow(currentAccount: WalletAccount, pageSize: Int, accounts: List<WalletAccount>): Flow<List<Transaction>> {
@@ -119,23 +115,17 @@ class WalletRepositoryImpl(
         }
     }
 
-    override suspend fun getContacts(query: String): Set<String> {
-        val account = accountRepository.getSelectedAccount()
-
+    override suspend fun getContacts(account: WalletAccount, query: String): Set<String> {
         return transactionsDao.getContacts(query, account.address).toSet()
     }
 
-    override suspend fun getTransferFee(transfer: Transfer): Fee {
-        val account = accountRepository.getSelectedAccount()
-
+    override suspend fun getTransferFee(account: WalletAccount, transfer: Transfer): Fee {
         val feeRemote = substrateSource.getTransferFee(account, transfer)
 
         return mapFeeRemoteToFee(feeRemote, transfer)
     }
 
-    override suspend fun performTransfer(transfer: Transfer, fee: BigDecimal) {
-        val account = accountRepository.getSelectedAccount()
-        val signingData = accountRepository.getCurrentSecuritySource().signingData
+    override suspend fun performTransfer(account: WalletAccount, signingData: SigningData, transfer: Transfer, fee: BigDecimal) {
         val keypair = mapSigningDataToKeypair(signingData)
 
         val transactionHash = substrateSource.performTransfer(account, transfer, keypair)
@@ -147,9 +137,8 @@ class WalletRepositoryImpl(
         transactionsDao.insert(transactionLocal)
     }
 
-    override suspend fun checkTransferValidity(transfer: Transfer): TransferValidityStatus {
-        val account = accountRepository.getSelectedAccount()
-        val feeResponse = getTransferFee(transfer)
+    override suspend fun checkTransferValidity(account: WalletAccount, transfer: Transfer): TransferValidityStatus {
+        val feeResponse = getTransferFee(account, transfer)
 
         val tokenType = transfer.tokenType
 
@@ -222,17 +211,8 @@ class WalletRepositoryImpl(
         }
     }
 
-    private suspend fun syncAssetRates(account: Account) = coroutineScope {
-        val networkType = account.network.type
-
-        val currentPriceStatsDeferred = async { getAssetPrice(networkType, AssetPriceRequest.createForNow()) }
-        val yesterdayPriceStatsDeferred = async { getAssetPrice(networkType, AssetPriceRequest.createForYesterday()) }
-
-        updateAssetRates(account, currentPriceStatsDeferred.await(), yesterdayPriceStatsDeferred.await())
-    }
-
     private suspend fun updateAssetRates(
-        account: Account,
+        account: WalletAccount,
         todayResponse: SubscanResponse<AssetPriceStatistics>?,
         yesterdayResponse: SubscanResponse<AssetPriceStatistics>?
     ) = assetCache.updateToken(account) { cached ->

@@ -12,9 +12,9 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.WithJson
-import jp.co.soramitsu.feature_account_api.domain.model.WithMnemonic
-import jp.co.soramitsu.feature_account_api.domain.model.WithSeed
+import jp.co.soramitsu.core.model.WithJson
+import jp.co.soramitsu.core.model.WithMnemonic
+import jp.co.soramitsu.core.model.WithSeed
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapAccountModelToAccount
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapAccountToAccountModel
