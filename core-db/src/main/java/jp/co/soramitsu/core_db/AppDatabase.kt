@@ -16,6 +16,7 @@ import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.StorageDao
+import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
 import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
@@ -88,4 +89,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun phishingAddressesDao(): PhishingAddressDao
 
     abstract fun storageDao(): StorageDao
+
+    abstract fun tokenDao() : TokenDao
 }

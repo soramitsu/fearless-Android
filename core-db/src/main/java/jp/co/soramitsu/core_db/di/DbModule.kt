@@ -11,6 +11,7 @@ import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.StorageDao
+import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
@@ -70,5 +71,11 @@ class DbModule {
     @ApplicationScope
     fun provideStorageDao(appDatabase: AppDatabase): StorageDao {
         return appDatabase.storageDao()
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideTokenDao(appDatabase: AppDatabase): TokenDao {
+        return appDatabase.tokenDao()
     }
 }
