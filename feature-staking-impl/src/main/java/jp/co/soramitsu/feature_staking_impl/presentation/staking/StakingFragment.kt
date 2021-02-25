@@ -48,7 +48,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             stakingAvatar.setImageDrawable(it.image)
         }
 
-        viewModel.rewards.observe { rewards ->
+        viewModel.returns.observe { rewards ->
             stakingEstimate.setMonthlyGainAsset(rewards.monthly.amount)
             if (rewards.monthly.fiatAmount == null) {
                 stakingEstimate.hideMonthlyGainFiat()

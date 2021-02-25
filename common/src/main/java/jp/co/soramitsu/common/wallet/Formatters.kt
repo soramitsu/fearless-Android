@@ -4,10 +4,10 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import java.math.BigDecimal
 
-fun BigDecimal.formatAsToken(type: Token.Type, precision: Int = type.maximumPrecision): String {
-    return "${format(precision)} ${type.displayName}"
+fun BigDecimal.formatWithMaxPrecision(type: Token.Type): String {
+    return "${format(type.maximumPrecision)} ${type.displayName}"
 }
 
-fun BigDecimal.formatAsTokenWithDefaultPrecision(type: Token.Type): String {
+fun BigDecimal.formatWithDefaultPrecision(type: Token.Type): String {
     return "${format()} ${type.displayName}"
 }

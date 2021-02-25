@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.model
 
-class Rewards(
+class ReturnsModel(
     val monthly: RewardEstimation,
     val yearly: RewardEstimation
 )

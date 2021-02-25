@@ -19,14 +19,9 @@ private const val DECAY_RATE = 0.05
 
 private const val DAYS_IN_YEAR = 365
 
-class Returns(
+class PeriodReturns(
     val gainAmount: BigDecimal,
     val gainPercentage: BigDecimal
-)
-
-class AllReturns(
-    val monthly: Returns,
-    val yearly: Returns
 )
 
 class RewardCalculator(
@@ -79,7 +74,7 @@ class RewardCalculator(
         amount: BigDecimal,
         days: Int,
         isCompound: Boolean
-    ): Returns = withContext(Dispatchers.Default) {
+    ): PeriodReturns = withContext(Dispatchers.Default) {
         val dailyPercentage = expectedAPY / DAYS_IN_YEAR
 
         calculateReward(amount.toDouble(), days, dailyPercentage, isCompound)
@@ -102,7 +97,7 @@ class RewardCalculator(
         days: Int,
         dailyPercentage: Double,
         isCompound: Boolean
-    ) : Returns {
+    ): PeriodReturns {
         val gainAmount = if (isCompound) {
             calculateCompoundReward(amount, days, dailyPercentage)
         } else {
@@ -115,7 +110,7 @@ class RewardCalculator(
             gainAmount / amount.toBigDecimal()
         }
 
-        return Returns(
+        return PeriodReturns(
             gainAmount = gainAmount,
             gainPercentage = gainPercentage
         )
