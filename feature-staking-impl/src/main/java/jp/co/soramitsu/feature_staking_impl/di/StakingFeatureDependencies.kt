@@ -7,6 +7,8 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 
 interface StakingFeatureDependencies {
 
@@ -21,4 +23,8 @@ interface StakingFeatureDependencies {
     fun addressIconGenerator(): AddressIconGenerator
 
     fun appLinksProvider(): AppLinksProvider
+
+    fun walletRepository(): WalletRepository
+
+    fun tokenRepository(): TokenRepository
 }

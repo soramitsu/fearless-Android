@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
+import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
@@ -17,6 +18,7 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
@@ -33,6 +35,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.Paym
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
+import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixin
@@ -51,8 +54,8 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideAssetCache(assetDao: AssetDao): AssetCache {
-        return AssetCache(assetDao)
+    fun provideAssetCache(tokenDao: TokenDao, assetDao: AssetDao): AssetCache {
+        return AssetCache(tokenDao, assetDao)
     }
 
     @Provides
@@ -94,6 +97,14 @@ class WalletFeatureModule {
         extrinsicFactory,
         runtimeProperty,
         substrateCalls
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideTokenRepository(
+        tokenDao: TokenDao
+    ): TokenRepository = TokenRepositoryImpl(
+        tokenDao
     )
 
     @Provides

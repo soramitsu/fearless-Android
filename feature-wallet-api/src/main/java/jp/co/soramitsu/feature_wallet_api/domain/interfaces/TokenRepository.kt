@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface TokenRepository {
 
-    fun getToken(networkType: Node.NetworkType) : Token?
+    suspend fun getToken(networkType: Node.NetworkType): Token?
 
-    fun getToken(tokenType: Token.Type) : Token?
+    suspend fun getToken(tokenType: Token.Type): Token?
 
     fun observeToken(networkType: Node.NetworkType) : Flow<Token>
 }

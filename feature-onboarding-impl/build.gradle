@@ -29,6 +29,7 @@ dependencies {
     implementation project(':common')
     implementation project(':feature-onboarding-api')
     implementation project(':feature-account-api')
+    implementation project(':feature-wallet-api')
 
     implementation kotlinDep
 

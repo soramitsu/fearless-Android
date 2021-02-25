@@ -11,11 +11,11 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.showBrowser
+import jp.co.soramitsu.common.wallet.formatAsToken
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailAmount
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailDate
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailFee
