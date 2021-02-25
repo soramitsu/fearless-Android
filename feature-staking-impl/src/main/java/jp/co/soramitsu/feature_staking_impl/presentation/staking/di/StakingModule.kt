@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
+import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.StakingViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.RecommendedValidatorsViewModel
@@ -26,9 +27,10 @@ class StakingModule {
     fun provideViewModel(
         interactor: StakingInteractor,
         router: StakingRouter,
-        addressIconGenerator: AddressIconGenerator
+        addressIconGenerator: AddressIconGenerator,
+        rewardCalculatorFactory: RewardCalculatorFactory
     ): ViewModel {
-        return StakingViewModel(router, interactor, addressIconGenerator)
+        return StakingViewModel(router, interactor, addressIconGenerator, rewardCalculatorFactory)
     }
 
     @Provides
