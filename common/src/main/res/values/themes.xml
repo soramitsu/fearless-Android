@@ -17,6 +17,7 @@
         <item name="textSizeH3">@dimen/text_size_h3</item>
         <item name="textSizeH4">@dimen/text_size_h4</item>
         <item name="textSizeH5">@dimen/text_size_h5</item>
+        <item name="textSizeCapsTitle">@dimen/text_size_caps_title</item>
 
         <item name="textSizeB0">@dimen/text_size_b0</item>
         <item name="textSizeB1">@dimen/text_size_b1</item>

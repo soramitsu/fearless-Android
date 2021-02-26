@@ -5,4 +5,11 @@
     <declare-styleable name="StakingGainView">
         <attr name="titleText" format="string" />
     </declare-styleable>
+
+    <declare-styleable name="PayoutTargetView">
+        <attr name="android:checked" />
+        <attr name="targetName" format="string" />
+        <attr name="targetDescription" format="string" />
+        <attr name="targetAmountDescription" format="string" />
+    </declare-styleable>
 </resources>
