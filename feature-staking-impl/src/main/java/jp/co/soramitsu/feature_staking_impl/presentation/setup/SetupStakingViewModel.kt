@@ -6,7 +6,10 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.PeriodReturns
@@ -46,7 +49,8 @@ class SetupStakingViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
-    private val rewardCalculatorFactory: RewardCalculatorFactory
+    private val rewardCalculatorFactory: RewardCalculatorFactory,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel() {
 
     private val _payoutTargetLiveData = MutableLiveData<PayoutTarget>(PayoutTarget.Restake)
@@ -56,7 +60,7 @@ class SetupStakingViewModel(
         .share()
 
     val assetModelsFlow = assetFlow
-        .map { mapAssetToAssetModel(it) }
+        .map { mapAssetToAssetModel(it, resourceManager) }
         .flowOn(Dispatchers.Default)
 
     val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
@@ -70,10 +74,6 @@ class SetupStakingViewModel(
         .asLiveData()
 
     private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
-    private val accountsInCurrentNetwork = viewModelScope.async(Dispatchers.Default) {
-        interactor.getAccountsInCurrentNetwork()
-            .map { generateDestinationModel(it) }
-    }
 
     val returnsLiveData = assetFlow.combine(parsedAmountFlow) { asset, amount ->
         val restakeReturns = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
@@ -87,9 +87,41 @@ class SetupStakingViewModel(
         .flowOn(Dispatchers.Default)
         .asLiveData()
 
+    private val _showDestinationChooserEvent = MutableLiveData<Event<Payload<AddressModel>>>()
+    val showDestinationChooserEvent: LiveData<Event<Payload<AddressModel>>> = _showDestinationChooserEvent
+
+    fun restakeClicked() {
+        _payoutTargetLiveData.value = PayoutTarget.Restake
+    }
+
+    fun payoutDestinationClicked() {
+        val selectedDestination = _payoutTargetLiveData.value as? PayoutTarget.Payout ?: return
+
+        viewModelScope.launch {
+            val accountsInNetwork = accountsInCurrentNetwork()
+
+            _showDestinationChooserEvent.value = Event(Payload(accountsInNetwork, selectedDestination.destination))
+        }
+    }
+
+    fun payoutDestinationChanged(newDestination: AddressModel) {
+        _payoutTargetLiveData.value = PayoutTarget.Payout(newDestination)
+    }
+
+    fun payoutClicked() {
+        viewModelScope.launch {
+            val currentAccount = interactor.getSelectedAccount()
+
+            _payoutTargetLiveData.value = PayoutTarget.Payout(generateDestinationModel(currentAccount))
+        }
+    }
+
     private suspend fun rewardCalculator() = rewardCalculator.await()
 
-    private suspend fun accountsInCurrentNetwork() = accountsInCurrentNetwork.await()
+    private suspend fun accountsInCurrentNetwork(): List<AddressModel> {
+        return interactor.getAccountsInCurrentNetwork()
+            .map { generateDestinationModel(it) }
+    }
 
     private fun mapReturnsToEstimation(returns: PeriodReturns, token: Token): RewardEstimation {
         return RewardEstimation(returns.gainAmount, returns.gainPercentage, token)
@@ -97,15 +129,5 @@ class SetupStakingViewModel(
 
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {
         return addressIconGenerator.createAddressModel(account.address, DESTINATION_SIZE_DP, account.name)
-    }
-
-    fun restakeClicked() {
-        _payoutTargetLiveData.value = PayoutTarget.Restake
-    }
-
-    fun payoutClicked() {
-        viewModelScope.launch {
-            _payoutTargetLiveData.value = PayoutTarget.Payout(accountsInCurrentNetwork().first())
-        }
     }
 }

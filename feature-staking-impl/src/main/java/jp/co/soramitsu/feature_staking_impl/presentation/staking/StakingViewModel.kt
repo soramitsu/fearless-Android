@@ -7,16 +7,13 @@ import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
-import jp.co.soramitsu.common.wallet.formatWithDefaultPrecision
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
-import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.AssetModel
+import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +47,7 @@ class StakingViewModel(
 
     private val currentAsset = interactor.getCurrentAsset()
 
-    val asset = currentAsset.map { mapAssetToAssetModel(it) }.asLiveData()
+    val asset = currentAsset.map { mapAssetToAssetModel(it, resourceManager) }.asLiveData()
 
     val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
 
@@ -89,15 +86,5 @@ class StakingViewModel(
 
     private suspend fun rewardCalculator(): RewardCalculator {
         return rewardCalculator.await()
-    }
-
-    private fun mapAssetToAssetModel(asset: Asset): AssetModel {
-        return with(asset) {
-            AssetModel(
-                token.type.icon,
-                token.type.displayName,
-                resourceManager.getString(R.string.common_balance_format, asset.transferable.formatWithDefaultPrecision(token.type))
-            )
-        }
     }
 }

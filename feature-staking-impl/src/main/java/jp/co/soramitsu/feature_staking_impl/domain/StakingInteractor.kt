@@ -40,6 +40,12 @@ class StakingInteractor(
             .map { mapAccountToStakingAccount(it) }
     }
 
+    suspend fun getSelectedAccount(): StakingAccount = withContext(Dispatchers.Default) {
+        val account = accountRepository.getSelectedAccount()
+
+        mapAccountToStakingAccount(account)
+    }
+
     private fun mapAccountToStakingAccount(account: Account) = with(account) {
         StakingAccount(address, name, cryptoType, network)
     }
