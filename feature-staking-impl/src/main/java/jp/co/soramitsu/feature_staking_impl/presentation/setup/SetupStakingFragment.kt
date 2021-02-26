@@ -40,6 +40,8 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
             type(statusBars = true) {
                 padding()
             }
+
+            consume(true)
         }
 
         setupStakingTargetPayout.setOnClickListener { viewModel.payoutClicked() }
