@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.recommendations
 
+import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.domain.error.accountIdNotFound
@@ -9,6 +10,7 @@ import kotlinx.coroutines.withContext
 
 class ValidatorRecommendatorFactory(
     private val stakingRepository: StakingRepository,
+    private val identityRepository: IdentityRepository,
     private val rewardCalculatorFactory: RewardCalculatorFactory
 ) {
 
@@ -20,7 +22,7 @@ class ValidatorRecommendatorFactory(
 
         val validatorIds = exposures.keys.toList()
 
-        val identities = stakingRepository.getIdentities(validatorIds)
+        val identities = identityRepository.getIdentities(validatorIds)
         val slashes = stakingRepository.getSlashes(validatorIds)
 
         val rewardCalculator = rewardCalculatorFactory.create(exposures, validatorsPrefs)
