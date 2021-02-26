@@ -98,11 +98,11 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             stakingEstimate.setAssetImageResource(rewards.asset.token.type.icon)
             stakingEstimate.setAssetName(rewards.asset.token.type.displayName)
             stakingEstimate.setAssetBalance(rewards.asset.available.formatWithDefaultPrecision(rewards.asset.token.type))
-            if (rewards.asset.dollarAmount == null) {
+            if (rewards.amountFiat == null) {
                 stakingEstimate.hideAssetBalanceDollarAmount()
             } else {
                 stakingEstimate.showAssetBalanceDollarAmount()
-                stakingEstimate.setAssetBalanceDollarAmount(rewards.asset.dollarAmount.formatAsCurrency())
+                stakingEstimate.setAssetBalanceDollarAmount(rewards.amountFiat)
             }
         }
 
