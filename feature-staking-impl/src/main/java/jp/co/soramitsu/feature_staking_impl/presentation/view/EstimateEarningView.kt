@@ -9,6 +9,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import kotlinx.android.synthetic.main.view_estimate_earning.view.estimateEarningAmount
 import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingMonthGain
 import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingYearGain
@@ -67,43 +68,22 @@ class EstimateEarningView @JvmOverloads constructor(
         estimateEarningAmount.showAssetDollarAmount()
     }
 
-    fun setMonthlyGainAsset(gain: String) {
-        stakingMonthGain.setPeriodGain(gain)
+    fun populateMonthEstimation(estimation: RewardEstimation) {
+        populateEstimationView(stakingMonthGain, estimation)
     }
 
-    fun setMonthlyGainFiat(gain: String) {
-        stakingMonthGain.setGainFiat(gain)
+    fun populateYearEstimation(estimation: RewardEstimation) {
+        populateEstimationView(stakingYearGain, estimation)
     }
 
-    fun showMonthlyGainFiat() {
-        stakingMonthGain.showGainFiat()
-    }
-
-    fun hideMonthlyGainFiat() {
-        stakingMonthGain.hideGainFiat()
-    }
-
-    fun setMonthlyGainPercentage(rateChange: String) {
-        stakingMonthGain.setGainPercentage(rateChange)
-    }
-
-    fun setYearlyGainAsset(income: String) {
-        stakingYearGain.setPeriodGain(income)
-    }
-
-    fun setYearlyGainFiat(assetRate: String) {
-        stakingYearGain.setGainFiat(assetRate)
-    }
-
-    fun showYearlyGainFiat() {
-        stakingYearGain.showGainFiat()
-    }
-
-    fun hideYearlyGainFiat() {
-        stakingYearGain.hideGainFiat()
-    }
-
-    fun setYearlyGainPercentage(rateChange: String) {
-        stakingYearGain.setGainPercentage(rateChange)
+    private fun populateEstimationView(view: StakingGainView, estimation: RewardEstimation) {
+        view.setPeriodGain(estimation.amount)
+        if (estimation.fiatAmount == null) {
+            view.hideGainFiat()
+        } else {
+            view.showGainFiat()
+            view.setGainFiat(estimation.fiatAmount)
+        }
+        view.setGainPercentage(estimation.gain)
     }
 }

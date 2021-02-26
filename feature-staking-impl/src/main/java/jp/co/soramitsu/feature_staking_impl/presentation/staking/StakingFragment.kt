@@ -66,23 +66,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
 
         viewModel.returns.observe { rewards ->
-            stakingEstimate.setMonthlyGainAsset(rewards.monthly.amount)
-            if (rewards.monthly.fiatAmount == null) {
-                stakingEstimate.hideMonthlyGainFiat()
-            } else {
-                stakingEstimate.showMonthlyGainFiat()
-                stakingEstimate.setMonthlyGainFiat(rewards.monthly.fiatAmount)
-            }
-            stakingEstimate.setMonthlyGainPercentage(rewards.monthly.gain)
-
-            stakingEstimate.setYearlyGainAsset(rewards.yearly.amount)
-            if (rewards.yearly.fiatAmount == null) {
-                stakingEstimate.hideYearlyGainFiat()
-            } else {
-                stakingEstimate.showYearlyGainFiat()
-                stakingEstimate.setYearlyGainFiat(rewards.yearly.fiatAmount)
-            }
-            stakingEstimate.setYearlyGainPercentage(rewards.yearly.gain)
+            stakingEstimate.populateMonthEstimation(rewards.monthly)
+            stakingEstimate.populateYearEstimation(rewards.yearly)
         }
 
         stakingEstimate.amountInput.onTextChanged(viewModel::onAmountChanged)
