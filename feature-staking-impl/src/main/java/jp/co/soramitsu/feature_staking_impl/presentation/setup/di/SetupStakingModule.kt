@@ -10,8 +10,12 @@ import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
+import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.setup.SetupStakingViewModel
 
@@ -26,14 +30,18 @@ class SetupStakingModule {
         router: StakingRouter,
         addressIconGenerator: AddressIconGenerator,
         rewardCalculatorFactory: RewardCalculatorFactory,
-        resourceManager: ResourceManager
+        resourceManager: ResourceManager,
+        maxFeeEstimator: MaxFeeEstimator,
+        validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>
     ): ViewModel {
         return SetupStakingViewModel(
             router,
             interactor,
             addressIconGenerator,
             rewardCalculatorFactory,
-            resourceManager
+            resourceManager,
+            maxFeeEstimator,
+            validationSystem
         )
     }
 

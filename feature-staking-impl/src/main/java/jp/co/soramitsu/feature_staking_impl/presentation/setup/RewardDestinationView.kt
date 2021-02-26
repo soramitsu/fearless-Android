@@ -20,7 +20,7 @@ import jp.co.soramitsu.common.R as RCommon
 
 private val CheckedStateSet = intArrayOf(android.R.attr.state_checked)
 
-class PayoutTargetView @JvmOverloads constructor(
+class RewardDestinationView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
@@ -110,7 +110,7 @@ class PayoutTargetView @JvmOverloads constructor(
 
         val colors = intArrayOf(
             context.getColor(R.color.colorAccent),
-            context.getColor(R.color.white)
+            context.getColor(android.R.color.transparent)
         )
 
         return ColorStateList(states, colors)

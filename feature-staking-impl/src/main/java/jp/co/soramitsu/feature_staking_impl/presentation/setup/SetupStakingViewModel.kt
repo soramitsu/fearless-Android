@@ -9,11 +9,16 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.common.wallet.formatWithDefaultPrecision
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.PeriodReturns
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
+import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
@@ -22,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -33,11 +39,11 @@ private const val DESTINATION_SIZE_DP = 24
 
 private const val PERIOD_YEAR = 365
 
-sealed class PayoutTarget {
+sealed class RewardDestinationModel {
 
-    object Restake : PayoutTarget()
+    object Restake : RewardDestinationModel()
 
-    class Payout(val destination: AddressModel) : PayoutTarget()
+    class Payout(val destination: AddressModel) : RewardDestinationModel()
 }
 
 class PayoutEstimations(
@@ -45,16 +51,29 @@ class PayoutEstimations(
     val payout: RewardEstimation
 )
 
+sealed class FeeStatus {
+    object Loading : FeeStatus()
+
+    class Loaded(
+        val inToken: String,
+        val inFiat: String?
+    ) : FeeStatus()
+
+    object Error : FeeStatus()
+}
+
 class SetupStakingViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val maxFeeEstimator: MaxFeeEstimator,
+    private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>
 ) : BaseViewModel() {
 
-    private val _payoutTargetLiveData = MutableLiveData<PayoutTarget>(PayoutTarget.Restake)
-    val payoutTargetLiveData: LiveData<PayoutTarget> = _payoutTargetLiveData
+    private val _payoutTargetLiveData = MutableLiveData<RewardDestinationModel>(RewardDestinationModel.Restake)
+    val payoutTargetLiveData: LiveData<RewardDestinationModel> = _payoutTargetLiveData
 
     private val assetFlow = interactor.getCurrentAsset()
         .share()
@@ -73,6 +92,9 @@ class SetupStakingViewModel(
         .flowOn(Dispatchers.Default)
         .asLiveData()
 
+    private val _feeLiveData = MutableLiveData<FeeStatus>(FeeStatus.Loading)
+    val feeLiveData: LiveData<FeeStatus> = _feeLiveData
+
     private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
 
     val returnsLiveData = assetFlow.combine(parsedAmountFlow) { asset, amount ->
@@ -90,12 +112,44 @@ class SetupStakingViewModel(
     private val _showDestinationChooserEvent = MutableLiveData<Event<Payload<AddressModel>>>()
     val showDestinationChooserEvent: LiveData<Event<Payload<AddressModel>>> = _showDestinationChooserEvent
 
+    init {
+        loadFee()
+    }
+
+    fun loadFee() {
+        _feeLiveData.value = FeeStatus.Loading
+
+        viewModelScope.launch(Dispatchers.Default) {
+            val account = interactor.getSelectedAccount()
+            val asset = assetFlow.first()
+            val token = asset.token
+
+            val feeResult = runCatching {
+                maxFeeEstimator.estimateMaxSetupStakingFee(account.address, asset.token.type)
+            }
+
+            val value = if (feeResult.isSuccess) {
+                val fee = feeResult.getOrThrow()
+                val feeInFiat = token.fiatAmount(fee)
+                FeeStatus.Loaded(fee.formatWithDefaultPrecision(token.type), feeInFiat?.formatAsCurrency())
+            } else {
+                FeeStatus.Error
+            }
+
+            _feeLiveData.postValue(value)
+        }
+    }
+
+    fun backClicked() {
+        router.back()
+    }
+
     fun restakeClicked() {
-        _payoutTargetLiveData.value = PayoutTarget.Restake
+        _payoutTargetLiveData.value = RewardDestinationModel.Restake
     }
 
     fun payoutDestinationClicked() {
-        val selectedDestination = _payoutTargetLiveData.value as? PayoutTarget.Payout ?: return
+        val selectedDestination = _payoutTargetLiveData.value as? RewardDestinationModel.Payout ?: return
 
         viewModelScope.launch {
             val accountsInNetwork = accountsInCurrentNetwork()
@@ -105,14 +159,14 @@ class SetupStakingViewModel(
     }
 
     fun payoutDestinationChanged(newDestination: AddressModel) {
-        _payoutTargetLiveData.value = PayoutTarget.Payout(newDestination)
+        _payoutTargetLiveData.value = RewardDestinationModel.Payout(newDestination)
     }
 
     fun payoutClicked() {
         viewModelScope.launch {
             val currentAccount = interactor.getSelectedAccount()
 
-            _payoutTargetLiveData.value = PayoutTarget.Payout(generateDestinationModel(currentAccount))
+            _payoutTargetLiveData.value = RewardDestinationModel.Payout(generateDestinationModel(currentAccount))
         }
     }
 

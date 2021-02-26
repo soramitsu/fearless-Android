@@ -12,11 +12,15 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.dialog.retryDialog
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingAmountField
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingContainer
+import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeFiat
+import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeProgress
+import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeToken
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingTargetPayout
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingTargetPayoutDestination
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingTargetRestake
@@ -56,20 +60,18 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
 
     override fun subscribe(viewModel: SetupStakingViewModel) {
         viewModel.payoutTargetLiveData.observe {
-            setupStakingTargetPayoutDestination.setVisible(it is PayoutTarget.Payout)
-            setupStakingTargetRestake.isChecked = it is PayoutTarget.Restake
-            setupStakingTargetPayout.isChecked = it is PayoutTarget.Payout
+            setupStakingTargetPayoutDestination.setVisible(it is RewardDestinationModel.Payout)
+            setupStakingTargetRestake.isChecked = it is RewardDestinationModel.Restake
+            setupStakingTargetPayout.isChecked = it is RewardDestinationModel.Payout
 
-            if (it is PayoutTarget.Payout) {
+            if (it is RewardDestinationModel.Payout) {
                 setupStakingTargetPayoutDestination.setMessage(it.destination.nameOrAddress)
                 setupStakingTargetPayoutDestination.setTextIcon(it.destination.image)
             }
         }
 
         viewModel.assetModelsFlow.observe {
-            val available = getString(R.string.common_balance_format, it.assetBalance)
-
-            setupStakingAmountField.setAssetBalance(available)
+            setupStakingAmountField.setAssetBalance(it.assetBalance)
             setupStakingAmountField.setAssetName(it.tokenName)
             setupStakingAmountField.setAssetImageResource(it.tokenIconRes)
         }
@@ -89,6 +91,33 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         }
 
         viewModel.showDestinationChooserEvent.observeEvent(::showDestinationChooser)
+
+        viewModel.feeLiveData.observe {
+            when(it) {
+                is FeeStatus.Loading -> feeProgressShown(true)
+                is FeeStatus.Error -> feeError()
+                is FeeStatus.Loaded -> {
+                    feeProgressShown(false)
+
+                    setupStakingFeeFiat.text = it.inFiat
+                    setupStakingFeeToken.text = it.inToken
+                }
+            }
+        }
+    }
+
+    private fun feeProgressShown(shown: Boolean) {
+        setupStakingFeeFiat.setVisible(!shown)
+        setupStakingFeeToken.setVisible(!shown)
+
+        setupStakingFeeProgress.setVisible(shown)
+    }
+
+    private fun feeError() {
+       retryDialog(requireContext(), viewModel::loadFee, viewModel::backClicked) {
+           setTitle(R.string.choose_amount_network_error)
+           setMessage(R.string.choose_amount_error_fee)
+       }
     }
 
     private fun showDestinationChooser(payload: DynamicListBottomSheet.Payload<AddressModel>) {

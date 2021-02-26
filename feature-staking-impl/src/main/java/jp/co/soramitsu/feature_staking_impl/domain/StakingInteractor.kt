@@ -2,10 +2,10 @@ package jp.co.soramitsu.feature_staking_impl.domain
 
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
+import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
+import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToWalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
-import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -44,13 +44,5 @@ class StakingInteractor(
         val account = accountRepository.getSelectedAccount()
 
         mapAccountToStakingAccount(account)
-    }
-
-    private fun mapAccountToStakingAccount(account: Account) = with(account) {
-        StakingAccount(address, name, cryptoType, network)
-    }
-
-    private fun mapAccountToWalletAccount(account: Account) = with(account) {
-        WalletAccount(address, name, cryptoType, network)
     }
 }
