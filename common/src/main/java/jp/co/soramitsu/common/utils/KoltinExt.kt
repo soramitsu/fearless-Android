@@ -20,6 +20,14 @@ fun <T> Result<T>.requireValue() = getOrThrow()!!
 
 fun InputStream.readText() = bufferedReader().use { it.readText() }
 
+fun <T> List<T>.second() = get(1)
+
+@Suppress("UNCHECKED_CAST")
+inline fun <K, V, R> Map<K, V>.mapValuesNotNull(crossinline mapper: (Map.Entry<K, V>) -> R?): Map<K, R> {
+    return mapValues(mapper)
+        .filterValues { it != null } as Map<K, R>
+}
+
 /**
  * Complexity: O(n * log(n))
  */

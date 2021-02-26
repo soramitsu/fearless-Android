@@ -6,15 +6,39 @@ import java.math.BigInteger
 typealias Commission = BigDecimal
 typealias ValidatorPrefs = Commission
 
-class Identity(
-    val display: String?,
-    val legal: String?,
-    val web: String?,
-    val riot: String?,
-    val email: String?,
-    val pgpFingerprint: String?,
-    val image: String?,
+interface Identity {
+    val display: String?
+    val legal: String?
+    val web: String?
+    val riot: String?
+    val email: String?
+    val pgpFingerprint: String?
+    val image: String?
     val twitter: String?
+}
+
+class RootIdentity(
+    override val display: String?,
+    override val legal: String?,
+    override val web: String?,
+    override val riot: String?,
+    override val email: String?,
+    override val pgpFingerprint: String?,
+    override val image: String?,
+    override val twitter: String?
+) : Identity
+
+class ChildIdentity(
+    childName: String?,
+    parentIdentity: Identity
+) : Identity by parentIdentity {
+
+    override val display: String = "${parentIdentity.display} / $childName"
+}
+
+class SuperOf(
+    val parentIdHex: String,
+    val childName: String?
 )
 
 class Validator(
