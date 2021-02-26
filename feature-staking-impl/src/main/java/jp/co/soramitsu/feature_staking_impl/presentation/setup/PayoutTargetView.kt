@@ -11,6 +11,8 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountDescription
+import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountGain
+import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountToken
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetChecked
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetDescription
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetName
@@ -47,11 +49,22 @@ class PayoutTargetView @JvmOverloads constructor(
         val targetDescription = typedArray.getString(R.styleable.PayoutTargetView_targetDescription)
         targetDescription?.let(::setDescription)
 
+        val amountDescription = typedArray.getString(R.styleable.PayoutTargetView_targetAmountDescription)
+        amountDescription?.let(::setAmountDescription)
+
         typedArray.recycle()
     }
 
     fun setName(name: String) {
         payoutTargetName.text = name
+    }
+
+    fun setTokenAmount(amount: String) {
+        payoutTargetAmountToken.text = amount
+    }
+
+    fun setPercentageGain(gain: String) {
+        payoutTargetAmountGain.text = gain
     }
 
     fun setDescription(description: String) {
@@ -86,7 +99,7 @@ class PayoutTargetView @JvmOverloads constructor(
 
     private fun stateDrawable() = StateListDrawable().apply {
         addState(CheckedStateSet, context.getCutCornerDrawable(strokeColorRes = RCommon.color.colorAccent))
-        addState(StateSet.WILD_CARD, context.getCutCornerDrawable(strokeColorRes = RCommon.color.white))
+        addState(StateSet.WILD_CARD, context.getCutCornerDrawable(strokeColorRes = RCommon.color.gray2))
     }
 
     private fun iconTintList() : ColorStateList {

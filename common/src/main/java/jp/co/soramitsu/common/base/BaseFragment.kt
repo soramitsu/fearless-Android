@@ -8,10 +8,14 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 abstract class BaseFragment<T : BaseViewModel> : Fragment() {
@@ -60,6 +64,12 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         observe(viewLifecycleOwner, EventObserver {
             observer.invoke(it)
         })
+    }
+
+    inline fun <V> Flow<V>.observe(crossinline collector: suspend (V) -> Unit) {
+        lifecycleScope.launch {
+            collect(collector)
+        }
     }
 
     fun <V> LiveData<V>.observe(observer: (V) -> Unit) {

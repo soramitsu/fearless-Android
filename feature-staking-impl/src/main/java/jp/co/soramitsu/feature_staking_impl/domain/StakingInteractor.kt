@@ -6,15 +6,24 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 class StakingInteractor(
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository
 ) {
+
+    suspend fun getAccountsInCurrentNetwork() = withContext(Dispatchers.Default) {
+        val account = accountRepository.getSelectedAccount()
+
+        accountRepository.getAccountsByNetworkType(account.network.type)
+            .map(::mapAccountToStakingAccount)
+    }
 
     fun getCurrentAsset() = accountRepository.selectedAccountFlow()
         .map { mapAccountToWalletAccount(it) }

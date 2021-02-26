@@ -49,12 +49,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="4dp"
-        app:layout_constraintBaseline_toBaselineOf="@id/payoutTargetAmountFiat"
-        app:layout_constraintEnd_toStartOf="@+id/payoutTargetAmountFiat"
+        app:layout_constraintBaseline_toBaselineOf="@id/payoutTargetAmountGain"
+        app:layout_constraintEnd_toStartOf="@+id/payoutTargetAmountGain"
         tools:text="4.12 KSM" />
 
     <TextView
-        android:id="@+id/payoutTargetAmountFiat"
+        android:id="@+id/payoutTargetAmountGain"
         style="@style/TextAppearance.Soramitsu.CapsTitle1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -75,8 +75,8 @@
         android:layout_marginBottom="13dp"
         android:textColor="@color/gray1"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/payoutTargetAmountFiat"
-        app:layout_constraintTop_toBottomOf="@+id/payoutTargetAmountFiat"
+        app:layout_constraintEnd_toEndOf="@+id/payoutTargetAmountGain"
+        app:layout_constraintTop_toBottomOf="@+id/payoutTargetAmountGain"
         app:layout_goneMarginBottom="13dp"
         tools:text="First year earnings" />
 </merge>

@@ -13,12 +13,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.PeriodReturns
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.AssetModel
+import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.ReturnsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.TokenModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,10 +76,8 @@ class StakingViewModel(
 
     private fun mapReturns(asset: Asset, stakingReturns: StakingReturns): ReturnsModel {
         val amountFiat = asset.token.dollarRate?.multiply(stakingReturns.amount)?.formatAsCurrency()
-        val monthlyFiat = asset.token.dollarRate?.multiply(stakingReturns.monthly.gainAmount)
-        val yearlyFiat = asset.token.dollarRate?.multiply(stakingReturns.yearly.gainAmount)
-        val monthlyEstimation = RewardEstimation(stakingReturns.monthly.gainAmount, monthlyFiat, stakingReturns.monthly.gainPercentage, asset.token)
-        val yearlyEstimation = RewardEstimation(stakingReturns.yearly.gainAmount, yearlyFiat, stakingReturns.yearly.gainPercentage, asset.token)
+        val monthlyEstimation = RewardEstimation(stakingReturns.monthly.gainAmount, stakingReturns.monthly.gainPercentage, asset.token)
+        val yearlyEstimation = RewardEstimation(stakingReturns.yearly.gainAmount, stakingReturns.yearly.gainPercentage, asset.token)
         return ReturnsModel(amountFiat, monthlyEstimation, yearlyEstimation)
     }
 
@@ -104,30 +100,5 @@ class StakingViewModel(
         return rewardCalculator.await()
     }
 
-    private fun mapTokenToTokenModel(token: Token): TokenModel {
-        return with(token) {
-            TokenModel(
-                type = type,
-                dollarRate = dollarRate,
-                recentRateChange = recentRateChange
-            )
-        }
-    }
 
-    private fun mapAssetToAssetModel(asset: Asset): AssetModel {
-        return with(asset) {
-            AssetModel(
-                token = mapTokenToTokenModel(token),
-                total = total,
-                bonded = bonded,
-                locked = locked,
-                available = transferable,
-                reserved = reserved,
-                frozen = frozen,
-                redeemable = redeemable,
-                unbonding = unbonding,
-                dollarAmount = dollarAmount
-            )
-        }
-    }
 }

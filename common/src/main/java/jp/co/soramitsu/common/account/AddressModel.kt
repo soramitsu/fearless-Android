@@ -6,4 +6,6 @@ class AddressModel(
     val address: String,
     val image: PictureDrawable,
     val name: String? = null
-)
+) {
+    val nameOrAddress = name ?: address
+}

@@ -66,6 +66,7 @@ dependencies {
 
     implementation coroutinesDep
     implementation liveDataKtxDep
+    implementation lifeCycleKtxDep
 
     implementation viewModelKtxDep
 
