@@ -10,5 +10,5 @@ interface TokenRepository {
 
     suspend fun getToken(tokenType: Token.Type): Token?
 
-    fun observeToken(networkType: Node.NetworkType) : Flow<Token>
+    fun observeToken(networkType: Node.NetworkType): Flow<Token>
 }

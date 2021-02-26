@@ -81,7 +81,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             } else {
                 stakingEstimate.showYearlyGainFiat()
                 stakingEstimate.setYearlyGainFiat(rewards.yearly.fiatAmount)
-
             }
             stakingEstimate.setYearlyGainPercentage(rewards.yearly.gain)
         }
