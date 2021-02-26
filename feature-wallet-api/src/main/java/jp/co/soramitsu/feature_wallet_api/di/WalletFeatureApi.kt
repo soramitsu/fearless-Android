@@ -12,5 +12,5 @@ interface WalletFeatureApi {
 
     fun provideTokenRegistry(): BuyTokenRegistry
 
-    fun provideTokenRepository() : TokenRepository
+    fun provideTokenRepository(): TokenRepository
 }

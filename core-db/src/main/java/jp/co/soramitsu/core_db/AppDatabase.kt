@@ -90,5 +90,5 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun storageDao(): StorageDao
 
-    abstract fun tokenDao() : TokenDao
+    abstract fun tokenDao(): TokenDao
 }

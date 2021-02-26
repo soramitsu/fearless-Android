@@ -28,5 +28,5 @@ interface DbApi {
 
     fun storageDao(): StorageDao
 
-    fun tokenDao() : TokenDao
+    fun tokenDao(): TokenDao
 }

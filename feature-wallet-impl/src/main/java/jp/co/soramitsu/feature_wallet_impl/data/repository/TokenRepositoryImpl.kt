@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class TokenRepositoryImpl(
-    private val tokenDao: TokenDao,
+    private val tokenDao: TokenDao
 ) : TokenRepository {
 
     override suspend fun getToken(networkType: Node.NetworkType): Token? {

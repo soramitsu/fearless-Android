@@ -76,7 +76,7 @@ class RewardCalculator(
         amount: BigDecimal,
         days: Int,
         isCompound: Boolean
-    ): PeriodReturns = withContext(Dispatchers.Default) {
+    ) = withContext(Dispatchers.Default) {
         val dailyPercentage = expectedAPY / DAYS_IN_YEAR
 
         calculateReward(amount.toDouble(), days, dailyPercentage, isCompound)
