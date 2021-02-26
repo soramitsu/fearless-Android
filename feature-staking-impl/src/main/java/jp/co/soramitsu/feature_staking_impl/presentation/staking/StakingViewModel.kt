@@ -6,8 +6,11 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.wallet.formatWithDefaultPrecision
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.PeriodReturns
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
@@ -16,9 +19,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.AssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.ReturnsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.TokenModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.icon
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,7 +48,8 @@ class StakingViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
-    private val rewardCalculatorFactory: RewardCalculatorFactory
+    private val rewardCalculatorFactory: RewardCalculatorFactory,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel() {
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
@@ -56,9 +59,7 @@ class StakingViewModel(
 
     private val currentAsset = interactor.getCurrentAsset()
 
-    val asset = currentAsset.map {
-        mapAssetToAssetModel(it)
-    }.asLiveData()
+    val asset = currentAsset.map { mapAssetToAssetModel(it) }.asLiveData()
 
     val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
 
@@ -104,29 +105,12 @@ class StakingViewModel(
         return rewardCalculator.await()
     }
 
-    private fun mapTokenToTokenModel(token: Token): TokenModel {
-        return with(token) {
-            TokenModel(
-                type = type,
-                dollarRate = dollarRate,
-                recentRateChange = recentRateChange
-            )
-        }
-    }
-
     private fun mapAssetToAssetModel(asset: Asset): AssetModel {
         return with(asset) {
             AssetModel(
-                token = mapTokenToTokenModel(token),
-                total = total,
-                bonded = bonded,
-                locked = locked,
-                available = transferable,
-                reserved = reserved,
-                frozen = frozen,
-                redeemable = redeemable,
-                unbonding = unbonding,
-                dollarAmount = dollarAmount
+                token.type.icon,
+                token.type.displayName,
+                resourceManager.getString(R.string.common_balance_format, asset.transferable.formatWithDefaultPrecision(token.type))
             )
         }
     }

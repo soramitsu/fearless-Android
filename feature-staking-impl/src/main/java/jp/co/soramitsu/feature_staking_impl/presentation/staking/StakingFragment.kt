@@ -4,25 +4,19 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
-import jp.co.soramitsu.common.wallet.formatWithDefaultPrecision
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.icon
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -51,22 +45,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             .inject(this)
     }
 
-    fun EditText.bindTo(flow: MutableStateFlow<String>, scope: CoroutineScope) {
-        scope.launch {
-            flow.collect { input ->
-                if (text.toString() != input) {
-                    setText(input)
-                }
-            }
-        }
-
-        onTextChanged {
-            scope.launch {
-                flow.emit(it)
-            }
-        }
-    }
-
     override fun subscribe(viewModel: StakingViewModel) {
         stakingEstimate.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
 
@@ -75,11 +53,9 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
 
         viewModel.asset.observe {
-            stakingEstimate.setAssetImageResource(it.token.type.icon)
-            stakingEstimate.setAssetName(it.token.type.displayName)
-            stakingEstimate.setAssetBalance(
-                getString(R.string.common_balance_format, it.available.formatWithDefaultPrecision(it.token.type))
-            )
+            stakingEstimate.setAssetImageResource(it.tokenIconRes)
+            stakingEstimate.setAssetName(it.assetName)
+            stakingEstimate.setAssetBalance(it.assetBalance)
         }
 
         viewModel.returns.observe { rewards ->
