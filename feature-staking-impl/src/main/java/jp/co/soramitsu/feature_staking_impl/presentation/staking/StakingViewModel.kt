@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
@@ -26,7 +25,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
@@ -53,9 +51,6 @@ class StakingViewModel(
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
-    private val _returns = MutableLiveData<ReturnsModel>()
-    val returns: LiveData<ReturnsModel> = _returns
-
     private val currentAsset = interactor.getCurrentAsset()
 
     val asset = currentAsset.map { mapAssetToAssetModel(it) }.asLiveData()
@@ -68,17 +63,15 @@ class StakingViewModel(
         .filterNotNull()
         .asLiveData()
 
+    val returns: LiveData<ReturnsModel> = currentAsset.combine(formattedAmountFlow) { asset, amount ->
+        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
+        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
+        val returns = StakingReturns(monthly, yearly)
+
+        mapReturns(asset, returns)
+    }.asLiveData()
+
     private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
-
-    init {
-        currentAsset.combine(formattedAmountFlow) { asset, amount ->
-            val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
-            val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
-            val returns = StakingReturns(monthly, yearly)
-
-            _returns.value = mapReturns(asset, returns)
-        }.launchIn(viewModelScope)
-    }
 
     private fun mapReturns(asset: Asset, stakingReturns: StakingReturns): ReturnsModel {
         val monthlyFiat = asset.token.dollarRate?.multiply(stakingReturns.monthly.gainAmount)

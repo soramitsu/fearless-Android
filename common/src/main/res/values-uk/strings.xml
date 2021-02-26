@@ -229,4 +229,8 @@
     <string name="wallet_send_phishing_warning_text">Наступна адреса: %s як відомо, використовується у фішинг-діях, тому ми не рекомендуємо надсилати токени на цю адресу. Ви хочете всеодно продовжити?</string>
     <string name="common_balance_format">Баланс: %s</string>
     <string name="staking_start_title">Почніть робити ставку</string>
+    <string name="staking_title">Стекiнг</string>
+    <string name="staking_estimate_earning_title">Оцініть свій заробіток</string>
+    <string name="staking_month_period_title">Щомісяця</string>
+    <string name="staking_year_period_title">Щорічно</string>
 </resources>

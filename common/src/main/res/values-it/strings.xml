@@ -228,4 +228,8 @@
     <string name="wallet_send_phishing_warning_text">Il seguente indirizzo: %s è noto per essere utilizzato in attività di phishing, quindi non consigliamo di inviare token a tale indirizzo. Vuoi continuare comunque?</string>
     <string name="common_balance_format">Saldo: %s</string>
     <string name="staking_start_title">Inizia a picchettare</string>
+    <string name="staking_title">Staking</string>
+    <string name="staking_estimate_earning_title">Inserisci il tuo mnemonico</string>
+    <string name="staking_month_period_title">Mensile</string>
+    <string name="staking_year_period_title">Annuale</string>
 </resources>
