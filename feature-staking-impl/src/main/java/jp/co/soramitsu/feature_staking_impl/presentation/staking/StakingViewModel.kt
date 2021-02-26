@@ -25,6 +25,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -65,6 +66,10 @@ class StakingViewModel(
 
     private val formattedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
+    val amountFiat = formattedAmountFlow.combine(currentAsset) { amount, asset ->
+        asset.dollarAmount?.multiply(amount)?.formatAsCurrency()
+    }.filterNotNull().asLiveData()
+
     private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
 
     init {
@@ -78,12 +83,11 @@ class StakingViewModel(
     }
 
     private fun mapReturns(asset: Asset, stakingReturns: StakingReturns): ReturnsModel {
-        val amountFiat = asset.token.dollarRate?.multiply(stakingReturns.amount)?.formatAsCurrency()
         val monthlyFiat = asset.token.dollarRate?.multiply(stakingReturns.monthly.gainAmount)
         val yearlyFiat = asset.token.dollarRate?.multiply(stakingReturns.yearly.gainAmount)
         val monthlyEstimation = RewardEstimation(stakingReturns.monthly.gainAmount, monthlyFiat, stakingReturns.monthly.gainPercentage, asset.token)
         val yearlyEstimation = RewardEstimation(stakingReturns.yearly.gainAmount, yearlyFiat, stakingReturns.yearly.gainPercentage, asset.token)
-        return ReturnsModel(amountFiat, monthlyEstimation, yearlyEstimation)
+        return ReturnsModel(monthlyEstimation, yearlyEstimation)
     }
 
     fun onAmountChanged(text: String) {

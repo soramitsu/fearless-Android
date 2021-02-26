@@ -33,6 +33,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             addRipple(getCutCornerDrawable(R.color.blurColor))
         }
         stakingNetworkInfo.background = background
+
+        stakingEstimate.hideAssetBalanceDollarAmount()
     }
 
     override fun inject() {
@@ -58,6 +60,11 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             stakingEstimate.setAssetBalance(it.assetBalance)
         }
 
+        viewModel.amountFiat.observe { amountFiat ->
+            stakingEstimate.showAssetBalanceDollarAmount()
+            stakingEstimate.setAssetBalanceDollarAmount(amountFiat)
+        }
+
         viewModel.returns.observe { rewards ->
             stakingEstimate.setMonthlyGainAsset(rewards.monthly.amount)
             if (rewards.monthly.fiatAmount == null) {
@@ -77,12 +84,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
             }
             stakingEstimate.setYearlyGainPercentage(rewards.yearly.gain)
-            if (rewards.amountFiat == null) {
-                stakingEstimate.hideAssetBalanceDollarAmount()
-            } else {
-                stakingEstimate.showAssetBalanceDollarAmount()
-                stakingEstimate.setAssetBalanceDollarAmount(rewards.amountFiat)
-            }
         }
 
         stakingEstimate.amountInput.onTextChanged(viewModel::onAmountChanged)
