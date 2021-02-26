@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -40,7 +39,6 @@ private const val PERIOD_MONTH = 30
 private const val PERIOD_YEAR = 365
 
 class StakingReturns(
-    val amount: BigDecimal,
     val monthly: PeriodReturns,
     val yearly: PeriodReturns
 )
@@ -76,7 +74,7 @@ class StakingViewModel(
         currentAsset.combine(formattedAmountFlow) { asset, amount ->
             val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
             val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
-            val returns = StakingReturns(amount, monthly, yearly)
+            val returns = StakingReturns(monthly, yearly)
 
             _returns.value = mapReturns(asset, returns)
         }.launchIn(viewModelScope)
