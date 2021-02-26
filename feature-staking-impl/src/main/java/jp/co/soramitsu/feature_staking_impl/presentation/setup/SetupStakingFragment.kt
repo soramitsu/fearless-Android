@@ -9,11 +9,9 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.common.wallet.formatWithDefaultPrecision
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.icon
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingAmountField
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingTargetPayout
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingTargetPayoutDestination
@@ -57,11 +55,11 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         }
 
         viewModel.assetModelsFlow.observe {
-            val available = getString(R.string.common_balance_format, it.available.formatWithDefaultPrecision(it.token.type))
+            val available = getString(R.string.common_balance_format, it.assetBalance)
 
             setupStakingAmountField.setAssetBalance(available)
-            setupStakingAmountField.setAssetName(it.token.type.displayName)
-            setupStakingAmountField.setAssetImageResource(it.token.type.icon)
+            setupStakingAmountField.setAssetName(it.tokenName)
+            setupStakingAmountField.setAssetImageResource(it.tokenIconRes)
         }
 
         setupStakingAmountField.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)

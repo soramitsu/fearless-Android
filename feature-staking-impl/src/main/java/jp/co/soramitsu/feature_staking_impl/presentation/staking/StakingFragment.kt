@@ -56,7 +56,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
         viewModel.asset.observe {
             stakingEstimate.setAssetImageResource(it.tokenIconRes)
-            stakingEstimate.setAssetName(it.assetName)
+            stakingEstimate.setAssetName(it.tokenName)
             stakingEstimate.setAssetBalance(it.assetBalance)
         }
 
