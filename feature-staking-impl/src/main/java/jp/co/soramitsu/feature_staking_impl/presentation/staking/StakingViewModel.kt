@@ -66,9 +66,9 @@ class StakingViewModel(
 
     private val formattedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
-    val amountFiat = formattedAmountFlow.combine(currentAsset) { amount, asset ->
-        asset.dollarAmount?.multiply(amount)?.formatAsCurrency()
-    }.filterNotNull().asLiveData()
+    val amountFiat = formattedAmountFlow.combine(currentAsset) { amount, asset -> asset.dollarAmount?.multiply(amount)?.formatAsCurrency() }
+        .filterNotNull()
+        .asLiveData()
 
     private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
 
