@@ -56,6 +56,10 @@ class StakingViewModel(
 
     private val currentAsset = interactor.getCurrentAsset()
 
+    val asset = currentAsset.map {
+        mapAssetToAssetModel(it)
+    }.asLiveData()
+
     val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
 
     private val formattedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
@@ -63,7 +67,6 @@ class StakingViewModel(
     private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
 
     init {
-
         currentAsset.combine(formattedAmountFlow) { asset, amount ->
             val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
             val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
@@ -74,13 +77,12 @@ class StakingViewModel(
     }
 
     private fun mapReturns(asset: Asset, stakingReturns: StakingReturns): ReturnsModel {
-        val assetModel = mapAssetToAssetModel(asset)
         val amountFiat = asset.token.dollarRate?.multiply(stakingReturns.amount)?.formatAsCurrency()
         val monthlyFiat = asset.token.dollarRate?.multiply(stakingReturns.monthly.gainAmount)
         val yearlyFiat = asset.token.dollarRate?.multiply(stakingReturns.yearly.gainAmount)
         val monthlyEstimation = RewardEstimation(stakingReturns.monthly.gainAmount, monthlyFiat, stakingReturns.monthly.gainPercentage, asset.token)
         val yearlyEstimation = RewardEstimation(stakingReturns.yearly.gainAmount, yearlyFiat, stakingReturns.yearly.gainPercentage, asset.token)
-        return ReturnsModel(assetModel, amountFiat, monthlyEstimation, yearlyEstimation)
+        return ReturnsModel(amountFiat, monthlyEstimation, yearlyEstimation)
     }
 
     fun onAmountChanged(text: String) {

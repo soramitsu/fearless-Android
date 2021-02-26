@@ -8,7 +8,6 @@ import android.widget.EditText
 import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
@@ -75,6 +74,14 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             stakingAvatar.setImageDrawable(it.image)
         }
 
+        viewModel.asset.observe {
+            stakingEstimate.setAssetImageResource(it.token.type.icon)
+            stakingEstimate.setAssetName(it.token.type.displayName)
+            stakingEstimate.setAssetBalance(
+                getString(R.string.common_balance_format, it.available.formatWithDefaultPrecision(it.token.type))
+            )
+        }
+
         viewModel.returns.observe { rewards ->
             stakingEstimate.setMonthlyGainAsset(rewards.monthly.amount)
             if (rewards.monthly.fiatAmount == null) {
@@ -94,10 +101,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
             }
             stakingEstimate.setYearlyGainPercentage(rewards.yearly.gain)
-
-            stakingEstimate.setAssetImageResource(rewards.asset.token.type.icon)
-            stakingEstimate.setAssetName(rewards.asset.token.type.displayName)
-            stakingEstimate.setAssetBalance(rewards.asset.available.formatWithDefaultPrecision(rewards.asset.token.type))
             if (rewards.amountFiat == null) {
                 stakingEstimate.hideAssetBalanceDollarAmount()
             } else {

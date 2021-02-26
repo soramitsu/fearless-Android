@@ -12,7 +12,7 @@
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/white_50"
+        android:textColor="@color/gray1"
         tools:text="Monthly" />
 
     <TextView
@@ -34,7 +34,7 @@
             style="@style/TextAppearance.Soramitsu.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white_50"
+            android:textColor="@color/white_64"
             tools:text="$8.13" />
 
         <Space
