@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.cache
 
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.AssetReadOnlyCache
+import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -13,6 +14,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 class AssetCache(
+    private val tokenDao: TokenDao,
     private val assetDao: AssetDao
 ) : AssetReadOnlyCache by assetDao {
 
@@ -25,8 +27,8 @@ class AssetCache(
         assetUpdateMutex.withLock {
             val tokenType = Token.Type.fromNetworkType(account.network.type)
 
-            if (!assetDao.isTokenExists(tokenType)) {
-                assetDao.insertToken(TokenLocal.createEmpty(tokenType))
+            if (!tokenDao.isTokenExists(tokenType)) {
+                tokenDao.insertToken(TokenLocal.createEmpty(tokenType))
             }
 
             val cachedAsset = assetDao.getAsset(account.address, tokenType)?.asset ?: AssetLocal.createEmpty(tokenType, account.address)
@@ -44,11 +46,11 @@ class AssetCache(
         assetUpdateMutex.withLock {
             val tokenType = Token.Type.fromNetworkType(account.network.type)
 
-            val tokenLocal = assetDao.getToken(tokenType) ?: TokenLocal.createEmpty(tokenType)
+            val tokenLocal = tokenDao.getToken(tokenType) ?: TokenLocal.createEmpty(tokenType)
 
             val newToken = builder.invoke(tokenLocal)
 
-            assetDao.insertToken(newToken)
+            tokenDao.insertToken(newToken)
         }
     }
 }

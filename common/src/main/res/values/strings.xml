@@ -255,4 +255,10 @@
     <string name="common_options_title">Select an option</string>
     <string name="wallet_send_phishing_warning_title">Scam alert</string>
     <string name="wallet_send_phishing_warning_text">Following address: %s is known to be used in phishing activities, thus we are not recommending sending tokens to that address. Would you like to proceed anyway?</string>
+    <string name="common_balance_format">Balance: %s</string>
+    <string name="staking_start_title">Start staking</string>
+    <string name="staking_title">Staking</string>
+    <string name="staking_estimate_earning_title">Estimate your earning</string>
+    <string name="staking_month_period_title">Monthly</string>
+    <string name="staking_year_period_title">Yearly</string>
 </resources>

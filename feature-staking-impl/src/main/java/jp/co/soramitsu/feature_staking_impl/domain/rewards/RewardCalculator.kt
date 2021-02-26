@@ -19,6 +19,13 @@ private const val DECAY_RATE = 0.05
 
 private const val DAYS_IN_YEAR = 365
 
+private val PERCENTAGE_MULTIPLIER = 100.toBigDecimal()
+
+class PeriodReturns(
+    val gainAmount: BigDecimal,
+    val gainPercentage: BigDecimal
+)
+
 class RewardCalculator(
     val validators: List<RewardCalculationTarget>,
     val totalIssuance: BigInteger
@@ -69,10 +76,10 @@ class RewardCalculator(
         amount: BigDecimal,
         days: Int,
         isCompound: Boolean
-    ): BigDecimal = withContext(Dispatchers.Default) {
+    ) = withContext(Dispatchers.Default) {
         val dailyPercentage = expectedAPY / DAYS_IN_YEAR
 
-        calculateReward(amount.toDouble(), days, dailyPercentage, isCompound).toBigDecimal()
+        calculateReward(amount.toDouble(), days, dailyPercentage, isCompound)
     }
 
     suspend fun calculateReturns(
@@ -80,11 +87,11 @@ class RewardCalculator(
         days: Int,
         isCompound: Boolean,
         targetIdHex: String
-    ): BigDecimal = withContext(Dispatchers.Default) {
+    ) = withContext(Dispatchers.Default) {
         val validatorAPY = apyByValidator[targetIdHex] ?: error("Validator with $targetIdHex was not found")
         val dailyPercentage = validatorAPY / DAYS_IN_YEAR
 
-        calculateReward(amount, days, dailyPercentage, isCompound).toBigDecimal()
+        calculateReward(amount, days, dailyPercentage, isCompound)
     }
 
     private fun calculateReward(
@@ -92,10 +99,23 @@ class RewardCalculator(
         days: Int,
         dailyPercentage: Double,
         isCompound: Boolean
-    ) = if (isCompound) {
-        calculateCompoundReward(amount, days, dailyPercentage)
-    } else {
-        calculateSimpleReward(amount, days, dailyPercentage)
+    ): PeriodReturns {
+        val gainAmount = if (isCompound) {
+            calculateCompoundReward(amount, days, dailyPercentage)
+        } else {
+            calculateSimpleReward(amount, days, dailyPercentage)
+        }.toBigDecimal()
+
+        val gainPercentage = if (amount == 0.0) {
+            BigDecimal.ZERO
+        } else {
+            gainAmount / amount.toBigDecimal() * PERCENTAGE_MULTIPLIER
+        }
+
+        return PeriodReturns(
+            gainAmount = gainAmount,
+            gainPercentage = gainPercentage
+        )
     }
 
     private fun calculateSimpleReward(amount: Double, days: Int, dailyPercentage: Double): Double {
@@ -103,6 +123,6 @@ class RewardCalculator(
     }
 
     private fun calculateCompoundReward(amount: Double, days: Int, dailyPercentage: Double): Double {
-        return amount * ((1 + dailyPercentage).pow(days))
+        return amount * ((1 + dailyPercentage).pow(days)) - amount
     }
 }

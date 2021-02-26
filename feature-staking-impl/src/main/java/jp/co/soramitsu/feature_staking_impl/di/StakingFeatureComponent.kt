@@ -8,7 +8,9 @@ import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.di.RecommendedValidatorsComponent
+import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.runtime.di.RuntimeApi
 
 @Component(
@@ -25,6 +27,8 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun recommendedValidatorsComponentFactory(): RecommendedValidatorsComponent.Factory
 
+    fun stakingComponentFactory(): StakingComponent.Factory
+
     @Component.Factory
     interface Factory {
 
@@ -39,7 +43,8 @@ interface StakingFeatureComponent : StakingFeatureApi {
             CommonApi::class,
             DbApi::class,
             RuntimeApi::class,
-            AccountFeatureApi::class
+            AccountFeatureApi::class,
+            WalletFeatureApi::class
         ]
     )
     interface StakingFeatureDependenciesComponent : StakingFeatureDependencies

@@ -227,4 +227,10 @@
     <string name="buy_completed">Achat lancé! Veuillez patienter jusqu\'à 60 minutes. Vous pouvez suivre le statut sur l\'e-mail.</string>
     <string name="wallet_send_phishing_warning_title">Alerte aux arnaques</string>
     <string name="wallet_send_phishing_warning_text">Adresse suivante: %s est connu pour être utilisé dans des activités de phishing, nous ne recommandons donc pas d\'envoyer des jetons à cette adresse. Souhaitez-vous quand même continuer?</string>
+    <string name="common_balance_format">Solde: %s</string>
+    <string name="staking_start_title">Commencer le jalonnement</string>
+    <string name="staking_title">Staking</string>
+    <string name="staking_estimate_earning_title">Entrez votre code Mnemonic</string>
+    <string name="staking_month_period_title">Mensuel</string>
+    <string name="staking_year_period_title">Annuel</string>
 </resources>

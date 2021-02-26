@@ -11,11 +11,11 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.showBrowser
+import jp.co.soramitsu.common.wallet.formatWithMaxPrecision
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailAmount
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailDate
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailFee
@@ -83,12 +83,12 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
             transactionDetailDate.text = date.formatDateTime(requireContext())
 
-            transactionDetailAmount.text = amount.formatAsToken(type)
-            transactionDetailFee.text = fee?.formatAsToken(type) ?: getString(R.string.common_unknown)
+            transactionDetailAmount.text = amount.formatWithMaxPrecision(type)
+            transactionDetailFee.text = fee?.formatWithMaxPrecision(type) ?: getString(R.string.common_unknown)
 
             transactionDetailHash.setMessage(hash)
 
-            transactionDetailTotal.text = total?.formatAsToken(type) ?: getString(R.string.common_unknown)
+            transactionDetailTotal.text = total?.formatWithMaxPrecision(type) ?: getString(R.string.common_unknown)
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->

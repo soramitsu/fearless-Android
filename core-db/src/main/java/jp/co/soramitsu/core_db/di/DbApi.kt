@@ -7,6 +7,7 @@ import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.StorageDao
+import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 
 interface DbApi {
@@ -26,4 +27,6 @@ interface DbApi {
     fun providePhishingAddressDao(): PhishingAddressDao
 
     fun storageDao(): StorageDao
+
+    fun tokenDao(): TokenDao
 }

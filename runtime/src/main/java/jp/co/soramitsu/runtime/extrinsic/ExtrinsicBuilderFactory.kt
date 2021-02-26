@@ -12,11 +12,11 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.multiAd
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
+import jp.co.soramitsu.feature_account_api.domain.model.Account
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-typealias KeypairProvider = suspend (WalletAccount) -> Keypair
+typealias KeypairProvider = suspend (Account) -> Keypair
 
 class ExtrinsicBuilderFactory(
     private val accountRepository: AccountRepository,
@@ -25,7 +25,7 @@ class ExtrinsicBuilderFactory(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
 ) {
 
-    fun accountKeypairProvider(): KeypairProvider = { account: WalletAccount ->
+    fun accountKeypairProvider(): KeypairProvider = { account: Account ->
         val securitySource = accountRepository.getSecuritySource(account.address)
         mapSigningDataToKeypair(securitySource.signingData)
     }
@@ -35,7 +35,7 @@ class ExtrinsicBuilderFactory(
     }
 
     suspend fun create(
-        account: WalletAccount,
+        account: Account,
         keypairProvider: KeypairProvider = accountKeypairProvider()
     ): ExtrinsicBuilder {
         val nonce = substrateCalls.getNonce(account.address)
@@ -54,7 +54,7 @@ class ExtrinsicBuilderFactory(
         )
     }
 
-    private suspend fun generateFakeKeyPair(account: WalletAccount) = withContext(Dispatchers.Default) {
+    private suspend fun generateFakeKeyPair(account: Account) = withContext(Dispatchers.Default) {
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
         val emptySeed = ByteArray(32) { 1 }
 

@@ -18,9 +18,15 @@
         android:label="ExtrinsicsFragment" />
 
     <fragment
-        android:id="@+id/stackingFragment"
-        tools:layout="@layout/fragment_coming_soon"
+        android:id="@+id/recommendedValidatorsFragment"
+        tools:layout="@layout/fragment_recommended_validators"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.RecommendedValidatorsFragment"
+        android:label="RecommendedValidatorsFragment" />
+
+    <fragment
+        android:id="@+id/stakingFragment"
+        tools:layout="@layout/fragment_staking"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.StakingFragment"
         android:label="StackingFragment" />
 
     <fragment

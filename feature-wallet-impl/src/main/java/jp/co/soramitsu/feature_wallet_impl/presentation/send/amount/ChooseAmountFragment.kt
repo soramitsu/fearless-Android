@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.wallet.formatWithMaxPrecision
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
@@ -17,7 +18,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalance
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalanceLabel
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFee
@@ -74,7 +74,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         observeTransferChecks(viewModel, viewModel::warningConfirmed)
 
         viewModel.feeLiveData.observe {
-            chooseAmountFee.text = it?.feeAmount?.formatAsToken(it.type) ?: getString(R.string.common_error_general_title)
+            chooseAmountFee.text = it?.feeAmount?.formatWithMaxPrecision(it.type) ?: getString(R.string.common_error_general_title)
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->
@@ -91,7 +91,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.assetLiveData.observe {
-            chooseAmountBalance.text = it.available.formatAsToken(it.token.type)
+            chooseAmountBalance.text = it.available.formatWithMaxPrecision(it.token.type)
 
             chooseAmountToken.setTextIcon(it.token.type.icon)
             chooseAmountToken.setMessage(it.token.type.displayName)
