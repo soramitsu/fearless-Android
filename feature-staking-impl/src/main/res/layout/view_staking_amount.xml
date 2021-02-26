@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="80dp"
     tools:background="@color/black"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
@@ -15,6 +15,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:text="@string/common_amount"
+        android:includeFontPadding="false"
         android:textColor="@color/gray1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -26,7 +27,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
         android:textColor="@color/gray1"
+        app:layout_constraintBottom_toTopOf="@+id/stakingAmountInput"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="$418,9" />
@@ -47,7 +50,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
-        android:layout_marginTop="8dp"
+        android:includeFontPadding="false"
+        android:layout_marginTop="9dp"
         app:layout_constraintStart_toEndOf="@id/stakingAssetImage"
         app:layout_constraintTop_toBottomOf="@id/stakingTitle"
         tools:text="KSM" />
@@ -64,19 +68,19 @@
         android:textCursorDrawable="@null"
         android:gravity="end"
         android:text="@string/choose_amount_initial"
-        app:layout_constraintBottom_toBottomOf="@id/stakingAssetToken"
+        app:layout_constraintBaseline_toBaselineOf="@id/stakingAssetToken"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/stakingAssetToken"
-        app:layout_constraintTop_toTopOf="@id/stakingAssetToken"
         tools:text="10" />
 
     <TextView
+        android:includeFontPadding="false"
         android:id="@+id/stakingAssetBalance"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="5dp"
         android:layout_marginBottom="8dp"
         android:textColor="@color/gray1"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -30,7 +30,7 @@ class EstimateEarningView @JvmOverloads constructor(
             background = addRipple(getCutCornerDrawable(R.color.blurColor))
         }
 
-        attrs?.let { applyAttributes(it) }
+//        attrs?.let { applyAttributes(it) }
     }
 
     private fun applyAttributes(attributeSet: AttributeSet) {
