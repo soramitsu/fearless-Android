@@ -24,8 +24,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -53,13 +53,15 @@ class StakingViewModel(
 
     private val currentAsset = interactor.getCurrentAsset()
 
-    private val enteredAmountFlow = MutableStateFlow(BigDecimal.ONE)
+    val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
+
+    private val formattedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
     private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
 
     init {
 
-        currentAsset.combine(enteredAmountFlow) { asset, amount ->
+        currentAsset.combine(formattedAmountFlow) { asset, amount ->
             val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
             val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
             val returns = StakingReturns(monthly, yearly)
@@ -78,10 +80,8 @@ class StakingViewModel(
     }
 
     fun onAmountChanged(text: String) {
-        text.toBigDecimalOrNull()?.let {
-            viewModelScope.launch {
-                enteredAmountFlow.emit(it)
-            }
+        viewModelScope.launch {
+            enteredAmountFlow.emit(text)
         }
     }
 

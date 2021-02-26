@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -18,6 +20,10 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.icon
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -46,7 +52,25 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             .inject(this)
     }
 
+    fun EditText.bindTo(flow: MutableStateFlow<String>, scope: CoroutineScope) {
+        scope.launch {
+            flow.collect { input ->
+                if (text.toString() != input) {
+                    setText(input)
+                }
+            }
+        }
+
+        onTextChanged {
+            scope.launch {
+                flow.emit(it)
+            }
+        }
+    }
+
     override fun subscribe(viewModel: StakingViewModel) {
+        stakingEstimate.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
+
         viewModel.currentAddressModelLiveData.observe {
             stakingAvatar.setImageDrawable(it.image)
         }
