@@ -59,7 +59,7 @@ class StakingViewModel(
 
     private val formattedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
-    val amountFiat = formattedAmountFlow.combine(currentAsset) { amount, asset -> asset.dollarAmount?.multiply(amount)?.formatAsCurrency() }
+    val amountFiat = formattedAmountFlow.combine(currentAsset) { amount, asset -> asset.token.dollarRate?.multiply(amount)?.formatAsCurrency() }
         .filterNotNull()
         .asLiveData()
 
