@@ -12,6 +12,8 @@
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:drawableEnd="@drawable/ic_info_16"
+        android:drawablePadding="6dp"
         android:text="Total stake"
         android:textColor="@color/white_64" />
 

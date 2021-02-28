@@ -5,4 +5,7 @@
     <declare-styleable name="StakingGainView">
         <attr name="titleText" format="string" />
     </declare-styleable>
+    <declare-styleable name="ValidatorIdentityItemView">
+        <attr name="validatorIdentityTitle" format="string" />
+    </declare-styleable>
 </resources>
