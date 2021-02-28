@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    tools:background="@color/black"
+    tools:orientation="vertical"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <TextView
+        android:id="@+id/validatorTotalStakeTitle"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nominators"
+        android:textColor="@color/gray1" />
+
+    <TextView
+        android:id="@+id/validatorTotalStakeValue"
+        style="@style/TextAppearance.Soramitsu.Body0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        tools:text="0.164 KSM" />
+
+</merge>
