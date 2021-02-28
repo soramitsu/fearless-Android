@@ -25,8 +25,8 @@
 
     <fragment
         android:id="@+id/stakingFragment"
-        tools:layout="@layout/fragment_staking"
-        android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.StakingFragment"
+        tools:layout="@layout/fragment_validator_details"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment"
         android:label="StackingFragment" />
 
     <fragment
