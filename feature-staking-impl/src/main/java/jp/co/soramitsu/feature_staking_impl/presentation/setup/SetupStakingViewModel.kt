@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.mixin.api.DefaultFailure
 import jp.co.soramitsu.common.mixin.api.Retriable
@@ -83,7 +84,8 @@ class SetupStakingViewModel(
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val resourceManager: ResourceManager,
     private val maxFeeEstimator: MaxFeeEstimator,
-    private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>
+    private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
+    private val appLinksProvider: AppLinksProvider
 ) : BaseViewModel(), Retriable, Validatable, Browserable {
 
     private val _rewardDestinationLiveData = MutableLiveData<RewardDestinationModel>(RewardDestinationModel.Restake)
@@ -152,6 +154,10 @@ class SetupStakingViewModel(
 
     fun restakeClicked() {
         _rewardDestinationLiveData.value = RewardDestinationModel.Restake
+    }
+
+    fun learnMoreClicked() {
+        openBrowserEvent.value = Event(appLinksProvider.payoutsLearnMore)
     }
 
     fun payoutDestinationClicked() {

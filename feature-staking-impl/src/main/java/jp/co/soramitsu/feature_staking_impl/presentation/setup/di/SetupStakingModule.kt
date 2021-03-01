@@ -7,6 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -32,7 +33,8 @@ class SetupStakingModule {
         rewardCalculatorFactory: RewardCalculatorFactory,
         resourceManager: ResourceManager,
         maxFeeEstimator: MaxFeeEstimator,
-        validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>
+        validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
+        appLinksProvider: AppLinksProvider
     ): ViewModel {
         return SetupStakingViewModel(
             router,
@@ -41,7 +43,8 @@ class SetupStakingModule {
             rewardCalculatorFactory,
             resourceManager,
             maxFeeEstimator,
-            validationSystem
+            validationSystem,
+            appLinksProvider
         )
     }
 

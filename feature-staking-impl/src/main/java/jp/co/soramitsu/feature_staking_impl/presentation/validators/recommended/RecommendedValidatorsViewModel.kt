@@ -52,7 +52,7 @@ class RecommendedValidatorsViewModel(
     }
 
     fun learnMoreClicked() {
-        openBrowserEvent.value = Event(appLinksProvider.stakingLearnMore)
+        openBrowserEvent.value = Event(appLinksProvider.nominatorLearnMore)
     }
 
     private suspend fun convertToModels(

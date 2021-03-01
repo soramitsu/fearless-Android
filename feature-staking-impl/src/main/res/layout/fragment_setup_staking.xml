@@ -153,14 +153,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_primary_list_item"
-                android:drawableStart="@drawable/ic_fearless"
-                android:drawableEnd="@drawable/ic_arrow_top_right_white_16"
                 android:drawablePadding="16dp"
                 android:paddingStart="16dp"
                 android:paddingTop="12dp"
                 android:paddingEnd="16dp"
                 android:paddingBottom="12dp"
-                android:text="Learn more about Payouts" />
+                android:text="Learn more about Payouts"
+                app:drawableStartCompat="@drawable/ic_fearless"
+                app:drawableEndCompat="@drawable/ic_arrow_top_right_white_16" />
 
             <Space
                 android:layout_width="match_parent"

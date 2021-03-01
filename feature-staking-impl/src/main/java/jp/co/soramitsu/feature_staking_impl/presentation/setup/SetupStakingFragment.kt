@@ -25,6 +25,7 @@ import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingContain
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeFiat
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeProgress
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeToken
+import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingLearnMore
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingNext
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingTargetPayout
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingTargetPayoutDestination
@@ -59,6 +60,8 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
 
         setupStakingNext.prepareForProgress(viewLifecycleOwner)
         setupStakingNext.setOnClickListener { viewModel.nextClicked() }
+
+        setupStakingLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
     }
 
     override fun inject() {
