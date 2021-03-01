@@ -13,11 +13,13 @@ sealed class ValidationStatus<S> {
 
         interface Level {
             val value: Int
+
+            operator fun compareTo(other: Level): Int = value - other.value
         }
     }
 }
 
-enum class DefaultFailureLevels(override val value: Int) : ValidationStatus.NotValid.Level {
+enum class DefaultFailureLevel(override val value: Int) : ValidationStatus.NotValid.Level {
     WARNING(1), ERROR(2)
 }
 
@@ -40,8 +42,8 @@ class ValidationSystem<T, S>(
 ) {
 
     suspend fun validate(
-        ignoreUntil: ValidationStatus.NotValid.Level? = null,
-        value: T
+        value: T,
+        ignoreUntil: ValidationStatus.NotValid.Level? = null
     ) : Result<ValidationStatus<S>> = runCatching {
         when(val status = validation.validate(value)) {
             is ValidationStatus.Valid -> status

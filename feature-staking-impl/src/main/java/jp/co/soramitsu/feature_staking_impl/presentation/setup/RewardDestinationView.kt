@@ -8,7 +8,9 @@ import android.util.StateSet
 import android.view.View
 import android.widget.Checkable
 import androidx.constraintlayout.widget.ConstraintLayout
+import jp.co.soramitsu.common.utils.getPrimaryColor
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
+import jp.co.soramitsu.common.view.shape.getCutCornerDrawableFromColors
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountDescription
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountGain
@@ -98,7 +100,7 @@ class RewardDestinationView @JvmOverloads constructor(
     }
 
     private fun stateDrawable() = StateListDrawable().apply {
-        addState(CheckedStateSet, context.getCutCornerDrawable(strokeColorRes = RCommon.color.colorAccent))
+        addState(CheckedStateSet, context.getCutCornerDrawableFromColors(strokeColor = context.getPrimaryColor()))
         addState(StateSet.WILD_CARD, context.getCutCornerDrawable(strokeColorRes = RCommon.color.gray2))
     }
 
@@ -109,7 +111,7 @@ class RewardDestinationView @JvmOverloads constructor(
         )
 
         val colors = intArrayOf(
-            context.getColor(R.color.colorAccent),
+            context.getPrimaryColor(),
             context.getColor(android.R.color.transparent)
         )
 

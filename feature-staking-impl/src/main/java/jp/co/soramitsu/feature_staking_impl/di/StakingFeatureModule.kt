@@ -81,11 +81,9 @@ class StakingFeatureModule {
     fun provideEnoughToPayFeesValidation(
         walletRepository: WalletRepository,
         accountRepository: AccountRepository,
-        maxFeeEstimator: MaxFeeEstimator,
     ) = EnoughToPayFeesValidation(
         walletRepository,
-        accountRepository,
-        maxFeeEstimator
+        accountRepository
     )
 
     @Provides

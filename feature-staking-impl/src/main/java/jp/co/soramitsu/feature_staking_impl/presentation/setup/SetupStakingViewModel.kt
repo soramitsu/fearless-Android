@@ -6,14 +6,23 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.mixin.api.DefaultFailure
+import jp.co.soramitsu.common.mixin.api.Retriable
+import jp.co.soramitsu.common.mixin.api.RetryPayload
+import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.validation.DefaultFailureLevel
+import jp.co.soramitsu.common.validation.ValidationStatus
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.common.wallet.formatWithDefaultPrecision
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
+import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.PeriodReturns
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
@@ -32,6 +41,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 private val DEFAULT_AMOUNT = 10.toBigDecimal()
 
@@ -55,9 +65,12 @@ sealed class FeeStatus {
     object Loading : FeeStatus()
 
     class Loaded(
-        val inToken: String,
-        val inFiat: String?
-    ) : FeeStatus()
+        val fee: BigDecimal,
+        token: Token
+    ) : FeeStatus() {
+        val displayToken: String = fee.formatWithDefaultPrecision(token.type)
+        val displayFiat: String? = token.fiatAmount(fee)?.formatAsCurrency()
+    }
 
     object Error : FeeStatus()
 }
@@ -70,10 +83,17 @@ class SetupStakingViewModel(
     private val resourceManager: ResourceManager,
     private val maxFeeEstimator: MaxFeeEstimator,
     private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>
-) : BaseViewModel() {
+) : BaseViewModel(), Retriable, Validatable {
 
-    private val _payoutTargetLiveData = MutableLiveData<RewardDestinationModel>(RewardDestinationModel.Restake)
-    val payoutTargetLiveData: LiveData<RewardDestinationModel> = _payoutTargetLiveData
+    private val _rewardDestinationLiveData = MutableLiveData<RewardDestinationModel>(RewardDestinationModel.Restake)
+    val rewardDestinationLiveData: LiveData<RewardDestinationModel> = _rewardDestinationLiveData
+
+    private val _showNextProgress = MutableLiveData(false)
+    val showNextProgress: LiveData<Boolean> = _showNextProgress
+
+    override val retryEvent = MutableLiveData<Event<RetryPayload>>()
+
+    override val validationFailureEvent = MutableLiveData<Event<DefaultFailure>>()
 
     private val assetFlow = interactor.getCurrentAsset()
         .share()
@@ -93,8 +113,8 @@ class SetupStakingViewModel(
         .asLiveData()
 
     private val _feeLiveData = MutableLiveData<FeeStatus>(FeeStatus.Loading)
-    val feeLiveData: LiveData<FeeStatus> = _feeLiveData
 
+    val feeLiveData: LiveData<FeeStatus> = _feeLiveData
     private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
 
     val returnsLiveData = assetFlow.combine(parsedAmountFlow) { asset, amount ->
@@ -110,13 +130,52 @@ class SetupStakingViewModel(
         .asLiveData()
 
     private val _showDestinationChooserEvent = MutableLiveData<Event<Payload<AddressModel>>>()
+
     val showDestinationChooserEvent: LiveData<Event<Payload<AddressModel>>> = _showDestinationChooserEvent
 
     init {
         loadFee()
     }
 
-    fun loadFee() {
+    override fun validationWarningConfirmed() {
+        maybeGoToNext(ignoreWarnings = true)
+    }
+
+    fun nextClicked() {
+        maybeGoToNext()
+    }
+
+    fun backClicked() {
+        router.back()
+    }
+
+    fun restakeClicked() {
+        _rewardDestinationLiveData.value = RewardDestinationModel.Restake
+    }
+
+    fun payoutDestinationClicked() {
+        val selectedDestination = _rewardDestinationLiveData.value as? RewardDestinationModel.Payout ?: return
+
+        viewModelScope.launch {
+            val accountsInNetwork = accountsInCurrentNetwork()
+
+            _showDestinationChooserEvent.value = Event(Payload(accountsInNetwork, selectedDestination.destination))
+        }
+    }
+
+    fun payoutDestinationChanged(newDestination: AddressModel) {
+        _rewardDestinationLiveData.value = RewardDestinationModel.Payout(newDestination)
+    }
+
+    fun payoutClicked() {
+        viewModelScope.launch {
+            val currentAccount = interactor.getSelectedAccount()
+
+            _rewardDestinationLiveData.value = RewardDestinationModel.Payout(generateDestinationModel(currentAccount))
+        }
+    }
+
+    private fun loadFee() {
         _feeLiveData.value = FeeStatus.Loading
 
         viewModelScope.launch(Dispatchers.Default) {
@@ -129,10 +188,17 @@ class SetupStakingViewModel(
             }
 
             val value = if (feeResult.isSuccess) {
-                val fee = feeResult.getOrThrow()
-                val feeInFiat = token.fiatAmount(fee)
-                FeeStatus.Loaded(fee.formatWithDefaultPrecision(token.type), feeInFiat?.formatAsCurrency())
+                FeeStatus.Loaded(feeResult.getOrThrow(), token)
             } else {
+                retryEvent.postValue(
+                    Event(RetryPayload(
+                        title = resourceManager.getString(R.string.choose_amount_network_error),
+                        message = resourceManager.getString(R.string.choose_amount_error_fee),
+                        onRetry = ::loadFee,
+                        onCancel = ::backClicked
+                    ))
+                )
+
                 FeeStatus.Error
             }
 
@@ -140,33 +206,81 @@ class SetupStakingViewModel(
         }
     }
 
-    fun backClicked() {
-        router.back()
-    }
-
-    fun restakeClicked() {
-        _payoutTargetLiveData.value = RewardDestinationModel.Restake
-    }
-
-    fun payoutDestinationClicked() {
-        val selectedDestination = _payoutTargetLiveData.value as? RewardDestinationModel.Payout ?: return
+    private fun maybeGoToNext(
+        ignoreWarnings: Boolean = false
+    ) = requireFee { fee ->
+        _showNextProgress.value = true
 
         viewModelScope.launch {
-            val accountsInNetwork = accountsInCurrentNetwork()
+            val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationLiveData.value!!)
+            val amount = parsedAmountFlow.first()
+            val tokenType = assetFlow.first().token.type
 
-            _showDestinationChooserEvent.value = Event(Payload(accountsInNetwork, selectedDestination.destination))
+            val payload = SetupStakingPayload(
+                amount = amount,
+                tokenType = tokenType,
+                accountAddress = interactor.getSelectedAccount().address,
+                maxFee = fee,
+                rewardDestination = rewardDestination
+            )
+
+            val ignoreLevel = if (ignoreWarnings) DefaultFailureLevel.WARNING else null
+
+            val validationResult = validationSystem.validate(payload, ignoreLevel)
+
+            _showNextProgress.value = false
+
+            if (validationResult.isSuccess) {
+                when (val status = validationResult.getOrThrow()) {
+                    is ValidationStatus.Valid<*> -> goToNextStep(rewardDestination, amount, tokenType)
+                    is ValidationStatus.NotValid<StakingValidationFailure> -> validationFailureEvent.value = Event(mapValidationStatusToFailureMessage(status))
+                }
+            } else {
+                showValidationFailedToComplete()
+            }
         }
     }
 
-    fun payoutDestinationChanged(newDestination: AddressModel) {
-        _payoutTargetLiveData.value = RewardDestinationModel.Payout(newDestination)
+    private fun goToNextStep(
+        rewardDestination: RewardDestination,
+        amount: BigDecimal,
+        tokenType: Token.Type
+    ) {
+        showMessage("Success")
     }
 
-    fun payoutClicked() {
-        viewModelScope.launch {
-            val currentAccount = interactor.getSelectedAccount()
+    private fun mapValidationStatusToFailureMessage(
+        status: ValidationStatus.NotValid<StakingValidationFailure>
+    ): DefaultFailure {
+        val (titleRes, messageRes) = when (status.reason) {
+            StakingValidationFailure.CANNOT_PAY_FEE -> R.string.common_error_general_title to R.string.staking_amount_too_big_error
+        }
 
-            _payoutTargetLiveData.value = RewardDestinationModel.Payout(generateDestinationModel(currentAccount))
+        return DefaultFailure(
+            level = status.level,
+            title = resourceManager.getString(titleRes),
+            message = resourceManager.getString(messageRes)
+        )
+    }
+
+    private fun showValidationFailedToComplete() {
+        retryEvent.value = Event(RetryPayload(
+            title = resourceManager.getString(R.string.choose_amount_network_error),
+            message = resourceManager.getString(R.string.choose_amount_error_balance),
+            onRetry = ::nextClicked
+        ))
+    }
+
+    private fun requireFee(block: (BigDecimal) -> Unit) {
+        val feeStatus = feeLiveData.value
+
+        if (feeStatus is FeeStatus.Loaded) {
+            block(feeStatus.fee)
+        } else {
+            showError(
+                resourceManager.getString(R.string.fee_not_yet_loaded_title),
+                resourceManager.getString(R.string.fee_not_yet_loaded_message)
+            )
         }
     }
 

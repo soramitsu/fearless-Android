@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.setup
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,10 +10,12 @@ import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.api.observeRetries
+import jp.co.soramitsu.common.mixin.api.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.common.view.dialog.retryDialog
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
@@ -21,9 +24,11 @@ import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingContain
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeFiat
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeProgress
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeToken
+import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingNext
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingTargetPayout
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingTargetPayoutDestination
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingTargetRestake
+import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingToolbar
 
 class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
 
@@ -48,6 +53,11 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         setupStakingTargetRestake.setOnClickListener { viewModel.restakeClicked() }
 
         setupStakingTargetPayoutDestination.setWholeClickListener { viewModel.payoutDestinationClicked() }
+
+        setupStakingToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        setupStakingNext.prepareForProgress(viewLifecycleOwner)
+        setupStakingNext.setOnClickListener { viewModel.nextClicked() }
     }
 
     override fun inject() {
@@ -61,7 +71,14 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
     }
 
     override fun subscribe(viewModel: SetupStakingViewModel) {
-        viewModel.payoutTargetLiveData.observe {
+        observeRetries(viewModel, themedContext())
+        observeValidations(viewModel, themedContext())
+
+        viewModel.showNextProgress.observe { show ->
+            setupStakingNext.setState(if (show) ButtonState.PROGRESS else ButtonState.NORMAL)
+        }
+
+        viewModel.rewardDestinationLiveData.observe {
             setupStakingTargetPayoutDestination.setVisible(it is RewardDestinationModel.Payout)
             setupStakingTargetRestake.isChecked = it is RewardDestinationModel.Restake
             setupStakingTargetPayout.isChecked = it is RewardDestinationModel.Payout
@@ -97,15 +114,24 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         viewModel.feeLiveData.observe {
             when(it) {
                 is FeeStatus.Loading -> feeProgressShown(true)
-                is FeeStatus.Error -> feeError()
+                is FeeStatus.Error -> {
+                    feeProgressShown(false)
+
+                    setupStakingFeeToken.text = getString(R.string.common_error_general_title)
+                    setupStakingFeeFiat.text = ""
+                }
                 is FeeStatus.Loaded -> {
                     feeProgressShown(false)
 
-                    setupStakingFeeFiat.text = it.inFiat
-                    setupStakingFeeToken.text = it.inToken
+                    setupStakingFeeFiat.text = it.displayFiat
+                    setupStakingFeeToken.text = it.displayToken
                 }
             }
         }
+    }
+
+    private fun themedContext(): Context {
+        return view!!.context
     }
 
     private fun feeProgressShown(shown: Boolean) {
@@ -113,13 +139,6 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         setupStakingFeeToken.setVisible(!shown)
 
         setupStakingFeeProgress.setVisible(shown)
-    }
-
-    private fun feeError() {
-       retryDialog(requireContext(), viewModel::loadFee, viewModel::backClicked) {
-           setTitle(R.string.choose_amount_network_error)
-           setMessage(R.string.choose_amount_error_fee)
-       }
     }
 
     private fun showDestinationChooser(payload: DynamicListBottomSheet.Payload<AddressModel>) {
