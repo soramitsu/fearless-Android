@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 
 class MinimumAmountValidation(
     val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
-): Validation<SetupStakingPayload, StakingValidationFailure> {
+) : Validation<SetupStakingPayload, StakingValidationFailure> {
 
     override suspend fun validate(value: SetupStakingPayload): ValidationStatus<StakingValidationFailure> {
         val runtime = runtimeProperty.get()
