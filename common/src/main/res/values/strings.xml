@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_setup_amount_too_low">Can\'t stake less than minimal value (%s)</string>
+
+    <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
+    <string name="fee_not_yet_loaded_message">Please wait until fee is calculated</string>
+
+    <string name="staking_setup_too_big_error">Sorry, you don\'t have enough funds to stake specified amount</string>
+    <string name="staking_setup_reward_payout_account">Payout account</string>
+    <string name="staking_setup_learn_more">Learn more about Payouts</string>
+    <string name="staking_setup_reward_destination">Choose reward destination</string>
+    <string name="staking_setup_restake">Restake</string>
+    <string name="staking_setup_restake_description">Earn more rewards</string>
+    <string name="staking_setup_reward_description">First year earnings</string>
+    <string name="staking_setup_payout">Payout</string>
+    <string name="staking_setup_payout_description">Transfer rewards</string>
+
+
     <string name="staking_selected_accounts_mask">Accounts(%d)</string>
 
     <string name="staking_recommended_validators_title">Recommended validators</string>
@@ -16,7 +32,7 @@
 
     <string name="buy_completed">Purchase initiated! Please wait up to 60 minutes. You can track status on the email.</string>
 
-    <string name="wallet_send_dead_recipient_title">Amount is too low</string>
+    <string name="common_amount_low">Amount is too low</string>
     <string name="wallet_send_dead_recipient_message">Your transfer will fail since the final amount on the destination account will be less than the existential deposit. Please, try to increase the amount.</string>
 
     <string name="wallet_asset_buy">Buy</string>

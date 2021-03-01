@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_setup_too_big_error">申し訳ありませんが、指定された金額を賭けるのに十分な資金がありません</string>
+    <string name="staking_setup_reward_payout_account">支払い口座</string>
+    <string name="staking_setup_reward_destination">報酬の目的地を選択してください</string>
+    <string name="staking_setup_reward_description">初年度の収益</string>
+    <string name="staking_setup_restake_description">より多くの報酬を獲得する</string>
+    <string name="staking_setup_restake">再テイク</string>
+    <string name="staking_setup_payout_description">報酬を転送する</string>
+    <string name="staking_setup_payout">配当性向</string>
+    <string name="staking_setup_learn_more">支払いの詳細</string>
+
+    <string name="fee_not_yet_loaded_title">料金計算中</string>
+    <string name="fee_not_yet_loaded_message">料金が計算されるまでお待ちください</string>
+
     <string name="staking_recommended_validators_title">推奨されるバリデータ</string>
     <string name="staking_recommended_validators_description">これらのバリデーターはあなたにとって最大の利益をもたらし、詐欺や失敗の可能性を減らします。</string>
     <string name="common_learn_more">もっと詳しく知る</string>
@@ -220,7 +233,7 @@
     <string name="node_add">ノードを追加</string>
     <string name="connection_delete_description_v1_0_1">%s 、 %s削除を確認します。</string>
     <string name="network_info_address_v1_0_1">URLアドレス</string>
-    <string name="wallet_send_dead_recipient_title">金額が少なすぎる</string>
+    <string name="common_amount_low">金額が少なすぎる</string>
     <string name="wallet_send_dead_recipient_message">宛先アカウントの最終金額が既存の預金より少ないため、転送は失敗します。量を増やしてみてください。</string>
     <string name="wallet_asset_buy">購入</string>
     <string name="buy_completed">購入開始！ 60分ほどお待ちください。メールでステータスを追跡できます。</string>
@@ -232,4 +245,5 @@
     <string name="staking_estimate_earning_title">PINコードを入力してください</string>
     <string name="staking_month_period_title">毎月</string>
     <string name="staking_year_period_title">毎年</string>
+    <string name="staking_setup_amount_too_low">%s ）未満を賭けることはできません</string>
 </resources>

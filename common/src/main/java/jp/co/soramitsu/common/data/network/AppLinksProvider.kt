@@ -12,7 +12,8 @@ class AppLinksProvider(
     val roadMapUrl: String,
     val devStatusUrl: String,
 
-    val stakingLearnMore: String
+    val nominatorLearnMore: String,
+    val payoutsLearnMore: String
 ) {
 
     fun getExternalTransactionUrl(

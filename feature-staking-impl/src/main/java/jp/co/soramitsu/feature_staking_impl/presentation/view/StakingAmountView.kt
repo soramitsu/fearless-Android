@@ -4,11 +4,13 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
+import android.widget.EditText
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
+import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAmountInput
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetBalance
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetDollarAmount
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetImage
@@ -19,6 +21,9 @@ class StakingAmountView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyle: Int = 0
 ) : ConstraintLayout(context, attrs, defStyle) {
+
+    val amountInput: EditText
+        get() = stakingAmountInput
 
     init {
         View.inflate(context, R.layout.view_staking_amount, this)

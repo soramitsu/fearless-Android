@@ -61,12 +61,13 @@ fun errorDialog(
 fun retryDialog(
     context: Context,
     onRetry: DialogClickHandler? = null,
+    onCancel: DialogClickHandler? = null,
     decorator: DialogDecorator? = null
 ) {
     dialog(context) {
         setTitle(R.string.common_error_general_title)
         setPositiveButton(R.string.common_retry) { _, _ -> onRetry?.invoke() }
-        setNegativeButton(R.string.common_ok) { dialogInterface, _ -> dialogInterface.cancel() }
+        setNegativeButton(R.string.common_ok) { _, _ -> onCancel?.invoke() }
 
         decorator?.invoke(this)
     }

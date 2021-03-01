@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response
+package jp.co.soramitsu.common.data.network.runtime.model
 
 import java.math.BigInteger
 

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
@@ -15,6 +16,7 @@ import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
+import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 
@@ -29,6 +31,14 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     }
 
     override fun initViews() {
+        stakingContainer.applyInsetter {
+            type(statusBars = true) {
+                padding()
+            }
+
+            consume(true)
+        }
+
         val background = with(requireContext()) {
             addRipple(getCutCornerDrawable(R.color.blurColor))
         }
@@ -56,7 +66,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
         viewModel.asset.observe {
             stakingEstimate.setAssetImageResource(it.tokenIconRes)
-            stakingEstimate.setAssetName(it.assetName)
+            stakingEstimate.setAssetName(it.tokenName)
             stakingEstimate.setAssetBalance(it.assetBalance)
         }
 

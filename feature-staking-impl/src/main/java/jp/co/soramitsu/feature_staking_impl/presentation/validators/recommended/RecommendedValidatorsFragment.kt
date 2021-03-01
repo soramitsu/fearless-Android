@@ -58,7 +58,7 @@ class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewMode
     }
 
     override fun subscribe(viewModel: RecommendedValidatorsViewModel) {
-        viewModel.recommendedValidators.observe {
+        viewModel.recommendedValidatorModels.observe {
             recommendedValidatorsAccounts.text = getString(R.string.staking_selected_accounts_mask, it.size)
 
             adapter.submitList(it)
