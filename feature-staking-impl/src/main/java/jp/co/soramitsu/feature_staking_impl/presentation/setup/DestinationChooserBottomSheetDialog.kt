@@ -26,7 +26,7 @@ class AccountChooserBottomSheetDialog(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(R.string.staking_payout_target_destination_chooser_title)
+        setTitle(R.string.staking_setup_reward_payout_account)
     }
 
     override fun holderCreator(): HolderCreator<AddressModel> = { parent ->

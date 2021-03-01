@@ -260,7 +260,7 @@ class SetupStakingViewModel(
         status: ValidationStatus.NotValid<StakingValidationFailure>
     ): DefaultFailure {
         val (titleRes, messageRes) = when (status.reason) {
-            StakingValidationFailure.CANNOT_PAY_FEE -> R.string.common_error_general_title to R.string.staking_amount_too_big_error
+            StakingValidationFailure.CANNOT_PAY_FEE -> R.string.common_error_general_title to R.string.staking_setup_too_big_error
         }
 
         return DefaultFailure(

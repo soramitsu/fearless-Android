@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_setup_too_big_error">Désolé, vous ne disposez pas de suffisamment de fonds pour miser le montant spécifié</string>
+    <string name="staking_setup_reward_payout_account">Compte de paiement</string>
+    <string name="staking_setup_reward_destination">Choisissez la destination de récompense</string>
+    <string name="staking_setup_reward_description">Revenus de la première année</string>
+    <string name="staking_setup_restake_description">Gagnez plus de récompenses</string>
+    <string name="staking_setup_restake">Restake</string>
+    <string name="staking_setup_payout_description">Transférer des récompenses</string>
+    <string name="staking_setup_payout">Paiement</string>
+    <string name="staking_setup_learn_more">En savoir plus sur les paiements</string>
+
+    <string name="fee_not_yet_loaded_title">Le calcul des frais est en cours</string>
+    <string name="fee_not_yet_loaded_message">Veuillez attendre que les frais soient calculés</string>
+
     <string name="staking_recommended_validators_title">Validateurs recommandés</string>
     <string name="staking_recommended_validators_description">Ces validateurs auront un profit maximum pour vous et moins de chances d\'escroquerie ou d\'échec.</string>
     <string name="common_learn_more">Apprendre encore plus</string>

@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_setup_too_big_error">申し訳ありませんが、指定された金額を賭けるのに十分な資金がありません</string>
+    <string name="staking_setup_reward_payout_account">支払い口座</string>
+    <string name="staking_setup_reward_destination">報酬の目的地を選択してください</string>
+    <string name="staking_setup_reward_description">初年度の収益</string>
+    <string name="staking_setup_restake_description">より多くの報酬を獲得する</string>
+    <string name="staking_setup_restake">再テイク</string>
+    <string name="staking_setup_payout_description">報酬を転送する</string>
+    <string name="staking_setup_payout">配当性向</string>
+    <string name="staking_setup_learn_more">支払いの詳細</string>
+
+    <string name="fee_not_yet_loaded_title">料金計算中</string>
+    <string name="fee_not_yet_loaded_message">料金が計算されるまでお待ちください</string>
+
     <string name="staking_recommended_validators_title">推奨されるバリデータ</string>
     <string name="staking_recommended_validators_description">これらのバリデーターはあなたにとって最大の利益をもたらし、詐欺や失敗の可能性を減らします。</string>
     <string name="common_learn_more">もっと詳しく知る</string>
