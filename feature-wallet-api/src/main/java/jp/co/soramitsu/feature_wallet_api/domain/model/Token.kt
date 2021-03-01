@@ -12,7 +12,7 @@ class Token(
     val type: Type
 ) {
 
-    fun fiatAmount(tokenAmount: BigDecimal) : BigDecimal? = dollarRate?.multiply(tokenAmount)
+    fun fiatAmount(tokenAmount: BigDecimal): BigDecimal? = dollarRate?.multiply(tokenAmount)
 
     enum class Type(
         val displayName: String,

@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.view.dialog.errorDialog
 import jp.co.soramitsu.common.view.dialog.warningDialog
 
-
 fun <T> BaseFragment<T>.observeValidations(
     viewModel: T,
     dialogContext: Context = requireContext()

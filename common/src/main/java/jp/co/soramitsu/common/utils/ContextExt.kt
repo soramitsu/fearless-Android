@@ -11,7 +11,6 @@ import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.R
 
-
 fun Context.getDrawableCompat(@DrawableRes drawableRes: Int) =
     ContextCompat.getDrawable(this, drawableRes)!!
 

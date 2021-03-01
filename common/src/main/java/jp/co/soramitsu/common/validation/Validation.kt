@@ -44,8 +44,8 @@ class ValidationSystem<T, S>(
     suspend fun validate(
         value: T,
         ignoreUntil: ValidationStatus.NotValid.Level? = null
-    ) : Result<ValidationStatus<S>> = runCatching {
-        when(val status = validation.validate(value)) {
+    ): Result<ValidationStatus<S>> = runCatching {
+        when (val status = validation.validate(value)) {
             is ValidationStatus.Valid -> status
 
             is ValidationStatus.NotValid -> {

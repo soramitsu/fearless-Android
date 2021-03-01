@@ -33,7 +33,7 @@ interface StakingFeatureDependencies {
 
     fun resourceManager(): ResourceManager
 
-    fun extrinsicBuilderFactory() : ExtrinsicBuilderFactory
+    fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
 
-    fun substrateCalls() : SubstrateCalls
+    fun substrateCalls(): SubstrateCalls
 }

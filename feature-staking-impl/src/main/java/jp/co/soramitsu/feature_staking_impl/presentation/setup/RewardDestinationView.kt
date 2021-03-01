@@ -104,7 +104,7 @@ class RewardDestinationView @JvmOverloads constructor(
         addState(StateSet.WILD_CARD, context.getCutCornerDrawable(strokeColorRes = RCommon.color.gray2))
     }
 
-    private fun iconTintList() : ColorStateList {
+    private fun iconTintList(): ColorStateList {
         val states = arrayOf(
             CheckedStateSet,
             intArrayOf()

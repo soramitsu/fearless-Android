@@ -80,7 +80,7 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideEnoughToPayFeesValidation(
         walletRepository: WalletRepository,
-        accountRepository: AccountRepository,
+        accountRepository: AccountRepository
     ) = EnoughToPayFeesValidation(
         walletRepository,
         accountRepository

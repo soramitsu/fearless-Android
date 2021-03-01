@@ -30,7 +30,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun stakingComponentFactory(): StakingComponent.Factory
 
-    fun setupStakingComponentFactory() : SetupStakingComponent.Factory
+    fun setupStakingComponentFactory(): SetupStakingComponent.Factory
 
     @Component.Factory
     interface Factory {

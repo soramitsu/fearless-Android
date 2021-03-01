@@ -10,7 +10,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 
 class EnoughToPayFeesValidation(
     private val walletRepository: WalletRepository,
-    private val accountRepository: AccountRepository,
+    private val accountRepository: AccountRepository
 ) : Validation<SetupStakingPayload, StakingValidationFailure> {
 
     override suspend fun validate(value: SetupStakingPayload): ValidationStatus<StakingValidationFailure> {

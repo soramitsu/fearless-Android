@@ -16,7 +16,7 @@ import java.math.BigDecimal
 class MaxFeeEstimator(
     private val substrateCalls: SubstrateCalls,
     private val accountRepository: AccountRepository,
-    private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+    private val extrinsicBuilderFactory: ExtrinsicBuilderFactory
 ) {
 
     suspend fun estimateMaxSetupStakingFee(

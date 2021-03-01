@@ -4,7 +4,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 
-
 fun mapAccountToStakingAccount(account: Account) = with(account) {
     StakingAccount(address, name, cryptoType, network)
 }
