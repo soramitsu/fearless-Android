@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.mixin.api.DefaultFailure
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.RetryPayload
@@ -83,7 +84,7 @@ class SetupStakingViewModel(
     private val resourceManager: ResourceManager,
     private val maxFeeEstimator: MaxFeeEstimator,
     private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>
-) : BaseViewModel(), Retriable, Validatable {
+) : BaseViewModel(), Retriable, Validatable, Browserable {
 
     private val _rewardDestinationLiveData = MutableLiveData<RewardDestinationModel>(RewardDestinationModel.Restake)
     val rewardDestinationLiveData: LiveData<RewardDestinationModel> = _rewardDestinationLiveData
@@ -92,8 +93,8 @@ class SetupStakingViewModel(
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
     override val retryEvent = MutableLiveData<Event<RetryPayload>>()
-
     override val validationFailureEvent = MutableLiveData<Event<DefaultFailure>>()
+    override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     private val assetFlow = interactor.getCurrentAsset()
         .share()

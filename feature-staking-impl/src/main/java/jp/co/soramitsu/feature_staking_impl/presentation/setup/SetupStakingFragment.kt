@@ -10,8 +10,9 @@ import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.mixin.api.observeRetries
-import jp.co.soramitsu.common.mixin.api.observeValidations
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
+import jp.co.soramitsu.common.mixin.impl.observeRetries
+import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.ButtonState
@@ -73,6 +74,7 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
     override fun subscribe(viewModel: SetupStakingViewModel) {
         observeRetries(viewModel, themedContext())
         observeValidations(viewModel, themedContext())
+        observeBrowserEvents(viewModel)
 
         viewModel.showNextProgress.observe { show ->
             setupStakingNext.setState(if (show) ButtonState.PROGRESS else ButtonState.NORMAL)
@@ -112,7 +114,7 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         viewModel.showDestinationChooserEvent.observeEvent(::showDestinationChooser)
 
         viewModel.feeLiveData.observe {
-            when(it) {
+            when (it) {
                 is FeeStatus.Loading -> feeProgressShown(true)
                 is FeeStatus.Error -> {
                     feeProgressShown(false)
