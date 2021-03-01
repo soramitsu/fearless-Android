@@ -108,16 +108,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="25dp"
-                android:text="Choose reward destination"
+                android:text="@string/staking_setup_reward_destination"
                 android:textColor="@color/white" />
 
             <jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                app:targetName="Restake"
-                app:targetDescription="Earn more rewards"
-                app:targetAmountDescription="First year earnings"
+                app:targetName="@string/staking_setup_restake"
+                app:targetDescription="@string/staking_setup_restake_description"
+                app:targetAmountDescription="@string/staking_setup_reward_description"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp"
                 android:id="@+id/setupStakingTargetRestake"
@@ -127,10 +127,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                app:targetName="Payout"
+                app:targetName="@string/staking_setup_payout"
                 android:id="@+id/setupStakingTargetPayout"
-                app:targetDescription="Transfer rewards"
-                app:targetAmountDescription="First year earnings"
+                app:targetDescription="@string/staking_setup_payout_description"
+                app:targetAmountDescription="@string/staking_setup_reward_description"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp" />
 
@@ -158,7 +158,7 @@
                 android:paddingTop="12dp"
                 android:paddingEnd="16dp"
                 android:paddingBottom="12dp"
-                android:text="Learn more about Payouts"
+                android:text="@string/staking_setup_learn_more"
                 app:drawableStartCompat="@drawable/ic_fearless"
                 app:drawableEndCompat="@drawable/ic_arrow_top_right_white_16" />
 

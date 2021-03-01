@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.setup
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -133,10 +132,6 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
                 }
             }
         }
-    }
-
-    private fun themedContext(): Context {
-        return view!!.context
     }
 
     private fun feeProgressShown(shown: Boolean) {

@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="staking_payout_target_destination_chooser_title">Payout account</string>
-    <string name="fee_not_yet_loaded_title">Fee caclulation is in progress</string>
+    <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
     <string name="fee_not_yet_loaded_message">Please wait until fee is calculated</string>
     <string name="staking_amount_too_big_error">Sorry, you don\'t have enough funds to stake specified amount</string>
+    <string name="staking_setup_learn_more">Learn more about Payouts</string>
+    <string name="staking_setup_reward_destination">Choose reward destination</string>
+    <string name="staking_setup_restake">Restake</string>
+    <string name="staking_setup_restake_description">Earn more rewards</string>
+    <string name="staking_setup_reward_description">First year earnings</string>
+    <string name="staking_setup_payout">Payout</string>
+    <string name="staking_setup_payout_description">Transfer rewards</string>
 </resources>
