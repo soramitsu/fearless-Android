@@ -57,7 +57,7 @@ private fun BaseFragment<*>.showTransferError(
 ) {
     val (titleRes, messageRes) = when (status) {
         TransferValidityLevel.Error.Status.NotEnoughFunds -> R.string.common_error_general_title to R.string.choose_amount_error_too_big
-        TransferValidityLevel.Error.Status.DeadRecipient -> R.string.wallet_send_dead_recipient_title to R.string.wallet_send_dead_recipient_message
+        TransferValidityLevel.Error.Status.DeadRecipient -> R.string.common_amount_low to R.string.wallet_send_dead_recipient_message
     }
 
     errorDialog(requireContext(), errorConfirmed) {

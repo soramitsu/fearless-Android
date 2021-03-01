@@ -240,7 +240,9 @@ class SetupStakingViewModel(
             if (validationResult.isSuccess) {
                 when (val status = validationResult.getOrThrow()) {
                     is ValidationStatus.Valid<*> -> goToNextStep(rewardDestination, amount, tokenType)
-                    is ValidationStatus.NotValid<StakingValidationFailure> -> validationFailureEvent.value = Event(mapValidationStatusToFailureMessage(status))
+                    is ValidationStatus.NotValid<StakingValidationFailure> -> {
+                        validationFailureEvent.value = Event(mapValidationStatusToFailureMessage(payload, status))
+                    }
                 }
             } else {
                 showValidationFailedToComplete()
@@ -257,16 +259,27 @@ class SetupStakingViewModel(
     }
 
     private fun mapValidationStatusToFailureMessage(
+        payload: SetupStakingPayload,
         status: ValidationStatus.NotValid<StakingValidationFailure>
     ): DefaultFailure {
-        val (titleRes, messageRes) = when (status.reason) {
-            StakingValidationFailure.CANNOT_PAY_FEE -> R.string.common_error_general_title to R.string.staking_setup_too_big_error
+        val (titleRes, messageRes) = with(resourceManager) {
+            when (val reason = status.reason) {
+                StakingValidationFailure.CannotPayFee -> {
+                    getString(R.string.common_error_general_title) to getString(R.string.staking_setup_too_big_error)
+                }
+
+                is StakingValidationFailure.TooSmallAmount -> {
+                    val formattedThreshold = reason.threshold.formatWithDefaultPrecision(payload.tokenType)
+
+                    getString(R.string.common_amount_low) to getString(R.string.staking_setup_amount_too_low, formattedThreshold)
+                }
+            }
         }
 
         return DefaultFailure(
             level = status.level,
-            title = resourceManager.getString(titleRes),
-            message = resourceManager.getString(messageRes)
+            title = titleRes,
+            message = messageRes
         )
     }
 

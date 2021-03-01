@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_setup_amount_too_low">Can\'t stake less than minimal value (%s)</string>
+
     <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
     <string name="fee_not_yet_loaded_message">Please wait until fee is calculated</string>
 
@@ -30,7 +32,7 @@
 
     <string name="buy_completed">Purchase initiated! Please wait up to 60 minutes. You can track status on the email.</string>
 
-    <string name="wallet_send_dead_recipient_title">Amount is too low</string>
+    <string name="common_amount_low">Amount is too low</string>
     <string name="wallet_send_dead_recipient_message">Your transfer will fail since the final amount on the destination account will be less than the existential deposit. Please, try to increase the amount.</string>
 
     <string name="wallet_asset_buy">Buy</string>

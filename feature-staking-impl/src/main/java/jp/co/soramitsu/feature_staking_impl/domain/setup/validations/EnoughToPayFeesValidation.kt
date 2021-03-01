@@ -20,7 +20,7 @@ class EnoughToPayFeesValidation(
         return if (value.amount + value.maxFee < asset.transferable) {
             ValidationStatus.Valid()
         } else {
-            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, StakingValidationFailure.CANNOT_PAY_FEE)
+            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, StakingValidationFailure.CannotPayFee)
         }
     }
 }
