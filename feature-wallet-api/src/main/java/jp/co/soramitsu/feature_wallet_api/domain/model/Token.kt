@@ -11,6 +11,9 @@ class Token(
     val recentRateChange: BigDecimal?,
     val type: Type
 ) {
+
+    fun fiatAmount(tokenAmount: BigDecimal): BigDecimal? = dollarRate?.multiply(tokenAmount)
+
     enum class Type(
         val displayName: String,
         val networkType: Node.NetworkType,

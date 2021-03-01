@@ -51,7 +51,8 @@ class NetworkModule {
             externalAnalyzerTemplates = externalAnalyzerTemplates,
             roadMapUrl = BuildConfig.ROADMAP_URL,
             devStatusUrl = BuildConfig.DEV_STATUS_URL,
-            stakingLearnMore = BuildConfig.STAKING_LEARN_MORE
+            nominatorLearnMore = BuildConfig.NOMINATOR_LEARN_MORE,
+            payoutsLearnMore = BuildConfig.PAYOUTS_LEARN_MORE
         )
     }
 

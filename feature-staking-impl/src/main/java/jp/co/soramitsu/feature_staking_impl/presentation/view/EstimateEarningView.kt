@@ -13,7 +13,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEst
 import kotlinx.android.synthetic.main.view_estimate_earning.view.estimateEarningAmount
 import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingMonthGain
 import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingYearGain
-import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAmountInput
 
 class EstimateEarningView @JvmOverloads constructor(
     context: Context,
@@ -22,7 +21,7 @@ class EstimateEarningView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyle) {
 
     val amountInput: EditText
-        get() = estimateEarningAmount.stakingAmountInput
+        get() = estimateEarningAmount.amountInput
 
     init {
         View.inflate(context, R.layout.view_estimate_earning, this)

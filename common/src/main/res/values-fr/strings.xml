@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_setup_too_big_error">Désolé, vous ne disposez pas de suffisamment de fonds pour miser le montant spécifié</string>
+    <string name="staking_setup_reward_payout_account">Compte de paiement</string>
+    <string name="staking_setup_reward_destination">Choisissez la destination de récompense</string>
+    <string name="staking_setup_reward_description">Revenus de la première année</string>
+    <string name="staking_setup_restake_description">Gagnez plus de récompenses</string>
+    <string name="staking_setup_restake">Restake</string>
+    <string name="staking_setup_payout_description">Transférer des récompenses</string>
+    <string name="staking_setup_payout">Paiement</string>
+    <string name="staking_setup_learn_more">En savoir plus sur les paiements</string>
+
+    <string name="fee_not_yet_loaded_title">Le calcul des frais est en cours</string>
+    <string name="fee_not_yet_loaded_message">Veuillez attendre que les frais soient calculés</string>
+
     <string name="staking_recommended_validators_title">Validateurs recommandés</string>
     <string name="staking_recommended_validators_description">Ces validateurs auront un profit maximum pour vous et moins de chances d\'escroquerie ou d\'échec.</string>
     <string name="common_learn_more">Apprendre encore plus</string>
@@ -221,7 +234,7 @@
     <string name="node_add">Ajouter un nœud</string>
     <string name="connection_delete_description_v1_0_1">Confirmer la suppression de %s , %s .</string>
     <string name="network_info_address_v1_0_1">Adresse URL</string>
-    <string name="wallet_send_dead_recipient_title">Le montant est trop faible</string>
+    <string name="common_amount_low">Le montant est trop faible</string>
     <string name="wallet_send_dead_recipient_message">Votre transfert échouera car le montant final sur le compte de destination sera inférieur au dépôt existentiel. S\'il vous plaît, essayez d\'augmenter le montant.</string>
     <string name="wallet_asset_buy">Acheter</string>
     <string name="buy_completed">Achat lancé! Veuillez patienter jusqu\'à 60 minutes. Vous pouvez suivre le statut sur l\'e-mail.</string>
@@ -233,4 +246,5 @@
     <string name="staking_estimate_earning_title">Entrez votre code Mnemonic</string>
     <string name="staking_month_period_title">Mensuel</string>
     <string name="staking_year_period_title">Annuel</string>
+    <string name="staking_setup_amount_too_low">Impossible de miser moins que la valeur minimale (%s)</string>
 </resources>

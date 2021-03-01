@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.integration
 
 import com.google.gson.Gson
 import com.neovisionaries.ws.client.WebSocketFactory
+import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
+import jp.co.soramitsu.common.data.network.runtime.calls.FeeCalculationRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.NextAccountIndexRequest
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.model.Node
@@ -25,10 +27,8 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Signature
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.ExtrinsicPayloadValue
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.MultiAddress
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.SignedExtrinsicV28
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.SubmittableExtrinsicV28
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferArgsV28

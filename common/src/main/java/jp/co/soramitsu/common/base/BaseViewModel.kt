@@ -8,6 +8,8 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlin.coroutines.CoroutineContext
 
 open class BaseViewModel : ViewModel(), CoroutineScope {
@@ -43,4 +45,6 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
     fun <T> Flow<T>.asLiveData(): LiveData<T> {
         return asLiveData(viewModelScope)
     }
+
+    fun <T> Flow<T>.share() = shareIn(viewModelScope, started = SharingStarted.Eagerly, replay = 1)
 }

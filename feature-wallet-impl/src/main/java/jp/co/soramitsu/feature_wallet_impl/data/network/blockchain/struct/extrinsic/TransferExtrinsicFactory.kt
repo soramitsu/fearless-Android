@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic
 
+import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.hash
 import jp.co.soramitsu.core.model.Node

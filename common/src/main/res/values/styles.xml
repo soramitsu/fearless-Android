@@ -27,6 +27,11 @@
         <item name="android:textSize">?attr/textSizeH5</item>
     </style>
 
+    <style name="TextAppearance.Soramitsu.CapsTitle1" parent="TextAppearance.Fearless.Header">
+        <item name="android:textSize">?attr/textSizeCapsTitle</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
     <style name="TextAppearance.Soramitsu.Body0" parent="TextAppearance.AppCompat.Body1">
         <item name="android:fontFamily">?attr/fontRegular</item>
         <item name="android:textSize">?attr/textSizeB0</item>

@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    resources>
+
+    <string name="staking_setup_too_big_error">Lo sentimos, no tiene fondos suficientes para apostar la cantidad especificada</string>
+    <string name="staking_setup_reward_payout_account">Cuenta de pago</string>
+    <string name="staking_setup_reward_destination">Elija el destino de la recompensa</string>
+    <string name="staking_setup_reward_description">Ganancias del primer año</string>
+    <string name="staking_setup_restake_description">Gana más recompensas</string>
+    <string name="staking_setup_restake">Reanudar</string>
+    <string name="staking_setup_payout_description">Recompensas de transferencia</string>
+    <string name="staking_setup_payout">Pagar</string>
+    <string name="staking_setup_learn_more">Obtenga más información sobre los pagos</string>
+
+    <string name="fee_not_yet_loaded_title">El cálculo de la tarifa está en curso</string>
+    <string name="fee_not_yet_loaded_message">Espere hasta que se calcule la tarifa</string>
+
     <string name="staking_selected_accounts_mask">Cuentas ( %d )</string>
     <string name="staking_recommended_validators_title">Validadores recomendados</string>
     <string name="staking_recommended_validators_description">Estos validadores le brindarán el máximo beneficio y menos posibilidades de fraude o fracaso.</string>
@@ -220,7 +235,7 @@
     <string name="node_add">Agregar nodo</string>
     <string name="connection_delete_description_v1_0_1">Confirme la eliminación de %s , %s .</string>
     <string name="network_info_address_v1_0_1">Dirección URL</string>
-    <string name="wallet_send_dead_recipient_title">La cantidad es demasiado baja</string>
+    <string name="common_amount_low">La cantidad es demasiado baja</string>
     <string name="wallet_send_dead_recipient_message">Su transferencia fallará ya que el monto final en la cuenta de destino será menor que el depósito existente. Por favor, intente aumentar la cantidad.</string>
     <string name="wallet_asset_buy">Comprar</string>
     <string name="buy_completed">Compra iniciada! Espere hasta 60 minutos. Puede realizar un seguimiento del estado en el correo electrónico.</string>
@@ -232,4 +247,5 @@
     <string name="staking_estimate_earning_title">Ingrese su frase semilla</string>
     <string name="staking_month_period_title">Mensual</string>
     <string name="staking_year_period_title">Anual</string>
+    <string name="staking_setup_amount_too_low">No se puede apostar menos del valor mínimo (%s)</string>
 </resources>

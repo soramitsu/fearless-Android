@@ -12,6 +12,8 @@
     <dimen name="text_size_b2">12sp</dimen>
     <dimen name="text_size_b3">10sp</dimen>
 
+    <dimen name="text_size_caps_title">12dp</dimen>
+
     <dimen name="x1_2">4dp</dimen>
     <dimen name="x1">8dp</dimen>
     <dimen name="x1_5">12dp</dimen>

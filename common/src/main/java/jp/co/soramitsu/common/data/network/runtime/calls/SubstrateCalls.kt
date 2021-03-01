@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.network.runtime.calls
 
 import jp.co.soramitsu.common.data.network.runtime.model.ActiveEraInfo
+import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.runtime.storageKey
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
@@ -17,6 +18,14 @@ import java.math.BigInteger
 class SubstrateCalls(
     val socketService: SocketService
 ) {
+
+    suspend fun getExtrinsicFee(extrinsic: String): BigInteger {
+        val request = FeeCalculationRequest(extrinsic)
+
+        val feeResponse = socketService.executeAsync(request, mapper = pojo<FeeResponse>().nonNull())
+
+        return feeResponse.partialFee
+    }
 
     suspend fun getNonce(accountAddress: String): BigInteger {
         val nonceRequest = NextAccountIndexRequest(accountAddress)

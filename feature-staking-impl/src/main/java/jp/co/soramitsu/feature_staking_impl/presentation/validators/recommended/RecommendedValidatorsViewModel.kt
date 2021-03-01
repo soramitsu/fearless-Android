@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -20,6 +19,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.Reco
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.ValidatorModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 
 private const val ICON_SIZE_DP = 24
 
@@ -34,14 +36,18 @@ class RecommendedValidatorsViewModel(
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
-    val recommendedValidators = liveData(Dispatchers.Default) {
+    private val recommendedValidators = flow {
         val validatorRecommendator = validatorRecommendatorFactory.create()
         val validators = validatorRecommendator.recommendations(recommendedSettings())
 
+        emit(validators)
+    }.flowOn(Dispatchers.Default).share()
+
+    val recommendedValidatorModels = recommendedValidators.map {
         val networkType = interactor.getSelectedNetworkType()
 
-        emit(convertToModels(validators, networkType))
-    }
+        convertToModels(it, networkType)
+    }.flowOn(Dispatchers.Default).asLiveData()
 
     fun backClicked() {
         router.back()
@@ -52,7 +58,7 @@ class RecommendedValidatorsViewModel(
     }
 
     fun learnMoreClicked() {
-        openBrowserEvent.value = Event(appLinksProvider.stakingLearnMore)
+        openBrowserEvent.value = Event(appLinksProvider.nominatorLearnMore)
     }
 
     private suspend fun convertToModels(
