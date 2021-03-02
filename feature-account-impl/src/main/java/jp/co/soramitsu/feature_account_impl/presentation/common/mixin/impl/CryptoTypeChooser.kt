@@ -6,7 +6,7 @@ import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.mediatorLiveData
-import jp.co.soramitsu.common.utils.setFrom
+import jp.co.soramitsu.common.utils.updateFrom
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapCryptoTypeToCryptoTypeModel
@@ -21,7 +21,7 @@ class CryptoTypeChooser(
     private val encryptionTypes = getCryptoTypeModels()
 
     override val selectedEncryptionTypeLiveData = mediatorLiveData<CryptoTypeModel> {
-        setFrom(preferredTypeLiveData())
+        updateFrom(preferredTypeLiveData())
     }
 
     private val _encryptionTypeChooserEvent = MutableLiveData<Event<Payload<CryptoTypeModel>>>()

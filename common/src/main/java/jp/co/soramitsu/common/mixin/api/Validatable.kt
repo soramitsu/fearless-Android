@@ -10,7 +10,7 @@ class DefaultFailure(
     val message: String
 )
 
-interface Validatable {
+interface Validatable : Retriable {
     val validationFailureEvent: LiveData<Event<DefaultFailure>>
 
     fun validationWarningConfirmed()

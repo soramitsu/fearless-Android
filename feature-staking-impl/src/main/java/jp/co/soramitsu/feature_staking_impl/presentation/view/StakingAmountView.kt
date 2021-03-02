@@ -9,6 +9,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
+import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAmountInput
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetBalance
@@ -29,19 +30,26 @@ class StakingAmountView @JvmOverloads constructor(
         View.inflate(context, R.layout.view_staking_amount, this)
 
         with(context) {
-            background = getCutCornerDrawable(
-                R.color.blurColor,
-                R.color.white
+            background = getCutCornersStateDrawable(
+                idleDrawable = getCutCornerDrawable(
+                    R.color.blurColor,
+                    R.color.white
+                )
             )
         }
 
-//        attrs?.let { applyAttributes(it) }
+        applyAttributes(attrs)
     }
 
-    private fun applyAttributes(attributeSet: AttributeSet) {
-        val typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.StakingAmountView)
+    private fun applyAttributes(attributeSet: AttributeSet?) {
+        attributeSet?.let {
+            val typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.StakingAmountView)
 
-        typedArray.recycle()
+            val enabled = typedArray.getBoolean(R.styleable.StakingAmountView_android_enabled, true)
+            isEnabled = enabled
+
+            typedArray.recycle()
+        }
     }
 
     fun setAssetImage(image: Drawable) {

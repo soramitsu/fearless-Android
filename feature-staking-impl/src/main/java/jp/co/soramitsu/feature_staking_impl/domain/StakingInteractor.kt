@@ -25,7 +25,7 @@ class StakingInteractor(
             .map(::mapAccountToStakingAccount)
     }
 
-    fun getCurrentAsset() = accountRepository.selectedAccountFlow()
+    fun currentAssetFlow() = accountRepository.selectedAccountFlow()
         .map { mapAccountToWalletAccount(it) }
         .flatMapLatest { walletRepository.assetsFlow(it) }
         .filter { it.isNotEmpty() }
@@ -39,6 +39,8 @@ class StakingInteractor(
         return accountRepository.selectedAccountFlow()
             .map { mapAccountToStakingAccount(it) }
     }
+
+    suspend fun getAccount(address: String) = mapAccountToStakingAccount(accountRepository.getAccount(address))
 
     suspend fun getSelectedAccount(): StakingAccount = withContext(Dispatchers.Default) {
         val account = accountRepository.getSelectedAccount()

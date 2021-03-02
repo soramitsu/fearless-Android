@@ -1,20 +1,20 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.mixin.impl
 
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.mediatorLiveData
-import jp.co.soramitsu.common.utils.setFrom
+import jp.co.soramitsu.common.utils.updateFrom
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import androidx.lifecycle.asLiveData
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeHeaderModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 
 class NodeListingProvider(
     private val accountInteractor: AccountInteractor,
@@ -25,7 +25,7 @@ class NodeListingProvider(
         .asLiveData()
 
     override val selectedNodeLiveData: MutableLiveData<NodeModel> = mediatorLiveData {
-        setFrom(getSelectedNodeModel().asLiveData())
+        updateFrom(getSelectedNodeModel().asLiveData())
     }
 
     private fun getSelectedNodeModel() = accountInteractor.selectedNodeFlow()

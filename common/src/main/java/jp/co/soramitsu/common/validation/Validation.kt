@@ -1,5 +1,7 @@
 package jp.co.soramitsu.common.validation
 
+import jp.co.soramitsu.common.utils.requireException
+
 interface Validation<T, S> {
 
     suspend fun validate(value: T): ValidationStatus<S>
@@ -56,5 +58,20 @@ class ValidationSystem<T, S>(
                 }
             }
         }
+    }
+}
+
+fun <S> Result<ValidationStatus<S>>.unwrap(
+    onValid: () -> Unit,
+    onInvalid: (ValidationStatus.NotValid<S>) -> Unit,
+    onFailure: (Throwable) -> Unit
+) {
+    if (isSuccess) {
+        when (val status = getOrThrow()) {
+            is ValidationStatus.Valid<*> -> onValid()
+            is ValidationStatus.NotValid<S> -> onInvalid(status)
+        }
+    } else {
+        onFailure(requireException())
     }
 }

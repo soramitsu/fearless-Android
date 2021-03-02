@@ -66,7 +66,7 @@ class RecommendedValidatorsViewModel(
         viewModelScope.launch {
             sharedState.selectedValidators.emit(recommendedValidators.first())
 
-            showMessage("TODO")
+            router.openConfirmStaking()
         }
     }
 

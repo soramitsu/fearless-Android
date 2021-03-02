@@ -155,6 +155,10 @@ class Navigator :
         navController?.navigate(R.id.action_setupStakingFragment_to_recommendedValidatorsFragment)
     }
 
+    override fun openConfirmStaking() {
+        navController?.navigate(R.id.action_recommendedValidatorsFragment_to_confirmStakingFragment)
+    }
+
     override fun openChooseRecipient() {
         navController?.navigate(R.id.action_open_send)
     }

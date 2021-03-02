@@ -58,6 +58,7 @@
 
     <EditText
         android:id="@+id/stakingAmountInput"
+        android:duplicateParentState="true"
         style="@style/TextAppearance.Soramitsu.Header4"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -68,6 +69,7 @@
         android:textCursorDrawable="@null"
         android:gravity="end"
         android:text="@string/choose_amount_initial"
+        android:textColor="@color/white"
         app:layout_constraintBaseline_toBaselineOf="@id/stakingAssetToken"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/stakingAssetToken"
