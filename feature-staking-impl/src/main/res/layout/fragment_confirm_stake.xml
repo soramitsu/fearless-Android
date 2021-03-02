@@ -16,7 +16,7 @@
         app:titleText="Confirm stake" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/confirmStakeAccount"
+        android:id="@+id/confirmStakeOriginAccount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"

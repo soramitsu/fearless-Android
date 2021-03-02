@@ -7,6 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -35,6 +36,7 @@ class ConfirmStakingModule {
         validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
         stakingSharedState: StakingSharedState,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
+        externalAccountActions: ExternalAccountActions.Presentation
     ): ViewModel {
         return ConfirmStakingViewModel(
             router,
@@ -44,7 +46,8 @@ class ConfirmStakingModule {
             validationSystem,
             stakingSharedState,
             maxFeeEstimator,
-            feeLoaderMixin
+            feeLoaderMixin,
+            externalAccountActions
         )
     }
 

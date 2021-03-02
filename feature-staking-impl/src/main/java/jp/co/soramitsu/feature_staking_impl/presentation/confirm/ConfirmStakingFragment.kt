@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import dev.chrisbanes.insetter.applyInsetter
+import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeRetries
@@ -17,9 +18,9 @@ import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeViews
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.displayFeeStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationModel
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeAccount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeAmount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeConfirm
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeOriginAccount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakePayoutAccount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeRewardDestination
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidatorsCount
@@ -49,6 +50,11 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         }
 
         confirmStakeToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        confirmStakeOriginAccount.setWholeClickListener { viewModel.originAccountClicked() }
+
+        confirmStakeConfirm.prepareForProgress(viewLifecycleOwner)
+        confirmStakeConfirm.setOnClickListener { viewModel.confirmClicked() }
     }
 
     override fun inject() {
@@ -64,6 +70,7 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
     override fun subscribe(viewModel: ConfirmStakingViewModel) {
         observeRetries(viewModel, themedContext())
         observeValidations(viewModel, themedContext())
+        setupExternalActions(viewModel)
 
         viewModel.showNextProgress.observe { show ->
             confirmStakeConfirm.setState(if (show) ButtonState.PROGRESS else ButtonState.NORMAL)
@@ -98,8 +105,8 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         }
 
         viewModel.currentAccountModelLiveData.observe {
-            confirmStakeAccount.setMessage(it.nameOrAddress)
-            confirmStakeAccount.setTextIcon(it.image)
+            confirmStakeOriginAccount.setMessage(it.nameOrAddress)
+            confirmStakeOriginAccount.setTextIcon(it.image)
         }
 
         viewModel.nominationsLiveData.observe {

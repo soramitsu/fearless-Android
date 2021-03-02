@@ -14,7 +14,7 @@ class EnoughToPayFeesValidation(
 ) : Validation<SetupStakingPayload, StakingValidationFailure> {
 
     override suspend fun validate(value: SetupStakingPayload): ValidationStatus<StakingValidationFailure> {
-        val account = accountRepository.getAccount(value.accountAddress)
+        val account = accountRepository.getAccount(value.originAddress)
         val asset = walletRepository.getAsset(mapAccountToWalletAccount(account), value.tokenType)!!
 
         return if (value.amount + value.maxFee < asset.transferable) {

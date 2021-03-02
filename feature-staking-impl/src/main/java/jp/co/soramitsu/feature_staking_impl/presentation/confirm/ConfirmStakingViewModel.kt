@@ -6,6 +6,7 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.mixin.api.DefaultFailure
@@ -15,6 +16,7 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.multipleSourceLiveData
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -35,6 +37,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMix
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -53,9 +56,12 @@ class ConfirmStakingViewModel(
     private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
     private val stakingSharedState: StakingSharedState,
     private val maxFeeEstimator: MaxFeeEstimator,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation
+    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    private val externalAccountActions: ExternalAccountActions.Presentation
 ) : BaseViewModel(),
-    Retriable, Validatable, FeeLoaderMixin by feeLoaderMixin {
+    Retriable, Validatable,
+    FeeLoaderMixin by feeLoaderMixin,
+    ExternalAccountActions by externalAccountActions {
 
     override val retryEvent: MutableLiveData<Event<RetryPayload>> = multipleSourceLiveData(
         feeLoaderMixin.retryEvent
@@ -106,6 +112,16 @@ class ConfirmStakingViewModel(
 
     fun backClicked() {
         router.back()
+    }
+
+    fun originAccountClicked() {
+        viewModelScope.launch {
+            val account = interactor.getSelectedAccount()
+
+            val payload = ExternalAccountActions.Payload(account.address, account.network.type)
+
+            externalAccountActions.showExternalActions(payload)
+        }
     }
 
     private fun loadFee() {
@@ -159,7 +175,7 @@ class ConfirmStakingViewModel(
             val payload = SetupStakingPayload(
                 amount = stakingSharedState.amount,
                 tokenType = tokenType,
-                accountAddress = interactor.getSelectedAccount().address,
+                originAddress = interactor.getSelectedAccount().address,
                 maxFee = fee,
                 rewardDestination = rewardDestination
             )
@@ -168,22 +184,42 @@ class ConfirmStakingViewModel(
 
             val validationResult = validationSystem.validate(payload, ignoreLevel)
 
-            _showNextProgress.value = false
-
             validationResult.unwrap(
-                onValid = { sendTransaction(payload) },
+                onValid = { sendTransaction(payload, tokenType) },
                 onInvalid = {
+                    _showNextProgress.value = false
                     validationFailureEvent.value = Event(stakingValidationFailure(payload, it, resourceManager))
                 },
-                onFailure = { showValidationFailedToComplete() }
+                onFailure = {
+                    _showNextProgress.value = false
+                    showValidationFailedToComplete()
+                }
             )
         }
     }
 
 
     private fun sendTransaction(
-        rewardDestination: SetupStakingPayload
+        setupStakingPayload: SetupStakingPayload,
+        tokenType: Token.Type
     ) {
+        launch {
+            val setupResult = interactor.setupStaking(
+                originAddress = setupStakingPayload.originAddress,
+                amount = setupStakingPayload.amount,
+                tokenType = tokenType,
+                rewardDestination = setupStakingPayload.rewardDestination,
+                nominations = prepareNominations()
+            )
+
+            _showNextProgress.value = false
+
+            if (setupResult.isSuccess) {
+                showMessage(resourceManager.getString(R.string.extrinsic_submitted))
+            } else {
+                showError(setupResult.requireException())
+            }
+        }
 
     }
 

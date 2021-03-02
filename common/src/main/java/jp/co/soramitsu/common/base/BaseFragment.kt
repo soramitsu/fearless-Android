@@ -16,7 +16,6 @@ import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 abstract class BaseFragment<T : BaseViewModel> : Fragment() {
@@ -68,7 +67,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     inline fun <V> Flow<V>.observe(crossinline collector: suspend (V) -> Unit) {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenResumed {
             collect(collector)
         }
     }

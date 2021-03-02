@@ -7,7 +7,7 @@ import java.math.BigDecimal
 class SetupStakingPayload(
     val amount: BigDecimal,
     val tokenType: Token.Type,
-    val accountAddress: String,
+    val originAddress: String,
     val maxFee: BigDecimal,
     val rewardDestination: RewardDestination
 )

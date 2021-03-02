@@ -51,8 +51,10 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideStakingInteractor(
         walletRepository: WalletRepository,
-        accountRepository: AccountRepository
-    ) = StakingInteractor(walletRepository, accountRepository)
+        accountRepository: AccountRepository,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+        substrateCalls: SubstrateCalls
+    ) = StakingInteractor(walletRepository, accountRepository, substrateCalls, extrinsicBuilderFactory)
 
     @Provides
     @FeatureScope

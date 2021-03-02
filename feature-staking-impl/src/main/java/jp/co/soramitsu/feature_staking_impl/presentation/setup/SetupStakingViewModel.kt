@@ -196,7 +196,7 @@ class SetupStakingViewModel(
             val payload = SetupStakingPayload(
                 amount = amount,
                 tokenType = tokenType,
-                accountAddress = interactor.getSelectedAccount().address,
+                originAddress = interactor.getSelectedAccount().address,
                 maxFee = fee,
                 rewardDestination = rewardDestination
             )
