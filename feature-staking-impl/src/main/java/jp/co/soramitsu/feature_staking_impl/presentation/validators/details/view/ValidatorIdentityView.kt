@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.IdentityModel
+import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityAddressView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityDisplayNameView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityEmailView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityLegalNameView
@@ -75,5 +76,9 @@ class ValidatorIdentityView @JvmOverloads constructor(
             validatorIdentityRiotNameView.makeVisible()
             validatorIdentityRiotNameView.setBody(identity.riot)
         }
+    }
+
+    fun setAddress(address: String) {
+        validatorIdentityAddressView.setBody(address)
     }
 }

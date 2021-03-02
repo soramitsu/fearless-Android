@@ -61,6 +61,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
             } else {
                 validatorIdentity.makeVisible()
                 validatorIdentity.populateIdentity(validator.identity)
+                validatorIdentity.setAddress(validator.address)
             }
             validator.identity?.display?.let { validatorDetailsToolbar.setTitle(it) }
         }

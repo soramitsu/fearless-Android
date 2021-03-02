@@ -7,6 +7,7 @@ import java.math.BigInteger
 
 @Parcelize
 class ValidatorDetailsParcelModel(
+    val accountIdHex: String,
     val totalStake: BigInteger,
     val ownStake: BigInteger,
     val identity: IdentityParcelModel?,
