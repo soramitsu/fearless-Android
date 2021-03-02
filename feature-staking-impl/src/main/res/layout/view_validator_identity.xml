@@ -42,21 +42,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        app:validatorIdentityTitle="Email" />
+        app:validatorIdentityTitle="Email"
+        app:showArrowIcon="true" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
         android:id="@+id/validatorIdentityWebView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        app:validatorIdentityTitle="Web" />
+        app:validatorIdentityTitle="Web"
+        app:showArrowIcon="true" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
         android:id="@+id/validatorIdentityTwitterView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        app:validatorIdentityTitle="Twitter" />
+        app:validatorIdentityTitle="Twitter"
+        app:showArrowIcon="true" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
         android:id="@+id/validatorIdentityRiotNameView"

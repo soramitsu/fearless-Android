@@ -19,5 +19,6 @@
     </declare-styleable>
     <declare-styleable name="ValidatorIdentityItemView">
         <attr name="validatorIdentityTitle" format="string" />
+        <attr name="showArrowIcon" format="boolean" />
     </declare-styleable>
 </resources>

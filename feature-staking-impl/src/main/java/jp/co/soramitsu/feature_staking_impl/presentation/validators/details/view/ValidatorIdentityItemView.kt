@@ -28,6 +28,9 @@ class ValidatorIdentityItemView @JvmOverloads constructor(
         val titleText = typedArray.getString(R.styleable.ValidatorIdentityItemView_validatorIdentityTitle)
         titleText?.let { setTitle(it) }
 
+        val showArrowIcon = typedArray.getBoolean(R.styleable.ValidatorIdentityItemView_showArrowIcon, false)
+        changeArrowVisibility(showArrowIcon)
+
         typedArray.recycle()
     }
 
@@ -37,5 +40,13 @@ class ValidatorIdentityItemView @JvmOverloads constructor(
 
     fun setBody(body: String) {
         validatorIdentityBody.text = body
+    }
+
+    fun changeArrowVisibility(visible: Boolean) {
+        if (visible) {
+            validatorIdentityBody.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_arrow_top_right_white_16, 0)
+        } else {
+            validatorIdentityBody.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
+        }
     }
 }
