@@ -22,6 +22,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFacto
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.MinimumAmountValidation
+import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
@@ -102,4 +103,8 @@ class StakingFeatureModule {
     ) = ValidationSystem(
         CompositeValidation(listOf(enoughToPayFeesValidation, minimumAmountValidation))
     )
+
+    @Provides
+    @FeatureScope
+    fun provideSetupStakingSharedState() = StakingSharedState()
 }

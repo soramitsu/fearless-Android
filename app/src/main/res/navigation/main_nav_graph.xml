@@ -120,6 +120,13 @@
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
+        <action
+            android:id="@+id/action_mainFragment_to_setupStakingFragment"
+            app:destination="@id/setupStakingFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
 
     </fragment>
 
@@ -347,5 +354,26 @@
         android:name="jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment"
         android:label="fragment_pincode"
         tools:layout="@layout/fragment_pincode" />
+
+    <fragment
+        android:id="@+id/setupStakingFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.setup.SetupStakingFragment"
+        android:label="setupStakingFragment"
+        tools:layout="@layout/fragment_setup_staking">
+
+        <action
+            android:id="@+id/action_setupStakingFragment_to_recommendedValidatorsFragment"
+            app:destination="@id/recommendedValidatorsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/recommendedValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.RecommendedValidatorsFragment"
+        android:label="recommendedValidatorsFragment"
+        tools:layout="@layout/fragment_recommended_validators" />
 
 </navigation>
