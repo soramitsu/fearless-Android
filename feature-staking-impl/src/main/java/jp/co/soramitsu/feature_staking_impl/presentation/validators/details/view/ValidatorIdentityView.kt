@@ -29,56 +29,25 @@ class ValidatorIdentityView @JvmOverloads constructor(
     }
 
     fun populateIdentity(identity: IdentityModel) {
-        if (identity.display == null) {
-            validatorIdentityDisplayNameView.makeGone()
-            validatorIdentityDisplayNameView.setBody("")
-        } else {
-            validatorIdentityDisplayNameView.makeVisible()
-            validatorIdentityDisplayNameView.setBody(identity.display)
-        }
-
-        if (identity.legal == null) {
-            validatorIdentityLegalNameView.makeGone()
-            validatorIdentityLegalNameView.setBody("")
-        } else {
-            validatorIdentityLegalNameView.makeVisible()
-            validatorIdentityLegalNameView.setBody(identity.legal)
-        }
-
-        if (identity.email == null) {
-            validatorIdentityEmailView.makeGone()
-            validatorIdentityEmailView.setBody("")
-        } else {
-            validatorIdentityEmailView.makeVisible()
-            validatorIdentityEmailView.setBody(identity.email)
-        }
-
-        if (identity.web == null) {
-            validatorIdentityWebView.makeGone()
-            validatorIdentityWebView.setBody("")
-        } else {
-            validatorIdentityWebView.makeVisible()
-            validatorIdentityWebView.setBody(identity.web)
-        }
-
-        if (identity.twitter == null) {
-            validatorIdentityTwitterView.makeGone()
-            validatorIdentityTwitterView.setBody("")
-        } else {
-            validatorIdentityTwitterView.makeVisible()
-            validatorIdentityTwitterView.setBody(identity.twitter)
-        }
-
-        if (identity.riot == null) {
-            validatorIdentityRiotNameView.makeGone()
-            validatorIdentityRiotNameView.setBody("")
-        } else {
-            validatorIdentityRiotNameView.makeVisible()
-            validatorIdentityRiotNameView.setBody(identity.riot)
-        }
+        setTextOrHideIdentityItem(validatorIdentityDisplayNameView, identity.display)
+        setTextOrHideIdentityItem(validatorIdentityLegalNameView, identity.legal)
+        setTextOrHideIdentityItem(validatorIdentityEmailView, identity.email)
+        setTextOrHideIdentityItem(validatorIdentityWebView, identity.web)
+        setTextOrHideIdentityItem(validatorIdentityTwitterView, identity.twitter)
+        setTextOrHideIdentityItem(validatorIdentityRiotNameView, identity.riot)
     }
 
-    fun setAddress(address: String) {
-        validatorIdentityAddressView.setBody(address)
+    fun setAddress(address: String?) {
+        setTextOrHideIdentityItem(validatorIdentityAddressView, address)
+    }
+
+    private fun setTextOrHideIdentityItem(item: ValidatorIdentityItemView, text: String?) {
+        if (text == null) {
+            item.makeGone()
+            item.setBody("")
+        } else {
+            item.makeVisible()
+            item.setBody(text)
+        }
     }
 }
