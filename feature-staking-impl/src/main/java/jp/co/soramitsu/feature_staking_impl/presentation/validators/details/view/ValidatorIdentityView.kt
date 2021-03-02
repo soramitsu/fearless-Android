@@ -7,7 +7,7 @@ import android.widget.LinearLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.IdentityModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.IdentityModel
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityDisplayNameView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityEmailView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityLegalNameView

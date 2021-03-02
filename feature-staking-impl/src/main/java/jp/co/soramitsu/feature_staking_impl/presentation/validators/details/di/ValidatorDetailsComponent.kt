@@ -5,7 +5,7 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.ValidatorDetailsModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 
 @Subcomponent(
     modules = [
@@ -20,7 +20,7 @@ interface ValidatorDetailsComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance validator: ValidatorDetailsModel
+            @BindsInstance validator: ValidatorDetailsParcelModel
         ): ValidatorDetailsComponent
     }
 

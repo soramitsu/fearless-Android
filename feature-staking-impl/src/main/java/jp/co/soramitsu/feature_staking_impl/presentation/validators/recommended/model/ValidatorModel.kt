@@ -1,12 +1,11 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.validators.model
+package jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model
 
 import android.graphics.drawable.PictureDrawable
 import androidx.recyclerview.widget.DiffUtil
-import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
-import java.math.BigDecimal
 
 data class ValidatorModel(
+    val accountIdHex: String,
     val slashed: Boolean,
     val identity: Identity?,
     val image: PictureDrawable,

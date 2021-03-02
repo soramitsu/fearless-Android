@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsViewModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.ValidatorDetailsModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 
 @Module(includes = [ViewModelModule::class])
 class ValidatorDetailsModule {
@@ -22,7 +22,7 @@ class ValidatorDetailsModule {
     fun provideViewModel(
         interactor: StakingInteractor,
         router: StakingRouter,
-        validator: ValidatorDetailsModel
+        validator: ValidatorDetailsParcelModel
     ): ViewModel {
         return ValidatorDetailsViewModel(
             interactor,

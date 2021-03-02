@@ -8,11 +8,11 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.ValidatorDetailsModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import kotlinx.android.synthetic.main.fragment_validator_details.validatorDetailsToolbar
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorIdentity
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorInfo
 
@@ -21,7 +21,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
     companion object {
         private const val KEY_VALIDATOR = "validator"
 
-        fun getBundle(validator: ValidatorDetailsModel): Bundle {
+        fun getBundle(validator: ValidatorDetailsParcelModel): Bundle {
             return Bundle().apply {
                 putParcelable(KEY_VALIDATOR, validator)
             }
@@ -37,10 +37,11 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
     }
 
     override fun initViews() {
+        validatorDetailsToolbar.setHomeButtonListener { viewModel.backClicked() }
     }
 
     override fun inject() {
-        val validator = argument<ValidatorDetailsModel>(KEY_VALIDATOR)
+        val validator = argument<ValidatorDetailsParcelModel>(KEY_VALIDATOR)
 
         FeatureUtils.getFeature<StakingFeatureComponent>(
             requireContext(),
@@ -53,7 +54,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
 
     override fun subscribe(viewModel: ValidatorDetailsViewModel) {
         viewModel.validatorDetails.observe { validator ->
-            validatorInfo.setNominatorsCount(validator.nominators.size.toString())
+            validatorInfo.setNominatorsCount(validator.nominatorsCount)
             validatorInfo.setEstimatedRewardApy(validator.apy)
             if (validator.identity == null) {
                 validatorIdentity.makeGone()
@@ -61,6 +62,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
                 validatorIdentity.makeVisible()
                 validatorIdentity.populateIdentity(validator.identity)
             }
+            validator.identity?.display?.let { validatorDetailsToolbar.setTitle(it) }
         }
     }
 }

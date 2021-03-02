@@ -6,8 +6,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.ValidatorDiffCallback
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorDiffCallback
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorApy
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorIcon

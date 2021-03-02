@@ -1,10 +1,10 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.validators.model
+package jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class IdentityModel(
+class IdentityParcelModel(
     val display: String?,
     val legal: String?,
     val web: String?,
