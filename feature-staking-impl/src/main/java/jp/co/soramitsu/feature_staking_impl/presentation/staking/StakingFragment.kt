@@ -19,6 +19,7 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
+import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -45,6 +46,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         stakingNetworkInfo.background = background
 
         stakingEstimate.hideAssetBalanceDollarAmount()
+
+        startStakingBtn.setOnClickListener { viewModel.nextClicked() }
     }
 
     override fun inject() {
