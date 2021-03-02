@@ -8,8 +8,10 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsParcelToValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
@@ -22,17 +24,15 @@ class ValidatorDetailsViewModel(
 
     private val validatorDetailsFlow = MutableStateFlow(validator)
 
-    val validatorDetails = validatorDetailsFlow.map {
-        val networkType = interactor.getSelectedNetworkType()
+    private val assetFlow = interactor.getCurrentAsset()
+        .share()
 
-        transferValidatorModel(it, networkType)
+    val validatorDetails = validatorDetailsFlow.combine(assetFlow) { validator, asset ->
+
+        mapValidatorDetailsParcelToValidatorDetailsModel(validator, asset)
     }.flowOn(Dispatchers.IO).asLiveData()
 
     fun backClicked() {
         router.back()
-    }
-
-    private fun transferValidatorModel(validator: ValidatorDetailsParcelModel, networkType: Node.NetworkType): ValidatorDetailsModel {
-        return mapValidatorDetailsParcelToValidatorDetailsModel(validator, networkType)
     }
 }

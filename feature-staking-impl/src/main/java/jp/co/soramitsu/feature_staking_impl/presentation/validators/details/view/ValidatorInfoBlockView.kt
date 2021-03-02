@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
-import jp.co.soramitsu.common.utils.makeInvisible
+import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_validator_info_block.view.validatorInfoBlockBody
@@ -48,7 +48,7 @@ class ValidatorInfoBlockView @JvmOverloads constructor(
         if (visible) {
             validatorInfoBlockExtra.makeVisible()
         } else {
-            validatorInfoBlockExtra.makeInvisible()
+            validatorInfoBlockExtra.makeGone()
         }
     }
 

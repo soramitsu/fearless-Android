@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_validator_info.view.validatorEstimatedReward
 import kotlinx.android.synthetic.main.view_validator_info.view.validatorNominatorsView
@@ -19,12 +21,20 @@ class ValidatorInfoView @JvmOverloads constructor(
         View.inflate(context, R.layout.view_validator_info, this)
     }
 
-    fun setTotalShakeValue(value: String) {
+    fun setTotalStakeValue(value: String) {
         validatorTotalStakeView.setBody(value)
     }
 
-    fun setTotalShakeValueFiat(value: String) {
+    fun setTotalStakeValueFiat(value: String) {
         validatorTotalStakeView.setExtra(value)
+    }
+
+    fun showTotalStakeFiat() {
+        validatorTotalStakeView.makeVisible()
+    }
+
+    fun hideTotalStakeFiat() {
+        validatorTotalStakeView.makeGone()
     }
 
     fun setNominatorsCount(count: String) {

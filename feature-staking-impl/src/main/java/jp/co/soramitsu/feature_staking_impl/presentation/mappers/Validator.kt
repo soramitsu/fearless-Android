@@ -1,14 +1,20 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 
 import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.utils.formatAsChange
+import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.toAddress
+import jp.co.soramitsu.common.wallet.formatWithDefaultPrecision
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 
 private val PERCENT_MULTIPLIER = 100.toBigDecimal()
 
@@ -35,12 +41,15 @@ fun mapValidatorToValidatorDetailsParcelModel(validator: Validator): ValidatorDe
     }
 }
 
-fun mapValidatorDetailsParcelToValidatorDetailsModel(validator: ValidatorDetailsParcelModel, networkType: Node.NetworkType): ValidatorDetailsModel {
+fun mapValidatorDetailsParcelToValidatorDetailsModel(validator: ValidatorDetailsParcelModel, asset: Asset): ValidatorDetailsModel {
     return with(validator) {
-        val address = validator.accountIdHex.fromHex().toAddress(networkType)
+        val amount = asset.token.amountFromPlanks(validator.ownStake)
+        val totalStake = amount.formatWithDefaultPrecision(asset.token.type)
+        val totalStakeFiat = amount.multiply(asset.token.dollarRate).formatAsCurrency()
+        val address = validator.accountIdHex.fromHex().toAddress(asset.token.type.networkType)
         val identity = identity?.let(::mapIdentityParcelModelToIdentityModel)
         val nominatorsCount = nominators.size.toString()
         val apyPercentage = (PERCENT_MULTIPLIER * apy).formatAsPercentage()
-        ValidatorDetailsModel(address, identity, nominatorsCount, apyPercentage)
+        ValidatorDetailsModel(totalStake, totalStakeFiat, address, identity, nominatorsCount, apyPercentage)
     }
 }

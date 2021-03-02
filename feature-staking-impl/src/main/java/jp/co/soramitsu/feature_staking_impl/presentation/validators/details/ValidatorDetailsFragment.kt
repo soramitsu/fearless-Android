@@ -56,6 +56,14 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
         viewModel.validatorDetails.observe { validator ->
             validatorInfo.setNominatorsCount(validator.nominatorsCount)
             validatorInfo.setEstimatedRewardApy(validator.apy)
+            validatorInfo.setTotalStakeValue(validator.totalStake)
+            if (validator.totalStakeFiat == null) {
+                validatorInfo.hideTotalStakeFiat()
+                validatorInfo.setTotalStakeValueFiat("")
+            } else {
+                validatorInfo.showTotalStakeFiat()
+                validatorInfo.setTotalStakeValueFiat(validator.totalStakeFiat)
+            }
             if (validator.identity == null) {
                 validatorIdentity.makeGone()
             } else {

@@ -32,7 +32,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
-            android:background="@color/colorGreyText" />
+            android:background="@color/dividerGray" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityView
             android:id="@+id/validatorIdentity"
