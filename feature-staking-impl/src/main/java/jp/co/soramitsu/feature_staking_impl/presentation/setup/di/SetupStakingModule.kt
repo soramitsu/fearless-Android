@@ -36,7 +36,7 @@ class SetupStakingModule {
         maxFeeEstimator: MaxFeeEstimator,
         validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
         appLinksProvider: AppLinksProvider,
-        stakingSharedState: StakingSharedState,
+        stakingSharedState: StakingSharedState
     ): ViewModel {
         return SetupStakingViewModel(
             router,

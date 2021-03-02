@@ -36,7 +36,7 @@ class RecommendedValidatorsViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val appLinksProvider: AppLinksProvider,
     private val interactor: StakingInteractor,
-    private val sharedState: StakingSharedState,
+    private val sharedState: StakingSharedState
 ) : BaseViewModel(), Browserable {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()

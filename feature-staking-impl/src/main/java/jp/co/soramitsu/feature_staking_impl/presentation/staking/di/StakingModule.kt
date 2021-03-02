@@ -28,7 +28,7 @@ class StakingModule {
         addressIconGenerator: AddressIconGenerator,
         rewardCalculatorFactory: RewardCalculatorFactory,
         resourceManager: ResourceManager,
-        stakingSharedState: StakingSharedState,
+        stakingSharedState: StakingSharedState
     ): ViewModel {
         return StakingViewModel(
             router,

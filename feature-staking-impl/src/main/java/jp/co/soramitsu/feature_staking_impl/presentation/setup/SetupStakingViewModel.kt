@@ -85,7 +85,7 @@ class SetupStakingViewModel(
     private val maxFeeEstimator: MaxFeeEstimator,
     private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
     private val appLinksProvider: AppLinksProvider,
-    private val stakingSharedState: StakingSharedState,
+    private val stakingSharedState: StakingSharedState
 ) : BaseViewModel(), Retriable, Validatable, Browserable {
 
     private val _rewardDestinationLiveData = MutableLiveData<RewardDestinationModel>(RewardDestinationModel.Restake)
