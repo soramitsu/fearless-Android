@@ -139,12 +139,20 @@ class Navigator :
         navController?.popBackStack()
     }
 
+    override fun openSetupStaking() {
+        navController?.navigate(R.id.action_mainFragment_to_setupStakingFragment)
+    }
+
     override fun back() {
         val popped = navController!!.popBackStack()
 
         if (!popped) {
             activity!!.finish()
         }
+    }
+
+    override fun openRecommendedValidators() {
+        navController?.navigate(R.id.action_setupStakingFragment_to_recommendedValidatorsFragment)
     }
 
     override fun openChooseRecipient() {

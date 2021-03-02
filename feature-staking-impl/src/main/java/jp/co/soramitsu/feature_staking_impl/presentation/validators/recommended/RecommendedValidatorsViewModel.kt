@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended
 
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -17,11 +18,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorReco
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.ValidatorModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 private const val ICON_SIZE_DP = 24
 
@@ -31,7 +35,8 @@ class RecommendedValidatorsViewModel(
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val addressIconGenerator: AddressIconGenerator,
     private val appLinksProvider: AppLinksProvider,
-    private val interactor: StakingInteractor
+    private val interactor: StakingInteractor,
+    private val sharedState: StakingSharedState
 ) : BaseViewModel(), Browserable {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
@@ -55,6 +60,14 @@ class RecommendedValidatorsViewModel(
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
         // TODO
+    }
+
+    fun nextClicked() {
+        viewModelScope.launch {
+            sharedState.selectedValidators.emit(recommendedValidators.first())
+
+            showMessage("TODO")
+        }
     }
 
     fun learnMoreClicked() {

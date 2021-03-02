@@ -31,6 +31,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFacto
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -44,8 +45,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
-
-private val DEFAULT_AMOUNT = 10.toBigDecimal()
 
 private const val DESTINATION_SIZE_DP = 24
 
@@ -85,7 +84,8 @@ class SetupStakingViewModel(
     private val resourceManager: ResourceManager,
     private val maxFeeEstimator: MaxFeeEstimator,
     private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
-    private val appLinksProvider: AppLinksProvider
+    private val appLinksProvider: AppLinksProvider,
+    private val stakingSharedState: StakingSharedState
 ) : BaseViewModel(), Retriable, Validatable, Browserable {
 
     private val _rewardDestinationLiveData = MutableLiveData<RewardDestinationModel>(RewardDestinationModel.Restake)
@@ -105,7 +105,7 @@ class SetupStakingViewModel(
         .map { mapAssetToAssetModel(it, resourceManager) }
         .flowOn(Dispatchers.Default)
 
-    val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
+    val enteredAmountFlow = MutableStateFlow(stakingSharedState.amount.toString())
 
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
@@ -239,7 +239,7 @@ class SetupStakingViewModel(
 
             if (validationResult.isSuccess) {
                 when (val status = validationResult.getOrThrow()) {
-                    is ValidationStatus.Valid<*> -> goToNextStep(rewardDestination, amount, tokenType)
+                    is ValidationStatus.Valid<*> -> goToNextStep(rewardDestination, amount)
                     is ValidationStatus.NotValid<StakingValidationFailure> -> {
                         validationFailureEvent.value = Event(mapValidationStatusToFailureMessage(payload, status))
                     }
@@ -252,10 +252,12 @@ class SetupStakingViewModel(
 
     private fun goToNextStep(
         rewardDestination: RewardDestination,
-        amount: BigDecimal,
-        tokenType: Token.Type
+        amount: BigDecimal
     ) {
-        showMessage("Success")
+        stakingSharedState.rewardDestination = rewardDestination
+        stakingSharedState.amount = amount
+
+        router.openRecommendedValidators()
     }
 
     private fun mapValidationStatusToFailureMessage(

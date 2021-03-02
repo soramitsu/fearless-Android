@@ -34,10 +34,10 @@
         android:background="@drawable/bg_primary_list_item"
         android:layout_marginTop="12dp"
         android:paddingEnd="16dp"
-        android:drawableStart="@drawable/ic_fearless"
-        android:drawableEnd="@drawable/ic_arrow_top_right_white_16"
         android:drawablePadding="16dp"
-        android:text="@string/common_learn_more" />
+        android:text="@string/common_learn_more"
+        app:drawableStartCompat="@drawable/ic_fearless"
+        app:drawableEndCompat="@drawable/ic_arrow_top_right_white_16" />
 
     <View
         android:layout_width="match_parent"
@@ -116,6 +116,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:visibility="gone"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:text="@string/staking_custom_validators_title" />

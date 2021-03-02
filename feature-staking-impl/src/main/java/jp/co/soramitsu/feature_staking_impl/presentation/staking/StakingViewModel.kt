@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import kotlinx.coroutines.async
@@ -19,13 +20,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
-
-private val DEFAULT_AMOUNT = 10.toBigDecimal()
 
 private const val PERIOD_MONTH = 30
 private const val PERIOD_YEAR = 365
@@ -40,7 +40,8 @@ class StakingViewModel(
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val stakingSharedState: StakingSharedState
 ) : BaseViewModel() {
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
@@ -49,15 +50,15 @@ class StakingViewModel(
 
     val asset = currentAsset.map { mapAssetToAssetModel(it, resourceManager) }.asLiveData()
 
-    val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
+    val enteredAmountFlow = MutableStateFlow(stakingSharedState.amount.toString())
 
-    private val formattedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
+    private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
-    val amountFiat = formattedAmountFlow.combine(currentAsset) { amount, asset -> asset.token.fiatAmount(amount)?.formatAsCurrency() }
+    val amountFiat = parsedAmountFlow.combine(currentAsset) { amount, asset -> asset.token.fiatAmount(amount)?.formatAsCurrency() }
         .filterNotNull()
         .asLiveData()
 
-    val returns: LiveData<ReturnsModel> = currentAsset.combine(formattedAmountFlow) { asset, amount ->
+    val returns: LiveData<ReturnsModel> = currentAsset.combine(parsedAmountFlow) { asset, amount ->
         val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
         val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
 
@@ -72,6 +73,14 @@ class StakingViewModel(
     fun onAmountChanged(text: String) {
         viewModelScope.launch {
             enteredAmountFlow.emit(text)
+        }
+    }
+
+    fun nextClicked() {
+        launch {
+            stakingSharedState.amount = parsedAmountFlow.first()
+
+            router.openSetupStaking()
         }
     }
 
