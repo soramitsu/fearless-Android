@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import jp.co.soramitsu.feature_staking_impl.R
+import kotlinx.android.synthetic.main.view_validator_identity_item.view.validatorIdentityBody
 import kotlinx.android.synthetic.main.view_validator_identity_item.view.validatorIdentityTitle
 
 class ValidatorIdentityItemView @JvmOverloads constructor(
@@ -32,5 +33,9 @@ class ValidatorIdentityItemView @JvmOverloads constructor(
 
     fun setTitle(title: String) {
         validatorIdentityTitle.text = title
+    }
+
+    fun setBody(body: String) {
+        validatorIdentityBody.text = body
     }
 }

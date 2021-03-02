@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -35,80 +34,14 @@
             android:layout_marginEnd="16dp"
             android:background="@color/colorGreyText" />
 
-        <TextView
-            style="@style/TextAppearance.Soramitsu.Header4"
-            android:layout_width="wrap_content"
+        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityView
+            android:id="@+id/validatorIdentity"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
             android:layout_marginTop="24dp"
-            android:layout_marginEnd="16dp"
-            android:includeFontPadding="false"
-            android:text="Identity"
-            android:textColor="@color/white" />
-
-        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
-            android:id="@+id/validatorIdentityAddressView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="16dp"
-            app:validatorIdentityTitle="Address" />
-
-        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
-            android:id="@+id/validatorIdentityDisplayNameView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="16dp"
-            app:validatorIdentityTitle="Display name" />
-
-        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
-            android:id="@+id/validatorIdentityLegalNameView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="16dp"
-            app:validatorIdentityTitle="Legal name" />
-
-        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
-            android:id="@+id/validatorIdentityEmailView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="16dp"
-            app:validatorIdentityTitle="Email" />
-
-        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
-            android:id="@+id/validatorIdentityWebView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="16dp"
-            app:validatorIdentityTitle="Web" />
-
-        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
-            android:id="@+id/validatorIdentityTwitterView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="16dp"
-            app:validatorIdentityTitle="Twitter" />
-
-        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
-            android:id="@+id/validatorIdentityRiotNameView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="16dp"
             android:layout_marginBottom="30dp"
-            app:validatorIdentityTitle="Riot name" />
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp" />
 
     </LinearLayout>
 
