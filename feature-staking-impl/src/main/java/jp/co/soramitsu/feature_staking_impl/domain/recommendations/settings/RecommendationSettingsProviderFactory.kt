@@ -6,7 +6,7 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindMaximumRewardedNominators
 
-private const val RECOMMENDATION_LIMIT = 16
+private const val MAX_VALIDATORS_PER_NOMINATOR = 16
 
 class RecommendationSettingsProviderFactory(
     val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
@@ -23,7 +23,7 @@ class RecommendationSettingsProviderFactory(
         val constant = runtime.metadata.module("Staking").constant("MaxNominatorRewardedPerValidator")
         val maxNominatorRewardedPerValidator = bindMaximumRewardedNominators(constant, runtime)
 
-        instance = RecommendationSettingsProvider(maxNominatorRewardedPerValidator, RECOMMENDATION_LIMIT)
+        instance = RecommendationSettingsProvider(maxNominatorRewardedPerValidator, MAX_VALIDATORS_PER_NOMINATOR)
 
         return instance!!
     }

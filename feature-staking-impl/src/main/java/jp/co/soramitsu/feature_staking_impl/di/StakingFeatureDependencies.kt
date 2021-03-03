@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.di
 
 import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
@@ -36,4 +37,6 @@ interface StakingFeatureDependencies {
     fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
 
     fun substrateCalls(): SubstrateCalls
+
+    fun externalAccountActions(): ExternalAccountActions.Presentation
 }

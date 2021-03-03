@@ -19,11 +19,15 @@ fun Context.addRipple(drawable: Drawable? = null, mask: Drawable? = null): Drawa
     return RippleDrawable(rippleColor.toColorStateList(), drawable, mask)
 }
 
-fun Context.getCutCornersStateDrawable(): Drawable {
+fun Context.getCutCornersStateDrawable(
+    disabledDrawable: Drawable = getDisabledDrawable(),
+    focusedDrawable: Drawable = getFocusedDrawable(),
+    idleDrawable: Drawable = getIdleDrawable()
+): Drawable {
     return StateListDrawable().apply {
-        addState(intArrayOf(-android.R.attr.state_enabled), getDisabledDrawable())
-        addState(intArrayOf(android.R.attr.state_focused), getFocusedDrawable())
-        addState(StateSet.WILD_CARD, getIdleDrawable())
+        addState(intArrayOf(-android.R.attr.state_enabled), disabledDrawable)
+        addState(intArrayOf(android.R.attr.state_focused), focusedDrawable)
+        addState(StateSet.WILD_CARD, idleDrawable)
     }
 }
 

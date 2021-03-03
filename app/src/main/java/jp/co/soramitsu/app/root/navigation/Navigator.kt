@@ -157,8 +157,20 @@ class Navigator :
         navController?.navigate(R.id.action_setupStakingFragment_to_recommendedValidatorsFragment)
     }
 
+    override fun openConfirmStaking() {
+        navController?.navigate(R.id.action_recommendedValidatorsFragment_to_confirmStakingFragment)
+    }
+
+    override fun openConfirmNominations() {
+        navController?.navigate(R.id.action_confirmStakingFragment_to_confirmNominationsFragment)
+    }
+
+    override fun finishSetupStakingFlow() {
+        navController?.navigate(R.id.finish_setup_staking_flow)
+    }
+
     override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
-        navController?.navigate(R.id.action_recommendedValidators_to_validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
+        navController?.navigate(R.id.open_validator_details, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
 
     override fun openChooseRecipient() {

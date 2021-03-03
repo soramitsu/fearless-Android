@@ -13,5 +13,7 @@ class StakingSharedState {
     val selectedValidators = MutableSharedFlow<List<Validator>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     var amount: BigDecimal = DEFAULT_AMOUNT
+    var fee: BigDecimal? = null
+
     var rewardDestination: RewardDestination = RewardDestination.Restake
 }

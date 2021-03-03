@@ -377,18 +377,53 @@
         tools:layout="@layout/fragment_recommended_validators">
 
         <action
-            android:id="@+id/action_recommendedValidators_to_validatorDetailsFragment"
-            app:destination="@id/validatorDetailsFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_recommendedValidatorsFragment_to_confirmStakingFragment"
+            app:destination="@id/confirmStakingFragment" />
     </fragment>
+
+    <fragment android:id="@+id/confirmStakingFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.confirm.ConfirmStakingFragment"
+        tools:layout="@layout/fragment_confirm_stake"
+        android:label="confirmStakingFragment" >
+        <action
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_confirmStakingFragment_to_confirmNominationsFragment"
+            app:destination="@id/confirmNominationsFragment" />
+
+        <action android:id="@+id/finish_setup_staking_flow"
+            app:popUpTo="@id/mainFragment"
+            app:enterAnim="@anim/fragment_close_enter"
+            app:exitAnim="@anim/fragment_close_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit" />
+    </fragment>
+
+    <fragment
+        tools:layout="@layout/fragment_confirm_nominations"
+        android:id="@+id/confirmNominationsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.confirm.nominations.ConfirmNominationsFragment"
+        android:label="ConfirmNominationsFragment" />
+
+    <action
+        android:id="@+id/open_validator_details"
+        app:destination="@id/validatorDetailsFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
 
     <fragment
         android:id="@+id/validatorDetailsFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment"
         android:label="validatorDetailsFragment"
         tools:layout="@layout/fragment_validator_details" />
+
 
 </navigation>

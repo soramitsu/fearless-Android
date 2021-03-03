@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.mediatorLiveData
-import jp.co.soramitsu.common.utils.setFrom
+import jp.co.soramitsu.common.utils.updateFrom
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -25,7 +25,7 @@ class NetworkChooser(
     override val isNetworkTypeChangeAvailable = forcedNetworkType == null
 
     override val selectedNetworkLiveData = mediatorLiveData<NetworkModel> {
-        setFrom(initialNetworkTypeLiveData())
+        updateFrom(initialNetworkTypeLiveData())
     }
 
     private val _networkChooserEvent = MutableLiveData<Event<Payload<NetworkModel>>>()

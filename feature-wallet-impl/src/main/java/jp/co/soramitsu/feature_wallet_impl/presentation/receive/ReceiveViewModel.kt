@@ -51,8 +51,6 @@ class ReceiveViewModel(
     val shareEvent: LiveData<Event<QrSharingPayload>> = _shareEvent
 
     fun recipientClicked() {
-        viewModelScope
-
         val account = accountLiveData.value ?: return
 
         val payload = ExternalAccountActions.Payload(account.address, account.network.type)

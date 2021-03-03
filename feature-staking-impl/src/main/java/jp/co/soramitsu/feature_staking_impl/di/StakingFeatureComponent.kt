@@ -8,6 +8,8 @@ import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.confirm.di.ConfirmStakingComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.confirm.nominations.di.ConfirmNominationsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.setup.di.SetupStakingComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.di.ValidatorDetailsComponent
@@ -32,6 +34,10 @@ interface StakingFeatureComponent : StakingFeatureApi {
     fun stakingComponentFactory(): StakingComponent.Factory
 
     fun setupStakingComponentFactory(): SetupStakingComponent.Factory
+
+    fun confirmStakingComponentFactory(): ConfirmStakingComponent.Factory
+
+    fun confirmNominationsComponentFactory(): ConfirmNominationsComponent.Factory
 
     fun validatorDetailsComponentFactory(): ValidatorDetailsComponent.Factory
 

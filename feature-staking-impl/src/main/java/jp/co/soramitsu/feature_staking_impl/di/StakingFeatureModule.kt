@@ -5,6 +5,7 @@ import dagger.Provides
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -23,6 +24,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
@@ -48,8 +51,10 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideStakingInteractor(
         walletRepository: WalletRepository,
-        accountRepository: AccountRepository
-    ) = StakingInteractor(walletRepository, accountRepository)
+        accountRepository: AccountRepository,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+        substrateCalls: SubstrateCalls
+    ) = StakingInteractor(walletRepository, accountRepository, substrateCalls, extrinsicBuilderFactory)
 
     @Provides
     @FeatureScope
@@ -107,4 +112,10 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideSetupStakingSharedState() = StakingSharedState()
+
+    @Provides
+    fun provideFeeLoaderMixin(
+        stakingInteractor: StakingInteractor,
+        resourceManager: ResourceManager
+    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(stakingInteractor, resourceManager)
 }

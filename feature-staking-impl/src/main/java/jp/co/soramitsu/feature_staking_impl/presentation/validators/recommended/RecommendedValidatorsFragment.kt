@@ -45,6 +45,10 @@ class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewMode
         recommendedValidatorLearnMore.setOnClickListener {
             viewModel.learnMoreClicked()
         }
+
+        recommendedValidatorsNext.setOnClickListener {
+            viewModel.nextClicked()
+        }
     }
 
     override fun inject() {

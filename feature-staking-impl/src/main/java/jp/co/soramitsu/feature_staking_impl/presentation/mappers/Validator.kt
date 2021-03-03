@@ -1,10 +1,11 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.wallet.formatWithDefaultPrecision
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorDetailsModel
@@ -15,9 +16,19 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 
 private val PERCENT_MULTIPLIER = 100.toBigDecimal()
 
-fun mapValidatorToValidatorModel(validator: Validator, addressModel: AddressModel): ValidatorModel {
+private const val ICON_SIZE_DP = 24
+
+suspend fun mapValidatorToValidatorModel(
+    validator: Validator,
+    iconGenerator: AddressIconGenerator,
+    networkType: Node.NetworkType
+): ValidatorModel {
+    val address = validator.accountIdHex.fromHex().toAddress(networkType)
+    val addressModel = iconGenerator.createAddressModel(address, ICON_SIZE_DP, validator.identity?.display)
+
     return with(validator) {
         val apyPercentage = (PERCENT_MULTIPLIER * apy).formatAsPercentage()
+
         ValidatorModel(
             accountIdHex = accountIdHex,
             slashed = slashed,
@@ -25,7 +36,7 @@ fun mapValidatorToValidatorModel(validator: Validator, addressModel: AddressMode
             image = addressModel.image,
             address = addressModel.address,
             apy = apyPercentage,
-            title = identity?.display ?: addressModel.address
+            title = addressModel.nameOrAddress
         )
     }
 }
@@ -40,13 +51,28 @@ fun mapValidatorToValidatorDetailsParcelModel(validator: Validator): ValidatorDe
 
 fun mapValidatorDetailsParcelToValidatorDetailsModel(validator: ValidatorDetailsParcelModel, asset: Asset): ValidatorDetailsModel {
     return with(validator) {
-        val amount = asset.token.amountFromPlanks(validator.ownStake)
-        val totalStake = amount.formatWithDefaultPrecision(asset.token.type)
-        val totalStakeFiat = amount.multiply(asset.token.dollarRate).formatAsCurrency()
-        val address = validator.accountIdHex.fromHex().toAddress(asset.token.type.networkType)
+        val token = asset.token
+
+        val totalStake = token.amountFromPlanks(validator.totalStake)
+
+        val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
+        val totalStakeFiatFormatted = token.fiatAmount(totalStake)?.formatAsCurrency()
+
+        val address = validator.accountIdHex.fromHex().toAddress(token.type.networkType)
+
         val identity = identity?.let(::mapIdentityParcelModelToIdentityModel)
-        val nominatorsCount = nominators.size.toString()
-        val apyPercentage = (PERCENT_MULTIPLIER * apy).formatAsPercentage()
-        ValidatorDetailsModel(totalStake, totalStakeFiat, address, identity, nominatorsCount, apyPercentage)
+
+        val nominatorsCountFormatted = nominators.size.toString()
+
+        val apyPercentageFormatted = (PERCENT_MULTIPLIER * apy).formatAsPercentage()
+
+        ValidatorDetailsModel(
+            totalStakeFormatted,
+            totalStakeFiatFormatted,
+            address,
+            identity,
+            nominatorsCountFormatted,
+            apyPercentageFormatted
+        )
     }
 }

@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.view
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.text.InputType
 import android.util.AttributeSet
 import android.view.View
 import android.widget.EditText
@@ -9,6 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
+import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAmountInput
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetBalance
@@ -29,19 +31,32 @@ class StakingAmountView @JvmOverloads constructor(
         View.inflate(context, R.layout.view_staking_amount, this)
 
         with(context) {
-            background = getCutCornerDrawable(
-                R.color.blurColor,
-                R.color.white
+            background = getCutCornersStateDrawable(
+                idleDrawable = getCutCornerDrawable(
+                    R.color.blurColor,
+                    R.color.white
+                )
             )
         }
 
-//        attrs?.let { applyAttributes(it) }
+        applyAttributes(attrs)
     }
 
-    private fun applyAttributes(attributeSet: AttributeSet) {
-        val typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.StakingAmountView)
+    override fun setEnabled(enabled: Boolean) {
+        super.setEnabled(enabled)
 
-        typedArray.recycle()
+        amountInput.inputType = if (enabled) InputType.TYPE_NUMBER_FLAG_DECIMAL else InputType.TYPE_NULL
+    }
+
+    private fun applyAttributes(attributeSet: AttributeSet?) {
+        attributeSet?.let {
+            val typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.StakingAmountView)
+
+            val enabled = typedArray.getBoolean(R.styleable.StakingAmountView_android_enabled, true)
+            isEnabled = enabled
+
+            typedArray.recycle()
+        }
     }
 
     fun setAssetImage(image: Drawable) {

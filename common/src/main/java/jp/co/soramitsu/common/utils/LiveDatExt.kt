@@ -34,7 +34,13 @@ fun <T> mediatorLiveData(mediatorBuilder: MediatorLiveData<T>.() -> Unit): Media
     return liveData
 }
 
-fun <T> MediatorLiveData<T>.setFrom(other: LiveData<T>) = addSource(other) {
+fun <T> multipleSourceLiveData(vararg sources: LiveData<T>): MediatorLiveData<T> = mediatorLiveData {
+    for (source in sources) {
+        updateFrom(source)
+    }
+}
+
+fun <T> MediatorLiveData<T>.updateFrom(other: LiveData<T>) = addSource(other) {
     value = it
 }
 

@@ -46,7 +46,7 @@ class StakingViewModel(
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
-    private val currentAsset = interactor.getCurrentAsset()
+    private val currentAsset = interactor.currentAssetFlow()
 
     val asset = currentAsset.map { mapAssetToAssetModel(it, resourceManager) }.asLiveData()
 

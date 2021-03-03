@@ -19,6 +19,8 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeViews
+import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.displayFeeStatus
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingAmountField
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingContainer
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeFiat
@@ -116,29 +118,11 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         viewModel.showDestinationChooserEvent.observeEvent(::showDestinationChooser)
 
         viewModel.feeLiveData.observe {
-            when (it) {
-                is FeeStatus.Loading -> feeProgressShown(true)
-                is FeeStatus.Error -> {
-                    feeProgressShown(false)
-
-                    setupStakingFeeToken.text = getString(R.string.common_error_general_title)
-                    setupStakingFeeFiat.text = ""
-                }
-                is FeeStatus.Loaded -> {
-                    feeProgressShown(false)
-
-                    setupStakingFeeFiat.text = it.displayFiat
-                    setupStakingFeeToken.text = it.displayToken
-                }
-            }
+            displayFeeStatus(
+                it,
+                FeeViews(setupStakingFeeProgress, setupStakingFeeFiat, setupStakingFeeToken)
+            )
         }
-    }
-
-    private fun feeProgressShown(shown: Boolean) {
-        setupStakingFeeFiat.setVisible(!shown)
-        setupStakingFeeToken.setVisible(!shown)
-
-        setupStakingFeeProgress.setVisible(shown)
     }
 
     private fun showDestinationChooser(payload: DynamicListBottomSheet.Payload<AddressModel>) {
