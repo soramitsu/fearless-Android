@@ -247,4 +247,8 @@
     <string name="staking_month_period_title">Ежемесячно</string>
     <string name="staking_year_period_title">Ежегодно</string>
     <string name="staking_setup_amount_too_low">Ставка не может быть меньше минимального значения (%s)</string>
+    <string name="staking_validator_info_title">Информация о валидаторе</string>
+    <string name="staking_validator_total_stake">Всего</string>
+    <string name="staking_validator_nominators">Номинаторы</string>
+    <string name="staking_validator_estimated_reward">Примерное вознаграждение</string>
 </resources>

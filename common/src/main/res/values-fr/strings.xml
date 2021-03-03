@@ -247,4 +247,8 @@
     <string name="staking_month_period_title">Mensuel</string>
     <string name="staking_year_period_title">Annuel</string>
     <string name="staking_setup_amount_too_low">Impossible de miser moins que la valeur minimale (%s)</string>
+    <string name="staking_validator_info_title">Informations sur le validateur</string>
+    <string name="staking_validator_total_stake">Mise totale</string>
+    <string name="staking_validator_nominators">Nominateurs</string>
+    <string name="staking_validator_estimated_reward">Récompense estimée</string>
 </resources>

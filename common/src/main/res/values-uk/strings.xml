@@ -247,4 +247,8 @@
     <string name="staking_month_period_title">Щомісяця</string>
     <string name="staking_year_period_title">Щорічно</string>
     <string name="staking_setup_amount_too_low">Не можна робити ставку менше мінімального значення (%s)</string>
+    <string name="staking_validator_info_title">Інформація про валідатор</string>
+    <string name="staking_validator_total_stake">Загальна ставка</string>
+    <string name="staking_validator_nominators">Номінатори</string>
+    <string name="staking_validator_estimated_reward">Орієнтовна винагорода</string>
 </resources>
