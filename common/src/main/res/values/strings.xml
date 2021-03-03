@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="extrinsic_submitted">Extrinsic was successfully submitted</string>
     <string name="staking_selected_validators_mask">Validators (%d)</string>
 
     <string name="staking_confirm_nominations">%d of %d</string>
