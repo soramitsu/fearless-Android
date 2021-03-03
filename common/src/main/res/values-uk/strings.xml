@@ -251,4 +251,10 @@
     <string name="staking_validator_total_stake">Загальна ставка</string>
     <string name="staking_validator_nominators">Номінатори</string>
     <string name="staking_validator_estimated_reward">Орієнтовна винагорода</string>
+    <string name="identity_title">Ідентичність</string>
+    <string name="identity_display_name_title">Відображуване ім’я</string>
+    <string name="identity_legal_name_title">Юридична назва</string>
+    <string name="identity_email_title">Електронна пошта</string>
+    <string name="identity_web_title">Веб</string>
+    <string name="identity_riot_name_title">Назва бунту</string>
 </resources>

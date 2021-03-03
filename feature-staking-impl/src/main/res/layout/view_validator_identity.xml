@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:includeFontPadding="false"
-        android:text="Identity"
+        android:text="@string/identity_title"
         android:textColor="@color/white" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
@@ -21,28 +21,28 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        app:validatorIdentityTitle="Address" />
+        app:validatorIdentityTitle="@string/common_address" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
         android:id="@+id/validatorIdentityDisplayNameView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        app:validatorIdentityTitle="Display name" />
+        app:validatorIdentityTitle="@string/identity_display_name_title" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
         android:id="@+id/validatorIdentityLegalNameView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        app:validatorIdentityTitle="Legal name" />
+        app:validatorIdentityTitle="@string/identity_legal_name_title" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
         android:id="@+id/validatorIdentityEmailView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        app:validatorIdentityTitle="Email"
+        app:validatorIdentityTitle="@string/identity_email_title"
         app:showArrowIcon="true" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
@@ -50,7 +50,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        app:validatorIdentityTitle="Web"
+        app:validatorIdentityTitle="@string/identity_web_title"
         app:showArrowIcon="true" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
@@ -58,7 +58,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        app:validatorIdentityTitle="Twitter"
+        app:validatorIdentityTitle="@string/identity_twitter_title"
         app:showArrowIcon="true" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
@@ -66,6 +66,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        app:validatorIdentityTitle="Riot name" />
+        app:validatorIdentityTitle="@string/identity_riot_name_title" />
 
 </merge>

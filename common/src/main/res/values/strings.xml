@@ -286,4 +286,11 @@
     <string name="staking_validator_total_stake">Total stake</string>
     <string name="staking_validator_nominators">Nominators</string>
     <string name="staking_validator_estimated_reward">Estimated reward</string>
+    <string name="identity_title">Identity</string>
+    <string name="identity_display_name_title">Display name</string>
+    <string name="identity_legal_name_title">Legal name</string>
+    <string name="identity_email_title">Почта</string>
+    <string name="identity_web_title">Web</string>
+    <string name="identity_twitter_title" translatable="false">Twitter</string>
+    <string name="identity_riot_name_title">Riot name</string>
 </resources>
