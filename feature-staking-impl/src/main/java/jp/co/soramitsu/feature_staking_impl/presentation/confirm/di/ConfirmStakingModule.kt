@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -36,7 +37,8 @@ class ConfirmStakingModule {
         validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
         stakingSharedState: StakingSharedState,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
-        externalAccountActions: ExternalAccountActions.Presentation
+        externalAccountActions: ExternalAccountActions.Presentation,
+        recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory
     ): ViewModel {
         return ConfirmStakingViewModel(
             router,
@@ -47,7 +49,8 @@ class ConfirmStakingModule {
             stakingSharedState,
             maxFeeEstimator,
             feeLoaderMixin,
-            externalAccountActions
+            externalAccountActions,
+            recommendationSettingsProviderFactory
         )
     }
 

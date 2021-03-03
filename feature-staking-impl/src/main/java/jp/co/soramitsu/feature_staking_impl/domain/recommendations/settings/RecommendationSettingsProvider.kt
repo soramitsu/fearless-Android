@@ -12,7 +12,7 @@ import java.math.BigInteger
 
 class RecommendationSettingsProvider(
     maximumRewardedNominators: BigInteger,
-    private val defaultValidatorsPerNominatorLimit: Int
+    val maximumValidatorsPerNominator: Int
 ) {
 
     private val allFilters = listOf(
@@ -43,7 +43,7 @@ class RecommendationSettingsProvider(
         return RecommendationSettings(
             filters = allFilters,
             sorting = APYSorting,
-            limit = defaultValidatorsPerNominatorLimit
+            limit = maximumValidatorsPerNominator
         )
     }
 }

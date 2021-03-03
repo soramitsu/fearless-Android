@@ -25,10 +25,10 @@ import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapRewardDestinationModelToRewardDestination
-import jp.co.soramitsu.feature_staking_impl.domain.StakingConstants
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -57,7 +57,8 @@ class ConfirmStakingViewModel(
     private val stakingSharedState: StakingSharedState,
     private val maxFeeEstimator: MaxFeeEstimator,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
-    private val externalAccountActions: ExternalAccountActions.Presentation
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory
 ) : BaseViewModel(),
     Retriable, Validatable,
     FeeLoaderMixin by feeLoaderMixin,
@@ -83,8 +84,9 @@ class ConfirmStakingViewModel(
 
     val nominationsLiveData = liveData(Dispatchers.Default) {
         val selectedCount = stakingSharedState.selectedValidators.first().size
+        val maxValidatorsPerNominator = recommendationSettingsProviderFactory.get().maximumValidatorsPerNominator
 
-        emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, StakingConstants.RECOMMENDATION_LIMIT))
+        emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxValidatorsPerNominator))
     }
 
     val stakingAmount = stakingSharedState.amount.toString()
