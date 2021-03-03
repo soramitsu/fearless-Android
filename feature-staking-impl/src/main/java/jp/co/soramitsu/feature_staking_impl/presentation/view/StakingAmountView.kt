@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.view
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.text.InputType
 import android.util.AttributeSet
 import android.view.View
 import android.widget.EditText
@@ -39,6 +40,12 @@ class StakingAmountView @JvmOverloads constructor(
         }
 
         applyAttributes(attrs)
+    }
+
+    override fun setEnabled(enabled: Boolean) {
+        super.setEnabled(enabled)
+
+        amountInput.inputType = if (enabled) InputType.TYPE_NUMBER_FLAG_DECIMAL else InputType.TYPE_NULL
     }
 
     private fun applyAttributes(attributeSet: AttributeSet?) {
