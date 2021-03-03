@@ -12,4 +12,13 @@
         <attr name="targetDescription" format="string" />
         <attr name="targetAmountDescription" format="string" />
     </declare-styleable>
+    <declare-styleable name="ValidatorInfoBlockView">
+        <attr name="validatorInfoTitle" format="string" />
+        <attr name="showExtra" format="boolean" />
+        <attr name="showInfoIcon" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="ValidatorIdentityItemView">
+        <attr name="validatorIdentityTitle" format="string" />
+        <attr name="showArrowIcon" format="boolean" />
+    </declare-styleable>
 </resources>

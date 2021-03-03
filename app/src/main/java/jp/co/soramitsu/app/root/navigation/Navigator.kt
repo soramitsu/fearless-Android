@@ -28,6 +28,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfigur
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
@@ -153,6 +155,10 @@ class Navigator :
 
     override fun openRecommendedValidators() {
         navController?.navigate(R.id.action_setupStakingFragment_to_recommendedValidatorsFragment)
+    }
+
+    override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
+        navController?.navigate(R.id.action_recommendedValidators_to_validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
 
     override fun openChooseRecipient() {
