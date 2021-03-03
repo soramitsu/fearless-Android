@@ -144,8 +144,8 @@ class ConfirmStakingViewModel(
 
     private suspend fun mapRewardDestinationToRewardDestinationModel(
         rewardDestination: RewardDestination
-    ) : RewardDestinationModel {
-        return when(rewardDestination) {
+    ): RewardDestinationModel {
+        return when (rewardDestination) {
             is RewardDestination.Restake -> RewardDestinationModel.Restake
             is RewardDestination.Payout -> {
                 val networkType = interactor.getSelectedNetworkType()
@@ -157,7 +157,7 @@ class ConfirmStakingViewModel(
         }
     }
 
-    private suspend fun prepareNominations() : List<MultiAddress> {
+    private suspend fun prepareNominations(): List<MultiAddress> {
         return stakingSharedState.selectedValidators.first().map {
             MultiAddress.Id(it.accountIdHex.fromHex())
         }
@@ -198,7 +198,6 @@ class ConfirmStakingViewModel(
         }
     }
 
-
     private fun sendTransaction(
         setupStakingPayload: SetupStakingPayload,
         tokenType: Token.Type
@@ -220,7 +219,6 @@ class ConfirmStakingViewModel(
                 showError(setupResult.requireException())
             }
         }
-
     }
 
     private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(

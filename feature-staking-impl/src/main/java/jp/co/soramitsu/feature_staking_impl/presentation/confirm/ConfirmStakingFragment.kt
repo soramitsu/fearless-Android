@@ -79,7 +79,7 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         viewModel.rewardDestinationLiveData.observe {
             confirmStakePayoutAccount.setVisible(it is RewardDestinationModel.Payout)
 
-            when(it) {
+            when (it) {
                 is RewardDestinationModel.Restake -> {
                     confirmStakeRewardDestination.setText(R.string.staking_setup_restake)
                 }

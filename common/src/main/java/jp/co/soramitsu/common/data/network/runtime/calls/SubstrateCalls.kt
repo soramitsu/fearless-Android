@@ -29,7 +29,7 @@ class SubstrateCalls(
         return feeResponse.partialFee
     }
 
-    suspend fun submitExtrinsic(extrinsic: String) : String {
+    suspend fun submitExtrinsic(extrinsic: String): String {
         val request = SubmitExtrinsicRequest(extrinsic)
 
         return socketService.executeAsync(

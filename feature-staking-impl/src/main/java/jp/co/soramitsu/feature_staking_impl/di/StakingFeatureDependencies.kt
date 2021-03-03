@@ -38,5 +38,5 @@ interface StakingFeatureDependencies {
 
     fun substrateCalls(): SubstrateCalls
 
-    fun externalAccountActions() : ExternalAccountActions.Presentation
+    fun externalAccountActions(): ExternalAccountActions.Presentation
 }

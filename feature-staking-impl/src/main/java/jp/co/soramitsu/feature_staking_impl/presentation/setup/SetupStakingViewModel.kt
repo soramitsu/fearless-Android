@@ -64,7 +64,6 @@ class PayoutEstimations(
     val payout: RewardEstimation
 )
 
-
 class SetupStakingViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,

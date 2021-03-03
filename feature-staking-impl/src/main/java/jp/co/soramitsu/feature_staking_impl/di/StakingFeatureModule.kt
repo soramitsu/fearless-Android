@@ -117,5 +117,5 @@ class StakingFeatureModule {
     fun provideFeeLoaderMixin(
         stakingInteractor: StakingInteractor,
         resourceManager: ResourceManager
-    ) : FeeLoaderMixin.Presentation = FeeLoaderProvider(stakingInteractor, resourceManager)
+    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(stakingInteractor, resourceManager)
 }

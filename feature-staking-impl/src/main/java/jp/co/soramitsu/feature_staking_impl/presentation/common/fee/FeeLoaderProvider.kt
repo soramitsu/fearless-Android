@@ -19,7 +19,7 @@ class FeeLoaderProvider(
     private val stakingInteractor: StakingInteractor,
     private val resourceManager: ResourceManager
 ) : FeeLoaderMixin.Presentation {
-    
+
     override val feeLiveData = MutableLiveData<FeeStatus>()
 
     override val retryEvent = MutableLiveData<Event<RetryPayload>>()
