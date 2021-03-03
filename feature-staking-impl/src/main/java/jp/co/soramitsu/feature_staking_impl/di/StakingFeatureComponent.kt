@@ -37,7 +37,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun confirmStakingComponentFactory(): ConfirmStakingComponent.Factory
 
-    fun confirmNominationsComponentFactory() : ConfirmNominationsComponent.Factory
+    fun confirmNominationsComponentFactory(): ConfirmNominationsComponent.Factory
 
     fun validatorDetailsComponentFactory(): ValidatorDetailsComponent.Factory
 
