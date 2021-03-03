@@ -383,14 +383,6 @@
             app:popExitAnim="@anim/fragment_close_exit"
             android:id="@+id/action_recommendedValidatorsFragment_to_confirmStakingFragment"
             app:destination="@id/confirmStakingFragment" />
-
-        <action
-            android:id="@+id/action_recommendedValidators_to_validatorDetailsFragment"
-            app:destination="@id/validatorDetailsFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <fragment android:id="@+id/confirmStakingFragment"
@@ -418,6 +410,14 @@
         android:id="@+id/confirmNominationsFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.confirm.nominations.ConfirmNominationsFragment"
         android:label="ConfirmNominationsFragment" />
+
+    <action
+        android:id="@+id/open_validator_details"
+        app:destination="@id/validatorDetailsFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
 
     <fragment
         android:id="@+id/validatorDetailsFragment"

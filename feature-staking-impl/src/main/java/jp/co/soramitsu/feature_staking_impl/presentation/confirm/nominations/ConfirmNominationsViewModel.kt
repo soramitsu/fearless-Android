@@ -2,19 +2,23 @@ package jp.co.soramitsu.feature_staking_impl.presentation.confirm.nominations
 
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.data.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.findSelectedValidator
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class ConfirmNominationsViewModel(
     private val router: StakingRouter,
@@ -40,7 +44,11 @@ class ConfirmNominationsViewModel(
     }
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
-        // TODO
+        viewModelScope.launch {
+            sharedState.selectedValidators.findSelectedValidator(validatorModel.accountIdHex)?.let {
+                router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(it))
+            }
+        }
     }
 
     private suspend fun convertToModels(

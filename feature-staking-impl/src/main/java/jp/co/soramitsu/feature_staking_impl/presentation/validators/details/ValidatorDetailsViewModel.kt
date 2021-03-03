@@ -20,11 +20,10 @@ class ValidatorDetailsViewModel(
 
     private val validatorDetailsFlow = MutableStateFlow(validator)
 
-    private val assetFlow = interactor.getCurrentAsset()
+    private val assetFlow = interactor.currentAssetFlow()
         .share()
 
     val validatorDetails = validatorDetailsFlow.combine(assetFlow) { validator, asset ->
-
         mapValidatorDetailsParcelToValidatorDetailsModel(validator, asset)
     }.flowOn(Dispatchers.IO).asLiveData()
 

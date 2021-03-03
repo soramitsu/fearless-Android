@@ -170,7 +170,7 @@ class Navigator :
     }
 
     override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
-        navController?.navigate(R.id.action_recommendedValidators_to_validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
+        navController?.navigate(R.id.open_validator_details, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
 
     override fun openChooseRecipient() {
