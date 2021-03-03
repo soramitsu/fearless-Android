@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:background="@color/black"
+    tools:orientation="vertical"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:text="Identity"
+        android:textColor="@color/white" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
+        android:id="@+id/validatorIdentityAddressView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        app:validatorIdentityTitle="Address" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
+        android:id="@+id/validatorIdentityDisplayNameView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        app:validatorIdentityTitle="Display name" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
+        android:id="@+id/validatorIdentityLegalNameView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        app:validatorIdentityTitle="Legal name" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
+        android:id="@+id/validatorIdentityEmailView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        app:validatorIdentityTitle="Email"
+        app:showArrowIcon="true" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
+        android:id="@+id/validatorIdentityWebView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        app:validatorIdentityTitle="Web"
+        app:showArrowIcon="true" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
+        android:id="@+id/validatorIdentityTwitterView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        app:validatorIdentityTitle="Twitter"
+        app:showArrowIcon="true" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityItemView
+        android:id="@+id/validatorIdentityRiotNameView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        app:validatorIdentityTitle="Riot name" />
+
+</merge>

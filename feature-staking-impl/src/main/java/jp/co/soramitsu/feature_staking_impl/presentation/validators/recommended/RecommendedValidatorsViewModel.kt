@@ -9,14 +9,15 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
-import jp.co.soramitsu.feature_staking_impl.data.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.model.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -54,7 +55,11 @@ class RecommendedValidatorsViewModel(
     }
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
-        // TODO
+        viewModelScope.launch {
+            recommendedValidators.first().firstOrNull { it.accountIdHex == validatorModel.accountIdHex }?.let {
+                router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(it))
+            }
+        }
     }
 
     fun nextClicked() {

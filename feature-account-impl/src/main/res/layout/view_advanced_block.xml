@@ -28,7 +28,7 @@
         android:layout_height="1dp"
         android:layout_marginStart="@dimen/x2"
         android:layout_marginEnd="@dimen/x2"
-        android:background="@color/colorGreyText" />
+        android:background="@color/dividerGray" />
 
     <LinearLayout
         android:id="@+id/advancedView"
