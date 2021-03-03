@@ -12,5 +12,5 @@ class IdentityParcelModel(
     val email: String?,
     val pgpFingerprint: String?,
     val image: String?,
-    val twitter: String?,
+    val twitter: String?
 ) : Parcelable
