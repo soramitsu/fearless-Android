@@ -23,6 +23,7 @@ import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeConfirm
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeOriginAccount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakePayoutAccount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeRewardDestination
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidators
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidatorsCount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeToolbar
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingFeeFiat
@@ -55,6 +56,8 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
 
         confirmStakeConfirm.prepareForProgress(viewLifecycleOwner)
         confirmStakeConfirm.setOnClickListener { viewModel.confirmClicked() }
+
+        confirmStakeSelectedValidators.setOnClickListener { viewModel.nominationsClicked() }
     }
 
     override fun inject() {

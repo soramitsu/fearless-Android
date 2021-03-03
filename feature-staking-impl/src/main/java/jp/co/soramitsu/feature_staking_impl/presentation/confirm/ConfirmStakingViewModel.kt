@@ -124,6 +124,10 @@ class ConfirmStakingViewModel(
         }
     }
 
+    fun nominationsClicked() {
+        router.openConfirmNominations()
+    }
+
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             viewModelScope,
@@ -201,23 +205,23 @@ class ConfirmStakingViewModel(
     private fun sendTransaction(
         setupStakingPayload: SetupStakingPayload,
         tokenType: Token.Type
-    ) {
-        launch {
-            val setupResult = interactor.setupStaking(
-                originAddress = setupStakingPayload.originAddress,
-                amount = setupStakingPayload.amount,
-                tokenType = tokenType,
-                rewardDestination = setupStakingPayload.rewardDestination,
-                nominations = prepareNominations()
-            )
+    ) = launch {
+        val setupResult = interactor.setupStaking(
+            originAddress = setupStakingPayload.originAddress,
+            amount = setupStakingPayload.amount,
+            tokenType = tokenType,
+            rewardDestination = setupStakingPayload.rewardDestination,
+            nominations = prepareNominations()
+        )
 
-            _showNextProgress.value = false
+        _showNextProgress.value = false
 
-            if (setupResult.isSuccess) {
-                showMessage(resourceManager.getString(R.string.extrinsic_submitted))
-            } else {
-                showError(setupResult.requireException())
-            }
+        if (setupResult.isSuccess) {
+            showMessage(resourceManager.getString(R.string.extrinsic_submitted))
+
+            router.finishSetupStakingFlow()
+        } else {
+            showError(setupResult.requireException())
         }
     }
 

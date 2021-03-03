@@ -3,14 +3,11 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -26,8 +23,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-
-private const val ICON_SIZE_DP = 24
 
 class RecommendedValidatorsViewModel(
     private val router: StakingRouter,
@@ -79,15 +74,8 @@ class RecommendedValidatorsViewModel(
         networkType: Node.NetworkType
     ): List<ValidatorModel> {
         return validators.map {
-            val address = it.accountIdHex.fromHex().toAddress(networkType)
-            val addressModel = createAddressModel(address)
-
-            mapValidatorToValidatorModel(it, addressModel)
+            mapValidatorToValidatorModel(it, addressIconGenerator, networkType)
         }
-    }
-
-    private suspend fun createAddressModel(address: String): AddressModel {
-        return addressIconGenerator.createAddressModel(address, ICON_SIZE_DP)
     }
 
     private suspend fun recommendedSettings(): RecommendationSettings {

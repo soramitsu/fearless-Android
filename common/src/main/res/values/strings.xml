@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_selected_validators_mask">Validators (%d)</string>
+
     <string name="staking_confirm_nominations">%d of %d</string>
 
     <string name="staking_setup_amount_too_low">Can\'t stake less than minimal value (%s)</string>

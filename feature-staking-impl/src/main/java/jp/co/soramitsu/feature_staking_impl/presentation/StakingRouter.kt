@@ -8,5 +8,9 @@ interface StakingRouter {
 
     fun openConfirmStaking()
 
+    fun openConfirmNominations()
+
+    fun finishSetupStakingFlow()
+
     fun back()
 }
