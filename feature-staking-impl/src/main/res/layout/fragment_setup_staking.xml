@@ -140,7 +140,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 app:textIcon="@color/colorAccent"
-                app:label="Payout account"
+                app:label="@string/staking_setup_reward_payout_account"
                 android:id="@+id/setupStakingTargetPayoutDestination"
                 app:actionIcon="@drawable/ic_more_vertical"
                 tools:message="Valentun"
