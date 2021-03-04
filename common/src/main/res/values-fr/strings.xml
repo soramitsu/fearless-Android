@@ -247,4 +247,14 @@
     <string name="staking_month_period_title">Mensuel</string>
     <string name="staking_year_period_title">Annuel</string>
     <string name="staking_setup_amount_too_low">Impossible de miser moins que la valeur minimale (%s)</string>
+    <string name="staking_validator_info_title">Informations sur le validateur</string>
+    <string name="staking_validator_total_stake">Mise totale</string>
+    <string name="staking_validator_nominators">Nominateurs</string>
+    <string name="staking_validator_estimated_reward">Récompense estimée</string>
+    <string name="identity_title">Identité</string>
+    <string name="identity_display_name_title">Afficher un nom</string>
+    <string name="identity_legal_name_title">Nom légal</string>
+    <string name="identity_email_title">E-mail</string>
+    <string name="identity_web_title">Web</string>
+    <string name="identity_riot_name_title">Nom de l\'émeute</string>
 </resources>

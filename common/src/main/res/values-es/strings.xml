@@ -248,4 +248,14 @@
     <string name="staking_month_period_title">Mensual</string>
     <string name="staking_year_period_title">Anual</string>
     <string name="staking_setup_amount_too_low">No se puede apostar menos del valor mínimo (%s)</string>
+    <string name="staking_validator_info_title">Información del validador</string>
+    <string name="staking_validator_total_stake">Total</string>
+    <string name="staking_validator_nominators">Nominadores</string>
+    <string name="staking_validator_estimated_reward">Recompensa estimada</string>
+    <string name="identity_title">Identidad</string>
+    <string name="identity_display_name_title">Nombre para mostrar</string>
+    <string name="identity_legal_name_title">Nombre legal</string>
+    <string name="identity_email_title">Correo electrónico</string>
+    <string name="identity_web_title">Web</string>
+    <string name="identity_riot_name_title">Nombre de Riot</string>
 </resources>

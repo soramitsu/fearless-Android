@@ -246,4 +246,14 @@
     <string name="staking_month_period_title">Mensile</string>
     <string name="staking_year_period_title">Annuale</string>
     <string name="staking_setup_amount_too_low">Impossibile puntare meno del valore minimo (%s)</string>
+    <string name="staking_validator_info_title">Informazioni sul validatore</string>
+    <string name="staking_validator_total_stake">Puntata totale</string>
+    <string name="staking_validator_nominators">Nominatori</string>
+    <string name="staking_validator_estimated_reward">Ricompensa stimata</string>
+    <string name="identity_title">Identità</string>
+    <string name="identity_display_name_title">Nome da visualizzare</string>
+    <string name="identity_legal_name_title">Nome legale</string>
+    <string name="identity_email_title">E-mail</string>
+    <string name="identity_web_title">Web</string>
+    <string name="identity_riot_name_title">Nome antisommossa</string>
 </resources>

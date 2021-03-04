@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:includeFontPadding="false"
-        android:text="Validator info"
+        android:text="@string/staking_validator_info_title"
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -28,7 +28,7 @@
         app:layout_constraintTop_toBottomOf="@id/validatorInfoTitle"
         app:showExtra="true"
         app:showInfoIcon="true"
-        app:validatorInfoTitle="Total stake" />
+        app:validatorInfoTitle="@string/staking_validator_total_stake" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoBlockView
         android:id="@+id/validatorNominatorsView"
@@ -39,7 +39,7 @@
         app:layout_constraintStart_toEndOf="@id/validatorTotalStakeView"
         app:layout_constraintTop_toBottomOf="@id/validatorInfoTitle"
         app:showInfoIcon="true"
-        app:validatorInfoTitle="Nominators" />
+        app:validatorInfoTitle="@string/staking_validator_nominators" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoBlockView
         android:id="@+id/validatorEstimatedReward"
@@ -48,6 +48,6 @@
         android:layout_marginTop="24dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/validatorTotalStakeView"
-        app:validatorInfoTitle="Estimated reward" />
+        app:validatorInfoTitle="@string/staking_validator_estimated_reward" />
 
 </merge>

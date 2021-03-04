@@ -248,4 +248,14 @@
     <string name="staking_month_period_title">Ежемесячно</string>
     <string name="staking_year_period_title">Ежегодно</string>
     <string name="staking_setup_amount_too_low">Ставка не может быть меньше минимального значения (%s)</string>
+    <string name="staking_validator_info_title">Информация о валидаторе</string>
+    <string name="staking_validator_total_stake">Всего</string>
+    <string name="staking_validator_nominators">Номинаторы</string>
+    <string name="staking_validator_estimated_reward">Примерное вознаграждение</string>
+    <string name="identity_title">Идентификация</string>
+    <string name="identity_display_name_title">Отображаемое имя</string>
+    <string name="identity_legal_name_title">Юридическое название</string>
+    <string name="identity_email_title">Почта</string>
+    <string name="identity_web_title">Сеть</string>
+    <string name="identity_riot_name_title">Имя Riot</string>
 </resources>

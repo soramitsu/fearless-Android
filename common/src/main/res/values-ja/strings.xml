@@ -246,4 +246,14 @@
     <string name="staking_month_period_title">毎月</string>
     <string name="staking_year_period_title">毎年</string>
     <string name="staking_setup_amount_too_low">%s ）未満を賭けることはできません</string>
+    <string name="staking_validator_info_title">バリデーター情報</string>
+    <string name="staking_validator_total_stake">総賭け金</string>
+    <string name="staking_validator_nominators">推薦者</string>
+    <string name="staking_validator_estimated_reward">推定報酬</string>
+    <string name="identity_title">身元</string>
+    <string name="identity_display_name_title">表示名</string>
+    <string name="identity_legal_name_title">正式名称</string>
+    <string name="identity_email_title">Eメール</string>
+    <string name="identity_web_title">ウェブ</string>
+    <string name="identity_riot_name_title">暴動の名前</string>
 </resources>
