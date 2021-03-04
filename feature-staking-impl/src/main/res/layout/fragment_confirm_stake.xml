@@ -45,11 +45,11 @@
 
         <TextView
             style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:text="Reward destination"
+            android:text="@string/staking_confirm_reward_destination"
             android:textColor="@color/gray1" />
 
         <TextView
@@ -58,7 +58,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:text="Payout"
+            android:text="@string/staking_setup_payout"
             android:textColor="@color/white" />
     </LinearLayout>
 
@@ -99,11 +99,11 @@
 
         <TextView
             style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:text="Selected validators"
+            android:text="@string/staking_confirm_selected_validators"
             android:textColor="@color/gray1" />
 
         <TextView
@@ -199,6 +199,6 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="22dp"
-            android:text="Confirm" />
+            android:text="@string/common_confirm" />
     </LinearLayout>
 </LinearLayout>

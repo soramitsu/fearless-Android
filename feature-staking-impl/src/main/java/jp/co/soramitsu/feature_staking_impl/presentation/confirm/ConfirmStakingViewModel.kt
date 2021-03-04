@@ -219,7 +219,7 @@ class ConfirmStakingViewModel(
         _showNextProgress.value = false
 
         if (setupResult.isSuccess) {
-            showMessage(resourceManager.getString(R.string.extrinsic_submitted))
+            showMessage(resourceManager.getString(R.string.staking_setup_sent_message))
 
             router.finishSetupStakingFlow()
         } else {

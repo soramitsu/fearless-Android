@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="extrinsic_submitted">Extrinsic was successfully submitted</string>
+    <string name="staking_setup_title">Setup staking</string>
+    <string name="staking_setup_amount">Amount to stake</string>
+    <string name="network_fee">Network fee</string>
+    <string name="staking_confirm_reward_destination">Reward destination</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="staking_confirm_selected_validators">Selected validators</string>
+
+
+    <string name="staking_setup_sent_message">Staking setup transaction sent</string>
+
+    <!--    will be removed later since mockups have been changed-->
     <string name="staking_selected_validators_mask">Validators (%d)</string>
 
     <string name="staking_confirm_nominations">%d of %d</string>
