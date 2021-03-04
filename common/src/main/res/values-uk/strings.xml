@@ -257,4 +257,12 @@
     <string name="identity_email_title">Електронна пошта</string>
     <string name="identity_web_title">Веб</string>
     <string name="identity_riot_name_title">Назва бунту</string>
+    <string name="staking_setup_sent_message">Транзакція налаштування ставки надіслана</string>
+    <string name="staking_setup_title">Налаштування розміщення</string>
+    <string name="staking_setup_amount">Сума ставки</string>
+    <string name="network_fee">Плата за мережу</string>
+    <string name="staking_confirm_reward_destination">Нагорода призначення</string>
+    <string name="common_confirm">Підтвердити</string>
+    <string name="staking_confirm_selected_validators">Вибрані валідатори</string>
+    <string name="staking_confirm_nominations">%s з %s</string>
 </resources>

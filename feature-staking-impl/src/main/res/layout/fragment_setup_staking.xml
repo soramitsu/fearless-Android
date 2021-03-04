@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/setupStakingToolbar"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="Setup staking" />
+        app:titleText="@string/staking_setup_title" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:text="Amount to stake" />
+                android:text="@string/staking_setup_amount" />
 
             <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
                 android:layout_width="match_parent"
@@ -55,7 +55,7 @@
                     style="@style/TextAppearance.Soramitsu.Body1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Network fee"
+                    android:text="@string/network_fee"
                     android:textColor="@color/gray1" />
 
                 <Space
@@ -78,7 +78,7 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     android:layout_marginEnd="8dp"
-                    android:text="0.001 KSM"
+                    tools:text="0.001 KSM"
                     android:textColor="@color/white" />
 
 
@@ -88,7 +88,7 @@
                     android:layout_width="wrap_content"
                     android:visibility="gone"
                     android:layout_height="wrap_content"
-                    android:text="$0.2"
+                    tools:text="$0.2"
                     android:textColor="@color/gray2" />
 
             </LinearLayout>
@@ -140,7 +140,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 app:textIcon="@color/colorAccent"
-                app:label="Payout account"
+                app:label="@string/staking_setup_reward_payout_account"
                 android:id="@+id/setupStakingTargetPayoutDestination"
                 app:actionIcon="@drawable/ic_more_vertical"
                 tools:message="Valentun"

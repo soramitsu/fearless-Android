@@ -256,4 +256,12 @@
     <string name="identity_email_title">Eメール</string>
     <string name="identity_web_title">ウェブ</string>
     <string name="identity_riot_name_title">暴動の名前</string>
+    <string name="staking_setup_sent_message">ステーキングセットアップトランザクションが送信されました</string>
+    <string name="staking_setup_title">セットアップステーキング</string>
+    <string name="staking_setup_amount">賭け金</string>
+    <string name="network_fee">ネットワーク料金</string>
+    <string name="staking_confirm_reward_destination">報酬先</string>
+    <string name="common_confirm">確認</string>
+    <string name="staking_confirm_selected_validators">選択されたバリデーター</string>
+    <string name="staking_confirm_nominations">%sの%s</string>
 </resources>
