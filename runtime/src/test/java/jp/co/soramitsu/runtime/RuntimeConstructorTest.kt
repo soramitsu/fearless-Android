@@ -61,7 +61,7 @@ class RuntimeConstructorTest {
             }
 
             given(cache.getTypeDefinitions(anyString())).willReturn("")
-            given(gson.fromJson(anyString(), eq(TypeDefinitionsTree::class.java))).willReturn(TypeDefinitionsTree(1, emptyMap()))
+            given(gson.fromJson(anyString(), eq(TypeDefinitionsTree::class.java))).willReturn(TypeDefinitionsTree(1, emptyMap(), emptyList()))
 
             given(definitionsFetcher.getDefinitionsByNetwork(anyString())).willReturn("server")
             given(definitionsFetcher.getDefinitionsByFile(anyString())).willReturn("server")
@@ -91,7 +91,7 @@ class RuntimeConstructorTest {
         runBlocking {
             dbReturnsCacheInfo(lastKnownVersion = 2, lastAppliedVersion = 2, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
-            serverReturnsTypes(runtimeId = 1)
+            serverReturnsTypes(runtimeIdInRoot = 1, runtimeIdInVersioning = 1)
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
@@ -110,7 +110,7 @@ class RuntimeConstructorTest {
         runBlocking {
             dbReturnsCacheInfo(lastKnownVersion = 2, lastAppliedVersion = 2, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
-            serverReturnsTypes(runtimeId = 2)
+            serverReturnsTypes(runtimeIdInRoot = 2, runtimeIdInVersioning = 2)
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
@@ -130,7 +130,7 @@ class RuntimeConstructorTest {
             dbReturnsCacheInfo(lastKnownVersion = 1, lastAppliedVersion = 1, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
             nodeReturnsMetadata(EMPTY_METADATA)
-            serverReturnsTypes(runtimeId = 1)
+            serverReturnsTypes(runtimeIdInRoot = 1, runtimeIdInVersioning = 1)
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
@@ -150,7 +150,47 @@ class RuntimeConstructorTest {
             dbReturnsCacheInfo(lastKnownVersion = 1, lastAppliedVersion = 1, typesVersion = 1)
             cacheReturnsMetadata(EMPTY_METADATA)
             nodeReturnsMetadata(EMPTY_METADATA)
-            serverReturnsTypes(runtimeId = 2)
+            serverReturnsTypes(runtimeIdInRoot = 2, runtimeIdInVersioning = 2)
+
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
+
+            assertEquals(true, result.isNewest)
+
+            verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
+            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
+            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("kusama.json"))
+
+            verify(runtimeDao, times(1)).updateTypesVersion(eq("kusama"), eq(2))
+        }
+    }
+
+    @Test
+    fun `should fetch runtime if outdated and mark that types are actual even if only versioning is updated`() {
+        runBlocking {
+            dbReturnsCacheInfo(lastKnownVersion = 1, lastAppliedVersion = 1, typesVersion = 1)
+            cacheReturnsMetadata(EMPTY_METADATA)
+            nodeReturnsMetadata(EMPTY_METADATA)
+            serverReturnsTypes(runtimeIdInRoot = 1, runtimeIdInVersioning = 2)
+
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
+
+            assertEquals(true, result.isNewest)
+
+            verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
+            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
+            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("kusama.json"))
+
+            verify(runtimeDao, times(1)).updateTypesVersion(eq("kusama"), eq(2))
+        }
+    }
+
+    @Test
+    fun `should fetch runtime if outdated and mark that types are actual even if only runtimeId is updated`() {
+        runBlocking {
+            dbReturnsCacheInfo(lastKnownVersion = 1, lastAppliedVersion = 1, typesVersion = 1)
+            cacheReturnsMetadata(EMPTY_METADATA)
+            nodeReturnsMetadata(EMPTY_METADATA)
+            serverReturnsTypes(runtimeIdInRoot = 2, runtimeIdInVersioning = 1)
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
@@ -170,31 +210,11 @@ class RuntimeConstructorTest {
             dbReturnsCacheInfo(lastKnownVersion = 2, lastAppliedVersion = 2, typesVersion = 2)
             cacheReturnsMetadata(EMPTY_METADATA)
             nodeReturnsMetadata(EMPTY_METADATA)
-            serverReturnsTypes(runtimeId = 1)
+            serverReturnsTypes(runtimeIdInRoot = 2, runtimeIdInVersioning = 2)
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 1, "kusama")
 
             assertEquals(true, result.isNewest)
-
-            verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
-            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
-            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("kusama.json"))
-
-            verify(runtimeDao, times(1)).updateTypesVersion(eq("kusama"), eq(1))
-        }
-    }
-
-    @Test
-    fun `should fetch runtime if node runtime version is lower and mark outdated`() {
-        runBlocking {
-            dbReturnsCacheInfo(lastKnownVersion = 2, lastAppliedVersion = 2, typesVersion = 2)
-            cacheReturnsMetadata(EMPTY_METADATA)
-            nodeReturnsMetadata(EMPTY_METADATA)
-            serverReturnsTypes(runtimeId = 2)
-
-            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 1, "kusama")
-
-            assertEquals(false, result.isNewest)
 
             verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
@@ -208,8 +228,19 @@ class RuntimeConstructorTest {
 
     private fun nodeReturnsMetadata(metadata: String) = given(metadataResponse.result).willReturn(metadata)
 
-    private fun serverReturnsTypes(runtimeId: Int) {
-        given(gson.fromJson(eq("server"), eq(TypeDefinitionsTree::class.java))).willReturn(TypeDefinitionsTree(runtimeId, emptyMap()))
+    private fun serverReturnsTypes(runtimeIdInRoot: Int, runtimeIdInVersioning: Int) {
+        given(gson.fromJson(eq("server"), eq(TypeDefinitionsTree::class.java))).willReturn(
+            TypeDefinitionsTree(
+                runtimeIdInRoot,
+                emptyMap(),
+                listOf(
+                    TypeDefinitionsTree.Versioning(
+                        range = listOf(runtimeIdInVersioning, null),
+                        emptyMap()
+                    )
+                )
+            )
+        )
     }
 
     private suspend fun dbReturnsCacheInfo(

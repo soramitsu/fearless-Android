@@ -21,6 +21,7 @@ private const val TYPE_DEFINITIONS_DEFAULT = "default"
 
 class ConstructionParams(
     val metadataRaw: String,
+    val latestMetadataVersion: Int,
     val defaultDefinitions: TypeDefinitionsTree,
     val networkDefinitions: TypeDefinitionsTree,
     val areNewest: Boolean
@@ -58,8 +59,9 @@ class RuntimeConstructor(
     suspend fun constructFromCache(networkName: String) = withContext(Dispatchers.Default) {
         val (defaultTree, networkTree) = networkTypesFromCache(networkName)
         val metadata = runtimeCache.getRuntimeMetadata(networkName)!!
+        val latestMetadataVersion = runtimeDao.getCacheEntry(networkName).latestKnownVersion
 
-        constructRuntime(ConstructionParams(metadata, defaultTree, networkTree, areNewest = true))
+        constructRuntime(ConstructionParams(metadata, latestMetadataVersion, defaultTree, networkTree, areNewest = true))
             .runtime
     }
 
@@ -86,7 +88,7 @@ class RuntimeConstructor(
             if (latestRuntimeVersion <= cacheInfo.typesVersion) {
                 val (default, network) = networkTypesFromCache(networkName)
 
-                return ConstructionParams(metadataRaw, default, network, areNewest = true)
+                return ConstructionParams(metadataRaw, latestRuntimeVersion, default, network, areNewest = true)
             }
 
             metadataRaw
@@ -105,7 +107,8 @@ class RuntimeConstructor(
         val defaultTree = typesFromJson(defaultTreeRaw)
         val networkTree = typesFromJson(networkTreeRaw)
 
-        val typesVersion = networkTree.runtimeId!!
+        val newestTypesChange = networkTree.versioning!!.maxOf { it.from }
+        val typesVersion = maxOf(newestTypesChange, networkTree.runtimeId!!)
 
         runtimeDao.updateTypesVersion(networkName, typesVersion)
 
@@ -115,9 +118,10 @@ class RuntimeConstructor(
 
         return ConstructionParams(
             metadataRaw,
+            latestRuntimeVersion,
             defaultTree,
             networkTree,
-            areNewest = latestRuntimeVersion == typesVersion
+            areNewest = latestRuntimeVersion <= typesVersion
         )
     }
 
@@ -133,9 +137,19 @@ class RuntimeConstructor(
 
     private fun typesFromJson(typeDefinitions: String) = gson.fromJson(typeDefinitions, TypeDefinitionsTree::class.java)
 
-    private fun constructTypeRegistry(constructionParams: ConstructionParams): TypeRegistry {
-        val defaultTypePreset = TypeDefinitionParser.parseTypeDefinitions(constructionParams.defaultDefinitions, substratePreParsePreset()).typePreset
-        val networkTypePreset = TypeDefinitionParser.parseTypeDefinitions(constructionParams.networkDefinitions, defaultTypePreset).typePreset
+    private fun constructTypeRegistry(
+        constructionParams: ConstructionParams
+    ): TypeRegistry {
+        val defaultTypePreset = TypeDefinitionParser.parseBaseDefinitions(
+            constructionParams.defaultDefinitions,
+            substratePreParsePreset()
+        ).typePreset
+
+        val networkTypePreset = TypeDefinitionParser.parseNetworkVersioning(
+            constructionParams.networkDefinitions,
+            defaultTypePreset,
+            constructionParams.latestMetadataVersion
+        ).typePreset
 
         return TypeRegistry(
             types = networkTypePreset,
