@@ -107,8 +107,10 @@ class RuntimeConstructor(
         val defaultTree = typesFromJson(defaultTreeRaw)
         val networkTree = typesFromJson(networkTreeRaw)
 
-        val newestTypesVersioning = networkTree.versioning!!.maxOf { it.from }
-        runtimeDao.updateTypesVersion(networkName, newestTypesVersioning)
+        val newestTypesChange = networkTree.versioning!!.maxOf { it.from }
+        val typesVersion = maxOf(newestTypesChange, networkTree.runtimeId!!)
+
+        runtimeDao.updateTypesVersion(networkName, typesVersion)
 
         runtimeCache.saveTypeDefinitions(TYPE_DEFINITIONS_DEFAULT, defaultTreeRaw)
 
@@ -119,7 +121,7 @@ class RuntimeConstructor(
             latestRuntimeVersion,
             defaultTree,
             networkTree,
-            areNewest = latestRuntimeVersion <= newestTypesVersioning
+            areNewest = latestRuntimeVersion <= typesVersion
         )
     }
 

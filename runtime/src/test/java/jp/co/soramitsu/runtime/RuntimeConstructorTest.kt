@@ -185,6 +185,26 @@ class RuntimeConstructorTest {
     }
 
     @Test
+    fun `should fetch runtime if outdated and mark that types are actual even if only runtimeId is updated`() {
+        runBlocking {
+            dbReturnsCacheInfo(lastKnownVersion = 1, lastAppliedVersion = 1, typesVersion = 1)
+            cacheReturnsMetadata(EMPTY_METADATA)
+            nodeReturnsMetadata(EMPTY_METADATA)
+            serverReturnsTypes(runtimeIdInRoot = 2, runtimeIdInVersioning = 1)
+
+            val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
+
+            assertEquals(true, result.isNewest)
+
+            verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
+            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
+            verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("kusama.json"))
+
+            verify(runtimeDao, times(1)).updateTypesVersion(eq("kusama"), eq(2))
+        }
+    }
+
+    @Test
     fun `should fetch runtime if node runtime version is lower and mark actual`() {
         runBlocking {
             dbReturnsCacheInfo(lastKnownVersion = 2, lastAppliedVersion = 2, typesVersion = 2)
