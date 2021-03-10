@@ -1,6 +1,7 @@
 package jp.co.soramitsu.runtime
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.core.updater.GlobalScopeUpdater
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -32,7 +33,7 @@ class RuntimeUpdater(
     private val accountRepository: AccountRepository,
     private val runtimePrepopulator: RuntimePrepopulator,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
-) : Updater {
+) : GlobalScopeUpdater {
 
     override suspend fun listenForUpdates(
         storageSubscriptionBuilder: SubscriptionBuilder

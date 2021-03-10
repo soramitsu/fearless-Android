@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.bas
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.model.StorageEntry
 import jp.co.soramitsu.core.storage.StorageCache
+import jp.co.soramitsu.core.updater.GlobalScopeUpdater
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -12,7 +13,7 @@ import kotlinx.coroutines.flow.onEach
 abstract class SingleStorageKeyUpdater(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val storageCache: StorageCache
-) : Updater {
+) : GlobalScopeUpdater {
 
     abstract fun storageKey(runtime: RuntimeSnapshot): String
 

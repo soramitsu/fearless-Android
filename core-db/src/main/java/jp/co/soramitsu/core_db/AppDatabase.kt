@@ -11,6 +11,7 @@ import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
 import jp.co.soramitsu.core_db.converters.TokenConverters
 import jp.co.soramitsu.core_db.converters.TransactionConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
+import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
@@ -18,12 +19,14 @@ import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
 import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
 import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_11_12
 import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.model.AccountLocal
+import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
@@ -34,7 +37,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Database(
-    version = 14,
+    version = 15,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
@@ -43,7 +46,8 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
         TokenLocal::class,
         RuntimeCacheEntry::class,
         PhishingAddressLocal::class,
-        StorageEntryLocal::class
+        StorageEntryLocal::class,
+        AccountStakingLocal::class
     ])
 @TypeConverters(
     LongMathConverters::class,
@@ -70,6 +74,7 @@ abstract class AppDatabase : RoomDatabase() {
                     })
                     .addMigrations(AddTokenTable_9_10, AddPhishingAddressesTable_10_11, AddRuntimeCacheTable_11_12)
                     .addMigrations(AddStorageCacheTable_12_13, AddNetworkTypeToStorageCache_13_14)
+                    .addMigrations(AddAccountStakingTable_14_15)
                     .build()
             }
             return instance!!
@@ -91,4 +96,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun storageDao(): StorageDao
 
     abstract fun tokenDao(): TokenDao
+
+    abstract fun accountStakingDao(): AccountStakingDao
 }

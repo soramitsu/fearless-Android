@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
@@ -9,8 +10,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdater
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -31,19 +31,22 @@ class PaymentUpdater(
     private val substrateSource: SubstrateRemoteSource,
     private val assetCache: AssetCache,
     private val accountInfoFactory: AccountInfoFactory,
-    private val transactionsDao: TransactionDao
-) : AccountUpdater {
+    private val transactionsDao: TransactionDao,
+    override val scope: AccountUpdateScope
+) : Updater {
 
-    override fun listenAccountUpdates(accountSubscriptionBuilder: SubscriptionBuilder, account: Account): Flow<Updater.SideEffect> {
-        val key = Module.System.Account.storageKey(account.address.toAccountId())
+    override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
+        val address = scope.getAccount().address
 
-        return accountSubscriptionBuilder.subscribe(key)
+        val key = Module.System.Account.storageKey(address.toAccountId())
+
+        return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
                 val newAccountInfo = readAccountInfo(change.value)
 
-                updateAssetBalance(account, newAccountInfo)
+                updateAssetBalance(address, newAccountInfo)
 
-                fetchTransfers(account, change.block)
+                fetchTransfers(address, change.block)
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()
@@ -54,9 +57,9 @@ class PaymentUpdater(
     }
 
     private suspend fun updateAssetBalance(
-        account: Account,
+        address: String,
         accountInfo: EncodableStruct<AccountInfoSchema>
-    ) = assetCache.updateAsset(account) { cachedAsset ->
+    ) = assetCache.updateAsset(address) { cachedAsset ->
         val data = accountInfo[accountInfo.schema.data]
 
         cachedAsset.copy(
@@ -67,8 +70,8 @@ class PaymentUpdater(
         )
     }
 
-    private suspend fun fetchTransfers(account: Account, blockHash: String) {
-        val result = substrateSource.fetchAccountTransfersInBlock(blockHash, account)
+    private suspend fun fetchTransfers(address: String, blockHash: String) {
+        val result = substrateSource.fetchAccountTransfersInBlock(blockHash, address)
 
         val blockTransfers = result.getOrNull() ?: return
 
@@ -79,7 +82,7 @@ class PaymentUpdater(
                 null -> Transaction.Status.PENDING
             }
 
-            createTransactionLocal(it.extrinsic, localStatus, account)
+            createTransactionLocal(it.extrinsic, localStatus, address)
         }
 
         transactionsDao.insert(local)
@@ -88,13 +91,13 @@ class PaymentUpdater(
     private suspend fun createTransactionLocal(
         extrinsic: TransferExtrinsic,
         status: Transaction.Status,
-        account: Account
+        accountAddress: String
     ): TransactionLocal {
         val localCopy = transactionsDao.getTransaction(extrinsic.hash)
 
         val fee = localCopy?.feeInPlanks
 
-        val networkType = account.network.type
+        val networkType = accountAddress.networkType()
         val tokenType = Token.Type.fromNetworkType(networkType)
 
         val senderAddress = extrinsic.senderId.toAddress(networkType)
@@ -102,7 +105,7 @@ class PaymentUpdater(
 
         return TransactionLocal(
             hash = extrinsic.hash,
-            accountAddress = account.address,
+            accountAddress = accountAddress,
             senderAddress = senderAddress,
             recipientAddress = recipientAddress,
             source = TransactionLocal.Source.BLOCKCHAIN,

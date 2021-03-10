@@ -21,8 +21,6 @@ dependencies {
     implementation coroutinesDep
     implementation project(":common")
 
-    api project(":feature-account-api")
-    
     api project(':core-api')
     api project(':core-db')
 }

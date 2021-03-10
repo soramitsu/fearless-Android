@@ -7,9 +7,11 @@ import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
+import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
@@ -45,4 +47,8 @@ interface StakingFeatureDependencies {
     fun socketService(): SocketService
 
     fun assetCache(): AssetCache
+
+    fun accountStakingDao(): AccountStakingDao
+
+    fun accountUpdateScope(): AccountUpdateScope
 }

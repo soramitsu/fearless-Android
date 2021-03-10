@@ -3,6 +3,21 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val AddAccountStakingTable_14_15 = object : Migration(14, 15) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("""
+            CREATE TABLE IF NOT EXISTS `account_staking_accesses` (
+                `address` TEXT NOT NULL,
+                `stashId` BLOB,
+                `controllerId` BLOB,
+                PRIMARY KEY(`address`),
+                FOREIGN KEY(`address`) REFERENCES `users`(`address`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+        """.trimIndent()
+        )
+    }
+}
+
 val AddNetworkTypeToStorageCache_13_14 = object : Migration(13, 14) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("DROP TABLE storage")
