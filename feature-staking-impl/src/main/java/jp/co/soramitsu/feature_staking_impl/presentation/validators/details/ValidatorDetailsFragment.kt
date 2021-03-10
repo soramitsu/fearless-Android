@@ -57,13 +57,6 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
             validatorInfo.setNominatorsCount(validator.nominatorsCount)
             validatorInfo.setEstimatedRewardApy(validator.apy)
             validatorInfo.setTotalStakeValue(validator.totalStake)
-            if (validator.totalStakeFiat == null) {
-                validatorInfo.hideTotalStakeFiat()
-                validatorInfo.setTotalStakeValueFiat("")
-            } else {
-                validatorInfo.showTotalStakeFiat()
-                validatorInfo.setTotalStakeValueFiat(validator.totalStakeFiat)
-            }
             if (validator.identity == null) {
                 validatorIdentity.makeGone()
             } else {
@@ -71,7 +64,6 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
                 validatorIdentity.populateIdentity(validator.identity)
                 validatorIdentity.setAddress(validator.address)
             }
-            validator.identity?.display?.let { validatorDetailsToolbar.setTitle(it) }
         }
     }
 }

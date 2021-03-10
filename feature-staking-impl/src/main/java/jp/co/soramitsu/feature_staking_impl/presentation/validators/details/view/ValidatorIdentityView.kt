@@ -41,7 +41,7 @@ class ValidatorIdentityView @JvmOverloads constructor(
         setTextOrHideIdentityItem(validatorIdentityAddressView, address)
     }
 
-    private fun setTextOrHideIdentityItem(item: ValidatorIdentityItemView, text: String?) {
+    private fun setTextOrHideIdentityItem(item: ValidatorInfoItemView, text: String?) {
         if (text == null) {
             item.makeGone()
             item.setBody("")
