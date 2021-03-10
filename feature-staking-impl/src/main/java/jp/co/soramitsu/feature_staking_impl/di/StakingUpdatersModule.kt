@@ -107,7 +107,7 @@ class StakingUpdatersModule {
         currentEraUpdater: CurrentEraUpdater,
         stakingLedgerUpdater: StakingLedgerUpdater
     ) = StakingUpdaters(
-        globalUpdaters = arrayOf(
+        updaters = arrayOf(
             activeEraUpdater,
             validatorExposureUpdater,
             validatorPrefsUpdater,

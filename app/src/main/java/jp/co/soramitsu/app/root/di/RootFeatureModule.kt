@@ -28,7 +28,7 @@ class RootFeatureModule {
             runtimeUpdater,
             updaters = listOf(
                 *walletUpdaters.updaters,
-                *stakingUpdaters.globalUpdaters,
+                *stakingUpdaters.updaters,
                 runtimeUpdater
             ),
             socketService
