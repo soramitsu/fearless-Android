@@ -20,6 +20,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActionsProvider
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
@@ -145,4 +146,10 @@ class AccountFeatureModule {
     ): ExternalAccountActions.Presentation {
         return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager)
     }
+
+    @Provides
+    @FeatureScope
+    fun provideAccountUpdateScope(
+        accountRepository: AccountRepository
+    ) = AccountUpdateScope(accountRepository)
 }

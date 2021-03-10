@@ -9,6 +9,7 @@ import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
@@ -83,14 +84,16 @@ class StakingUpdatersModule {
         socketService: SocketService,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         accountStakingDao: AccountStakingDao,
-        assetCache: AssetCache
+        assetCache: AssetCache,
+        accountUpdateScope: AccountUpdateScope
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
             socketService,
             stakingRepository,
             runtimeProperty,
             accountStakingDao,
-            assetCache
+            assetCache,
+            accountUpdateScope
         )
     }
 
@@ -109,9 +112,7 @@ class StakingUpdatersModule {
             validatorExposureUpdater,
             validatorPrefsUpdater,
             totalIssuanceUpdater,
-            currentEraUpdater
-        ),
-        accountUpdaters = arrayOf(
+            currentEraUpdater,
             stakingLedgerUpdater
         )
     )

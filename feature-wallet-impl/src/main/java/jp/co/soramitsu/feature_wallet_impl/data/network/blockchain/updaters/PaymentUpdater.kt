@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.toAddress
-import jp.co.soramitsu.core.updater.ScopedUpdater
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.TransactionDao
@@ -11,6 +10,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -31,16 +31,16 @@ class PaymentUpdater(
     private val substrateSource: SubstrateRemoteSource,
     private val assetCache: AssetCache,
     private val accountInfoFactory: AccountInfoFactory,
-    private val transactionsDao: TransactionDao
-) : ScopedUpdater<String> {
+    private val transactionsDao: TransactionDao,
+    override val scope: AccountUpdateScope
+) : Updater {
 
-    override suspend fun listenAccountUpdates(
-        accountSubscriptionBuilder: SubscriptionBuilder,
-        address: String
-    ): Flow<Updater.SideEffect> {
+    override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
+        val address = scope.getAccount().address
+
         val key = Module.System.Account.storageKey(address.toAccountId())
 
-        return accountSubscriptionBuilder.subscribe(key)
+        return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
                 val newAccountInfo = readAccountInfo(change.value)
 

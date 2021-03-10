@@ -25,6 +25,7 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 
 interface WalletFeatureDependencies {
@@ -78,4 +79,6 @@ interface WalletFeatureDependencies {
     fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
 
     fun substrateCalls(): SubstrateCalls
+
+    fun accountUpdateScope(): AccountUpdateScope
 }

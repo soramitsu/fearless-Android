@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.sumBy
-import jp.co.soramitsu.core.updater.ScopedUpdater
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
@@ -18,6 +17,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.StakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.UnlockChunk
@@ -41,19 +41,18 @@ class StakingLedgerUpdater(
     private val stakingRepository: StakingRepository,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val accountStakingDao: AccountStakingDao,
-    private val assetCache: AssetCache
-) : ScopedUpdater<String> {
+    private val assetCache: AssetCache,
+    override val scope: AccountUpdateScope
+) : Updater {
 
-    override suspend fun listenAccountUpdates(
-        accountSubscriptionBuilder: SubscriptionBuilder,
-        accountAddress: String
-    ): Flow<Updater.SideEffect> {
+    override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
+        val accountAddress = scope.getAccount().address
         val currentAccountId = accountAddress.toAccountId()
         val runtime = runtimeProperty.get()
 
         val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
 
-        return accountSubscriptionBuilder.subscribe(key)
+        return storageSubscriptionBuilder.subscribe(key)
             .flatMapLatest { change ->
                 // assume we're controller, if no controller found
                 val controllerId = change.value?.fromHex() ?: currentAccountId

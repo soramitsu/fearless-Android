@@ -17,6 +17,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
@@ -166,13 +167,15 @@ class WalletFeatureModule {
         remoteSource: SubstrateRemoteSource,
         accountInfoFactory: AccountInfoFactory,
         assetCache: AssetCache,
-        transactionDao: TransactionDao
+        transactionDao: TransactionDao,
+        accountUpdateScope: AccountUpdateScope
     ): PaymentUpdater {
         return PaymentUpdater(
             remoteSource,
             assetCache,
             accountInfoFactory,
-            transactionDao
+            transactionDao,
+            accountUpdateScope
         )
     }
 
@@ -182,7 +185,6 @@ class WalletFeatureModule {
         schemaUpdater: AccountInfoSchemaUpdater,
         paymentUpdater: PaymentUpdater
     ): WalletUpdaters = WalletUpdaters(
-        globalUpdaters = arrayOf(schemaUpdater),
-        accountUpdaters = arrayOf(paymentUpdater)
+        updaters = arrayOf(schemaUpdater, paymentUpdater)
     )
 }

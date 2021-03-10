@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
+import jp.co.soramitsu.core.updater.GlobalScopeUpdater
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -21,7 +22,7 @@ class ValidatorPrefsUpdater(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val bulkRetriever: BulkRetriever,
     private val storageCache: StorageCache
-) : Updater {
+) : GlobalScopeUpdater {
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()
