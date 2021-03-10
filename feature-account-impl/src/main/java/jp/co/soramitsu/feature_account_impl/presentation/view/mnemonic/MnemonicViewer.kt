@@ -1,11 +1,11 @@
-package jp.co.soramitsu.common.account.mnemonicViewer
+package jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.GridLayoutManager
-import jp.co.soramitsu.common.R
+import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_mnemonic.view.mnemonicViewerList
 
 class MnemonicViewer @JvmOverloads constructor(

@@ -2,17 +2,16 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.AddressModel
-import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.view.ButtonState
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer

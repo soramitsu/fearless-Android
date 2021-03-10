@@ -1,17 +1,17 @@
 package jp.co.soramitsu.core_db.converters
 
 import androidx.room.TypeConverter
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.core_db.model.TokenLocal
 
 class TokenConverters {
 
     @TypeConverter
-    fun fromToken(type: Token.Type): Int {
+    fun fromToken(type: TokenLocal.Type): Int {
         return type.ordinal
     }
 
     @TypeConverter
-    fun toToken(ordinal: Int): Token.Type {
-        return Token.Type.values()[ordinal]
+    fun toToken(ordinal: Int): TokenLocal.Type {
+        return TokenLocal.Type.values()[ordinal]
     }
 }

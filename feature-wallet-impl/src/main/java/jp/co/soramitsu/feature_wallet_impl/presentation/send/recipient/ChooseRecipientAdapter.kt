@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 
 import android.view.View
 import android.view.ViewGroup
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder

@@ -23,7 +23,7 @@ fun <E> bindEventRecord(
 ): EventRecord<E> {
     requireType<Struct.Instance>(dynamicInstance)
 
-    val phaseDynamic = dynamicInstance.getOfType<DictEnum.Entry<*>>("phase")
+    val phaseDynamic = dynamicInstance.getTyped<DictEnum.Entry<*>>("phase")
 
     val phase = when (phaseDynamic.name) {
         "ApplyExtrinsic" -> Phase.ApplyExtrinsic(phaseDynamic.value.cast())
@@ -32,7 +32,7 @@ fun <E> bindEventRecord(
         else -> incompatible()
     }
 
-    val dynamicEvent = dynamicInstance.getOfType<GenericEvent.Instance>("event")
+    val dynamicEvent = dynamicInstance.getTyped<GenericEvent.Instance>("event")
 
     val event = eventBinder(dynamicEvent)
 

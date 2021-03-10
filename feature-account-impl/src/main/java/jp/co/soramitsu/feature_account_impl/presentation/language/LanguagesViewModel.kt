@@ -6,8 +6,8 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.Language
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.language.mapper.mapLanguageToLanguageModel
 import jp.co.soramitsu.feature_account_impl.presentation.language.model.LanguageModel

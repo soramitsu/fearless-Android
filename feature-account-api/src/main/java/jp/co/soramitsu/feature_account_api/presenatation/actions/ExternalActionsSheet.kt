@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.account.external.actions
+package jp.co.soramitsu.feature_account_api.presenatation.actions
 
 import android.content.Context
 import android.os.Bundle

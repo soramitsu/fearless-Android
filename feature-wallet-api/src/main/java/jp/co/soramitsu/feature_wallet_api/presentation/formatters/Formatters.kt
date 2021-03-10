@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.wallet
+package jp.co.soramitsu.feature_wallet_api.presentation.formatters
 
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token

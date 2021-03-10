@@ -2,8 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency

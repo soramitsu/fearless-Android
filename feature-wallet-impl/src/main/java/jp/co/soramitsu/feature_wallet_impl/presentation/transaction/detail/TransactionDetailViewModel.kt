@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
-import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer

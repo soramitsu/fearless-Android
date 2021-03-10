@@ -36,7 +36,7 @@
                 app:label="@string/recovery_source_type"
                 app:message="@string/recovery_passphrase" />
 
-            <jp.co.soramitsu.common.account.mnemonicViewer.MnemonicViewer
+            <jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.MnemonicViewer
                 android:id="@+id/exportMnemonicViewer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

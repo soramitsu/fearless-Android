@@ -6,7 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.AssetWithToken
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.core_db.model.TokenLocal
 import kotlinx.coroutines.flow.Flow
 
 private const val RETRIEVE_ASSET_SQL = """
@@ -17,9 +17,9 @@ private const val RETRIEVE_ASSET_SQL = """
 interface AssetReadOnlyCache {
     fun observeAssets(accountAddress: String): Flow<List<AssetWithToken>>
 
-    fun observeAsset(accountAddress: String, type: Token.Type): Flow<AssetWithToken>
+    fun observeAsset(accountAddress: String, type: TokenLocal.Type): Flow<AssetWithToken>
 
-    suspend fun getAsset(accountAddress: String, type: Token.Type): AssetWithToken?
+    suspend fun getAsset(accountAddress: String, type: TokenLocal.Type): AssetWithToken?
 }
 
 @Dao
@@ -32,10 +32,10 @@ abstract class AssetDao : AssetReadOnlyCache {
     abstract override fun observeAssets(accountAddress: String): Flow<List<AssetWithToken>>
 
     @Query(RETRIEVE_ASSET_SQL)
-    abstract override fun observeAsset(accountAddress: String, type: Token.Type): Flow<AssetWithToken>
+    abstract override fun observeAsset(accountAddress: String, type: TokenLocal.Type): Flow<AssetWithToken>
 
     @Query(RETRIEVE_ASSET_SQL)
-    abstract override suspend fun getAsset(accountAddress: String, type: Token.Type): AssetWithToken?
+    abstract override suspend fun getAsset(accountAddress: String, type: TokenLocal.Type): AssetWithToken?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAsset(asset: AssetLocal)

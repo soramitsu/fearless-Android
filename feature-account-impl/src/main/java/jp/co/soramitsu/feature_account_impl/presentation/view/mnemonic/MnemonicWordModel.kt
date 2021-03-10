@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.account.mnemonicViewer
+package jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic
 
 data class MnemonicWordModel(
     val numberToShow: String,

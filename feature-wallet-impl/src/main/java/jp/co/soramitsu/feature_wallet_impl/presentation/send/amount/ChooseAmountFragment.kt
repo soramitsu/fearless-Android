@@ -5,13 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
-import jp.co.soramitsu.common.account.external.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.setTextColorRes
-import jp.co.soramitsu.common.wallet.formatWithMaxPrecision
+import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithMaxPrecision
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon

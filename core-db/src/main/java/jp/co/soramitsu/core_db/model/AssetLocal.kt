@@ -3,7 +3,6 @@ package jp.co.soramitsu.core_db.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import java.math.BigInteger
 
 @Entity(
@@ -21,7 +20,7 @@ import java.math.BigInteger
     ]
 )
 data class AssetLocal(
-    val token: Token.Type,
+    val token: TokenLocal.Type,
     @ColumnInfo(index = true) val accountAddress: String,
     val freeInPlanks: BigInteger,
     val reservedInPlanks: BigInteger,
@@ -33,7 +32,7 @@ data class AssetLocal(
 ) {
     companion object {
         fun createEmpty(
-            type: Token.Type,
+            type: TokenLocal.Type,
             accountAddress: String
         ) = AssetLocal(
             token = type,

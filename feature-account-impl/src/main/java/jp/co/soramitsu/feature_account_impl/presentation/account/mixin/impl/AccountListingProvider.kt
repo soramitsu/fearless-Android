@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.mixin.impl
 
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor

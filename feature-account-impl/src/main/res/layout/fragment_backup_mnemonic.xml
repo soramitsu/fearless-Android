@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <jp.co.soramitsu.common.account.mnemonicViewer.MnemonicViewer
+            <jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.MnemonicViewer
                 android:id="@+id/backupMnemonicViewer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

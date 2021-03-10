@@ -2,8 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.di
 
 import android.content.ContentResolver
 import com.google.gson.Gson
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
@@ -26,6 +25,7 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 
 interface WalletFeatureDependencies {
 

@@ -1,19 +1,18 @@
 package jp.co.soramitsu.core_db.converters
 
 import androidx.room.TypeConverter
-import jp.co.soramitsu.core_db.model.TransactionSource
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
+import jp.co.soramitsu.core_db.model.TransactionLocal
 
 class TransactionConverters {
     @TypeConverter
-    fun fromTransactionSource(source: TransactionSource) = source.ordinal
+    fun fromTransactionSource(source: TransactionLocal.Source) = source.ordinal
 
     @TypeConverter
-    fun toTransactionSource(ordinal: Int) = TransactionSource.values()[ordinal]
+    fun toTransactionSource(ordinal: Int) = TransactionLocal.Source.values()[ordinal]
 
     @TypeConverter
-    fun fromTransactionStatus(status: Transaction.Status) = status.ordinal
+    fun fromTransactionStatus(status: TransactionLocal.Status) = status.ordinal
 
     @TypeConverter
-    fun toTransactionStatus(ordinal: Int) = Transaction.Status.values()[ordinal]
+    fun toTransactionStatus(ordinal: Int) = TransactionLocal.Status.values()[ordinal]
 }
