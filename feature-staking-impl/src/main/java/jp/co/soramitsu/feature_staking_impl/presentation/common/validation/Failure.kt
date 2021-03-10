@@ -3,10 +3,10 @@ package jp.co.soramitsu.feature_staking_impl.presentation.common.validation
 import jp.co.soramitsu.common.mixin.api.DefaultFailure
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationStatus
-import jp.co.soramitsu.common.wallet.formatWithDefaultPrecision
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 
 fun stakingValidationFailure(
     payload: SetupStakingPayload,

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.common.resources
 
-import jp.co.soramitsu.feature_account_api.domain.model.Language
+import jp.co.soramitsu.core.model.Language
 import javax.inject.Singleton
 
 @Singleton

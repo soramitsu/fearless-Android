@@ -4,8 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -20,17 +18,21 @@ import java.math.BigInteger
 class TransactionLocal(
     @ColumnInfo(index = true) val accountAddress: String,
     val hash: String,
-    val token: Token.Type,
+    val token: TokenLocal.Type,
     val senderAddress: String,
     val recipientAddress: String,
     val amount: BigDecimal,
     val date: Long,
     val feeInPlanks: BigInteger?,
-    val status: Transaction.Status,
-    val source: TransactionSource,
-    val networkType: Node.NetworkType = token.networkType
-)
+    val status: Status,
+    val source: Source,
+    val networkType: Node.NetworkType
+) {
+    enum class Source {
+        BLOCKCHAIN, SUBSCAN, APP
+    }
 
-enum class TransactionSource {
-    BLOCKCHAIN, SUBSCAN, APP
+    enum class Status {
+        PENDING, COMPLETED, FAILED
+    }
 }

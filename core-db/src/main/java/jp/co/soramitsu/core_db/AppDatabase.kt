@@ -47,9 +47,9 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
     ])
 @TypeConverters(
     LongMathConverters::class,
-    TokenConverters::class,
     NetworkTypeConverters::class,
-    TransactionConverters::class
+    TransactionConverters::class,
+    TokenConverters::class
 )
 abstract class AppDatabase : RoomDatabase() {
 

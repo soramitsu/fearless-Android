@@ -73,6 +73,7 @@ dependencies {
     testImplementation mockitoDep
 
     implementation fearlessLibDep
+    compileOnly wsDep
 
     implementation gsonDep
     implementation retrofitDep

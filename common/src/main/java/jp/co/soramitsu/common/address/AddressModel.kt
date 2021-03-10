@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.account
+package jp.co.soramitsu.common.address
 
 import android.graphics.drawable.PictureDrawable
 

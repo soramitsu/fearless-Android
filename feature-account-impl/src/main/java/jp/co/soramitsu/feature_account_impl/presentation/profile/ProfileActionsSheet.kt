@@ -2,11 +2,11 @@ package jp.co.soramitsu.feature_account_impl.presentation.profile
 
 import android.content.Context
 import android.os.Bundle
-import jp.co.soramitsu.common.account.external.actions.CopyCallback
-import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
-import jp.co.soramitsu.common.account.external.actions.ExternalActionsSheet
-import jp.co.soramitsu.common.account.external.actions.ExternalViewCallback
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
+import jp.co.soramitsu.feature_account_api.presenatation.actions.CopyCallback
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_account_impl.R
 
 class ProfileActionsSheet(

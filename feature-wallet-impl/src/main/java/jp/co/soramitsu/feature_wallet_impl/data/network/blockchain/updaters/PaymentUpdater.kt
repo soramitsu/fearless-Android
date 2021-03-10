@@ -6,15 +6,17 @@ import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.TransactionLocal
-import jp.co.soramitsu.core_db.model.TransactionSource
 import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdater
+import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_impl.data.cache.AssetCache
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionStatusToTransactionStatusLocal
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountData
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
@@ -93,7 +95,7 @@ class PaymentUpdater(
         val fee = localCopy?.feeInPlanks
 
         val networkType = account.network.type
-        val token = Token.Type.fromNetworkType(networkType)
+        val tokenType = Token.Type.fromNetworkType(networkType)
 
         val senderAddress = extrinsic.senderId.toAddress(networkType)
         val recipientAddress = extrinsic.recipientId.toAddress(networkType)
@@ -103,11 +105,11 @@ class PaymentUpdater(
             accountAddress = account.address,
             senderAddress = senderAddress,
             recipientAddress = recipientAddress,
-            source = TransactionSource.BLOCKCHAIN,
-            status = status,
+            source = TransactionLocal.Source.BLOCKCHAIN,
+            status = mapTransactionStatusToTransactionStatusLocal(status),
             feeInPlanks = fee,
-            token = token,
-            amount = token.amountFromPlanks(extrinsic.amountInPlanks),
+            token = mapTokenTypeToTokenTypeLocal(tokenType),
+            amount = tokenType.amountFromPlanks(extrinsic.amountInPlanks),
             date = System.currentTimeMillis(),
             networkType = networkType
         )

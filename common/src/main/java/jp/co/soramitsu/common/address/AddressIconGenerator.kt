@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.account
+package jp.co.soramitsu.common.address
 
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.exceptions.AddressFormatException

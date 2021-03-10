@@ -8,9 +8,11 @@ import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
-import jp.co.soramitsu.core_db.model.TransactionSource
+import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
@@ -20,7 +22,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_impl.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTransaction
@@ -68,12 +69,12 @@ class WalletRepositoryImpl(
     }
 
     override fun assetFlow(account: WalletAccount, type: Token.Type): Flow<Asset> {
-        return assetCache.observeAsset(account.address, type)
+        return assetCache.observeAsset(account.address, mapTokenTypeToTokenTypeLocal(type))
             .map { mapAssetLocalToAsset(it) }
     }
 
     override suspend fun getAsset(account: WalletAccount, type: Token.Type): Asset? {
-        val assetLocal = assetCache.getAsset(account.address, type)
+        val assetLocal = assetCache.getAsset(account.address, mapTokenTypeToTokenTypeLocal(type))
 
         return assetLocal?.let(::mapAssetLocalToAsset)
     }
@@ -91,7 +92,7 @@ class WalletRepositoryImpl(
         val accountAddress = account.address
 
         val toInsertLocally = page.map {
-            mapTransactionToTransactionLocal(it, accountAddress, TransactionSource.SUBSCAN)
+            mapTransactionToTransactionLocal(it, accountAddress, TransactionLocal.Source.SUBSCAN)
         }
 
         transactionsDao.insertFromSubScan(accountAddress, toInsertLocally)
@@ -132,7 +133,7 @@ class WalletRepositoryImpl(
 
         val transaction = createTransaction(transactionHash, transfer, account.address, fee)
 
-        val transactionLocal = mapTransactionToTransactionLocal(transaction, account.address, TransactionSource.APP)
+        val transactionLocal = mapTransactionToTransactionLocal(transaction, account.address, TransactionLocal.Source.APP)
 
         transactionsDao.insert(transactionLocal)
     }
@@ -146,7 +147,7 @@ class WalletRepositoryImpl(
         val totalRecipientBalanceInPlanks = recipientInfo.totalBalanceInPlanks()
         val totalRecipientBalance = tokenType.amountFromPlanks(totalRecipientBalanceInPlanks)
 
-        val assetLocal = assetCache.getAsset(account.address, transfer.tokenType)!!
+        val assetLocal = assetCache.getAsset(account.address, mapTokenTypeToTokenTypeLocal(transfer.tokenType))!!
         val asset = mapAssetLocalToAsset(assetLocal)
 
         return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance)

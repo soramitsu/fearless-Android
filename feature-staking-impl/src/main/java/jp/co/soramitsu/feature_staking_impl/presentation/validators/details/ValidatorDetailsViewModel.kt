@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 
-import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter

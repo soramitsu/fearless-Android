@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import dev.chrisbanes.insetter.applyInsetter
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents

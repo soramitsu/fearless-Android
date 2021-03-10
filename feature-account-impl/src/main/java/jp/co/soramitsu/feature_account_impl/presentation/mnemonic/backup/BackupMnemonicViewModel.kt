@@ -3,8 +3,6 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
-import jp.co.soramitsu.common.account.mnemonicViewer.MnemonicWordModel
-import jp.co.soramitsu.common.account.mnemonicViewer.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.model.Node
@@ -13,6 +11,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload.CreateExtras
+import jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.MnemonicWordModel
+import jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.mapMnemonicToMnemonicWords
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

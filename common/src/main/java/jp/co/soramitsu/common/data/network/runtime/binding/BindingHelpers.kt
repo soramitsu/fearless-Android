@@ -28,7 +28,9 @@ inline fun <reified T> Any?.cast(): T {
     return this as? T ?: incompatible()
 }
 
-inline fun <reified R> Struct.Instance.getOfType(key: String) = get<R>(key) ?: incompatible()
+inline fun <reified R> Struct.Instance.getTyped(key: String) = get<R>(key) ?: incompatible()
+
+fun Struct.Instance.getList(key: String) = get<List<*>>(key) ?: incompatible()
 
 inline fun <T> bindOrNull(binder: () -> T): T? = runCatching(binder).getOrNull()
 

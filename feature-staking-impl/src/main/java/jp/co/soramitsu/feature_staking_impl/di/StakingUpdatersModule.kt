@@ -7,12 +7,16 @@ import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
+import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorExposureUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorPrefsUpdater
+import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 
 @Module
 class StakingUpdatersModule {
@@ -73,19 +77,39 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideStakingLedgerUpdater(
+        stakingRepository: StakingRepository,
+        socketService: SocketService,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        assetCache: AssetCache
+    ): StakingLedgerUpdater {
+        return StakingLedgerUpdater(
+            socketService,
+            stakingRepository,
+            runtimeProperty,
+            assetCache
+        )
+    }
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaters(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
         validatorPrefsUpdater: ValidatorPrefsUpdater,
         totalIssuanceUpdater: TotalIssuanceUpdater,
-        currentEraUpdater: CurrentEraUpdater
+        currentEraUpdater: CurrentEraUpdater,
+        stakingLedgerUpdater: StakingLedgerUpdater
     ) = StakingUpdaters(
-        updaters = arrayOf(
+        globalUpdaters = arrayOf(
             activeEraUpdater,
             validatorExposureUpdater,
             validatorPrefsUpdater,
             totalIssuanceUpdater,
             currentEraUpdater
+        ),
+        accountUpdaters = arrayOf(
+            stakingLedgerUpdater
         )
     )
 }

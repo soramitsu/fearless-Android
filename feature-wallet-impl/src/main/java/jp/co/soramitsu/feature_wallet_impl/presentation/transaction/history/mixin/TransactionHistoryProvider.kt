@@ -1,8 +1,8 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
 import androidx.lifecycle.MutableLiveData
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.applyFilters
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor

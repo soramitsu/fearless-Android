@@ -1,21 +1,25 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
+package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.common.utils.sumBy
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.Module
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.fearless_utils.scale.invoke
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_wallet_impl.data.cache.AssetCache
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.StakingLedger
-import jp.co.soramitsu.feature_wallet_impl.data.repository.sumStaking
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdater
+import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.StakingLedger
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.UnlockChunk
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
+import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -27,25 +31,26 @@ import java.math.BigInteger
 
 class StakingLedgerUpdater(
     private val socketService: SocketService,
-    private val substrateCalls: SubstrateCalls,
+    private val stakingRepository: StakingRepository,
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val assetCache: AssetCache
 ) : AccountUpdater {
 
     override fun listenAccountUpdates(accountSubscriptionBuilder: SubscriptionBuilder, account: Account): Flow<Updater.SideEffect> {
-        val stashAddress = account.address
-        val key = Module.Staking.Bonded.storageKey(stashAddress.toAccountId())
+        val stashId = account.address.toAccountId()
+        val key = Module.Staking.Bonded.storageKey(stashId)
 
         return accountSubscriptionBuilder.subscribe(key)
             .flatMapLatest { change ->
                 val controllerId = change.value
 
                 if (controllerId != null) {
-                    subscribeToLedger(stashAddress, controllerId)
+                    subscribeToLedger(stashId, controllerId)
                 } else {
-                    flowOf(createEmptyLedger(stashAddress))
+                    flowOf(StakingLedger.empty(stashId))
                 }
             }.onEach { stakingLedger ->
-                val era = substrateCalls.getActiveEra()
+                val era = stakingRepository.getActiveEraIndex()
 
                 updateAssetStaking(account, stakingLedger, era)
             }
@@ -53,7 +58,7 @@ class StakingLedgerUpdater(
             .noSideAffects()
     }
 
-    private fun subscribeToLedger(stashAddress: String, controllerId: String): Flow<EncodableStruct<StakingLedger>> {
+    private fun subscribeToLedger(stashId: AccountId, controllerId: String): Flow<StakingLedger> {
         val controllerIdBytes = controllerId.fromHex()
 
         val key = Module.Staking.Ledger.storageKey(controllerIdBytes)
@@ -63,27 +68,17 @@ class StakingLedgerUpdater(
             .map { it.storageChange().getSingleChange() }
             .map { change ->
                 if (change != null) {
-                    StakingLedger.read(change)
+                    bindStakingLedger(change, runtimeProperty.get())
                 } else {
-                    createEmptyLedger(stashAddress)
+                    StakingLedger.empty(stashId)
                 }
             }
     }
 
-    private fun createEmptyLedger(address: String): EncodableStruct<StakingLedger> {
-        return StakingLedger { ledger ->
-            ledger[StakingLedger.stash] = address.toAccountId()
-            ledger[StakingLedger.active] = BigInteger.ZERO
-            ledger[StakingLedger.claimedRewards] = emptyList()
-            ledger[StakingLedger.total] = BigInteger.ZERO
-            ledger[StakingLedger.unlocking] = emptyList()
-        }
-    }
-
     private suspend fun updateAssetStaking(
         account: Account,
-        stakingLedger: EncodableStruct<StakingLedger>,
-        era: Long
+        stakingLedger: StakingLedger,
+        era: BigInteger
     ) {
         return assetCache.updateAsset(account) { cached ->
 
@@ -93,8 +88,16 @@ class StakingLedgerUpdater(
             cached.copy(
                 redeemableInPlanks = redeemable,
                 unbondingInPlanks = unbonding,
-                bondedInPlanks = stakingLedger[StakingLedger.active]
+                bondedInPlanks = stakingLedger.active
             )
         }
+    }
+
+    private fun StakingLedger.sumStaking(
+        condition: (chunkEra: BigInteger) -> Boolean
+    ): BigInteger {
+        return unlocking
+            .filter { condition(it.era) }
+            .sumBy(UnlockChunk::amount)
     }
 }

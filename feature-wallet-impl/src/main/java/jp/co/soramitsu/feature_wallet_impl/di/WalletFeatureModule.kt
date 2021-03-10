@@ -17,6 +17,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -24,15 +25,12 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
-import jp.co.soramitsu.feature_wallet_impl.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountInfoSchemaUpdater
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountUpdateChoreographer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
@@ -180,40 +178,11 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideStakingUpdater(
-        substrateCalls: SubstrateCalls,
-        socketService: SocketService,
-        assetCache: AssetCache
-    ): StakingLedgerUpdater {
-        return StakingLedgerUpdater(
-            socketService,
-            substrateCalls,
-            assetCache
-        )
-    }
-
-    @Provides
-    @FeatureScope
-    fun provideAccountUpdatesChoreographer(
-        accountRepository: AccountRepository,
-        socketService: SocketService,
-        stakingLedgerUpdater: StakingLedgerUpdater,
-        paymentUpdater: PaymentUpdater
-    ): AccountUpdateChoreographer {
-        return AccountUpdateChoreographer(
-            accountRepository = accountRepository,
-            socketService = socketService,
-            updaters = listOf(
-                stakingLedgerUpdater,
-                paymentUpdater
-            )
-        )
-    }
-
-    @Provides
-    @FeatureScope
     fun provideFeatureUpdaters(
         schemaUpdater: AccountInfoSchemaUpdater,
-        accountUpdateChoreographer: AccountUpdateChoreographer
-    ): WalletUpdaters = WalletUpdaters(arrayOf(schemaUpdater, accountUpdateChoreographer))
+        paymentUpdater: PaymentUpdater
+    ): WalletUpdaters = WalletUpdaters(
+        globalUpdaters = arrayOf(schemaUpdater),
+        accountUpdaters = arrayOf(paymentUpdater)
+    )
 }

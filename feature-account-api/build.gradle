@@ -19,6 +19,13 @@ android {
 
 dependencies {
     implementation coroutinesDep
+    implementation project(":common")
+
+    implementation liveDataKtxDep
+    implementation androidDep
+    implementation materialDep
+
+    api fearlessLibDep
 
     api project(':core-api')
 }

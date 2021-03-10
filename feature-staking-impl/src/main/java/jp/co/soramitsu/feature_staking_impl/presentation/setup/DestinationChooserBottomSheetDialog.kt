@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.DiffUtil
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
