@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
+import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
@@ -81,12 +82,14 @@ class StakingUpdatersModule {
         stakingRepository: StakingRepository,
         socketService: SocketService,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        accountStakingDao: AccountStakingDao,
         assetCache: AssetCache
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
             socketService,
             stakingRepository,
             runtimeProperty,
+            accountStakingDao,
             assetCache
         )
     }

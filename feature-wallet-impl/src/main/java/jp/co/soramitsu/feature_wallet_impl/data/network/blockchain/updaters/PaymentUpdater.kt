@@ -34,7 +34,7 @@ class PaymentUpdater(
     private val transactionsDao: TransactionDao
 ) : AccountUpdater {
 
-    override fun listenAccountUpdates(accountSubscriptionBuilder: SubscriptionBuilder, account: Account): Flow<Updater.SideEffect> {
+    override suspend fun listenAccountUpdates(accountSubscriptionBuilder: SubscriptionBuilder, account: Account): Flow<Updater.SideEffect> {
         val key = Module.System.Account.storageKey(account.address.toAccountId())
 
         return accountSubscriptionBuilder.subscribe(key)

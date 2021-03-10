@@ -1,5 +1,6 @@
 package jp.co.soramitsu.core_db.model
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 
@@ -17,6 +18,8 @@ import androidx.room.ForeignKey
 )
 class AccountStakingLocal(
     val address: String,
-    val stashId: ByteArray?,
-    val controllerId: ByteArray?
-)
+    @Embedded
+    val stakingAccessInfo: AccessInfo?
+) {
+    class AccessInfo(val stashId: ByteArray, val controllerId: ByteArray)
+}

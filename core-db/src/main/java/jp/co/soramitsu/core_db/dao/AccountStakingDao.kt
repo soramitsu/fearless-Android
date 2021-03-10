@@ -2,6 +2,7 @@ package jp.co.soramitsu.core_db.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +18,6 @@ abstract class AccountStakingDao {
     @Query(SELECT_QUERY)
     abstract fun observe(address: String) : Flow<AccountStakingLocal>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insert(accountStaking: AccountStakingLocal)
 }

@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface AccountUpdater : SideEffectScope {
 
-    fun listenAccountUpdates(
+    suspend fun listenAccountUpdates(
         accountSubscriptionBuilder: SubscriptionBuilder,
         account: Account
     ): Flow<Updater.SideEffect>

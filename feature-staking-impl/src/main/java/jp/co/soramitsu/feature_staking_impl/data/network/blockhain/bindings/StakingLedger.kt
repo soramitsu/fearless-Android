@@ -18,21 +18,7 @@ class StakingLedger(
     val active: BigInteger,
     val unlocking: List<UnlockChunk>,
     val claimedRewards: List<BigInteger>
-) {
-
-    companion object {
-
-        fun empty(stashId: AccountId): StakingLedger {
-            return StakingLedger(
-                stashId = stashId,
-                total = BigInteger.ZERO,
-                active = BigInteger.ZERO,
-                unlocking = emptyList(),
-                claimedRewards = emptyList()
-            )
-        }
-    }
-}
+)
 
 class UnlockChunk(val amount: BigInteger, val era: BigInteger)
 

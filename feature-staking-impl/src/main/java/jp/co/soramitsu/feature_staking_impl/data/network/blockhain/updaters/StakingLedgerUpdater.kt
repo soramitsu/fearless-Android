@@ -1,13 +1,17 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.sumBy
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
+import jp.co.soramitsu.core_db.dao.AccountStakingDao
+import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.Module
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
@@ -23,54 +27,81 @@ import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import java.math.BigInteger
 
+class LedgerWithController(
+    val ledger: StakingLedger,
+    val controllerId: AccountId
+)
+
 class StakingLedgerUpdater(
     private val socketService: SocketService,
     private val stakingRepository: StakingRepository,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    private val accountStakingDao: AccountStakingDao,
     private val assetCache: AssetCache
 ) : AccountUpdater {
 
-    override fun listenAccountUpdates(accountSubscriptionBuilder: SubscriptionBuilder, account: Account): Flow<Updater.SideEffect> {
-        val stashId = account.address.toAccountId()
-        val key = Module.Staking.Bonded.storageKey(stashId)
+    override suspend fun listenAccountUpdates(accountSubscriptionBuilder: SubscriptionBuilder, account: Account): Flow<Updater.SideEffect> {
+        val currentAccountId = account.address.toAccountId()
+        val runtime = runtimeProperty.get()
+
+        val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
 
         return accountSubscriptionBuilder.subscribe(key)
             .flatMapLatest { change ->
-                val controllerId = change.value
+                // assume we're controller, if no controller found
+                val controllerId = change.value?.fromHex() ?: currentAccountId
 
-                if (controllerId != null) {
-                    subscribeToLedger(stashId, controllerId)
-                } else {
-                    flowOf(StakingLedger.empty(stashId))
+                subscribeToLedger(controllerId)
+            }.onEach { ledgerWithController ->
+                updateAccountStaking(account.address, ledgerWithController)
+
+                ledgerWithController?.ledger?.let {
+                    val era = stakingRepository.getActiveEraIndex()
+                    updateAssetStaking(account, it, era)
                 }
-            }.onEach { stakingLedger ->
-                val era = stakingRepository.getActiveEraIndex()
-
-                updateAssetStaking(account, stakingLedger, era)
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()
     }
 
-    private fun subscribeToLedger(stashId: AccountId, controllerId: String): Flow<StakingLedger> {
-        val controllerIdBytes = controllerId.fromHex()
+    private suspend fun updateAccountStaking(
+        accountAddress: String,
+        ledgerWithController: LedgerWithController?
+    ) {
 
-        val key = Module.Staking.Ledger.storageKey(controllerIdBytes)
+        val accountStaking = AccountStakingLocal(
+            address = accountAddress,
+            stakingAccessInfo = ledgerWithController?.let {
+                AccountStakingLocal.AccessInfo(
+                    stashId = it.ledger.stashId,
+                    controllerId = it.controllerId
+                )
+            }
+        )
+
+        accountStakingDao.insert(accountStaking)
+    }
+
+    private suspend fun subscribeToLedger(controllerId: AccountId): Flow<LedgerWithController?> {
+        val runtime = runtimeProperty.get()
+
+        val key = runtime.metadata.staking().storage("Ledger").storageKey(runtime, controllerId)
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscriptionFlow(request)
             .map { it.storageChange().getSingleChange() }
             .map { change ->
                 if (change != null) {
-                    bindStakingLedger(change, runtimeProperty.get())
+                    val ledger = bindStakingLedger(change, runtimeProperty.get())
+
+                    LedgerWithController(ledger, controllerId)
                 } else {
-                    StakingLedger.empty(stashId)
+                    null
                 }
             }
     }
