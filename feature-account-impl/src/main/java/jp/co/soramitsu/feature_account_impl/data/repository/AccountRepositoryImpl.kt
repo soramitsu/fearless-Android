@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.mappers.mapKeyPairToSigningData
 import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.JsonFormer
@@ -88,7 +89,7 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun getDefaultNode(networkType: Node.NetworkType): Node {
-        return getNetworkForType(networkType).defaultNode
+        return mapNodeLocalToNode(nodeDao.getDefaultNodeFor(networkType.ordinal))
     }
 
     override suspend fun selectAccount(account: Account) {
@@ -475,7 +476,9 @@ class AccountRepositoryImpl(
     private suspend fun switchToAccount(account: Account) {
         selectAccount(account)
 
-        selectNode(account.network.defaultNode)
+        val defaultNode = getDefaultNode(account.address.networkType())
+
+        selectNode(defaultNode)
     }
 
     private suspend fun insertAccount(
@@ -505,10 +508,8 @@ class AccountRepositoryImpl(
         throw AccountAlreadyExistsException()
     }
 
-    private suspend fun getNetworkForType(networkType: Node.NetworkType): Network {
-        val defaultNode = nodeDao.getDefaultNodeFor(networkType.ordinal)
-
-        return Network(networkType, mapNodeLocalToNode(defaultNode))
+    private fun getNetworkForType(networkType: Node.NetworkType): Network {
+        return Network(networkType)
     }
 
     private fun mapNodeLocalToNode(it: NodeLocal): Node {

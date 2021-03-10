@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
@@ -216,7 +217,7 @@ class WalletRepositoryImpl(
         account: WalletAccount,
         todayResponse: SubscanResponse<AssetPriceStatistics>?,
         yesterdayResponse: SubscanResponse<AssetPriceStatistics>?
-    ) = assetCache.updateToken(account) { cached ->
+    ) = assetCache.updateToken(account.address.networkType()) { cached ->
         val todayStats = todayResponse?.content
         val yesterdayStats = yesterdayResponse?.content
 

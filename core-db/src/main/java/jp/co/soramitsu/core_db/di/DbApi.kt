@@ -31,5 +31,5 @@ interface DbApi {
 
     fun tokenDao(): TokenDao
 
-    fun accountStakingDao() : AccountStakingDao
+    fun accountStakingDao(): AccountStakingDao
 }

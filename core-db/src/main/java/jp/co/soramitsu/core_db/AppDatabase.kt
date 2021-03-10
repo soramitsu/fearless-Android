@@ -47,7 +47,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
         RuntimeCacheEntry::class,
         PhishingAddressLocal::class,
         StorageEntryLocal::class,
-        AccountStakingLocal::class,
+        AccountStakingLocal::class
     ])
 @TypeConverters(
     LongMathConverters::class,

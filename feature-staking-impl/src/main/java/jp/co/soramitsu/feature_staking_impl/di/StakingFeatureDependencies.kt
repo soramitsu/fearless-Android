@@ -47,5 +47,5 @@ interface StakingFeatureDependencies {
 
     fun assetCache(): AssetCache
 
-    fun accountStakingDao() : AccountStakingDao
+    fun accountStakingDao(): AccountStakingDao
 }

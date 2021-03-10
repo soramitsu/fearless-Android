@@ -1,8 +1,7 @@
 package jp.co.soramitsu.core.model
 
 data class Network(
-    val type: Node.NetworkType,
-    val defaultNode: Node
+    val type: Node.NetworkType
 ) {
     val name = type.readableName
 }

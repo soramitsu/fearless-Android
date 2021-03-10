@@ -15,6 +15,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
@@ -53,3 +54,5 @@ fun Module.numberConstant(name: String, runtimeSnapshot: RuntimeSnapshot) = bind
 fun Module.constantOrNull(name: String) = constants[name]
 
 fun RuntimeMetadata.staking() = module("Staking")
+
+fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())!!

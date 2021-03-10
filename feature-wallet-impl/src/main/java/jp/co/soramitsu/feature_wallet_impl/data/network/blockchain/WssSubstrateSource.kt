@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.data.network.runtime.calls.FeeCalculationRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.preBinder
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Node
@@ -29,7 +30,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
@@ -89,7 +89,7 @@ class WssSubstrateSource(
         )
     }
 
-    override suspend fun fetchAccountTransfersInBlock(blockHash: String, account: Account): Result<List<TransferExtrinsicWithStatus>> = runCatching {
+    override suspend fun fetchAccountTransfersInBlock(blockHash: String, accountAddress: String): Result<List<TransferExtrinsicWithStatus>> = runCatching {
         val blockRequest = GetBlockRequest(blockHash)
 
         val block = socketService.executeAsync(blockRequest, mapper = pojo<SignedBlock>().nonNull())
@@ -105,7 +105,7 @@ class WssSubstrateSource(
             .filter { it.phase is Phase.ApplyExtrinsic }
             .associateBy { (it.phase as Phase.ApplyExtrinsic).extrinsicId.toInt() }
 
-        filterAccountTransactions(account, block.block.extrinsics, statusesByExtrinsicId)
+        filterAccountTransactions(accountAddress, block.block.extrinsics, statusesByExtrinsicId)
     }
 
     private suspend fun buildSubmittableExtrinsic(
@@ -151,13 +151,13 @@ class WssSubstrateSource(
     }
 
     private suspend fun filterAccountTransactions(
-        account: Account,
+        accountAddress: String,
         extrinsics: List<String>,
         statuesByExtrinsicIndex: Map<Int, EventRecord<ExtrinsicStatusEvent>>
     ): List<TransferExtrinsicWithStatus> {
         return withContext(Dispatchers.Default) {
-            val currentPublicKey = account.address.toAccountId()
-            val transfersPalette = account.network.type.runtimeConfiguration.pallets.transfers
+            val currentPublicKey = accountAddress.toAccountId()
+            val transfersPalette = accountAddress.networkType().runtimeConfiguration.pallets.transfers
 
             extrinsics.mapIndexed { index, hex ->
                 val transferExtrinsic = extrinsicFactory.decode(hex)

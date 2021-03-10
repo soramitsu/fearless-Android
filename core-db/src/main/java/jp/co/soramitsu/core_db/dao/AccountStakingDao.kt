@@ -13,10 +13,10 @@ private const val SELECT_QUERY = "SELECT * FROM account_staking_accesses WHERE a
 abstract class AccountStakingDao {
 
     @Query(SELECT_QUERY)
-    abstract suspend fun get(address: String) : AccountStakingLocal
+    abstract suspend fun get(address: String): AccountStakingLocal
 
     @Query(SELECT_QUERY)
-    abstract fun observe(address: String) : Flow<AccountStakingLocal>
+    abstract fun observe(address: String): Flow<AccountStakingLocal>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insert(accountStaking: AccountStakingLocal)

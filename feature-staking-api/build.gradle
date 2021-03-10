@@ -20,7 +20,5 @@ android {
 dependencies {
     implementation coroutinesDep
 
-    api project(":feature-account-api")
-
     api project(':core-api')
 }
