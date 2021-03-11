@@ -19,8 +19,7 @@ class RootUpdater(
 ) {
 
     suspend fun listenForUpdates(): Flow<Updater.SideEffect> = withContext(Dispatchers.Default) {
-        // make sure runtime is available to other updaters, since they may use it to construct storage keys
-        runtimeUpdater.initFromCache()
+        runtimeUpdater.initFromCache() // make sure runtime is available to other updaters, since they may use it to construct storage keys
 
         val scopeFlows = updaters.groupBy(Updater::scope).map { (scope, scopeUpdaters) ->
             scope.invalidationFlow().flatMapLatest {

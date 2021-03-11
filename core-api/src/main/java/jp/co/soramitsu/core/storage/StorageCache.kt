@@ -1,8 +1,8 @@
 package jp.co.soramitsu.core.storage
 
-import java.math.BigInteger
 import jp.co.soramitsu.core.model.StorageEntry
 import kotlinx.coroutines.flow.Flow
+import java.math.BigInteger
 
 interface StorageCache {
 

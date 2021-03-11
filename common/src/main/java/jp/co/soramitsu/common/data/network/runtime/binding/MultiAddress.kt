@@ -1,8 +1,8 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
-import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.multiAddressFromId
+import java.math.BigInteger
 
 sealed class MultiAddress(val enumIndex: Int) {
     class Id(val value: ByteArray) : MultiAddress(0)

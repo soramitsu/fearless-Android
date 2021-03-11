@@ -1,12 +1,12 @@
 package jp.co.soramitsu.feature_staking_impl.domain.rewards
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumBy
-import kotlin.math.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import kotlin.math.pow
 
 private const val PARACHAINS_ENABLED = false
 
@@ -57,8 +57,7 @@ class RewardCalculator(
     }
 
     private fun calculateValidatorAPY(validator: RewardCalculationTarget): Double {
-        val yearlyRewardPercentage = averageValidatorRewardPercentage * averageValidatorStake /
-            validator.totalStake.toDouble()
+        val yearlyRewardPercentage = averageValidatorRewardPercentage * averageValidatorStake / validator.totalStake.toDouble()
 
         return yearlyRewardPercentage * (1 - validator.commission.toDouble())
     }
@@ -67,14 +66,12 @@ class RewardCalculator(
         return MINIMUM_INFLATION + if (stakedPortion in 0.0..STAKED_PORTION_IDEAL) {
             stakedPortion * (INTEREST_IDEAL - MINIMUM_INFLATION / STAKED_PORTION_IDEAL)
         } else {
-            (INTEREST_IDEAL * STAKED_PORTION_IDEAL - MINIMUM_INFLATION) *
-                2.0.pow((STAKED_PORTION_IDEAL - stakedPortion) / DECAY_RATE)
+            (INTEREST_IDEAL * STAKED_PORTION_IDEAL - MINIMUM_INFLATION) * 2.0.pow((STAKED_PORTION_IDEAL - stakedPortion) / DECAY_RATE)
         }
     }
 
     fun getApyFor(targetIdHex: String): BigDecimal {
-        return apyByValidator[targetIdHex]?.toBigDecimal()
-            ?: error("Validator $targetIdHex was not found")
+        return apyByValidator[targetIdHex]?.toBigDecimal() ?: error("Validator $targetIdHex was not found")
     }
 
     suspend fun calculateReturns(
@@ -93,8 +90,7 @@ class RewardCalculator(
         isCompound: Boolean,
         targetIdHex: String
     ) = withContext(Dispatchers.Default) {
-        val validatorAPY = apyByValidator[targetIdHex]
-            ?: error("Validator with $targetIdHex was not found")
+        val validatorAPY = apyByValidator[targetIdHex] ?: error("Validator with $targetIdHex was not found")
         val dailyPercentage = validatorAPY / DAYS_IN_YEAR
 
         calculateReward(amount, days, dailyPercentage, isCompound)

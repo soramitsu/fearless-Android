@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.di
 
-import javax.inject.Inject
 import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
@@ -9,6 +8,7 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.runtime.di.RuntimeApi
+import javax.inject.Inject
 
 @ApplicationScope
 class StakingFeatureHolder @Inject constructor(

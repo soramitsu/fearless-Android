@@ -8,7 +8,6 @@ import android.util.StateSet
 import android.view.View
 import android.widget.Checkable
 import androidx.constraintlayout.widget.ConstraintLayout
-import jp.co.soramitsu.common.R as RCommon
 import jp.co.soramitsu.common.utils.getPrimaryColor
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawableFromColors
@@ -19,6 +18,7 @@ import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmount
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetChecked
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetDescription
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetName
+import jp.co.soramitsu.common.R as RCommon
 
 private val CheckedStateSet = intArrayOf(android.R.attr.state_checked)
 

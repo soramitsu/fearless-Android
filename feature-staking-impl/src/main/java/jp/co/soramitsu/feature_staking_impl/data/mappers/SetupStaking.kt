@@ -8,12 +8,7 @@ fun mapRewardDestinationModelToRewardDestination(
     rewardDestinationModel: RewardDestinationModel
 ): RewardDestination {
     return when (rewardDestinationModel) {
-        is RewardDestinationModel.Restake -> {
-            RewardDestination.Restake
-        }
-
-        is RewardDestinationModel.Payout -> {
-            RewardDestination.Payout(rewardDestinationModel.destination.address.toAccountId())
-        }
+        is RewardDestinationModel.Restake -> RewardDestination.Restake
+        is RewardDestinationModel.Payout -> RewardDestination.Payout(rewardDestinationModel.destination.address.toAccountId())
     }
 }

@@ -115,17 +115,9 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         val transaction = viewModel.transaction
 
         when (externalActionsSource) {
-            ExternalActionsSource.TRANSACTION_HASH -> {
-                showExternalTransactionActions()
-            }
-
-            ExternalActionsSource.FROM_ADDRESS -> {
-                showExternalAddressActions(R.string.transaction_details_from, transaction.senderAddress)
-            }
-
-            ExternalActionsSource.TO_ADDRESS -> {
-                showExternalAddressActions(R.string.choose_amount_to, transaction.recipientAddress)
-            }
+            ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
+            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(R.string.transaction_details_from, transaction.senderAddress)
+            ExternalActionsSource.TO_ADDRESS -> showExternalAddressActions(R.string.choose_amount_to, transaction.recipientAddress)
         }
     }
 
@@ -164,10 +156,10 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         )
 
         ExternalActionsSheet(
-            context = requireContext(),
-            payload = payload,
-            onCopy = viewModel::copyStringClicked,
-            onViewExternal = externalViewCallback
+                context = requireContext(),
+                payload = payload,
+                onCopy = viewModel::copyStringClicked,
+                onViewExternal = externalViewCallback
         )
             .show()
     }

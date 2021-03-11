@@ -54,12 +54,7 @@ class PinCodeModule {
     }
 
     @Provides
-    fun provideFingerprintWrapper(
-        fragment: Fragment,
-        context: Context,
-        resourceManager: ResourceManager,
-        fingerprintListener: FingerprintCallback
-    ): FingerprintWrapper {
+    fun provideFingerprintWrapper(fragment: Fragment, context: Context, resourceManager: ResourceManager, fingerprintListener: FingerprintCallback): FingerprintWrapper {
         val biometricManager = BiometricManager.from(context)
         val biometricPrompt = BiometricPrompt(fragment, MainThreadExecutor(), fingerprintListener)
         val promptInfo = BiometricPrompt.PromptInfo.Builder()

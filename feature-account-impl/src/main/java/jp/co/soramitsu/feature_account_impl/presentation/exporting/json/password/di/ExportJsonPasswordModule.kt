@@ -27,10 +27,7 @@ class ExportJsonPasswordModule {
     }
 
     @Provides
-    fun provideViewModelCreator(
-        fragment: Fragment,
-        viewModelFactory: ViewModelProvider.Factory
-    ): ExportJsonPasswordViewModel {
+    fun provideViewModelCreator(fragment: Fragment, viewModelFactory: ViewModelProvider.Factory): ExportJsonPasswordViewModel {
         return ViewModelProvider(fragment, viewModelFactory).get(ExportJsonPasswordViewModel::class.java)
     }
 }

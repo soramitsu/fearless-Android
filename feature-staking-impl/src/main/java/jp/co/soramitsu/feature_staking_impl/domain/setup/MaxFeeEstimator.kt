@@ -1,7 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.domain.setup
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
@@ -12,6 +10,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class MaxFeeEstimator(
     private val substrateCalls: SubstrateCalls,

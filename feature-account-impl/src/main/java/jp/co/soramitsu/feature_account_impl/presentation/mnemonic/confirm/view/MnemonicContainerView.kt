@@ -20,11 +20,7 @@ class MnemonicContainerView @JvmOverloads constructor(
         private const val ANIMATION_DURATION = 200L
     }
 
-    private val wordMargin = TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP,
-        WORD_MARGIN_DP,
-        resources.displayMetrics
-    ).toInt()
+    private val wordMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, WORD_MARGIN_DP, resources.displayMetrics).toInt()
 
     private val elements = mutableListOf<Element>()
 
@@ -111,31 +107,18 @@ class MnemonicContainerView @JvmOverloads constructor(
             val lastView = lastElement.wordView
 
             val lastViewTop = (lastView.layoutParams as LayoutParams).topMargin
-            val lastChildRight = (lastView.layoutParams as LayoutParams).leftMargin +
-                lastView.measuredWidth + wordMargin
+            val lastChildRight = (lastView.layoutParams as LayoutParams).leftMargin + lastView.measuredWidth + wordMargin
 
             val freeSpace = width - lastChildRight
             val wordSpace = mnemonicWordView.measuredWidth + wordMargin * 2
 
             if (freeSpace > wordSpace) {
                 val leftMargin = lastChildRight + wordMargin
-                (mnemonicWordView.layoutParams as LayoutParams).setMargins(
-                    leftMargin,
-                    lastViewTop,
-                    wordMargin,
-                    wordMargin
-                )
+                (mnemonicWordView.layoutParams as LayoutParams).setMargins(leftMargin, lastViewTop, wordMargin, wordMargin)
                 elements.add(Element(mnemonicWordView, lastElement.line))
             } else {
-                val lastViewBottom = (lastView.layoutParams as LayoutParams).topMargin +
-                    lastView.measuredHeight + wordMargin
-                (mnemonicWordView.layoutParams as LayoutParams)
-                    .setMargins(
-                        wordMargin,
-                        lastViewBottom + wordMargin,
-                        wordMargin,
-                        wordMargin
-                    )
+                val lastViewBottom = (lastView.layoutParams as LayoutParams).topMargin + lastView.measuredHeight + wordMargin
+                (mnemonicWordView.layoutParams as LayoutParams).setMargins(wordMargin, lastViewBottom + wordMargin, wordMargin, wordMargin)
                 elements.add(Element(mnemonicWordView, lastElement.line + 1))
             }
         }
@@ -178,28 +161,16 @@ class MnemonicContainerView @JvmOverloads constructor(
             for (i in previousLineElementIndex until nextLineElementIndex) {
                 val currentElement = elements[i]
                 val previousElement = elements.getOrNull(i - 1)
-                val shouldStartNewLine = previousElement?.let { it.line < currentElement.line }
-                    ?: true
+                val shouldStartNewLine = previousElement?.let { it.line < currentElement.line } ?: true
                 if (shouldStartNewLine) {
                     val viewLeft = wordMargin + dividedSpace
                     val viewRight = wordMargin + dividedSpace + currentElement.wordView.width
-                    currentElement.wordView.layout(
-                        viewLeft.toInt(),
-                        currentElement.wordView.top,
-                        viewRight.toInt(),
-                        currentElement.wordView.bottom
-                    )
+                    currentElement.wordView.layout(viewLeft.toInt(), currentElement.wordView.top, viewRight.toInt(), currentElement.wordView.bottom)
                 } else {
                     val viewLeft = previousElement!!.wordView.right + wordMargin + wordMargin
-                    val viewRight = previousElement.wordView.right + wordMargin + wordMargin +
-                        currentElement.wordView.width
+                    val viewRight = previousElement.wordView.right + wordMargin + wordMargin + currentElement.wordView.width
 
-                    currentElement.wordView.layout(
-                        viewLeft,
-                        currentElement.wordView.top,
-                        viewRight,
-                        currentElement.wordView.bottom
-                    )
+                    currentElement.wordView.layout(viewLeft, currentElement.wordView.top, viewRight, currentElement.wordView.bottom)
                 }
             }
 

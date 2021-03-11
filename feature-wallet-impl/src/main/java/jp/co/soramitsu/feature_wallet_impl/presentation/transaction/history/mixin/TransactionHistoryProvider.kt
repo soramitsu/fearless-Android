@@ -120,10 +120,7 @@ class TransactionHistoryProvider(
         currentPage--
     }
 
-    private suspend fun transformNewPage(
-        page: List<Transaction>,
-        reset: Boolean
-    ): List<Any> = withContext(Dispatchers.Default) {
+    private suspend fun transformNewPage(page: List<Transaction>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
         val transactions = page.map(::mapTransactionToTransactionModel)
 
         val filteredHistoryElements = transactions.map { transaction ->

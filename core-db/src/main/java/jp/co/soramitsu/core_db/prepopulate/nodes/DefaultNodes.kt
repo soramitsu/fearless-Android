@@ -1,7 +1,7 @@
 package jp.co.soramitsu.core_db.prepopulate.nodes
 
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core.model.Node
 
 class DefaultNodes {
 
@@ -44,7 +44,6 @@ class DefaultNodes {
 
     val prepopulateQuery = "insert into nodes (name, link, networkType, isDefault) values " +
         DEFAULT_NODES_LIST.joinToString {
-            node ->
-            "('${node.name}', '${node.link}', ${node.networkType}, ${if (node.isDefault) 1 else 0})"
+            node -> "('${node.name}', '${node.link}', ${node.networkType}, ${if (node.isDefault) 1 else 0})"
         }
 }

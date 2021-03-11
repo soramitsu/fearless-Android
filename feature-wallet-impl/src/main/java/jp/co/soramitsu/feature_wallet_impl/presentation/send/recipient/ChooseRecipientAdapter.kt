@@ -70,9 +70,7 @@ class RecipientHolder(view: View) : GroupedListHolder(view) {
     }
 }
 
-private object RecipientsDiffCallback :
-    BaseGroupedDiffCallback<ContactsHeader, AddressModel>(ContactsHeader::class.java) {
-
+private object RecipientsDiffCallback : BaseGroupedDiffCallback<ContactsHeader, AddressModel>(ContactsHeader::class.java) {
     override fun areGroupItemsTheSame(oldItem: ContactsHeader, newItem: ContactsHeader): Boolean {
         return oldItem.title == newItem.title
     }

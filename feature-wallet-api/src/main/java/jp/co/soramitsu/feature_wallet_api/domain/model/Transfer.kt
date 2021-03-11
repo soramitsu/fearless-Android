@@ -21,21 +21,10 @@ class Transfer(
         val existentialDeposit = tokenType.networkType.runtimeConfiguration.existentialDeposit
 
         return when {
-            transactionTotal > senderTransferable -> {
-                TransferValidityLevel.Error.Status.NotEnoughFunds
-            }
-
-            recipientBalance + amount < existentialDeposit -> {
-                TransferValidityLevel.Error.Status.DeadRecipient
-            }
-
-            senderTotal - transactionTotal < existentialDeposit -> {
-                TransferValidityLevel.Warning.Status.WillRemoveAccount
-            }
-
-            else -> {
-                TransferValidityLevel.Ok
-            }
+            transactionTotal > senderTransferable -> TransferValidityLevel.Error.Status.NotEnoughFunds
+            recipientBalance + amount < existentialDeposit -> TransferValidityLevel.Error.Status.DeadRecipient
+            senderTotal - transactionTotal < existentialDeposit -> TransferValidityLevel.Warning.Status.WillRemoveAccount
+            else -> TransferValidityLevel.Ok
         }
     }
 }

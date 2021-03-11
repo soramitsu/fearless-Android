@@ -3,7 +3,6 @@ package jp.co.soramitsu.common.di
 import android.content.ContentResolver
 import android.content.Context
 import com.google.gson.Gson
-import java.util.Random
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
@@ -29,6 +28,7 @@ import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
+import java.util.Random
 
 interface CommonApi {
 

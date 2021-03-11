@@ -20,9 +20,7 @@ import kotlinx.android.synthetic.main.fragment_recommended_validators.recommende
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsProgress
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsToolbar
 
-class RecommendedValidatorsFragment :
-    BaseFragment<RecommendedValidatorsViewModel>(),
-    ValidatorsAdapter.ItemAssetHandler {
+class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewModel>(), ValidatorsAdapter.ItemAssetHandler {
 
     lateinit var adapter: ValidatorsAdapter
 

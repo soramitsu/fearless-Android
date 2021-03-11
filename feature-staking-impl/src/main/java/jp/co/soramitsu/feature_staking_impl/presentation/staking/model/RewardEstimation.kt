@@ -1,10 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.model
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import java.math.BigDecimal
 
 class RewardEstimation(
     _amount: BigDecimal,

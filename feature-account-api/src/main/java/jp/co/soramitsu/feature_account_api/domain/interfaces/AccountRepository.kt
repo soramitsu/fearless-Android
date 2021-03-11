@@ -114,12 +114,7 @@ interface AccountRepository {
 
     suspend fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType)
 
-    suspend fun updateNode(
-        nodeId: Int,
-        newName: String,
-        newHost: String,
-        networkType: Node.NetworkType
-    )
+    suspend fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType)
 
     suspend fun checkNodeExists(nodeHost: String): Boolean
 

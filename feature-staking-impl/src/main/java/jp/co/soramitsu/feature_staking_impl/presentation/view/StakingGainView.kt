@@ -7,8 +7,8 @@ import android.widget.LinearLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_staking_gain.view.stakingGainAssetRateChange
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingGainFiat
+import kotlinx.android.synthetic.main.view_staking_gain.view.stakingGainAssetRateChange
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingGainTitle
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingGainValue
 

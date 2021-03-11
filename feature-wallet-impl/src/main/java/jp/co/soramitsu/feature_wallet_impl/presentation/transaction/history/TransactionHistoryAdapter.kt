@@ -82,9 +82,7 @@ class DayHolder(view: View) : GroupedListHolder(view) {
     }
 }
 
-object TransactionHistoryDiffCallback :
-    BaseGroupedDiffCallback<DayHeader, TransactionHistoryElement>(DayHeader::class.java) {
-
+object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, TransactionHistoryElement>(DayHeader::class.java) {
     override fun areGroupItemsTheSame(oldItem: DayHeader, newItem: DayHeader): Boolean {
         return oldItem.daysSinceEpoch == oldItem.daysSinceEpoch
     }
@@ -93,17 +91,11 @@ object TransactionHistoryDiffCallback :
         return true
     }
 
-    override fun areChildItemsTheSame(
-        oldItem: TransactionHistoryElement,
-        newItem: TransactionHistoryElement
-    ): Boolean {
+    override fun areChildItemsTheSame(oldItem: TransactionHistoryElement, newItem: TransactionHistoryElement): Boolean {
         return oldItem.transactionModel.hash == newItem.transactionModel.hash
     }
 
-    override fun areChildContentsTheSame(
-        oldItem: TransactionHistoryElement,
-        newItem: TransactionHistoryElement
-    ): Boolean {
+    override fun areChildContentsTheSame(oldItem: TransactionHistoryElement, newItem: TransactionHistoryElement): Boolean {
         return oldItem.transactionModel == newItem.transactionModel
     }
 }

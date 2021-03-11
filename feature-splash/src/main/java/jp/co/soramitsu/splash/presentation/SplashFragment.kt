@@ -4,12 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.splash.R
 import jp.co.soramitsu.splash.di.SplashFeatureApi
 import jp.co.soramitsu.splash.di.SplashFeatureComponent
+import javax.inject.Inject
 
 class SplashFragment : BaseFragment<SplashViewModel>() {
 

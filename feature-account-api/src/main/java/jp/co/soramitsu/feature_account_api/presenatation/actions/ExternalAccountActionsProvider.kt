@@ -34,11 +34,7 @@ class ExternalAccountActionsProvider(
         messageShower.invoke(message)
     }
 
-    override fun viewExternalClicked(
-        analyzer: ExternalAnalyzer,
-        address: String,
-        networkType: Node.NetworkType
-    ) {
+    override fun viewExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: Node.NetworkType) {
         val url = appLinksProvider.getExternalAddressUrl(analyzer, address, networkType)
 
         openBrowserEvent.value = Event(url)

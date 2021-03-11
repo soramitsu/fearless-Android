@@ -67,9 +67,7 @@ class NodesViewModel(
 
     fun selectNodeClicked(nodeModel: NodeModel) {
         viewModelScope.launch {
-            val (accounts, selectedNode) = interactor.getAccountsByNetworkTypeWithSelectedNode(
-                nodeModel.networkModelType.networkType
-            )
+            val (accounts, selectedNode) = interactor.getAccountsByNetworkTypeWithSelectedNode(nodeModel.networkModelType.networkType)
 
             handleAccountsForNetwork(nodeModel, selectedNode, accounts)
         }
@@ -101,27 +99,12 @@ class NodesViewModel(
         return addressIconGenerator.createAddressModel(account.address, ICON_IN_DP)
     }
 
-    private fun handleAccountsForNetwork(
-        nodeModel: NodeModel,
-        selectedNode: Node,
-        accounts: List<Account>
-    ) {
+    private fun handleAccountsForNetwork(nodeModel: NodeModel, selectedNode: Node, accounts: List<Account>) {
         when {
-            accounts.isEmpty() -> {
-                _noAccountsEvent.value = Event(nodeModel.networkModelType.networkType)
-            }
-
-            accounts.size == 1 -> {
-                selectAccountForNode(nodeModel.id, accounts.first().address)
-            }
-
-            selectedNode.networkType == nodeModel.networkModelType.networkType -> {
-                selectNodeWithCurrentAccount(nodeModel.id)
-            }
-
-            else -> {
-                showAccountChooser(nodeModel, accounts)
-            }
+            accounts.isEmpty() -> _noAccountsEvent.value = Event(nodeModel.networkModelType.networkType)
+            accounts.size == 1 -> selectAccountForNode(nodeModel.id, accounts.first().address)
+            selectedNode.networkType == nodeModel.networkModelType.networkType -> selectNodeWithCurrentAccount(nodeModel.id)
+            else -> showAccountChooser(nodeModel, accounts)
         }
     }
 
@@ -133,10 +116,7 @@ class NodesViewModel(
         }
     }
 
-    private suspend fun generateAccountModels(
-        nodeModel: NodeModel,
-        accounts: List<Account>
-    ): List<AccountByNetworkModel> {
+    private suspend fun generateAccountModels(nodeModel: NodeModel, accounts: List<Account>): List<AccountByNetworkModel> {
         return withContext(Dispatchers.Default) {
             accounts.map { mapAccountToAccountModel(nodeModel.id, it) }
         }

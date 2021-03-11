@@ -118,10 +118,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
             action = Intent.ACTION_GET_CONTENT
         }
 
-        startActivityForResult(
-            Intent.createChooser(intent, getString(R.string.common_options_title)),
-            PICK_IMAGE_REQUEST
-        )
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.common_options_title)), PICK_IMAGE_REQUEST)
     }
 
     private fun initiateCameraScanner() {

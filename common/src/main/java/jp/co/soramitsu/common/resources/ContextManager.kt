@@ -1,11 +1,11 @@
 package jp.co.soramitsu.common.resources
 
 import android.content.Context
-import java.util.Locale
-import javax.inject.Singleton
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.di.modules.SHARED_PREFERENCES_FILE
 import jp.co.soramitsu.common.utils.SingletonHolder
+import java.util.Locale
+import javax.inject.Singleton
 
 @Singleton
 class ContextManager private constructor(

@@ -1,9 +1,9 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.model
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.utils.isNonNegative
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.R
+import java.math.BigDecimal
 
 class TokenModel(
     val type: Token.Type,

@@ -22,8 +22,7 @@ fun stakingValidationFailure(
             is StakingValidationFailure.TooSmallAmount -> {
                 val formattedThreshold = reason.threshold.formatWithDefaultPrecision(payload.tokenType)
 
-                getString(R.string.common_amount_low) to
-                    getString(R.string.staking_setup_amount_too_low, formattedThreshold)
+                getString(R.string.common_amount_low) to getString(R.string.staking_setup_amount_too_low, formattedThreshold)
             }
         }
     }

@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import java.math.BigDecimal
 import jp.co.soramitsu.common.list.PayloadGenerator
 import jp.co.soramitsu.common.list.resolvePayload
 import jp.co.soramitsu.common.utils.format
@@ -27,6 +26,7 @@ import kotlinx.android.synthetic.main.item_asset.view.itemAssetNetwork
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetRate
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetRateChange
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetToken
+import java.math.BigDecimal
 
 val dollarRateExtractor = { assetModel: AssetModel -> assetModel.token.dollarRate }
 val recentChangeExtractor = { assetModel: AssetModel -> assetModel.token.recentRateChange }
@@ -51,11 +51,7 @@ class BalanceListAdapter(
         holder.bind(item, itemHandler)
     }
 
-    override fun onBindViewHolder(
-        holder: AssetViewHolder,
-        position: Int,
-        payloads: MutableList<Any>
-    ) {
+    override fun onBindViewHolder(holder: AssetViewHolder, position: Int, payloads: MutableList<Any>) {
         val item = getItem(position)
 
         resolvePayload(holder, position, payloads) {

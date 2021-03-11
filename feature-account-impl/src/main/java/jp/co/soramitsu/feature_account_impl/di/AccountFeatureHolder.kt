@@ -1,11 +1,11 @@
 package jp.co.soramitsu.feature_account_impl.di
 
-import javax.inject.Inject
 import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import javax.inject.Inject
 
 @ApplicationScope
 class AccountFeatureHolder @Inject constructor(

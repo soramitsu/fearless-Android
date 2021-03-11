@@ -35,10 +35,7 @@ class CreateAccountModule {
     }
 
     @Provides
-    fun provideViewModelCreator(
-        fragment: Fragment,
-        viewModelFactory: ViewModelProvider.Factory
-    ): CreateAccountViewModel {
+    fun provideViewModelCreator(fragment: Fragment, viewModelFactory: ViewModelProvider.Factory): CreateAccountViewModel {
         return ViewModelProvider(fragment, viewModelFactory).get(CreateAccountViewModel::class.java)
     }
 }

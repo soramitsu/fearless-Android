@@ -4,8 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -31,8 +29,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChe
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -43,6 +39,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import kotlin.time.ExperimentalTime
+import kotlin.time.milliseconds
 
 private const val AVATAR_SIZE_DP = 24
 
@@ -64,8 +64,7 @@ class ChooseAmountViewModel(
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
-    PhishingWarningMixin by phishingAddress,
-    PhishingWarningPresentation {
+    PhishingWarningMixin by phishingAddress, PhishingWarningPresentation {
 
     val recipientModelLiveData = liveData {
         emit(generateAddressModel(recipientAddress))
@@ -103,19 +102,12 @@ class ChooseAmountViewModel(
         checkingEnoughFundsLiveData,
         amountRawLiveData,
         minimumPossibleAmountLiveData
-    ) { (feeLoading: Boolean, fee: Fee?, funds: Boolean, raw: String, minPossibleAmount: BigDecimal) ->
+    ) { (feeLoading: Boolean, fee: Fee?, checkingFunds: Boolean, amountRaw: String, minimumPossibleAmount: BigDecimal) ->
         when {
-            feeLoading || funds -> {
-                ButtonState.PROGRESS
-            }
-
-            fee != null && fee.transferAmount >= minPossibleAmount && raw.isNotEmpty() -> {
-                ButtonState.NORMAL
-            }
-
-            else -> {
-                ButtonState.DISABLED
-            }
+            feeLoading || checkingFunds -> ButtonState.PROGRESS
+            fee != null && fee.transferAmount >= minimumPossibleAmount
+                && amountRaw.isNotEmpty() -> ButtonState.NORMAL
+            else -> ButtonState.DISABLED
         }
     }
 

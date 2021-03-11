@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Data as DataType
 
 sealed class Data {

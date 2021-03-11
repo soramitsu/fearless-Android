@@ -1,9 +1,9 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
-import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
+import java.math.BigInteger
 
 /*
 "ActiveEraInfo": {

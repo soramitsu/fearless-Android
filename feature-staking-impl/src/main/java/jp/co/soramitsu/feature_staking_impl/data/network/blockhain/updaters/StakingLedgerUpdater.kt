@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.sumBy
@@ -30,6 +29,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import java.math.BigInteger
 
 class LedgerWithController(
     val ledger: StakingLedger,

@@ -108,13 +108,7 @@ class ConfirmMnemonicViewModel(
             val mnemonicString = originMnemonic.joinToString(" ")
 
             with(extras) {
-                val result = interactor.createAccount(
-                    accountName,
-                    mnemonicString,
-                    cryptoType,
-                    derivationPath,
-                    networkType
-                )
+                val result = interactor.createAccount(accountName, mnemonicString, cryptoType, derivationPath, networkType)
 
                 if (result.isSuccess) {
                     continueBasedOnCodeStatus()

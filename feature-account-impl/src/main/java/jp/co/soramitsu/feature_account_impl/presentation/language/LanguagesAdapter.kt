@@ -38,11 +38,7 @@ class LanguagesAdapter(
     }
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): LanguageViewHolder {
-        return LanguageViewHolder(
-            LayoutInflater
-                .from(viewGroup.context)
-                .inflate(R.layout.item_language, viewGroup, false)
-        )
+        return LanguageViewHolder(LayoutInflater.from(viewGroup.context).inflate(R.layout.item_language, viewGroup, false))
     }
 
     override fun onBindViewHolder(languageViewHolder: LanguageViewHolder, position: Int) {
@@ -58,11 +54,7 @@ class LanguageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val languageNameTv: TextView = itemView.findViewById(R.id.languageNameTv)
     private val languageNativeNameTv: TextView = itemView.findViewById(R.id.languageNativeNameTv)
 
-    fun bind(
-        language: LanguageModel,
-        handler: LanguagesAdapter.LanguagesItemHandler,
-        isChecked: Boolean
-    ) {
+    fun bind(language: LanguageModel, handler: LanguagesAdapter.LanguagesItemHandler, isChecked: Boolean) {
         with(itemView) {
             languageNameTv.text = language.displayName
             languageNativeNameTv.text = language.nativeDisplayName

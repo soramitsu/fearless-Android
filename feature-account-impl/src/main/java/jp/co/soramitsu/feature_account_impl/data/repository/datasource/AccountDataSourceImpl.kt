@@ -112,10 +112,7 @@ class AccountDataSourceImpl(
         jsonMapper.fromJson(raw, Node::class.java)
     }
 
-    override suspend fun saveSecuritySource(
-        accountAddress: String,
-        source: SecuritySource
-    ) = withContext(Dispatchers.Default) {
+    override suspend fun saveSecuritySource(accountAddress: String, source: SecuritySource) = withContext(Dispatchers.Default) {
         val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
         val signingData = source.signingData
@@ -228,8 +225,7 @@ class AccountDataSourceImpl(
 
         async {
             if (preferences.contains(PREFS_SELECTED_NODE)) {
-                val selectedNode = getSelectedNode()
-                    ?: throw IllegalArgumentException("No node selected")
+                val selectedNode = getSelectedNode() ?: throw IllegalArgumentException("No node selected")
                 flow.emit(selectedNode)
             }
         }

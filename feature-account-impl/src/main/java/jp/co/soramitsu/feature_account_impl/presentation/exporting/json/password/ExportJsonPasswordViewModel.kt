@@ -27,16 +27,11 @@ class ExportJsonPasswordViewModel(
 
     val networkTypeLiveData = accountLiveData.map { mapNetworkTypeToNetworkModel(it.network.type) }
 
-    val showDoNotMatchingErrorLiveData = passwordLiveData.combine(
-        passwordConfirmationLiveData
-    ) { password, confirmation ->
+    val showDoNotMatchingErrorLiveData = passwordLiveData.combine(passwordConfirmationLiveData) { password, confirmation ->
         confirmation.isNotBlank() && confirmation != password
     }
 
-    val nextEnabled = passwordLiveData.combine(
-        passwordConfirmationLiveData,
-        initial = false
-    ) { password, confirmation ->
+    val nextEnabled = passwordLiveData.combine(passwordConfirmationLiveData, initial = false) { password, confirmation ->
         password.isNotBlank() && confirmation.isNotBlank() && password == confirmation
     }
 

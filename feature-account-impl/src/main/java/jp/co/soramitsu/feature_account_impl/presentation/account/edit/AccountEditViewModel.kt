@@ -10,9 +10,9 @@ import jp.co.soramitsu.feature_account_impl.data.mappers.mapAccountModelToAccoun
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
+import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlinx.coroutines.launch
 
 data class UnsyncedSwapPayload(val newState: List<Any>, val from: Int, val to: Int)
 
@@ -94,6 +94,5 @@ private fun isSwapable(fromElement: Any, toElement: Any): Boolean {
         returns(true) implies (fromElement is AccountModel && toElement is AccountModel)
     }
 
-    return fromElement is AccountModel && toElement is AccountModel &&
-        fromElement.network.type == toElement.network.type
+    return fromElement is AccountModel && toElement is AccountModel && fromElement.network.type == toElement.network.type
 }

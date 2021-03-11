@@ -44,19 +44,9 @@ class ValidatorIdentityItemView @JvmOverloads constructor(
 
     fun changeArrowVisibility(visible: Boolean) {
         if (visible) {
-            validatorIdentityBody.setCompoundDrawablesWithIntrinsicBounds(
-                0,
-                0,
-                R.drawable.ic_arrow_top_right_white_16,
-                0
-            )
+            validatorIdentityBody.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_arrow_top_right_white_16, 0)
         } else {
-            validatorIdentityBody.setCompoundDrawablesWithIntrinsicBounds(
-                0,
-                0,
-                0,
-                0
-            )
+            validatorIdentityBody.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
         }
     }
 }

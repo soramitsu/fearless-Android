@@ -46,10 +46,7 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
         }
 
         updateBtn.setOnClickListener {
-            viewModel.updateClicked(
-                nodeDetailsNameField.content.text.toString(),
-                nodeDetailsHostField.content.text.toString()
-            )
+            viewModel.updateClicked(nodeDetailsNameField.content.text.toString(), nodeDetailsHostField.content.text.toString())
         }
     }
 

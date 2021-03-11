@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.core.model.Node
@@ -22,6 +21,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 class StakingInteractor(
     private val walletRepository: WalletRepository,

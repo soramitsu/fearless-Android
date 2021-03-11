@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.runtime.RuntimePreparationStatus
 import jp.co.soramitsu.runtime.RuntimeUpdateRetry
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
@@ -26,6 +25,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlin.coroutines.EmptyCoroutineContext
 
 class RootViewModel(
     private val interactor: RootInteractor,

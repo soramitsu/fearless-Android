@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -45,6 +44,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 private const val DESTINATION_SIZE_DP = 24
 
@@ -60,8 +60,7 @@ class ConfirmStakingViewModel(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory
 ) : BaseViewModel(),
-    Retriable,
-    Validatable,
+    Retriable, Validatable,
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
 
@@ -234,13 +233,11 @@ class ConfirmStakingViewModel(
     )
 
     private fun showValidationFailedToComplete() {
-        retryEvent.value = Event(
-            RetryPayload(
-                title = resourceManager.getString(R.string.choose_amount_network_error),
-                message = resourceManager.getString(R.string.choose_amount_error_balance),
-                onRetry = ::sendTransactionIfValid
-            )
-        )
+        retryEvent.value = Event(RetryPayload(
+            title = resourceManager.getString(R.string.choose_amount_network_error),
+            message = resourceManager.getString(R.string.choose_amount_error_balance),
+            onRetry = ::sendTransactionIfValid
+        ))
     }
 
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {

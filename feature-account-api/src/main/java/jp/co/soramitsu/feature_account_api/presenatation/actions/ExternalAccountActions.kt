@@ -15,11 +15,7 @@ interface ExternalAccountActions : Browserable {
 
     val showExternalActionsEvent: LiveData<Event<Payload>>
 
-    fun viewExternalClicked(
-        analyzer: ExternalAnalyzer,
-        address: String,
-        networkType: Node.NetworkType
-    )
+    fun viewExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: Node.NetworkType)
 
     fun copyAddress(address: String, messageShower: (message: String) -> Unit)
 

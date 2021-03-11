@@ -1,9 +1,9 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
-import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericEvent
+import java.math.BigInteger
 
 class EventRecord<E>(val phase: Phase, val event: E)
 

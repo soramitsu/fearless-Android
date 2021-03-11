@@ -60,12 +60,8 @@ class BalanceListViewModel(
 
     fun sync() {
         viewModelScope.launch {
-            val deferredAssetSync = async(Dispatchers.Default) {
-                interactor.syncAssetsRates()
-            }
-            val deferredTransactionsSync = async(Dispatchers.Default) {
-                transactionHistoryMixin.syncFirstTransactionsPage()
-            }
+            val deferredAssetSync = async(Dispatchers.Default) { interactor.syncAssetsRates() }
+            val deferredTransactionsSync = async(Dispatchers.Default) { transactionHistoryMixin.syncFirstTransactionsPage() }
 
             val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
 

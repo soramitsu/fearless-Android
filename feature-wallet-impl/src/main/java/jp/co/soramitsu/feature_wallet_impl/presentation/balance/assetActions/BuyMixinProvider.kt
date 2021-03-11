@@ -16,8 +16,7 @@ class BuyMixinProvider(
     override fun buyEnabled(token: Token.Type): Boolean = buyTokenRegistry.findBestProvider(token) != null
 
     override fun startBuyProcess(token: Token.Type, address: String) {
-        val bestProvider = buyTokenRegistry.findBestProvider(token)
-            ?: throw IllegalArgumentException("No provider found for ${tokenSource!!.value}")
+        val bestProvider = buyTokenRegistry.findBestProvider(token) ?: throw IllegalArgumentException("No provider found for ${tokenSource!!.value}")
 
         val payload = BuyMixin.Payload(
             provider = bestProvider,

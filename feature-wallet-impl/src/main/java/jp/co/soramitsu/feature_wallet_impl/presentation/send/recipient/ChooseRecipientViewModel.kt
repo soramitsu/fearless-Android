@@ -21,7 +21,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.ap
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +28,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.ExperimentalTime
 
 private const val ICON_SIZE_IN_DP = 24
 
@@ -47,8 +47,7 @@ class ChooseRecipientViewModel(
     private val qrBitmapDecoder: QrBitmapDecoder,
     private val phishingWarning: PhishingWarningMixin
 ) : BaseViewModel(),
-    PhishingWarningMixin by phishingWarning,
-    PhishingWarningPresentation {
+    PhishingWarningMixin by phishingWarning, PhishingWarningPresentation {
 
     private val searchEvents = MutableStateFlow(INITIAL_QUERY)
 
@@ -149,14 +148,8 @@ class ChooseRecipientViewModel(
         val searchResult = interactor.getRecipients(address)
 
         val resultWithHeader = maybeAppendResultHeader(isValidAddress, address)
-        val myAccountsWithHeader = generateAccountModelsWithHeader(
-            R.string.search_header_my_accounts,
-            searchResult.myAccounts
-        )
-        val contactsWithHeader = generateAddressModelsWithHeader(
-            R.string.search_contacts,
-            searchResult.contacts
-        )
+        val myAccountsWithHeader = generateAccountModelsWithHeader(R.string.search_header_my_accounts, searchResult.myAccounts)
+        val contactsWithHeader = generateAddressModelsWithHeader(R.string.search_contacts, searchResult.contacts)
 
         val result = resultWithHeader + myAccountsWithHeader + contactsWithHeader
 
@@ -169,19 +162,13 @@ class ChooseRecipientViewModel(
         return generateAddressModelsWithHeader(R.string.search_result_header, listOf(address))
     }
 
-    private suspend fun generateAccountModelsWithHeader(
-        @StringRes headerRes: Int,
-        accounts: List<WalletAccount>
-    ): List<Any> {
+    private suspend fun generateAccountModelsWithHeader(@StringRes headerRes: Int, accounts: List<WalletAccount>): List<Any> {
         val models = accounts.map { generateAddressModel(it.address, it.name) }
 
         return maybeAppendHeader(headerRes, models)
     }
 
-    private suspend fun generateAddressModelsWithHeader(
-        @StringRes headerRes: Int,
-        addresses: List<String>
-    ): List<Any> {
+    private suspend fun generateAddressModelsWithHeader(@StringRes headerRes: Int, addresses: List<String>): List<Any> {
         val models = addresses.map { generateAddressModel(it) }
 
         return maybeAppendHeader(headerRes, models)

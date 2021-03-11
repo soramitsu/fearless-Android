@@ -1,8 +1,8 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import jp.co.soramitsu.core.model.Node
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.core.model.Node
 
 private const val DEFAULT_MANTISSA = 12
 

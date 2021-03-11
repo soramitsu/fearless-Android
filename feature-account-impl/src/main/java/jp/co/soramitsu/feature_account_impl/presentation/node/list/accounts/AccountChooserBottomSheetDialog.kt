@@ -35,11 +35,7 @@ class AccountHolder(
     itemView: View
 ) : DynamicListSheetAdapter.Holder<AccountByNetworkModel>(itemView) {
 
-    override fun bind(
-        item: AccountByNetworkModel,
-        isSelected: Boolean,
-        handler: DynamicListSheetAdapter.Handler<AccountByNetworkModel>
-    ) {
+    override fun bind(item: AccountByNetworkModel, isSelected: Boolean, handler: DynamicListSheetAdapter.Handler<AccountByNetworkModel>) {
         super.bind(item, isSelected, handler)
 
         with(itemView) {
