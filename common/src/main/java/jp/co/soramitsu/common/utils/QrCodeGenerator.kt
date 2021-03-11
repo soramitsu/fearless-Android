@@ -31,7 +31,14 @@ class QrCodeGenerator(
                     if (y == 0 || y > byteMatrix.height || x == 0 || x > byteMatrix.width) {
                         bitmap.setPixel(x, y, secondColor)
                     } else {
-                        bitmap.setPixel(x, y, if (byteMatrix.get(x - PADDING_SIZE / 2, y - PADDING_SIZE / 2).toInt() == 1) firstColor else secondColor)
+                        val calculatedX = x - PADDING_SIZE / 2
+                        val calculatedY = y - PADDING_SIZE / 2
+                        val color = if (byteMatrix.get(calculatedX, calculatedY).toInt() == 1) {
+                            firstColor
+                        } else {
+                            secondColor
+                        }
+                        bitmap.setPixel(x, y, color)
                     }
                 }
             }

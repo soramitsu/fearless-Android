@@ -89,7 +89,10 @@ class WssSubstrateSource(
         )
     }
 
-    override suspend fun fetchAccountTransfersInBlock(blockHash: String, accountAddress: String): Result<List<TransferExtrinsicWithStatus>> = runCatching {
+    override suspend fun fetchAccountTransfersInBlock(
+        blockHash: String,
+        accountAddress: String
+    ): Result<List<TransferExtrinsicWithStatus>> = runCatching {
         val blockRequest = GetBlockRequest(blockHash)
 
         val block = socketService.executeAsync(blockRequest, mapper = pojo<SignedBlock>().nonNull())
@@ -174,7 +177,8 @@ class WssSubstrateSource(
 
                     if (extrinsic.index !in transfersPalette) return@filter false
 
-                    extrinsic.senderId.contentEquals(currentPublicKey) || extrinsic.recipientId.contentEquals(currentPublicKey)
+                    extrinsic.senderId.contentEquals(currentPublicKey) ||
+                        extrinsic.recipientId.contentEquals(currentPublicKey)
                 }
         }
     }

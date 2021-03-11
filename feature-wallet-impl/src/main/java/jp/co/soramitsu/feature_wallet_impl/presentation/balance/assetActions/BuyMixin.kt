@@ -10,7 +10,11 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.ExternalProvider
 
 interface BuyMixin {
-    class Payload(val provider: BuyTokenRegistry.Provider<*>, val token: Token.Type, val address: String)
+    class Payload(
+        val provider: BuyTokenRegistry.Provider<*>,
+        val token: Token.Type,
+        val address: String
+    )
 
     val integrateWithBuyProviderEvent: LiveData<Event<Payload>>
 

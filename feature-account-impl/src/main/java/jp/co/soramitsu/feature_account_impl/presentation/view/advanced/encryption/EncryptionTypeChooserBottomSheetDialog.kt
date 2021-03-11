@@ -37,7 +37,11 @@ class EncryptionTypeViewHolder(
     itemView: View
 ) : DynamicListSheetAdapter.Holder<CryptoTypeModel>(itemView) {
 
-    override fun bind(item: CryptoTypeModel, isSelected: Boolean, handler: DynamicListSheetAdapter.Handler<CryptoTypeModel>) {
+    override fun bind(
+        item: CryptoTypeModel,
+        isSelected: Boolean,
+        handler: DynamicListSheetAdapter.Handler<CryptoTypeModel>
+    ) {
         super.bind(item, isSelected, handler)
 
         with(itemView) {

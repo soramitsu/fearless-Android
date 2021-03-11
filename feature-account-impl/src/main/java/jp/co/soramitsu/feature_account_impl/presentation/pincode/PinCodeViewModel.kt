@@ -69,7 +69,12 @@ class PinCodeViewModel(
     fun pinCodeEntered(pin: String) {
         when (currentState) {
             is ScreenState.Creating -> tempCodeEntered(pin)
-            is ScreenState.Confirmation -> matchPinCodeWithCodeToConfirm(pin, (currentState as ScreenState.Confirmation).codeToConfirm)
+
+            is ScreenState.Confirmation -> matchPinCodeWithCodeToConfirm(
+                pin,
+                (currentState as ScreenState.Confirmation).codeToConfirm
+            )
+
             is ScreenState.Checking -> checkPinCode(pin)
         }
     }

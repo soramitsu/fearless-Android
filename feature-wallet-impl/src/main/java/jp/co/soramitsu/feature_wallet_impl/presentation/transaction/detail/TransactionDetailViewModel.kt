@@ -46,7 +46,11 @@ class TransactionDetailViewModel(
         emit(getIcon(transaction.senderAddress))
     }
 
-    val retryAddressModelLiveData = if (transaction.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
+    val retryAddressModelLiveData = if (transaction.isIncome) {
+        senderAddressModelLiveData
+    } else {
+        recipientAddressModelLiveData
+    }
 
     fun copyStringClicked(address: String) {
         clipboardManager.addToClipboard(address)
@@ -68,13 +72,21 @@ class TransactionDetailViewModel(
         _showExternalViewEvent.value = Event(externalActionsSource)
     }
 
-    fun viewTransactionExternalClicked(analyzer: ExternalAnalyzer, hash: String, networkType: Node.NetworkType) {
+    fun viewTransactionExternalClicked(
+        analyzer: ExternalAnalyzer,
+        hash: String,
+        networkType: Node.NetworkType
+    ) {
         val url = appLinksProvider.getExternalTransactionUrl(analyzer, hash, networkType)
 
         openBrowserEvent.value = Event(url)
     }
 
-    fun viewAccountExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: Node.NetworkType) {
+    fun viewAccountExternalClicked(
+        analyzer: ExternalAnalyzer,
+        address: String,
+        networkType: Node.NetworkType
+    ) {
         val url = appLinksProvider.getExternalAddressUrl(analyzer, address, networkType)
 
         openBrowserEvent.value = Event(url)

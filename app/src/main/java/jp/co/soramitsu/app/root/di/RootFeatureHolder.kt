@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.di
 
+import javax.inject.Inject
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer
@@ -9,7 +10,6 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.runtime.di.RuntimeApi
-import javax.inject.Inject
 
 @ApplicationScope
 class RootFeatureHolder @Inject constructor(

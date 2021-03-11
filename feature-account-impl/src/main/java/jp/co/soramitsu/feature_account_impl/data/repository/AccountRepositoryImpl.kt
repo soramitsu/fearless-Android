@@ -374,7 +374,12 @@ class AccountRepositoryImpl(
         nodeDao.insert(nodeLocal)
     }
 
-    override suspend fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType) {
+    override suspend fun updateNode(
+        nodeId: Int,
+        newName: String,
+        newHost: String,
+        networkType: Node.NetworkType
+    ) {
         nodeDao.updateNode(nodeId, newName, newHost, networkType.ordinal)
     }
 

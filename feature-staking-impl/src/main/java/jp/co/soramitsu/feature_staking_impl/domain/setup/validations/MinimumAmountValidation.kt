@@ -17,13 +17,19 @@ class MinimumAmountValidation(
     override suspend fun validate(value: SetupStakingPayload): ValidationStatus<StakingValidationFailure> {
         val runtime = runtimeProperty.get()
 
-        val existentialDepositInPlanks = runtime.metadata.module("Balances").numberConstant("ExistentialDeposit", runtime)
+        val existentialDepositInPlanks = runtime.metadata
+            .module("Balances")
+            .numberConstant("ExistentialDeposit", runtime)
+
         val existentialDeposit = value.tokenType.amountFromPlanks(existentialDepositInPlanks)
 
         return if (value.amount >= existentialDeposit) {
             ValidationStatus.Valid()
         } else {
-            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, StakingValidationFailure.TooSmallAmount(existentialDeposit))
+            ValidationStatus.NotValid(
+                DefaultFailureLevel.ERROR,
+                StakingValidationFailure.TooSmallAmount(existentialDeposit)
+            )
         }
     }
 }

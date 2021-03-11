@@ -22,14 +22,14 @@ import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetwork
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 

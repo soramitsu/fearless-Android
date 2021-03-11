@@ -267,7 +267,9 @@ class AccountInteractorImpl(
         return networkType ?: throw UnsupportedNetworkException()
     }
 
-    override suspend fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Pair<List<Account>, Node> {
+    override suspend fun getAccountsByNetworkTypeWithSelectedNode(
+        networkType: Node.NetworkType
+    ): Pair<List<Account>, Node> {
         val accounts = accountRepository.getAccountsByNetworkType(networkType)
         val node = accountRepository.getSelectedNode()
         return Pair(accounts, node)

@@ -11,7 +11,14 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 abstract class TransactionDao {
 
-    @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY (case when status = :statusUp then 0 else 1 end), date DESC")
+    @Query(
+        """
+        SELECT * FROM transactions 
+        WHERE accountAddress = :accountAddress 
+        ORDER BY (case when status = :statusUp then 0 else 1 end), 
+        date DESC
+        """
+    )
     abstract fun observeTransactions(
         accountAddress: String,
         statusUp: TransactionLocal.Status = TransactionLocal.Status.PENDING

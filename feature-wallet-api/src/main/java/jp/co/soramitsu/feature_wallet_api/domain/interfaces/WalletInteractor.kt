@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
+import java.io.File
+import java.math.BigDecimal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
@@ -10,8 +12,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
-import java.io.File
-import java.math.BigDecimal
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
 class PhishingAddress() : Exception()

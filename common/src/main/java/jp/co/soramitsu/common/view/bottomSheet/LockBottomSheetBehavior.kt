@@ -60,6 +60,10 @@ class LockBottomSheetBehavior<V : View> @JvmOverloads constructor(
         velocityX: Float,
         velocityY: Float
     ): Boolean {
-        return if (isDraggable) super.onNestedPreFling(coordinatorLayout, child, target, velocityX, velocityY) else false
+        return if (isDraggable) {
+            super.onNestedPreFling(coordinatorLayout, child, target, velocityX, velocityY)
+        } else {
+            false
+        }
     }
 }

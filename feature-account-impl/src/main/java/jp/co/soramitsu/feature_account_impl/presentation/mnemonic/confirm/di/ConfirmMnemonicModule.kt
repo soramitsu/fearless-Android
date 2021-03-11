@@ -30,7 +30,10 @@ class ConfirmMnemonicModule {
     }
 
     @Provides
-    fun provideViewModelCreator(fragment: Fragment, viewModelFactory: ViewModelProvider.Factory): ConfirmMnemonicViewModel {
+    fun provideViewModelCreator(
+        fragment: Fragment,
+        viewModelFactory: ViewModelProvider.Factory
+    ): ConfirmMnemonicViewModel {
         return ViewModelProvider(fragment, viewModelFactory).get(ConfirmMnemonicViewModel::class.java)
     }
 }

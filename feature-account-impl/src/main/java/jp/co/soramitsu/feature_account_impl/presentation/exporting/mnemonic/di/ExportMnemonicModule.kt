@@ -29,7 +29,10 @@ class ExportMnemonicModule {
     }
 
     @Provides
-    fun provideViewModelCreator(fragment: Fragment, viewModelFactory: ViewModelProvider.Factory): ExportMnemonicViewModel {
+    fun provideViewModelCreator(
+        fragment: Fragment,
+        viewModelFactory: ViewModelProvider.Factory
+    ): ExportMnemonicViewModel {
         return ViewModelProvider(fragment, viewModelFactory).get(ExportMnemonicViewModel::class.java)
     }
 }

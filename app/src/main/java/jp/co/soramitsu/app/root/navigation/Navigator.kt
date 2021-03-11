@@ -45,8 +45,12 @@ import kotlinx.android.parcel.Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
 
 class Navigator :
-    SplashRouter, OnboardingRouter, AccountRouter,
-    WalletRouter, RootRouter, StakingRouter {
+    SplashRouter,
+    OnboardingRouter,
+    AccountRouter,
+    WalletRouter,
+    RootRouter,
+    StakingRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -72,7 +76,10 @@ class Navigator :
     }
 
     override fun openCreateAccount(selectedNetworkType: Node.NetworkType?) {
-        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment, CreateAccountFragment.getBundle(selectedNetworkType))
+        navController?.navigate(
+            R.id.action_welcomeFragment_to_createAccountFragment,
+            CreateAccountFragment.getBundle(selectedNetworkType)
+        )
     }
 
     override fun backToWelcomeScreen() {
@@ -101,9 +108,17 @@ class Navigator :
         val bundle = buildCreatePinBundle()
 
         when (navController?.currentDestination?.id) {
-            R.id.splashFragment -> navController?.navigate(R.id.action_splash_to_pin, bundle)
-            R.id.importAccountFragment -> navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment, bundle)
-            R.id.confirmMnemonicFragment -> navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment, bundle)
+            R.id.splashFragment -> {
+                navController?.navigate(R.id.action_splash_to_pin, bundle)
+            }
+
+            R.id.importAccountFragment -> {
+                navController?.navigate(R.id.action_importAccountFragment_to_pincodeFragment, bundle)
+            }
+
+            R.id.confirmMnemonicFragment -> {
+                navController?.navigate(R.id.action_confirmMnemonicFragment_to_pincodeFragment, bundle)
+            }
         }
     }
 
@@ -247,7 +262,10 @@ class Navigator :
     }
 
     override fun openNodeDetails(nodeId: Int, isSelected: Boolean) {
-        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId, isSelected))
+        navController?.navigate(
+            R.id.action_nodesFragment_to_nodeDetailsFragment,
+            NodeDetailsFragment.getBundle(nodeId, isSelected)
+        )
     }
 
     override fun openAssetDetails(type: Token.Type) {
@@ -261,7 +279,10 @@ class Navigator :
     }
 
     override fun createAccountForNetworkType(networkType: Node.NetworkType) {
-        navController?.navigate(R.id.action_nodes_to_onboarding, WelcomeFragment.getBundleWithNetworkType(true, networkType))
+        navController?.navigate(
+            R.id.action_nodes_to_onboarding,
+            WelcomeFragment.getBundleWithNetworkType(true, networkType)
+        )
     }
 
     override fun openExportMnemonic(accountAddress: String): DelayedNavigation {

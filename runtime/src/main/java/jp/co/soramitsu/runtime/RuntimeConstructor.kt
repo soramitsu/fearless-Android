@@ -61,8 +61,15 @@ class RuntimeConstructor(
         val metadata = runtimeCache.getRuntimeMetadata(networkName)!!
         val latestMetadataVersion = runtimeDao.getCacheEntry(networkName).latestKnownVersion
 
-        constructRuntime(ConstructionParams(metadata, latestMetadataVersion, defaultTree, networkTree, areNewest = true))
-            .runtime
+        constructRuntime(
+            ConstructionParams(
+                metadataRaw = metadata,
+                latestMetadataVersion = latestMetadataVersion,
+                defaultDefinitions = defaultTree,
+                networkDefinitions = networkTree,
+                areNewest = true
+            )
+        ).runtime
     }
 
     private fun constructRuntime(params: ConstructionParams): Constructed {

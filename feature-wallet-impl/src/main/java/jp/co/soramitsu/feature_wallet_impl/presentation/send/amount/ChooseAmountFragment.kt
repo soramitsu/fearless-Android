@@ -74,7 +74,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         observeTransferChecks(viewModel, viewModel::warningConfirmed)
 
         viewModel.feeLiveData.observe {
-            chooseAmountFee.text = it?.feeAmount?.formatWithMaxPrecision(it.type) ?: getString(R.string.common_error_general_title)
+            chooseAmountFee.text = it?.feeAmount?.formatWithMaxPrecision(it.type)
+                ?: getString(R.string.common_error_general_title)
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->

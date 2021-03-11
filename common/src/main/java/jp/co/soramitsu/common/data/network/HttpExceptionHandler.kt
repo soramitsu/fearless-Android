@@ -1,10 +1,10 @@
 package jp.co.soramitsu.common.data.network
 
+import java.io.IOException
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseException
 import jp.co.soramitsu.common.resources.ResourceManager
 import retrofit2.HttpException
-import java.io.IOException
 
 class HttpExceptionHandler(
     private val resourceManager: ResourceManager
@@ -27,8 +27,14 @@ class HttpExceptionHandler(
 
                 BaseException.httpError(errorCode, resourceManager.getString(R.string.common_error_general_message))
             }
-            is IOException -> BaseException.networkError(resourceManager.getString(R.string.connection_error_message), exception)
-            else -> BaseException.unexpectedError(exception)
+
+            is IOException -> {
+                BaseException.networkError(resourceManager.getString(R.string.connection_error_message), exception)
+            }
+
+            else -> {
+                BaseException.unexpectedError(exception)
+            }
         }
     }
 }

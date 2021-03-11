@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.storage
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.StorageEntry
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
 
 class NetworkAwareStorageCache(
     private val storageDao: StorageDao,

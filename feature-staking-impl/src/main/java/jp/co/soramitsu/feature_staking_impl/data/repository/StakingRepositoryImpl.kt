@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.constant
@@ -19,7 +20,6 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.activeEraStorageKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
 
 class StakingRepositoryImpl(
     val storageCache: StorageCache,

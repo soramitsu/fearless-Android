@@ -49,7 +49,10 @@ fun mapValidatorToValidatorDetailsParcelModel(validator: Validator): ValidatorDe
     }
 }
 
-fun mapValidatorDetailsParcelToValidatorDetailsModel(validator: ValidatorDetailsParcelModel, asset: Asset): ValidatorDetailsModel {
+fun mapValidatorDetailsParcelToValidatorDetailsModel(
+    validator: ValidatorDetailsParcelModel,
+    asset: Asset
+): ValidatorDetailsModel {
     return with(validator) {
         val token = asset.token
 

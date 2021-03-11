@@ -87,7 +87,11 @@ class AccountEditFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsA
 
             override fun isLongPressDragEnabled() = false
 
-            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
                 val from = viewHolder.adapterPosition
                 val to = target.adapterPosition
 

@@ -152,7 +152,8 @@ class TransferHistorySheet @JvmOverloads constructor(
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
 
-                val lastVisiblePosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+                val lastVisiblePosition = (recyclerView.layoutManager as LinearLayoutManager)
+                    .findLastVisibleItemPosition()
 
                 scrollingListener?.invoke(lastVisiblePosition)
             }

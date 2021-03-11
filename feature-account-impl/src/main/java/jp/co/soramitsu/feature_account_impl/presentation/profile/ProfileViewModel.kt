@@ -58,7 +58,12 @@ class ProfileViewModel(
     fun accountActionsClicked() {
         val account = selectedAccountLiveData.value ?: return
 
-        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(account.address, account.network.type))
+        externalAccountActions.showExternalActions(
+            ExternalAccountActions.Payload(
+                account.address,
+                account.network.type
+            )
+        )
     }
 
     private suspend fun createIcon(accountAddress: String): AddressModel {

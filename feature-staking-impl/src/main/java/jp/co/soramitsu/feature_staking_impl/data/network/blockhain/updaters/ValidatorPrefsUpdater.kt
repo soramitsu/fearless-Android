@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import java.math.BigInteger
 
 class ValidatorPrefsUpdater(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,

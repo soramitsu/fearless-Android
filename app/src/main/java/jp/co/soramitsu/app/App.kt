@@ -3,6 +3,7 @@ package jp.co.soramitsu.app
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
+import javax.inject.Inject
 import jp.co.soramitsu.app.di.app.AppComponent
 import jp.co.soramitsu.app.di.app.DaggerAppComponent
 import jp.co.soramitsu.app.di.deps.FeatureHolderManager
@@ -10,7 +11,6 @@ import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
-import javax.inject.Inject
 
 open class App : Application(), FeatureContainer {
 

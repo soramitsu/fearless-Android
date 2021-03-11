@@ -1,9 +1,9 @@
 package jp.co.soramitsu.core_db.di
 
+import javax.inject.Inject
 import jp.co.soramitsu.common.di.FeatureApiHolder
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.common.di.scope.ApplicationScope
-import javax.inject.Inject
 
 @ApplicationScope
 class DbHolder @Inject constructor(

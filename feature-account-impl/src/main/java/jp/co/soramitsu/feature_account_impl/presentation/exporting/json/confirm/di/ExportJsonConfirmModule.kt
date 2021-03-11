@@ -30,7 +30,10 @@ class ExportJsonConfirmModule {
     }
 
     @Provides
-    fun provideViewModelCreator(fragment: Fragment, viewModelFactory: ViewModelProvider.Factory): ExportJsonConfirmViewModel {
+    fun provideViewModelCreator(
+        fragment: Fragment,
+        viewModelFactory: ViewModelProvider.Factory
+    ): ExportJsonConfirmViewModel {
         return ViewModelProvider(fragment, viewModelFactory).get(ExportJsonConfirmViewModel::class.java)
     }
 }

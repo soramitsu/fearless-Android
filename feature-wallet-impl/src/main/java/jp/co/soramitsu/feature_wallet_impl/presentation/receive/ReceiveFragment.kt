@@ -66,7 +66,11 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
     }
 
     private fun startQrSharingIntent(qrSharingPayload: QrSharingPayload) {
-        val imageUri = FileProvider.getUriForFile(activity!!, "${activity!!.packageName}.provider", qrSharingPayload.qrFile)
+        val imageUri = FileProvider.getUriForFile(
+            activity!!,
+            "${activity!!.packageName}.provider",
+            qrSharingPayload.qrFile
+        )
 
         if (imageUri != null) {
             val intent = Intent(Intent.ACTION_SEND).apply {

@@ -37,7 +37,11 @@ class NodeViewHolder(
     itemView: View
 ) : DynamicListSheetAdapter.Holder<NetworkModel>(itemView) {
 
-    override fun bind(item: NetworkModel, isSelected: Boolean, handler: DynamicListSheetAdapter.Handler<NetworkModel>) {
+    override fun bind(
+        item: NetworkModel,
+        isSelected: Boolean,
+        handler: DynamicListSheetAdapter.Handler<NetworkModel>
+    ) {
         super.bind(item, isSelected, handler)
 
         with(itemView) {

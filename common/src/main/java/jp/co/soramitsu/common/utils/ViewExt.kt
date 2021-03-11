@@ -76,8 +76,16 @@ fun TextView.setDrawableStart(
 
     tint?.let { drawable.mutate().setTint(context.getColor(it)) }
 
-    val widthInPx = if (widthInDp != null) (resources.displayMetrics.density * widthInDp).toInt() else drawable.intrinsicWidth
-    val heightInPx = if (heightInDp != null) (resources.displayMetrics.density * heightInDp).toInt() else drawable.intrinsicHeight
+    val widthInPx = if (widthInDp != null) {
+        (resources.displayMetrics.density * widthInDp).toInt()
+    } else {
+        drawable.intrinsicWidth
+    }
+    val heightInPx = if (heightInDp != null) {
+        (resources.displayMetrics.density * heightInDp).toInt()
+    } else {
+        drawable.intrinsicHeight
+    }
 
     drawable.setBounds(0, 0, widthInPx, heightInPx)
 

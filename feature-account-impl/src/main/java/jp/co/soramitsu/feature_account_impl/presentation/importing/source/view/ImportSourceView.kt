@@ -40,14 +40,20 @@ abstract class ImportSourceView @JvmOverloads constructor(
             viewModel.chooseNetworkClicked()
         }
 
-        viewModel.selectedNetworkLiveData.observe(lifecycleOwner, Observer {
-            networkInputView.setTextIcon(it.networkTypeUI.icon)
-            networkInputView.setMessage(it.name)
-        })
+        viewModel.selectedNetworkLiveData.observe(
+            lifecycleOwner,
+            Observer {
+                networkInputView.setTextIcon(it.networkTypeUI.icon)
+                networkInputView.setMessage(it.name)
+            }
+        )
 
-        viewModel.networkChooserEnabledLiveData.observe(lifecycleOwner, Observer { enabled ->
-            changeNetworkInputState(enabled, networkInputView)
-        })
+        viewModel.networkChooserEnabledLiveData.observe(
+            lifecycleOwner,
+            Observer { enabled ->
+                changeNetworkInputState(enabled, networkInputView)
+            }
+        )
     }
 
     private fun changeNetworkInputState(enable: Boolean, networkInputView: LabeledTextView) {

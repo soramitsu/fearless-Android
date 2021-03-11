@@ -7,6 +7,8 @@ import android.graphics.Color
 import android.os.Vibrator
 import dagger.Module
 import dagger.Provides
+import java.security.SecureRandom
+import java.util.Random
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.FileProviderImpl
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
@@ -30,8 +32,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
-import java.security.SecureRandom
-import java.util.Random
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 

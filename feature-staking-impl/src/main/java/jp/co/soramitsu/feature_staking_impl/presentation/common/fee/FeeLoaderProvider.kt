@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.common.fee
 
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
 import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -13,7 +14,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 class FeeLoaderProvider(
     private val stakingInteractor: StakingInteractor,
@@ -46,12 +46,14 @@ class FeeLoaderProvider(
                 FeeStatus.Loaded(feeModel)
             } else {
                 retryEvent.postValue(
-                    Event(RetryPayload(
-                        title = resourceManager.getString(R.string.choose_amount_network_error),
-                        message = resourceManager.getString(R.string.choose_amount_error_fee),
-                        onRetry = { loadFee(coroutineScope, feeConstructor, onRetryCancelled) },
-                        onCancel = onRetryCancelled
-                    ))
+                    Event(
+                        RetryPayload(
+                            title = resourceManager.getString(R.string.choose_amount_network_error),
+                            message = resourceManager.getString(R.string.choose_amount_error_fee),
+                            onRetry = { loadFee(coroutineScope, feeConstructor, onRetryCancelled) },
+                            onCancel = onRetryCancelled
+                        )
+                    )
                 )
 
                 FeeStatus.Error

@@ -8,8 +8,14 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import kotlinx.coroutines.flow.Flow
 
-private const val SELECT_FULL_KEY_QUERY = "SELECT * from storage WHERE networkType = :networkType AND storageKey = :fullKey"
-private const val SELECT_PREFIX_KEY_QUERY = "SELECT * from storage WHERE networkType = :networkType  AND storageKey LIKE :keyPrefix || '%'"
+private const val SELECT_FULL_KEY_QUERY =
+    """
+    SELECT * from storage WHERE networkType = :networkType AND storageKey = :fullKey
+    """
+private const val SELECT_PREFIX_KEY_QUERY =
+    """
+    SELECT * from storage WHERE networkType = :networkType  AND storageKey LIKE :keyPrefix || '%'
+    """
 
 @Dao
 abstract class StorageDao {

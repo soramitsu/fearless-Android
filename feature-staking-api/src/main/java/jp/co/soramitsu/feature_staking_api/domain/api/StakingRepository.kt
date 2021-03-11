@@ -1,8 +1,8 @@
 package jp.co.soramitsu.feature_staking_api.domain.api
 
+import java.math.BigInteger
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
-import java.math.BigInteger
 
 interface StakingRepository {
 

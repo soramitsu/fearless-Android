@@ -31,7 +31,9 @@ class DynamicListSheetAdapter<T>(
         holder.bind(item, isSelected, handler)
     }
 
-    abstract class Holder<T>(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+    abstract class Holder<T>(
+        override val containerView: View
+    ) : RecyclerView.ViewHolder(containerView), LayoutContainer {
 
         open fun bind(item: T, isSelected: Boolean, handler: Handler<T>) {
             itemView.setOnClickListener { handler.itemClicked(item) }

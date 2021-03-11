@@ -38,7 +38,11 @@ class ElementChooserView @JvmOverloads constructor(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
 
-        val backgroundRes = if (enabled) R.drawable.bg_input_shape_filled_selector else R.drawable.bg_button_primary_disabled
+        val backgroundRes = if (enabled) {
+            R.drawable.bg_input_shape_filled_selector
+        } else {
+            R.drawable.bg_button_primary_disabled
+        }
         setBackgroundResource(backgroundRes)
 
         elementChooserDropdown.visibility = if (enabled) View.VISIBLE else View.GONE

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.resources
 
-import jp.co.soramitsu.core.model.Language
 import javax.inject.Singleton
+import jp.co.soramitsu.core.model.Language
 
 @Singleton
 class LanguagesHolder {
@@ -16,7 +16,16 @@ class LanguagesHolder {
         private val JAPANESE = Language("ja")
         private val ITALIAN = Language("it")
 
-        private val availableLanguages = mutableListOf(RUSSIAN, ENGLISH, SPANISH, BASHKIR, UKRAINIAN, FRENCH, JAPANESE, ITALIAN)
+        private val availableLanguages = mutableListOf(
+            RUSSIAN,
+            ENGLISH,
+            SPANISH,
+            BASHKIR,
+            UKRAINIAN,
+            FRENCH,
+            JAPANESE,
+            ITALIAN
+        )
     }
 
     fun getEnglishLang(): Language {

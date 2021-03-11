@@ -3,16 +3,20 @@ package jp.co.soramitsu.core_db.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import jp.co.soramitsu.core.model.Node
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.core.model.Node
 
 @Entity(
     tableName = "transactions",
-    foreignKeys = [ForeignKey(entity = AccountLocal::class,
-        parentColumns = ["address"],
-        childColumns = ["accountAddress"],
-        onDelete = ForeignKey.CASCADE)],
+    foreignKeys = [
+        ForeignKey(
+            entity = AccountLocal::class,
+            parentColumns = ["address"],
+            childColumns = ["accountAddress"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
     primaryKeys = ["hash", "accountAddress"]
 )
 class TransactionLocal(

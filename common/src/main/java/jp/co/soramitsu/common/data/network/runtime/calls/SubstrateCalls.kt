@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.network.runtime.calls
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.model.ActiveEraInfo
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.fearless_utils.runtime.Module
@@ -14,7 +15,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.SubmitExtrins
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
-import java.math.BigInteger
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 class SubstrateCalls(

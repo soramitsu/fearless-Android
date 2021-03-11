@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.di.RootApi
 import jp.co.soramitsu.app.root.di.RootComponent
@@ -19,7 +20,6 @@ import jp.co.soramitsu.common.view.dialog.retryDialog
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import kotlinx.android.synthetic.main.activity_root.mainView
 import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
-import javax.inject.Inject
 
 class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
 
@@ -93,23 +93,32 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
             rootNetworkBar.setVisible(show)
         }
 
-        viewModel.messageLiveData.observe(this, EventObserver {
-            showToast(it)
-        })
-
-        viewModel.outdatedTypesWarningLiveData.observe(this, EventObserver {
-            infoDialog(this) {
-                setTitle(R.string.runtime_update_not_actual_title)
-                setMessage(R.string.runtime_update_not_actual_description)
+        viewModel.messageLiveData.observe(
+            this,
+            EventObserver {
+                showToast(it)
             }
-        })
+        )
 
-        viewModel.runtimeUpdateFailedLiveData.observe(this, EventObserver { onRetry ->
-            retryDialog(this, { viewModel.retryConfirmed(onRetry) }) {
-                setTitle(R.string.runtime_update_failure_title)
-                setMessage(R.string.runtime_update_failure_description)
+        viewModel.outdatedTypesWarningLiveData.observe(
+            this,
+            EventObserver {
+                infoDialog(this) {
+                    setTitle(R.string.runtime_update_not_actual_title)
+                    setMessage(R.string.runtime_update_not_actual_description)
+                }
             }
-        })
+        )
+
+        viewModel.runtimeUpdateFailedLiveData.observe(
+            this,
+            EventObserver { onRetry ->
+                retryDialog(this, { viewModel.retryConfirmed(onRetry) }) {
+                    setTitle(R.string.runtime_update_failure_title)
+                    setMessage(R.string.runtime_update_failure_description)
+                }
+            }
+        )
     }
 
     override fun removeSplashBackground() {

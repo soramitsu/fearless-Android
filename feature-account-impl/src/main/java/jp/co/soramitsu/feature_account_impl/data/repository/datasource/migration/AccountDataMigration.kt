@@ -3,13 +3,13 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource.migratio
 import android.annotation.SuppressLint
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
-import jp.co.soramitsu.core.model.SecuritySource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
@@ -51,11 +51,17 @@ class AccountDataMigration(
         preferences.putBoolean(PREFS_MIGRATED_FROM_0_4_1_TO_1_0_0, true)
     }
 
-    private suspend fun migrateAllAccounts(accounts: List<AccountLocal>, saveSourceCallback: SaveSourceCallback) {
+    private suspend fun migrateAllAccounts(
+        accounts: List<AccountLocal>,
+        saveSourceCallback: SaveSourceCallback
+    ) {
         accounts.forEach { migrateAccount(it.address, saveSourceCallback) }
     }
 
-    private suspend fun migrateAccount(accountAddress: String, saveSourceCallback: SaveSourceCallback) {
+    private suspend fun migrateAccount(
+        accountAddress: String,
+        saveSourceCallback: SaveSourceCallback
+    ) {
         val oldKey = PREFS_PRIVATE_KEY.format(accountAddress)
         val oldRaw = encryptedPreferences.getDecryptedString(oldKey) ?: return
         val data = ScaleSigningData.read(oldRaw)

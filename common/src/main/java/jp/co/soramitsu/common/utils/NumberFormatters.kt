@@ -2,7 +2,6 @@ package jp.co.soramitsu.common.utils
 
 import android.content.Context
 import android.text.format.DateUtils
-import jp.co.soramitsu.common.R
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -10,6 +9,7 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import jp.co.soramitsu.common.R
 
 private const val DOLLAR_CODE = "USD"
 
@@ -60,7 +60,13 @@ fun Long.formatDaysSinceEpoch(context: Context): String? {
     }
 }
 
-fun Long.formatDateTime(context: Context) = DateUtils.getRelativeDateTimeString(context, this, DateUtils.SECOND_IN_MILLIS, 0, 0)
+fun Long.formatDateTime(context: Context) = DateUtils.getRelativeDateTimeString(
+    context,
+    this,
+    DateUtils.SECOND_IN_MILLIS,
+    0,
+    0
+)
 
 private fun decimalFormatterFor(pattern: String): DecimalFormat {
     return DecimalFormat(pattern).apply {

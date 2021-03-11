@@ -5,8 +5,6 @@ import android.os.Build
 import android.security.KeyPairGeneratorSpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import org.bouncycastle.util.Arrays
-import org.bouncycastle.util.encoders.Base64
 import java.math.BigInteger
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
@@ -29,6 +27,8 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
 import javax.security.auth.x500.X500Principal
+import org.bouncycastle.util.Arrays
+import org.bouncycastle.util.encoders.Base64
 
 class EncryptionUtil @Inject constructor(
     private val context: Context
@@ -56,14 +56,16 @@ class EncryptionUtil @Inject constructor(
         initKeystore()
     }
 
-    fun getPrerenceAesKey(): Key {
+    private fun getPreferenceAesKey(): Key {
         val secretKey: SecretKey
         val encryptedKey = context.getSharedPreferences(KEY_ALIAS, Context.MODE_PRIVATE).getString(SECRET_KEY, "")
         if (encryptedKey!!.isEmpty()) {
             val keyGenerator = KeyGenerator.getInstance(AES)
             keyGenerator.init(AES_KEY_LENGTH, secureRandom)
             secretKey = keyGenerator.generateKey()
-            context.getSharedPreferences(KEY_ALIAS, Context.MODE_PRIVATE).edit().putString(SECRET_KEY, encryptRsa(secretKey.encoded)).apply()
+            context.getSharedPreferences(KEY_ALIAS, Context.MODE_PRIVATE).edit()
+                .putString(SECRET_KEY, encryptRsa(secretKey.encoded))
+                .apply()
         } else {
             val key = decryptRsa(encryptedKey)
             secretKey = SecretKeySpec(key, 0, key!!.size, AES)
@@ -107,8 +109,10 @@ class EncryptionUtil @Inject constructor(
                 .setEndDate(endDate.time)
                 .build()
         } else {
-            spec = KeyGenParameterSpec.Builder(KEY_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+            spec = KeyGenParameterSpec.Builder(
+                KEY_ALIAS,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            )
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setCertificateSubject(X500Principal("CN=Sora"))
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
@@ -125,7 +129,7 @@ class EncryptionUtil @Inject constructor(
     fun encrypt(cleartext: String?): String {
         if (cleartext != null && cleartext.isNotEmpty()) {
             try {
-                return encrypt(getPrerenceAesKey().encoded, cleartext)
+                return encrypt(getPreferenceAesKey().encoded, cleartext)
             } catch (e: NoSuchAlgorithmException) {
                 e.printStackTrace()
             }
@@ -145,7 +149,7 @@ class EncryptionUtil @Inject constructor(
 
     fun decrypt(encryptedBase64: String): String {
         try {
-            return decrypt(getPrerenceAesKey().encoded, encryptedBase64)
+            return decrypt(getPreferenceAesKey().encoded, encryptedBase64)
         } catch (e: NoSuchAlgorithmException) {
             e.printStackTrace()
         }
@@ -173,11 +177,20 @@ class EncryptionUtil @Inject constructor(
         return Arrays.concatenate(cipher.iv, cipher.doFinal(clear))
     }
 
-    @Throws(NoSuchPaddingException::class, NoSuchAlgorithmException::class, InvalidAlgorithmParameterException::class, InvalidKeyException::class, BadPaddingException::class, IllegalBlockSizeException::class)
+    @Throws(
+        NoSuchPaddingException::class,
+        NoSuchAlgorithmException::class,
+        InvalidAlgorithmParameterException::class,
+        InvalidKeyException::class,
+        BadPaddingException::class,
+        IllegalBlockSizeException::class
+    )
     private fun decrypt(key: ByteArray, encrypted: ByteArray): ByteArray {
         val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-        cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(key, "AES"),
-            IvParameterSpec(Arrays.copyOfRange(encrypted, 0, BLOCK_SIZE)), secureRandom)
+        cipher.init(
+            Cipher.DECRYPT_MODE, SecretKeySpec(key, "AES"),
+            IvParameterSpec(Arrays.copyOfRange(encrypted, 0, BLOCK_SIZE)), secureRandom
+        )
         return cipher.doFinal(Arrays.copyOfRange(encrypted, BLOCK_SIZE, encrypted.size))
     }
 

@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.utils
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
+import java.io.ByteArrayOutputStream
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumberConstant
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -19,7 +20,7 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
-import java.io.ByteArrayOutputStream
+import java.math.BigInteger
 
 fun ByteArray.toAddress(networkType: Node.NetworkType) = toAddress(networkType.runtimeConfiguration.addressByte)
 
@@ -49,7 +50,9 @@ val GenericEvent.Instance.index
 
 fun Module.constant(name: String) = constantOrNull(name) ?: throw NoSuchElementException()
 
-fun Module.numberConstant(name: String, runtimeSnapshot: RuntimeSnapshot) = bindNumberConstant(constant(name), runtimeSnapshot)
+fun Module.numberConstant(name: String, runtimeSnapshot: RuntimeSnapshot): BigInteger {
+    return bindNumberConstant(constant(name), runtimeSnapshot)
+}
 
 fun Module.constantOrNull(name: String) = constants[name]
 

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings
 
+import java.math.BigInteger
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.HasIdentityFilter
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotOverSubscribedFilter
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotSlashedFilter
@@ -8,7 +9,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sort
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.StakeSorting
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.math.BigInteger
 
 class RecommendationSettingsProvider(
     maximumRewardedNominators: BigInteger,
