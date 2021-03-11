@@ -44,6 +44,7 @@ class DefaultNodes {
 
     val prepopulateQuery = "insert into nodes (name, link, networkType, isDefault) values " +
         DEFAULT_NODES_LIST.joinToString {
-            node -> "('${node.name}', '${node.link}', ${node.networkType}, ${if (node.isDefault) 1 else 0})"
+            node ->
+            "('${node.name}', '${node.link}', ${node.networkType}, ${if (node.isDefault) 1 else 0})"
         }
 }

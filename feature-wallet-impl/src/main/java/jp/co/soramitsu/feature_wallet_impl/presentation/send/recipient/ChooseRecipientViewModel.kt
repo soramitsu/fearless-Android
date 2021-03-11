@@ -47,7 +47,8 @@ class ChooseRecipientViewModel(
     private val qrBitmapDecoder: QrBitmapDecoder,
     private val phishingWarning: PhishingWarningMixin
 ) : BaseViewModel(),
-    PhishingWarningMixin by phishingWarning, PhishingWarningPresentation {
+    PhishingWarningMixin by phishingWarning,
+    PhishingWarningPresentation {
 
     private val searchEvents = MutableStateFlow(INITIAL_QUERY)
 

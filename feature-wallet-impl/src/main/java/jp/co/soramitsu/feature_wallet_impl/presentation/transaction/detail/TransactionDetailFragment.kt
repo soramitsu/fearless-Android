@@ -156,10 +156,10 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         )
 
         ExternalActionsSheet(
-                context = requireContext(),
-                payload = payload,
-                onCopy = viewModel::copyStringClicked,
-                onViewExternal = externalViewCallback
+            context = requireContext(),
+            payload = payload,
+            onCopy = viewModel::copyStringClicked,
+            onViewExternal = externalViewCallback
         )
             .show()
     }

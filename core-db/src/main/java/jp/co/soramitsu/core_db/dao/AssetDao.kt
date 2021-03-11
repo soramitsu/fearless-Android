@@ -25,10 +25,12 @@ interface AssetReadOnlyCache {
 @Dao
 abstract class AssetDao : AssetReadOnlyCache {
 
-    @Query("""
+    @Query(
+        """
         select * from assets as a inner join tokens as t where a.token = t.type
         and a.accountAddress = :accountAddress
-    """)
+    """
+    )
     abstract override fun observeAssets(accountAddress: String): Flow<List<AssetWithToken>>
 
     @Query(RETRIEVE_ASSET_SQL)
