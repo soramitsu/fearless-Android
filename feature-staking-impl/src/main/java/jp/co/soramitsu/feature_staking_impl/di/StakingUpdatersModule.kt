@@ -9,19 +9,30 @@ import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountNominationsUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountValidatorPrefsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorExposureUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorPrefsUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 
 @Module
 class StakingUpdatersModule {
+
+    @Provides
+    @FeatureScope
+    fun provideAccountStakingScope(
+        accountRepository: AccountRepository,
+        accountStakingDao: AccountStakingDao
+    ) = AccountStakingScope(accountRepository, accountStakingDao)
 
     @Provides
     @FeatureScope
@@ -99,13 +110,35 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideAccountValidatorPrefsUpdater(
+        storageCache: StorageCache,
+        scope: AccountStakingScope,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+    ) = AccountValidatorPrefsUpdater(
+        scope, storageCache, runtimeProperty
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideAccountNominationsUpdater(
+        storageCache: StorageCache,
+        scope: AccountStakingScope,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+    ) = AccountNominationsUpdater(
+        scope, storageCache, runtimeProperty
+    )
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaters(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
         validatorPrefsUpdater: ValidatorPrefsUpdater,
         totalIssuanceUpdater: TotalIssuanceUpdater,
         currentEraUpdater: CurrentEraUpdater,
-        stakingLedgerUpdater: StakingLedgerUpdater
+        stakingLedgerUpdater: StakingLedgerUpdater,
+        accountValidatorPrefsUpdater: AccountValidatorPrefsUpdater,
+        accountNominationsUpdater: AccountNominationsUpdater
     ) = StakingUpdaters(
         updaters = arrayOf(
             activeEraUpdater,
@@ -113,7 +146,9 @@ class StakingUpdatersModule {
             validatorPrefsUpdater,
             totalIssuanceUpdater,
             currentEraUpdater,
-            stakingLedgerUpdater
+            stakingLedgerUpdater,
+            accountValidatorPrefsUpdater,
+            accountNominationsUpdater
         )
     )
 }
