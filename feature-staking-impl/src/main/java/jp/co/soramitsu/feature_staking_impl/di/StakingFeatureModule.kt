@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.core.storage.StorageCache
+import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
@@ -37,8 +38,9 @@ class StakingFeatureModule {
     fun provideStakingRepository(
         storageCache: StorageCache,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        bulkRetriever: BulkRetriever
-    ): StakingRepository = StakingRepositoryImpl(storageCache, runtimeProperty, bulkRetriever)
+        bulkRetriever: BulkRetriever,
+        accountStakingDao: AccountStakingDao
+    ): StakingRepository = StakingRepositoryImpl(storageCache, runtimeProperty, accountStakingDao, bulkRetriever)
 
     @Provides
     @FeatureScope
@@ -52,9 +54,10 @@ class StakingFeatureModule {
     fun provideStakingInteractor(
         walletRepository: WalletRepository,
         accountRepository: AccountRepository,
+        stakingRepository: StakingRepository,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         substrateCalls: SubstrateCalls
-    ) = StakingInteractor(walletRepository, accountRepository, substrateCalls, extrinsicBuilderFactory)
+    ) = StakingInteractor(walletRepository, accountRepository, stakingRepository, substrateCalls, extrinsicBuilderFactory)
 
     @Provides
     @FeatureScope

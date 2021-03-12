@@ -5,7 +5,6 @@ import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 
 class AccountStakingScope(
@@ -15,9 +14,9 @@ class AccountStakingScope(
 
     override suspend fun invalidationFlow(): Flow<Any> {
         return accountRepository.selectedAccountFlow()
-            .flatMapLatest {
-                accountStakingDao.observe(it.address)
-            }.distinctUntilChanged()
+            .flatMapLatest { account ->
+                accountStakingDao.observeDistinct(account.address)
+            }
     }
 
     suspend fun getAccountStaking(): AccountStakingLocal {

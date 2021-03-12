@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToWalletAccount
@@ -26,9 +27,13 @@ import java.math.BigDecimal
 class StakingInteractor(
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
+    private val stakingRepository: StakingRepository,
     private val substrateCalls: SubstrateCalls,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory
 ) {
+
+    fun selectedAccountStakingState() = accountRepository.selectedAccountFlow()
+        .flatMapLatest { stakingRepository.stakingStateFlow(it.address) }
 
     suspend fun getAccountsInCurrentNetwork() = withContext(Dispatchers.Default) {
         val account = accountRepository.getSelectedAccount()
