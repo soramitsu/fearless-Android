@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
-import android.util.Log
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.constant
@@ -39,7 +38,7 @@ class StakingRepositoryImpl(
     val storageCache: StorageCache,
     val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     val accountStakingDao: AccountStakingDao,
-    val bulkRetriever: BulkRetriever
+    val bulkRetriever: BulkRetriever,
 ) : StakingRepository {
 
     override suspend fun getTotalIssuance(): BigInteger = withContext(Dispatchers.Default) {
@@ -123,7 +122,7 @@ class StakingRepositoryImpl(
 
     private suspend fun observeStashState(
         accessInfo: AccountStakingLocal.AccessInfo,
-        accountAddress: String
+        accountAddress: String,
     ): Flow<StakingState.Stash> {
         val runtime = runtimeProperty.get()
         val stashId = accessInfo.stashId
@@ -148,26 +147,24 @@ class StakingRepositoryImpl(
 
     private suspend fun observeAccountValidatorPrefs(
         runtime: RuntimeSnapshot,
-        stashId: AccountId
+        stashId: AccountId,
     ): Flow<ValidatorPrefs?> {
         val key = runtime.metadata.staking().storage("Validators").storageKey(runtime, stashId)
 
         return storageCache.observeEntry(key)
             .map { entry ->
-                Log.d("RX", "Validator Prefs: ${entry.content}")
                 entry.content?.let { bindValidatorPrefs(it, runtime) }
             }
     }
 
     private suspend fun observeAccountNominations(
         runtime: RuntimeSnapshot,
-        stashId: AccountId
+        stashId: AccountId,
     ): Flow<Nominations?> {
         val key = runtime.metadata.staking().storage("Nominators").storageKey(runtime, stashId)
 
         return storageCache.observeEntry(key)
             .map { entry ->
-                Log.d("RX", "Nominations: ${entry.content}")
                 entry.content?.let { bindNominations(it, runtime) }
             }
     }
@@ -175,7 +172,7 @@ class StakingRepositoryImpl(
     private fun isSlashed(
         span: SlashingSpan?,
         activeEraIndex: BigInteger,
-        slashDeferDuration: BigInteger
+        slashDeferDuration: BigInteger,
     ) = span != null && activeEraIndex - span.lastNonZeroSlash < slashDeferDuration
 
     private suspend fun getRuntime() = runtimeProperty.get()
