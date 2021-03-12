@@ -52,7 +52,8 @@ class NetworkModule {
             roadMapUrl = BuildConfig.ROADMAP_URL,
             devStatusUrl = BuildConfig.DEV_STATUS_URL,
             nominatorLearnMore = BuildConfig.NOMINATOR_LEARN_MORE,
-            payoutsLearnMore = BuildConfig.PAYOUTS_LEARN_MORE
+            payoutsLearnMore = BuildConfig.PAYOUTS_LEARN_MORE,
+            twitterAccountTemplate = BuildConfig.TWITTER_ACCOUNT_TEMPLATE
         )
     }
 

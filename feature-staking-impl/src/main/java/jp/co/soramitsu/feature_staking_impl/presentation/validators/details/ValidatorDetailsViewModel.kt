@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
@@ -21,7 +23,8 @@ class ValidatorDetailsViewModel(
     private val router: StakingRouter,
     private val validator: ValidatorDetailsParcelModel,
     private val iconGenerator: AddressIconGenerator,
-    private val externalAccountActions: ExternalAccountActions.Presentation
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val appLinksProvider: AppLinksProvider
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
     private val validatorDetailsFlow = MutableStateFlow(validator)
@@ -58,7 +61,7 @@ class ValidatorDetailsViewModel(
 
     fun twitterClicked() {
         validator.identity?.twitter?.let {
-            showBrowser(it)
+            showBrowser(appLinksProvider.getTwitterAccountUrl(it))
         }
     }
 
