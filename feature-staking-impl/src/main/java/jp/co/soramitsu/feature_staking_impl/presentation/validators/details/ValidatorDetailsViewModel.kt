@@ -4,8 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsParcelToValidatorDetailsModel
@@ -19,8 +20,9 @@ class ValidatorDetailsViewModel(
     private val interactor: StakingInteractor,
     private val router: StakingRouter,
     private val validator: ValidatorDetailsParcelModel,
-    private val iconGenerator: AddressIconGenerator
-) : BaseViewModel(), Browserable {
+    private val iconGenerator: AddressIconGenerator,
+    private val externalAccountActions: ExternalAccountActions.Presentation
+) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
     private val validatorDetailsFlow = MutableStateFlow(validator)
 
@@ -34,8 +36,6 @@ class ValidatorDetailsViewModel(
     private val _openEmailEvent = MutableLiveData<Event<String>>()
     val openEmailEvent: LiveData<Event<String>> = _openEmailEvent
 
-    override val openBrowserEvent = MutableLiveData<Event<String>>()
-
     fun backClicked() {
         router.back()
     }
@@ -46,7 +46,7 @@ class ValidatorDetailsViewModel(
 
     fun webClicked() {
         validator.identity?.web?.let {
-            openBrowserEvent.value = Event(it)
+            showBrowser(it)
         }
     }
 
@@ -58,8 +58,13 @@ class ValidatorDetailsViewModel(
 
     fun twitterClicked() {
         validator.identity?.twitter?.let {
-            openBrowserEvent.value = Event(it)
+            showBrowser(it)
         }
+    }
+
+    fun accountActionsClicked() {
+        val address = validatorDetails.value?.address ?: return
+        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(address, address.networkType()))
     }
 }
 
