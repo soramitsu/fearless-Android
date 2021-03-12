@@ -71,7 +71,9 @@ private fun BaseFragment<*>.showTransferWarning(
     warningConfirmed: DialogClickHandler
 ) {
     val (title, message) = when (status) {
-        TransferValidityLevel.Warning.Status.WillRemoveAccount -> R.string.wallet_send_existential_warning_title to R.string.wallet_send_existential_warning_message
+        TransferValidityLevel.Warning.Status.WillRemoveAccount -> {
+            R.string.wallet_send_existential_warning_title to R.string.wallet_send_existential_warning_message
+        }
     }
 
     warningDialog(requireContext(), warningConfirmed) {

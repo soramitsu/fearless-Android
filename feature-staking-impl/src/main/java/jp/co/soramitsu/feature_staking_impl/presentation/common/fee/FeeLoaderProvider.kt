@@ -46,12 +46,14 @@ class FeeLoaderProvider(
                 FeeStatus.Loaded(feeModel)
             } else {
                 retryEvent.postValue(
-                    Event(RetryPayload(
-                        title = resourceManager.getString(R.string.choose_amount_network_error),
-                        message = resourceManager.getString(R.string.choose_amount_error_fee),
-                        onRetry = { loadFee(coroutineScope, feeConstructor, onRetryCancelled) },
-                        onCancel = onRetryCancelled
-                    ))
+                    Event(
+                        RetryPayload(
+                            title = resourceManager.getString(R.string.choose_amount_network_error),
+                            message = resourceManager.getString(R.string.choose_amount_error_fee),
+                            onRetry = { loadFee(coroutineScope, feeConstructor, onRetryCancelled) },
+                            onCancel = onRetryCancelled
+                        )
+                    )
                 )
 
                 FeeStatus.Error

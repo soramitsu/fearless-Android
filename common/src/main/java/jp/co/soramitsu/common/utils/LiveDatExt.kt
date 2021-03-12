@@ -104,30 +104,33 @@ fun <FROM, TO> LiveData<FROM>.switchMap(
 ): LiveData<TO> {
     val result: MediatorLiveData<TO> = MediatorLiveData()
 
-    result.addSource(this, object : Observer<FROM> {
-        var mSource: LiveData<TO>? = null
+    result.addSource(
+        this,
+        object : Observer<FROM> {
+            var mSource: LiveData<TO>? = null
 
-        override fun onChanged(x: FROM) {
-            val newLiveData: LiveData<TO> = mapper.invoke(x)
+            override fun onChanged(x: FROM) {
+                val newLiveData: LiveData<TO> = mapper.invoke(x)
 
-            if (mSource === newLiveData) {
-                return
-            }
-            if (mSource != null) {
-                result.removeSource(mSource!!)
-            }
+                if (mSource === newLiveData) {
+                    return
+                }
+                if (mSource != null) {
+                    result.removeSource(mSource!!)
+                }
 
-            mSource = newLiveData
+                mSource = newLiveData
 
-            if (mSource != null) {
-                result.addSource(mSource!!) { y -> result.setValue(y) }
+                if (mSource != null) {
+                    result.addSource(mSource!!) { y -> result.setValue(y) }
 
-                if (triggerOnSwitch && mSource!!.value != null) {
-                    mSource!!.notifyObservers()
+                    if (triggerOnSwitch && mSource!!.value != null) {
+                        mSource!!.notifyObservers()
+                    }
                 }
             }
         }
-    })
+    )
 
     return result
 }
@@ -141,11 +144,14 @@ fun EditText.bindTo(liveData: MutableLiveData<String>, lifecycleOwner: Lifecycle
         }
     }
 
-    liveData.observe(lifecycleOwner, Observer {
-        if (it != text.toString()) {
-            setText(it)
+    liveData.observe(
+        lifecycleOwner,
+        Observer {
+            if (it != text.toString()) {
+                setText(it)
+            }
         }
-    })
+    )
 }
 
 fun LiveData<String>.isNotEmpty() = !value.isNullOrEmpty()
