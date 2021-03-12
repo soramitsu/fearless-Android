@@ -38,3 +38,4 @@ class ValidatorInfoView @JvmOverloads constructor(
         validatorTotalStakeView.setOnClickListener { clickListener() }
     }
 }
+

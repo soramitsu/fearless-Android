@@ -45,8 +45,12 @@ import kotlinx.android.parcel.Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
 
 class Navigator :
-    SplashRouter, OnboardingRouter, AccountRouter,
-    WalletRouter, RootRouter, StakingRouter {
+    SplashRouter,
+    OnboardingRouter,
+    AccountRouter,
+    WalletRouter,
+    RootRouter,
+    StakingRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
