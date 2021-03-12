@@ -38,7 +38,7 @@ class StakingRepositoryImpl(
     val storageCache: StorageCache,
     val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     val accountStakingDao: AccountStakingDao,
-    val bulkRetriever: BulkRetriever,
+    val bulkRetriever: BulkRetriever
 ) : StakingRepository {
 
     override suspend fun getTotalIssuance(): BigInteger = withContext(Dispatchers.Default) {
@@ -122,7 +122,7 @@ class StakingRepositoryImpl(
 
     private suspend fun observeStashState(
         accessInfo: AccountStakingLocal.AccessInfo,
-        accountAddress: String,
+        accountAddress: String
     ): Flow<StakingState.Stash> {
         val runtime = runtimeProperty.get()
         val stashId = accessInfo.stashId
@@ -147,7 +147,7 @@ class StakingRepositoryImpl(
 
     private suspend fun observeAccountValidatorPrefs(
         runtime: RuntimeSnapshot,
-        stashId: AccountId,
+        stashId: AccountId
     ): Flow<ValidatorPrefs?> {
         val key = runtime.metadata.staking().storage("Validators").storageKey(runtime, stashId)
 
@@ -159,7 +159,7 @@ class StakingRepositoryImpl(
 
     private suspend fun observeAccountNominations(
         runtime: RuntimeSnapshot,
-        stashId: AccountId,
+        stashId: AccountId
     ): Flow<Nominations?> {
         val key = runtime.metadata.staking().storage("Nominators").storageKey(runtime, stashId)
 
@@ -172,7 +172,7 @@ class StakingRepositoryImpl(
     private fun isSlashed(
         span: SlashingSpan?,
         activeEraIndex: BigInteger,
-        slashDeferDuration: BigInteger,
+        slashDeferDuration: BigInteger
     ) = span != null && activeEraIndex - span.lastNonZeroSlash < slashDeferDuration
 
     private suspend fun getRuntime() = runtimeProperty.get()
