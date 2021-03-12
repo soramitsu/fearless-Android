@@ -40,9 +40,12 @@ class JsonImportView @JvmOverloads constructor(
 
         source.jsonContentLiveData.observe(lifecycleOwner, Observer(importJsonContent::setMessage))
 
-        source.showJsonInputOptionsEvent.observe(lifecycleOwner, EventObserver {
-            showJsonInputOptionsSheet(source)
-        })
+        source.showJsonInputOptionsEvent.observe(
+            lifecycleOwner,
+            EventObserver {
+                showJsonInputOptionsSheet(source)
+            }
+        )
 
         importJsonPasswordInput.content.bindTo(source.passwordLiveData, lifecycleOwner)
 
@@ -54,9 +57,12 @@ class JsonImportView @JvmOverloads constructor(
             source.jsonClicked()
         }
 
-        source.showNetworkWarningLiveData.observe(lifecycleOwner, Observer {
-            importJsonNoNetworkInfo.setVisible(it)
-        })
+        source.showNetworkWarningLiveData.observe(
+            lifecycleOwner,
+            Observer {
+                importJsonNoNetworkInfo.setVisible(it)
+            }
+        )
     }
 
     private fun showJsonInputOptionsSheet(source: JsonImportSource) {

@@ -61,9 +61,12 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     inline fun <V> LiveData<Event<V>>.observeEvent(crossinline observer: (V) -> Unit) {
-        observe(viewLifecycleOwner, EventObserver {
-            observer.invoke(it)
-        })
+        observe(
+            viewLifecycleOwner,
+            EventObserver {
+                observer.invoke(it)
+            }
+        )
     }
 
     inline fun <V> Flow<V>.observe(crossinline collector: suspend (V) -> Unit) {

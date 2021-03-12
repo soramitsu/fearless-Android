@@ -9,10 +9,14 @@ import java.math.BigInteger
 
 @Entity(
     tableName = "transactions",
-    foreignKeys = [ForeignKey(entity = AccountLocal::class,
-        parentColumns = ["address"],
-        childColumns = ["accountAddress"],
-        onDelete = ForeignKey.CASCADE)],
+    foreignKeys = [
+        ForeignKey(
+            entity = AccountLocal::class,
+            parentColumns = ["address"],
+            childColumns = ["accountAddress"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
     primaryKeys = ["hash", "accountAddress"]
 )
 class TransactionLocal(

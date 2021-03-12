@@ -93,23 +93,32 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
             rootNetworkBar.setVisible(show)
         }
 
-        viewModel.messageLiveData.observe(this, EventObserver {
-            showToast(it)
-        })
-
-        viewModel.outdatedTypesWarningLiveData.observe(this, EventObserver {
-            infoDialog(this) {
-                setTitle(R.string.runtime_update_not_actual_title)
-                setMessage(R.string.runtime_update_not_actual_description)
+        viewModel.messageLiveData.observe(
+            this,
+            EventObserver {
+                showToast(it)
             }
-        })
+        )
 
-        viewModel.runtimeUpdateFailedLiveData.observe(this, EventObserver { onRetry ->
-            retryDialog(this, { viewModel.retryConfirmed(onRetry) }) {
-                setTitle(R.string.runtime_update_failure_title)
-                setMessage(R.string.runtime_update_failure_description)
+        viewModel.outdatedTypesWarningLiveData.observe(
+            this,
+            EventObserver {
+                infoDialog(this) {
+                    setTitle(R.string.runtime_update_not_actual_title)
+                    setMessage(R.string.runtime_update_not_actual_description)
+                }
             }
-        })
+        )
+
+        viewModel.runtimeUpdateFailedLiveData.observe(
+            this,
+            EventObserver { onRetry ->
+                retryDialog(this, { viewModel.retryConfirmed(onRetry) }) {
+                    setTitle(R.string.runtime_update_failure_title)
+                    setMessage(R.string.runtime_update_failure_description)
+                }
+            }
+        )
     }
 
     override fun removeSplashBackground() {

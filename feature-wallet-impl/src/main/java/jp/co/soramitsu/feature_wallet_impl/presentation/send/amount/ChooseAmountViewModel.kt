@@ -64,7 +64,8 @@ class ChooseAmountViewModel(
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
-    PhishingWarningMixin by phishingAddress, PhishingWarningPresentation {
+    PhishingWarningMixin by phishingAddress,
+    PhishingWarningPresentation {
 
     val recipientModelLiveData = liveData {
         emit(generateAddressModel(recipientAddress))
