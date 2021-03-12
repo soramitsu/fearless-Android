@@ -3,7 +3,9 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.constant
+import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.staking
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
@@ -40,6 +42,14 @@ class StakingRepositoryImpl(
     val accountStakingDao: AccountStakingDao,
     val bulkRetriever: BulkRetriever
 ) : StakingRepository {
+
+    override suspend fun getLockupPeriodInDays(networkType: Node.NetworkType): Int {
+        val runtime = runtimeProperty.get()
+
+        val inEras = runtime.metadata.staking().numberConstant("BondingDuration", runtime)
+
+        return inEras.toInt() / networkType.runtimeConfiguration.erasPerDay
+    }
 
     override suspend fun getTotalIssuance(): BigInteger = withContext(Dispatchers.Default) {
         val runtime = getRuntime()

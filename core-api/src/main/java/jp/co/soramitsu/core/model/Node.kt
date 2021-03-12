@@ -21,7 +21,8 @@ data class Node(
                 pallets = DEFAULT_PALLETS,
                 addressByte = 2,
                 genesisHash = "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-                existentialDeposit = BigDecimal("0.001666666666")
+                existentialDeposit = BigDecimal("0.001666666666"),
+                erasPerDay = 4
             )
         ),
         POLKADOT(
@@ -32,7 +33,8 @@ data class Node(
                 ),
                 addressByte = 0,
                 genesisHash = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-                existentialDeposit = BigDecimal("1")
+                existentialDeposit = BigDecimal("1"),
+                erasPerDay = 1,
             )
         ),
         WESTEND(
@@ -41,7 +43,8 @@ data class Node(
                 pallets = DEFAULT_PALLETS,
                 addressByte = 42,
                 genesisHash = "e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
-                existentialDeposit = BigDecimal("0.01")
+                existentialDeposit = BigDecimal("0.01"),
+                erasPerDay = 4
             )
         );
 

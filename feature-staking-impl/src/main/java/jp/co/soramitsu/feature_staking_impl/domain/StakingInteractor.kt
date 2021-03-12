@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAcco
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToWalletAccount
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
+import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
@@ -31,6 +33,15 @@ class StakingInteractor(
     private val substrateCalls: SubstrateCalls,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory
 ) {
+
+    fun observeNetworkInfo() : Flow<NetworkInfo> {
+        return accountRepository.selectedNetworkTypeFlow()
+            .mapLatest {
+                val lockupPeriod = stakingRepository.getLockupPeriodInDays(it)
+
+                NetworkInfo(lockupPeriod)
+            }
+    }
 
     fun selectedAccountStakingState() = accountRepository.selectedAccountFlow()
         .flatMapLatest { stakingRepository.stakingStateFlow(it.address) }
