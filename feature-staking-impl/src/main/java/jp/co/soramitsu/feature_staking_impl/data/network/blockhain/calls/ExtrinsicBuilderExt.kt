@@ -8,9 +8,12 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
 import java.math.BigInteger
 
 fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBuilder {
-    return call("Staking", "set_controller", mapOf(
-        "controller" to bindMultiAddress(controllerAddress)
-    ))
+    return call(
+        "Staking", "set_controller",
+        mapOf(
+            "controller" to bindMultiAddress(controllerAddress)
+        )
+    )
 }
 
 fun ExtrinsicBuilder.bond(
@@ -18,15 +21,21 @@ fun ExtrinsicBuilder.bond(
     amount: BigInteger,
     payee: RewardDestination
 ): ExtrinsicBuilder {
-    return call("Staking", "bond", mapOf(
-        "controller" to bindMultiAddress(controllerAddress),
-        "value" to amount,
-        "payee" to bindRewardDestination(payee)
-    ))
+    return call(
+        "Staking", "bond",
+        mapOf(
+            "controller" to bindMultiAddress(controllerAddress),
+            "value" to amount,
+            "payee" to bindRewardDestination(payee)
+        )
+    )
 }
 
 fun ExtrinsicBuilder.nominate(targets: List<MultiAddress>): ExtrinsicBuilder {
-    return call("Staking", "nominate", mapOf(
-        "targets" to targets.map(::bindMultiAddress)
-    ))
+    return call(
+        "Staking", "nominate",
+        mapOf(
+            "targets" to targets.map(::bindMultiAddress)
+        )
+    )
 }

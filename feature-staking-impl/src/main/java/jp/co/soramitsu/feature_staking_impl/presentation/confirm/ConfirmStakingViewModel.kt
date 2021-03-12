@@ -60,7 +60,8 @@ class ConfirmStakingViewModel(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory
 ) : BaseViewModel(),
-    Retriable, Validatable,
+    Retriable,
+    Validatable,
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
 
@@ -233,11 +234,13 @@ class ConfirmStakingViewModel(
     )
 
     private fun showValidationFailedToComplete() {
-        retryEvent.value = Event(RetryPayload(
-            title = resourceManager.getString(R.string.choose_amount_network_error),
-            message = resourceManager.getString(R.string.choose_amount_error_balance),
-            onRetry = ::sendTransactionIfValid
-        ))
+        retryEvent.value = Event(
+            RetryPayload(
+                title = resourceManager.getString(R.string.choose_amount_network_error),
+                message = resourceManager.getString(R.string.choose_amount_error_balance),
+                onRetry = ::sendTransactionIfValid
+            )
+        )
     }
 
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {

@@ -76,7 +76,10 @@ class SetupStakingViewModel(
     private val stakingSharedState: StakingSharedState,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation
 ) : BaseViewModel(),
-    Retriable, Validatable, Browserable, FeeLoaderMixin by feeLoaderMixin {
+    Retriable,
+    Validatable,
+    Browserable,
+    FeeLoaderMixin by feeLoaderMixin {
 
     private val _rewardDestinationLiveData = MutableLiveData<RewardDestinationModel>(RewardDestinationModel.Restake)
     val rewardDestinationLiveData: LiveData<RewardDestinationModel> = _rewardDestinationLiveData
@@ -229,11 +232,13 @@ class SetupStakingViewModel(
     }
 
     private fun showValidationFailedToComplete() {
-        retryEvent.value = Event(RetryPayload(
-            title = resourceManager.getString(R.string.choose_amount_network_error),
-            message = resourceManager.getString(R.string.choose_amount_error_balance),
-            onRetry = ::nextClicked
-        ))
+        retryEvent.value = Event(
+            RetryPayload(
+                title = resourceManager.getString(R.string.choose_amount_network_error),
+                message = resourceManager.getString(R.string.choose_amount_error_balance),
+                onRetry = ::nextClicked
+            )
+        )
     }
 
     private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(

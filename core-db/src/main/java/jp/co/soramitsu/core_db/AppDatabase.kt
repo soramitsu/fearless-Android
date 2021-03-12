@@ -48,7 +48,8 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
         PhishingAddressLocal::class,
         StorageEntryLocal::class,
         AccountStakingLocal::class
-    ])
+    ]
+)
 @TypeConverters(
     LongMathConverters::class,
     NetworkTypeConverters::class,
@@ -64,8 +65,10 @@ abstract class AppDatabase : RoomDatabase() {
         @Synchronized
         fun get(context: Context, defaultNodes: DefaultNodes): AppDatabase {
             if (instance == null) {
-                instance = Room.databaseBuilder(context.applicationContext,
-                    AppDatabase::class.java, "app.db")
+                instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java, "app.db"
+                )
                     .fallbackToDestructiveMigration()
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
