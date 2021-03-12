@@ -8,22 +8,10 @@
     tools:orientation="vertical"
     tools:parentTag="android.widget.LinearLayout">
 
-    <TextView
-        android:id="@+id/validatorInfoTitle"
-        style="@style/TextAppearance.Soramitsu.Header4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:includeFontPadding="false"
-        android:text="@string/staking_title"
-        android:textColor="@color/white"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/validatorTotalStakeView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         app:validatorInfoItemIcon="@drawable/ic_info_16"
         app:validatorInfoItemTitle="@string/staking_validator_total_stake" />
 

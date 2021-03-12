@@ -25,14 +25,39 @@
             android:layout_height="wrap_content"
             android:layout_margin="16dp" />
 
+        <TextView
+            android:id="@+id/validatorInfoTitle"
+            style="@style/TextAppearance.Soramitsu.Header4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:includeFontPadding="false"
+            android:text="@string/staking_title"
+            android:textColor="@color/white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoView
             android:id="@+id/validatorInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:paddingStart="16dp"
-            android:paddingTop="8dp"
             android:paddingEnd="16dp"
-            android:paddingBottom="4dp" />
+            android:visibility="gone" />
+
+        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoEmptyStateView
+            android:id="@+id/validatorInfoEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="12dp" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityView
             android:id="@+id/validatorIdentity"

@@ -18,6 +18,7 @@ import kotlinx.android.synthetic.main.fragment_validator_details.validatorAccoun
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorDetailsToolbar
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorIdentity
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorInfo
+import kotlinx.android.synthetic.main.fragment_validator_details.validatorInfoEmptyState
 
 class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
 
@@ -74,9 +75,11 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
     override fun subscribe(viewModel: ValidatorDetailsViewModel) {
         viewModel.validatorDetails.observe { validator ->
             if (validator.stake == null) {
-
+                validatorInfo.makeGone()
+                validatorInfoEmptyState.makeVisible()
             } else {
                 validatorInfo.makeVisible()
+                validatorInfoEmptyState.makeGone()
                 validatorInfo.setNominatorsCount(validator.stake.nominatorsCount)
                 validatorInfo.setEstimatedRewardApy(validator.stake.apy)
                 validatorInfo.setTotalStakeValue(validator.stake.totalStake)
