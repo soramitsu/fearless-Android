@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.constant
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.core.model.Node
@@ -27,6 +28,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindTotalInsurance
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.activeEraStorageKey
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.observeActiveEraIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -69,6 +71,10 @@ class StakingRepositoryImpl(
         val scale = storageCache.getEntry(fullKey).content!!
 
         return bindActiveEra(scale, runtime)
+    }
+
+    override suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<BigInteger> {
+        return storageCache.observeActiveEraIndex(runtimeProperty.get(), networkType)
     }
 
     override suspend fun getElectedValidatorsExposure(eraIndex: BigInteger) = withContext(Dispatchers.Default) {
@@ -134,13 +140,14 @@ class StakingRepositoryImpl(
         accessInfo: AccountStakingLocal.AccessInfo,
         accountAddress: String
     ): Flow<StakingState.Stash> {
+        val networkType = accountAddress.networkType()
         val runtime = runtimeProperty.get()
         val stashId = accessInfo.stashId
         val controllerId = accessInfo.controllerId
 
         return combine(
-            observeAccountNominations(runtime, stashId),
-            observeAccountValidatorPrefs(runtime, stashId)
+            observeAccountNominations(runtime, stashId, networkType),
+            observeAccountValidatorPrefs(runtime, stashId, networkType)
         ) { nominations, prefs ->
             when {
                 prefs != null -> StakingState.Stash.Validator(
@@ -157,11 +164,12 @@ class StakingRepositoryImpl(
 
     private suspend fun observeAccountValidatorPrefs(
         runtime: RuntimeSnapshot,
-        stashId: AccountId
+        stashId: AccountId,
+        networkType: Node.NetworkType
     ): Flow<ValidatorPrefs?> {
         val key = runtime.metadata.staking().storage("Validators").storageKey(runtime, stashId)
 
-        return storageCache.observeEntry(key)
+        return storageCache.observeEntry(key, networkType)
             .map { entry ->
                 entry.content?.let { bindValidatorPrefs(it, runtime) }
             }
@@ -169,11 +177,12 @@ class StakingRepositoryImpl(
 
     private suspend fun observeAccountNominations(
         runtime: RuntimeSnapshot,
-        stashId: AccountId
+        stashId: AccountId,
+        networkType: Node.NetworkType
     ): Flow<Nominations?> {
         val key = runtime.metadata.staking().storage("Nominators").storageKey(runtime, stashId)
 
-        return storageCache.observeEntry(key)
+        return storageCache.observeEntry(key, networkType)
             .map { entry ->
                 entry.content?.let { bindNominations(it, runtime) }
             }

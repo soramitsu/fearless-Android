@@ -10,6 +10,7 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
@@ -21,13 +22,14 @@ import java.math.BigInteger
 class ValidatorPrefsUpdater(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val bulkRetriever: BulkRetriever,
+    private val accountRepository: AccountRepository,
     private val storageCache: StorageCache
 ) : GlobalScopeUpdater {
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()
 
-        return storageCache.observeEraIndex(runtime)
+        return storageCache.observeActiveEraIndex(runtime, accountRepository.getSelectedNode().networkType)
             .map { validatorPrefsKey(runtime, it) }
             .filterNot(storageCache::isPrefixInCache)
             .onEach(::updateValidatorPrefs)

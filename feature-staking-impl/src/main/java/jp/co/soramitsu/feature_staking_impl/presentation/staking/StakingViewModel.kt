@@ -46,12 +46,13 @@ class StakingViewModel(
     private val stakingSharedState: StakingSharedState
 ) : BaseViewModel() {
 
-    val networkInfoLiveData = interactor.observeNetworkInfo()
-        .asLiveData()
-
     val currentStakingState = interactor.selectedAccountStakingState()
         .flowOn(Dispatchers.Default)
         .share()
+
+    val networkInfoStateLiveData = interactor.observeNetworkInfoState()
+        .flowOn(Dispatchers.Default)
+        .asLiveData()
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 

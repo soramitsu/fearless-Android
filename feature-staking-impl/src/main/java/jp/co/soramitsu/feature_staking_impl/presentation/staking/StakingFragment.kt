@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,7 +19,6 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
-import kotlinx.android.synthetic.main.fragment_staking.stakingTitle
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
@@ -64,11 +62,11 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
     override fun subscribe(viewModel: StakingViewModel) {
         viewModel.currentStakingState.observe {
-            stakingTitle.text = it::class.simpleName
+            // TODO
         }
 
-        viewModel.networkInfoLiveData.observe {
-            Log.d("RX", it.lockupPeriodInDays.toString())
+        viewModel.networkInfoStateLiveData.observe {
+            // TODO
         }
 
         stakingEstimate.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
