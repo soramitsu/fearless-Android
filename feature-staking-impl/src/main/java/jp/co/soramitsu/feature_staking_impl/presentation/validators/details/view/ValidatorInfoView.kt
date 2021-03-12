@@ -33,4 +33,8 @@ class ValidatorInfoView @JvmOverloads constructor(
     fun setEstimatedRewardApy(reward: String) {
         validatorEstimatedReward.setBody(reward)
     }
+
+    fun setTotalStakeClickListener(clickListener: () -> Unit) {
+        validatorTotalStakeView.setOnClickListener { clickListener() }
+    }
 }

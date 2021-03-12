@@ -6,8 +6,9 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 @Parcelize
-class ValidatorDetailsParcelModel(
-    val accountIdHex: String,
-    val stake: ValidatorStakeParcelModel?,
-    val identity: IdentityParcelModel?,
+class ValidatorStakeParcelModel(
+    val totalStake: BigInteger,
+    val ownStake: BigInteger,
+    val nominators: List<NominatorParcelModel>,
+    val apy: BigDecimal
 ) : Parcelable

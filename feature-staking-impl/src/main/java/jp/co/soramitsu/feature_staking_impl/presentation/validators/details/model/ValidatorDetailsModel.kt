@@ -1,10 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model
 
+import android.graphics.drawable.PictureDrawable
+
 class ValidatorDetailsModel(
-    val totalStake: String,
-    val totalStakeFiat: String?,
+    val stake: ValidatorStakeModel?,
     val address: String,
+    val addressImage: PictureDrawable,
     val identity: IdentityModel?,
-    val nominatorsCount: String,
-    val apy: String
 )
