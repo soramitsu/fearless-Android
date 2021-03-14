@@ -6,16 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.createSendEmailIntent
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
-import jp.co.soramitsu.feature_account_api.presenatation.actions.copyAddressClicked
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorStakeBottomSheet
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorAccountInfo
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorDetailsToolbar
@@ -114,6 +112,10 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
 
         viewModel.openEmailEvent.observeEvent {
             requireContext().createSendEmailIntent(it, getString(R.string.common_email_chooser_title))
+        }
+
+        viewModel.totalStakeEvent.observeEvent {
+            ValidatorStakeBottomSheet(requireContext()).show()
         }
     }
 }

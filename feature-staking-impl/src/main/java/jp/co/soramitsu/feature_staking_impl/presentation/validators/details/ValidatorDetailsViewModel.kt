@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
@@ -39,12 +38,15 @@ class ValidatorDetailsViewModel(
     private val _openEmailEvent = MutableLiveData<Event<String>>()
     val openEmailEvent: LiveData<Event<String>> = _openEmailEvent
 
+    private val _totalStakeEvent = MutableLiveData<Event<Unit>>()
+    val totalStakeEvent: LiveData<Event<Unit>> = _totalStakeEvent
+
     fun backClicked() {
         router.back()
     }
 
     fun totalStakeClicked() {
-
+        _totalStakeEvent.value = Event(Unit)
     }
 
     fun webClicked() {
