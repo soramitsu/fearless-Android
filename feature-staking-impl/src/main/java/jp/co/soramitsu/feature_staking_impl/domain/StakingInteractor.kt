@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToWalletAccount
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
@@ -38,6 +39,10 @@ class StakingInteractor(
     private val substrateCalls: SubstrateCalls,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
+
+    fun observeNominatorState(nominatorState: StakingState.Stash.Nominator) {
+
+    }
 
     fun observeNetworkInfoState(): Flow<NetworkInfoState> {
         return accountRepository.selectedNetworkTypeFlow()
