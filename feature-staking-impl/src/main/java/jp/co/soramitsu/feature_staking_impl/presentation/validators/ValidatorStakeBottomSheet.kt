@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators
 
 import android.content.Context
 import android.os.Bundle
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.widget.TextView
 import jp.co.soramitsu.common.utils.dp
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -36,39 +36,31 @@ class ValidatorStakeBottomSheet(
             it.updatePadding(top = 8.dp(context), bottom = 8.dp(context), start = 16.dp(context), end = 16.dp(context))
             it.validatorTotalStakeItemTitle.text = "Own"
             it.validatorTotalStakeItemAmount.text = payload.ownStake
-            if (payload.ownStakeFiat == null) {
-                it.validatorTotalStakeItemAmountFiat.text = ""
-                it.validatorTotalStakeItemAmountFiat.makeGone()
-            } else {
-                it.validatorTotalStakeItemAmountFiat.text = payload.ownStakeFiat
-                it.validatorTotalStakeItemAmountFiat.makeVisible()
-            }
+            showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.ownStakeFiat)
         }
 
         item(R.layout.view_validator_total_stake_item) {
             it.updatePadding(top = 8.dp(context), bottom = 8.dp(context), start = 16.dp(context), end = 16.dp(context))
             it.validatorTotalStakeItemTitle.text = "Nominators"
             it.validatorTotalStakeItemAmount.text = payload.nominatorsStake
-            if (payload.nominatorsStakeFiat == null) {
-                it.validatorTotalStakeItemAmountFiat.text = ""
-                it.validatorTotalStakeItemAmountFiat.makeGone()
-            } else {
-                it.validatorTotalStakeItemAmountFiat.text = payload.nominatorsStakeFiat
-                it.validatorTotalStakeItemAmountFiat.makeVisible()
-            }
+            showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.nominatorsStakeFiat)
         }
 
         item(R.layout.view_validator_total_stake_item) {
             it.updatePadding(top = 8.dp(context), bottom = 8.dp(context), start = 16.dp(context), end = 16.dp(context))
             it.validatorTotalStakeItemTitle.text = "Total"
             it.validatorTotalStakeItemAmount.text = payload.totalStake
-            if (payload.totalStakeFiat == null) {
-                it.validatorTotalStakeItemAmountFiat.text = ""
-                it.validatorTotalStakeItemAmountFiat.makeGone()
-            } else {
-                it.validatorTotalStakeItemAmountFiat.text = payload.totalStakeFiat
-                it.validatorTotalStakeItemAmountFiat.makeVisible()
-            }
+            showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.totalStakeFiat)
+        }
+    }
+
+    private fun showTextOrHide(view: TextView, text: String?) {
+        if (text == null) {
+            view.validatorTotalStakeItemAmountFiat.text = ""
+            view.validatorTotalStakeItemAmountFiat.makeGone()
+        } else {
+            view.validatorTotalStakeItemAmountFiat.text = payload.totalStakeFiat
+            view.validatorTotalStakeItemAmountFiat.makeVisible()
         }
     }
 }
