@@ -304,4 +304,6 @@
     <string name="identity_twitter_title" translatable="false">Twitter</string>
     <string name="identity_riot_name_title">Riot name</string>
     <string name="validator_not_elected_description">This account is not elected by network to participate in the current era</string>
+    <string name="staking_validator_own_stake">Own</string>
+    <string name="staking_validator_total">Total</string>
 </resources>

@@ -6,11 +6,13 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.sumBy
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsParcelToValidatorDetailsModel
@@ -34,7 +36,8 @@ class ValidatorDetailsViewModel(
     private val validator: ValidatorDetailsParcelModel,
     private val iconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val appLinksProvider: AppLinksProvider
+    private val appLinksProvider: AppLinksProvider,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
     private val validatorDetailsFlow = MutableStateFlow(validator)
@@ -80,10 +83,13 @@ class ValidatorDetailsViewModel(
         val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
 
         ValidatorStakeBottomSheet.Payload(
+            resourceManager.getString(R.string.staking_validator_own_stake),
             ownStakeFormatted,
             ownStakeFiatFormatted,
+            resourceManager.getString(R.string.staking_validator_nominators),
             nominatorsStakeFormatted,
             nominatorsStakeFiatFormatted,
+            resourceManager.getString(R.string.staking_validator_total),
             totalStakeFormatted,
             totalStakeFiatFormatted
         )

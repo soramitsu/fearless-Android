@@ -19,10 +19,13 @@ class ValidatorStakeBottomSheet(
 ) : FixedListBottomSheet(context) {
 
     class Payload(
+        val ownStakeTitle: String,
         val ownStake: String,
         val ownStakeFiat: String?,
+        val nominatorsTitle: String,
         val nominatorsStake: String,
         val nominatorsStakeFiat: String?,
+        val totalStakeTitle: String,
         val totalStake: String,
         val totalStakeFiat: String?
     )
@@ -34,21 +37,21 @@ class ValidatorStakeBottomSheet(
 
         item(R.layout.view_validator_total_stake_item) {
             it.updatePadding(top = 8.dp(context), bottom = 8.dp(context), start = 16.dp(context), end = 16.dp(context))
-            it.validatorTotalStakeItemTitle.text = "Own"
+            it.validatorTotalStakeItemTitle.text = payload.ownStakeTitle
             it.validatorTotalStakeItemAmount.text = payload.ownStake
             showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.ownStakeFiat)
         }
 
         item(R.layout.view_validator_total_stake_item) {
             it.updatePadding(top = 8.dp(context), bottom = 8.dp(context), start = 16.dp(context), end = 16.dp(context))
-            it.validatorTotalStakeItemTitle.text = "Nominators"
+            it.validatorTotalStakeItemTitle.text = payload.nominatorsTitle
             it.validatorTotalStakeItemAmount.text = payload.nominatorsStake
             showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.nominatorsStakeFiat)
         }
 
         item(R.layout.view_validator_total_stake_item) {
             it.updatePadding(top = 8.dp(context), bottom = 8.dp(context), start = 16.dp(context), end = 16.dp(context))
-            it.validatorTotalStakeItemTitle.text = "Total"
+            it.validatorTotalStakeItemTitle.text = payload.totalStakeTitle
             it.validatorTotalStakeItemAmount.text = payload.totalStake
             showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.totalStakeFiat)
         }

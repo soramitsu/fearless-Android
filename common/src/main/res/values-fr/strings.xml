@@ -266,4 +266,6 @@
     <string name="staking_confirm_selected_validators">Validateurs sélectionnés</string>
     <string name="staking_confirm_nominations">%s sur %s</string>
     <string name="validator_not_elected_description">Ce compte n\'est pas élu par le réseau pour participer à l\'ère actuelle</string>
+    <string name="staking_validator_own_stake">Propre</string>
+    <string name="staking_validator_total">Total</string>
 </resources>
