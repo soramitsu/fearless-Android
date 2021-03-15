@@ -20,5 +20,7 @@ android {
 dependencies {
     implementation coroutinesDep
 
+    implementation fearlessLibDep
+
     api project(':core-api')
 }
