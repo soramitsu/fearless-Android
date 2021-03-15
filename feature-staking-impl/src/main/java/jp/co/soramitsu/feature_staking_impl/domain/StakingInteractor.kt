@@ -15,7 +15,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
-import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToWalletAccount
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
@@ -51,6 +50,7 @@ class StakingInteractor(
 
     suspend fun observeNominatorSummary(nominatorState: StakingState.Stash.Nominator): Flow<LoadingState<NominatorSummary>> = withContext(Dispatchers.Default) {
         val networkType = nominatorState.accountAddress.networkType()
+        val tokenType = Token.Type.fromNetworkType(networkType)
 
         flow {
             emit(LoadingState.Loading())
@@ -58,7 +58,8 @@ class StakingInteractor(
             val combinedState = combineTransform(
                 stakingRepository.electionStatusFlow(networkType),
                 stakingRepository.observeActiveEraIndex(networkType),
-            ) { electionStatus, activeEraIndex ->
+                walletRepository.assetFlow(nominatorState.accountAddress, tokenType)
+            ) { electionStatus, activeEraIndex, asset ->
 
                 emit(LoadingState.Loading<NominatorSummary>())
 
@@ -72,7 +73,8 @@ class StakingInteractor(
                 }
 
                 val summary = NominatorSummary(
-                    status = status
+                    status = status,
+                    totalStaked = asset.bonded
                 )
 
                 emit(LoadingState.Loaded(summary))
@@ -116,8 +118,7 @@ class StakingInteractor(
     }
 
     fun currentAssetFlow() = accountRepository.selectedAccountFlow()
-        .map { mapAccountToWalletAccount(it) }
-        .flatMapLatest { walletRepository.assetsFlow(it) }
+        .flatMapLatest { walletRepository.assetsFlow(it.address) }
         .filter { it.isNotEmpty() }
         .map { it.first() }
 
