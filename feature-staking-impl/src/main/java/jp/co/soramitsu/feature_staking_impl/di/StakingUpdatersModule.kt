@@ -49,10 +49,12 @@ class StakingUpdatersModule {
     fun provideElectedNominatorsUpdater(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         bulkRetriever: BulkRetriever,
-        storageCache: StorageCache
+        storageCache: StorageCache,
+        accountRepository: AccountRepository,
     ) = ValidatorExposureUpdater(
         runtimeProperty,
         bulkRetriever,
+        accountRepository,
         storageCache
     )
 
@@ -61,10 +63,12 @@ class StakingUpdatersModule {
     fun provideValidatorPrefsUpdater(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         bulkRetriever: BulkRetriever,
+        accountRepository: AccountRepository,
         storageCache: StorageCache
     ) = ValidatorPrefsUpdater(
         runtimeProperty,
         bulkRetriever,
+        accountRepository,
         storageCache
     )
 

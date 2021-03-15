@@ -40,8 +40,10 @@ import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubst
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 
@@ -355,6 +357,11 @@ class AccountRepositoryImpl(
 
     override fun selectedNodeFlow(): Flow<Node> {
         return accountDataSource.selectedNodeFlow()
+    }
+
+    override fun selectedNetworkTypeFlow(): Flow<Node.NetworkType> {
+        return selectedAccountFlow().map { it.network.type }
+            .distinctUntilChanged()
     }
 
     override fun getLanguages(): List<Language> {

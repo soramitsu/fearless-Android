@@ -19,7 +19,6 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
-import kotlinx.android.synthetic.main.fragment_staking.stakingTitle
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
@@ -63,7 +62,11 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
     override fun subscribe(viewModel: StakingViewModel) {
         viewModel.currentStakingState.observe {
-            stakingTitle.text = it::class.simpleName
+            // TODO
+        }
+
+        viewModel.networkInfoStateLiveData.observe {
+            // TODO
         }
 
         stakingEstimate.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)

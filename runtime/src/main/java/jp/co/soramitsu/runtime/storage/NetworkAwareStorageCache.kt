@@ -45,23 +45,23 @@ class NetworkAwareStorageCache(
         storageDao.insert(mapped)
     }
 
-    override suspend fun observeEntry(key: String): Flow<StorageEntry> {
-        return storageDao.observeEntry(currentNetwork(), key)
+    override suspend fun observeEntry(key: String, networkType: Node.NetworkType): Flow<StorageEntry> {
+        return storageDao.observeEntry(networkType, key)
             .filterNotNull()
             .map { mapStorageEntryFromLocal(it) }
             .distinctUntilChangedBy(StorageEntry::content)
     }
 
-    override suspend fun observeEntries(keyPrefix: String): Flow<List<StorageEntry>> {
-        return storageDao.observeEntries(currentNetwork(), keyPrefix)
+    override suspend fun observeEntries(keyPrefix: String, networkType: Node.NetworkType): Flow<List<StorageEntry>> {
+        return storageDao.observeEntries(networkType, keyPrefix)
             .mapList { mapStorageEntryFromLocal(it) }
             .filter { it.isNotEmpty() }
     }
 
-    override suspend fun getEntry(key: String): StorageEntry = observeEntry(key).first()
+    override suspend fun getEntry(key: String): StorageEntry = observeEntry(key, currentNetwork()).first()
 
     override suspend fun getEntries(keyPrefix: String): List<StorageEntry> {
-        return observeEntries(keyPrefix).first()
+        return observeEntries(keyPrefix, currentNetwork()).first()
     }
 
     override suspend fun currentRuntimeVersion(): BigInteger {
