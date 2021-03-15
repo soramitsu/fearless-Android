@@ -96,6 +96,8 @@ interface AccountRepository {
 
     fun selectedNodeFlow(): Flow<Node>
 
+    fun selectedNetworkTypeFlow(): Flow<Node.NetworkType>
+
     suspend fun updateAccounts(accounts: List<Account>)
 
     suspend fun deleteAccount(address: String)

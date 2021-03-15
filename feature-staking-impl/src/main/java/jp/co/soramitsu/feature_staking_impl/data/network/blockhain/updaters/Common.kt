@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.rpc.retrieveAllValues
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.StorageEntry
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -16,8 +17,8 @@ import java.math.BigInteger
 
 fun RuntimeMetadata.activeEraStorageKey() = module("Staking").storage("ActiveEra").storageKey()
 
-suspend fun StorageCache.observeEraIndex(runtime: RuntimeSnapshot): Flow<BigInteger> {
-    return observeEntry(runtime.metadata.activeEraStorageKey())
+suspend fun StorageCache.observeActiveEraIndex(runtime: RuntimeSnapshot, networkType: Node.NetworkType): Flow<BigInteger> {
+    return observeEntry(runtime.metadata.activeEraStorageKey(), networkType)
         .map { bindActiveEra(it.content!!, runtime) }
 }
 

@@ -50,6 +50,10 @@ class StakingViewModel(
         .flowOn(Dispatchers.Default)
         .share()
 
+    val networkInfoStateLiveData = interactor.observeNetworkInfoState()
+        .flowOn(Dispatchers.Default)
+        .asLiveData()
+
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
     private val currentAsset = interactor.currentAssetFlow()
