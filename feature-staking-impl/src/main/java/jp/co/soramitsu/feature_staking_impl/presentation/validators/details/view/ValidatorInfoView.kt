@@ -25,6 +25,15 @@ class ValidatorInfoView @JvmOverloads constructor(
         validatorTotalStakeView.setBody(value)
     }
 
+    fun setTotalStakeValueFiat(fiat: String) {
+        validatorTotalStakeView.showExtra()
+        validatorTotalStakeView.setExtra(fiat)
+    }
+
+    fun hideTotalStakeFiatView() {
+        validatorTotalStakeView.hideExtra()
+    }
+
     fun setNominatorsCount(count: String) {
         validatorNominatorsView.setBody(count)
     }

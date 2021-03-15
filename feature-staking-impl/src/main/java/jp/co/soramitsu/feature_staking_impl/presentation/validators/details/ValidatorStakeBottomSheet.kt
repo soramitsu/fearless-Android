@@ -2,16 +2,9 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 
 import android.content.Context
 import android.os.Bundle
-import android.widget.TextView
-import jp.co.soramitsu.common.utils.dp
-import jp.co.soramitsu.common.utils.makeGone
-import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_validator_total_stake_item.view.validatorTotalStakeItemAmount
-import kotlinx.android.synthetic.main.view_validator_total_stake_item.view.validatorTotalStakeItemAmountFiat
-import kotlinx.android.synthetic.main.view_validator_total_stake_item.view.validatorTotalStakeItemTitle
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
 
 class ValidatorStakeBottomSheet(
     context: Context,
@@ -35,32 +28,35 @@ class ValidatorStakeBottomSheet(
 
         setTitle(R.string.staking_validator_total_stake)
 
-        item(R.layout.view_validator_total_stake_item) {
-            it.validatorTotalStakeItemTitle.text = payload.ownStakeTitle
-            it.validatorTotalStakeItemAmount.text = payload.ownStake
-            showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.ownStakeFiat)
+        val nominatorsStakeItem = ValidatorInfoItemView(context).apply {
+            setTitle(payload.nominatorsTitle)
+            setBody(payload.nominatorsStake)
+            showTextOrHideExtra(this, payload.nominatorsStakeFiat)
         }
 
-        item(R.layout.view_validator_total_stake_item) {
-            it.validatorTotalStakeItemTitle.text = payload.nominatorsTitle
-            it.validatorTotalStakeItemAmount.text = payload.nominatorsStake
-            showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.nominatorsStakeFiat)
+        val totalStakeItem = ValidatorInfoItemView(context).apply {
+            setTitle(payload.totalStakeTitle)
+            setBody(payload.totalStake)
+            showTextOrHideExtra(this, payload.totalStakeFiat)
         }
 
-        item(R.layout.view_validator_total_stake_item) {
-            it.validatorTotalStakeItemTitle.text = payload.totalStakeTitle
-            it.validatorTotalStakeItemAmount.text = payload.totalStake
-            showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.totalStakeFiat)
+        item(ValidatorInfoItemView(context)) {
+            it.setTitle(payload.ownStakeTitle)
+            it.setBody(payload.ownStake)
+            showTextOrHideExtra(it, payload.ownStakeFiat)
         }
+
+
+//        item(nominatorsStakeItem)
+//        item(totalStakeItem)
     }
 
-    private fun showTextOrHide(view: TextView, text: String?) {
+    private fun showTextOrHideExtra(view: ValidatorInfoItemView, text: String?) {
         if (text == null) {
-            view.text = ""
-            view.makeGone()
+            view.hideExtra()
         } else {
-            view.text = text
-            view.makeVisible()
+            view.setExtra(text)
+            view.showExtra()
         }
     }
 }

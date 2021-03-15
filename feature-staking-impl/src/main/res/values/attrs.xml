@@ -22,5 +22,6 @@
     <declare-styleable name="ValidatorInfoItemView">
         <attr name="validatorInfoItemTitle" format="string" />
         <attr name="validatorInfoItemIcon" format="reference" />
+        <attr name="validatorInfoItemTitleIcon" format="reference" />
     </declare-styleable>
 </resources>

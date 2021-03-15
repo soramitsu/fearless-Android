@@ -12,7 +12,7 @@
         android:id="@+id/validatorTotalStakeView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:validatorInfoItemIcon="@drawable/ic_info_16"
+        app:validatorInfoItemTitleIcon="@drawable/ic_info_16"
         app:validatorInfoItemTitle="@string/staking_validator_total_stake" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
