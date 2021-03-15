@@ -16,6 +16,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsParcelToValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorStakeBottomSheet
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ValidatorDetailsViewModel(
     private val interactor: StakingInteractor,
@@ -57,29 +60,33 @@ class ValidatorDetailsViewModel(
         val validatorStake = validator.stake ?: return
         viewModelScope.launch {
             val asset = assetFlow.first()
-            val ownStake = asset.token.amountFromPlanks(validatorStake.ownStake)
-            val ownStakeFormatted = ownStake.formatWithDefaultPrecision(asset.token.type)
-            val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency()
-
-            val nominatorsStakeValue = validatorStake.nominators.sumBy { it.value }
-            val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
-            val nominatorsStakeFormatted = nominatorsStake.formatWithDefaultPrecision(asset.token.type)
-            val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatAsCurrency()
-
-            val totalStake = asset.token.amountFromPlanks(validatorStake.totalStake)
-            val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
-            val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
-
-            val payload = ValidatorStakeBottomSheet.Payload(
-                ownStakeFormatted,
-                ownStakeFiatFormatted,
-                nominatorsStakeFormatted,
-                nominatorsStakeFiatFormatted,
-                totalStakeFormatted,
-                totalStakeFiatFormatted
-            )
+            val payload = calculatePayload(asset, validatorStake)
             _totalStakeEvent.value = Event(payload)
         }
+    }
+
+    private suspend fun calculatePayload(asset: Asset, validatorStake: ValidatorStakeParcelModel) = withContext(Dispatchers.Default) {
+        val ownStake = asset.token.amountFromPlanks(validatorStake.ownStake)
+        val ownStakeFormatted = ownStake.formatWithDefaultPrecision(asset.token.type)
+        val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency()
+
+        val nominatorsStakeValue = validatorStake.nominators.sumBy { it.value }
+        val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
+        val nominatorsStakeFormatted = nominatorsStake.formatWithDefaultPrecision(asset.token.type)
+        val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatAsCurrency()
+
+        val totalStake = asset.token.amountFromPlanks(validatorStake.totalStake)
+        val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
+        val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
+
+        ValidatorStakeBottomSheet.Payload(
+            ownStakeFormatted,
+            ownStakeFiatFormatted,
+            nominatorsStakeFormatted,
+            nominatorsStakeFiatFormatted,
+            totalStakeFormatted,
+            totalStakeFiatFormatted
+        )
     }
 
     fun webClicked() {
