@@ -8,12 +8,14 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -34,7 +36,7 @@ private const val PERIOD_YEAR = 365
 
 class ReturnsModel(
     val monthly: RewardEstimation,
-    val yearly: RewardEstimation
+    val yearly: RewardEstimation,
 )
 
 class StakingViewModel(
@@ -43,11 +45,13 @@ class StakingViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val resourceManager: ResourceManager,
-    private val stakingSharedState: StakingSharedState
+    private val stakingSharedState: StakingSharedState,
+    private val stakingViewStateFactory: StakingViewStateFactory,
 ) : BaseViewModel() {
 
     val currentStakingState = interactor.selectedAccountStakingState()
         .flowOn(Dispatchers.Default)
+        .map { transformStakingState(it) }
         .share()
 
     val networkInfoStateLiveData = interactor.observeNetworkInfoState()
@@ -92,6 +96,11 @@ class StakingViewModel(
 
             router.openSetupStaking()
         }
+    }
+
+    private fun transformStakingState(it: StakingState) = when (it) {
+        is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(it)
+        else -> StakingViewStateStub // TODO
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {

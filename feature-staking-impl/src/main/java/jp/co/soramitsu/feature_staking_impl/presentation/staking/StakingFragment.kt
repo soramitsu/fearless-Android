@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.view.shape.addRipple
@@ -15,10 +16,12 @@ import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
+import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
+import kotlinx.android.synthetic.main.fragment_staking.stakingTitle
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
@@ -61,8 +64,19 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     }
 
     override fun subscribe(viewModel: StakingViewModel) {
-        viewModel.currentStakingState.observe {
+        viewModel.currentStakingState.observe { stakingState ->
             // TODO
+
+            when (stakingState) {
+                is NominatorViewState -> {
+                    stakingState.nominatorSummaryLiveData.observe { summaryState ->
+                        stakingTitle.text = when (summaryState) {
+                            is LoadingState.Loading<*> -> "Loading"
+                            is LoadingState.Loaded<NominatorSummary> -> summaryState.data.status.toString()
+                        }
+                    }
+                }
+            }
         }
 
         viewModel.networkInfoStateLiveData.observe {
