@@ -6,6 +6,8 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import kotlinx.android.synthetic.main.view_account_info.view.accountAction
@@ -68,5 +70,13 @@ class AccountInfoView @JvmOverloads constructor(
 
     fun setAccountIcon(icon: Drawable) {
         accountIcon.setImageDrawable(icon)
+    }
+
+    fun hideBody() {
+        accountAddressText.makeGone()
+    }
+
+    fun showBody() {
+        accountAddressText.makeVisible()
     }
 }

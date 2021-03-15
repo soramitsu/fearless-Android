@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details.vie
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
-import androidx.constraintlayout.widget.ConstraintLayout
+import android.widget.LinearLayout
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_validator_info.view.validatorEstimatedReward
 import kotlinx.android.synthetic.main.view_validator_info.view.validatorNominatorsView
@@ -13,26 +13,25 @@ class ValidatorInfoView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
-) : ConstraintLayout(context, attrs, defStyle) {
+) : LinearLayout(context, attrs, defStyle) {
 
     init {
         View.inflate(context, R.layout.view_validator_info, this)
+
+        orientation = VERTICAL
     }
 
     fun setTotalStakeValue(value: String) {
         validatorTotalStakeView.setBody(value)
     }
 
-    fun setTotalStakeValueFiat(value: String) {
-        validatorTotalStakeView.setExtra(value)
+    fun setTotalStakeValueFiat(fiat: String) {
+        validatorTotalStakeView.showExtra()
+        validatorTotalStakeView.setExtra(fiat)
     }
 
-    fun showTotalStakeFiat() {
-        validatorTotalStakeView.changeExtraVisibility(true)
-    }
-
-    fun hideTotalStakeFiat() {
-        validatorTotalStakeView.changeExtraVisibility(false)
+    fun hideTotalStakeFiatView() {
+        validatorTotalStakeView.hideExtra()
     }
 
     fun setNominatorsCount(count: String) {
@@ -41,5 +40,9 @@ class ValidatorInfoView @JvmOverloads constructor(
 
     fun setEstimatedRewardApy(reward: String) {
         validatorEstimatedReward.setBody(reward)
+    }
+
+    fun setTotalStakeClickListener(clickListener: () -> Unit) {
+        validatorTotalStakeView.setOnClickListener { clickListener() }
     }
 }

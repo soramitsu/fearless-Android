@@ -116,16 +116,14 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
-            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(R.string.transaction_details_from, transaction.senderAddress)
-            ExternalActionsSource.TO_ADDRESS -> showExternalAddressActions(R.string.choose_amount_to, transaction.recipientAddress)
+            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(transaction.senderAddress)
+            ExternalActionsSource.TO_ADDRESS -> showExternalAddressActions(transaction.recipientAddress)
         }
     }
 
     private fun showExternalAddressActions(
-        @StringRes titleRes: Int,
         address: String
     ) = showExternalActionsSheet(
-        titleRes = titleRes,
         copyLabelRes = R.string.common_copy_address,
         value = address,
         externalViewCallback = viewModel::viewAccountExternalClicked
@@ -133,7 +131,6 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     private fun showExternalTransactionActions() {
         showExternalActionsSheet(
-            R.string.transaction_details_hash_title,
             R.string.transaction_details_copy_hash,
             viewModel.transaction.hash,
             viewModel::viewTransactionExternalClicked
@@ -141,13 +138,11 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     }
 
     private fun showExternalActionsSheet(
-        @StringRes titleRes: Int,
         @StringRes copyLabelRes: Int,
         value: String,
         externalViewCallback: ExternalViewCallback
     ) {
         val payload = ExternalActionsSheet.Payload(
-            titleRes = titleRes,
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,

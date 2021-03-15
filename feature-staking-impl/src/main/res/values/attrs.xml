@@ -19,8 +19,9 @@
         <attr name="showExtra" format="boolean" />
         <attr name="showInfoIcon" format="boolean" />
     </declare-styleable>
-    <declare-styleable name="ValidatorIdentityItemView">
-        <attr name="validatorIdentityTitle" format="string" />
-        <attr name="showArrowIcon" format="boolean" />
+    <declare-styleable name="ValidatorInfoItemView">
+        <attr name="validatorInfoItemTitle" format="string" />
+        <attr name="validatorInfoItemIcon" format="reference" />
+        <attr name="validatorInfoItemTitleIcon" format="reference" />
     </declare-styleable>
 </resources>

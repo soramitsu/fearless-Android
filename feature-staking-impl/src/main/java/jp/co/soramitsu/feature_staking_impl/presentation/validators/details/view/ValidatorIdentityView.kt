@@ -41,7 +41,19 @@ class ValidatorIdentityView @JvmOverloads constructor(
         setTextOrHideIdentityItem(validatorIdentityAddressView, address)
     }
 
-    private fun setTextOrHideIdentityItem(item: ValidatorIdentityItemView, text: String?) {
+    fun setWebClickListener(clickListener: () -> Unit) {
+        validatorIdentityWebView.setOnClickListener { clickListener() }
+    }
+
+    fun setEmailClickListener(clickListener: () -> Unit) {
+        validatorIdentityEmailView.setOnClickListener { clickListener() }
+    }
+
+    fun setTwitterClickListener(clickListener: () -> Unit) {
+        validatorIdentityTwitterView.setOnClickListener { clickListener() }
+    }
+
+    private fun setTextOrHideIdentityItem(item: ValidatorInfoItemView, text: String?) {
         if (text == null) {
             item.makeGone()
             item.setBody("")
