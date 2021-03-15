@@ -23,28 +23,30 @@ class StakingModule {
     @Provides
     @ScreenScope
     fun provideStakingViewStateFactory(
-        interactor: StakingInteractor
-    ) = StakingViewStateFactory(interactor)
+        interactor: StakingInteractor,
+        stakingSharedState: StakingSharedState,
+        resourceManager: ResourceManager,
+        rewardCalculatorFactory: RewardCalculatorFactory,
+        router: StakingRouter
+    ) = StakingViewStateFactory(
+        interactor,
+        stakingSharedState,
+        resourceManager,
+        router,
+        rewardCalculatorFactory
+    )
 
     @Provides
     @IntoMap
     @ViewModelKey(StakingViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
-        router: StakingRouter,
         addressIconGenerator: AddressIconGenerator,
-        rewardCalculatorFactory: RewardCalculatorFactory,
-        resourceManager: ResourceManager,
-        stakingSharedState: StakingSharedState,
         stakingViewStateFactory: StakingViewStateFactory,
     ): ViewModel {
         return StakingViewModel(
-            router,
             interactor,
             addressIconGenerator,
-            rewardCalculatorFactory,
-            resourceManager,
-            stakingSharedState,
             stakingViewStateFactory
         )
     }
