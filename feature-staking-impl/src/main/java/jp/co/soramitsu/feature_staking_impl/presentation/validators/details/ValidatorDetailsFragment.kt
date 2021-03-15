@@ -115,7 +115,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
         }
 
         viewModel.totalStakeEvent.observeEvent {
-            ValidatorStakeBottomSheet(requireContext()).show()
+            ValidatorStakeBottomSheet(requireContext(), it).show()
         }
     }
 }

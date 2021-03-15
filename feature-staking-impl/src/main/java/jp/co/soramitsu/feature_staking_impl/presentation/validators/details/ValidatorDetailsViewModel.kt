@@ -2,20 +2,28 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.utils.sumBy
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsParcelToValidatorDetailsModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorStakeBottomSheet
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 
 class ValidatorDetailsViewModel(
     private val interactor: StakingInteractor,
@@ -38,15 +46,33 @@ class ValidatorDetailsViewModel(
     private val _openEmailEvent = MutableLiveData<Event<String>>()
     val openEmailEvent: LiveData<Event<String>> = _openEmailEvent
 
-    private val _totalStakeEvent = MutableLiveData<Event<Unit>>()
-    val totalStakeEvent: LiveData<Event<Unit>> = _totalStakeEvent
+    private val _totalStakeEvent = MutableLiveData<Event<ValidatorStakeBottomSheet.Payload>>()
+    val totalStakeEvent: LiveData<Event<ValidatorStakeBottomSheet.Payload>> = _totalStakeEvent
 
     fun backClicked() {
         router.back()
     }
 
     fun totalStakeClicked() {
-        _totalStakeEvent.value = Event(Unit)
+        val validatorStake = validator.stake ?: return
+        viewModelScope.launch {
+            val asset = assetFlow.first()
+            val ownStake = asset.token.amountFromPlanks(validatorStake.ownStake)
+            val ownStakeFormatted = ownStake.formatWithDefaultPrecision(asset.token.type)
+            val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency()
+
+            val nominatorsStakeValue = validatorStake.nominators.sumBy { it.value }
+            val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
+            val nominatorsStakeFormatted = nominatorsStake.formatWithDefaultPrecision(asset.token.type)
+            val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatAsCurrency()
+
+            val totalStake = asset.token.amountFromPlanks(validatorStake.totalStake)
+            val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
+            val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
+
+            val payload = ValidatorStakeBottomSheet.Payload(ownStakeFormatted, ownStakeFiatFormatted, nominatorsStakeFormatted, nominatorsStakeFiatFormatted, totalStakeFormatted, totalStakeFiatFormatted)
+            _totalStakeEvent.value = Event(payload)
+        }
     }
 
     fun webClicked() {
