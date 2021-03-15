@@ -28,27 +28,23 @@ class ValidatorStakeBottomSheet(
 
         setTitle(R.string.staking_validator_total_stake)
 
-        val nominatorsStakeItem = ValidatorInfoItemView(context).apply {
-            setTitle(payload.nominatorsTitle)
-            setBody(payload.nominatorsStake)
-            showTextOrHideExtra(this, payload.nominatorsStakeFiat)
-        }
-
-        val totalStakeItem = ValidatorInfoItemView(context).apply {
-            setTitle(payload.totalStakeTitle)
-            setBody(payload.totalStake)
-            showTextOrHideExtra(this, payload.totalStakeFiat)
-        }
-
         item(ValidatorInfoItemView(context)) {
             it.setTitle(payload.ownStakeTitle)
             it.setBody(payload.ownStake)
             showTextOrHideExtra(it, payload.ownStakeFiat)
         }
 
+        item(ValidatorInfoItemView(context)) {
+            it.setTitle(payload.nominatorsTitle)
+            it.setBody(payload.nominatorsStake)
+            showTextOrHideExtra(it, payload.nominatorsStakeFiat)
+        }
 
-//        item(nominatorsStakeItem)
-//        item(totalStakeItem)
+        item(ValidatorInfoItemView(context)) {
+            it.setTitle(payload.totalStakeTitle)
+            it.setBody(payload.totalStake)
+            showTextOrHideExtra(it, payload.totalStakeFiat)
+        }
     }
 
     private fun showTextOrHideExtra(view: ValidatorInfoItemView, text: String?) {
