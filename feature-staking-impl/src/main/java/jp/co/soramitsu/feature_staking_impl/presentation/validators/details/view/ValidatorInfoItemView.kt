@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details.vie
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
-import android.widget.LinearLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.dp
 import jp.co.soramitsu.common.utils.makeGone
