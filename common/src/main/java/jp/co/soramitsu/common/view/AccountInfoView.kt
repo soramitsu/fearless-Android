@@ -80,4 +80,3 @@ class AccountInfoView @JvmOverloads constructor(
         accountAddressText.makeVisible()
     }
 }
-

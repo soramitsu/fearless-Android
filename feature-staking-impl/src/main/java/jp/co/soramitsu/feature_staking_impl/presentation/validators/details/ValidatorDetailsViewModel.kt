@@ -70,7 +70,14 @@ class ValidatorDetailsViewModel(
             val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
             val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
 
-            val payload = ValidatorStakeBottomSheet.Payload(ownStakeFormatted, ownStakeFiatFormatted, nominatorsStakeFormatted, nominatorsStakeFiatFormatted, totalStakeFormatted, totalStakeFiatFormatted)
+            val payload = ValidatorStakeBottomSheet.Payload(
+                ownStakeFormatted,
+                ownStakeFiatFormatted,
+                nominatorsStakeFormatted,
+                nominatorsStakeFiatFormatted,
+                totalStakeFormatted,
+                totalStakeFiatFormatted
+            )
             _totalStakeEvent.value = Event(payload)
         }
     }
@@ -98,4 +105,3 @@ class ValidatorDetailsViewModel(
         externalAccountActions.showExternalActions(ExternalAccountActions.Payload(address, address.networkType()))
     }
 }
-

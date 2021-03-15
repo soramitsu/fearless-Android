@@ -32,7 +32,7 @@ class ValidatorStakeBottomSheet(
 
         setTitle(R.string.staking_validator_total_stake)
 
-        item(R.layout.view_validator_total_stake_item, ) {
+        item(R.layout.view_validator_total_stake_item) {
             it.updatePadding(top = 8.dp(context), bottom = 8.dp(context), start = 16.dp(context), end = 16.dp(context))
             it.validatorTotalStakeItemTitle.text = "Own"
             it.validatorTotalStakeItemAmount.text = payload.ownStake

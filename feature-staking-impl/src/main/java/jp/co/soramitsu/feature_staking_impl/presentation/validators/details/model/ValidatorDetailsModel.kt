@@ -8,4 +8,3 @@ class ValidatorDetailsModel(
     val addressImage: PictureDrawable,
     val identity: IdentityModel?,
 )
-

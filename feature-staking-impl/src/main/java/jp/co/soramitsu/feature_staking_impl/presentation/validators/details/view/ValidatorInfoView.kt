@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
-import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_validator_info.view.validatorEstimatedReward
 import kotlinx.android.synthetic.main.view_validator_info.view.validatorNominatorsView
@@ -38,4 +37,3 @@ class ValidatorInfoView @JvmOverloads constructor(
         validatorTotalStakeView.setOnClickListener { clickListener() }
     }
 }
-

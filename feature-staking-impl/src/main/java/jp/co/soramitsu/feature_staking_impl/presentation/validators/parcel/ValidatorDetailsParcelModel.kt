@@ -9,4 +9,3 @@ class ValidatorDetailsParcelModel(
     val stake: ValidatorStakeParcelModel?,
     val identity: IdentityParcelModel?,
 ) : Parcelable
-
