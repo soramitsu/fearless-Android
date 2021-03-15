@@ -62,7 +62,7 @@ class ValidatorStakeBottomSheet(
             view.text = ""
             view.makeGone()
         } else {
-            view.text = payload.totalStakeFiat
+            view.text = text
             view.makeVisible()
         }
     }
