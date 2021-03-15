@@ -18,7 +18,6 @@ class ProfileActionsSheet(
 ) : ExternalActionsSheet(
     context = context,
     payload = Payload(
-        titleRes = R.string.profile_title,
         copyLabel = R.string.common_copy_address,
         content = content
     ),
