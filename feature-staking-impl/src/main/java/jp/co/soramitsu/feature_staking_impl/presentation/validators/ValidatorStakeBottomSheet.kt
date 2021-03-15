@@ -59,11 +59,11 @@ class ValidatorStakeBottomSheet(
 
     private fun showTextOrHide(view: TextView, text: String?) {
         if (text == null) {
-            view.validatorTotalStakeItemAmountFiat.text = ""
-            view.validatorTotalStakeItemAmountFiat.makeGone()
+            view.text = ""
+            view.makeGone()
         } else {
-            view.validatorTotalStakeItemAmountFiat.text = payload.totalStakeFiat
-            view.validatorTotalStakeItemAmountFiat.makeVisible()
+            view.text = payload.totalStakeFiat
+            view.makeVisible()
         }
     }
 }
