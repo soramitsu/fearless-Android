@@ -13,7 +13,6 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalAc
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorStakeBottomSheet
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorAccountInfo
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorDetailsToolbar

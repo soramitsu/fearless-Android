@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.validators
+package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 
 import android.content.Context
 import android.os.Bundle
@@ -36,21 +36,18 @@ class ValidatorStakeBottomSheet(
         setTitle(R.string.staking_validator_total_stake)
 
         item(R.layout.view_validator_total_stake_item) {
-            it.updatePadding(top = 8.dp(context), bottom = 8.dp(context), start = 16.dp(context), end = 16.dp(context))
             it.validatorTotalStakeItemTitle.text = payload.ownStakeTitle
             it.validatorTotalStakeItemAmount.text = payload.ownStake
             showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.ownStakeFiat)
         }
 
         item(R.layout.view_validator_total_stake_item) {
-            it.updatePadding(top = 8.dp(context), bottom = 8.dp(context), start = 16.dp(context), end = 16.dp(context))
             it.validatorTotalStakeItemTitle.text = payload.nominatorsTitle
             it.validatorTotalStakeItemAmount.text = payload.nominatorsStake
             showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.nominatorsStakeFiat)
         }
 
         item(R.layout.view_validator_total_stake_item) {
-            it.updatePadding(top = 8.dp(context), bottom = 8.dp(context), start = 16.dp(context), end = 16.dp(context))
             it.validatorTotalStakeItemTitle.text = payload.totalStakeTitle
             it.validatorTotalStakeItemAmount.text = payload.totalStake
             showTextOrHide(it.validatorTotalStakeItemAmountFiat, payload.totalStakeFiat)
