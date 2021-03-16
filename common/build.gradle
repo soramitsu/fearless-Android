@@ -19,6 +19,8 @@ android {
         buildConfigField "String", "TELEGRAM_URL", "\"https://t.me/fearlesswallet\""
         buildConfigField "String", "EMAIL", "\"fearless@soramitsu.co.jp\""
 
+        buildConfigField "String", "TWITTER_ACCOUNT_TEMPLATE", "\"https://twitter.com/%s\""
+
         buildConfigField "String", "ROADMAP_URL", "\"https://soramitsucoltd.aha.io/shared/97bc3006ee3c1baa0598863615cf8d14\""
         buildConfigField "String", "DEV_STATUS_URL", "\"https://soramitsucoltd.aha.io/shared/343e5db57d53398e3f26d0048158c4a2\""
 

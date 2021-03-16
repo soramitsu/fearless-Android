@@ -6,15 +6,19 @@ import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.createSendEmailIntent
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import kotlinx.android.synthetic.main.fragment_validator_details.validatorAccountInfo
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorDetailsToolbar
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorIdentity
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorInfo
+import kotlinx.android.synthetic.main.fragment_validator_details.validatorInfoEmptyState
 
 class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
 
@@ -38,6 +42,24 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
 
     override fun initViews() {
         validatorDetailsToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        validatorInfo.setTotalStakeClickListener {
+            viewModel.totalStakeClicked()
+        }
+
+        validatorIdentity.setEmailClickListener {
+            viewModel.emailClicked()
+        }
+
+        validatorIdentity.setWebClickListener {
+            viewModel.webClicked()
+        }
+
+        validatorIdentity.setTwitterClickListener {
+            viewModel.twitterClicked()
+        }
+
+        validatorAccountInfo.setWholeClickListener { viewModel.accountActionsClicked() }
     }
 
     override fun inject() {
@@ -53,17 +75,25 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
     }
 
     override fun subscribe(viewModel: ValidatorDetailsViewModel) {
+        setupExternalActions(viewModel)
+
         viewModel.validatorDetails.observe { validator ->
-            validatorInfo.setNominatorsCount(validator.nominatorsCount)
-            validatorInfo.setEstimatedRewardApy(validator.apy)
-            validatorInfo.setTotalStakeValue(validator.totalStake)
-            if (validator.totalStakeFiat == null) {
-                validatorInfo.hideTotalStakeFiat()
-                validatorInfo.setTotalStakeValueFiat("")
+            if (validator.stake == null) {
+                validatorInfo.makeGone()
+                validatorInfoEmptyState.makeVisible()
             } else {
-                validatorInfo.showTotalStakeFiat()
-                validatorInfo.setTotalStakeValueFiat(validator.totalStakeFiat)
+                validatorInfo.makeVisible()
+                validatorInfoEmptyState.makeGone()
+                validatorInfo.setNominatorsCount(validator.stake.nominatorsCount)
+                validatorInfo.setEstimatedRewardApy(validator.stake.apy)
+                validatorInfo.setTotalStakeValue(validator.stake.totalStake)
+                if (validator.stake.totalStakeFiat == null) {
+                    validatorInfo.hideTotalStakeFiatView()
+                } else {
+                    validatorInfo.setTotalStakeValueFiat(validator.stake.totalStakeFiat)
+                }
             }
+
             if (validator.identity == null) {
                 validatorIdentity.makeGone()
             } else {
@@ -71,7 +101,25 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
                 validatorIdentity.populateIdentity(validator.identity)
                 validatorIdentity.setAddress(validator.address)
             }
-            validator.identity?.display?.let { validatorDetailsToolbar.setTitle(it) }
+
+            validatorAccountInfo.setAccountIcon(validator.addressImage)
+
+            if (validator.identity?.display == null) {
+                validatorAccountInfo.setTitle(validator.address)
+                validatorAccountInfo.hideBody()
+            } else {
+                validatorAccountInfo.setTitle(validator.identity.display)
+                validatorAccountInfo.setText(validator.address)
+                validatorAccountInfo.showBody()
+            }
+        }
+
+        viewModel.openEmailEvent.observeEvent {
+            requireContext().createSendEmailIntent(it, getString(R.string.common_email_chooser_title))
+        }
+
+        viewModel.totalStakeEvent.observeEvent {
+            ValidatorStakeBottomSheet(requireContext(), it).show()
         }
     }
 }

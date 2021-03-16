@@ -265,4 +265,7 @@
     <string name="common_confirm">Підтвердити</string>
     <string name="staking_confirm_selected_validators">Вибрані валідатори</string>
     <string name="staking_confirm_nominations">%s з %s</string>
+    <string name="validator_not_elected_description">Цей рахунок не обраний мережею для участі в поточній ері</string>
+    <string name="staking_validator_own_stake">Власний</string>
+    <string name="staking_validator_total">Разом</string>
 </resources>

@@ -20,7 +20,6 @@ open class ExternalActionsSheet(
 ) : FixedListBottomSheet(context) {
 
     class Payload(
-        @StringRes val titleRes: Int,
         @StringRes val copyLabel: Int,
         val content: ExternalAccountActions.Payload
     )
@@ -28,7 +27,7 @@ open class ExternalActionsSheet(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(payload.titleRes)
+        setTitle(payload.content.value)
 
         val value = payload.content.value
         val networkType = payload.content.networkType
