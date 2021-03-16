@@ -4,8 +4,9 @@
         <attr name="android:enabled" />
     </declare-styleable>
     <declare-styleable name="EstimateEarningView" />
-    <declare-styleable name="StakingGainView">
+    <declare-styleable name="StakingInfoView">
         <attr name="titleText" format="string" />
+        <attr name="extraBlockIsVisible" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="PayoutTargetView">

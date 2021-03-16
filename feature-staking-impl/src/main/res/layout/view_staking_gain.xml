@@ -8,7 +8,7 @@
     tools:parentTag="android.widget.LinearLayout">
 
     <TextView
-        android:id="@+id/stakingGainTitle"
+        android:id="@+id/stakingInfoTitle"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -16,30 +16,31 @@
         tools:text="Monthly" />
 
     <TextView
-        android:id="@+id/stakingGainValue"
+        android:id="@+id/stakingInfoBody"
         style="@style/TextAppearance.Soramitsu.Body0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp"
         tools:text="0.164 KSM" />
 
     <LinearLayout
+        android:id="@+id/stakingInfoExtraBlock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/stakingGainFiat"
+            android:id="@+id/stakingInfoExtraBlockValue"
             style="@style/TextAppearance.Soramitsu.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white_64"
             android:layout_marginEnd="4dp"
+            android:textColor="@color/white_64"
             tools:text="$8.13" />
 
         <TextView
-            android:id="@+id/stakingGainAssetRateChange"
+            android:id="@+id/stakingInfoExtraBlockAdditional"
             style="@style/TextAppearance.Soramitsu.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
