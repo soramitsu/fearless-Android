@@ -3,6 +3,31 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val AddStakingRewardsTable_15_16 = object : Migration(15, 16) {
+
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("""
+            CREATE TABLE IF NOT EXISTS `staking_rewards` (
+                `accountAddress` TEXT NOT NULL,
+                `eventId` TEXT NOT NULL,
+                `blockNumber` INTEGER NOT NULL,
+                `extrinsicIndex` INTEGER NOT NULL,
+                `extrinsicHash` TEXT NOT NULL,
+                `moduleId` TEXT NOT NULL,
+                `eventIndex` TEXT NOT NULL,
+                `amountInPlanks` TEXT NOT NULL,
+                `blockTimestamp` INTEGER NOT NULL,
+                `slashKton` TEXT NOT NULL,
+                PRIMARY KEY(`accountAddress`, `blockNumber`, `extrinsicIndex`)
+            )
+        """.trimIndent())
+
+        database.execSQL("""
+            CREATE INDEX IF NOT EXISTS `index_staking_rewards_accountAddress` ON `staking_rewards` (`accountAddress`)
+        """.trimIndent())
+    }
+}
+
 val AddAccountStakingTable_14_15 = object : Migration(14, 15) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
