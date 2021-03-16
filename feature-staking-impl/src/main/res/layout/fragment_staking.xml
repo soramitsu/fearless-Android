@@ -1,37 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/stakingContainer"
     android:layout_width="match_parent"
+    android:orientation="vertical"
     android:layout_height="match_parent"
     android:background="@drawable/wallet_background">
 
-    <TextView
-        android:id="@+id/stakingTitle"
-        style="@style/TextAppearance.Soramitsu.Header1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="28dp"
-        android:text="@string/staking_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_height="wrap_content">
 
-    <ImageView
-        android:id="@+id/stakingAvatar"
-        android:layout_width="@dimen/avatar_size"
-        android:layout_height="@dimen/avatar_size"
-        android:layout_marginTop="28dp"
-        android:layout_marginEnd="16dp"
-        android:src="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:layout_gravity="start"
+            android:id="@+id/stakingTitle"
+            style="@style/TextAppearance.Soramitsu.Header1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="28dp"
+            android:text="@string/staking_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/stakingAvatar"
+            android:layout_width="@dimen/avatar_size"
+            android:layout_height="@dimen/avatar_size"
+            android:layout_marginTop="28dp"
+            android:layout_gravity="end"
+            android:layout_marginEnd="16dp"
+            android:src="@color/white" />
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/stakingNetworkInfo"
         style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
@@ -39,21 +47,28 @@
         android:includeFontPadding="false"
         android:padding="16dp"
         android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/stakingTitle"
         tools:text="Kusama network info" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.NominatorSummaryView
+        android:id="@+id/stakingNominatorSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="16dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.view.EstimateEarningView
         android:id="@+id/stakingEstimate"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        tools:visibility="visible"
         android:layout_marginEnd="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/stakingNetworkInfo" />
+        android:layout_marginTop="8dp" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/startStakingBtn"
@@ -61,19 +76,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:visibility="gone"
+        tools:visibility="visible"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:text="@string/staking_start_title"
-        android:theme="@style/PinkOverlay"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/stakingEstimate" />
+        android:theme="@style/PinkOverlay" />
 
-    <androidx.constraintlayout.widget.Group
-        android:id="@+id/welcomeGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:constraint_referenced_ids="stakingEstimate,startStakingBtn" />
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

@@ -74,7 +74,8 @@ class StakingInteractor(
 
                 val summary = NominatorSummary(
                     status = status,
-                    totalStaked = asset.bonded
+                    totalStaked = asset.bonded,
+                    totalRewards = BigDecimal.ZERO // TODO
                 )
 
                 emit(LoadingState.Loaded(summary))
