@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.utils
 import android.widget.EditText
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import jp.co.soramitsu.common.presentation.LoadingState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,10 +11,16 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 inline fun <T, R> Flow<List<T>>.mapList(crossinline mapper: suspend (T) -> R) = map { list ->
     list.map { item -> mapper(item) }
+}
+
+fun <T> Flow<T>.withLoading(): Flow<LoadingState<T>> {
+    return map<T, LoadingState<T>> { LoadingState.Loaded(it) }
+        .onStart { emit(LoadingState.Loading()) }
 }
 
 fun <T> Flow<T>.asLiveData(scope: CoroutineScope): LiveData<T> {

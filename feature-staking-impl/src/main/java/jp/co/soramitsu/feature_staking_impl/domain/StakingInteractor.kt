@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.domain
 
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
-import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
@@ -18,7 +17,6 @@ import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAcco
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
-import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfoState
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -27,15 +25,10 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combineTransform
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -48,62 +41,48 @@ class StakingInteractor(
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
 
-    suspend fun observeNominatorSummary(nominatorState: StakingState.Stash.Nominator): Flow<LoadingState<NominatorSummary>> = withContext(Dispatchers.Default) {
+    suspend fun observeNominatorSummary(nominatorState: StakingState.Stash.Nominator): Flow<NominatorSummary> = withContext(Dispatchers.Default) {
         val networkType = nominatorState.accountAddress.networkType()
         val tokenType = Token.Type.fromNetworkType(networkType)
 
-        flow {
-            emit(LoadingState.Loading())
+        combine(
+            stakingRepository.electionStatusFlow(networkType),
+            stakingRepository.observeActiveEraIndex(networkType),
+            walletRepository.assetFlow(nominatorState.accountAddress, tokenType)
+        ) { electionStatus, activeEraIndex, asset ->
 
-            val combinedState = combineTransform(
-                stakingRepository.electionStatusFlow(networkType),
-                stakingRepository.observeActiveEraIndex(networkType),
-                walletRepository.assetFlow(nominatorState.accountAddress, tokenType)
-            ) { electionStatus, activeEraIndex, asset ->
+            val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex).values
 
-                emit(LoadingState.Loading<NominatorSummary>())
-
-                val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex).values
-
-                val status = when {
-                    electionStatus is ElectionStatus.Open -> NominatorSummary.Status.ELECTION
-                    isNominationActive(nominatorState.stashId, eraStakers) -> NominatorSummary.Status.ACTIVE
-                    isNominationWaiting(nominatorState.nominations, activeEraIndex) -> NominatorSummary.Status.WAITING
-                    else -> NominatorSummary.Status.INACTIVE
-                }
-
-                val summary = NominatorSummary(
-                    status = status,
-                    totalStaked = asset.bonded,
-                    totalRewards = BigDecimal.ZERO // TODO
-                )
-
-                emit(LoadingState.Loaded(summary))
+            val status = when {
+                electionStatus is ElectionStatus.Open -> NominatorSummary.Status.ELECTION
+                isNominationActive(nominatorState.stashId, eraStakers) -> NominatorSummary.Status.ACTIVE
+                isNominationWaiting(nominatorState.nominations, activeEraIndex) -> NominatorSummary.Status.WAITING
+                else -> NominatorSummary.Status.INACTIVE
             }
 
-            emitAll(combinedState)
-        }.distinctUntilChanged()
+            NominatorSummary(
+                status = status,
+                totalStaked = asset.bonded,
+                totalRewards = BigDecimal.ZERO // TODO
+            )
+        }
     }
 
-    fun observeNetworkInfoState(): Flow<NetworkInfoState> {
+    fun observeNetworkInfoState(): Flow<NetworkInfo> {
         return accountRepository.selectedNetworkTypeFlow()
-            .transformLatest {
-
-                emit(NetworkInfoState.Loading)
+            .flatMapLatest {
 
                 val lockupPeriod = stakingRepository.getLockupPeriodInDays(it)
 
-                stakingRepository.observeActiveEraIndex(it).collect { eraIndex ->
+                stakingRepository.observeActiveEraIndex(it).map { eraIndex ->
                     val exposures = stakingRepository.getElectedValidatorsExposure(eraIndex).values
 
-                    val networkInfo = NetworkInfo(
+                    NetworkInfo(
                         lockupPeriodInDays = lockupPeriod,
                         minimumStake = minimumStake(exposures),
                         totalStake = totalStake(exposures),
                         nominatorsCount = activeNominators(exposures)
                     )
-
-                    emit(NetworkInfoState.Loaded(networkInfo))
                 }
             }
     }

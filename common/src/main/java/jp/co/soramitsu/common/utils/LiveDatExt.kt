@@ -3,10 +3,13 @@ package jp.co.soramitsu.common.utils
 import android.widget.EditText
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.LiveDataScope
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.Transformations
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 
 fun MutableLiveData<Event<Unit>>.sendEvent() {
     this.value = Event(Unit)
@@ -159,3 +162,5 @@ fun LiveData<String>.isNotEmpty() = !value.isNullOrEmpty()
 fun <T> LiveData<T>.notifyObservers() {
     (this as MutableLiveData<T>).value = value
 }
+
+suspend fun <T> LiveDataScope<T>.emitAll(flow: Flow<T>) = flow.collect { emit(it) }

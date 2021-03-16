@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -25,12 +26,12 @@ class StakingViewModel(
         .share()
 
     val currentStakingState = interactor.selectedAccountStakingState()
-        .flowOn(Dispatchers.Default)
         .map { transformStakingState(it) }
+        .flowOn(Dispatchers.Default)
         .share()
 
     val networkInfoStateLiveData = interactor.observeNetworkInfoState()
-        .flowOn(Dispatchers.Default)
+        .withLoading()
         .asLiveData()
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
