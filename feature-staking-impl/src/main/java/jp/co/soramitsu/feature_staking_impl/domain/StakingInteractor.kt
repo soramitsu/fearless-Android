@@ -69,7 +69,6 @@ class StakingInteractor(
     }
 
     suspend fun observeNetworkInfoState(networkType: Node.NetworkType): Flow<NetworkInfo> {
-
         val lockupPeriod = stakingRepository.getLockupPeriodInDays(networkType)
 
         return stakingRepository.observeActiveEraIndex(networkType).map { eraIndex ->

@@ -112,7 +112,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
 
         viewModel.networkInfoStateLiveData.observe {
-           // TODO
+            // TODO
         }
 
         viewModel.currentAddressModelLiveData.observe {
