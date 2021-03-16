@@ -28,7 +28,12 @@
     </style>
 
     <style name="TextAppearance.Soramitsu.CapsTitle1" parent="TextAppearance.Fearless.Header">
-        <item name="android:textSize">?attr/textSizeCapsTitle</item>
+        <item name="android:textSize">?attr/textSizeCapsTitle1</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="TextAppearance.Soramitsu.CapsTitle2" parent="TextAppearance.Fearless.Header">
+        <item name="android:textSize">?attr/textSizeCapsTitle2</item>
         <item name="android:textAllCaps">true</item>
     </style>
 

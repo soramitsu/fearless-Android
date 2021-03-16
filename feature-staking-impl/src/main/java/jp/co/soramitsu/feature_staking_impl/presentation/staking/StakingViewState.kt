@@ -2,11 +2,14 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -14,6 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedSta
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -38,13 +42,42 @@ class ReturnsModel(
 
 object ValidatorViewState : StakingViewState()
 
+class NominatorSummaryModel(
+    val status: NominatorSummary.Status,
+    val totalStaked: String,
+    val totalStakedFiat: String?,
+    val totalRewards: String,
+    val totalRewardsFiat: String?
+)
+
 class NominatorViewState(
     private val nominatorState: StakingState.Stash.Nominator,
+    private val currentAssetFlow: Flow<Asset>,
     private val stakingInteractor: StakingInteractor,
 ) : StakingViewState() {
 
     val nominatorSummaryLiveData = liveData {
-        stakingInteractor.observeNominatorSummary(nominatorState).collect { emit(it) }
+        nominatorSummaryFlow().collect { emit(it) }
+    }
+
+    private suspend fun nominatorSummaryFlow(): Flow<LoadingState<NominatorSummaryModel>> {
+        return combine(
+            stakingInteractor.observeNominatorSummary(nominatorState),
+            currentAssetFlow
+        ) { summaryState, asset ->
+            val token = asset.token
+            val tokenType = token.type
+
+            summaryState.map {
+                NominatorSummaryModel(
+                    status = it.status,
+                    totalStaked = it.totalStaked.formatWithDefaultPrecision(tokenType),
+                    totalStakedFiat = token.fiatAmount(it.totalStaked)?.formatAsCurrency(),
+                    totalRewards = it.totalRewards.formatWithDefaultPrecision(tokenType),
+                    totalRewardsFiat = token.fiatAmount(it.totalRewards)?.formatAsCurrency()
+                )
+            }
+        }
     }
 }
 
@@ -67,6 +100,8 @@ class WelcomeViewState(
         .filterNotNull()
         .asLiveData(scope)
 
+    private val rewardCalculator = scope.async { rewardCalculatorFactory.create() }
+
     val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
         val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
         val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
@@ -88,6 +123,4 @@ class WelcomeViewState(
     private suspend fun rewardCalculator(): RewardCalculator {
         return rewardCalculator.await()
     }
-
-    private val rewardCalculator = scope.async { rewardCalculatorFactory.create() }
 }
