@@ -13,11 +13,11 @@ import java.math.BigDecimal
 
 interface WalletRepository {
 
-    fun assetsFlow(account: WalletAccount): Flow<List<Asset>>
+    fun assetsFlow(accountAddress: String): Flow<List<Asset>>
 
     suspend fun syncAssetsRates(account: WalletAccount)
 
-    fun assetFlow(account: WalletAccount, type: Token.Type): Flow<Asset>
+    fun assetFlow(accountAddress: String, type: Token.Type): Flow<Asset>
 
     suspend fun getAsset(account: WalletAccount, type: Token.Type): Asset?
 

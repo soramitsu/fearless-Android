@@ -36,9 +36,11 @@ class StakingViewStateFactory(
     )
 
     fun createNominatorViewState(
-        stakingState: StakingState.Stash.Nominator
+        stakingState: StakingState.Stash.Nominator,
+        currentAssetFlow: Flow<Asset>,
     ) = NominatorViewState(
         nominatorState = stakingState,
-        stakingInteractor = stakingInteractor
+        stakingInteractor = stakingInteractor,
+        currentAssetFlow = currentAssetFlow
     )
 }

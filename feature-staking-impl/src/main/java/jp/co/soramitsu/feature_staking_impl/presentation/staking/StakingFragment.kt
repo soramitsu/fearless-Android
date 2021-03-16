@@ -17,13 +17,13 @@ import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
+import jp.co.soramitsu.feature_staking_impl.presentation.view.NominatorSummaryView
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
-import kotlinx.android.synthetic.main.fragment_staking.stakingTitle
+import kotlinx.android.synthetic.main.fragment_staking.stakingNominatorSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
-import kotlinx.android.synthetic.main.fragment_staking.welcomeGroup
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -64,14 +64,25 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
     override fun subscribe(viewModel: StakingViewModel) {
         viewModel.currentStakingState.observe { stakingState ->
-            welcomeGroup.setVisible(stakingState is WelcomeViewState)
+            startStakingBtn.setVisible(stakingState is WelcomeViewState)
+            stakingEstimate.setVisible(stakingState is WelcomeViewState)
+            stakingNominatorSummary.setVisible(stakingState is NominatorViewState)
 
             when (stakingState) {
                 is NominatorViewState -> {
                     stakingState.nominatorSummaryLiveData.observe { summaryState ->
-                        stakingTitle.text = when (summaryState) {
-                            is LoadingState.Loading<*> -> "Loading"
-                            is LoadingState.Loaded<NominatorSummary> -> summaryState.data.status.toString()
+                        when (summaryState) {
+                            is LoadingState.Loading<*> -> {
+                                // TODO
+                            }
+
+                            is LoadingState.Loaded<NominatorSummaryModel> -> {
+                                val summary = summaryState.data
+
+                                stakingNominatorSummary.setElectionStatus(mapNominatorStatus(summary.status))
+                                stakingNominatorSummary.setTotalStaked(summary.totalStaked, summary.totalStakedFiat)
+                                stakingNominatorSummary.setTotalRewards(summary.totalRewards, summary.totalRewardsFiat)
+                            }
                         }
                     }
                 }
@@ -106,6 +117,15 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
         viewModel.currentAddressModelLiveData.observe {
             stakingAvatar.setImageDrawable(it.image)
+        }
+    }
+
+    private fun mapNominatorStatus(status: NominatorSummary.Status): NominatorSummaryView.Status {
+        return when (status) {
+            NominatorSummary.Status.INACTIVE -> NominatorSummaryView.Status.INACTIVE
+            NominatorSummary.Status.ACTIVE -> NominatorSummaryView.Status.ACTIVE
+            NominatorSummary.Status.WAITING -> NominatorSummaryView.Status.WAITING
+            NominatorSummary.Status.ELECTION -> NominatorSummaryView.Status.ELECTION
         }
     }
 }
