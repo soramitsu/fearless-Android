@@ -68,23 +68,20 @@ class StakingInteractor(
         }
     }
 
-    fun observeNetworkInfoState(): Flow<NetworkInfo> {
-        return accountRepository.selectedNetworkTypeFlow()
-            .flatMapLatest {
+    suspend fun observeNetworkInfoState(networkType: Node.NetworkType): Flow<NetworkInfo> {
 
-                val lockupPeriod = stakingRepository.getLockupPeriodInDays(it)
+        val lockupPeriod = stakingRepository.getLockupPeriodInDays(networkType)
 
-                stakingRepository.observeActiveEraIndex(it).map { eraIndex ->
-                    val exposures = stakingRepository.getElectedValidatorsExposure(eraIndex).values
+        return stakingRepository.observeActiveEraIndex(networkType).map { eraIndex ->
+            val exposures = stakingRepository.getElectedValidatorsExposure(eraIndex).values
 
-                    NetworkInfo(
-                        lockupPeriodInDays = lockupPeriod,
-                        minimumStake = minimumStake(exposures),
-                        totalStake = totalStake(exposures),
-                        nominatorsCount = activeNominators(exposures)
-                    )
-                }
-            }
+            NetworkInfo(
+                lockupPeriodInDays = lockupPeriod,
+                minimumStake = minimumStake(exposures),
+                totalStake = totalStake(exposures),
+                nominatorsCount = activeNominators(exposures)
+            )
+        }
     }
 
     fun selectedAccountStakingState() = accountRepository.selectedAccountFlow()

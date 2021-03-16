@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingViewStateFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
@@ -30,8 +31,10 @@ class StakingViewModel(
         .flowOn(Dispatchers.Default)
         .share()
 
-    val networkInfoStateLiveData = interactor.observeNetworkInfoState()
-        .withLoading()
+    val networkInfoStateLiveData = currentAssetFlow
+        .map { it.token.type.networkType }
+        .distinctUntilChanged()
+        .withLoading(interactor::observeNetworkInfoState)
         .asLiveData()
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()

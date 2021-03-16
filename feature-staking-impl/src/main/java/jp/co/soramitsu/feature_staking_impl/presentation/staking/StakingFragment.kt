@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -112,7 +113,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
 
         viewModel.networkInfoStateLiveData.observe {
-            // TODO
+            Log.d("RX", it.toString())
         }
 
         viewModel.currentAddressModelLiveData.observe {
