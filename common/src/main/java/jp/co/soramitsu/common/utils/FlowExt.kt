@@ -20,11 +20,20 @@ inline fun <T, R> Flow<List<T>>.mapList(crossinline mapper: suspend (T) -> R) = 
     list.map { item -> mapper(item) }
 }
 
+/**
+ * Modifies flow so that it firstly emits [LoadingState.Loading] state.
+ * Then emits each element from upstream wrapped into [LoadingState.Loaded] state.
+ */
 fun <T> Flow<T>.withLoading(): Flow<LoadingState<T>> {
     return map<T, LoadingState<T>> { LoadingState.Loaded(it) }
         .onStart { emit(LoadingState.Loading()) }
 }
 
+/**
+ * Modifies flow so that it firstly emits [LoadingState.Loading] state for each element from upstream.
+ * Then, it constructs new source via [sourceSupplier] and emits all of its items wrapped into [LoadingState.Loaded] state
+ * Old suppliers are discarded as per [Flow.transformLatest] behavior
+ */
 fun <T, R> Flow<T>.withLoading(sourceSupplier: suspend (T) -> Flow<R>): Flow<LoadingState<R>> {
     return transformLatest { item ->
         emit(LoadingState.Loading<R>())
