@@ -34,8 +34,7 @@ class WalletInteractorImpl(
 
     override fun assetsFlow(): Flow<List<Asset>> {
         return accountRepository.selectedAccountFlow()
-            .map { mapAccountToWalletAccount(it) }
-            .flatMapLatest { walletRepository.assetsFlow(it) }
+            .flatMapLatest { walletRepository.assetsFlow(it.address) }
             .filter { it.isNotEmpty() }
     }
 
@@ -55,8 +54,7 @@ class WalletInteractorImpl(
 
     override fun assetFlow(type: Token.Type): Flow<Asset> {
         return accountRepository.selectedAccountFlow()
-            .map { mapAccountToWalletAccount(it) }
-            .flatMapLatest { walletRepository.assetFlow(it, type) }
+            .flatMapLatest { walletRepository.assetFlow(it.address, type) }
     }
 
     override fun currentAssetFlow(): Flow<Asset> {

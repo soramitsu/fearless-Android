@@ -2,19 +2,22 @@ package jp.co.soramitsu.feature_staking_impl.domain
 
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
+import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
-import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToWalletAccount
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
-import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfoState
+import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -22,11 +25,10 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -39,27 +41,46 @@ class StakingInteractor(
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
 
-    fun observeNetworkInfoState(): Flow<NetworkInfoState> {
-        return accountRepository.selectedNetworkTypeFlow()
-            .transformLatest {
+    suspend fun observeNominatorSummary(nominatorState: StakingState.Stash.Nominator): Flow<NominatorSummary> = withContext(Dispatchers.Default) {
+        val networkType = nominatorState.accountAddress.networkType()
+        val tokenType = Token.Type.fromNetworkType(networkType)
 
-                emit(NetworkInfoState.Loading)
+        combine(
+            stakingRepository.electionStatusFlow(networkType),
+            stakingRepository.observeActiveEraIndex(networkType),
+            walletRepository.assetFlow(nominatorState.accountAddress, tokenType)
+        ) { electionStatus, activeEraIndex, asset ->
 
-                val lockupPeriod = stakingRepository.getLockupPeriodInDays(it)
+            val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex).values
 
-                stakingRepository.observeActiveEraIndex(it).collect { eraIndex ->
-                    val exposures = stakingRepository.getElectedValidatorsExposure(eraIndex).values
-
-                    val networkInfo = NetworkInfo(
-                        lockupPeriodInDays = lockupPeriod,
-                        minimumStake = minimumStake(exposures),
-                        totalStake = totalStake(exposures),
-                        nominatorsCount = activeNominators(exposures)
-                    )
-
-                    emit(NetworkInfoState.Loaded(networkInfo))
-                }
+            val status = when {
+                electionStatus is ElectionStatus.Open -> NominatorSummary.Status.ELECTION
+                isNominationActive(nominatorState.stashId, eraStakers) -> NominatorSummary.Status.ACTIVE
+                isNominationWaiting(nominatorState.nominations, activeEraIndex) -> NominatorSummary.Status.WAITING
+                else -> NominatorSummary.Status.INACTIVE
             }
+
+            NominatorSummary(
+                status = status,
+                totalStaked = asset.bonded,
+                totalRewards = BigDecimal.ZERO // TODO
+            )
+        }
+    }
+
+    suspend fun observeNetworkInfoState(networkType: Node.NetworkType): Flow<NetworkInfo> {
+        val lockupPeriod = stakingRepository.getLockupPeriodInDays(networkType)
+
+        return stakingRepository.observeActiveEraIndex(networkType).map { eraIndex ->
+            val exposures = stakingRepository.getElectedValidatorsExposure(eraIndex).values
+
+            NetworkInfo(
+                lockupPeriodInDays = lockupPeriod,
+                minimumStake = minimumStake(exposures),
+                totalStake = totalStake(exposures),
+                nominatorsCount = activeNominators(exposures)
+            )
+        }
     }
 
     fun selectedAccountStakingState() = accountRepository.selectedAccountFlow()
@@ -73,8 +94,7 @@ class StakingInteractor(
     }
 
     fun currentAssetFlow() = accountRepository.selectedAccountFlow()
-        .map { mapAccountToWalletAccount(it) }
-        .flatMapLatest { walletRepository.assetsFlow(it) }
+        .flatMapLatest { walletRepository.assetsFlow(it.address) }
         .filter { it.isNotEmpty() }
         .map { it.first() }
 
@@ -115,6 +135,18 @@ class StakingInteractor(
                 .build()
 
             substrateCalls.submitExtrinsic(extrinsic)
+        }
+    }
+
+    private fun isNominationWaiting(nominations: Nominations, activeEraIndex: BigInteger): Boolean {
+        return nominations.submittedInEra == activeEraIndex
+    }
+
+    private fun isNominationActive(stashId: ByteArray, exposures: Collection<Exposure>): Boolean {
+        return exposures.any { exposure ->
+            exposure.others.any {
+                it.who.contentEquals(stashId)
+            }
         }
     }
 

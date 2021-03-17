@@ -14,7 +14,8 @@
     <attr name="textSizeH3" format="reference" />
     <attr name="textSizeH4" format="reference" />
     <attr name="textSizeH5" format="reference" />
-    <attr name="textSizeCapsTitle" format="reference" />
+    <attr name="textSizeCapsTitle1" format="reference" />
+    <attr name="textSizeCapsTitle2" format="reference" />
     <attr name="textSizeB0" format="reference" />
     <attr name="textSizeB1" format="reference" />
     <attr name="textSizeB2" format="reference" />

@@ -16,11 +16,13 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.SlashingSpan
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionStatus
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindNominations
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashDeferDuration
@@ -44,6 +46,15 @@ class StakingRepositoryImpl(
     val accountStakingDao: AccountStakingDao,
     val bulkRetriever: BulkRetriever
 ) : StakingRepository {
+
+    override suspend fun electionStatusFlow(networkType: Node.NetworkType): Flow<ElectionStatus> {
+        val runtime = runtimeProperty.get()
+
+        val key = runtime.metadata.staking().storage("EraElectionStatus").storageKey()
+
+        return storageCache.observeEntry(key, networkType)
+            .map { bindElectionStatus(it.content!!, runtime) }
+    }
 
     override suspend fun getLockupPeriodInDays(networkType: Node.NetworkType): Int {
         val runtime = runtimeProperty.get()

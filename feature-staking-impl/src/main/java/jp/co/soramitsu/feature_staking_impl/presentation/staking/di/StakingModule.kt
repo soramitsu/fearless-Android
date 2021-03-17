@@ -7,6 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -20,23 +21,33 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.StakingViewMode
 class StakingModule {
 
     @Provides
+    @ScreenScope
+    fun provideStakingViewStateFactory(
+        interactor: StakingInteractor,
+        stakingSharedState: StakingSharedState,
+        resourceManager: ResourceManager,
+        rewardCalculatorFactory: RewardCalculatorFactory,
+        router: StakingRouter
+    ) = StakingViewStateFactory(
+        interactor,
+        stakingSharedState,
+        resourceManager,
+        router,
+        rewardCalculatorFactory
+    )
+
+    @Provides
     @IntoMap
     @ViewModelKey(StakingViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
-        router: StakingRouter,
         addressIconGenerator: AddressIconGenerator,
-        rewardCalculatorFactory: RewardCalculatorFactory,
-        resourceManager: ResourceManager,
-        stakingSharedState: StakingSharedState
+        stakingViewStateFactory: StakingViewStateFactory,
     ): ViewModel {
         return StakingViewModel(
-            router,
             interactor,
             addressIconGenerator,
-            rewardCalculatorFactory,
-            resourceManager,
-            stakingSharedState
+            stakingViewStateFactory
         )
     }
 
