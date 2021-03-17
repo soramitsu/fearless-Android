@@ -8,10 +8,15 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
+import jp.co.soramitsu.feature_staking_impl.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingViewStateFactory
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
@@ -34,10 +39,21 @@ class StakingViewModel(
     val networkInfoStateLiveData = currentAssetFlow
         .map { it.token.type.networkType }
         .distinctUntilChanged()
-        .withLoading(interactor::observeNetworkInfoState)
+        .withLoading {
+            interactor.observeNetworkInfoState(it)
+                .map { transformNetworkInfo(it) }
+        }
+        .asLiveData()
+
+    val stories = interactor.stakingStoriesFlow()
+        .map { it.map(::transformStories) }
         .asLiveData()
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
+
+    fun storyClicked(story: StakingStoryModel) {
+
+    }
 
     private fun transformStakingState(accountStakingState: StakingState) = when (accountStakingState) {
         is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(accountStakingState, currentAssetFlow)
@@ -47,6 +63,21 @@ class StakingViewModel(
         is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, viewModelScope)
 
         is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState()
+    }
+
+    private fun transformStories(story: StakingStory): StakingStoryModel = with(story) {
+        StakingStoryModel(title, iconSymbol)
+    }
+
+    private fun transformNetworkInfo(networkInfo: NetworkInfo): StakingNetworkInfoModel {
+        return with(networkInfo) {
+            StakingNetworkInfoModel(
+                lockupPeriodInDays,
+                minimumStake,
+                totalStake,
+                nominatorsCount,
+            )
+        }
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {

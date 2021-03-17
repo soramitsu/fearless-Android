@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import kotlinx.android.synthetic.main.item_staking_story.view.stakingStoryItemIcon
+import kotlinx.android.synthetic.main.item_staking_story.view.stakingStoryItemTitle
 
 class StakingStoriesAdapter(
     private val itemHandler: StoryItemHandler
@@ -31,6 +33,8 @@ class StakingStoriesAdapter(
 class StakingStoryHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     fun bind(story: StakingStoryModel, itemHandler: StakingStoriesAdapter.StoryItemHandler) = with(itemView) {
+        stakingStoryItemIcon.text = story.smile
+        stakingStoryItemTitle.text = story.title
         setOnClickListener { itemHandler.storyClicked(story) }
     }
 }
@@ -38,7 +42,7 @@ class StakingStoryHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 private object StoryDiffCallback : DiffUtil.ItemCallback<StakingStoryModel>() {
 
     override fun areItemsTheSame(oldItem: StakingStoryModel, newItem: StakingStoryModel): Boolean {
-        return oldItem == newItem
+        return oldItem.title == newItem.title
     }
 
     override fun areContentsTheSame(oldItem: StakingStoryModel, newItem: StakingStoryModel): Boolean {

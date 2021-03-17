@@ -1,8 +1,8 @@
-package jp.co.soramitsu.feature_staking_impl.domain.model
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.model
 
 import java.math.BigInteger
 
-data class NetworkInfo(
+data class StakingNetworkInfoModel(
     val lockupPeriodInDays: Int,
     val minimumStake: BigInteger,
     val totalStake: BigInteger,

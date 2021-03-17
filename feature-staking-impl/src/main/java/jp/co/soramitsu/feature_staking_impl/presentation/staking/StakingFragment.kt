@@ -16,7 +16,9 @@ import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
+import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.NominatorSummaryView
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
@@ -50,6 +52,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         stakingNetworkInfo.background = background
 
         stakingEstimate.hideAssetBalanceDollarAmount()
+
+        stakingNetworkInfo.storyItemHandler = viewModel::storyClicked
     }
 
     override fun inject() {
@@ -111,9 +115,17 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             }
         }
 
-        viewModel.networkInfoStateLiveData.observe {
-            // TODO
+        viewModel.networkInfoStateLiveData.observe { state ->
+            when (state) {
+                is LoadingState.Loading -> {
+
+                }
+                is LoadingState.Loaded<StakingNetworkInfoModel> -> {
+                }
+            }
         }
+
+        viewModel.stories.observe(stakingNetworkInfo::submitStories)
 
         viewModel.currentAddressModelLiveData.observe {
             stakingAvatar.setImageDrawable(it.image)
