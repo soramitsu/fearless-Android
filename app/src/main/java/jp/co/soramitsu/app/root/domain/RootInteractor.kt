@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 class RootInteractor(
     private val accountRepository: AccountRepository,
-    private val rootUpdater: RootUpdater,
+    private val updateSystem: UpdateSystem,
     private val buyTokenRegistry: BuyTokenRegistry,
     private val walletRepository: WalletRepository
 ) {
@@ -17,7 +17,7 @@ class RootInteractor(
     fun selectedNodeFlow() = accountRepository.selectedNodeFlow()
 
     suspend fun listenForUpdates(): Flow<Updater.SideEffect> {
-        return rootUpdater.listenForUpdates()
+        return updateSystem.start()
     }
 
     fun isBuyProviderRedirectLink(link: String) = buyTokenRegistry.availableProviders

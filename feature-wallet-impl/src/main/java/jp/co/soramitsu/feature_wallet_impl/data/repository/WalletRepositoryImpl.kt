@@ -55,8 +55,8 @@ class WalletRepositoryImpl(
     private val phishingAddressDao: PhishingAddressDao
 ) : WalletRepository {
 
-    override fun assetsFlow(account: WalletAccount): Flow<List<Asset>> {
-        return assetCache.observeAssets(account.address)
+    override fun assetsFlow(accountAddress: String): Flow<List<Asset>> {
+        return assetCache.observeAssets(accountAddress)
             .mapList(::mapAssetLocalToAsset)
     }
 
@@ -69,8 +69,8 @@ class WalletRepositoryImpl(
         updateAssetRates(account, currentPriceStatsDeferred.await(), yesterdayPriceStatsDeferred.await())
     }
 
-    override fun assetFlow(account: WalletAccount, type: Token.Type): Flow<Asset> {
-        return assetCache.observeAsset(account.address, mapTokenTypeToTokenTypeLocal(type))
+    override fun assetFlow(accountAddress: String, type: Token.Type): Flow<Asset> {
+        return assetCache.observeAsset(accountAddress, mapTokenTypeToTokenTypeLocal(type))
             .map { mapAssetLocalToAsset(it) }
     }
 

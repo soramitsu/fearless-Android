@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout"
+    tools:background="@color/black">
+
+    <TextView
+        android:id="@+id/nominatorSummaryTitle"
+        style="@style/TextAppearance.Soramitsu.Header5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/staking_stake"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/nominatorSummaryStakedLabel"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="17dp"
+        android:text="@string/staking_total_staked"
+        android:textColor="@color/white_64"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryTitle" />
+
+    <TextView
+        android:id="@+id/nominatorSummaryStaked"
+        style="@style/TextAppearance.Soramitsu.Body0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="@id/nominatorSummaryStakedLabel"
+        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryStakedLabel"
+        tools:text="10.00003 KSM" />
+
+    <TextView
+        android:id="@+id/nominatorSummaryStakedFiat"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/white_64"
+        app:layout_constraintStart_toStartOf="@id/nominatorSummaryStaked"
+        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryStaked"
+        tools:text="$812" />
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.50" />
+
+    <TextView
+        android:id="@+id/nominatorSummaryRewardsLabel"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="17dp"
+        android:text="@string/staking_total_rewards"
+        android:textColor="@color/white_64"
+        app:layout_constraintStart_toStartOf="@id/guideline"
+        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryTitle" />
+
+    <TextView
+        android:id="@+id/nominatorSummaryRewards"
+        style="@style/TextAppearance.Soramitsu.Body0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="@id/nominatorSummaryRewardsLabel"
+        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryRewardsLabel"
+        tools:text="0.49191 KSM" />
+
+    <TextView
+        android:id="@+id/nominatorSummaryRewardsFiat"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/white_64"
+        app:layout_constraintStart_toStartOf="@id/nominatorSummaryRewards"
+        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryRewards"
+        tools:text="$40.51" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="17dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/white_24"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryStakedFiat" />
+
+    <TextView
+        android:id="@+id/nominatorSummaryStatus"
+        style="@style/TextAppearance.Soramitsu.CapsTitle2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:drawablePadding="8dp"
+        android:includeFontPadding="false"
+        android:textColor="@color/white_64"
+        android:layout_marginBottom="16dp"
+        app:drawableStartCompat="@drawable/ic_status_indicator"
+        app:drawableTint="@color/white_64"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view"
+        tools:text="Election period" />
+
+
+    <TextView
+        android:id="@+id/nominatorSummaryStatusHelper"
+        style="@style/TextAppearance.Soramitsu.CapsTitle2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:drawablePadding="8dp"
+        android:visibility="invisible"
+        android:textColor="@color/white_64"
+        app:layout_constraintEnd_toStartOf="@+id/imageView2"
+        app:layout_constraintTop_toBottomOf="@+id/view"
+        tools:text="~00:08:29" />
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="25dp"
+        android:src="@drawable/ic_arrow_right_24"
+        app:layout_constraintBottom_toBottomOf="@+id/nominatorSummaryStatus"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/nominatorSummaryStatus"
+        app:tint="@color/white" />
+
+
+</merge>

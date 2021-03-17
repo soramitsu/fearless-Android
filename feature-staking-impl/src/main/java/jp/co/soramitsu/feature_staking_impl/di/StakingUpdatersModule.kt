@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Acco
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountValidatorPrefsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ElectionStatusUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorExposureUpdater
@@ -134,6 +135,15 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideElectionStatusUpdater(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        storageCache: StorageCache,
+    ) = ElectionStatusUpdater(
+        runtimeProperty, storageCache
+    )
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaters(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
@@ -142,7 +152,8 @@ class StakingUpdatersModule {
         currentEraUpdater: CurrentEraUpdater,
         stakingLedgerUpdater: StakingLedgerUpdater,
         accountValidatorPrefsUpdater: AccountValidatorPrefsUpdater,
-        accountNominationsUpdater: AccountNominationsUpdater
+        accountNominationsUpdater: AccountNominationsUpdater,
+        electionStatusUpdater: ElectionStatusUpdater,
     ) = StakingUpdaters(
         updaters = arrayOf(
             activeEraUpdater,
@@ -152,7 +163,8 @@ class StakingUpdatersModule {
             currentEraUpdater,
             stakingLedgerUpdater,
             accountValidatorPrefsUpdater,
-            accountNominationsUpdater
+            accountNominationsUpdater,
+            electionStatusUpdater
         )
     )
 }

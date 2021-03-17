@@ -12,13 +12,13 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.withContext
 
-class RootUpdater(
+class UpdateSystem(
     private val runtimeUpdater: RuntimeUpdater,
     private val updaters: List<Updater>,
     private val socketService: SocketService
 ) {
 
-    suspend fun listenForUpdates(): Flow<Updater.SideEffect> = withContext(Dispatchers.Default) {
+    suspend fun start(): Flow<Updater.SideEffect> = withContext(Dispatchers.Default) {
         runtimeUpdater.initFromCache() // make sure runtime is available to other updaters, since they may use it to construct storage keys
 
         val scopeFlows = updaters.groupBy(Updater::scope).map { (scope, scopeUpdaters) ->

@@ -3,7 +3,7 @@ package jp.co.soramitsu.app.root.di
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.app.root.domain.RootInteractor
-import jp.co.soramitsu.app.root.domain.RootUpdater
+import jp.co.soramitsu.app.root.domain.UpdateSystem
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -18,13 +18,13 @@ class RootFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideRootUpdater(
+    fun provideUpdateSystem(
         walletUpdaters: WalletUpdaters,
         stakingUpdaters: StakingUpdaters,
         runtimeUpdater: RuntimeUpdater,
         socketService: SocketService
-    ): RootUpdater {
-        return RootUpdater(
+    ): UpdateSystem {
+        return UpdateSystem(
             runtimeUpdater,
             updaters = listOf(
                 *walletUpdaters.updaters,
@@ -39,10 +39,10 @@ class RootFeatureModule {
     @FeatureScope
     fun provideRootInteractor(
         accountRepository: AccountRepository,
-        rootUpdater: RootUpdater,
+        updateSystem: UpdateSystem,
         buyTokenRegistry: BuyTokenRegistry,
         walletRepository: WalletRepository
     ): RootInteractor {
-        return RootInteractor(accountRepository, rootUpdater, buyTokenRegistry, walletRepository)
+        return RootInteractor(accountRepository, updateSystem, buyTokenRegistry, walletRepository)
     }
 }
