@@ -11,9 +11,13 @@ import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.StakingStoriesAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import kotlinx.android.synthetic.main.view_network_info.view.activeNominatorsView
+import kotlinx.android.synthetic.main.view_network_info.view.lockUpPeriodView
+import kotlinx.android.synthetic.main.view_network_info.view.minimumStakeView
 import kotlinx.android.synthetic.main.view_network_info.view.stakingNetworkCollapsibleView
 import kotlinx.android.synthetic.main.view_network_info.view.stakingNetworkInfoTitle
 import kotlinx.android.synthetic.main.view_network_info.view.stakingStoriesList
+import kotlinx.android.synthetic.main.view_network_info.view.totalStakeView
 
 class NetworkInfoView @JvmOverloads constructor(
     context: Context,
@@ -49,6 +53,22 @@ class NetworkInfoView @JvmOverloads constructor(
 
     fun submitStories(stories: List<StakingStoryModel>) {
         storiesAdapter.submitList(stories)
+    }
+
+    fun setTotalStake(totalStake: String) {
+        totalStakeView.setBody(totalStake)
+    }
+
+    fun setNominatorsCount(nominatorsCount: String) {
+        activeNominatorsView.setBody(nominatorsCount)
+    }
+
+    fun setMinimumStake(minimumStake: String) {
+        minimumStakeView.setBody(minimumStake)
+    }
+
+    fun setLockupPeriod(period: String) {
+        lockUpPeriodView.setBody(period)
     }
 
     override fun storyClicked(story: StakingStoryModel) {

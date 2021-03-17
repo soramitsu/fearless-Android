@@ -43,7 +43,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             consume(true)
         }
 
-        // stakingEstimate.hideAssetBalanceDollarAmount()
+        stakingEstimate.hideAssetBalanceDollarAmount()
 
         stakingNetworkInfo.storyItemHandler = viewModel::storyClicked
     }
@@ -113,6 +113,12 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
                 }
                 is LoadingState.Loaded<StakingNetworkInfoModel> -> {
+                    with(state.data) {
+                        stakingNetworkInfo.setTotalStake(totalStake)
+                        stakingNetworkInfo.setNominatorsCount(nominatorsCount)
+                        stakingNetworkInfo.setMinimumStake(minimumStake)
+                        stakingNetworkInfo.setLockupPeriod(lockupPeriod)
+                    }
                 }
             }
         }

@@ -13,10 +13,12 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
@@ -25,7 +27,7 @@ private const val CURRENT_ICON_SIZE = 40
 class StakingViewModel(
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
-    private val stakingViewStateFactory: StakingViewStateFactory,
+    private val stakingViewStateFactory: StakingViewStateFactory
 ) : BaseViewModel() {
 
     private val currentAssetFlow = interactor.currentAssetFlow()
@@ -37,11 +39,10 @@ class StakingViewModel(
         .share()
 
     val networkInfoStateLiveData = currentAssetFlow
-        .map { it.token.type.networkType }
         .distinctUntilChanged()
-        .withLoading {
-            interactor.observeNetworkInfoState(it)
-                .map { transformNetworkInfo(it) }
+        .withLoading { asset ->
+            interactor.observeNetworkInfoState(asset.token.type.networkType)
+                .map { transformNetworkInfo(asset, it) }
         }
         .asLiveData()
 
@@ -69,13 +70,19 @@ class StakingViewModel(
         StakingStoryModel(title, iconSymbol)
     }
 
-    private fun transformNetworkInfo(networkInfo: NetworkInfo): StakingNetworkInfoModel {
+    private fun transformNetworkInfo(asset: Asset, networkInfo: NetworkInfo): StakingNetworkInfoModel {
+        val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
+        val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
+
+        val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
+        val minimumStakeFormatted = minimumStake.formatWithDefaultPrecision(asset.token.type)
+
         return with(networkInfo) {
             StakingNetworkInfoModel(
-                lockupPeriodInDays,
-                minimumStake,
-                totalStake,
-                nominatorsCount,
+                lockupPeriodInDays.toString(),
+                minimumStakeFormatted,
+                totalStakeFormatted,
+                nominatorsCount.toString()
             )
         }
     }

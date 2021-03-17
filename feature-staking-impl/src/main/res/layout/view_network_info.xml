@@ -29,7 +29,8 @@
         android:paddingTop="8dp"
         android:paddingBottom="24dp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/stakingNetworkInfo">
+        app:layout_constraintTop_toBottomOf="@id/stakingNetworkInfo"
+        tools:visibility="visible">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/stakingStoriesList"
