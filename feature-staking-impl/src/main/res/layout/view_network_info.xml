@@ -5,13 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     tools:background="@color/black"
-    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+    tools:orientation="vertical"
+    tools:parentTag="android.widget.LinearLayout">
 
     <TextView
-        android:id="@+id/stakingNetworkInfo"
+        android:id="@+id/stakingNetworkInfoTitle"
         style="@style/TextAppearance.Soramitsu.Header5"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:drawableEnd="@drawable/ic_chevron_down_white"
         android:includeFontPadding="false"
         android:padding="16dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -20,67 +22,73 @@
         tools:text="Kusama network"
         tools:textColor="@color/white" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/stakingStoriesList"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/stakingNetworkCollapsibleView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:clipToPadding="false"
-        android:overScrollMode="never"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/stakingNetworkInfo" />
+        android:paddingTop="8dp"
+        android:paddingBottom="24dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/stakingNetworkInfo">
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
-        android:id="@+id/totalStakeView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
-        app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
-        app:titleText="Total staked" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/stakingStoriesList"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
-        android:id="@+id/minimumStakeView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/totalStakeView"
-        app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
-        app:titleText="Minimum stake" />
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+            android:id="@+id/totalStakeView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
+            app:titleText="Total staked" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
-        android:id="@+id/activeNominatorsView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp"
-        app:extraBlockIsVisible="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/totalStakeView"
-        app:titleText="Active nominators" />
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+            android:id="@+id/minimumStakeView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/totalStakeView"
+            app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
+            app:titleText="Minimum stake" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
-        android:id="@+id/lockUpPeriodView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="24dp"
-        app:extraBlockIsVisible="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/totalStakeView"
-        app:layout_constraintTop_toBottomOf="@id/totalStakeView"
-        app:titleText="Lock-Up period" />
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+            android:id="@+id/activeNominatorsView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            app:extraBlockIsVisible="false"
+            app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/totalStakeView"
+            app:titleText="Active nominators" />
+
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+            android:id="@+id/lockUpPeriodView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            app:extraBlockIsVisible="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/totalStakeView"
+            app:layout_constraintTop_toBottomOf="@id/totalStakeView"
+            app:titleText="Lock-Up period" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </merge>

@@ -11,12 +11,9 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.common.view.shape.addRipple
-import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.NominatorSummaryView
@@ -32,7 +29,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_staking, container, false)
     }
@@ -46,12 +43,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             consume(true)
         }
 
-        val background = with(requireContext()) {
-            addRipple(getCutCornerDrawable(R.color.blurColor))
-        }
-        stakingNetworkInfo.background = background
-
-        stakingEstimate.hideAssetBalanceDollarAmount()
+        // stakingEstimate.hideAssetBalanceDollarAmount()
 
         stakingNetworkInfo.storyItemHandler = viewModel::storyClicked
     }
