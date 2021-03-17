@@ -6,7 +6,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 val AddStakingRewardsTable_15_16 = object : Migration(15, 16) {
 
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("""
+        database.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `staking_rewards` (
                 `accountAddress` TEXT NOT NULL,
                 `eventId` TEXT NOT NULL,
@@ -14,17 +15,21 @@ val AddStakingRewardsTable_15_16 = object : Migration(15, 16) {
                 `extrinsicIndex` INTEGER NOT NULL,
                 `extrinsicHash` TEXT NOT NULL,
                 `moduleId` TEXT NOT NULL,
+                `params` TEXT NOT NULL,
                 `eventIndex` TEXT NOT NULL,
                 `amountInPlanks` TEXT NOT NULL,
                 `blockTimestamp` INTEGER NOT NULL,
                 `slashKton` TEXT NOT NULL,
                 PRIMARY KEY(`accountAddress`, `blockNumber`, `extrinsicIndex`)
             )
-        """.trimIndent())
+            """.trimIndent()
+        )
 
-        database.execSQL("""
+        database.execSQL(
+            """
             CREATE INDEX IF NOT EXISTS `index_staking_rewards_accountAddress` ON `staking_rewards` (`accountAddress`)
-        """.trimIndent())
+            """.trimIndent()
+        )
     }
 }
 

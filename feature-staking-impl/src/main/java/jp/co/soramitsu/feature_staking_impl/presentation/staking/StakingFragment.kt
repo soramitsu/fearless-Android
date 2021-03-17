@@ -70,6 +70,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
             when (stakingState) {
                 is NominatorViewState -> {
+                    stakingState.syncStakingRewards()
+
                     stakingState.nominatorSummaryLiveData.observe { summaryState ->
                         when (summaryState) {
                             is LoadingState.Loading<*> -> {

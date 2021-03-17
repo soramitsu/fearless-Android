@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.di
 
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.HttpExceptionHandler
+import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -53,5 +55,9 @@ interface StakingFeatureDependencies {
 
     fun accountUpdateScope(): AccountUpdateScope
 
-    fun stakingRewardsDao() : StakingRewardDao
+    fun stakingRewardsDao(): StakingRewardDao
+
+    fun networkApiCreator(): NetworkApiCreator
+
+    fun httpExceptionHandler(): HttpExceptionHandler
 }

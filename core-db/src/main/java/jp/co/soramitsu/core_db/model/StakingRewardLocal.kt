@@ -18,6 +18,7 @@ class StakingRewardLocal(
     val extrinsicIndex: Int,
     val extrinsicHash: String,
     val moduleId: String,
+    val params: String,
     val eventIndex: String,
     val amountInPlanks: BigInteger,
     val blockTimestamp: Long,

@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.domain
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -16,9 +17,11 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
+import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
+import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
@@ -37,9 +40,16 @@ class StakingInteractor(
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
     private val stakingRepository: StakingRepository,
+    private val stakingRewardsRepository: StakingRewardsRepository,
     private val substrateCalls: SubstrateCalls,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
+
+    suspend fun syncStakingRewards(accountAddress: String) = withContext(Dispatchers.IO) {
+        runCatching {
+            stakingRewardsRepository.syncTotalRewards(accountAddress)
+        }
+    }
 
     suspend fun observeNominatorSummary(nominatorState: StakingState.Stash.Nominator): Flow<NominatorSummary> = withContext(Dispatchers.Default) {
         val networkType = nominatorState.accountAddress.networkType()
@@ -48,8 +58,9 @@ class StakingInteractor(
         combine(
             stakingRepository.electionStatusFlow(networkType),
             stakingRepository.observeActiveEraIndex(networkType),
+            stakingRewardsRepository.stakingRewardsFlow(nominatorState.accountAddress),
             walletRepository.assetFlow(nominatorState.accountAddress, tokenType)
-        ) { electionStatus, activeEraIndex, asset ->
+        ) { electionStatus, activeEraIndex, rewards, asset ->
 
             val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex).values
 
@@ -63,7 +74,7 @@ class StakingInteractor(
             NominatorSummary(
                 status = status,
                 totalStaked = asset.bonded,
-                totalRewards = BigDecimal.ZERO // TODO
+                totalRewards = totalRewards(rewards)
             )
         }
     }
@@ -136,6 +147,10 @@ class StakingInteractor(
 
             substrateCalls.submitExtrinsic(extrinsic)
         }
+    }
+
+    private fun totalRewards(rewards: List<StakingReward>) = rewards.sumByBigDecimal {
+        it.amount * it.type.summingCoefficient.toBigDecimal()
     }
 
     private fun isNominationWaiting(nominations: Nominations, activeEraIndex: BigInteger): Boolean {

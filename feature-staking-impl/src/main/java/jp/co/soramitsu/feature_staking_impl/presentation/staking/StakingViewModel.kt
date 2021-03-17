@@ -40,7 +40,12 @@ class StakingViewModel(
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
     private fun transformStakingState(accountStakingState: StakingState) = when (accountStakingState) {
-        is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(accountStakingState, currentAssetFlow)
+        is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
+            accountStakingState,
+            currentAssetFlow,
+            viewModelScope,
+            ::showError
+        )
 
         is StakingState.Stash.None -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, viewModelScope)
 

@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.di
 
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.network.HttpExceptionHandler
+import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.FeatureScope
@@ -11,12 +13,15 @@ import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
+import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingRewardsApi
 import jp.co.soramitsu.feature_staking_impl.data.repository.IdentityRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
@@ -55,9 +60,17 @@ class StakingFeatureModule {
         walletRepository: WalletRepository,
         accountRepository: AccountRepository,
         stakingRepository: StakingRepository,
+        stakingRewardsRepository: StakingRewardsRepository,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         substrateCalls: SubstrateCalls
-    ) = StakingInteractor(walletRepository, accountRepository, stakingRepository, substrateCalls, extrinsicBuilderFactory)
+    ) = StakingInteractor(
+        walletRepository,
+        accountRepository,
+        stakingRepository,
+        stakingRewardsRepository,
+        substrateCalls,
+        extrinsicBuilderFactory
+    )
 
     @Provides
     @FeatureScope
@@ -121,4 +134,24 @@ class StakingFeatureModule {
         stakingInteractor: StakingInteractor,
         resourceManager: ResourceManager
     ): FeeLoaderMixin.Presentation = FeeLoaderProvider(stakingInteractor, resourceManager)
+
+    @Provides
+    @FeatureScope
+    fun provideStakingRewardsApi(networkApiCreator: NetworkApiCreator): StakingRewardsApi {
+        return networkApiCreator.create(StakingRewardsApi::class.java)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideStakingRewardsRepository(
+        stakingRewardsApi: StakingRewardsApi,
+        stakingRewardDao: StakingRewardDao,
+        httpExceptionHandler: HttpExceptionHandler
+    ): StakingRewardsRepository {
+        return StakingRewardsRepository(
+            stakingRewardsApi,
+            stakingRewardDao,
+            httpExceptionHandler
+        )
+    }
 }
