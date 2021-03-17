@@ -47,6 +47,12 @@ abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(contex
         fixedListSheetItemContainer.addView(view)
     }
 
+    fun <T : View> item(view: T, builder: (T) -> Unit) {
+        builder.invoke(view)
+
+        fixedListSheetItemContainer.addView(view)
+    }
+
     inline fun View.setDismissingClickListener(crossinline listener: (View) -> Unit) {
         setOnClickListener {
             listener.invoke(it)

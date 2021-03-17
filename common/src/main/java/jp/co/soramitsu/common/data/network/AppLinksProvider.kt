@@ -13,7 +13,8 @@ class AppLinksProvider(
     val devStatusUrl: String,
 
     val nominatorLearnMore: String,
-    val payoutsLearnMore: String
+    val payoutsLearnMore: String,
+    val twitterAccountTemplate: String
 ) {
 
     fun getExternalTransactionUrl(
@@ -38,6 +39,10 @@ class AppLinksProvider(
 
         return extractor(template).format(networkPathSegment(networkType), value)
     }
+
+    fun getTwitterAccountUrl(
+        accountName: String
+    ): String = twitterAccountTemplate.format(accountName)
 }
 
 class ExternalAnalyzerLinks(val transaction: String, val account: String)

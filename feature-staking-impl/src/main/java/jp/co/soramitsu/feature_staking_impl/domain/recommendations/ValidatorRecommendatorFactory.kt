@@ -35,7 +35,7 @@ class ValidatorRecommendatorFactory(
                 slashed = slashes.getOrDefault(accountIdHex, false),
                 accountIdHex = accountIdHex,
                 totalStake = exposure.total,
-                ownStake = exposure.total,
+                ownStake = exposure.own,
                 nominatorStakes = exposure.others,
                 commission = prefs,
                 identity = identities[accountIdHex],

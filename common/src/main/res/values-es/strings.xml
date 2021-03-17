@@ -266,4 +266,7 @@
     <string name="common_confirm">Confirmar</string>
     <string name="staking_confirm_selected_validators">Validadores seleccionados</string>
     <string name="staking_confirm_nominations">%s de %s</string>
+    <string name="validator_not_elected_description">Esta cuenta no es elegida por la red para participar en la era actual.</string>
+    <string name="staking_validator_own_stake">Propio</string>
+    <string name="staking_validator_total">Всего</string>
 </resources>

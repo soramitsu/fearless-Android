@@ -3,10 +3,11 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.asLiveData
+import jp.co.soramitsu.common.utils.emitAll
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
@@ -22,7 +23,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -47,7 +47,7 @@ class NominatorSummaryModel(
     val totalStaked: String,
     val totalStakedFiat: String?,
     val totalRewards: String,
-    val totalRewardsFiat: String?
+    val totalRewardsFiat: String?,
 )
 
 class NominatorViewState(
@@ -56,27 +56,25 @@ class NominatorViewState(
     private val stakingInteractor: StakingInteractor,
 ) : StakingViewState() {
 
-    val nominatorSummaryLiveData = liveData {
-        nominatorSummaryFlow().collect { emit(it) }
+    val nominatorSummaryLiveData = liveData<LoadingState<NominatorSummaryModel>> {
+        emitAll(nominatorSummaryFlow().withLoading())
     }
 
-    private suspend fun nominatorSummaryFlow(): Flow<LoadingState<NominatorSummaryModel>> {
+    private suspend fun nominatorSummaryFlow(): Flow<NominatorSummaryModel> {
         return combine(
             stakingInteractor.observeNominatorSummary(nominatorState),
             currentAssetFlow
-        ) { summaryState, asset ->
+        ) { summary, asset ->
             val token = asset.token
             val tokenType = token.type
 
-            summaryState.map {
-                NominatorSummaryModel(
-                    status = it.status,
-                    totalStaked = it.totalStaked.formatWithDefaultPrecision(tokenType),
-                    totalStakedFiat = token.fiatAmount(it.totalStaked)?.formatAsCurrency(),
-                    totalRewards = it.totalRewards.formatWithDefaultPrecision(tokenType),
-                    totalRewardsFiat = token.fiatAmount(it.totalRewards)?.formatAsCurrency()
-                )
-            }
+            NominatorSummaryModel(
+                status = summary.status,
+                totalStaked = summary.totalStaked.formatWithDefaultPrecision(tokenType),
+                totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
+                totalRewards = summary.totalRewards.formatWithDefaultPrecision(tokenType),
+                totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency()
+            )
         }
     }
 }

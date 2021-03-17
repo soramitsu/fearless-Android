@@ -264,4 +264,7 @@
     <string name="common_confirm">確認</string>
     <string name="staking_confirm_selected_validators">選択されたバリデーター</string>
     <string name="staking_confirm_nominations">%sの%s</string>
+    <string name="validator_not_elected_description">このアカウントは、現在の時代に参加するためにネットワークによって選出されていません</string>
+    <string name="staking_validator_own_stake">自分の</string>
+    <string name="staking_validator_total">合計</string>
 </resources>

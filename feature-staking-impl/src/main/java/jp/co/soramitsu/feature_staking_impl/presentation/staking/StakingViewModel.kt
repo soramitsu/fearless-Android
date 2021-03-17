@@ -4,12 +4,14 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingViewStateFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
@@ -25,12 +27,14 @@ class StakingViewModel(
         .share()
 
     val currentStakingState = interactor.selectedAccountStakingState()
-        .flowOn(Dispatchers.Default)
         .map { transformStakingState(it) }
+        .flowOn(Dispatchers.Default)
         .share()
 
-    val networkInfoStateLiveData = interactor.observeNetworkInfoState()
-        .flowOn(Dispatchers.Default)
+    val networkInfoStateLiveData = currentAssetFlow
+        .map { it.token.type.networkType }
+        .distinctUntilChanged()
+        .withLoading(interactor::observeNetworkInfoState)
         .asLiveData()
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()

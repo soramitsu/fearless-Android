@@ -266,4 +266,7 @@
     <string name="common_confirm">Раҫларға</string>
     <string name="staking_confirm_selected_validators">Выбранные валидаторы</string>
     <string name="staking_confirm_nominations">%s из %s</string>
+    <string name="validator_not_elected_description">Эта учетная запись не выбрана сетью для участия в текущей эпохе</string>
+    <string name="staking_validator_own_stake">Собственный</string>
+    <string name="staking_validator_total">Всего</string>
 </resources>
