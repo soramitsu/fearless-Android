@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="98dp"
+    android:layout_height="90dp"
+    android:background="@drawable/bg_grey_border_rounded"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/faqItemIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:text="💰"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/faqItemTitle"
+        style="@style/TextAppearance.Soramitsu.Body3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:includeFontPadding="false"
+        android:text="What is Staking?" />
+
+</LinearLayout>

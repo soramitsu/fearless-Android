@@ -22,6 +22,8 @@
         tools:text="Kusama network"
         tools:textColor="@color/white" />
 
+    <include layout="@layout/item_staking_story" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/stakingFaqList"
         android:layout_width="0dp"
