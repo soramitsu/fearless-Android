@@ -110,7 +110,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         viewModel.networkInfoStateLiveData.observe { state ->
             when (state) {
                 is LoadingState.Loading -> {
-
                 }
                 is LoadingState.Loaded<StakingNetworkInfoModel> -> {
                     with(state.data) {
