@@ -25,6 +25,10 @@ class NetworkInfoView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle), StakingStoriesAdapter.StoryItemHandler {
 
+    companion object {
+        private const val ANIMATION_DURATION = 220L
+    }
+
     enum class State {
         EXPANDED,
         COLLAPSED
@@ -140,13 +144,19 @@ class NetworkInfoView @JvmOverloads constructor(
 
     private fun collapse() {
         stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_down_white, 0)
-        stakingNetworkCollapsibleView.makeGone()
         currentState = State.COLLAPSED
+        stakingNetworkCollapsibleView.animate()
+            .setDuration(ANIMATION_DURATION)
+            .alpha(0f)
+            .withEndAction { stakingNetworkCollapsibleView.makeGone() }
     }
 
     private fun expand() {
         stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_up_white, 0)
         stakingNetworkCollapsibleView.makeVisible()
         currentState = State.EXPANDED
+        stakingNetworkCollapsibleView.animate()
+            .setDuration(ANIMATION_DURATION)
+            .alpha(1f)
     }
 }
