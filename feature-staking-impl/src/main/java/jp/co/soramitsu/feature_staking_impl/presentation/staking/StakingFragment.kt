@@ -118,6 +118,19 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                         stakingNetworkInfo.setNominatorsCount(nominatorsCount)
                         stakingNetworkInfo.setMinimumStake(minimumStake)
                         stakingNetworkInfo.setLockupPeriod(lockupPeriod)
+                        if (totalStakeFiat == null) {
+                            stakingNetworkInfo.hideTotalStakeFiat()
+                        } else {
+                            stakingNetworkInfo.showTotalStakeFiat()
+                            stakingNetworkInfo.setTotalStakeFiat(totalStakeFiat)
+                        }
+
+                        if (minimumStakeFiat == null) {
+                            stakingNetworkInfo.hideMinimumStakeFiat()
+                        } else {
+                            stakingNetworkInfo.showMinimumStakeFiat()
+                            stakingNetworkInfo.setMinimumStakeFiat(minimumStakeFiat)
+                        }
                     }
                 }
             }

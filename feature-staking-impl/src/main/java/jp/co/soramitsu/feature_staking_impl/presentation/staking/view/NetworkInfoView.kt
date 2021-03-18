@@ -34,7 +34,7 @@ class NetworkInfoView @JvmOverloads constructor(
 
     private val storiesAdapter = StakingStoriesAdapter(this)
 
-    private var currentState = State.COLLAPSED
+    private var currentState = State.EXPANDED
 
     init {
         View.inflate(context, R.layout.view_network_info, this)
@@ -69,6 +69,30 @@ class NetworkInfoView @JvmOverloads constructor(
 
     fun setLockupPeriod(period: String) {
         lockUpPeriodView.setBody(period)
+    }
+
+    fun setTotalStakeFiat(totalStake: String) {
+        totalStakeView.setExtraBlockValueText(totalStake)
+    }
+
+    fun showTotalStakeFiat() {
+        totalStakeView.showWholeExtraBlock()
+    }
+
+    fun hideTotalStakeFiat() {
+        totalStakeView.makeExtraBlockInvisible()
+    }
+
+    fun setMinimumStakeFiat(minimumStake: String) {
+        minimumStakeView.setExtraBlockValueText(minimumStake)
+    }
+
+    fun showMinimumStakeFiat() {
+        minimumStakeView.showWholeExtraBlock()
+    }
+
+    fun hideMinimumStakeFiat() {
+        minimumStakeView.makeExtraBlockInvisible()
     }
 
     override fun storyClicked(story: StakingStoryModel) {

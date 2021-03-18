@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlockValue
@@ -33,8 +34,12 @@ class StakingInfoView @JvmOverloads constructor(
         val title = typedArray.getString(R.styleable.StakingInfoView_titleText)
         title?.let { setTitle(title) }
 
-        val extraBlockIsVisible = typedArray.getBoolean(R.styleable.StakingInfoView_extraBlockIsVisible, true)
-        changeExtraBlockVisibility(extraBlockIsVisible)
+        val includeExtraBlock = typedArray.getBoolean(R.styleable.StakingInfoView_includeExtraBlock, true)
+        if (includeExtraBlock) {
+            showWholeExtraBlock()
+        } else {
+            hideWholeExtraBlock()
+        }
 
         typedArray.recycle()
     }
@@ -63,11 +68,15 @@ class StakingInfoView @JvmOverloads constructor(
         stakingInfoExtraBlockAdditional.text = text
     }
 
-    fun changeExtraBlockVisibility(visible: Boolean) {
-        if (visible) {
-            stakingInfoExtraBlock.makeVisible()
-        } else {
-            stakingInfoExtraBlock.makeGone()
-        }
+    fun showWholeExtraBlock() {
+        stakingInfoExtraBlock.makeVisible()
+    }
+
+    fun hideWholeExtraBlock() {
+        stakingInfoExtraBlock.makeGone()
+    }
+
+    fun makeExtraBlockInvisible() {
+        stakingInfoExtraBlock.makeInvisible()
     }
 }

@@ -314,4 +314,8 @@
     <string name="validator_not_elected_description">This account is not elected by network to participate in the current era</string>
     <string name="staking_validator_own_stake">Own</string>
     <string name="staking_validator_total">Total</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="one">%s day</item>
+        <item quantity="other">%s days</item>
+    </plurals>
 </resources>

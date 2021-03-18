@@ -267,4 +267,7 @@
     <string name="validator_not_elected_description">このアカウントは、現在の時代に参加するためにネットワークによって選出されていません</string>
     <string name="staking_validator_own_stake">自分の</string>
     <string name="staking_validator_total">合計</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="other">%s 日</item>
+    </plurals>
 </resources>

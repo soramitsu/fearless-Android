@@ -6,7 +6,7 @@
     <declare-styleable name="EstimateEarningView" />
     <declare-styleable name="StakingInfoView">
         <attr name="titleText" format="string" />
-        <attr name="extraBlockIsVisible" format="boolean" />
+        <attr name="includeExtraBlock" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="PayoutTargetView">

@@ -4,9 +4,12 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingStory
@@ -27,7 +30,8 @@ private const val CURRENT_ICON_SIZE = 40
 class StakingViewModel(
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
-    private val stakingViewStateFactory: StakingViewStateFactory
+    private val stakingViewStateFactory: StakingViewStateFactory,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel() {
 
     private val currentAssetFlow = interactor.currentAssetFlow()
@@ -74,14 +78,23 @@ class StakingViewModel(
         val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
         val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
 
+        val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
+
         val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
         val minimumStakeFormatted = minimumStake.formatWithDefaultPrecision(asset.token.type)
 
+        val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency()
+
+        val lockupPeriod = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, networkInfo.lockupPeriodInDays)
+            .format(networkInfo.lockupPeriodInDays)
+
         return with(networkInfo) {
             StakingNetworkInfoModel(
-                lockupPeriodInDays.toString(),
+                lockupPeriod,
                 minimumStakeFormatted,
+                minimumStakeFiat,
                 totalStakeFormatted,
+                totalStakeFiat,
                 nominatorsCount.toString()
             )
         }
