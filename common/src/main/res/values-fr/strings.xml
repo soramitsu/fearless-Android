@@ -276,4 +276,5 @@
     <string name="staking_main_minimum_stake_title">Mise minimum</string>
     <string name="staking_main_lockup_period_title">Période de blocage</string>
     <string name="staking_main_network_title">%s réseau</string>
+    <string name="staking_total_staked">Total jalonné</string>
 </resources>

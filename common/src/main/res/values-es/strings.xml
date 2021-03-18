@@ -277,4 +277,5 @@
     <string name="staking_main_minimum_stake_title">Apuesta mínima</string>
     <string name="staking_main_lockup_period_title">Período de encierro</string>
     <string name="staking_main_network_title">%s red</string>
+    <string name="staking_total_staked">Total apostado</string>
 </resources>
