@@ -51,7 +51,8 @@
             app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
-            app:titleText="@string/staking_total_staked" />
+            app:titleText="@string/staking_total_staked"
+            app:startWithLoading="true" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
             android:id="@+id/minimumStakeView"
@@ -62,7 +63,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/totalStakeView"
             app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
-            app:titleText="@string/staking_main_minimum_stake_title" />
+            app:titleText="@string/staking_main_minimum_stake_title"
+            app:startWithLoading="true" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
             android:id="@+id/activeNominatorsView"
@@ -74,7 +76,8 @@
             app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/totalStakeView"
-            app:titleText="@string/staking_main_active_nominators_title" />
+            app:titleText="@string/staking_main_active_nominators_title"
+            app:startWithLoading="true" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
             android:id="@+id/lockUpPeriodView"
@@ -86,7 +89,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/totalStakeView"
             app:layout_constraintTop_toBottomOf="@id/totalStakeView"
-            app:titleText="@string/staking_main_lockup_period_title" />
+            app:titleText="@string/staking_main_lockup_period_title"
+            app:startWithLoading="true" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

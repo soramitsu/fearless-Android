@@ -14,6 +14,7 @@
         android:layout_height="wrap_content"
         android:includeFontPadding="false"
         android:textColor="@color/gray1"
+        android:singleLine="true"
         tools:text="Monthly" />
 
     <com.facebook.shimmer.ShimmerFrameLayout
@@ -45,11 +46,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:includeFontPadding="false"
+        android:singleLine="true"
         tools:text="0.164 KSM" />
 
     <LinearLayout
         android:id="@+id/stakingInfoExtraBlock"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:orientation="vertical">
@@ -90,6 +92,7 @@
                 android:layout_marginEnd="4dp"
                 android:includeFontPadding="false"
                 android:textColor="@color/white_64"
+                android:singleLine="true"
                 tools:text="$8.13" />
 
             <TextView
@@ -99,6 +102,7 @@
                 android:layout_height="wrap_content"
                 android:includeFontPadding="false"
                 android:textColor="@color/green"
+                android:singleLine="true"
                 tools:text="+1.75%" />
 
         </LinearLayout>

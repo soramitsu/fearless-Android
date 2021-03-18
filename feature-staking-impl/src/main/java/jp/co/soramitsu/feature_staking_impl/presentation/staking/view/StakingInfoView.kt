@@ -8,14 +8,14 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlockValue
-import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoBody
-import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoBodyShimmer
-import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlock
-import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlockAdditional
-import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlockShimmer
-import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlockValueView
-import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoTitle
+import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoExtraBlockValue
+import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoBody
+import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoBodyShimmer
+import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoExtraBlock
+import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoExtraBlockAdditional
+import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoExtraBlockShimmer
+import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoExtraBlockValueView
+import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoTitle
 
 class StakingInfoView @JvmOverloads constructor(
     context: Context,
@@ -24,7 +24,7 @@ class StakingInfoView @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyle) {
 
     init {
-        View.inflate(context, R.layout.view_staking_gain, this)
+        View.inflate(context, R.layout.view_staking_info, this)
 
         orientation = VERTICAL
 
@@ -43,6 +43,9 @@ class StakingInfoView @JvmOverloads constructor(
         } else {
             hideWholeExtraBlock()
         }
+
+        val startWithLoading = typedArray.getBoolean(R.styleable.StakingInfoView_startWithLoading, false)
+        if (startWithLoading) showLoading()
 
         typedArray.recycle()
     }

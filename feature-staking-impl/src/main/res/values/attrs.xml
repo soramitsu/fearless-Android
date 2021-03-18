@@ -7,6 +7,7 @@
     <declare-styleable name="StakingInfoView">
         <attr name="titleText" format="string" />
         <attr name="includeExtraBlock" format="boolean" />
+        <attr name="startWithLoading" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="PayoutTargetView">

@@ -67,6 +67,16 @@ class EstimateEarningView @JvmOverloads constructor(
         estimateEarningAmount.showAssetDollarAmount()
     }
 
+    fun showReturnsLoading() {
+        stakingMonthGain.showLoading()
+        stakingYearGain.showLoading()
+    }
+
+    fun hideReturnsLoading() {
+        stakingMonthGain.hideLoading()
+        stakingYearGain.hideLoading()
+    }
+
     fun populateMonthEstimation(estimation: RewardEstimation) {
         populateEstimationView(stakingMonthGain, estimation)
     }

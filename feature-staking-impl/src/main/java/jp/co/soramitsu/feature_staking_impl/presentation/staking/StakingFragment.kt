@@ -98,6 +98,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                     }
 
                     stakingState.returns.observe { rewards ->
+                        stakingEstimate.hideReturnsLoading()
                         stakingEstimate.populateMonthEstimation(rewards.monthly)
                         stakingEstimate.populateYearEstimation(rewards.yearly)
                     }
@@ -112,7 +113,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         viewModel.networkInfoStateLiveData.observe { state ->
             when (state) {
                 is LoadingState.Loading -> {
-                    stakingNetworkInfo.showLoading()
                 }
                 is LoadingState.Loaded<StakingNetworkInfoModel> -> {
                     with(state.data) {
