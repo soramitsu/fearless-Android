@@ -138,6 +138,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
         viewModel.stories.observe(stakingNetworkInfo::submitStories)
 
+        viewModel.networkInfoTitle.observe(stakingNetworkInfo::setTitle)
+
         viewModel.currentAddressModelLiveData.observe {
             stakingAvatar.setImageDrawable(it.image)
         }

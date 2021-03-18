@@ -45,10 +45,27 @@ class NetworkInfoView @JvmOverloads constructor(
 
         orientation = VERTICAL
 
+        applyAttributes(attrs)
+
         stakingStoriesList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         stakingStoriesList.adapter = storiesAdapter
 
-        stakingNetworkInfoTitle.setOnClickListener { changeState() }
+        stakingNetworkInfoTitle.setOnClickListener { changeExpandableState() }
+    }
+
+    private fun applyAttributes(attrs: AttributeSet?) {
+        attrs?.let {
+            val typedArray = context.obtainStyledAttributes(attrs, R.styleable.NetworkInfoView)
+
+            val isExpanded = typedArray.getBoolean(R.styleable.NetworkInfoView_expanded, true)
+            if (isExpanded) expand() else collapse()
+
+            typedArray.recycle()
+        }
+    }
+
+    fun setTitle(title: String) {
+        stakingNetworkInfoTitle.text = title
     }
 
     fun submitStories(stories: List<StakingStoryModel>) {
@@ -99,15 +116,23 @@ class NetworkInfoView @JvmOverloads constructor(
         storyItemHandler(story)
     }
 
-    private fun changeState() {
+    private fun changeExpandableState() {
         if (State.EXPANDED == currentState) {
-            stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_down_white, 0)
-            stakingNetworkCollapsibleView.makeGone()
-            currentState = State.COLLAPSED
+            collapse()
         } else {
-            stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_up_white, 0)
-            stakingNetworkCollapsibleView.makeVisible()
-            currentState = State.EXPANDED
+            expand()
         }
+    }
+
+    private fun collapse() {
+        stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_down_white, 0)
+        stakingNetworkCollapsibleView.makeGone()
+        currentState = State.COLLAPSED
+    }
+
+    private fun expand() {
+        stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_up_white, 0)
+        stakingNetworkCollapsibleView.makeVisible()
+        currentState = State.EXPANDED
     }
 }

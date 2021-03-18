@@ -48,7 +48,8 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
-            android:animateLayoutChanges="true" />
+            android:animateLayoutChanges="true"
+            app:expanded="true" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.view.NominatorSummaryView
             android:id="@+id/stakingNominatorSummary"

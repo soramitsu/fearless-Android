@@ -270,4 +270,8 @@
     <plurals name="staking_main_lockup_period_value">
         <item quantity="other">%s 日</item>
     </plurals>
+    <string name="staking_main_active_nominators_title">アクティブな推薦者</string>
+    <string name="staking_main_minimum_stake_title">最小ステーク</string>
+    <string name="staking_main_lockup_period_title">ロックアップ期間</string>
+    <string name="staking_main_network_title">%sネットワーク</string>
 </resources>

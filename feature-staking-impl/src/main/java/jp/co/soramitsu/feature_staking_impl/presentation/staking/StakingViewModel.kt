@@ -56,6 +56,10 @@ class StakingViewModel(
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
+    val networkInfoTitle = currentAssetFlow
+        .map { mapAssetToNetworkInfoTitle(it) }
+        .asLiveData()
+
     fun storyClicked(story: StakingStoryModel) {
 
     }
@@ -98,6 +102,10 @@ class StakingViewModel(
                 nominatorsCount.toString()
             )
         }
+    }
+
+    private fun mapAssetToNetworkInfoTitle(asset: Asset): String {
+        return resourceManager.getString(R.string.staking_main_network_title, asset.token.type.networkType.readableName)
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {

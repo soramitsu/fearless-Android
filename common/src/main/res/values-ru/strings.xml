@@ -274,4 +274,8 @@
         <item quantity="many">%s дней</item>
         <item quantity="other">%s дней</item>
     </plurals>
+    <string name="staking_main_active_nominators_title">Активные номинаторы</string>
+    <string name="staking_main_minimum_stake_title">Минимальная ставка</string>
+    <string name="staking_main_lockup_period_title">Период блокировки</string>
+    <string name="staking_main_network_title">Сеть %s</string>
 </resources>

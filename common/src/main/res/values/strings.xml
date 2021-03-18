@@ -318,4 +318,8 @@
         <item quantity="one">%s day</item>
         <item quantity="other">%s days</item>
     </plurals>
+    <string name="staking_main_active_nominators_title">Active nominators</string>
+    <string name="staking_main_minimum_stake_title">Minimum stake</string>
+    <string name="staking_main_lockup_period_title">Lock-Up period</string>
+    <string name="staking_main_network_title">%s network</string>
 </resources>

@@ -13,7 +13,7 @@
         style="@style/TextAppearance.Soramitsu.Header5"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableEnd="@drawable/ic_chevron_down_white"
+        android:drawableEnd="@drawable/ic_chevron_up_white"
         android:includeFontPadding="false"
         android:padding="16dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -51,7 +51,7 @@
             app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
-            app:titleText="Total staked" />
+            app:titleText="@string/staking_total_staked" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
             android:id="@+id/minimumStakeView"
@@ -62,7 +62,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/totalStakeView"
             app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
-            app:titleText="Minimum stake" />
+            app:titleText="@string/staking_main_minimum_stake_title" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
             android:id="@+id/activeNominatorsView"
@@ -74,7 +74,7 @@
             app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/totalStakeView"
-            app:titleText="Active nominators" />
+            app:titleText="@string/staking_main_active_nominators_title" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
             android:id="@+id/lockUpPeriodView"
@@ -86,7 +86,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/totalStakeView"
             app:layout_constraintTop_toBottomOf="@id/totalStakeView"
-            app:titleText="Lock-Up period" />
+            app:titleText="@string/staking_main_lockup_period_title" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

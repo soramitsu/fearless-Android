@@ -25,4 +25,7 @@
         <attr name="validatorInfoItemIcon" format="reference" />
         <attr name="validatorInfoItemTitleIcon" format="reference" />
     </declare-styleable>
+    <declare-styleable name="NetworkInfoView">
+        <attr name="expanded" format="boolean" />
+    </declare-styleable>
 </resources>

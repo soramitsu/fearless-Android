@@ -273,4 +273,8 @@
         <item quantity="one">%s көн</item>
         <item quantity="other">%s көн</item>
     </plurals>
+    <string name="staking_main_active_nominators_title">Актив номинаторҙар</string>
+    <string name="staking_main_minimum_stake_title">Минималь стейк</string>
+    <string name="staking_main_lockup_period_title">Ҡамау ваҡыты</string>
+    <string name="staking_main_network_title">%s селтәр</string>
 </resources>

@@ -21,7 +21,7 @@
         android:id="@+id/stakingFragment"
         tools:layout="@layout/fragment_staking"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.StakingFragment"
-        android:label="StackingFragment" />
+        android:label="StakingFragment" />
 
     <fragment
         android:id="@+id/governanceFragment"
