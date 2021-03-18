@@ -3,8 +3,8 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
-import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
 import java.math.BigInteger
 
 fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBuilder {
@@ -19,7 +19,7 @@ fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBu
 fun ExtrinsicBuilder.bond(
     controllerAddress: MultiAddress,
     amount: BigInteger,
-    payee: RewardDestination
+    payee: RewardDestination,
 ): ExtrinsicBuilder {
     return call(
         "Staking", "bond",

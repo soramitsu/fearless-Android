@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorReco
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.findSelectedValidator
@@ -33,7 +33,7 @@ class RecommendedValidatorsViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val appLinksProvider: AppLinksProvider,
     private val interactor: StakingInteractor,
-    private val sharedState: StakingSharedState
+    private val sharedStateSetup: SetupStakingSharedState
 ) : BaseViewModel(), Browserable {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
@@ -65,7 +65,7 @@ class RecommendedValidatorsViewModel(
 
     fun nextClicked() {
         viewModelScope.launch {
-            sharedState.selectedValidators.emit(recommendedValidators.first())
+            sharedStateSetup.selectedValidators.emit(recommendedValidators.first())
 
             router.openConfirmStaking()
         }

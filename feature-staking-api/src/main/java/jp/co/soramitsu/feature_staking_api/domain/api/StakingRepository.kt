@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_api.domain.api
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
+import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import kotlinx.coroutines.flow.Flow
@@ -27,4 +28,6 @@ interface StakingRepository {
     suspend fun getSlashes(accountIdsHex: List<String>): AccountIdMap<Boolean>
 
     fun stakingStateFlow(accountAddress: String): Flow<StakingState>
+
+    suspend fun getRewardDestination(stakingState: StakingState.Stash): RewardDestination
 }

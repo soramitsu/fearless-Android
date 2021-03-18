@@ -5,7 +5,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.NominatorViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.ValidatorViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.WelcomeViewState
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.Flow
 
 class StakingViewStateFactory(
     private val stakingInteractor: StakingInteractor,
-    private val stakingSharedState: StakingSharedState,
+    private val setupStakingSharedState: SetupStakingSharedState,
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
@@ -25,12 +25,15 @@ class StakingViewStateFactory(
 
     fun createWelcomeViewState(
         currentAssetFlow: Flow<Asset>,
+        accountStakingState: StakingState,
         scope: CoroutineScope
     ) = WelcomeViewState(
-        stakingSharedState,
+        setupStakingSharedState,
         rewardCalculatorFactory,
+        stakingInteractor,
         resourceManager,
         router,
+        accountStakingState,
         currentAssetFlow,
         scope
     )

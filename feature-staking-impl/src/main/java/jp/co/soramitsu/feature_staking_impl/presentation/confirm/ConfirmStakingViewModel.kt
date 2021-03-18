@@ -22,17 +22,17 @@ import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.validation.unwrap
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
@@ -54,11 +54,11 @@ class ConfirmStakingViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
-    private val stakingSharedState: StakingSharedState,
+    private val setupStakingSharedState: SetupStakingSharedState,
     private val maxFeeEstimator: MaxFeeEstimator,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory
+    private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
 ) : BaseViewModel(),
     Retriable,
     Validatable,
@@ -84,16 +84,16 @@ class ConfirmStakingViewModel(
     }
 
     val nominationsLiveData = liveData(Dispatchers.Default) {
-        val selectedCount = stakingSharedState.selectedValidators.first().size
+        val selectedCount = setupStakingSharedState.selectedValidators.first().size
         val maxValidatorsPerNominator = recommendationSettingsProviderFactory.get().maximumValidatorsPerNominator
 
         emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxValidatorsPerNominator))
     }
 
-    val stakingAmount = stakingSharedState.amount.toString()
+    val stakingAmount = setupStakingSharedState.stashSetup.amount.toString()
 
     val rewardDestinationLiveData = liveData(Dispatchers.Default) {
-        val rewardDestination = stakingSharedState.rewardDestination
+        val rewardDestination = setupStakingSharedState.stashSetup.rewardDestination
 
         emit(mapRewardDestinationToRewardDestinationModel(rewardDestination))
     }
@@ -140,9 +140,10 @@ class ConfirmStakingViewModel(
                 maxFeeEstimator.estimateMaxSetupStakingFee(
                     originAddress = account.address,
                     tokenType = token.type,
-                    amount = token.planksFromAmount(stakingSharedState.amount),
-                    rewardDestination = stakingSharedState.rewardDestination,
-                    nominations = prepareNominations()
+                    amount = token.planksFromAmount(setupStakingSharedState.stashSetup.amount),
+                    rewardDestination = setupStakingSharedState.stashSetup.rewardDestination,
+                    nominations = prepareNominations(),
+                    skipBond = shouldSkipBound()
                 )
             },
             onRetryCancelled = ::backClicked
@@ -150,7 +151,7 @@ class ConfirmStakingViewModel(
     }
 
     private suspend fun mapRewardDestinationToRewardDestinationModel(
-        rewardDestination: RewardDestination
+        rewardDestination: RewardDestination,
     ): RewardDestinationModel {
         return when (rewardDestination) {
             is RewardDestination.Restake -> RewardDestinationModel.Restake
@@ -165,13 +166,13 @@ class ConfirmStakingViewModel(
     }
 
     private suspend fun prepareNominations(): List<MultiAddress> {
-        return stakingSharedState.selectedValidators.first().map {
+        return setupStakingSharedState.selectedValidators.first().map {
             MultiAddress.Id(it.accountIdHex.fromHex())
         }
     }
 
     private fun sendTransactionIfValid(
-        ignoreWarnings: Boolean = false
+        ignoreWarnings: Boolean = false,
     ) = requireFee { fee ->
         _showNextProgress.value = true
 
@@ -180,7 +181,7 @@ class ConfirmStakingViewModel(
             val tokenType = assetFlow.first().token.type
 
             val payload = SetupStakingPayload(
-                amount = stakingSharedState.amount,
+                amount = setupStakingSharedState.stashSetup.amount,
                 tokenType = tokenType,
                 originAddress = interactor.getSelectedAccount().address,
                 maxFee = fee,
@@ -207,14 +208,15 @@ class ConfirmStakingViewModel(
 
     private fun sendTransaction(
         setupStakingPayload: SetupStakingPayload,
-        tokenType: Token.Type
+        tokenType: Token.Type,
     ) = launch {
         val setupResult = interactor.setupStaking(
             originAddress = setupStakingPayload.originAddress,
             amount = setupStakingPayload.amount,
             tokenType = tokenType,
             rewardDestination = setupStakingPayload.rewardDestination,
-            nominations = prepareNominations()
+            nominations = prepareNominations(),
+            skipBond = shouldSkipBound()
         )
 
         _showNextProgress.value = false
@@ -242,6 +244,8 @@ class ConfirmStakingViewModel(
             )
         )
     }
+
+    private fun shouldSkipBound() = setupStakingSharedState.stashSetup.alreadyHasStash
 
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {
         return addressIconGenerator.createAddressModel(account.address, DESTINATION_SIZE_DP, account.name)

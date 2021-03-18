@@ -25,6 +25,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionStatus
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindNominations
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashDeferDuration
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashingSpans
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindTotalInsurance
@@ -145,6 +146,15 @@ class StakingRepositoryImpl(
                     observeStashState(accessInfo, accountAddress)
                 }
             }
+    }
+
+    override suspend fun getRewardDestination(stakingState: StakingState.Stash) = withContext(Dispatchers.Default) {
+        val runtime = runtimeProperty.get()
+        val storageKey = runtime.metadata.staking().storage("Payee").storageKey(runtime, stakingState.stashId)
+
+        val rewardDestinationEncoded = storageCache.getEntry(storageKey).content!!
+
+        bindRewardDestination(rewardDestinationEncoded, runtime, stakingState.stashId, stakingState.controllerId)
     }
 
     private suspend fun observeStashState(

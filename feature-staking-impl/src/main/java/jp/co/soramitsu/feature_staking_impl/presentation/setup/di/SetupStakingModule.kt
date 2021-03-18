@@ -18,7 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFacto
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.setup.SetupStakingViewModel
 
@@ -37,7 +37,7 @@ class SetupStakingModule {
         maxFeeEstimator: MaxFeeEstimator,
         validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
         appLinksProvider: AppLinksProvider,
-        stakingSharedState: StakingSharedState,
+        setupStakingSharedState: SetupStakingSharedState,
         feeLoaderMixin: FeeLoaderMixin.Presentation
     ): ViewModel {
         return SetupStakingViewModel(
@@ -49,7 +49,7 @@ class SetupStakingModule {
             maxFeeEstimator,
             validationSystem,
             appLinksProvider,
-            stakingSharedState,
+            setupStakingSharedState,
             feeLoaderMixin
         )
     }

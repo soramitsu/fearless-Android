@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -90,15 +90,17 @@ class NominatorViewState(
 }
 
 class WelcomeViewState(
-    private val stakingSharedState: StakingSharedState,
+    private val setupStakingSharedState: SetupStakingSharedState,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
+    private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
-    currentAssetFlow: Flow<Asset>,
+    private val accountStakingState: StakingState,
+    private val currentAssetFlow: Flow<Asset>,
     private val scope: CoroutineScope,
 ) : StakingViewState() {
 
-    val enteredAmountFlow = MutableStateFlow(stakingSharedState.amount.toString())
+    val enteredAmountFlow = MutableStateFlow(setupStakingSharedState.DEFAULT_AMOUNT.toString())
 
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
@@ -122,9 +124,14 @@ class WelcomeViewState(
 
     fun nextClicked() {
         scope.launch {
-            stakingSharedState.amount = parsedAmountFlow.first()
+            if (accountStakingState is StakingState.Stash.None) {
+                val asset = currentAssetFlow.first()
+                setupStakingSharedState.stashSetup = interactor.getExistingStashSetup(accountStakingState, asset)
 
-            router.openSetupStaking()
+                router.openRecommendedValidators()
+            } else {
+                router.openSetupStaking()
+            }
         }
     }
 
