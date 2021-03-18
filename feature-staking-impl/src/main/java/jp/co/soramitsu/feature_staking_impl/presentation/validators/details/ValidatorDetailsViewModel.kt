@@ -10,12 +10,13 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.networkType
-import jp.co.soramitsu.common.utils.sumBy
+import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsParcelToValidatorDetailsModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.NominatorParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -72,7 +73,7 @@ class ValidatorDetailsViewModel(
         val ownStakeFormatted = ownStake.formatWithDefaultPrecision(asset.token.type)
         val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency()
 
-        val nominatorsStakeValue = validatorStake.nominators.sumBy { it.value }
+        val nominatorsStakeValue = validatorStake.nominators.sumByBigInteger(NominatorParcelModel::value)
         val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
         val nominatorsStakeFormatted = nominatorsStake.formatWithDefaultPrecision(asset.token.type)
         val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatAsCurrency()

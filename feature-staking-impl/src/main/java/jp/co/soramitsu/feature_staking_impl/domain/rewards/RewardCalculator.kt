@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain.rewards
 
 import jp.co.soramitsu.common.utils.median
-import jp.co.soramitsu.common.utils.sumBy
+import jp.co.soramitsu.common.utils.sumByBigInteger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -33,7 +33,7 @@ class RewardCalculator(
     val totalIssuance: BigInteger
 ) {
 
-    private val totalStaked = validators.sumBy(RewardCalculationTarget::totalStake).toDouble()
+    private val totalStaked = validators.sumByBigInteger(RewardCalculationTarget::totalStake).toDouble()
 
     private val stakedPortion = totalStaked / totalIssuance.toDouble()
 

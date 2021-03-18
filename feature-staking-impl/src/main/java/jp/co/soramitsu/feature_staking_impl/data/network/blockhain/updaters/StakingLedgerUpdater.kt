@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.staking
-import jp.co.soramitsu.common.utils.sumBy
+import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
@@ -130,6 +130,6 @@ class StakingLedgerUpdater(
     ): BigInteger {
         return unlocking
             .filter { condition(it.era) }
-            .sumBy(UnlockChunk::amount)
+            .sumByBigInteger(UnlockChunk::amount)
     }
 }
