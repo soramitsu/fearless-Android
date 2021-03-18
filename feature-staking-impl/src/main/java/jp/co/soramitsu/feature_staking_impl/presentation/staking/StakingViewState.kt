@@ -54,10 +54,20 @@ class NominatorViewState(
     private val nominatorState: StakingState.Stash.Nominator,
     private val currentAssetFlow: Flow<Asset>,
     private val stakingInteractor: StakingInteractor,
+    private val scope: CoroutineScope,
+    private val errorDisplayer: (Throwable) -> Unit
 ) : StakingViewState() {
 
     val nominatorSummaryLiveData = liveData<LoadingState<NominatorSummaryModel>> {
         emitAll(nominatorSummaryFlow().withLoading())
+    }
+
+    fun syncStakingRewards() {
+        scope.launch {
+            val syncResult = stakingInteractor.syncStakingRewards(nominatorState.accountAddress)
+
+            syncResult.exceptionOrNull()?.let { errorDisplayer(it) }
+        }
     }
 
     private suspend fun nominatorSummaryFlow(): Flow<NominatorSummaryModel> {

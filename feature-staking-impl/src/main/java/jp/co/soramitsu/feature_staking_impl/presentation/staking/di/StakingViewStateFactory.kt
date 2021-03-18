@@ -38,9 +38,13 @@ class StakingViewStateFactory(
     fun createNominatorViewState(
         stakingState: StakingState.Stash.Nominator,
         currentAssetFlow: Flow<Asset>,
+        scope: CoroutineScope,
+        errorDisplayer: (Throwable) -> Unit
     ) = NominatorViewState(
         nominatorState = stakingState,
         stakingInteractor = stakingInteractor,
-        currentAssetFlow = currentAssetFlow
+        currentAssetFlow = currentAssetFlow,
+        scope = scope,
+        errorDisplayer = errorDisplayer
     )
 }

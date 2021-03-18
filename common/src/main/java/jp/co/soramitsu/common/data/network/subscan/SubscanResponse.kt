@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.model.response
+package jp.co.soramitsu.common.data.network.subscan
 
 import com.google.gson.annotations.SerializedName
 
@@ -7,7 +7,7 @@ class SubscanResponse<T>(
     @SerializedName("data")
     val content: T?,
     @SerializedName("generated_at")
-    val generatedAt: Long,
+    val generatedAt: Long?,
     val message: String
 ) {
     companion object {

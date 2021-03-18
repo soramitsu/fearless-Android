@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 
 import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
+import jp.co.soramitsu.common.data.network.subscan.SubscanResponse
+import jp.co.soramitsu.common.data.network.subscan.subscanSubDomain
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
@@ -32,7 +34,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemo
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubscanResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +43,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
-import java.util.Locale
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 class WalletRepositoryImpl(
@@ -101,7 +101,7 @@ class WalletRepositoryImpl(
 
     override suspend fun getTransactionPage(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
         return withContext(Dispatchers.Default) {
-            val subDomain = subDomainFor(currentAccount.network.type)
+            val subDomain = currentAccount.network.type.subscanSubDomain()
             val request = TransactionHistoryRequest(currentAccount.address, pageSize, page)
 
             val response = apiCall { subscanApi.getTransactionHistory(subDomain, request) }
@@ -248,14 +248,10 @@ class WalletRepositoryImpl(
 
     private suspend fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): SubscanResponse<AssetPriceStatistics> {
         return try {
-            apiCall { subscanApi.getAssetPrice(subDomainFor(networkType), request) }
+            apiCall { subscanApi.getAssetPrice(networkType.subscanSubDomain(), request) }
         } catch (_: Exception) {
             SubscanResponse.createEmptyResponse()
         }
-    }
-
-    private fun subDomainFor(networkType: Node.NetworkType): String {
-        return networkType.readableName.toLowerCase(Locale.ROOT)
     }
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
