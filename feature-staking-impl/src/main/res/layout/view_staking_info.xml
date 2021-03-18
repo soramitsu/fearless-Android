@@ -13,8 +13,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:includeFontPadding="false"
-        android:textColor="@color/gray1"
         android:singleLine="true"
+        android:textColor="@color/gray1"
         tools:text="Monthly" />
 
     <com.facebook.shimmer.ShimmerFrameLayout
@@ -87,12 +87,13 @@
             <TextView
                 android:id="@+id/stakingInfoExtraBlockValue"
                 style="@style/TextAppearance.Soramitsu.Body2"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
+                android:layout_weight="1"
                 android:includeFontPadding="false"
-                android:textColor="@color/white_64"
                 android:singleLine="true"
+                android:textColor="@color/white_64"
                 tools:text="$8.13" />
 
             <TextView
@@ -101,8 +102,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:includeFontPadding="false"
-                android:textColor="@color/green"
                 android:singleLine="true"
+                android:textColor="@color/green"
                 tools:text="+1.75%" />
 
         </LinearLayout>
