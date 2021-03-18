@@ -33,7 +33,7 @@ class StakingStoriesAdapter(
 class StakingStoryHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     fun bind(story: StakingStoryModel, itemHandler: StakingStoriesAdapter.StoryItemHandler) = with(itemView) {
-        stakingStoryItemIcon.text = story.smile
+        stakingStoryItemIcon.text = story.iconSymbol
         stakingStoryItemTitle.text = story.title
         setOnClickListener { itemHandler.storyClicked(story) }
     }

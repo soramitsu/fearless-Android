@@ -19,8 +19,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominat
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
-import jp.co.soramitsu.feature_staking_impl.domain.model.StakingStory
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
@@ -30,7 +29,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -87,15 +85,7 @@ class StakingInteractor(
     }
 
     fun stakingStoriesFlow(): Flow<List<StakingStory>> {
-        return flow {
-            val stories = mutableListOf<StakingStory>().apply {
-                add(StakingStory("What is Staking?", "\uD83D\uDCB0"))
-                add(StakingStory("Who is Nominator?", "\uD83D\uDC8E"))
-                add(StakingStory("Who is Validator?", "⛏"))
-                add(StakingStory("What\'s new?", "\uD83C\uDF81"))
-            }
-            emit(stories)
-        }
+        return stakingRepository.stakingStoriesFlow()
     }
 
     fun selectedAccountStakingState() = accountRepository.selectedAccountFlow()

@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
-import jp.co.soramitsu.feature_staking_impl.domain.model.StakingStory
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
@@ -61,7 +61,7 @@ class StakingViewModel(
         .asLiveData()
 
     fun storyClicked(story: StakingStoryModel) {
-
+        // TODO
     }
 
     private fun transformStakingState(accountStakingState: StakingState) = when (accountStakingState) {
