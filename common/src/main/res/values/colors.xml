@@ -23,6 +23,7 @@
     <color name="white_10">#1AFFFFFF</color>
     <color name="white_20">#33FFFFFF</color>
     <color name="white_24">#3DFFFFFF</color>
+    <color name="white_40">#66FFFFFF</color>
     <color name="white_50">#80FFFFFF</color>
     <color name="white_64">#A6FFFFFF</color>
 </resources>

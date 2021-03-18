@@ -72,6 +72,20 @@ class NetworkInfoView @JvmOverloads constructor(
         storiesAdapter.submitList(stories)
     }
 
+    fun showLoading() {
+        totalStakeView.showLoading()
+        minimumStakeView.showLoading()
+        activeNominatorsView.showLoading()
+        lockUpPeriodView.showLoading()
+    }
+
+    fun hideLoading() {
+        totalStakeView.hideLoading()
+        minimumStakeView.hideLoading()
+        activeNominatorsView.hideLoading()
+        lockUpPeriodView.hideLoading()
+    }
+
     fun setTotalStake(totalStake: String) {
         totalStakeView.setBody(totalStake)
     }

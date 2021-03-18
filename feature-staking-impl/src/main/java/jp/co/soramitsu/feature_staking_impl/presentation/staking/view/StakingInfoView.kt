@@ -10,8 +10,11 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlockValue
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoBody
+import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoBodyShimmer
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlock
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlockAdditional
+import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlockShimmer
+import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoExtraBlockValueView
 import kotlinx.android.synthetic.main.view_staking_gain.view.stakingInfoTitle
 
 class StakingInfoView @JvmOverloads constructor(
@@ -78,5 +81,19 @@ class StakingInfoView @JvmOverloads constructor(
 
     fun makeExtraBlockInvisible() {
         stakingInfoExtraBlock.makeInvisible()
+    }
+
+    fun showLoading() {
+        stakingInfoBodyShimmer.makeVisible()
+        stakingInfoBody.makeGone()
+        stakingInfoExtraBlockValueView.makeGone()
+        stakingInfoExtraBlockShimmer.makeVisible()
+    }
+
+    fun hideLoading() {
+        stakingInfoBody.makeVisible()
+        stakingInfoBodyShimmer.makeGone()
+        stakingInfoExtraBlockValueView.makeVisible()
+        stakingInfoExtraBlockShimmer.makeGone()
     }
 }

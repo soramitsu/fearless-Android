@@ -112,9 +112,11 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         viewModel.networkInfoStateLiveData.observe { state ->
             when (state) {
                 is LoadingState.Loading -> {
+                    stakingNetworkInfo.showLoading()
                 }
                 is LoadingState.Loaded<StakingNetworkInfoModel> -> {
                     with(state.data) {
+                        stakingNetworkInfo.hideLoading()
                         stakingNetworkInfo.setTotalStake(totalStake)
                         stakingNetworkInfo.setNominatorsCount(nominatorsCount)
                         stakingNetworkInfo.setMinimumStake(minimumStake)
