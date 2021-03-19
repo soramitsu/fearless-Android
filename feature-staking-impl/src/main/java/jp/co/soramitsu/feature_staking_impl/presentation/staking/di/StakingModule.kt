@@ -50,8 +50,7 @@ class StakingModule {
             interactor,
             addressIconGenerator,
             stakingViewStateFactory,
-            router
-            stakingViewStateFactory,
+            router,
             resourceManager
         )
     }
