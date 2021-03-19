@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_validator_summary_title">Staking for validator</string>
+    <string name="staking_validator_summary_description">In future updates, we will add staking features for the validators. \n \n #StayFearless</string>
+
     <string name="staking_stake">Stake</string>
     <string name="staking_total_rewards">Total rewards</string>
     <string name="staking_nominator_status_election">Election period</string>

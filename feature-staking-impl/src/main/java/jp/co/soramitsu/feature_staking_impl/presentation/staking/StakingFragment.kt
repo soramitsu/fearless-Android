@@ -22,6 +22,7 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingNominatorSummary
+import kotlinx.android.synthetic.main.fragment_staking.stakingValidatorSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
@@ -63,6 +64,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             startStakingBtn.setVisible(stakingState is WelcomeViewState)
             stakingEstimate.setVisible(stakingState is WelcomeViewState)
             stakingNominatorSummary.setVisible(stakingState is NominatorViewState)
+            stakingValidatorSummary.setVisible(stakingState is ValidatorViewState)
 
             when (stakingState) {
                 is NominatorViewState -> {
