@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.SlashingSpan
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
@@ -32,6 +33,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.activeEraStorageKey
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.observeActiveEraIndex
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -45,7 +47,8 @@ class StakingRepositoryImpl(
     val storageCache: StorageCache,
     val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     val accountStakingDao: AccountStakingDao,
-    val bulkRetriever: BulkRetriever
+    val bulkRetriever: BulkRetriever,
+    val stakingStoriesDataSource: StakingStoriesDataSource
 ) : StakingRepository {
 
     override suspend fun electionStatusFlow(networkType: Node.NetworkType): Flow<ElectionStatus> {
@@ -155,6 +158,10 @@ class StakingRepositoryImpl(
         val rewardDestinationEncoded = storageCache.getEntry(storageKey).content!!
 
         bindRewardDestination(rewardDestinationEncoded, runtime, stakingState.stashId, stakingState.controllerId)
+    }
+
+    override fun stakingStoriesFlow(): Flow<List<StakingStory>> {
+        return stakingStoriesDataSource.getStoriesFlow()
     }
 
     private suspend fun observeStashState(

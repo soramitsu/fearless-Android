@@ -6,5 +6,5 @@ data class NetworkInfo(
     val lockupPeriodInDays: Int,
     val minimumStake: BigInteger,
     val totalStake: BigInteger,
-    val nominatorsCount: Int,
+    val nominatorsCount: Int
 )

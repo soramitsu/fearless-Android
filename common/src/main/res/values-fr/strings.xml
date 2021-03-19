@@ -268,4 +268,13 @@
     <string name="validator_not_elected_description">Ce compte n\'est pas élu par le réseau pour participer à l\'ère actuelle</string>
     <string name="staking_validator_own_stake">Propre</string>
     <string name="staking_validator_total">Total</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="one">%s jours</item>
+        <item quantity="other">%s jours</item>
+    </plurals>
+    <string name="staking_main_active_nominators_title">Nominateurs actifs</string>
+    <string name="staking_main_minimum_stake_title">Mise minimum</string>
+    <string name="staking_main_lockup_period_title">Période de blocage</string>
+    <string name="staking_main_network_title">%s réseau</string>
+    <string name="staking_total_staked">Total jalonné</string>
 </resources>
