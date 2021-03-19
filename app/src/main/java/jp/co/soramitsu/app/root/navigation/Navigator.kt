@@ -12,6 +12,8 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
+import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
@@ -209,8 +211,8 @@ class Navigator :
         navController?.navigate(R.id.open_transaction_detail, bundle)
     }
 
-    override fun openAccounts() {
-        navController?.navigate(R.id.action_mainFragment_to_accountsFragment)
+    override fun openAccounts(accountChosenNavDirection: AccountChosenNavDirection) {
+        navController?.navigate(R.id.action_open_accounts, AccountListFragment.getBundle(accountChosenNavDirection))
     }
 
     override fun openNodes() {
@@ -223,6 +225,14 @@ class Navigator :
 
     override fun openAddAccount() {
         navController?.navigate(R.id.action_open_onboarding, WelcomeFragment.getBundle(true))
+    }
+
+    override fun openChangeAccountFromWallet() {
+        openAccounts(AccountChosenNavDirection.BACK)
+    }
+
+    override fun openChangeAccountFromStaking() {
+        openAccounts(AccountChosenNavDirection.BACK)
     }
 
     override fun openReceive() {

@@ -9,10 +9,11 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
+import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
@@ -31,6 +32,7 @@ class StakingViewModel(
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val stakingViewStateFactory: StakingViewStateFactory,
+    private val router: StakingRouter,
     private val resourceManager: ResourceManager
 ) : BaseViewModel() {
 
@@ -55,6 +57,10 @@ class StakingViewModel(
         .asLiveData()
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
+
+    fun avatarClicked() {
+        router.openChangeAccountFromStaking()
+    }
 
     val networkInfoTitle = currentAssetFlow
         .map { mapAssetToNetworkInfoTitle(it) }

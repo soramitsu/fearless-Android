@@ -46,6 +46,10 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
         stakingEstimate.hideAssetBalanceDollarAmount()
 
+        stakingAvatar.setOnClickListener {
+            viewModel.avatarClicked()
+        }
+
         stakingNetworkInfo.storyItemHandler = viewModel::storyClicked
     }
 

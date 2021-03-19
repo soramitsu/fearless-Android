@@ -43,12 +43,14 @@ class StakingModule {
         interactor: StakingInteractor,
         addressIconGenerator: AddressIconGenerator,
         stakingViewStateFactory: StakingViewStateFactory,
+        router: StakingRouter,
         resourceManager: ResourceManager
     ): ViewModel {
         return StakingViewModel(
             interactor,
             addressIconGenerator,
             stakingViewStateFactory,
+            router,
             resourceManager
         )
     }

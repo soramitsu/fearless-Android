@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
-private const val CHOOSER_ICON_SIZE = 24
 
 class BalanceListViewModel(
     private val interactor: WalletInteractor,
@@ -108,17 +107,7 @@ class BalanceListViewModel(
     }
 
     fun avatarClicked() {
-        val currentAddressModel = currentAddressModelLiveData.value!!
-
-        viewModelScope.launch {
-            val accounts = interactor.getAccountsInCurrentNetwork()
-
-            val addressModels = accounts.map { generateAddressModel(it, CHOOSER_ICON_SIZE) }
-
-            val chooserPayload = Payload(addressModels, currentAddressModel)
-
-            _showAccountChooser.value = Event(chooserPayload)
-        }
+        router.openChangeAccountFromWallet()
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {

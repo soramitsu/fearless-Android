@@ -16,5 +16,7 @@ interface StakingRouter {
 
     fun finishSetupStakingFlow()
 
+    fun openChangeAccountFromStaking()
+
     fun back()
 }

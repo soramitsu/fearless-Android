@@ -13,13 +13,22 @@ import kotlinx.android.synthetic.main.fragment_accounts.accountsList
 import kotlinx.android.synthetic.main.fragment_accounts.addAccount
 import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 
+private const val ARG_DIRECTION = "ARG_DIRECTION"
+
 class AccountListFragment : BaseFragment<AccountListViewModel>(), AccountsAdapter.AccountItemHandler {
     private lateinit var adapter: AccountsAdapter
+
+    companion object {
+
+        fun getBundle(accountChosenNavDirection: AccountChosenNavDirection) = Bundle().apply {
+            putSerializable(ARG_DIRECTION, accountChosenNavDirection)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ) = layoutInflater.inflate(R.layout.fragment_accounts, container, false)
 
     override fun initViews() {
@@ -40,12 +49,14 @@ class AccountListFragment : BaseFragment<AccountListViewModel>(), AccountsAdapte
     }
 
     override fun inject() {
+        val accountChosenNavDirection = argument<AccountChosenNavDirection>(ARG_DIRECTION)
+
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .accountsComponentFactory()
-            .create(this)
+            .create(this, accountChosenNavDirection)
             .inject(this)
     }
 

@@ -23,5 +23,7 @@ interface WalletRouter {
 
     fun openAddAccount()
 
+    fun openChangeAccountFromWallet()
+
     fun openReceive()
 }
