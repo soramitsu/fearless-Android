@@ -24,7 +24,7 @@ class NominatorSummaryView @JvmOverloads constructor(
     defStyle: Int = 0,
 ) : ConstraintLayout(context, attrs, defStyle) {
 
-    sealed class Status(@StringRes val textRes: Int, @ColorRes val tintRes: Int, val extraMessage: String? ) {
+    sealed class Status(@StringRes val textRes: Int, @ColorRes val tintRes: Int, val extraMessage: String?) {
 
         object Election : Status(R.string.staking_nominator_status_election, R.color.white_64, null)
 
