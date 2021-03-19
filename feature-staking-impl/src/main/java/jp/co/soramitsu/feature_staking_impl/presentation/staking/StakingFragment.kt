@@ -79,7 +79,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             is LoadingState.Loaded<NominatorSummaryModel> -> {
                                 val summary = summaryState.data
 
-                                stakingNominatorSummary.setElectionStatus(mapNominatorStatus(summary.status))
+                                stakingNominatorSummary.setElectionStatus(mapNominatorStatus(summary))
                                 stakingNominatorSummary.setTotalStaked(summary.totalStaked, summary.totalStakedFiat)
                                 stakingNominatorSummary.setTotalRewards(summary.totalRewards, summary.totalRewardsFiat)
                             }
@@ -150,12 +150,13 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
     }
 
-    private fun mapNominatorStatus(status: NominatorSummary.Status): NominatorSummaryView.Status {
-        return when (status) {
-            NominatorSummary.Status.INACTIVE -> NominatorSummaryView.Status.INACTIVE
-            NominatorSummary.Status.ACTIVE -> NominatorSummaryView.Status.ACTIVE
-            NominatorSummary.Status.WAITING -> NominatorSummaryView.Status.WAITING
-            NominatorSummary.Status.ELECTION -> NominatorSummaryView.Status.ELECTION
+    private fun mapNominatorStatus(summary: NominatorSummaryModel): NominatorSummaryView.Status {
+
+        return when (summary.status) {
+            NominatorSummary.Status.INACTIVE -> NominatorSummaryView.Status.Inactive(summary.currentEraDisplay)
+            NominatorSummary.Status.ACTIVE -> NominatorSummaryView.Status.Active(summary.currentEraDisplay)
+            NominatorSummary.Status.WAITING -> NominatorSummaryView.Status.Waiting
+            NominatorSummary.Status.ELECTION -> NominatorSummaryView.Status.Election
         }
     }
 }

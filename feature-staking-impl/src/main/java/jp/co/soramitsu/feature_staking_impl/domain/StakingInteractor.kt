@@ -77,7 +77,8 @@ class StakingInteractor(
             NominatorSummary(
                 status = status,
                 totalStaked = asset.bonded,
-                totalRewards = totalRewards(rewards)
+                totalRewards = totalRewards(rewards),
+                currentEra = activeEraIndex.toInt()
             )
         }
     }
