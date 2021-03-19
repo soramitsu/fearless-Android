@@ -60,6 +60,8 @@ buildscript {
 
         insetterVersion = "0.5.0"
 
+        shimmerVersion = '0.5.0'
+
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
         insetterDep = "dev.chrisbanes.insetter:insetter-widgets:$insetterVersion"
@@ -114,6 +116,8 @@ buildscript {
         gifDep = "pl.droidsonroids.gif:android-gif-drawable:$gifVersion"
 
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
+
+        shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"

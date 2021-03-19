@@ -77,4 +77,6 @@ dependencies {
 
     implementation gsonDep
     implementation retrofitDep
+
+    implementation shimmerDep
 }
