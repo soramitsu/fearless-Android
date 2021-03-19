@@ -8,12 +8,12 @@ class StakingStoriesDataSourceImpl : StakingStoriesDataSource {
 
     override fun getStoriesFlow(): Flow<List<StakingStory>> {
         return flow {
-            val stories = mutableListOf<StakingStory>().apply {
-                add(StakingStory("What is Staking?", "\uD83D\uDCB0"))
-                add(StakingStory("Who is Nominator?", "\uD83D\uDC8E"))
-                add(StakingStory("Who is Validator?", "⛏"))
-                add(StakingStory("What\'s new?", "\uD83C\uDF81"))
-            }
+            val stories = listOf(
+                StakingStory("What is Staking?", "\uD83D\uDCB0"),
+                StakingStory("Who is Nominator?", "\uD83D\uDC8E"),
+                StakingStory("Who is Validator?", "⛏"),
+                StakingStory("What\'s new?", "\uD83C\uDF81")
+            )
             emit(stories)
         }
     }
