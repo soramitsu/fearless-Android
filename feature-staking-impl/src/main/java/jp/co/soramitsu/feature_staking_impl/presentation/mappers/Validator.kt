@@ -81,7 +81,7 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
             stake,
             address,
             addressImage.image,
-            identity,
+            identity
         )
     }
 }

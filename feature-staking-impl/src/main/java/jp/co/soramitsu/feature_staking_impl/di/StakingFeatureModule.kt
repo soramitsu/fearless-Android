@@ -21,6 +21,8 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingRewardsApi
 import jp.co.soramitsu.feature_staking_impl.data.repository.IdentityRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
@@ -40,12 +42,17 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideStakingStoriesDataSource(): StakingStoriesDataSource = StakingStoriesDataSourceImpl()
+
+    @Provides
+    @FeatureScope
     fun provideStakingRepository(
         storageCache: StorageCache,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         bulkRetriever: BulkRetriever,
-        accountStakingDao: AccountStakingDao
-    ): StakingRepository = StakingRepositoryImpl(storageCache, runtimeProperty, accountStakingDao, bulkRetriever)
+        accountStakingDao: AccountStakingDao,
+        stakingStoriesDataSource: StakingStoriesDataSource
+    ): StakingRepository = StakingRepositoryImpl(storageCache, runtimeProperty, accountStakingDao, bulkRetriever, stakingStoriesDataSource)
 
     @Provides
     @FeatureScope

@@ -269,4 +269,13 @@
     <string name="validator_not_elected_description">Esta cuenta no es elegida por la red para participar en la era actual.</string>
     <string name="staking_validator_own_stake">Propio</string>
     <string name="staking_validator_total">Всего</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="one">%s días</item>
+        <item quantity="other">%s días</item>
+    </plurals>
+    <string name="staking_main_active_nominators_title">Nominadores activos</string>
+    <string name="staking_main_minimum_stake_title">Apuesta mínima</string>
+    <string name="staking_main_lockup_period_title">Período de encierro</string>
+    <string name="staking_main_network_title">%s red</string>
+    <string name="staking_total_staked">Total apostado</string>
 </resources>

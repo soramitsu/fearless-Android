@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -91,9 +92,13 @@ class StakingInteractor(
                 lockupPeriodInDays = lockupPeriod,
                 minimumStake = minimumStake(exposures),
                 totalStake = totalStake(exposures),
-                nominatorsCount = activeNominators(exposures)
+                nominatorsCount = activeNominators(exposures),
             )
         }
+    }
+
+    fun stakingStoriesFlow(): Flow<List<StakingStory>> {
+        return stakingRepository.stakingStoriesFlow()
     }
 
     fun selectedAccountStakingState() = accountRepository.selectedAccountFlow()

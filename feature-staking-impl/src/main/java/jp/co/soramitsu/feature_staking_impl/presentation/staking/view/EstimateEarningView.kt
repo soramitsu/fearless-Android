@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.view
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.view
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -67,6 +67,16 @@ class EstimateEarningView @JvmOverloads constructor(
         estimateEarningAmount.showAssetDollarAmount()
     }
 
+    fun showReturnsLoading() {
+        stakingMonthGain.showLoading()
+        stakingYearGain.showLoading()
+    }
+
+    fun hideReturnsLoading() {
+        stakingMonthGain.hideLoading()
+        stakingYearGain.hideLoading()
+    }
+
     fun populateMonthEstimation(estimation: RewardEstimation) {
         populateEstimationView(stakingMonthGain, estimation)
     }
@@ -75,14 +85,14 @@ class EstimateEarningView @JvmOverloads constructor(
         populateEstimationView(stakingYearGain, estimation)
     }
 
-    private fun populateEstimationView(view: StakingGainView, estimation: RewardEstimation) {
-        view.setPeriodGain(estimation.amount)
+    private fun populateEstimationView(view: StakingInfoView, estimation: RewardEstimation) {
+        view.setBody(estimation.amount)
         if (estimation.fiatAmount == null) {
-            view.hideGainFiat()
+            view.hideExtraBlockValue()
         } else {
-            view.showGainFiat()
-            view.setGainFiat(estimation.fiatAmount)
+            view.showExtraBlockValue()
+            view.setExtraBlockValueText(estimation.fiatAmount)
         }
-        view.setGainPercentage(estimation.gain)
+        view.setExtraBlockAdditionalText(estimation.gain)
     }
 }

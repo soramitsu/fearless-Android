@@ -4,11 +4,21 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingViewStateFactory
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -21,6 +31,7 @@ class StakingViewModel(
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val stakingViewStateFactory: StakingViewStateFactory,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel() {
 
     private val currentAssetFlow = interactor.currentAssetFlow()
@@ -32,12 +43,26 @@ class StakingViewModel(
         .share()
 
     val networkInfoStateLiveData = currentAssetFlow
-        .map { it.token.type.networkType }
         .distinctUntilChanged()
-        .withLoading(interactor::observeNetworkInfoState)
+        .withLoading { asset ->
+            interactor.observeNetworkInfoState(asset.token.type.networkType)
+                .map { transformNetworkInfo(asset, it) }
+        }
+        .asLiveData()
+
+    val stories = interactor.stakingStoriesFlow()
+        .map { it.map(::transformStories) }
         .asLiveData()
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
+
+    val networkInfoTitle = currentAssetFlow
+        .map { mapAssetToNetworkInfoTitle(it) }
+        .asLiveData()
+
+    fun storyClicked(story: StakingStoryModel) {
+        // TODO
+    }
 
     private fun transformStakingState(accountStakingState: StakingState) = when (accountStakingState) {
         is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
@@ -52,6 +77,40 @@ class StakingViewModel(
         is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope)
 
         is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState()
+    }
+
+    private fun transformStories(story: StakingStory): StakingStoryModel = with(story) {
+        StakingStoryModel(title, iconSymbol)
+    }
+
+    private fun transformNetworkInfo(asset: Asset, networkInfo: NetworkInfo): StakingNetworkInfoModel {
+        val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
+        val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
+
+        val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
+
+        val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
+        val minimumStakeFormatted = minimumStake.formatWithDefaultPrecision(asset.token.type)
+
+        val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency()
+
+        val lockupPeriod = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, networkInfo.lockupPeriodInDays)
+            .format(networkInfo.lockupPeriodInDays)
+
+        return with(networkInfo) {
+            StakingNetworkInfoModel(
+                lockupPeriod,
+                minimumStakeFormatted,
+                minimumStakeFiat,
+                totalStakeFormatted,
+                totalStakeFiat,
+                nominatorsCount.toString()
+            )
+        }
+    }
+
+    private fun mapAssetToNetworkInfoTitle(asset: Asset): String {
+        return resourceManager.getString(R.string.staking_main_network_title, asset.token.type.networkType.readableName)
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {

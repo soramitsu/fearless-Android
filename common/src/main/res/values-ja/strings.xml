@@ -267,4 +267,12 @@
     <string name="validator_not_elected_description">このアカウントは、現在の時代に参加するためにネットワークによって選出されていません</string>
     <string name="staking_validator_own_stake">自分の</string>
     <string name="staking_validator_total">合計</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="other">%s 日</item>
+    </plurals>
+    <string name="staking_main_active_nominators_title">アクティブな推薦者</string>
+    <string name="staking_main_minimum_stake_title">最小ステーク</string>
+    <string name="staking_main_lockup_period_title">ロックアップ期間</string>
+    <string name="staking_main_network_title">%sネットワーク</string>
+    <string name="staking_total_staked">合計賭け金</string>
 </resources>

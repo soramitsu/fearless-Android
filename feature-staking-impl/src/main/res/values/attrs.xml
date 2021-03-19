@@ -4,8 +4,10 @@
         <attr name="android:enabled" />
     </declare-styleable>
     <declare-styleable name="EstimateEarningView" />
-    <declare-styleable name="StakingGainView">
+    <declare-styleable name="StakingInfoView">
         <attr name="titleText" format="string" />
+        <attr name="includeExtraBlock" format="boolean" />
+        <attr name="startWithLoading" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="PayoutTargetView">
@@ -23,5 +25,8 @@
         <attr name="validatorInfoItemTitle" format="string" />
         <attr name="validatorInfoItemIcon" format="reference" />
         <attr name="validatorInfoItemTitleIcon" format="reference" />
+    </declare-styleable>
+    <declare-styleable name="NetworkInfoView">
+        <attr name="expanded" format="boolean" />
     </declare-styleable>
 </resources>
