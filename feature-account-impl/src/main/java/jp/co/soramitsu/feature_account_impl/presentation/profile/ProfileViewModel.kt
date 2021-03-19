@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.language.mapper.mapLanguageToLanguageModel
 
 private const val AVATAR_SIZE_DP = 32
@@ -40,7 +41,7 @@ class ProfileViewModel(
     }
 
     fun accountsClicked() {
-        router.openAccounts()
+        router.openAccounts(AccountChosenNavDirection.MAIN)
     }
 
     fun networksClicked() {

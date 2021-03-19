@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingViewStateFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,7 @@ class StakingViewModel(
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val stakingViewStateFactory: StakingViewStateFactory,
+    private val router: StakingRouter
 ) : BaseViewModel() {
 
     private val currentAssetFlow = interactor.currentAssetFlow()
@@ -38,6 +40,10 @@ class StakingViewModel(
         .asLiveData()
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
+
+    fun avatarClicked() {
+        router.openChangeAccountFromStaking()
+    }
 
     private fun transformStakingState(accountStakingState: StakingState) = when (accountStakingState) {
         is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(

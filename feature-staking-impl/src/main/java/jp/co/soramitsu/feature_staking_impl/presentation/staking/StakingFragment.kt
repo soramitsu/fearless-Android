@@ -50,6 +50,10 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         stakingNetworkInfo.background = background
 
         stakingEstimate.hideAssetBalanceDollarAmount()
+
+        stakingAvatar.setOnClickListener {
+            viewModel.avatarClicked()
+        }
     }
 
     override fun inject() {
