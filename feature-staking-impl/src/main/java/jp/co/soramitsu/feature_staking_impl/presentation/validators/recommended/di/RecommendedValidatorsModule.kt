@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.RecommendedValidatorsViewModel
 
 @Module(includes = [ViewModelModule::class])
@@ -30,7 +30,7 @@ class RecommendedValidatorsModule {
         stakingInteractor: StakingInteractor,
         appLinksProvider: AppLinksProvider,
         router: StakingRouter,
-        stakingSharedState: StakingSharedState
+        setupStakingSharedState: SetupStakingSharedState
     ): ViewModel {
         return RecommendedValidatorsViewModel(
             router,
@@ -39,7 +39,7 @@ class RecommendedValidatorsModule {
             addressIconGenerator,
             appLinksProvider,
             stakingInteractor,
-            stakingSharedState
+            setupStakingSharedState
         )
     }
 

@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountNominationsUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountRewardDestinationUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountValidatorPrefsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
@@ -135,6 +136,16 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideAccountRewardDestinationUpdater(
+        storageCache: StorageCache,
+        scope: AccountStakingScope,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+    ) = AccountRewardDestinationUpdater(
+        scope, storageCache, runtimeProperty
+    )
+
+    @Provides
+    @FeatureScope
     fun provideElectionStatusUpdater(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         storageCache: StorageCache,
@@ -154,6 +165,7 @@ class StakingUpdatersModule {
         accountValidatorPrefsUpdater: AccountValidatorPrefsUpdater,
         accountNominationsUpdater: AccountNominationsUpdater,
         electionStatusUpdater: ElectionStatusUpdater,
+        rewardDestinationUpdater: AccountRewardDestinationUpdater,
     ) = StakingUpdaters(
         updaters = arrayOf(
             activeEraUpdater,
@@ -164,7 +176,8 @@ class StakingUpdatersModule {
             stakingLedgerUpdater,
             accountValidatorPrefsUpdater,
             accountNominationsUpdater,
-            electionStatusUpdater
+            electionStatusUpdater,
+            rewardDestinationUpdater
         )
     )
 }
