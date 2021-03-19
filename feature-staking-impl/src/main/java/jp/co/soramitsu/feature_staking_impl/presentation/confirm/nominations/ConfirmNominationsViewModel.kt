@@ -11,7 +11,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.findSelectedValidator
@@ -25,11 +25,11 @@ class ConfirmNominationsViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
-    private val sharedState: StakingSharedState
+    private val sharedStateSetup: SetupStakingSharedState
 ) : BaseViewModel() {
 
     val selectedValidatorsLiveData = liveData(Dispatchers.Default) {
-        val nominations = sharedState.selectedValidators.first()
+        val nominations = sharedStateSetup.selectedValidators.first()
         val networkType = interactor.getSelectedNetworkType()
 
         emit(convertToModels(nominations, networkType))
@@ -45,7 +45,7 @@ class ConfirmNominationsViewModel(
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
         viewModelScope.launch {
-            sharedState.selectedValidators.findSelectedValidator(validatorModel.accountIdHex)?.let {
+            sharedStateSetup.selectedValidators.findSelectedValidator(validatorModel.accountIdHex)?.let {
                 router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(it))
             }
         }

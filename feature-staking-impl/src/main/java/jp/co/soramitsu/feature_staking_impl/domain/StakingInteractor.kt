@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
+import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
@@ -20,9 +21,10 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominat
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
-import jp.co.soramitsu.feature_staking_impl.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
+import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -132,21 +134,32 @@ class StakingInteractor(
         tokenType: Token.Type,
         rewardDestination: RewardDestination,
         nominations: List<MultiAddress>,
+        skipBond: Boolean,
     ) = withContext(Dispatchers.Default) {
         runCatching {
             val account = accountRepository.getAccount(originAddress)
 
-            val extrinsic = extrinsicBuilderFactory.create(account)
-                .bond(
-                    controllerAddress = MultiAddress.Id(originAddress.toAccountId()),
-                    amount = tokenType.planksFromAmount(amount),
-                    payee = rewardDestination
-                )
-                .nominate(nominations)
-                .build()
+            val extrinsic = extrinsicBuilderFactory.create(account).apply {
+                if (!skipBond) {
+                    bond(
+                        controllerAddress = MultiAddress.Id(originAddress.toAccountId()),
+                        amount = tokenType.planksFromAmount(amount),
+                        payee = rewardDestination
+                    )
+                }
+
+                nominate(nominations)
+            }.build()
 
             substrateCalls.submitExtrinsic(extrinsic)
         }
+    }
+
+    suspend fun getExistingStashSetup(accountStakingState: StakingState.Stash.None, asset: Asset): StashSetup {
+        val amount = asset.bonded
+        val rewardDestination = stakingRepository.getRewardDestination(accountStakingState)
+
+        return StashSetup(alreadyHasStash = true, amount, rewardDestination)
     }
 
     private fun totalRewards(rewards: List<StakingReward>) = rewards.sumByBigDecimal {

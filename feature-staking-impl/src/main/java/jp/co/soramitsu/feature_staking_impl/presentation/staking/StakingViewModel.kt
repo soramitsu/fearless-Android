@@ -47,9 +47,9 @@ class StakingViewModel(
             ::showError
         )
 
-        is StakingState.Stash.None -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, viewModelScope)
+        is StakingState.Stash.None -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope)
 
-        is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, viewModelScope)
+        is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope)
 
         is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState()
     }

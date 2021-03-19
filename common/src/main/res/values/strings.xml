@@ -6,7 +6,7 @@
     <string name="staking_nominator_status_election">Election period</string>
     <string name="staking_nominator_status_active">Active</string>
     <string name="staking_nominator_status_inactive">Inactive</string>
-    <string name="staking_nominator_status_waiting">waiting for tne next era</string>
+    <string name="staking_nominator_status_waiting">Waiting for the next era</string>
 
     <string name="staking_setup_title">Setup staking</string>
     <string name="staking_setup_amount">Amount to stake</string>
