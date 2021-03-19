@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.utils.emitAll
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
@@ -48,12 +49,14 @@ class NominatorSummaryModel(
     val totalStakedFiat: String?,
     val totalRewards: String,
     val totalRewardsFiat: String?,
+    val currentEraDisplay: String
 )
 
 class NominatorViewState(
     private val nominatorState: StakingState.Stash.Nominator,
     private val currentAssetFlow: Flow<Asset>,
     private val stakingInteractor: StakingInteractor,
+    private val resourceManager: ResourceManager,
     private val scope: CoroutineScope,
     private val errorDisplayer: (Throwable) -> Unit
 ) : StakingViewState() {
@@ -83,7 +86,8 @@ class NominatorViewState(
                 totalStaked = summary.totalStaked.formatWithDefaultPrecision(tokenType),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
                 totalRewards = summary.totalRewards.formatWithDefaultPrecision(tokenType),
-                totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency()
+                totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency(),
+                currentEraDisplay = resourceManager.getString(R.string.staking_era_index, summary.currentEra)
             )
         }
     }
