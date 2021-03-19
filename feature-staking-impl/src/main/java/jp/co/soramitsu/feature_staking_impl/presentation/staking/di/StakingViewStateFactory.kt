@@ -48,6 +48,7 @@ class StakingViewStateFactory(
         stakingInteractor = stakingInteractor,
         currentAssetFlow = currentAssetFlow,
         scope = scope,
-        errorDisplayer = errorDisplayer
+        errorDisplayer = errorDisplayer,
+        resourceManager = resourceManager
     )
 }

@@ -11,18 +11,18 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.common.view.shape.addRipple
-import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.NominatorSummaryView
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingNominatorSummary
+import kotlinx.android.synthetic.main.fragment_staking.stakingValidatorSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
@@ -30,7 +30,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_staking, container, false)
     }
@@ -44,16 +44,13 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             consume(true)
         }
 
-        val background = with(requireContext()) {
-            addRipple(getCutCornerDrawable(R.color.blurColor))
-        }
-        stakingNetworkInfo.background = background
-
         stakingEstimate.hideAssetBalanceDollarAmount()
 
         stakingAvatar.setOnClickListener {
             viewModel.avatarClicked()
         }
+
+        stakingNetworkInfo.storyItemHandler = viewModel::storyClicked
     }
 
     override fun inject() {
@@ -71,6 +68,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             startStakingBtn.setVisible(stakingState is WelcomeViewState)
             stakingEstimate.setVisible(stakingState is WelcomeViewState)
             stakingNominatorSummary.setVisible(stakingState is NominatorViewState)
+            stakingValidatorSummary.setVisible(stakingState is ValidatorViewState)
 
             when (stakingState) {
                 is NominatorViewState -> {
@@ -85,7 +83,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             is LoadingState.Loaded<NominatorSummaryModel> -> {
                                 val summary = summaryState.data
 
-                                stakingNominatorSummary.setElectionStatus(mapNominatorStatus(summary.status))
+                                stakingNominatorSummary.setElectionStatus(mapNominatorStatus(summary))
                                 stakingNominatorSummary.setTotalStaked(summary.totalStaked, summary.totalStakedFiat)
                                 stakingNominatorSummary.setTotalRewards(summary.totalRewards, summary.totalRewardsFiat)
                             }
@@ -106,6 +104,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                     }
 
                     stakingState.returns.observe { rewards ->
+                        stakingEstimate.hideReturnsLoading()
                         stakingEstimate.populateMonthEstimation(rewards.monthly)
                         stakingEstimate.populateYearEstimation(rewards.yearly)
                     }
@@ -117,21 +116,51 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             }
         }
 
-        viewModel.networkInfoStateLiveData.observe {
-            // TODO
+        viewModel.networkInfoStateLiveData.observe { state ->
+            when (state) {
+                is LoadingState.Loading -> {
+                }
+                is LoadingState.Loaded<StakingNetworkInfoModel> -> {
+                    with(state.data) {
+                        stakingNetworkInfo.hideLoading()
+                        stakingNetworkInfo.setTotalStake(totalStake)
+                        stakingNetworkInfo.setNominatorsCount(nominatorsCount)
+                        stakingNetworkInfo.setMinimumStake(minimumStake)
+                        stakingNetworkInfo.setLockupPeriod(lockupPeriod)
+                        if (totalStakeFiat == null) {
+                            stakingNetworkInfo.hideTotalStakeFiat()
+                        } else {
+                            stakingNetworkInfo.showTotalStakeFiat()
+                            stakingNetworkInfo.setTotalStakeFiat(totalStakeFiat)
+                        }
+
+                        if (minimumStakeFiat == null) {
+                            stakingNetworkInfo.hideMinimumStakeFiat()
+                        } else {
+                            stakingNetworkInfo.showMinimumStakeFiat()
+                            stakingNetworkInfo.setMinimumStakeFiat(minimumStakeFiat)
+                        }
+                    }
+                }
+            }
         }
+
+        viewModel.stories.observe(stakingNetworkInfo::submitStories)
+
+        viewModel.networkInfoTitle.observe(stakingNetworkInfo::setTitle)
 
         viewModel.currentAddressModelLiveData.observe {
             stakingAvatar.setImageDrawable(it.image)
         }
     }
 
-    private fun mapNominatorStatus(status: NominatorSummary.Status): NominatorSummaryView.Status {
-        return when (status) {
-            NominatorSummary.Status.INACTIVE -> NominatorSummaryView.Status.INACTIVE
-            NominatorSummary.Status.ACTIVE -> NominatorSummaryView.Status.ACTIVE
-            NominatorSummary.Status.WAITING -> NominatorSummaryView.Status.WAITING
-            NominatorSummary.Status.ELECTION -> NominatorSummaryView.Status.ELECTION
+    private fun mapNominatorStatus(summary: NominatorSummaryModel): NominatorSummaryView.Status {
+
+        return when (summary.status) {
+            NominatorSummary.Status.INACTIVE -> NominatorSummaryView.Status.Inactive(summary.currentEraDisplay)
+            NominatorSummary.Status.ACTIVE -> NominatorSummaryView.Status.Active(summary.currentEraDisplay)
+            NominatorSummary.Status.WAITING -> NominatorSummaryView.Status.Waiting
+            NominatorSummary.Status.ELECTION -> NominatorSummaryView.Status.Election
         }
     }
 }

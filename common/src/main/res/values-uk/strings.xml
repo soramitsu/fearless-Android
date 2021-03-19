@@ -268,4 +268,15 @@
     <string name="validator_not_elected_description">Цей рахунок не обраний мережею для участі в поточній ері</string>
     <string name="staking_validator_own_stake">Власний</string>
     <string name="staking_validator_total">Разом</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="one">%s день</item>
+        <item quantity="few">%s дні</item>
+        <item quantity="many">%s днів</item>
+        <item quantity="other">%s днів</item>
+    </plurals>
+    <string name="staking_main_active_nominators_title">Активні номінатори</string>
+    <string name="staking_main_minimum_stake_title">Мінімальна ставка</string>
+    <string name="staking_main_lockup_period_title">Період блокування</string>
+    <string name="staking_main_network_title">Мережа %s</string>
+    <string name="staking_total_staked">Загальна ставка</string>
 </resources>

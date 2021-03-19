@@ -269,4 +269,13 @@
     <string name="validator_not_elected_description">Эта учетная запись не выбрана сетью для участия в текущей эпохе</string>
     <string name="staking_validator_own_stake">Собственный</string>
     <string name="staking_validator_total">Всего</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="one">%s көн</item>
+        <item quantity="other">%s көн</item>
+    </plurals>
+    <string name="staking_main_active_nominators_title">Актив номинаторҙар</string>
+    <string name="staking_main_minimum_stake_title">Минималь стейк</string>
+    <string name="staking_main_lockup_period_title">Ҡамау ваҡыты</string>
+    <string name="staking_main_network_title">%s селтәр</string>
+    <string name="staking_total_staked">Дөйөм стейкта</string>
 </resources>

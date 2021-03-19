@@ -16,6 +16,7 @@ import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSumma
 import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStaked
 import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStakedFiat
 import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStatus
+import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStatusHelper
 
 class NominatorSummaryView @JvmOverloads constructor(
     context: Context,
@@ -23,11 +24,15 @@ class NominatorSummaryView @JvmOverloads constructor(
     defStyle: Int = 0,
 ) : ConstraintLayout(context, attrs, defStyle) {
 
-    enum class Status(@StringRes val textRes: Int, @ColorRes val tintRes: Int) {
-        ELECTION(R.string.staking_nominator_status_election, R.color.white_64),
-        ACTIVE(R.string.staking_nominator_status_active, R.color.green),
-        INACTIVE(R.string.staking_nominator_status_inactive, R.color.red),
-        WAITING(R.string.staking_nominator_status_waiting, R.color.white_64)
+    sealed class Status(@StringRes val textRes: Int, @ColorRes val tintRes: Int, val extraMessage: String?) {
+
+        object Election : Status(R.string.staking_nominator_status_election, R.color.white_64, null)
+
+        class Active(eraDisplay: String) : Status(R.string.staking_nominator_status_active, R.color.green, eraDisplay)
+
+        class Inactive(eraDisplay: String) : Status(R.string.staking_nominator_status_inactive, R.color.red, eraDisplay)
+
+        object Waiting : Status(R.string.staking_nominator_status_waiting, R.color.white_64, null)
     }
 
     init {
@@ -44,6 +49,8 @@ class NominatorSummaryView @JvmOverloads constructor(
             setTextColorRes(status.tintRes)
             setText(status.textRes)
         }
+
+        nominatorSummaryStatusHelper.text = status.extraMessage
     }
 
     fun setTotalStaked(inTokens: String, inFiat: String?) {

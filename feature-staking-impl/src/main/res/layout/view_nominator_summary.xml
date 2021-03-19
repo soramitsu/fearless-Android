@@ -129,9 +129,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
         android:drawablePadding="8dp"
-        android:visibility="invisible"
+        app:layout_constraintBaseline_toBaselineOf="@id/nominatorSummaryStatus"
         android:textColor="@color/white_64"
         app:layout_constraintEnd_toStartOf="@+id/imageView2"
         app:layout_constraintTop_toBottomOf="@+id/view"
@@ -143,9 +142,9 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="25dp"
         android:src="@drawable/ic_arrow_right_24"
-        app:layout_constraintBottom_toBottomOf="@+id/nominatorSummaryStatus"
+        app:layout_constraintBottom_toBottomOf="@+id/nominatorSummaryStatusHelper"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/nominatorSummaryStatus"
+        app:layout_constraintTop_toTopOf="@+id/nominatorSummaryStatusHelper"
         app:tint="@color/white" />
 
 
