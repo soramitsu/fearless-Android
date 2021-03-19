@@ -227,6 +227,10 @@ class Navigator :
         navController?.navigate(R.id.action_open_onboarding, WelcomeFragment.getBundle(true))
     }
 
+    override fun openChangeAccountFromWallet() {
+        openAccounts(AccountChosenNavDirection.BACK)
+    }
+
     override fun openChangeAccountFromStaking() {
         openAccounts(AccountChosenNavDirection.BACK)
     }
