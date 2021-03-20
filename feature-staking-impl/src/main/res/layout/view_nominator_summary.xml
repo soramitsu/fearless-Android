@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout"
-    tools:background="@color/black">
+    tools:background="@color/black"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
     <TextView
         android:id="@+id/nominatorSummaryTitle"
@@ -18,39 +18,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/nominatorSummaryStakedLabel"
-        style="@style/TextAppearance.Soramitsu.Body2"
-        android:layout_width="wrap_content"
+    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+        android:id="@+id/nominatorTotalStakedView"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="17dp"
-        android:text="@string/staking_total_staked"
-        android:textColor="@color/white_64"
+        app:layout_constraintEnd_toStartOf="@id/guideline"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryTitle" />
-
-    <TextView
-        android:id="@+id/nominatorSummaryStaked"
-        style="@style/TextAppearance.Soramitsu.Body0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        app:layout_constraintStart_toStartOf="@id/nominatorSummaryStakedLabel"
-        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryStakedLabel"
-        tools:text="10.00003 KSM" />
-
-    <TextView
-        android:id="@+id/nominatorSummaryStakedFiat"
-        style="@style/TextAppearance.Soramitsu.Body2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textColor="@color/white_64"
-        app:layout_constraintStart_toStartOf="@id/nominatorSummaryStaked"
-        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryStaked"
-        tools:text="$812" />
-
+        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryTitle"
+        android:layout_marginTop="17dp"
+        android:layout_marginStart="16dp"
+        app:startWithLoading="true"
+        app:titleText="@string/staking_total_staked" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
@@ -59,38 +37,17 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.50" />
 
-    <TextView
-        android:id="@+id/nominatorSummaryRewardsLabel"
-        style="@style/TextAppearance.Soramitsu.Body2"
-        android:layout_width="wrap_content"
+    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+        android:id="@+id/nominatorTotalRewardsView"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="17dp"
-        android:text="@string/staking_total_rewards"
-        android:textColor="@color/white_64"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/guideline"
-        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryTitle" />
-
-    <TextView
-        android:id="@+id/nominatorSummaryRewards"
-        style="@style/TextAppearance.Soramitsu.Body0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        app:layout_constraintStart_toStartOf="@id/nominatorSummaryRewardsLabel"
-        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryRewardsLabel"
-        tools:text="0.49191 KSM" />
-
-    <TextView
-        android:id="@+id/nominatorSummaryRewardsFiat"
-        style="@style/TextAppearance.Soramitsu.Body2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textColor="@color/white_64"
-        app:layout_constraintStart_toStartOf="@id/nominatorSummaryRewards"
-        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryRewards"
-        tools:text="$40.51" />
+        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryTitle"
+        android:layout_marginTop="17dp"
+        android:layout_marginEnd="16dp"
+        app:startWithLoading="true"
+        app:titleText="@string/staking_total_rewards" />
 
     <View
         android:id="@+id/view"
@@ -102,7 +59,7 @@
         android:background="@color/white_24"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryStakedFiat" />
+        app:layout_constraintTop_toBottomOf="@id/nominatorTotalStakedView" />
 
     <TextView
         android:id="@+id/nominatorSummaryStatus"
@@ -111,17 +68,16 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:drawablePadding="8dp"
         android:includeFontPadding="false"
         android:textColor="@color/white_64"
-        android:layout_marginBottom="16dp"
         app:drawableStartCompat="@drawable/ic_status_indicator"
         app:drawableTint="@color/white_64"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/view"
         tools:text="Election period" />
-
 
     <TextView
         android:id="@+id/nominatorSummaryStatusHelper"
@@ -130,8 +86,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:drawablePadding="8dp"
-        app:layout_constraintBaseline_toBaselineOf="@id/nominatorSummaryStatus"
         android:textColor="@color/white_64"
+        app:layout_constraintBaseline_toBaselineOf="@id/nominatorSummaryStatus"
         app:layout_constraintEnd_toStartOf="@+id/imageView2"
         app:layout_constraintTop_toBottomOf="@+id/view"
         tools:text="~00:08:29" />
@@ -146,6 +102,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/nominatorSummaryStatusHelper"
         app:tint="@color/white" />
-
 
 </merge>
