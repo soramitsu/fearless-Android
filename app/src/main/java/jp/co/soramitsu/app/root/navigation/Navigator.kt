@@ -30,6 +30,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfigur
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -149,6 +151,10 @@ class Navigator :
 
     override fun openSetupStaking() {
         navController?.navigate(R.id.action_mainFragment_to_setupStakingFragment)
+    }
+
+    override fun openStory(story: StakingStoryModel) {
+        navController?.navigate(R.id.open_staking_story, StoryFragment.getBundle(story))
     }
 
     override fun back() {

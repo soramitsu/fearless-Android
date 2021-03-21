@@ -67,7 +67,7 @@ class StakingViewModel(
         .asLiveData()
 
     fun storyClicked(story: StakingStoryModel) {
-        // TODO
+        router.openStory(story)
     }
 
     private fun transformStakingState(accountStakingState: StakingState) = when (accountStakingState) {
@@ -86,7 +86,8 @@ class StakingViewModel(
     }
 
     private fun transformStories(story: StakingStory): StakingStoryModel = with(story) {
-        StakingStoryModel(title, iconSymbol)
+        val elements = elements.map { StakingStoryModel.Element(it.title, it.body, it.url) }
+        StakingStoryModel(title, iconSymbol, elements)
     }
 
     private fun transformNetworkInfo(asset: Asset, networkInfo: NetworkInfo): StakingNetworkInfoModel {
