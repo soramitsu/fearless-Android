@@ -92,14 +92,14 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                                     stakingNominatorSummary.hideTotalStakeFiat()
                                 } else {
                                     stakingNominatorSummary.showTotalStakedFiat()
-                                    stakingNominatorSummary.setTotalStakedFiat("$100")
+                                    stakingNominatorSummary.setTotalStakedFiat(summary.totalStakedFiat)
                                 }
 
                                 if (summary.totalRewardsFiat == null) {
                                     stakingNominatorSummary.hideTotalRewardsFiat()
                                 } else {
                                     stakingNominatorSummary.showTotalRewardsFiat()
-                                    stakingNominatorSummary.setTotalRewardsFiat("$100")
+                                    stakingNominatorSummary.setTotalRewardsFiat(summary.totalRewardsFiat)
                                 }
                             }
                         }
