@@ -71,8 +71,8 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
     }
 
     override fun subscribe(viewModel: ConfirmStakingViewModel) {
-        observeRetries(viewModel, themedContext())
-        observeValidations(viewModel, themedContext())
+        observeRetries(viewModel)
+        observeValidations(viewModel)
         setupExternalActions(viewModel)
 
         viewModel.showNextProgress.observe { show ->

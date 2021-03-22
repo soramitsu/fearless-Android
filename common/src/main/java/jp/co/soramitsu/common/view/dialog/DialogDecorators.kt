@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.view.dialog
 
 import android.content.Context
+import android.view.ContextThemeWrapper
 import androidx.appcompat.app.AlertDialog
 import jp.co.soramitsu.common.R
 
@@ -12,7 +13,7 @@ inline fun dialog(
     context: Context,
     decorator: DialogDecorator
 ) {
-    val builder = AlertDialog.Builder(context)
+    val builder = AlertDialog.Builder(ContextThemeWrapper(context, R.style.WhiteOverlay))
         .setCancelable(false)
 
     builder.decorator()

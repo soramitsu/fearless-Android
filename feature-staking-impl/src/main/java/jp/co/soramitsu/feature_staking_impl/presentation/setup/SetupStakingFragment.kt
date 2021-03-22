@@ -76,8 +76,8 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
     }
 
     override fun subscribe(viewModel: SetupStakingViewModel) {
-        observeRetries(viewModel, themedContext())
-        observeValidations(viewModel, themedContext())
+        observeRetries(viewModel)
+        observeValidations(viewModel)
         observeBrowserEvents(viewModel)
 
         viewModel.showNextProgress.observe { show ->
