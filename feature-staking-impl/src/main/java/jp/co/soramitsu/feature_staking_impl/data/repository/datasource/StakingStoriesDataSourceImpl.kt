@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository.datasource
 
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
