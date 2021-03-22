@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/wallet_background">
+
+    <LinearLayout
+        android:id="@+id/storyContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blurColor"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical">
+
+        <jp.shts.android.storiesprogressview.StoriesProgressView
+            android:id="@+id/stories"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <ImageView
+            android:id="@+id/storyCloseIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/bg_primary_list_item"
+            android:padding="16dp"
+            android:src="@drawable/ic_close" />
+
+        <TextView
+            android:id="@+id/storyTitle"
+            style="@style/TextAppearance.Soramitsu.Header1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:includeFontPadding="false"
+            tools:text="Story title" />
+
+        <TextView
+            android:id="@+id/storyBody"
+            style="@style/TextAppearance.Soramitsu.Body0"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:includeFontPadding="false"
+            tools:text="Story body" />
+
+        <jp.co.soramitsu.common.view.PrimaryButton
+            android:id="@+id/stakingStoryLearnMore"
+            style="@style/Widget.Fearless.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/common_learn_more"
+            android:theme="@style/PinkOverlay" />
+
+    </LinearLayout>
+
+</FrameLayout>

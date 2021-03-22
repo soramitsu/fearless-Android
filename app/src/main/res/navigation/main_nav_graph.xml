@@ -424,5 +424,18 @@
         android:label="validatorDetailsFragment"
         tools:layout="@layout/fragment_validator_details" />
 
+    <action
+        android:id="@+id/open_staking_story"
+        app:destination="@id/stakingStoryFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <fragment
+        android:id="@+id/stakingStoryFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment"
+        android:label="StakingStoryFragment"
+        tools:layout="@layout/fragment_story" />
 
 </navigation>

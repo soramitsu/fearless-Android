@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.confirm.di.ConfirmStaki
 import jp.co.soramitsu.feature_staking_impl.presentation.confirm.nominations.di.ConfirmNominationsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.setup.di.SetupStakingComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.story.di.StoryComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.di.ValidatorDetailsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.di.RecommendedValidatorsComponent
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -40,6 +41,8 @@ interface StakingFeatureComponent : StakingFeatureApi {
     fun confirmNominationsComponentFactory(): ConfirmNominationsComponent.Factory
 
     fun validatorDetailsComponentFactory(): ValidatorDetailsComponent.Factory
+
+    fun storyComponentFactory(): StoryComponent.Factory
 
     @Component.Factory
     interface Factory {
