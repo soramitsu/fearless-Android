@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
+import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
@@ -44,6 +45,7 @@ class StakingInteractor(
     private val accountRepository: AccountRepository,
     private val stakingRepository: StakingRepository,
     private val stakingRewardsRepository: StakingRewardsRepository,
+    private val stakingConstantsRepository: StakingConstantsRepository,
     private val substrateCalls: SubstrateCalls,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
@@ -184,8 +186,10 @@ class StakingInteractor(
         }
     }
 
-    private fun activeNominators(exposures: Collection<Exposure>): Int {
-        return exposures.sumOf { it.others.size }
+    private suspend fun activeNominators(exposures: Collection<Exposure>): Int {
+        val activeNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidatorPrefs()
+
+        return exposures.sumOf { it.others.size.coerceAtMost(activeNominatorsPerValidator) }
     }
 
     private fun totalStake(exposures: Collection<Exposure>): BigInteger {
