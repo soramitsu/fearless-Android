@@ -8,17 +8,16 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sort
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.StakeSorting
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.math.BigInteger
 
 class RecommendationSettingsProvider(
-    maximumRewardedNominators: BigInteger,
+    maximumRewardedNominators: Int,
     val maximumValidatorsPerNominator: Int
 ) {
 
     private val allFilters = listOf(
         NotSlashedFilter,
         HasIdentityFilter,
-        NotOverSubscribedFilter(maximumRewardedNominators.toInt())
+        NotOverSubscribedFilter(maximumRewardedNominators)
     )
 
     private val allSortings = listOf(

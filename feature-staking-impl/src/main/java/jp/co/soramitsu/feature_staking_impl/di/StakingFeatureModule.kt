@@ -20,10 +20,11 @@ import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingRewardsApi
 import jp.co.soramitsu.feature_staking_impl.data.repository.IdentityRepositoryImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
-import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
@@ -68,6 +69,7 @@ class StakingFeatureModule {
         accountRepository: AccountRepository,
         stakingRepository: StakingRepository,
         stakingRewardsRepository: StakingRewardsRepository,
+        stakingConstantsRepository: StakingConstantsRepository,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         substrateCalls: SubstrateCalls
     ) = StakingInteractor(
@@ -75,6 +77,7 @@ class StakingFeatureModule {
         accountRepository,
         stakingRepository,
         stakingRewardsRepository,
+        stakingConstantsRepository,
         substrateCalls,
         extrinsicBuilderFactory
     )
@@ -95,9 +98,15 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideRecommendationSettingsProviderFactory(
+    fun provideStakingConstantsRepository(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>
-    ) = RecommendationSettingsProviderFactory(runtimeProperty)
+    ) = StakingConstantsRepository(runtimeProperty)
+
+    @Provides
+    @FeatureScope
+    fun provideRecommendationSettingsProviderFactory(
+        stakingConstantsRepository: StakingConstantsRepository
+    ) = RecommendationSettingsProviderFactory(stakingConstantsRepository)
 
     @Provides
     @FeatureScope
