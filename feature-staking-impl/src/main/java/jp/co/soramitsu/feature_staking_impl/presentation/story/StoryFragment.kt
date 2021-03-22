@@ -7,11 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
 import jp.shts.android.storiesprogressview.StoriesProgressView
+import kotlinx.android.synthetic.main.fragment_story.stakingStoryLearnMore
 import kotlinx.android.synthetic.main.fragment_story.stories
 import kotlinx.android.synthetic.main.fragment_story.storyBody
 import kotlinx.android.synthetic.main.fragment_story.storyCloseIcon
@@ -69,6 +71,8 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
             }
             true
         }
+
+        stakingStoryLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
     }
 
     override fun inject() {
@@ -84,6 +88,8 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
     }
 
     override fun subscribe(viewModel: StoryViewModel) {
+        observeBrowserEvents(viewModel)
+
         viewModel.storyLiveData.observe { story ->
             stories.setStoriesCount(story.elements.size)
             stories.setStoryDuration(STORY_DURATION)

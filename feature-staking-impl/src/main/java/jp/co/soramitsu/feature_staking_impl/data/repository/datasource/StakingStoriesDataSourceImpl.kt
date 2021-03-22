@@ -11,9 +11,9 @@ class StakingStoriesDataSourceImpl : StakingStoriesDataSource {
         return flow {
 
             val firstStoryElements = mutableListOf<StakingStory.Element>().apply {
-                add(StakingStory.Element("What is Staking?", "Staking refers to the process of a Proof-of-Stake", "test url"))
-                add(StakingStory.Element("What is Proof-of-Stake?", "Who knows...", "test url"))
-                add(StakingStory.Element("What?", "Nothing", "test url"))
+                add(StakingStory.Element("What is Staking?", "Staking refers to the process of a Proof-of-Stake", "https://fearlesswallet.io/"))
+                add(StakingStory.Element("What is Proof-of-Stake?", "Who knows...", "https://fearlesswallet.io/"))
+                add(StakingStory.Element("What?", "Nothing", "https://fearlesswallet.io/"))
             }
 
             val stories = listOf(

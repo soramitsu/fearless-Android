@@ -51,7 +51,7 @@
             tools:text="Story body" />
 
         <jp.co.soramitsu.common.view.PrimaryButton
-            android:id="@+id/startStakingBtn"
+            android:id="@+id/stakingStoryLearnMore"
             style="@style/Widget.Fearless.Button.Primary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

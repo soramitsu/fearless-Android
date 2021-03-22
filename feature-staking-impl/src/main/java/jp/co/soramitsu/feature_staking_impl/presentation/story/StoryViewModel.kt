@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.story
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
@@ -10,7 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingSt
 class StoryViewModel(
     private val router: StakingRouter,
     private val story: StakingStoryModel
-) : BaseViewModel() {
+) : BaseViewModel(), Browserable {
 
     private val _storyLiveData = MutableLiveData(story)
     val storyLiveData: LiveData<StakingStoryModel> = _storyLiveData
@@ -23,6 +24,8 @@ class StoryViewModel(
 
     private val _resumeEvent = MutableLiveData<Event<Unit>>()
     val resumeEvent: LiveData<Event<Unit>> = _resumeEvent
+
+    override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     init {
         story.elements.firstOrNull()?.let {
@@ -64,5 +67,11 @@ class StoryViewModel(
 
     fun resume() {
         _resumeEvent.value = Event(Unit)
+    }
+
+    fun learnMoreClicked() {
+        currentStoryLiveData.value?.let {
+            openBrowserEvent.value = Event(it.url)
+        }
     }
 }
