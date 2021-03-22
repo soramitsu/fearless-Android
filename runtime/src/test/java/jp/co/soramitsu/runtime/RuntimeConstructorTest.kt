@@ -11,7 +11,6 @@ import jp.co.soramitsu.test_shared.any
 import jp.co.soramitsu.test_shared.eq
 import jp.co.soramitsu.test_shared.isA
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -78,8 +77,6 @@ class RuntimeConstructorTest {
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 1, "kusama")
 
-            assertEquals(true, result.isNewest)
-
             verify(socketService, never()).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
             verify(definitionsFetcher, never()).getDefinitionsByFile(eq("default.json"))
             verify(definitionsFetcher, never()).getDefinitionsByFile(eq("kusama.json"))
@@ -94,8 +91,6 @@ class RuntimeConstructorTest {
             serverReturnsTypes(runtimeIdInRoot = 1, runtimeIdInVersioning = 1)
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
-
-            assertEquals(false, result.isNewest)
 
             verify(socketService, never()).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
@@ -113,8 +108,6 @@ class RuntimeConstructorTest {
             serverReturnsTypes(runtimeIdInRoot = 2, runtimeIdInVersioning = 2)
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
-
-            assertEquals(true, result.isNewest)
 
             verify(socketService, never()).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
@@ -134,8 +127,6 @@ class RuntimeConstructorTest {
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
-            assertEquals(false, result.isNewest)
-
             verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("kusama.json"))
@@ -153,8 +144,6 @@ class RuntimeConstructorTest {
             serverReturnsTypes(runtimeIdInRoot = 2, runtimeIdInVersioning = 2)
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
-
-            assertEquals(true, result.isNewest)
 
             verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
@@ -174,8 +163,6 @@ class RuntimeConstructorTest {
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
-            assertEquals(true, result.isNewest)
-
             verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("kusama.json"))
@@ -194,8 +181,6 @@ class RuntimeConstructorTest {
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 2, "kusama")
 
-            assertEquals(true, result.isNewest)
-
             verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("kusama.json"))
@@ -213,8 +198,6 @@ class RuntimeConstructorTest {
             serverReturnsTypes(runtimeIdInRoot = 2, runtimeIdInVersioning = 2)
 
             val result = runtimeConstructor.constructRuntime(newRuntimeVersion = 1, "kusama")
-
-            assertEquals(true, result.isNewest)
 
             verify(socketService, times(1)).executeRequest(isA(GetMetadataRequest::class.java), deliveryType = any(), callback = any())
             verify(definitionsFetcher, times(1)).getDefinitionsByFile(eq("default.json"))

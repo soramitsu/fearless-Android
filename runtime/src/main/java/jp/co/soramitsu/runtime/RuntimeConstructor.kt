@@ -23,8 +23,7 @@ class ConstructionParams(
     val metadataRaw: String,
     val latestMetadataVersion: Int,
     val defaultDefinitions: TypeDefinitionsTree,
-    val networkDefinitions: TypeDefinitionsTree,
-    val areNewest: Boolean
+    val networkDefinitions: TypeDefinitionsTree
 )
 
 class RuntimeConstructor(
@@ -35,11 +34,11 @@ class RuntimeConstructor(
     private val runtimeCache: RuntimeCache
 ) {
 
-    class Constructed(val runtime: RuntimeSnapshot, val isNewest: Boolean)
+    class Constructed(val runtime: RuntimeSnapshot)
 
     suspend fun constructRuntime(
         networkName: String
-    ): Constructed {
+    ): RuntimeSnapshot {
         val latestRuntimeVersion = runtimeDao.getCacheEntry(networkName).latestKnownVersion
 
         return constructRuntime(latestRuntimeVersion, networkName)
@@ -48,7 +47,7 @@ class RuntimeConstructor(
     suspend fun constructRuntime(
         newRuntimeVersion: Int,
         networkName: String
-    ): Constructed = withContext(Dispatchers.IO) {
+    ) = withContext(Dispatchers.IO) {
         runtimeDao.updateLatestKnownVersion(networkName, newRuntimeVersion)
 
         val runtimeParams = getRuntimeParams(newRuntimeVersion, networkName)
@@ -61,22 +60,16 @@ class RuntimeConstructor(
         val metadata = runtimeCache.getRuntimeMetadata(networkName)!!
         val latestMetadataVersion = runtimeDao.getCacheEntry(networkName).latestKnownVersion
 
-        constructRuntime(ConstructionParams(metadata, latestMetadataVersion, defaultTree, networkTree, areNewest = true))
-            .runtime
+        constructRuntime(ConstructionParams(metadata, latestMetadataVersion, defaultTree, networkTree))
     }
 
-    private fun constructRuntime(params: ConstructionParams): Constructed {
+    private fun constructRuntime(params: ConstructionParams): RuntimeSnapshot {
         val typeRegistry = constructTypeRegistry(params)
 
         val runtimeMetadataStruct = RuntimeMetadataSchema.read(params.metadataRaw)
         val runtimeMetadata = RuntimeMetadata(typeRegistry, runtimeMetadataStruct)
 
-        val runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata)
-
-        return Constructed(
-            runtime,
-            isNewest = params.areNewest
-        )
+        return RuntimeSnapshot(typeRegistry, runtimeMetadata)
     }
 
     private suspend fun getRuntimeParams(latestRuntimeVersion: Int, networkName: String): ConstructionParams {
@@ -88,7 +81,7 @@ class RuntimeConstructor(
             if (latestRuntimeVersion <= cacheInfo.typesVersion) {
                 val (default, network) = networkTypesFromCache(networkName)
 
-                return ConstructionParams(metadataRaw, latestRuntimeVersion, default, network, areNewest = true)
+                return ConstructionParams(metadataRaw, latestRuntimeVersion, default, network)
             }
 
             metadataRaw
@@ -120,8 +113,7 @@ class RuntimeConstructor(
             metadataRaw,
             latestRuntimeVersion,
             defaultTree,
-            networkTree,
-            areNewest = latestRuntimeVersion <= typesVersion
+            networkTree
         )
     }
 
