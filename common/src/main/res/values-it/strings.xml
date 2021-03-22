@@ -21,8 +21,6 @@
     <string name="staking_selected_accounts_mask">Account ( %d )</string>
 
     <string name="runtime_update_failure_description">Impossibile aggiornare le informazioni sul runtime blockchain. Alcune funzionalità potrebbero non funzionare.</string>
-    <string name="runtime_update_not_actual_title">Configurazione obsoleta</string>
-    <string name="runtime_update_not_actual_description">Impossibile recuperare le informazioni più recenti sul runtime blockchain, verrà utilizzata la versione obsoleta. Alcune funzionalità potrebbero non funzionare.</string>
     <string name="runtime_update_failure_title">Errore di aggiornamento del runtime</string>
 
     <string name="export_seed_with_derivation" formatted="false">Rete: %s\nSeme: %s\nPercorso di derivazione: %s</string>

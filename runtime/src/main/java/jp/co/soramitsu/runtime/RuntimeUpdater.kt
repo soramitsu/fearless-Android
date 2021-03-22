@@ -22,8 +22,6 @@ typealias RuntimeUpdateRetry = suspend () -> RuntimePreparationStatus
 sealed class RuntimePreparationStatus : Updater.SideEffect {
     object Ok : RuntimePreparationStatus()
 
-    object Outdated : RuntimePreparationStatus()
-
     class Error(val retry: RuntimeUpdateRetry) : RuntimePreparationStatus()
 }
 
@@ -64,15 +62,15 @@ class RuntimeUpdater(
     private suspend fun performUpdate(newRuntimeVersion: Int?) = try {
         runtimeProperty.invalidate()
 
-        val result = if (newRuntimeVersion != null) {
+        val runtime = if (newRuntimeVersion != null) {
             runtimeConstructor.constructRuntime(newRuntimeVersion, getCurrentNetworkName())
         } else {
             runtimeConstructor.constructRuntime(getCurrentNetworkName())
         }
 
-        runtimeProperty.set(result.runtime)
+        runtimeProperty.set(runtime)
 
-        getPreparationStatus(result)
+        RuntimePreparationStatus.Ok
     } catch (_: Exception) {
         errorStatus()
     }
@@ -83,11 +81,5 @@ class RuntimeUpdater(
         val networkType = accountRepository.getSelectedNode().networkType
 
         return networkType.runtimeCacheName()
-    }
-
-    private fun getPreparationStatus(constructed: RuntimeConstructor.Constructed) = if (constructed.isNewest) {
-        RuntimePreparationStatus.Ok
-    } else {
-        RuntimePreparationStatus.Outdated
     }
 }
