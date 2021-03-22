@@ -37,7 +37,7 @@ class ValidatorRecommendatorFactory(
                 totalStake = exposure.total,
                 ownStake = exposure.own,
                 nominatorStakes = exposure.others,
-                commission = prefs,
+                prefs = prefs,
                 identity = identities[accountIdHex],
                 apy = rewardCalculator.getApyFor(accountIdHex)
             )

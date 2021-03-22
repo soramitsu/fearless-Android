@@ -4,7 +4,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 typealias Commission = BigDecimal
-typealias ValidatorPrefs = Commission
+class ValidatorPrefs(val commission: Commission, val blocked: Boolean)
 
 interface Identity {
     val display: String?
@@ -47,7 +47,7 @@ class Validator(
     val totalStake: BigInteger,
     val ownStake: BigInteger,
     val nominatorStakes: List<IndividualExposure>,
-    val commission: BigDecimal,
+    val prefs: ValidatorPrefs,
     val identity: Identity?,
     val apy: BigDecimal
 )
