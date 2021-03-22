@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings
 
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.HasIdentityFilter
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotBlockedFilter
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotOverSubscribedFilter
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotSlashedFilter
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
@@ -17,6 +18,7 @@ class RecommendationSettingsProvider(
     private val allFilters = listOf(
         NotSlashedFilter,
         HasIdentityFilter,
+        NotBlockedFilter,
         NotOverSubscribedFilter(maximumRewardedNominators)
     )
 
