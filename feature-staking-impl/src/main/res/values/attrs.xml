@@ -13,8 +13,6 @@
     <declare-styleable name="PayoutTargetView">
         <attr name="android:checked" />
         <attr name="targetName" format="string" />
-        <attr name="targetDescription" format="string" />
-        <attr name="targetAmountDescription" format="string" />
     </declare-styleable>
     <declare-styleable name="ValidatorInfoBlockView">
         <attr name="validatorInfoTitle" format="string" />

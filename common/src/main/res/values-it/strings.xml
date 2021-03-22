@@ -3,10 +3,7 @@
     <string name="staking_setup_too_big_error">Spiacenti, non hai fondi sufficienti per puntare l\'importo specificato</string>
     <string name="staking_setup_reward_payout_account">Conto di pagamento</string>
     <string name="staking_setup_reward_destination">Scegli la destinazione premio</string>
-    <string name="staking_setup_reward_description">Guadagni del primo anno</string>
-    <string name="staking_setup_restake_description">Guadagna più premi</string>
     <string name="staking_setup_restake">Restake</string>
-    <string name="staking_setup_payout_description">Trasferisci premi</string>
     <string name="staking_setup_payout">Pagamento</string>
     <string name="staking_setup_learn_more">Ulteriori informazioni sui pagamenti</string>
 

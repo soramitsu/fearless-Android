@@ -45,11 +45,7 @@
     <string name="staking_setup_learn_more">Learn more about Payouts</string>
     <string name="staking_setup_reward_destination">Choose reward destination</string>
     <string name="staking_setup_restake">Restake</string>
-    <string name="staking_setup_restake_description">Earn more rewards</string>
-    <string name="staking_setup_reward_description">First year earnings</string>
     <string name="staking_setup_payout">Payout</string>
-    <string name="staking_setup_payout_description">Transfer rewards</string>
-
 
     <string name="staking_selected_accounts_mask">Accounts(%d)</string>
 

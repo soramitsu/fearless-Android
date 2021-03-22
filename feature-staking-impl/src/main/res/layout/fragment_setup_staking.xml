@@ -116,12 +116,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 app:targetName="@string/staking_setup_restake"
-                app:targetDescription="@string/staking_setup_restake_description"
-                app:targetAmountDescription="@string/staking_setup_reward_description"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp"
                 android:id="@+id/setupStakingTargetRestake"
-                android:checked="true" />
+                android:checked="true"
+                android:theme="@style/PinkOverlay" />
 
             <jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationView
                 android:layout_width="match_parent"
@@ -129,8 +128,6 @@
                 android:layout_marginStart="16dp"
                 app:targetName="@string/staking_setup_payout"
                 android:id="@+id/setupStakingTargetPayout"
-                app:targetDescription="@string/staking_setup_payout_description"
-                app:targetAmountDescription="@string/staking_setup_reward_description"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp" />
 
