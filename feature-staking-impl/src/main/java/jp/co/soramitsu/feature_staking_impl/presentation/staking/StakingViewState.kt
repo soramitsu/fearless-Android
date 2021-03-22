@@ -1,9 +1,11 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.emitAll
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -12,10 +14,12 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
+import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary.Status.Inactive.Reason
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -49,7 +53,7 @@ class NominatorSummaryModel(
     val totalStakedFiat: String?,
     val totalRewards: String,
     val totalRewardsFiat: String?,
-    val currentEraDisplay: String
+    val currentEraDisplay: String,
 )
 
 class NominatorViewState(
@@ -58,12 +62,15 @@ class NominatorViewState(
     private val stakingInteractor: StakingInteractor,
     private val resourceManager: ResourceManager,
     private val scope: CoroutineScope,
-    private val errorDisplayer: (Throwable) -> Unit
+    private val errorDisplayer: (Throwable) -> Unit,
 ) : StakingViewState() {
 
     val nominatorSummaryLiveData = liveData<LoadingState<NominatorSummaryModel>> {
         emitAll(nominatorSummaryFlow().withLoading())
     }
+
+    private val _showStatusAlertEvent = MutableLiveData<Event<Pair<String, String>>>()
+    val showStatusAlertEvent: LiveData<Event<Pair<String, String>>> = _showStatusAlertEvent
 
     fun syncStakingRewards() {
         scope.launch {
@@ -71,6 +78,14 @@ class NominatorViewState(
 
             syncResult.exceptionOrNull()?.let { errorDisplayer(it) }
         }
+    }
+
+    fun statusClicked() {
+        val nominatorSummaryModel = loadedNominatorSummaryOrNull() ?: return
+
+        val titleAndMessage = getStatusAlertTitleAndMessage(nominatorSummaryModel.status)
+
+        _showStatusAlertEvent.value = Event(titleAndMessage)
     }
 
     private suspend fun nominatorSummaryFlow(): Flow<NominatorSummaryModel> {
@@ -91,6 +106,30 @@ class NominatorViewState(
             )
         }
     }
+
+    private fun getStatusAlertTitleAndMessage(status: NominatorSummary.Status): Pair<String, String> {
+        val (titleRes, messageRes) = when (status) {
+            is NominatorSummary.Status.Active -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
+
+            is NominatorSummary.Status.Election -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
+
+            is NominatorSummary.Status.Waiting -> R.string.staking_nominator_status_waiting to R.string.staking_nominator_status_alert_waiting_message
+
+            is NominatorSummary.Status.Inactive -> when (status.reason) {
+                Reason.MIN_STAKE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_low_stake
+                Reason.NO_ACTIVE_VALIDATOR -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
+            }
+        }
+
+        return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
+    }
+
+    private fun loadedNominatorSummaryOrNull(): NominatorSummaryModel? {
+        return when (val state = nominatorSummaryLiveData.value) {
+            is LoadingState.Loaded<NominatorSummaryModel> -> state.data
+            else -> null
+        }
+    }
 }
 
 class WelcomeViewState(
@@ -104,7 +143,7 @@ class WelcomeViewState(
     private val scope: CoroutineScope,
 ) : StakingViewState() {
 
-    val enteredAmountFlow = MutableStateFlow(setupStakingSharedState.DEFAULT_AMOUNT.toString())
+    val enteredAmountFlow = MutableStateFlow(SetupStakingSharedState.DEFAULT_AMOUNT.toString())
 
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
@@ -134,6 +173,8 @@ class WelcomeViewState(
 
                 router.openRecommendedValidators()
             } else {
+                setupStakingSharedState.stashSetup = StashSetup.defaultFromAmount(parsedAmountFlow.first())
+
                 router.openSetupStaking()
             }
         }

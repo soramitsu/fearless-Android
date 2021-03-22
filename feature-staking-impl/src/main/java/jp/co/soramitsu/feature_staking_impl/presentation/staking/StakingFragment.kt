@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
+import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
@@ -70,14 +71,18 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
             when (stakingState) {
                 is NominatorViewState -> {
+                    stakingNominatorSummary.setStatusClickListener {
+                        stakingState.statusClicked()
+                    }
+
                     stakingState.syncStakingRewards()
+
+                    stakingState.showStatusAlertEvent.observeEvent { (title, message) ->
+                        showStatusAlert(title, message)
+                    }
 
                     stakingState.nominatorSummaryLiveData.observe { summaryState ->
                         when (summaryState) {
-                            is LoadingState.Loading<*> -> {
-                                // TODO
-                            }
-
                             is LoadingState.Loaded<NominatorSummaryModel> -> {
                                 val summary = summaryState.data
 
@@ -131,8 +136,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
         viewModel.networkInfoStateLiveData.observe { state ->
             when (state) {
-                is LoadingState.Loading -> {
-                }
                 is LoadingState.Loaded<StakingNetworkInfoModel> -> {
                     with(state.data) {
                         stakingNetworkInfo.hideLoading()
@@ -167,13 +170,19 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
     }
 
-    private fun mapNominatorStatus(summary: NominatorSummaryModel): NominatorSummaryView.Status {
+    private fun showStatusAlert(title: String, message: String) {
+        infoDialog(requireContext()) {
+            setTitle(title)
+            setMessage(message)
+        }
+    }
 
+    private fun mapNominatorStatus(summary: NominatorSummaryModel): NominatorSummaryView.Status {
         return when (summary.status) {
-            NominatorSummary.Status.INACTIVE -> NominatorSummaryView.Status.Inactive(summary.currentEraDisplay)
-            NominatorSummary.Status.ACTIVE -> NominatorSummaryView.Status.Active(summary.currentEraDisplay)
-            NominatorSummary.Status.WAITING -> NominatorSummaryView.Status.Waiting
-            NominatorSummary.Status.ELECTION -> NominatorSummaryView.Status.Election
+            is NominatorSummary.Status.Inactive -> NominatorSummaryView.Status.Inactive(summary.currentEraDisplay)
+            NominatorSummary.Status.Active -> NominatorSummaryView.Status.Active(summary.currentEraDisplay)
+            NominatorSummary.Status.Waiting -> NominatorSummaryView.Status.Waiting
+            NominatorSummary.Status.Election -> NominatorSummaryView.Status.Election
         }
     }
 }
