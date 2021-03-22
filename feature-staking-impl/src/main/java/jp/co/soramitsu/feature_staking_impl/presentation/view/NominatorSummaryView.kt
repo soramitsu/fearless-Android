@@ -8,15 +8,12 @@ import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextColorRes
-import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryRewards
-import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryRewardsFiat
-import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStaked
-import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStakedFiat
 import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStatus
 import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStatusHelper
+import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorTotalRewardsView
+import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorTotalStakedView
 
 class NominatorSummaryView @JvmOverloads constructor(
     context: Context,
@@ -53,13 +50,40 @@ class NominatorSummaryView @JvmOverloads constructor(
         nominatorSummaryStatusHelper.text = status.extraMessage
     }
 
-    fun setTotalStaked(inTokens: String, inFiat: String?) {
-        nominatorSummaryStaked.text = inTokens
-        nominatorSummaryStakedFiat.setTextOrHide(inFiat)
+    fun hideLoading() {
+        nominatorTotalStakedView.hideLoading()
+        nominatorTotalRewardsView.hideLoading()
     }
 
-    fun setTotalRewards(inTokens: String, inFiat: String?) {
-        nominatorSummaryRewards.text = inTokens
-        nominatorSummaryRewardsFiat.setTextOrHide(inFiat)
+    fun setTotalStaked(inTokens: String) {
+        nominatorTotalStakedView.setBody(inTokens)
+    }
+
+    fun showTotalStakedFiat() {
+        nominatorTotalStakedView.showWholeExtraBlock()
+    }
+
+    fun hideTotalStakeFiat() {
+        nominatorTotalStakedView.makeExtraBlockInvisible()
+    }
+
+    fun setTotalStakedFiat(totalStake: String) {
+        nominatorTotalStakedView.setExtraBlockValueText(totalStake)
+    }
+
+    fun setTotalRewards(inTokens: String) {
+        nominatorTotalRewardsView.setBody(inTokens)
+    }
+
+    fun showTotalRewardsFiat() {
+        nominatorTotalRewardsView.showWholeExtraBlock()
+    }
+
+    fun hideTotalRewardsFiat() {
+        nominatorTotalRewardsView.makeExtraBlockInvisible()
+    }
+
+    fun setTotalRewardsFiat(totalRewards: String) {
+        nominatorTotalRewardsView.setExtraBlockValueText(totalRewards)
     }
 }

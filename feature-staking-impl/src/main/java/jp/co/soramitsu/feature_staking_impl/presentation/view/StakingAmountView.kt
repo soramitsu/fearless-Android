@@ -45,7 +45,7 @@ class StakingAmountView @JvmOverloads constructor(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
 
-        amountInput.inputType = if (enabled) InputType.TYPE_NUMBER_FLAG_DECIMAL else InputType.TYPE_NULL
+        amountInput.inputType = if (enabled) InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL else InputType.TYPE_NULL
     }
 
     private fun applyAttributes(attributeSet: AttributeSet?) {
