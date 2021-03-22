@@ -66,19 +66,28 @@ class StakingInteractor(
             stakingRewardsRepository.stakingRewardsFlow(nominatorState.accountAddress),
             walletRepository.assetFlow(nominatorState.accountAddress, tokenType)
         ) { electionStatus, activeEraIndex, rewards, asset ->
+            val totalStakedInPlanks = asset.bondedInPlanks
+            val totalStaked = asset.bonded
 
             val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex).values
 
             val status = when {
-                electionStatus is ElectionStatus.Open -> NominatorSummary.Status.ELECTION
-                isNominationActive(nominatorState.stashId, eraStakers) -> NominatorSummary.Status.ACTIVE
-                isNominationWaiting(nominatorState.nominations, activeEraIndex) -> NominatorSummary.Status.WAITING
-                else -> NominatorSummary.Status.INACTIVE
+                electionStatus is ElectionStatus.Open -> NominatorSummary.Status.Election
+                isNominationActive(nominatorState.stashId, eraStakers) -> NominatorSummary.Status.Active
+                isNominationWaiting(nominatorState.nominations, activeEraIndex) -> NominatorSummary.Status.Waiting
+                else -> {
+                    val inactiveReason = when {
+                        totalStakedInPlanks < minimumStake(eraStakers) -> NominatorSummary.Status.Inactive.Reason.MIN_STAKE
+                        else -> NominatorSummary.Status.Inactive.Reason.NO_ACTIVE_VALIDATOR
+                    }
+
+                    NominatorSummary.Status.Inactive(inactiveReason)
+                }
             }
 
             NominatorSummary(
                 status = status,
-                totalStaked = asset.bonded,
+                totalStaked = totalStaked,
                 totalRewards = totalRewards(rewards),
                 currentEra = activeEraIndex.toInt()
             )

@@ -23,8 +23,6 @@
     <string name="common_learn_more">Aprende más</string>
 
     <string name="runtime_update_failure_description">No se pudo actualizar la información sobre el tiempo de ejecución de blockchain. Es posible que algunas funciones no funcionen.</string>
-    <string name="runtime_update_not_actual_title">Configuración desactualizada</string>
-    <string name="runtime_update_not_actual_description">No se puede obtener la información más reciente sobre el tiempo de ejecución de blockchain, se utilizará la versión desactualizada. Es posible que algunas funciones no funcionen.</string>
     <string name="runtime_update_failure_title">Error de actualización en tiempo de ejecución</string>
 
     <string name="export_seed_with_derivation" formatted="false">Red: %s\nSemilla: %s\nRuta de derivación: %s</string>

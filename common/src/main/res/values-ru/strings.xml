@@ -21,8 +21,6 @@
     <string name="staking_selected_accounts_mask">Аккаунты ( %d )</string>
 
     <string name="runtime_update_failure_description">Не удалось обновить информацию о времени выполнения блокчейна. Некоторые функции могут не работать.</string>
-    <string name="runtime_update_not_actual_title">Устаревшая конфигурация</string>
-    <string name="runtime_update_not_actual_description">Невозможно получить новейшую информацию о среде выполнения блокчейна, будет использоваться устаревшая версия. Некоторые функции могут не работать.</string>
     <string name="runtime_update_failure_title">Ошибка обновления среды выполнения</string>
 
     <string name="export_seed_with_derivation" formatted="false">Сеть: %s\nСид: %s\nПуть деривации: %s</string>

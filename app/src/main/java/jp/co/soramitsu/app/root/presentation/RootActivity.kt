@@ -14,7 +14,6 @@ import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
-import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.common.view.dialog.retryDialog
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import kotlinx.android.synthetic.main.activity_root.mainView
@@ -97,16 +96,6 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
             this,
             EventObserver {
                 showToast(it)
-            }
-        )
-
-        viewModel.outdatedTypesWarningLiveData.observe(
-            this,
-            EventObserver {
-                infoDialog(this) {
-                    setTitle(R.string.runtime_update_not_actual_title)
-                    setMessage(R.string.runtime_update_not_actual_description)
-                }
             }
         )
 

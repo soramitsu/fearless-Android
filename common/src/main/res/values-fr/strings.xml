@@ -21,8 +21,6 @@
     <string name="staking_selected_accounts_mask">Comptes ( %d )</string>
 
     <string name="runtime_update_failure_description">Échec de la mise à jour des informations sur l\'exécution de la blockchain. Certaines fonctionnalités peuvent ne pas fonctionner.</string>
-    <string name="runtime_update_not_actual_title">Configuration obsolète</string>
-    <string name="runtime_update_not_actual_description">Impossible de récupérer les informations les plus récentes sur l\'exécution de la blockchain, la version obsolète sera utilisée. Certaines fonctionnalités peuvent ne pas fonctionner.</string>
     <string name="runtime_update_failure_title">Échec de la mise à jour du runtime</string>
 
     <string name="export_seed_with_derivation" formatted="false">Réseau: %s\nGraine: %s\nChemin de dérivation: %s</string>
