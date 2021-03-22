@@ -67,7 +67,9 @@ class StakingViewModel(
         .asLiveData()
 
     fun storyClicked(story: StakingStoryModel) {
-        router.openStory(story)
+        if (story.elements.isNotEmpty()) {
+            router.openStory(story)
+        }
     }
 
     private fun transformStakingState(accountStakingState: StakingState) = when (accountStakingState) {
