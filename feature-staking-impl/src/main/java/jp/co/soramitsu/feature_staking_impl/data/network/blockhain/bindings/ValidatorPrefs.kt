@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings
 
 import jp.co.soramitsu.common.data.network.runtime.binding.HelperBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
+import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
@@ -22,7 +23,8 @@ fun bindValidatorPrefs(scale: String, runtime: RuntimeSnapshot): ValidatorPrefs 
     val type = runtime.typeRegistry["ValidatorPrefs"] ?: incompatible()
     val decoded = type.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
 
-    val commission = decoded.get<BigInteger>("commission") ?: incompatible()
-
-    return bindPerbill(commission)
+    return ValidatorPrefs(
+        commission = bindPerbill(decoded.getTyped("commission")),
+        blocked = decoded.getTyped("blocked")
+    )
 }

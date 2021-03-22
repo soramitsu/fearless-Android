@@ -20,14 +20,14 @@ class RewardCalculatorFactory(
 
         val validators = exposures.keys.map { accountIdHex ->
             val exposure = exposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
-            val commission = validatorsPrefs[accountIdHex] ?: accountIdNotFound(accountIdHex)
+            val validatorPrefs = validatorsPrefs[accountIdHex] ?: accountIdNotFound(accountIdHex)
 
             RewardCalculationTarget(
                 accountIdHex = accountIdHex,
                 totalStake = exposure.total,
                 nominatorStakes = exposure.others,
                 ownStake = exposure.own,
-                commission = commission
+                commission = validatorPrefs.commission
             )
         }
 
