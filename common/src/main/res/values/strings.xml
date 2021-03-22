@@ -62,9 +62,6 @@
     <string name="runtime_update_failure_title">Runtime update failure</string>
     <string name="runtime_update_failure_description">Failed to update information about blockchain runtime. Some functionality may not work.</string>
 
-    <string name="runtime_update_not_actual_title">Outdated configuration</string>
-    <string name="runtime_update_not_actual_description">Cannot fetch the newest information about blockchain runtime, the outdated version will be used. Some functionality may not work.</string>
-
     <string name="buy_completed">Purchase initiated! Please wait up to 60 minutes. You can track status on the email.</string>
 
     <string name="common_amount_low">Amount is too low</string>

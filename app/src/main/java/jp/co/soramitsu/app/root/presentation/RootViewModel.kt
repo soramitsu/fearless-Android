@@ -40,9 +40,6 @@ class RootViewModel(
 
     private var willBeClearedForLanguageChange = false
 
-    private val _outdatedTypesWarningLiveData = MutableLiveData<Event<Unit>>()
-    val outdatedTypesWarningLiveData: LiveData<Event<Unit>> = _outdatedTypesWarningLiveData
-
     private val _runtimeUpdateFailedLiveData = MutableLiveData<Event<RuntimeUpdateRetry>>()
     val runtimeUpdateFailedLiveData: LiveData<Event<RuntimeUpdateRetry>> = _runtimeUpdateFailedLiveData
 
@@ -94,9 +91,8 @@ class RootViewModel(
 
     @Suppress("NON_EXHAUSTIVE_WHEN")
     private fun handleRuntimePreparationStatus(status: RuntimePreparationStatus) {
-        when (status) {
-            is RuntimePreparationStatus.Error -> _runtimeUpdateFailedLiveData.postValue(Event(status.retry))
-            RuntimePreparationStatus.Outdated -> _outdatedTypesWarningLiveData.postValue(Event(Unit))
+        if (status is RuntimePreparationStatus.Error) {
+            _runtimeUpdateFailedLiveData.postValue(Event(status.retry))
         }
     }
 
