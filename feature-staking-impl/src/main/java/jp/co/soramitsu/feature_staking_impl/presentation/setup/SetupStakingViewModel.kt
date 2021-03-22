@@ -102,7 +102,7 @@ class SetupStakingViewModel(
         .map { mapAssetToAssetModel(it, resourceManager) }
         .flowOn(Dispatchers.Default)
 
-    val enteredAmountFlow = MutableStateFlow(setupStakingSharedState.DEFAULT_AMOUNT.toString())
+    val enteredAmountFlow = MutableStateFlow(setupStakingSharedState.stashSetup.amount.toString())
 
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
