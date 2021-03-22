@@ -76,8 +76,8 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
         }
 
         viewModel.currentStoryLiveData.observe {
-            storyTitle.text = it.title
-            storyBody.text = it.body
+            storyTitle.setText(it.titleRes)
+            storyBody.setText(it.bodyRes)
         }
     }
 

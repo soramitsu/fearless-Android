@@ -42,10 +42,11 @@
 
         <TextView
             android:id="@+id/storyBody"
-            style="@style/TextAppearance.Soramitsu.Header3"
+            style="@style/TextAppearance.Soramitsu.Body0"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_margin="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_weight="1"
             android:includeFontPadding="false"
             tools:text="Story body" />

@@ -88,8 +88,8 @@ class StakingViewModel(
     }
 
     private fun transformStories(story: StakingStory): StakingStoryModel = with(story) {
-        val elements = elements.map { StakingStoryModel.Element(it.title, it.body, it.url) }
-        StakingStoryModel(title, iconSymbol, elements)
+        val elements = elements.map { StakingStoryModel.Element(it.titleRes, it.bodyRes, it.url) }
+        StakingStoryModel(titleRes, iconSymbol, elements)
     }
 
     private fun transformNetworkInfo(asset: Asset, networkInfo: NetworkInfo): StakingNetworkInfoModel {

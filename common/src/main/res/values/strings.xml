@@ -332,4 +332,16 @@
     <string name="staking_main_lockup_period_title">Lock-Up period</string>
     <string name="staking_main_network_title">%s network</string>
     <string name="staking_total_staked">Total staked</string>
+    <string name="staking_story_title">What is Staking?</string>
+    <string name="staking_story_element_title">💰 What is Staking?</string>
+    <string name="staking_story_element_pos_title">💸 What is Proof-of-Stake?</string>
+    <string name="staking_story_element_description">Staking refers to the process of a Proof-of-Stake (PoS) token-holder locking a tokens in order to participate in the
+        upkeep of the PoS network (e.g. validating transactions; composing new blocks). This increases the security and reliability of the network and is an alternative
+        to mining in Proof-of-Work systems (e.g. Bitcoin). Token-holders who participate in staking are compensated through block rewards and transaction fees.</string>
+    <string name="staking_story_element_pos_description">PoS is a method used in decentralized systems to enable the collaboration of unknowing or untrusting participants.
+        It requires validators (special nodes running the blockchain) to stake the blockchain\'s native token to propose and/or validate new blocks and ultimately
+        earn rewards. A stake can be seen as a form of security deposit that disincentives bad behavior and contributes to the networks\' security.</string>
+    <string name="staking_story_nominator_title">Who is Nominator?</string>
+    <string name="staking_story_validator_title">Who is Validator?</string>
+    <string name="staking_story_whats_new_title">What\'s new?</string>
 </resources>
