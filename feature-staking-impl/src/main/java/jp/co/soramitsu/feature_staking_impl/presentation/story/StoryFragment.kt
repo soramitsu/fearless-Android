@@ -49,28 +49,7 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
 
         stories.setStoriesListener(this)
 
-        storyContainer.setOnTouchListener { view, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    lastActionDown = System.currentTimeMillis()
-                    viewModel.pause()
-                }
-                MotionEvent.ACTION_UP -> {
-                    viewModel.resume()
-                    val eventTime = System.currentTimeMillis()
-                    if (eventTime - lastActionDown < STORY_CLICK_MAX_DURATION) {
-                        if (view.width / 2 < event.x) {
-                            stories.skip()
-                        } else {
-                            stories.reverse()
-                        }
-                    } else {
-                        view.performClick()
-                    }
-                }
-            }
-            true
-        }
+        storyContainer.setOnTouchListener(::handleStoryTouchEvent)
 
         stakingStoryLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
     }
@@ -125,5 +104,28 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
     override fun onDestroyView() {
         super.onDestroyView()
         stories.destroy()
+    }
+
+    private fun handleStoryTouchEvent(view: View, event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                lastActionDown = System.currentTimeMillis()
+                viewModel.pause()
+            }
+            MotionEvent.ACTION_UP -> {
+                viewModel.resume()
+                val eventTime = System.currentTimeMillis()
+                if (eventTime - lastActionDown < STORY_CLICK_MAX_DURATION) {
+                    if (view.width / 2 < event.x) {
+                        stories.skip()
+                    } else {
+                        stories.reverse()
+                    }
+                } else {
+                    view.performClick()
+                }
+            }
+        }
+        return true
     }
 }
