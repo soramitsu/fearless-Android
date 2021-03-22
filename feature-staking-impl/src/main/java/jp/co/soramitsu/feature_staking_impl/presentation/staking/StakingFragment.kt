@@ -83,9 +83,24 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             is LoadingState.Loaded<NominatorSummaryModel> -> {
                                 val summary = summaryState.data
 
+                                stakingNominatorSummary.hideLoading()
                                 stakingNominatorSummary.setElectionStatus(mapNominatorStatus(summary))
-                                stakingNominatorSummary.setTotalStaked(summary.totalStaked, summary.totalStakedFiat)
-                                stakingNominatorSummary.setTotalRewards(summary.totalRewards, summary.totalRewardsFiat)
+                                stakingNominatorSummary.setTotalStaked(summary.totalStaked)
+                                stakingNominatorSummary.setTotalRewards(summary.totalRewards)
+
+                                if (summary.totalStakedFiat == null) {
+                                    stakingNominatorSummary.hideTotalStakeFiat()
+                                } else {
+                                    stakingNominatorSummary.showTotalStakedFiat()
+                                    stakingNominatorSummary.setTotalStakedFiat(summary.totalStakedFiat)
+                                }
+
+                                if (summary.totalRewardsFiat == null) {
+                                    stakingNominatorSummary.hideTotalRewardsFiat()
+                                } else {
+                                    stakingNominatorSummary.showTotalRewardsFiat()
+                                    stakingNominatorSummary.setTotalRewardsFiat(summary.totalRewardsFiat)
+                                }
                             }
                         }
                     }
