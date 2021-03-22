@@ -111,7 +111,7 @@
                 android:text="@string/staking_setup_reward_destination"
                 android:textColor="@color/white" />
 
-            <jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationView
+            <jp.co.soramitsu.feature_staking_impl.presentation.setup.view.RewardDestinationView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -122,7 +122,7 @@
                 android:checked="true"
                 android:theme="@style/PinkOverlay" />
 
-            <jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationView
+            <jp.co.soramitsu.feature_staking_impl.presentation.setup.view.RewardDestinationView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"

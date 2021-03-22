@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.setup
+package jp.co.soramitsu.feature_staking_impl.presentation.setup.view
 
 import android.content.Context
 import android.graphics.drawable.StateListDrawable
