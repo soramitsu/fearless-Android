@@ -4,8 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     tools:background="@color/black"
-    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+    tools:parentTag="android.widget.LinearLayout">
 
     <TextView
         android:id="@+id/nominatorSummaryTitle"
@@ -14,93 +15,95 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="15dp"
-        android:text="@string/staking_stake"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:text="@string/staking_stake" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
-        android:id="@+id/nominatorTotalStakedView"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toStartOf="@id/guideline"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryTitle"
-        android:layout_marginTop="17dp"
-        android:layout_marginStart="16dp"
-        app:startWithLoading="true"
-        app:titleText="@string/staking_total_staked" />
+        android:orientation="horizontal">
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.50" />
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+            android:id="@+id/nominatorTotalStakedView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="17dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            app:startWithLoading="true"
+            app:titleText="@string/staking_total_staked" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
-        android:id="@+id/nominatorTotalRewardsView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/guideline"
-        app:layout_constraintTop_toBottomOf="@id/nominatorSummaryTitle"
-        android:layout_marginTop="17dp"
-        android:layout_marginEnd="16dp"
-        app:startWithLoading="true"
-        app:titleText="@string/staking_total_rewards" />
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+            android:id="@+id/nominatorTotalRewardsView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="17dp"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            app:startWithLoading="true"
+            app:titleText="@string/staking_total_rewards" />
+    </LinearLayout>
+
 
     <View
         android:id="@+id/view"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="17dp"
         android:layout_marginEnd="16dp"
-        android:background="@color/white_24"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/nominatorTotalStakedView" />
+        android:background="@color/white_24" />
 
-    <TextView
-        android:id="@+id/nominatorSummaryStatus"
-        style="@style/TextAppearance.Soramitsu.CapsTitle2"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/statusTapZone"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:drawablePadding="8dp"
-        android:includeFontPadding="false"
-        android:textColor="@color/white_64"
-        app:drawableStartCompat="@drawable/ic_status_indicator"
-        app:drawableTint="@color/white_64"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view"
-        tools:text="Election period" />
 
-    <TextView
-        android:id="@+id/nominatorSummaryStatusHelper"
-        style="@style/TextAppearance.Soramitsu.CapsTitle2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:drawablePadding="8dp"
-        android:textColor="@color/white_64"
-        app:layout_constraintBaseline_toBaselineOf="@id/nominatorSummaryStatus"
-        app:layout_constraintEnd_toStartOf="@+id/imageView2"
-        app:layout_constraintTop_toBottomOf="@+id/view"
-        tools:text="~00:08:29" />
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_primary_list_item"
+        android:orientation="horizontal">
 
-    <ImageView
-        android:id="@+id/imageView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="25dp"
-        android:src="@drawable/ic_arrow_right_24"
-        app:layout_constraintBottom_toBottomOf="@+id/nominatorSummaryStatusHelper"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/nominatorSummaryStatusHelper"
-        app:tint="@color/white" />
+        <TextView
+            android:id="@+id/nominatorSummaryStatus"
+            style="@style/TextAppearance.Soramitsu.CapsTitle2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:layout_weight="1"
+            android:drawablePadding="8dp"
+            android:includeFontPadding="false"
+            android:textColor="@color/white_64"
+            app:drawableStartCompat="@drawable/ic_status_indicator"
+            app:drawableTint="@color/white_64"
+            tools:text="Election period" />
 
+        <TextView
+            android:id="@+id/nominatorSummaryStatusHelper"
+            style="@style/TextAppearance.Soramitsu.CapsTitle2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="16dp"
+            android:drawablePadding="8dp"
+            android:textColor="@color/white_64"
+            app:layout_constraintBaseline_toBaselineOf="@id/nominatorSummaryStatus"
+            app:layout_constraintEnd_toStartOf="@+id/imageView2"
+            app:layout_constraintTop_toBottomOf="@+id/view"
+            tools:text="~00:08:29" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="9dp"
+            android:src="@drawable/ic_arrow_right_24"
+            app:layout_constraintBottom_toBottomOf="@+id/nominatorSummaryStatusHelper"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/nominatorSummaryStatusHelper"
+            app:tint="@color/white" />
+    </LinearLayout>
 </merge>

@@ -3,9 +3,9 @@ package jp.co.soramitsu.feature_staking_impl.presentation.view
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
+import android.widget.LinearLayout
 import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
-import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
@@ -14,12 +14,13 @@ import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSumma
 import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStatusHelper
 import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorTotalRewardsView
 import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorTotalStakedView
+import kotlinx.android.synthetic.main.view_nominator_summary.view.statusTapZone
 
 class NominatorSummaryView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0,
-) : ConstraintLayout(context, attrs, defStyle) {
+) : LinearLayout(context, attrs, defStyle) {
 
     sealed class Status(@StringRes val textRes: Int, @ColorRes val tintRes: Int, val extraMessage: String?) {
 
@@ -34,6 +35,8 @@ class NominatorSummaryView @JvmOverloads constructor(
 
     init {
         View.inflate(context, R.layout.view_nominator_summary, this)
+
+        orientation = VERTICAL
 
         with(context) {
             background = getCutCornerDrawable(R.color.blurColor)
@@ -85,5 +88,9 @@ class NominatorSummaryView @JvmOverloads constructor(
 
     fun setTotalRewardsFiat(totalRewards: String) {
         nominatorTotalRewardsView.setExtraBlockValueText(totalRewards)
+    }
+
+    fun setStatusClickListener(listener: OnClickListener) {
+        statusTapZone.setOnClickListener(listener)
     }
 }
