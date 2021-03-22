@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.story
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
 
@@ -16,6 +17,12 @@ class StoryViewModel(
 
     private val _currentStoryLiveData = MutableLiveData<StakingStoryModel.Element>()
     val currentStoryLiveData: LiveData<StakingStoryModel.Element> = _currentStoryLiveData
+
+    private val _pauseEvent = MutableLiveData<Event<Unit>>()
+    val pauseEvent: LiveData<Event<Unit>> = _pauseEvent
+
+    private val _resumeEvent = MutableLiveData<Event<Unit>>()
+    val resumeEvent: LiveData<Event<Unit>> = _resumeEvent
 
     init {
         story.elements.firstOrNull()?.let {
@@ -49,5 +56,13 @@ class StoryViewModel(
 
     fun complete() {
         router.back()
+    }
+
+    fun pause() {
+        _pauseEvent.value = Event(Unit)
+    }
+
+    fun resume() {
+        _resumeEvent.value = Event(Unit)
     }
 }

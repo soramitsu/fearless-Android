@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.story
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
@@ -14,8 +15,7 @@ import jp.shts.android.storiesprogressview.StoriesProgressView
 import kotlinx.android.synthetic.main.fragment_story.stories
 import kotlinx.android.synthetic.main.fragment_story.storyBody
 import kotlinx.android.synthetic.main.fragment_story.storyCloseIcon
-import kotlinx.android.synthetic.main.fragment_story.storyLeftSide
-import kotlinx.android.synthetic.main.fragment_story.storyRightSide
+import kotlinx.android.synthetic.main.fragment_story.storyContainer
 import kotlinx.android.synthetic.main.fragment_story.storyTitle
 
 class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.StoriesListener {
@@ -23,6 +23,7 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
     companion object {
         private const val KEY_STORY = "story"
         private const val STORY_DURATION = 6200L
+        private const val STORY_CLICK_MAX_DURATION = 500L
 
         fun getBundle(story: StakingStoryModel): Bundle {
             return Bundle().apply {
@@ -30,6 +31,8 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
             }
         }
     }
+
+    private var lastActionDown = 0L
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,8 +47,28 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
 
         stories.setStoriesListener(this)
 
-        storyLeftSide.setOnClickListener { stories.reverse() }
-        storyRightSide.setOnClickListener { stories.skip() }
+        storyContainer.setOnTouchListener { view, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    lastActionDown = System.currentTimeMillis()
+                    viewModel.pause()
+                }
+                MotionEvent.ACTION_UP -> {
+                    viewModel.resume()
+                    val eventTime = System.currentTimeMillis()
+                    if (eventTime - lastActionDown < STORY_CLICK_MAX_DURATION) {
+                        if (view.width / 2 < event.x) {
+                            stories.skip()
+                        } else {
+                            stories.reverse()
+                        }
+                    } else {
+                        view.performClick()
+                    }
+                }
+            }
+            true
+        }
     }
 
     override fun inject() {
@@ -70,6 +93,14 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
         viewModel.currentStoryLiveData.observe {
             storyTitle.text = it.title
             storyBody.text = it.body
+        }
+
+        viewModel.pauseEvent.observeEvent {
+            stories.pause()
+        }
+
+        viewModel.resumeEvent.observeEvent {
+            stories.resume()
         }
     }
 

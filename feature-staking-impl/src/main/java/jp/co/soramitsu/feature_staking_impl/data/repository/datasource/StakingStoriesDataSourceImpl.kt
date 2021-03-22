@@ -13,7 +13,7 @@ class StakingStoriesDataSourceImpl : StakingStoriesDataSource {
             val firstStoryElements = mutableListOf<StakingStory.Element>().apply {
                 add(StakingStory.Element("What is Staking?", "Staking refers to the process of a Proof-of-Stake", "test url"))
                 add(StakingStory.Element("What is Proof-of-Stake?", "Who knows...", "test url"))
-                add(StakingStory.Element("What?", "Who knows...", "test url"))
+                add(StakingStory.Element("What?", "Nothing", "test url"))
             }
 
             val stories = listOf(
