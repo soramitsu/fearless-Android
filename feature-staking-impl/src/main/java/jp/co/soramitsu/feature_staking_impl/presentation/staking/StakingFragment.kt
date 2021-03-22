@@ -40,8 +40,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             type(statusBars = true) {
                 padding()
             }
-
-            consume(true)
         }
 
         stakingEstimate.hideAssetBalanceDollarAmount()
