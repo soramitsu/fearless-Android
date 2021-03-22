@@ -14,6 +14,8 @@ import jp.shts.android.storiesprogressview.StoriesProgressView
 import kotlinx.android.synthetic.main.fragment_story.stories
 import kotlinx.android.synthetic.main.fragment_story.storyBody
 import kotlinx.android.synthetic.main.fragment_story.storyCloseIcon
+import kotlinx.android.synthetic.main.fragment_story.storyLeftSide
+import kotlinx.android.synthetic.main.fragment_story.storyRightSide
 import kotlinx.android.synthetic.main.fragment_story.storyTitle
 
 class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.StoriesListener {
@@ -41,6 +43,9 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
         storyCloseIcon.setOnClickListener { viewModel.backClicked() }
 
         stories.setStoriesListener(this)
+
+        storyLeftSide.setOnClickListener { stories.reverse() }
+        storyRightSide.setOnClickListener { stories.skip() }
     }
 
     override fun inject() {
@@ -66,6 +71,14 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
             storyTitle.text = it.title
             storyBody.text = it.body
         }
+
+        viewModel.previousStoryEvent.observe {
+            stories.reverse()
+        }
+
+        viewModel.nextStoryEvent.observe {
+            stories.skip()
+        }
     }
 
     override fun onComplete() {
@@ -73,6 +86,7 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
     }
 
     override fun onPrev() {
+        viewModel.previousStory()
     }
 
     override fun onNext() {
