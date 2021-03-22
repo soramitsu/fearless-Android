@@ -20,6 +20,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+        android:id="@+id/stakingMonthGain"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="24dp"
+        app:layout_constraintEnd_toStartOf="@id/stakingYearGain"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/estimateEarningTitle"
+        app:startWithLoading="true"
+        app:titleText="@string/staking_month_period_title" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+        android:id="@+id/stakingYearGain"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/stakingMonthGain"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/stakingMonthGain"
+        app:layout_constraintTop_toTopOf="@+id/stakingMonthGain"
+        app:startWithLoading="true"
+        app:titleText="@string/staking_year_period_title" />
+
     <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
         android:id="@+id/estimateEarningAmount"
         android:layout_width="0dp"
@@ -27,36 +54,9 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/estimateEarningTitle" />
-
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
-        android:id="@+id/stakingMonthGain"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/stakingYearGain"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/estimateEarningAmount"
-        app:titleText="@string/staking_month_period_title"
-        app:startWithLoading="true" />
-
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
-        android:id="@+id/stakingYearGain"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/stakingMonthGain"
-        app:layout_constraintTop_toBottomOf="@id/estimateEarningAmount"
-        app:titleText="@string/staking_year_period_title"
-        app:startWithLoading="true" />
-
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/stakingMonthGain" />
 </merge>
