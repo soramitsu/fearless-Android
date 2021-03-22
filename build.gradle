@@ -62,6 +62,8 @@ buildscript {
 
         shimmerVersion = '0.5.0'
 
+        storiesVersion = '3.0.0'
+
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
         insetterDep = "dev.chrisbanes.insetter:insetter-widgets:$insetterVersion"
@@ -118,6 +120,8 @@ buildscript {
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
 
         shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
+
+        storiesDep = "com.github.shts:StoriesProgressView:$storiesVersion"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"

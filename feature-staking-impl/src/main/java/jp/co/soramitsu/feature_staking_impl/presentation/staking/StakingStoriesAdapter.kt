@@ -34,7 +34,7 @@ class StakingStoryHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     fun bind(story: StakingStoryModel, itemHandler: StakingStoriesAdapter.StoryItemHandler) = with(itemView) {
         stakingStoryItemIcon.text = story.iconSymbol
-        stakingStoryItemTitle.text = story.title
+        stakingStoryItemTitle.setText(story.titleRes)
         setOnClickListener { itemHandler.storyClicked(story) }
     }
 }
@@ -42,7 +42,7 @@ class StakingStoryHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 private object StoryDiffCallback : DiffUtil.ItemCallback<StakingStoryModel>() {
 
     override fun areItemsTheSame(oldItem: StakingStoryModel, newItem: StakingStoryModel): Boolean {
-        return oldItem.title == newItem.title
+        return oldItem.titleRes == newItem.titleRes
     }
 
     override fun areContentsTheSame(oldItem: StakingStoryModel, newItem: StakingStoryModel): Boolean {
