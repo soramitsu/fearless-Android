@@ -124,6 +124,8 @@ dependencies {
     implementation coroutinesDep
 
     testImplementation project(':test-shared')
+
+    implementation insetterDep
 }
 
 task printVersion {

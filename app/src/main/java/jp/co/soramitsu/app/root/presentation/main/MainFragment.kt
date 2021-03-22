@@ -15,6 +15,8 @@ import jp.co.soramitsu.app.root.di.RootApi
 import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.updatePadding
+import kotlinx.android.synthetic.main.fragment_main.bottomNavHost
 import kotlinx.android.synthetic.main.fragment_main.bottomNavigationView
 
 class MainFragment : BaseFragment<MainViewModel>() {
@@ -38,6 +40,18 @@ class MainFragment : BaseFragment<MainViewModel>() {
     }
 
     override fun initViews() {
+        bottomNavigationView.setOnApplyWindowInsetsListener { _, insets ->
+            // overwrite BottomNavigation behavior and ignore insets
+            insets
+        }
+
+        bottomNavHost.setOnApplyWindowInsetsListener { v, insets ->
+            val padding = (insets.systemWindowInsetBottom - bottomNavigationView.height).coerceAtLeast(0)
+            v.updatePadding(bottom = padding)
+
+            insets
+        }
+
         val nestedNavHostFragment =
             childFragmentManager.findFragmentById(R.id.bottomNavHost) as NavHostFragment
 
