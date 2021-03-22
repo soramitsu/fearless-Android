@@ -79,14 +79,6 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
             storyTitle.text = it.title
             storyBody.text = it.body
         }
-
-        viewModel.pauseEvent.observeEvent {
-            stories.pause()
-        }
-
-        viewModel.resumeEvent.observeEvent {
-            stories.resume()
-        }
     }
 
     override fun onComplete() {
@@ -110,10 +102,10 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 lastActionDown = System.currentTimeMillis()
-                viewModel.pause()
+                stories.pause()
             }
             MotionEvent.ACTION_UP -> {
-                viewModel.resume()
+                stories.resume()
                 val eventTime = System.currentTimeMillis()
                 if (eventTime - lastActionDown < STORY_CLICK_MAX_DURATION) {
                     if (view.width / 2 < event.x) {

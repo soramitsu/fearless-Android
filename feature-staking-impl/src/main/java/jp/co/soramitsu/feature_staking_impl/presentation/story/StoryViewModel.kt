@@ -19,12 +19,6 @@ class StoryViewModel(
     private val _currentStoryLiveData = MutableLiveData<StakingStoryModel.Element>()
     val currentStoryLiveData: LiveData<StakingStoryModel.Element> = _currentStoryLiveData
 
-    private val _pauseEvent = MutableLiveData<Event<Unit>>()
-    val pauseEvent: LiveData<Event<Unit>> = _pauseEvent
-
-    private val _resumeEvent = MutableLiveData<Event<Unit>>()
-    val resumeEvent: LiveData<Event<Unit>> = _resumeEvent
-
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     init {
@@ -59,14 +53,6 @@ class StoryViewModel(
 
     fun complete() {
         router.back()
-    }
-
-    fun pause() {
-        _pauseEvent.value = Event(Unit)
-    }
-
-    fun resume() {
-        _resumeEvent.value = Event(Unit)
     }
 
     fun learnMoreClicked() {
