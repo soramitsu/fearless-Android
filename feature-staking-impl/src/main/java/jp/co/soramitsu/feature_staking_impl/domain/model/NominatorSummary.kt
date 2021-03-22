@@ -8,7 +8,16 @@ class NominatorSummary(
     val totalRewards: BigDecimal,
     val currentEra: Int
 ) {
-    enum class Status {
-        ACTIVE, INACTIVE, WAITING, ELECTION
+    sealed class Status {
+        object Active : Status()
+        object Waiting : Status()
+        object Election : Status()
+
+        class Inactive(val reason: Reason) : Status() {
+
+            enum class Reason {
+                MIN_STAKE, NO_ACTIVE_VALIDATOR
+            }
+        }
     }
 }

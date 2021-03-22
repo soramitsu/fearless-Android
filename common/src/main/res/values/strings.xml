@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_nominator_status_alert_active_title">Active status</string>
+    <string name="staking_nominator_status_alert_active_message">One of your validators have been elected by network.</string>
+    <string name="staking_nominator_status_alert_election_message">The network is electing validators. Please wait a few minutes.</string>
+    <string name="staking_nominator_status_alert_waiting_message">Your staking will start in the next era.</string>
+    <string name="staking_nominator_status_alert_inactive_title">Inactive status</string>
+    <string name="staking_nominator_status_alert_no_validators">None of your validators have been elected by network.</string>
+    <string name="staking_nominator_status_alert_low_stake">Your staked amount is less than the minimum stake to get a reward.</string>
+
     <string name="staking_era_index">Era #%d</string>
 
     <string name="staking_validator_summary_title">Staking for validator</string>
