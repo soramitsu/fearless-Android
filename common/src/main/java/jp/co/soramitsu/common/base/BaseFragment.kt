@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.base
 
-import android.content.Context
 import android.os.Bundle
+import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
@@ -48,7 +48,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     protected open fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
-        return AlertDialog.Builder(themedContext())
+        return AlertDialog.Builder(ContextThemeWrapper(context, R.style.WhiteOverlay))
             .setTitle(title)
             .setMessage(errorMessage)
             .setPositiveButton(R.string.common_ok) { _, _ -> }
@@ -82,10 +82,6 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     protected fun EditText.bindTo(liveData: MutableLiveData<String>) = bindTo(liveData, viewLifecycleOwner)
 
     protected inline fun <reified T> argument(key: String): T = arguments!![key] as T
-
-    protected fun themedContext(): Context {
-        return view!!.context
-    }
 
     abstract fun initViews()
 
