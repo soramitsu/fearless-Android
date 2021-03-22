@@ -71,14 +71,6 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
             storyTitle.text = it.title
             storyBody.text = it.body
         }
-
-        viewModel.previousStoryEvent.observe {
-            stories.reverse()
-        }
-
-        viewModel.nextStoryEvent.observe {
-            stories.skip()
-        }
     }
 
     override fun onComplete() {
