@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -104,7 +105,7 @@ class WelcomeViewState(
     private val scope: CoroutineScope,
 ) : StakingViewState() {
 
-    val enteredAmountFlow = MutableStateFlow(setupStakingSharedState.DEFAULT_AMOUNT.toString())
+    val enteredAmountFlow = MutableStateFlow(SetupStakingSharedState.DEFAULT_AMOUNT.toString())
 
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
@@ -134,6 +135,8 @@ class WelcomeViewState(
 
                 router.openRecommendedValidators()
             } else {
+                setupStakingSharedState.stashSetup = StashSetup.defaultFromAmount(parsedAmountFlow.first())
+
                 router.openSetupStaking()
             }
         }
