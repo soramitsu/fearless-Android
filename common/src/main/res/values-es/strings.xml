@@ -5,10 +5,7 @@
     <string name="staking_setup_too_big_error">Lo sentimos, no tiene fondos suficientes para apostar la cantidad especificada</string>
     <string name="staking_setup_reward_payout_account">Cuenta de pago</string>
     <string name="staking_setup_reward_destination">Elija el destino de la recompensa</string>
-    <string name="staking_setup_reward_description">Ganancias del primer año</string>
-    <string name="staking_setup_restake_description">Gana más recompensas</string>
     <string name="staking_setup_restake">Reanudar</string>
-    <string name="staking_setup_payout_description">Recompensas de transferencia</string>
     <string name="staking_setup_payout">Pagar</string>
     <string name="staking_setup_learn_more">Obtenga más información sobre los pagos</string>
 
@@ -257,8 +254,6 @@
     <string name="identity_web_title">Web</string>
     <string name="identity_riot_name_title">Nombre de Riot</string>
     <string name="staking_setup_sent_message">Транзакция на установку стекинга отправлена</string>
-    <string name="staking_setup_title">Configurar replanteo</string>
-    <string name="staking_setup_amount">Cantidad a apostar</string>
     <string name="network_fee">Tarifa de red</string>
     <string name="staking_confirm_reward_destination">Destino de recompensa</string>
     <string name="common_confirm">Confirmar</string>

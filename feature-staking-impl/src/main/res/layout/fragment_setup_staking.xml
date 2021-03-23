@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/setupStakingToolbar"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/staking_setup_title" />
+        app:titleText="@string/staking_stake" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -26,14 +26,6 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-
-            <TextView
-                style="@style/TextAppearance.Soramitsu.Body1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:text="@string/staking_setup_amount" />
 
             <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
                 android:layout_width="match_parent"
@@ -111,26 +103,22 @@
                 android:text="@string/staking_setup_reward_destination"
                 android:textColor="@color/white" />
 
-            <jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationView
+            <jp.co.soramitsu.feature_staking_impl.presentation.setup.view.RewardDestinationView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 app:targetName="@string/staking_setup_restake"
-                app:targetDescription="@string/staking_setup_restake_description"
-                app:targetAmountDescription="@string/staking_setup_reward_description"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp"
                 android:id="@+id/setupStakingTargetRestake"
                 android:checked="true" />
 
-            <jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationView
+            <jp.co.soramitsu.feature_staking_impl.presentation.setup.view.RewardDestinationView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 app:targetName="@string/staking_setup_payout"
                 android:id="@+id/setupStakingTargetPayout"
-                app:targetDescription="@string/staking_setup_payout_description"
-                app:targetAmountDescription="@string/staking_setup_reward_description"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp" />
 

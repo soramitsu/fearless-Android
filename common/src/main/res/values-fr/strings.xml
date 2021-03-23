@@ -3,10 +3,7 @@
     <string name="staking_setup_too_big_error">Désolé, vous ne disposez pas de suffisamment de fonds pour miser le montant spécifié</string>
     <string name="staking_setup_reward_payout_account">Compte de paiement</string>
     <string name="staking_setup_reward_destination">Choisissez la destination de récompense</string>
-    <string name="staking_setup_reward_description">Revenus de la première année</string>
-    <string name="staking_setup_restake_description">Gagnez plus de récompenses</string>
     <string name="staking_setup_restake">Restake</string>
-    <string name="staking_setup_payout_description">Transférer des récompenses</string>
     <string name="staking_setup_payout">Paiement</string>
     <string name="staking_setup_learn_more">En savoir plus sur les paiements</string>
 
@@ -256,8 +253,6 @@
     <string name="identity_web_title">Web</string>
     <string name="identity_riot_name_title">Nom de l\'émeute</string>
     <string name="staking_setup_sent_message">Transaction de configuration de jalonnement envoyée</string>
-    <string name="staking_setup_title">Mise en place du jalonnement</string>
-    <string name="staking_setup_amount">Montant à miser</string>
     <string name="network_fee">Frais de réseau</string>
     <string name="staking_confirm_reward_destination">Destination de récompense</string>
     <string name="common_confirm">Confirmer</string>

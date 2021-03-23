@@ -1,7 +1,6 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.setup
+package jp.co.soramitsu.feature_staking_impl.presentation.setup.view
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.drawable.StateListDrawable
 import android.util.AttributeSet
 import android.util.StateSet
@@ -12,11 +11,9 @@ import jp.co.soramitsu.common.utils.getPrimaryColor
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawableFromColors
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountDescription
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountGain
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountToken
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetChecked
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetDescription
+import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetCheck
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetName
 import jp.co.soramitsu.common.R as RCommon
 
@@ -33,7 +30,6 @@ class RewardDestinationView @JvmOverloads constructor(
     init {
         View.inflate(context, R.layout.view_payout_target, this)
 
-        payoutTargetChecked.imageTintList = iconTintList()
         background = stateDrawable()
 
         attrs?.let(this::applyAttrs)
@@ -47,12 +43,6 @@ class RewardDestinationView @JvmOverloads constructor(
 
         val targetName = typedArray.getString(R.styleable.PayoutTargetView_targetName)
         targetName?.let(::setName)
-
-        val targetDescription = typedArray.getString(R.styleable.PayoutTargetView_targetDescription)
-        targetDescription?.let(::setDescription)
-
-        val amountDescription = typedArray.getString(R.styleable.PayoutTargetView_targetAmountDescription)
-        amountDescription?.let(::setAmountDescription)
 
         typedArray.recycle()
     }
@@ -69,16 +59,9 @@ class RewardDestinationView @JvmOverloads constructor(
         payoutTargetAmountGain.text = gain
     }
 
-    fun setDescription(description: String) {
-        payoutTargetDescription.text = description
-    }
-
-    fun setAmountDescription(description: String) {
-        payoutTargetAmountDescription.text = description
-    }
-
     override fun setChecked(checked: Boolean) {
         isChecked = checked
+        payoutTargetCheck.isChecked = checked
         refreshDrawableState()
     }
 
@@ -102,19 +85,5 @@ class RewardDestinationView @JvmOverloads constructor(
     private fun stateDrawable() = StateListDrawable().apply {
         addState(CheckedStateSet, context.getCutCornerDrawableFromColors(strokeColor = context.getPrimaryColor()))
         addState(StateSet.WILD_CARD, context.getCutCornerDrawable(strokeColorRes = RCommon.color.gray2))
-    }
-
-    private fun iconTintList(): ColorStateList {
-        val states = arrayOf(
-            CheckedStateSet,
-            intArrayOf()
-        )
-
-        val colors = intArrayOf(
-            context.getPrimaryColor(),
-            context.getColor(android.R.color.transparent)
-        )
-
-        return ColorStateList(states, colors)
     }
 }
