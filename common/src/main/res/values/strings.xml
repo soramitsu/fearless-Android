@@ -20,8 +20,6 @@
     <string name="staking_nominator_status_inactive">Inactive</string>
     <string name="staking_nominator_status_waiting">Waiting for the next era</string>
 
-    <string name="staking_setup_title">Setup staking</string>
-    <string name="staking_setup_amount">Amount to stake</string>
     <string name="network_fee">Network fee</string>
     <string name="staking_confirm_reward_destination">Reward destination</string>
     <string name="common_confirm">Confirm</string>
@@ -45,11 +43,7 @@
     <string name="staking_setup_learn_more">Learn more about Payouts</string>
     <string name="staking_setup_reward_destination">Choose reward destination</string>
     <string name="staking_setup_restake">Restake</string>
-    <string name="staking_setup_restake_description">Earn more rewards</string>
-    <string name="staking_setup_reward_description">First year earnings</string>
     <string name="staking_setup_payout">Payout</string>
-    <string name="staking_setup_payout_description">Transfer rewards</string>
-
 
     <string name="staking_selected_accounts_mask">Accounts(%d)</string>
 

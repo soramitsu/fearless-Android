@@ -3,10 +3,7 @@
     <string name="staking_setup_too_big_error">申し訳ありませんが、指定された金額を賭けるのに十分な資金がありません</string>
     <string name="staking_setup_reward_payout_account">支払い口座</string>
     <string name="staking_setup_reward_destination">報酬の目的地を選択してください</string>
-    <string name="staking_setup_reward_description">初年度の収益</string>
-    <string name="staking_setup_restake_description">より多くの報酬を獲得する</string>
     <string name="staking_setup_restake">再テイク</string>
-    <string name="staking_setup_payout_description">報酬を転送する</string>
     <string name="staking_setup_payout">配当性向</string>
     <string name="staking_setup_learn_more">支払いの詳細</string>
 
@@ -255,8 +252,6 @@
     <string name="identity_web_title">ウェブ</string>
     <string name="identity_riot_name_title">暴動の名前</string>
     <string name="staking_setup_sent_message">ステーキングセットアップトランザクションが送信されました</string>
-    <string name="staking_setup_title">セットアップステーキング</string>
-    <string name="staking_setup_amount">賭け金</string>
     <string name="network_fee">ネットワーク料金</string>
     <string name="staking_confirm_reward_destination">報酬先</string>
     <string name="common_confirm">確認</string>

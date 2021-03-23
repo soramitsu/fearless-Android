@@ -3,10 +3,7 @@
     <string name="staking_setup_too_big_error">Вибачте, у вас недостатньо коштів для розміщення вказаної суми</string>
     <string name="staking_setup_reward_payout_account">Рахунок для виплат</string>
     <string name="staking_setup_reward_destination">Виберіть пункт призначення</string>
-    <string name="staking_setup_reward_description">Заробіток за перший рік</string>
-    <string name="staking_setup_restake_description">Заробляйте більше винагород</string>
     <string name="staking_setup_restake">Переробити</string>
-    <string name="staking_setup_payout_description">Передача винагород</string>
     <string name="staking_setup_payout">Виплата</string>
     <string name="staking_setup_learn_more">Дізнайтеся більше про виплати</string>
 
@@ -256,8 +253,6 @@
     <string name="identity_web_title">Веб</string>
     <string name="identity_riot_name_title">Назва бунту</string>
     <string name="staking_setup_sent_message">Транзакція налаштування ставки надіслана</string>
-    <string name="staking_setup_title">Налаштування розміщення</string>
-    <string name="staking_setup_amount">Сума ставки</string>
     <string name="network_fee">Плата за мережу</string>
     <string name="staking_confirm_reward_destination">Нагорода призначення</string>
     <string name="common_confirm">Підтвердити</string>

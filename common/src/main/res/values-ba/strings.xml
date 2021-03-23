@@ -3,10 +3,7 @@
     <string name="staking_setup_too_big_error">Извините, у Вас недостаточно средств для стекинга выбранной суммы</string>
     <string name="staking_setup_reward_payout_account">Аккаунт для выплат вознаграждения</string>
     <string name="staking_setup_reward_destination">Что делать с вознаграждением</string>
-    <string name="staking_setup_reward_description">Заработок за первый год</string>
-    <string name="staking_setup_restake_description">Больше сумма вознаграждений</string>
     <string name="staking_setup_restake">В стекинг</string>
-    <string name="staking_setup_payout_description">Перевести вознаграждение</string>
     <string name="staking_setup_payout">Выплатить</string>
     <string name="staking_setup_learn_more">Узнать больше про выплаты</string>
 
@@ -257,8 +254,6 @@
     <string name="identity_web_title">Сеть</string>
     <string name="identity_riot_name_title">Имя Riot</string>
     <string name="staking_setup_sent_message">Транзакция на установку стекинга отправлена</string>
-    <string name="staking_setup_title">Настройка стекинга</string>
-    <string name="staking_setup_amount">Сумма стекинга</string>
     <string name="network_fee">Комиссия сети</string>
     <string name="staking_confirm_reward_destination">Награда</string>
     <string name="common_confirm">Раҫларға</string>
