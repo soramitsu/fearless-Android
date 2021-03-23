@@ -7,7 +7,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import java.math.BigDecimal
 
 private val TOKEN_TYPE = Token.Type.WND
-private val EXISTENTIAL_DEPOSIT = TOKEN_TYPE.networkType.runtimeConfiguration.existentialDeposit.setScale(10)
+private val EXISTENTIAL_DEPOSIT = BigDecimal("0.01").setScale(10)
 
 @Suppress("UnnecessaryVariable")
 @RunWith(MockitoJUnitRunner::class)
@@ -22,7 +22,7 @@ class TransferTest {
         val fee = BigDecimal("0.1")
         val recipientBalance = BigDecimal("1.2")
 
-        val status = transfer.validityStatus(transferable, total, fee, recipientBalance)
+        val status = transfer.validityStatus(transferable, total, fee, recipientBalance, EXISTENTIAL_DEPOSIT)
 
         assertEquals(status, TransferValidityLevel.Ok)
     }
@@ -36,7 +36,7 @@ class TransferTest {
         val fee = BigDecimal("0.1")
         val recipientBalance = BigDecimal("1.2")
 
-        val status = transfer.validityStatus(transferable, total, fee, recipientBalance)
+        val status = transfer.validityStatus(transferable, total, fee, recipientBalance, EXISTENTIAL_DEPOSIT)
 
         assertEquals(status, TransferValidityLevel.Error.Status.NotEnoughFunds)
     }
@@ -50,7 +50,7 @@ class TransferTest {
         val fee = BigDecimal("0.1")
         val recipientBalance = BigDecimal("0.0")
 
-        val status = transfer.validityStatus(transferable, total, fee, recipientBalance)
+        val status = transfer.validityStatus(transferable, total, fee, recipientBalance, EXISTENTIAL_DEPOSIT)
 
         assertEquals(status, TransferValidityLevel.Error.Status.DeadRecipient)
     }
@@ -64,7 +64,7 @@ class TransferTest {
         val fee = BigDecimal(0)
         val recipientBalance = BigDecimal("1.0")
 
-        val status = transfer.validityStatus(transferable, total, fee, recipientBalance)
+        val status = transfer.validityStatus(transferable, total, fee, recipientBalance, EXISTENTIAL_DEPOSIT)
 
         assertEquals(status, TransferValidityLevel.Warning.Status.WillRemoveAccount)
     }
@@ -78,7 +78,7 @@ class TransferTest {
         val fee = BigDecimal(0)
         val recipientBalance = BigDecimal("0")
 
-        val status = transfer.validityStatus(transferable, total, fee, recipientBalance)
+        val status = transfer.validityStatus(transferable, total, fee, recipientBalance, EXISTENTIAL_DEPOSIT)
 
         assertEquals(status, TransferValidityLevel.Error.Status.DeadRecipient)
     }

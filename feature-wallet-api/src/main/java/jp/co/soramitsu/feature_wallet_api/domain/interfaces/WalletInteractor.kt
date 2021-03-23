@@ -14,9 +14,10 @@ import java.io.File
 import java.math.BigDecimal
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
-class PhishingAddress() : Exception()
+class PhishingAddress : Exception()
 
 interface WalletInteractor {
+
     fun assetsFlow(): Flow<List<Asset>>
 
     suspend fun syncAssetsRates(): Result<Unit>

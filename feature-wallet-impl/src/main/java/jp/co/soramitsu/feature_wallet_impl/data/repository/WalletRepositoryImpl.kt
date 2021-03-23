@@ -14,6 +14,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
@@ -50,6 +51,7 @@ class WalletRepositoryImpl(
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
+    private val walletConstants: WalletConstants,
     private val phishingAddressDao: PhishingAddressDao
 ) : WalletRepository {
 
@@ -147,7 +149,10 @@ class WalletRepositoryImpl(
         val assetLocal = assetCache.getAsset(accountAddress, mapTokenTypeToTokenTypeLocal(transfer.tokenType))!!
         val asset = mapAssetLocalToAsset(assetLocal)
 
-        return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance)
+        val existentialDepositInPlanks = walletConstants.existentialDeposit()
+        val existentialDeposit = tokenType.amountFromPlanks(existentialDepositInPlanks)
+
+        return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance, existentialDeposit)
     }
 
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {

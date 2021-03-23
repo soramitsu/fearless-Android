@@ -35,6 +35,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.MinimumAmou
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
@@ -128,8 +129,8 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideMinimumAmountValidation(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
-    ) = MinimumAmountValidation(runtimeProperty)
+        walletConstants: WalletConstants
+    ) = MinimumAmountValidation(walletConstants)
 
     @Provides
     @FeatureScope

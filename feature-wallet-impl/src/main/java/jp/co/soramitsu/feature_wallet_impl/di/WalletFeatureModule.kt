@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
@@ -28,6 +29,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateS
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
+import jp.co.soramitsu.feature_wallet_impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
@@ -91,6 +93,7 @@ class WalletFeatureModule {
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingAddressDao: PhishingAddressDao,
+        walletConstants: WalletConstants,
         assetCache: AssetCache,
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
@@ -99,6 +102,7 @@ class WalletFeatureModule {
         httpExceptionHandler,
         phishingApi,
         assetCache,
+        walletConstants,
         phishingAddressDao
     )
 
@@ -154,4 +158,10 @@ class WalletFeatureModule {
     ): WalletUpdaters = WalletUpdaters(
         updaters = arrayOf(paymentUpdater)
     )
+
+    @Provides
+    @FeatureScope
+    fun provideWalletConstants(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+    ) : WalletConstants = RuntimeWalletConstants(runtimeProperty)
 }

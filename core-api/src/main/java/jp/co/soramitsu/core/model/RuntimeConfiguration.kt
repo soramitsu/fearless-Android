@@ -2,11 +2,8 @@
 
 package jp.co.soramitsu.core.model
 
-import java.math.BigDecimal
-
 class RuntimeConfiguration(
     val genesisHash: String,
     val erasPerDay: Int,
     val addressByte: Byte,
-    val existentialDeposit: BigDecimal
 )
