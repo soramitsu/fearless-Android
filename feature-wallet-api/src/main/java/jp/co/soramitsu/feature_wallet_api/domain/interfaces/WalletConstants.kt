@@ -4,5 +4,5 @@ import java.math.BigInteger
 
 interface WalletConstants {
 
-    suspend fun existentialDeposit() : BigInteger
+    suspend fun existentialDeposit(): BigInteger
 }

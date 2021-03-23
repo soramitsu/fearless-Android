@@ -42,7 +42,7 @@ fun <S : Schema<S>> EncodableStruct<S>.hash(): String {
     return schema.toByteArray(this).blake2b256().toHexString(withPrefix = true)
 }
 
-fun String.extrinsicHash() : String {
+fun String.extrinsicHash(): String {
     return fromHex().blake2b256().toHexString(withPrefix = true)
 }
 

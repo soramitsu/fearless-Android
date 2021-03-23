@@ -163,5 +163,5 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideWalletConstants(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>
-    ) : WalletConstants = RuntimeWalletConstants(runtimeProperty)
+    ): WalletConstants = RuntimeWalletConstants(runtimeProperty)
 }

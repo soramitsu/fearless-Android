@@ -83,5 +83,5 @@ interface WalletFeatureDependencies {
 
     fun accountUpdateScope(): AccountUpdateScope
 
-    fun extrinsicBuilderFactory() : ExtrinsicBuilderFactory
+    fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
 }

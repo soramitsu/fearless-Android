@@ -25,9 +25,9 @@ val GenericCall.Instance.index: Pair<Int, Int>
 
 private val TRANSFER_CALL_NAMES = listOf("transfer", "transfer_keep_alive")
 
-fun notTransfer() : Nothing = throw IllegalArgumentException("Extrinsic is not a transfer extrinsic")
+fun notTransfer(): Nothing = throw IllegalArgumentException("Extrinsic is not a transfer extrinsic")
 
-fun bindTransferExtrinsic(scale: String, runtime: RuntimeSnapshot) : TransferExtrinsic {
+fun bindTransferExtrinsic(scale: String, runtime: RuntimeSnapshot): TransferExtrinsic {
     val extrinsicInstance = Extrinsic.fromHexOrIncompatible(scale, runtime)
     val call = extrinsicInstance.call
 

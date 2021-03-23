@@ -18,5 +18,5 @@ interface WalletFeatureApi {
 
     fun provideAssetCache(): AssetCache
 
-    fun provideWallConstants() : WalletConstants
+    fun provideWallConstants(): WalletConstants
 }
