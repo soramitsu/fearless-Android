@@ -22,8 +22,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionStatusToTransactionStatusLocal
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.AccountInfo
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.TransferExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.bindAccountInfo
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -34,7 +34,7 @@ class PaymentUpdater(
     private val assetCache: AssetCache,
     private val transactionsDao: TransactionDao,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    override val scope: AccountUpdateScope
+    override val scope: AccountUpdateScope,
 ) : Updater {
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
@@ -61,7 +61,7 @@ class PaymentUpdater(
 
     private suspend fun updateAssetBalance(
         address: String,
-        accountInfo: AccountInfo
+        accountInfo: AccountInfo,
     ) = assetCache.updateAsset(address) { cachedAsset ->
         val data = accountInfo.data
 
@@ -94,7 +94,7 @@ class PaymentUpdater(
     private suspend fun createTransactionLocal(
         extrinsic: TransferExtrinsic,
         status: Transaction.Status,
-        accountAddress: String
+        accountAddress: String,
     ): TransactionLocal {
         val localCopy = transactionsDao.getTransaction(extrinsic.hash)
 

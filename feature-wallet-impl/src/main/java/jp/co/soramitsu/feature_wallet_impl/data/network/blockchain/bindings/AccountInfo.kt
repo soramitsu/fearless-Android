@@ -36,16 +36,16 @@ class AccountInfo(
 }
 
 @HelperBinding
-fun bindBalance(dynamicInstance: Any?): BigInteger {
+fun bindNumber(dynamicInstance: Any?): BigInteger {
     return dynamicInstance.cast()
 }
 
 @HelperBinding
 fun bindAccountData(dynamicInstance: Struct.Instance) = AccountData(
-    free = bindBalance(dynamicInstance["free"]),
-    reserved = bindBalance(dynamicInstance["reserved"]),
-    miscFrozen = bindBalance(dynamicInstance["miscFrozen"]),
-    feeFrozen = bindBalance(dynamicInstance["feeFrozen"]),
+    free = bindNumber(dynamicInstance["free"]),
+    reserved = bindNumber(dynamicInstance["reserved"]),
+    miscFrozen = bindNumber(dynamicInstance["miscFrozen"]),
+    feeFrozen = bindNumber(dynamicInstance["feeFrozen"]),
 )
 
 @HelperBinding

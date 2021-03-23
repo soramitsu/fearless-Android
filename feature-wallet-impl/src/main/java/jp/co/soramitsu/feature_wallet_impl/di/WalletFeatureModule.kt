@@ -4,7 +4,6 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -12,8 +11,6 @@ import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
-import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -28,7 +25,6 @@ import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
@@ -39,6 +35,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.Buy
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixinProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecksProvider
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
 @Module
 class WalletFeatureModule {
@@ -61,13 +58,6 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideExtrinsicFactory(
-        dualRefCountProperty: SuspendableProperty<Boolean>,
-        signer: Signer,
-    ) = TransferExtrinsicFactory(dualRefCountProperty, signer)
-
-    @Provides
-    @FeatureScope
     fun providePhishingApi(networkApiCreator: NetworkApiCreator): PhishingApi {
         return networkApiCreator.create(PhishingApi::class.java)
     }
@@ -76,16 +66,12 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideSubstrateSource(
         socketService: SocketService,
-        keypairFactory: KeypairFactory,
-        extrinsicFactory: TransferExtrinsicFactory,
-        substrateCalls: SubstrateCalls,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     ): SubstrateRemoteSource = WssSubstrateSource(
         socketService,
-        keypairFactory,
-        extrinsicFactory,
         runtimeProperty,
-        substrateCalls
+        extrinsicBuilderFactory,
     )
 
     @Provides

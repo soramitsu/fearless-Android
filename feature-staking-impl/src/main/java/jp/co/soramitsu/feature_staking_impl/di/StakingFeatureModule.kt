@@ -112,9 +112,8 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideMaxFeeEstimator(
         substrateCalls: SubstrateCalls,
-        accountRepository: AccountRepository,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory
-    ) = MaxFeeEstimator(substrateCalls, accountRepository, extrinsicBuilderFactory)
+    ) = MaxFeeEstimator(substrateCalls, extrinsicBuilderFactory)
 
     @Provides
     @FeatureScope

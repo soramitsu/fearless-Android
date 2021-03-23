@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.domain.setup
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
@@ -15,7 +14,6 @@ import java.math.BigInteger
 
 class MaxFeeEstimator(
     private val substrateCalls: SubstrateCalls,
-    private val accountRepository: AccountRepository,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory
 ) {
 
@@ -27,9 +25,7 @@ class MaxFeeEstimator(
         rewardDestination: RewardDestination = fakeRewardDestination(),
         nominations: List<MultiAddress> = fakeTargets(),
     ): BigDecimal {
-        val account = accountRepository.getAccount(originAddress)
-
-        val extrinsicBuilder = with(extrinsicBuilderFactory) { create(account, fakeKeypairProvider()) }
+        val extrinsicBuilder = with(extrinsicBuilderFactory) { create(originAddress, fakeKeypairProvider()) }
 
         val extrinsic = extrinsicBuilder.apply {
             if (!skipBond) {
