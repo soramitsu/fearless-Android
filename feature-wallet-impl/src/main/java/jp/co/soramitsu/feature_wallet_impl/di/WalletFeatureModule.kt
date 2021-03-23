@@ -28,9 +28,7 @@ import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountInfoSchemaUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
@@ -65,14 +63,8 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideExtrinsicFactory(
         dualRefCountProperty: SuspendableProperty<Boolean>,
-        signer: Signer
+        signer: Signer,
     ) = TransferExtrinsicFactory(dualRefCountProperty, signer)
-
-    @Provides
-    @FeatureScope
-    fun provideAccountInfoFactory(
-        dualRefCountProperty: SuspendableProperty<Boolean>
-    ) = AccountInfoFactory(dualRefCountProperty)
 
     @Provides
     @FeatureScope
@@ -85,14 +77,12 @@ class WalletFeatureModule {
     fun provideSubstrateSource(
         socketService: SocketService,
         keypairFactory: KeypairFactory,
-        accountInfoFactory: AccountInfoFactory,
         extrinsicFactory: TransferExtrinsicFactory,
         substrateCalls: SubstrateCalls,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     ): SubstrateRemoteSource = WssSubstrateSource(
         socketService,
         keypairFactory,
-        accountInfoFactory,
         extrinsicFactory,
         runtimeProperty,
         substrateCalls
@@ -101,7 +91,7 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideTokenRepository(
-        tokenDao: TokenDao
+        tokenDao: TokenDao,
     ): TokenRepository = TokenRepositoryImpl(
         tokenDao
     )
@@ -115,7 +105,7 @@ class WalletFeatureModule {
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingAddressDao: PhishingAddressDao,
-        assetCache: AssetCache
+        assetCache: AssetCache,
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         transactionDao,
@@ -131,7 +121,7 @@ class WalletFeatureModule {
     fun provideWalletInteractor(
         walletRepository: WalletRepository,
         accountRepository: AccountRepository,
-        fileProvider: FileProvider
+        fileProvider: FileProvider,
     ): WalletInteractor = WalletInteractorImpl(walletRepository, accountRepository, fileProvider)
 
     @Provides
@@ -146,7 +136,7 @@ class WalletFeatureModule {
 
     @Provides
     fun provideBuyMixin(
-        buyTokenRegistry: BuyTokenRegistry
+        buyTokenRegistry: BuyTokenRegistry,
     ): BuyMixin.Presentation = BuyMixinProvider(buyTokenRegistry)
 
     @Provides
@@ -155,26 +145,18 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideAccountSchemaUpdater(
-        accountInfoFactory: AccountInfoFactory
-    ): AccountInfoSchemaUpdater {
-        return AccountInfoSchemaUpdater(accountInfoFactory)
-    }
-
-    @Provides
-    @FeatureScope
     fun providePaymentUpdater(
         remoteSource: SubstrateRemoteSource,
-        accountInfoFactory: AccountInfoFactory,
         assetCache: AssetCache,
         transactionDao: TransactionDao,
-        accountUpdateScope: AccountUpdateScope
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        accountUpdateScope: AccountUpdateScope,
     ): PaymentUpdater {
         return PaymentUpdater(
             remoteSource,
             assetCache,
-            accountInfoFactory,
             transactionDao,
+            runtimeProperty,
             accountUpdateScope
         )
     }
@@ -182,9 +164,8 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideFeatureUpdaters(
-        schemaUpdater: AccountInfoSchemaUpdater,
-        paymentUpdater: PaymentUpdater
+        paymentUpdater: PaymentUpdater,
     ): WalletUpdaters = WalletUpdaters(
-        updaters = arrayOf(schemaUpdater, paymentUpdater)
+        updaters = arrayOf(paymentUpdater)
     )
 }

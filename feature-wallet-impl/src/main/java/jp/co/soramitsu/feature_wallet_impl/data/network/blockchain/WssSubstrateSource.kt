@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.preBinder
 import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
@@ -21,7 +20,6 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
@@ -32,11 +30,11 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoR
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.AccountInfo
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.bindAccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetBlockRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.EncodeExtrinsicParams
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
 import kotlinx.coroutines.Dispatchers
@@ -46,23 +44,19 @@ import org.bouncycastle.util.encoders.Hex
 class WssSubstrateSource(
     private val socketService: SocketService,
     private val keypairFactory: KeypairFactory,
-    private val accountInfoFactory: AccountInfoFactory,
     private val extrinsicFactory: TransferExtrinsicFactory,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    private val substrateCalls: SubstrateCalls
+    private val substrateCalls: SubstrateCalls,
 ) : SubstrateRemoteSource {
 
-    override suspend fun fetchAccountInfo(
-        address: String,
-        networkType: Node.NetworkType
-    ): EncodableStruct<AccountInfoSchema> {
+    override suspend fun getAccountInfo(address: String): AccountInfo {
         val publicKeyBytes = address.toAccountId()
         val request = AccountInfoRequest(publicKeyBytes)
 
-        val response = socketService.executeAsync(request)
-        val accountInfo = (response.result as? String)?.let { accountInfoFactory.decode(it) }
+        val response = socketService.executeAsync(request, mapper = pojo<String>())
+        val accountInfo = response.result?.let { bindAccountInfo(it, runtimeProperty.get()) }
 
-        return accountInfo ?: accountInfoFactory.createEmpty()
+        return accountInfo ?: AccountInfo.empty()
     }
 
     override suspend fun getTransferFee(account: WalletAccount, transfer: Transfer): FeeResponse {
@@ -77,7 +71,7 @@ class WssSubstrateSource(
     override suspend fun performTransfer(
         account: WalletAccount,
         transfer: Transfer,
-        keypair: Keypair
+        keypair: Keypair,
     ): String {
         val extrinsic = buildSubmittableExtrinsic(account, transfer, keypair)
         val transferRequest = TransferRequest(extrinsic)
@@ -111,7 +105,7 @@ class WssSubstrateSource(
     private suspend fun buildSubmittableExtrinsic(
         account: WalletAccount,
         transfer: Transfer,
-        keypair: Keypair
+        keypair: Keypair,
     ): String = withContext(Dispatchers.Default) {
         val runtimeVersion = substrateCalls.getRuntimeVersion()
         val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
@@ -153,7 +147,7 @@ class WssSubstrateSource(
     private suspend fun filterAccountTransactions(
         accountAddress: String,
         extrinsics: List<String>,
-        statuesByExtrinsicIndex: Map<Int, EventRecord<ExtrinsicStatusEvent>>
+        statuesByExtrinsicIndex: Map<Int, EventRecord<ExtrinsicStatusEvent>>,
     ): List<TransferExtrinsicWithStatus> {
         return withContext(Dispatchers.Default) {
             val currentPublicKey = accountAddress.toAccountId()

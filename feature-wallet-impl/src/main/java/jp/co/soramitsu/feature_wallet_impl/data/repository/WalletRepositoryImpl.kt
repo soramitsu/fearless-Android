@@ -144,8 +144,8 @@ class WalletRepositoryImpl(
 
         val tokenType = transfer.tokenType
 
-        val recipientInfo = substrateSource.fetchAccountInfo(transfer.recipient, account.network.type)
-        val totalRecipientBalanceInPlanks = recipientInfo.totalBalanceInPlanks()
+        val recipientInfo = substrateSource.getAccountInfo(transfer.recipient)
+        val totalRecipientBalanceInPlanks = recipientInfo.totalBalance
         val totalRecipientBalance = tokenType.amountFromPlanks(totalRecipientBalanceInPlanks)
 
         val assetLocal = assetCache.getAsset(account.address, mapTokenTypeToTokenTypeLocal(transfer.tokenType))!!
