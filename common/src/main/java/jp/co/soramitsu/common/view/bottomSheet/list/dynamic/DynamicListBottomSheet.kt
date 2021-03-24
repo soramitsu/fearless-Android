@@ -18,7 +18,7 @@ class ReferentialEqualityDiffCallBack<T> : DiffUtil.ItemCallback<T>() {
     }
 
     override fun areContentsTheSame(oldItem: T, newItem: T): Boolean {
-       return true
+        return true
     }
 }
 

@@ -6,6 +6,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 interface ExternalProvider : BuyTokenRegistry.Provider<BuyTokenRegistry.Integrator<Context>> {
 
     companion object {
-        val REDIRECT_URL_BASE = "fearless://buy-success"
+        const val REDIRECT_URL_BASE = "fearless://buy-success"
     }
 }

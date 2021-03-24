@@ -38,7 +38,6 @@ fun Context.showBrowser(link: String) {
     startActivity(intent)
 }
 
-
 fun Context.createSendEmailIntent(targetEmail: String, title: String) {
     val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
         putExtra(Intent.EXTRA_EMAIL, targetEmail)
@@ -48,8 +47,7 @@ fun Context.createSendEmailIntent(targetEmail: String, title: String) {
     startActivity(Intent.createChooser(emailIntent, title))
 }
 
-
-fun @receiver:ColorInt Int.toHexColor() : String {
+fun @receiver:ColorInt Int.toHexColor(): String {
     val withoutAlpha = 0xFFFFFF and this
 
     return "#%06X".format(withoutAlpha)

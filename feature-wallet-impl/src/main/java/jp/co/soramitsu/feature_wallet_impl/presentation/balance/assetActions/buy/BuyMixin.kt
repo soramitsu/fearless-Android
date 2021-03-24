@@ -42,8 +42,11 @@ fun <V> BaseFragment<V>.setupBuyIntegration(viewModel: V) where V : BaseViewMode
     }
 
     viewModel.showProviderChooserEvent.observeEvent { payload ->
-        BuyProviderChooserBottomSheet(requireContext(), payload.providers, onClick = {
-            viewModel.providerChosen(it, payload.token, payload.address)
-        }).show()
+        BuyProviderChooserBottomSheet(
+            requireContext(), payload.providers,
+            onClick = {
+                viewModel.providerChosen(it, payload.token, payload.address)
+            }
+        ).show()
     }
 }

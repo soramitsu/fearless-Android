@@ -11,7 +11,6 @@ import jp.co.soramitsu.feature_wallet_impl.R
 private const val RAMP_APP_NAME = "Fearless Wallet"
 private const val RAMP_APP_LOGO = "https://raw.githubusercontent.com/sora-xor/sora-branding/master/Fearless-Wallet-brand/fearless-wallet-logo-ramp.png"
 
-
 class RampProvider(
     private val host: String,
     private val apiToken: String
