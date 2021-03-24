@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
-import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -31,11 +30,11 @@ interface WalletRepository {
 
     suspend fun getContacts(account: WalletAccount, query: String): Set<String>
 
-    suspend fun getTransferFee(account: WalletAccount, transfer: Transfer): Fee
+    suspend fun getTransferFee(accountAddress: String, transfer: Transfer): Fee
 
-    suspend fun performTransfer(account: WalletAccount, signingData: SigningData, transfer: Transfer, fee: BigDecimal)
+    suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal)
 
-    suspend fun checkTransferValidity(account: WalletAccount, transfer: Transfer): TransferValidityStatus
+    suspend fun checkTransferValidity(accountAddress: String, transfer: Transfer): TransferValidityStatus
 
     suspend fun updatePhishingAddresses()
 

@@ -15,10 +15,10 @@ class Transfer(
         senderTransferable: BigDecimal,
         senderTotal: BigDecimal,
         fee: BigDecimal,
-        recipientBalance: BigDecimal
+        recipientBalance: BigDecimal,
+        existentialDeposit: BigDecimal
     ): TransferValidityStatus {
         val transactionTotal = fee + amount
-        val existentialDeposit = tokenType.networkType.runtimeConfiguration.existentialDeposit
 
         return when {
             transactionTotal > senderTransferable -> TransferValidityLevel.Error.Status.NotEnoughFunds

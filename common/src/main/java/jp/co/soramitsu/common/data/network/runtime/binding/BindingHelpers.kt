@@ -1,7 +1,9 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
@@ -37,3 +39,5 @@ inline fun <T> bindOrNull(binder: () -> T): T? = runCatching(binder).getOrNull()
 fun RuntimeMetadata.storageReturnType(moduleName: String, storageName: String): Type<*> {
     return module(moduleName).storage(storageName).type.value ?: incompatible()
 }
+
+fun <T> Type<T>.fromHexOrIncompatible(scale: String, runtime: RuntimeSnapshot) = fromHexOrNull(runtime, scale) ?: incompatible()

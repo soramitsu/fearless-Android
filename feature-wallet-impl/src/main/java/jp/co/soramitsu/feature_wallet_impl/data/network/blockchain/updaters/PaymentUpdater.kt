@@ -1,14 +1,17 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
+import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.TransactionLocal
-import jp.co.soramitsu.fearless_utils.runtime.Module
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
@@ -18,10 +21,9 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionStatusToTransactionStatusLocal
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountData
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.AccountInfo
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.TransferExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.bindAccountInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -30,15 +32,16 @@ import kotlinx.coroutines.flow.onEach
 class PaymentUpdater(
     private val substrateSource: SubstrateRemoteSource,
     private val assetCache: AssetCache,
-    private val accountInfoFactory: AccountInfoFactory,
     private val transactionsDao: TransactionDao,
-    override val scope: AccountUpdateScope
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    override val scope: AccountUpdateScope,
 ) : Updater {
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val address = scope.getAccount().address
 
-        val key = Module.System.Account.storageKey(address.toAccountId())
+        val runtime = runtimeProperty.get()
+        val key = runtime.metadata.module("System").storage("Account").storageKey(runtime, address.toAccountId())
 
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
@@ -52,21 +55,21 @@ class PaymentUpdater(
             .noSideAffects()
     }
 
-    private suspend fun readAccountInfo(hex: String?): EncodableStruct<AccountInfoSchema> {
-        return hex?.let { accountInfoFactory.decode(it) } ?: accountInfoFactory.createEmpty()
+    private suspend fun readAccountInfo(hex: String?): AccountInfo {
+        return hex?.let { bindAccountInfo(it, runtimeProperty.get()) } ?: AccountInfo.empty()
     }
 
     private suspend fun updateAssetBalance(
         address: String,
-        accountInfo: EncodableStruct<AccountInfoSchema>
+        accountInfo: AccountInfo,
     ) = assetCache.updateAsset(address) { cachedAsset ->
-        val data = accountInfo[accountInfo.schema.data]
+        val data = accountInfo.data
 
         cachedAsset.copy(
-            freeInPlanks = data[AccountData.free],
-            reservedInPlanks = data[AccountData.reserved],
-            miscFrozenInPlanks = data[AccountData.miscFrozen],
-            feeFrozenInPlanks = data[AccountData.feeFrozen]
+            freeInPlanks = data.free,
+            reservedInPlanks = data.reserved,
+            miscFrozenInPlanks = data.miscFrozen,
+            feeFrozenInPlanks = data.feeFrozen
         )
     }
 
@@ -91,7 +94,7 @@ class PaymentUpdater(
     private suspend fun createTransactionLocal(
         extrinsic: TransferExtrinsic,
         status: Transaction.Status,
-        accountAddress: String
+        accountAddress: String,
     ): TransactionLocal {
         val localCopy = transactionsDao.getTransaction(extrinsic.hash)
 

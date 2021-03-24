@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -16,7 +17,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-typealias KeypairProvider = suspend (Account) -> Keypair
+typealias KeypairProvider = suspend (account: Account) -> Keypair
 
 class ExtrinsicBuilderFactory(
     private val accountRepository: AccountRepository,
@@ -35,13 +36,15 @@ class ExtrinsicBuilderFactory(
     }
 
     suspend fun create(
-        account: Account,
+        accountAddress: String,
         keypairProvider: KeypairProvider = accountKeypairProvider()
     ): ExtrinsicBuilder {
-        val nonce = substrateCalls.getNonce(account.address)
+        val account = accountRepository.getAccount(accountAddress)
+
+        val nonce = substrateCalls.getNonce(accountAddress)
         val runtimeVersion = substrateCalls.getRuntimeVersion()
 
-        val runtimeConfiguration = account.network.type.runtimeConfiguration
+        val runtimeConfiguration = accountAddress.networkType().runtimeConfiguration
 
         return ExtrinsicBuilder(
             runtime = runtimeProperty.get(),

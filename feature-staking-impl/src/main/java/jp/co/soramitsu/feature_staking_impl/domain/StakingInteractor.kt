@@ -154,9 +154,7 @@ class StakingInteractor(
         skipBond: Boolean,
     ) = withContext(Dispatchers.Default) {
         runCatching {
-            val account = accountRepository.getAccount(originAddress)
-
-            val extrinsic = extrinsicBuilderFactory.create(account).apply {
+            val extrinsic = extrinsicBuilderFactory.create(originAddress).apply {
                 if (!skipBond) {
                     bond(
                         controllerAddress = MultiAddress.Id(originAddress.toAccountId()),

@@ -1,13 +1,11 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
-import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.subscan.SubscanResponse
 import jp.co.soramitsu.common.data.network.subscan.subscanSubDomain
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
@@ -16,6 +14,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
@@ -52,6 +51,7 @@ class WalletRepositoryImpl(
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
+    private val walletConstants: WalletConstants,
     private val phishingAddressDao: PhishingAddressDao
 ) : WalletRepository {
 
@@ -121,37 +121,38 @@ class WalletRepositoryImpl(
         return transactionsDao.getContacts(query, account.address).toSet()
     }
 
-    override suspend fun getTransferFee(account: WalletAccount, transfer: Transfer): Fee {
-        val feeRemote = substrateSource.getTransferFee(account, transfer)
+    override suspend fun getTransferFee(accountAddress: String, transfer: Transfer): Fee {
+        val feeRemote = substrateSource.getTransferFee(accountAddress, transfer)
 
         return mapFeeRemoteToFee(feeRemote, transfer)
     }
 
-    override suspend fun performTransfer(account: WalletAccount, signingData: SigningData, transfer: Transfer, fee: BigDecimal) {
-        val keypair = mapSigningDataToKeypair(signingData)
+    override suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal) {
+        val transactionHash = substrateSource.performTransfer(accountAddress, transfer)
 
-        val transactionHash = substrateSource.performTransfer(account, transfer, keypair)
+        val transaction = createTransaction(transactionHash, transfer, accountAddress, fee)
 
-        val transaction = createTransaction(transactionHash, transfer, account.address, fee)
-
-        val transactionLocal = mapTransactionToTransactionLocal(transaction, account.address, TransactionLocal.Source.APP)
+        val transactionLocal = mapTransactionToTransactionLocal(transaction, accountAddress, TransactionLocal.Source.APP)
 
         transactionsDao.insert(transactionLocal)
     }
 
-    override suspend fun checkTransferValidity(account: WalletAccount, transfer: Transfer): TransferValidityStatus {
-        val feeResponse = getTransferFee(account, transfer)
+    override suspend fun checkTransferValidity(accountAddress: String, transfer: Transfer): TransferValidityStatus {
+        val feeResponse = getTransferFee(accountAddress, transfer)
 
         val tokenType = transfer.tokenType
 
-        val recipientInfo = substrateSource.fetchAccountInfo(transfer.recipient, account.network.type)
-        val totalRecipientBalanceInPlanks = recipientInfo.totalBalanceInPlanks()
+        val recipientInfo = substrateSource.getAccountInfo(transfer.recipient)
+        val totalRecipientBalanceInPlanks = recipientInfo.totalBalance
         val totalRecipientBalance = tokenType.amountFromPlanks(totalRecipientBalanceInPlanks)
 
-        val assetLocal = assetCache.getAsset(account.address, mapTokenTypeToTokenTypeLocal(transfer.tokenType))!!
+        val assetLocal = assetCache.getAsset(accountAddress, mapTokenTypeToTokenTypeLocal(transfer.tokenType))!!
         val asset = mapAssetLocalToAsset(assetLocal)
 
-        return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance)
+        val existentialDepositInPlanks = walletConstants.existentialDeposit()
+        val existentialDeposit = tokenType.amountFromPlanks(existentialDepositInPlanks)
+
+        return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance, existentialDeposit)
     }
 
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {

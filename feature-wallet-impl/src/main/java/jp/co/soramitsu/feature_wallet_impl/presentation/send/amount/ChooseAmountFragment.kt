@@ -104,9 +104,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         viewModel.continueButtonStateLiveData.observe(chooseAmountNext::setState)
 
         viewModel.showBalanceDetailsEvent.observeEvent {
-            val asset = viewModel.assetLiveData.value!!
-
-            BalanceDetailsBottomSheet(requireContext(), asset, it).show()
+            BalanceDetailsBottomSheet(requireContext(), it).show()
         }
 
         observePhishingCheck(viewModel)
