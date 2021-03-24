@@ -13,7 +13,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailViewModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryProvider
@@ -26,7 +26,7 @@ class BalanceDetailModule {
     fun provideTransferHistoryMixin(
         walletInteractor: WalletInteractor,
         addressIconGenerator: AddressIconGenerator,
-        walletRouter: WalletRouter
+        walletRouter: WalletRouter,
     ): TransactionHistoryMixin {
         return TransactionHistoryProvider(walletInteractor, addressIconGenerator, walletRouter)
     }
@@ -39,7 +39,7 @@ class BalanceDetailModule {
         router: WalletRouter,
         transactionHistoryMixin: TransactionHistoryMixin,
         buyMixin: BuyMixin.Presentation,
-        type: Token.Type
+        type: Token.Type,
     ): ViewModel {
         return BalanceDetailViewModel(interactor, router, type, buyMixin, transactionHistoryMixin)
     }
@@ -47,7 +47,7 @@ class BalanceDetailModule {
     @Provides
     fun provideViewModelCreator(
         fragment: Fragment,
-        viewModelFactory: ViewModelProvider.Factory
+        viewModelFactory: ViewModelProvider.Factory,
     ): BalanceDetailViewModel {
         return ViewModelProvider(fragment, viewModelFactory).get(BalanceDetailViewModel::class.java)
     }

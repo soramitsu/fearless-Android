@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.setupBuyIntegration
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListActions
@@ -29,7 +29,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         return inflater.inflate(R.layout.fragment_balance_list, container, false)
     }

@@ -18,6 +18,10 @@ class MoonPayProvider(
 
     override val supportedTokens: Set<Token.Type> = setOf(Token.Type.DOT)
 
+    override val name: String = "Moonpay"
+
+    override val icon: Int = R.drawable.ic_moonpay
+
     override fun createIntegrator(tokenType: Token.Type, address: String): BuyTokenRegistry.Integrator<Context> {
         return MoonPayIntegrator(host, privateKey, publicKey, tokenType, address)
     }

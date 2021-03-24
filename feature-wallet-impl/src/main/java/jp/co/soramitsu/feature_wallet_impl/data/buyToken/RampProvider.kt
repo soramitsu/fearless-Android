@@ -6,6 +6,7 @@ import android.net.Uri
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_impl.R
 
 private const val RAMP_APP_NAME = "Fearless Wallet"
 private const val RAMP_APP_LOGO = "https://raw.githubusercontent.com/sora-xor/sora-branding/master/Fearless-Wallet-brand/fearless-wallet-logo-ramp.png"
@@ -17,6 +18,10 @@ class RampProvider(
 ) : ExternalProvider {
 
     override val supportedTokens = setOf(Token.Type.DOT, Token.Type.KSM)
+
+    override val name: String = "Ramp"
+
+    override val icon: Int = R.drawable.ic_ramp
 
     override fun createIntegrator(tokenType: Token.Type, address: String): BuyTokenRegistry.Integrator<Context> {
         if (!isTokenSupported(tokenType)) {

@@ -21,6 +21,8 @@ dependencies {
     implementation coroutinesDep
     implementation project(":common")
 
+    implementation androidDep
+
     api project(':core-api')
     api project(':core-db')
 }
