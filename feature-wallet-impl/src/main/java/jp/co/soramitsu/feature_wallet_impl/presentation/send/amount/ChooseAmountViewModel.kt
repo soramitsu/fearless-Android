@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -24,6 +25,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
@@ -59,6 +61,7 @@ class ChooseAmountViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
+    private val walletConstants: WalletConstants,
     private val recipientAddress: String,
     private val phishingAddress: PhishingWarningMixin
 ) : BaseViewModel(),
@@ -84,8 +87,8 @@ class ChooseAmountViewModel(
 
     private val checkingEnoughFundsLiveData = MutableLiveData(false)
 
-    private val _showBalanceDetailsEvent = MutableLiveData<Event<TransferDraft>>()
-    val showBalanceDetailsEvent: LiveData<Event<TransferDraft>> = _showBalanceDetailsEvent
+    private val _showBalanceDetailsEvent = MutableLiveData<Event<BalanceDetailsBottomSheet.Payload>>()
+    val showBalanceDetailsEvent: LiveData<Event<BalanceDetailsBottomSheet.Payload>> = _showBalanceDetailsEvent
 
     val assetLiveData = liveData {
         val asset = interactor.getCurrentAsset()
@@ -142,8 +145,13 @@ class ChooseAmountViewModel(
 
     fun availableBalanceClicked() {
         val transferDraft = buildTransferDraft() ?: return
+        val assetModel = assetLiveData.value ?: return
 
-        _showBalanceDetailsEvent.value = Event(transferDraft)
+        launch {
+            val existentialDeposit = assetModel.token.type.amountFromPlanks(walletConstants.existentialDeposit())
+
+            _showBalanceDetailsEvent.value = Event(BalanceDetailsBottomSheet.Payload(assetModel, transferDraft, existentialDeposit))
+        }
     }
 
     fun warningConfirmed() {

@@ -129,8 +129,9 @@ class WalletInteractorImpl(
     }
 
     override suspend fun getTransferFee(transfer: Transfer): Fee {
-        val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
-        return walletRepository.getTransferFee(account, transfer)
+        val accountAddress = accountRepository.getSelectedAccount().address
+
+        return walletRepository.getTransferFee(accountAddress, transfer)
     }
 
     override suspend fun performTransfer(
@@ -138,23 +139,23 @@ class WalletInteractorImpl(
         fee: BigDecimal,
         maxAllowedLevel: TransferValidityLevel
     ): Result<Unit> {
-        val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
-        val validityStatus = walletRepository.checkTransferValidity(account, transfer)
+        val accountAddress = accountRepository.getSelectedAccount().address
+        val validityStatus = walletRepository.checkTransferValidity(accountAddress, transfer)
 
         if (validityStatus.level > maxAllowedLevel) {
             return Result.failure(NotValidTransferStatus(validityStatus))
         }
 
         return runCatching {
-            val signingData = accountRepository.getCurrentSecuritySource().signingData
-            walletRepository.performTransfer(account, signingData, transfer, fee)
+            walletRepository.performTransfer(accountAddress, transfer, fee)
         }
     }
 
     override suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus> {
         return runCatching {
-            val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
-            walletRepository.checkTransferValidity(account, transfer)
+            val accountAddress = accountRepository.getSelectedAccount().address
+
+            walletRepository.checkTransferValidity(accountAddress, transfer)
         }
     }
 

@@ -4,7 +4,6 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -12,8 +11,6 @@ import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
-import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -21,6 +18,7 @@ import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
@@ -28,12 +26,10 @@ import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.AccountInfoSchemaUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
+import jp.co.soramitsu.feature_wallet_impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
@@ -41,6 +37,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.Buy
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixinProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecksProvider
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
 @Module
 class WalletFeatureModule {
@@ -63,19 +60,6 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideExtrinsicFactory(
-        dualRefCountProperty: SuspendableProperty<Boolean>,
-        signer: Signer
-    ) = TransferExtrinsicFactory(dualRefCountProperty, signer)
-
-    @Provides
-    @FeatureScope
-    fun provideAccountInfoFactory(
-        dualRefCountProperty: SuspendableProperty<Boolean>
-    ) = AccountInfoFactory(dualRefCountProperty)
-
-    @Provides
-    @FeatureScope
     fun providePhishingApi(networkApiCreator: NetworkApiCreator): PhishingApi {
         return networkApiCreator.create(PhishingApi::class.java)
     }
@@ -84,24 +68,18 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideSubstrateSource(
         socketService: SocketService,
-        keypairFactory: KeypairFactory,
-        accountInfoFactory: AccountInfoFactory,
-        extrinsicFactory: TransferExtrinsicFactory,
-        substrateCalls: SubstrateCalls,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     ): SubstrateRemoteSource = WssSubstrateSource(
         socketService,
-        keypairFactory,
-        accountInfoFactory,
-        extrinsicFactory,
         runtimeProperty,
-        substrateCalls
+        extrinsicBuilderFactory,
     )
 
     @Provides
     @FeatureScope
     fun provideTokenRepository(
-        tokenDao: TokenDao
+        tokenDao: TokenDao,
     ): TokenRepository = TokenRepositoryImpl(
         tokenDao
     )
@@ -115,7 +93,8 @@ class WalletFeatureModule {
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingAddressDao: PhishingAddressDao,
-        assetCache: AssetCache
+        walletConstants: WalletConstants,
+        assetCache: AssetCache,
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         transactionDao,
@@ -123,6 +102,7 @@ class WalletFeatureModule {
         httpExceptionHandler,
         phishingApi,
         assetCache,
+        walletConstants,
         phishingAddressDao
     )
 
@@ -131,7 +111,7 @@ class WalletFeatureModule {
     fun provideWalletInteractor(
         walletRepository: WalletRepository,
         accountRepository: AccountRepository,
-        fileProvider: FileProvider
+        fileProvider: FileProvider,
     ): WalletInteractor = WalletInteractorImpl(walletRepository, accountRepository, fileProvider)
 
     @Provides
@@ -146,7 +126,7 @@ class WalletFeatureModule {
 
     @Provides
     fun provideBuyMixin(
-        buyTokenRegistry: BuyTokenRegistry
+        buyTokenRegistry: BuyTokenRegistry,
     ): BuyMixin.Presentation = BuyMixinProvider(buyTokenRegistry)
 
     @Provides
@@ -155,26 +135,18 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideAccountSchemaUpdater(
-        accountInfoFactory: AccountInfoFactory
-    ): AccountInfoSchemaUpdater {
-        return AccountInfoSchemaUpdater(accountInfoFactory)
-    }
-
-    @Provides
-    @FeatureScope
     fun providePaymentUpdater(
         remoteSource: SubstrateRemoteSource,
-        accountInfoFactory: AccountInfoFactory,
         assetCache: AssetCache,
         transactionDao: TransactionDao,
-        accountUpdateScope: AccountUpdateScope
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        accountUpdateScope: AccountUpdateScope,
     ): PaymentUpdater {
         return PaymentUpdater(
             remoteSource,
             assetCache,
-            accountInfoFactory,
             transactionDao,
+            runtimeProperty,
             accountUpdateScope
         )
     }
@@ -182,9 +154,14 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideFeatureUpdaters(
-        schemaUpdater: AccountInfoSchemaUpdater,
-        paymentUpdater: PaymentUpdater
+        paymentUpdater: PaymentUpdater,
     ): WalletUpdaters = WalletUpdaters(
-        updaters = arrayOf(schemaUpdater, paymentUpdater)
+        updaters = arrayOf(paymentUpdater)
     )
+
+    @Provides
+    @FeatureScope
+    fun provideWalletConstants(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+    ): WalletConstants = RuntimeWalletConstants(runtimeProperty)
 }

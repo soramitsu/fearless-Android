@@ -11,7 +11,6 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithMaxPrecision
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
@@ -103,14 +102,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         viewModel.sendButtonStateLiveData.observe(confirmTransferSubmit::setState)
 
         viewModel.showBalanceDetailsEvent.observeEvent {
-            val asset = viewModel.assetLiveData.value!!
-            val totalAfterTransfer = viewModel.transferDraft
-
-            showBalanceDetails(asset, totalAfterTransfer)
+            BalanceDetailsBottomSheet(requireContext(), it).show()
         }
-    }
-
-    private fun showBalanceDetails(asset: AssetModel, transferDraft: TransferDraft) {
-        BalanceDetailsBottomSheet(requireContext(), asset, transferDraft).show()
     }
 }
