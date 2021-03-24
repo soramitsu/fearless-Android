@@ -68,16 +68,12 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <TextView
+    <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/accountDetailsExport"
-        style="@style/TextAppearance.Soramitsu.Body1"
+        style="@style/Widget.Fearless.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/gray4"
-        android:drawableStart="@drawable/ic_key"
-        android:drawableEnd="@drawable/ic_arrow_right_24"
-        android:drawablePadding="16dp"
-        android:padding="16dp"
+        android:layout_margin="16dp"
         android:text="@string/account_export" />
 
 </LinearLayout>
