@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_buy_with">Buy with</string>
+
     <string name="staking_nominator_status_alert_active_title">Active status</string>
     <string name="staking_nominator_status_alert_active_message">One of your validators have been elected by network.</string>
     <string name="staking_nominator_status_alert_election_message">The network is electing validators. Please wait a few minutes.</string>

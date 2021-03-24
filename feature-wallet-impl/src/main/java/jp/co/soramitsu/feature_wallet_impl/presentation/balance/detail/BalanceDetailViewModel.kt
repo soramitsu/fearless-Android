@@ -9,7 +9,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
@@ -32,7 +32,7 @@ class BalanceDetailViewModel(
     private val router: WalletRouter,
     private val type: Token.Type,
     private val buyMixin: BuyMixin.Presentation,
-    private val transactionHistoryMixin: TransactionHistoryMixin
+    private val transactionHistoryMixin: TransactionHistoryMixin,
 ) : BaseViewModel(),
     TransactionHistoryUi by transactionHistoryMixin,
     BuyMixin by buyMixin {
@@ -45,7 +45,7 @@ class BalanceDetailViewModel(
 
     val assetLiveData = currentAssetFlow().asLiveData()
 
-    val buyEnabled = buyMixin.buyEnabled(type)
+    val buyEnabled = buyMixin.isBuyEnabled(type)
 
     init {
         transactionHistoryMixin.startObservingTransactions(viewModelScope)
@@ -95,7 +95,7 @@ class BalanceDetailViewModel(
         viewModelScope.launch {
             val currentAccount = interactor.getSelectedAccount()
 
-            buyMixin.startBuyProcess(type, currentAccount.address)
+            buyMixin.buyClicked(type, currentAccount.address)
         }
     }
 

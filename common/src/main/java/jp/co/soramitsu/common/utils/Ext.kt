@@ -1,36 +1,22 @@
 package jp.co.soramitsu.common.utils
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.View
 import android.widget.Toast
-import androidx.annotation.StringRes
-import androidx.core.content.ContextCompat
+import androidx.annotation.ColorInt
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
+import java.net.URLEncoder
 
 fun Activity.showToast(msg: String, duration: Int = Toast.LENGTH_LONG) {
     Toast.makeText(this, msg, duration).show()
 }
 
-fun Activity.showToast(@StringRes msg: Int, duration: Int = Toast.LENGTH_LONG) {
-    Toast.makeText(this, msg, duration).show()
-}
-
-@SuppressLint("NewApi")
-fun Activity.setBarColorBackground(colorId: Int) {
-    window.statusBarColor = ContextCompat.getColor(this, colorId)
-}
-
 fun <T> MutableLiveData<T>.setValueIfNew(newValue: T) {
     if (this.value != newValue) value = newValue
-}
-
-fun <T> MutableLiveData<T>.postValueIfNew(newValue: T) {
-    if (this.value != newValue) postValue(newValue)
 }
 
 fun View.makeVisible() {
@@ -52,8 +38,6 @@ fun Context.showBrowser(link: String) {
     startActivity(intent)
 }
 
-fun Fragment.shareText(text: String) = requireContext().shareText(text)
-
 fun Context.createSendEmailIntent(targetEmail: String, title: String) {
     val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
         putExtra(Intent.EXTRA_EMAIL, targetEmail)
@@ -62,3 +46,11 @@ fun Context.createSendEmailIntent(targetEmail: String, title: String) {
     }
     startActivity(Intent.createChooser(emailIntent, title))
 }
+
+fun @receiver:ColorInt Int.toHexColor(): String {
+    val withoutAlpha = 0xFFFFFF and this
+
+    return "#%06X".format(withoutAlpha)
+}
+
+fun String.urlEncoded() = URLEncoder.encode(this, Charsets.UTF_8.displayName())

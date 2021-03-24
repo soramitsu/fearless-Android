@@ -16,7 +16,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithMaxPrecision
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.setupBuyIntegration
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetaiActions
@@ -50,7 +50,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         return inflater.inflate(R.layout.fragment_balance_detail, container, false)
     }
