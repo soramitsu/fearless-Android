@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
+import jp.co.soramitsu.feature_wallet_impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
@@ -119,6 +120,7 @@ class WalletFeatureModule {
     fun provideBuyTokenIntegration(): BuyTokenRegistry {
         return BuyTokenRegistry(
             availableProviders = listOf(
+                MoonPayProvider(host = BuildConfig.MOONPAY_HOST, publicKey = BuildConfig.MOONPAY_PUBLIC_KEY, privateKey = BuildConfig.MOONPAY_PRIVATE_KEY),
                 RampProvider(host = BuildConfig.RAMP_HOST, apiToken = BuildConfig.RAMP_TOKEN)
             )
         )
@@ -162,6 +164,6 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideWalletConstants(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     ): WalletConstants = RuntimeWalletConstants(runtimeProperty)
 }

@@ -13,7 +13,7 @@ class BuyTokenRegistry(val availableProviders: List<Provider<*>>) {
 
         fun isTokenSupported(type: Token.Type): Boolean = type in supportedTokens
 
-        fun createIntegrator(type: Token.Type, address: String): I
+        fun createIntegrator(tokenType: Token.Type, address: String): I
     }
 
     interface Integrator<T> {

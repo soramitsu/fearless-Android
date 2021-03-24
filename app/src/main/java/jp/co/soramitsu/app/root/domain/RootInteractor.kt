@@ -11,7 +11,7 @@ class RootInteractor(
     private val accountRepository: AccountRepository,
     private val updateSystem: UpdateSystem,
     private val buyTokenRegistry: BuyTokenRegistry,
-    private val walletRepository: WalletRepository
+    private val walletRepository: WalletRepository,
 ) {
 
     fun selectedNodeFlow() = accountRepository.selectedNodeFlow()
@@ -20,9 +20,7 @@ class RootInteractor(
         return updateSystem.start()
     }
 
-    fun isBuyProviderRedirectLink(link: String) = buyTokenRegistry.availableProviders
-        .filterIsInstance<ExternalProvider>()
-        .any { it.redirectLink == link }
+    fun isBuyProviderRedirectLink(link: String) = ExternalProvider.REDIRECT_URL_BASE in link
 
     suspend fun updatePhishingAddresses() {
         runCatching {
