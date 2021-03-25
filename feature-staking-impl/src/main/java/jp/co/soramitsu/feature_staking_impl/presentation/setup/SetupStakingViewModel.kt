@@ -26,7 +26,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
-import jp.co.soramitsu.feature_staking_impl.domain.rewards.PeriodReturns
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
@@ -36,8 +35,9 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.RewardSuffix
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -118,8 +118,8 @@ class SetupStakingViewModel(
         val restakeReturns = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
         val payoutReturns = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, false)
 
-        val restakeEstimations = mapReturnsToEstimation(restakeReturns, asset.token)
-        val payoutEstimations = mapReturnsToEstimation(payoutReturns, asset.token)
+        val restakeEstimations = mapPeriodReturnsToRewardEstimation(restakeReturns, asset.token, resourceManager, RewardSuffix.APY)
+        val payoutEstimations = mapPeriodReturnsToRewardEstimation(payoutReturns, asset.token, resourceManager, RewardSuffix.APR)
 
         PayoutEstimations(restakeEstimations, payoutEstimations)
     }
@@ -249,10 +249,6 @@ class SetupStakingViewModel(
     private suspend fun accountsInCurrentNetwork(): List<AddressModel> {
         return interactor.getAccountsInCurrentNetwork()
             .map { generateDestinationModel(it) }
-    }
-
-    private fun mapReturnsToEstimation(returns: PeriodReturns, token: Token): RewardEstimation {
-        return RewardEstimation(returns.gainAmount, returns.gainPercentage, token)
     }
 
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {

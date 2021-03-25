@@ -10,7 +10,7 @@
         <attr name="startWithLoading" format="boolean" />
     </declare-styleable>
 
-    <declare-styleable name="PayoutTargetView">
+    <declare-styleable name="RewardDestinationView">
         <attr name="android:checked" />
         <attr name="targetName" format="string" />
     </declare-styleable>

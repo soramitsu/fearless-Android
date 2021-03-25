@@ -22,7 +22,7 @@ private val CheckedStateSet = intArrayOf(android.R.attr.state_checked)
 class RewardDestinationView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : ConstraintLayout(context, attrs, defStyleAttr), Checkable {
 
     private var isChecked: Boolean = false
@@ -36,12 +36,12 @@ class RewardDestinationView @JvmOverloads constructor(
     }
 
     private fun applyAttrs(attrs: AttributeSet) {
-        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.PayoutTargetView)
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.RewardDestinationView)
 
-        val checked = typedArray.getBoolean(R.styleable.PayoutTargetView_android_checked, false)
+        val checked = typedArray.getBoolean(R.styleable.RewardDestinationView_android_checked, false)
         setChecked(checked)
 
-        val targetName = typedArray.getString(R.styleable.PayoutTargetView_targetName)
+        val targetName = typedArray.getString(R.styleable.RewardDestinationView_targetName)
         targetName?.let(::setName)
 
         typedArray.recycle()

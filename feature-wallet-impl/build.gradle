@@ -87,4 +87,6 @@ dependencies {
 
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
+
+    implementation insetterDep
 }
