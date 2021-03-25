@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardDestination
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
@@ -165,8 +166,8 @@ class WelcomeViewState(
         val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
         val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
 
-        val monthlyEstimation = RewardEstimation(monthly.gainAmount, monthly.gainPercentage, asset.token)
-        val yearlyEstimation = RewardEstimation(yearly.gainAmount, yearly.gainPercentage, asset.token)
+        val monthlyEstimation = mapPeriodReturnsToRewardDestination(monthly,  asset.token, resourceManager)
+        val yearlyEstimation = mapPeriodReturnsToRewardDestination(yearly,  asset.token, resourceManager)
 
         ReturnsModel(monthlyEstimation, yearlyEstimation)
     }.asLiveData(scope)

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_apy">%s APY</string>
+    <string name="staking_apr">%s APR</string>
+
     <string name="wallet_buy_with">Buy with</string>
 
     <string name="staking_nominator_status_alert_active_title">Active status</string>
