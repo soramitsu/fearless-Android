@@ -46,8 +46,13 @@ class MainFragment : BaseFragment<MainViewModel>() {
         }
 
         bottomNavHost.setOnApplyWindowInsetsListener { v, insets ->
-            val padding = (insets.systemWindowInsetBottom - bottomNavigationView.height).coerceAtLeast(0)
-            v.updatePadding(bottom = padding)
+            val systemWindowInsetBottom = insets.systemWindowInsetBottom
+
+            // post to prevent bottomNavigationView.height being 0 if callback is called before view has been measured
+            v.post {
+                val padding = (systemWindowInsetBottom - bottomNavigationView.height).coerceAtLeast(0)
+                v.updatePadding(bottom = padding)
+            }
 
             insets
         }
