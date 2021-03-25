@@ -31,6 +31,10 @@ fun View.makeGone() {
     this.visibility = View.GONE
 }
 
+fun Fragment.hideKeyboard() {
+    requireActivity().currentFocus?.hideSoftKeyboard()
+}
+
 fun Fragment.showBrowser(link: String) = requireContext().showBrowser(link)
 
 fun Context.showBrowser(link: String) {

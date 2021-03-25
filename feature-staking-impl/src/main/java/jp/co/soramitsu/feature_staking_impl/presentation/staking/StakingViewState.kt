@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.emitAll
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
@@ -21,16 +22,19 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
@@ -66,11 +70,18 @@ class NominatorViewState(
 ) : StakingViewState() {
 
     val nominatorSummaryLiveData = liveData<LoadingState<NominatorSummaryModel>> {
-        emitAll(nominatorSummaryFlow().withLoading())
+        emitAll(
+            nominatorSummaryFlow()
+                .withLoading()
+                .flowOn(Dispatchers.Default)
+        )
     }
 
     private val _showStatusAlertEvent = MutableLiveData<Event<Pair<String, String>>>()
     val showStatusAlertEvent: LiveData<Event<Pair<String, String>>> = _showStatusAlertEvent
+
+    private val _showManageActionsEvent = MutableLiveData<Event<Unit>>()
+    val showManageActionsEvent: LiveData<Event<Unit>> = _showManageActionsEvent
 
     fun syncStakingRewards() {
         scope.launch {
@@ -130,6 +141,10 @@ class NominatorViewState(
             else -> null
         }
     }
+
+    fun moreActionsClicked() {
+        _showManageActionsEvent.sendEvent()
+    }
 }
 
 class WelcomeViewState(
@@ -159,8 +174,8 @@ class WelcomeViewState(
         val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
         val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
 
-        val monthlyEstimation = RewardEstimation(monthly.gainAmount, monthly.gainPercentage, asset.token)
-        val yearlyEstimation = RewardEstimation(yearly.gainAmount, yearly.gainPercentage, asset.token)
+        val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
+        val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
 
         ReturnsModel(monthlyEstimation, yearlyEstimation)
     }.asLiveData(scope)

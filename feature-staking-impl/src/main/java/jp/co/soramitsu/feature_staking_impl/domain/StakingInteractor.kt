@@ -5,12 +5,12 @@ import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
-import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
@@ -25,6 +25,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -47,6 +48,7 @@ class StakingInteractor(
     private val stakingRewardsRepository: StakingRewardsRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
     private val substrateCalls: SubstrateCalls,
+    private val walletConstants: WalletConstants,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
 
@@ -70,6 +72,7 @@ class StakingInteractor(
             val totalStaked = asset.bonded
 
             val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex).values
+            val existentialDeposit = walletConstants.existentialDeposit()
 
             val status = when {
                 electionStatus is ElectionStatus.Open -> NominatorSummary.Status.Election
@@ -77,7 +80,7 @@ class StakingInteractor(
                 isNominationWaiting(nominatorState.nominations, activeEraIndex) -> NominatorSummary.Status.Waiting
                 else -> {
                     val inactiveReason = when {
-                        totalStakedInPlanks < minimumStake(eraStakers) -> NominatorSummary.Status.Inactive.Reason.MIN_STAKE
+                        totalStakedInPlanks < minimumStake(eraStakers, existentialDeposit) -> NominatorSummary.Status.Inactive.Reason.MIN_STAKE
                         else -> NominatorSummary.Status.Inactive.Reason.NO_ACTIVE_VALIDATOR
                     }
 
@@ -102,7 +105,7 @@ class StakingInteractor(
 
             NetworkInfo(
                 lockupPeriodInDays = lockupPeriod,
-                minimumStake = minimumStake(exposures),
+                minimumStake = minimumStake(exposures, walletConstants.existentialDeposit()),
                 totalStake = totalStake(exposures),
                 nominatorsCount = activeNominators(exposures),
             )
@@ -203,9 +206,22 @@ class StakingInteractor(
         return exposures.sumOf(Exposure::total)
     }
 
-    private fun minimumStake(exposures: Collection<Exposure>): BigInteger {
-        return exposures.minOf {
-            it.others.minOf(IndividualExposure::value)
-        }
+    private fun minimumStake(
+        exposures: Collection<Exposure>,
+        existentialDeposit: BigInteger
+    ): BigInteger {
+
+        val stakeByNominator = exposures
+            .map(Exposure::others)
+            .flatten()
+            .fold(mutableMapOf<String, BigInteger>()) { acc, individualExposure ->
+                val currentExposure = acc.getOrDefault(individualExposure.who.toHexString(), BigInteger.ZERO)
+
+                acc[individualExposure.who.toHexString()] = currentExposure + individualExposure.value
+
+                acc
+            }
+
+        return stakeByNominator.values.minOrNull()!!.coerceAtLeast(existentialDeposit)
     }
 }
