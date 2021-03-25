@@ -166,8 +166,8 @@ class WelcomeViewState(
         val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
         val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
 
-        val monthlyEstimation = mapPeriodReturnsToRewardDestination(monthly,  asset.token, resourceManager)
-        val yearlyEstimation = mapPeriodReturnsToRewardDestination(yearly,  asset.token, resourceManager)
+        val monthlyEstimation = mapPeriodReturnsToRewardDestination(monthly, asset.token, resourceManager)
+        val yearlyEstimation = mapPeriodReturnsToRewardDestination(yearly, asset.token, resourceManager)
 
         ReturnsModel(monthlyEstimation, yearlyEstimation)
     }.asLiveData(scope)
