@@ -31,7 +31,6 @@ class RewardDestinationView @JvmOverloads constructor(
         View.inflate(context, R.layout.view_payout_target, this)
 
         background = stateDrawable()
-//        payoutTargetCheck.buttonTintList = radioButtonStateList()
 
         attrs?.let(this::applyAttrs)
     }
