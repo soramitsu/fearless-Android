@@ -9,6 +9,7 @@ import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
@@ -42,6 +43,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
                 margin()
             }
         }
+
+        hideKeyboard()
 
         adapter = BalanceListAdapter(this)
         balanceListAssets.adapter = adapter
