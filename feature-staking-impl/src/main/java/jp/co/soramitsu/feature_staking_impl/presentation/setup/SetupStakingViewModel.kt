@@ -36,7 +36,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMix
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.RewardSuffix
-import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardDestination
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -118,8 +118,8 @@ class SetupStakingViewModel(
         val restakeReturns = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
         val payoutReturns = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, false)
 
-        val restakeEstimations = mapPeriodReturnsToRewardDestination(restakeReturns, asset.token, resourceManager, RewardSuffix.APY)
-        val payoutEstimations = mapPeriodReturnsToRewardDestination(payoutReturns, asset.token, resourceManager, RewardSuffix.APR)
+        val restakeEstimations = mapPeriodReturnsToRewardEstimation(restakeReturns, asset.token, resourceManager, RewardSuffix.APY)
+        val payoutEstimations = mapPeriodReturnsToRewardEstimation(payoutReturns, asset.token, resourceManager, RewardSuffix.APR)
 
         PayoutEstimations(restakeEstimations, payoutEstimations)
     }

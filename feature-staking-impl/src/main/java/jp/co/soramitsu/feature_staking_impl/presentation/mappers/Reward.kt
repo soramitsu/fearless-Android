@@ -16,7 +16,7 @@ enum class RewardSuffix(@StringRes val suffixResourceId: Int?) {
     APR(R.string.staking_apr)
 }
 
-fun mapPeriodReturnsToRewardDestination(
+fun mapPeriodReturnsToRewardEstimation(
     periodReturns: PeriodReturns,
     token: Token,
     resourceManager: ResourceManager,
