@@ -25,12 +25,14 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEst
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
@@ -66,7 +68,11 @@ class NominatorViewState(
 ) : StakingViewState() {
 
     val nominatorSummaryLiveData = liveData<LoadingState<NominatorSummaryModel>> {
-        emitAll(nominatorSummaryFlow().withLoading())
+        emitAll(
+            nominatorSummaryFlow()
+                .withLoading()
+                .flowOn(Dispatchers.Default)
+        )
     }
 
     private val _showStatusAlertEvent = MutableLiveData<Event<Pair<String, String>>>()

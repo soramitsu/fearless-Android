@@ -50,6 +50,7 @@ class StakingViewModel(
             interactor.observeNetworkInfoState(asset.token.type.networkType)
                 .map { transformNetworkInfo(asset, it) }
         }
+        .flowOn(Dispatchers.Default)
         .asLiveData()
 
     val stories = interactor.stakingStoriesFlow()
