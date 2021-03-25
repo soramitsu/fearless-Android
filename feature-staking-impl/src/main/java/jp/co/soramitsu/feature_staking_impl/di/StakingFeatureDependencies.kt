@@ -62,5 +62,5 @@ interface StakingFeatureDependencies {
 
     fun httpExceptionHandler(): HttpExceptionHandler
 
-    fun walletConstantsRepository(): WalletConstants
+    fun walletConstants(): WalletConstants
 }
