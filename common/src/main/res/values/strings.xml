@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_manage">Manage</string>
+    <string name="staking_stake_more">Stake more</string>
+    <string name="staking_pause_staking">Pause staking</string>
+    <string name="staking_unstake">Unstake</string>
+    <string name="staking_unstaking_requests">Unstaking requests</string>
+    <string name="staking_validators">Validators</string>
+    <string name="staking_reward_payouts">Reward payouts</string>
+    <string name="staking_controller_account">Controller account</string>
+
     <string name="staking_apy">%s APY</string>
     <string name="staking_apr">%s APR</string>
 

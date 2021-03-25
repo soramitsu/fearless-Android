@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.emitAll
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
@@ -79,6 +80,9 @@ class NominatorViewState(
     private val _showStatusAlertEvent = MutableLiveData<Event<Pair<String, String>>>()
     val showStatusAlertEvent: LiveData<Event<Pair<String, String>>> = _showStatusAlertEvent
 
+    private val _showManageActionsEvent = MutableLiveData<Event<Unit>>()
+    val showManageActionsEvent: LiveData<Event<Unit>> = _showManageActionsEvent
+
     fun syncStakingRewards() {
         scope.launch {
             val syncResult = stakingInteractor.syncStakingRewards(nominatorState.accountAddress)
@@ -136,6 +140,10 @@ class NominatorViewState(
             is LoadingState.Loaded<NominatorSummaryModel> -> state.data
             else -> null
         }
+    }
+
+    fun moreActionsClicked() {
+        _showManageActionsEvent.sendEvent()
     }
 }
 

@@ -25,6 +25,7 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingNominatorSummary
 import kotlinx.android.synthetic.main.fragment_staking.stakingValidatorSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
+import kotlinx.android.synthetic.main.view_nominator_summary.nominatorMoreActions
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -82,6 +83,14 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                     }
 
                     stakingState.nominatorSummaryLiveData.observe { summaryState ->
+                        stakingState.showManageActionsEvent.observeEvent {
+                            ManageStakingBottomSheet(requireContext()).show()
+                        }
+
+                        nominatorMoreActions.setOnClickListener {
+                            stakingState.moreActionsClicked()
+                        }
+
                         when (summaryState) {
                             is LoadingState.Loaded<NominatorSummaryModel> -> {
                                 val summary = summaryState.data
