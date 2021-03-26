@@ -348,6 +348,10 @@ class AccountRepositoryImpl(
         }
     }
 
+    override suspend fun isAccountExists(accountAddress: String): Boolean {
+        return accountDao.accountExists(accountAddress)
+    }
+
     override fun nodesFlow(): Flow<List<Node>> {
         return nodeDao.nodesFlow()
             .mapList { mapNodeLocalToNode(it) }

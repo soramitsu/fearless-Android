@@ -132,4 +132,6 @@ interface AccountRepository {
     fun createQrAccountContent(account: Account): String
 
     suspend fun generateRestoreJson(account: Account, password: String): String
+
+    suspend fun isAccountExists(accountAddress: String): Boolean
 }

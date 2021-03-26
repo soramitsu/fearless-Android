@@ -40,7 +40,7 @@ class StakingViewModel(
     private val currentAssetFlow = interactor.currentAssetFlow()
         .share()
 
-    val currentStakingState = interactor.selectedAccountStakingState()
+    val currentStakingState = interactor.selectedAccountStakingStateFlow()
         .map { transformStakingState(it) }
         .flowOn(Dispatchers.Default)
         .share()
@@ -83,9 +83,9 @@ class StakingViewModel(
             ::showError
         )
 
-        is StakingState.Stash.None -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope)
+        is StakingState.Stash.None -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope, ::showError)
 
-        is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope)
+        is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope, ::showError)
 
         is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState()
     }

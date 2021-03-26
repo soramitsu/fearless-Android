@@ -25,13 +25,13 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
@@ -65,6 +65,8 @@ class ConfirmStakingViewModel(
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
 
+    val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.Confirm>()
+
     override val retryEvent: MutableLiveData<Event<RetryPayload>> = multipleSourceLiveData(
         feeLoaderMixin.retryEvent
     )
@@ -84,16 +86,16 @@ class ConfirmStakingViewModel(
     }
 
     val nominationsLiveData = liveData(Dispatchers.Default) {
-        val selectedCount = setupStakingSharedState.selectedValidators.first().size
+        val selectedCount = currentProcessState.validators.size
         val maxValidatorsPerNominator = recommendationSettingsProviderFactory.get().maximumValidatorsPerNominator
 
         emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxValidatorsPerNominator))
     }
 
-    val stakingAmount = setupStakingSharedState.stashSetup.amount.toString()
+    val stakingAmount = currentProcessState.amount.toString()
 
     val rewardDestinationLiveData = liveData(Dispatchers.Default) {
-        val rewardDestination = setupStakingSharedState.stashSetup.rewardDestination
+        val rewardDestination = currentProcessState.stashSetup.rewardDestination
 
         emit(mapRewardDestinationToRewardDestinationModel(rewardDestination))
     }
@@ -114,6 +116,8 @@ class ConfirmStakingViewModel(
     }
 
     fun backClicked() {
+        setupStakingSharedState.set(currentProcessState.previous())
+
         router.back()
     }
 
@@ -134,16 +138,14 @@ class ConfirmStakingViewModel(
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             viewModelScope,
-            feeConstructor = { account, asset ->
+            feeConstructor = { asset ->
                 val token = asset.token
 
                 maxFeeEstimator.estimateMaxSetupStakingFee(
-                    originAddress = account.address,
                     tokenType = token.type,
-                    amount = token.planksFromAmount(setupStakingSharedState.stashSetup.amount),
-                    rewardDestination = setupStakingSharedState.stashSetup.rewardDestination,
+                    amount = token.planksFromAmount(currentProcessState.amount),
+                    stashSetup = currentProcessState.stashSetup,
                     nominations = prepareNominations(),
-                    skipBond = shouldSkipBound()
                 )
             },
             onRetryCancelled = ::backClicked
@@ -165,8 +167,8 @@ class ConfirmStakingViewModel(
         }
     }
 
-    private suspend fun prepareNominations(): List<MultiAddress> {
-        return setupStakingSharedState.selectedValidators.first().map {
+    private fun prepareNominations(): List<MultiAddress> {
+        return currentProcessState.validators.map {
             MultiAddress.Id(it.accountIdHex.fromHex())
         }
     }
@@ -177,15 +179,13 @@ class ConfirmStakingViewModel(
         _showNextProgress.value = true
 
         viewModelScope.launch {
-            val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationLiveData.value!!)
             val tokenType = assetFlow.first().token.type
 
             val payload = SetupStakingPayload(
-                amount = setupStakingSharedState.stashSetup.amount,
                 tokenType = tokenType,
-                originAddress = interactor.getSelectedAccount().address,
                 maxFee = fee,
-                rewardDestination = rewardDestination
+                stashSetup = currentProcessState.stashSetup,
+                amount = currentProcessState.amount
             )
 
             val ignoreLevel = if (ignoreWarnings) DefaultFailureLevel.WARNING else null
@@ -211,18 +211,18 @@ class ConfirmStakingViewModel(
         tokenType: Token.Type,
     ) = launch {
         val setupResult = interactor.setupStaking(
-            originAddress = setupStakingPayload.originAddress,
             amount = setupStakingPayload.amount,
             tokenType = tokenType,
-            rewardDestination = setupStakingPayload.rewardDestination,
             nominations = prepareNominations(),
-            skipBond = shouldSkipBound()
+            stashSetup = setupStakingPayload.stashSetup
         )
 
         _showNextProgress.value = false
 
         if (setupResult.isSuccess) {
             showMessage(resourceManager.getString(R.string.staking_setup_sent_message))
+
+            setupStakingSharedState.set(currentProcessState.finish())
 
             router.finishSetupStakingFlow()
         } else {
@@ -244,8 +244,6 @@ class ConfirmStakingViewModel(
             )
         )
     }
-
-    private fun shouldSkipBound() = setupStakingSharedState.stashSetup.alreadyHasStash
 
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {
         return addressIconGenerator.createAddressModel(account.address, DESTINATION_SIZE_DP, account.name)
