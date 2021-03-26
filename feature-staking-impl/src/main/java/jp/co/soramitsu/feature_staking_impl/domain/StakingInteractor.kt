@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
+import android.util.Log
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.networkType
@@ -11,6 +12,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
+import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
@@ -40,6 +42,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 class StakingInteractor(
     private val walletRepository: WalletRepository,
@@ -140,6 +144,8 @@ class StakingInteractor(
             .map { mapAccountToStakingAccount(it) }
     }
 
+    fun selectedNetworkTypeFLow() = accountRepository.selectedNetworkTypeFlow()
+
     suspend fun getAccount(address: String) = mapAccountToStakingAccount(accountRepository.getAccount(address))
 
     suspend fun getSelectedAccount(): StakingAccount = withContext(Dispatchers.Default) {
@@ -196,10 +202,23 @@ class StakingInteractor(
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun activeNominators(exposures: Collection<Exposure>): Int {
-        val activeNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidatorPrefs()
+        val (value, duration) = measureTimedValue {
+            val activeNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidatorPrefs()
 
-        return exposures.sumOf { it.others.size.coerceAtMost(activeNominatorsPerValidator) }
+            exposures.fold(mutableSetOf<String>()) { acc, exposure ->
+                acc += exposure.others.sortedByDescending(IndividualExposure::value)
+                    .take(activeNominatorsPerValidator)
+                    .map { it.who.toHexString() }
+
+                acc
+            }.size
+        }
+
+        Log.d("RX", "Active nominators: ${duration.inMilliseconds} ms")
+
+        return value
     }
 
     private fun totalStake(exposures: Collection<Exposure>): BigInteger {
