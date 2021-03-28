@@ -27,16 +27,26 @@ class StakingAmountView @JvmOverloads constructor(
     val amountInput: EditText
         get() = stakingAmountInput
 
+    private val defaultBackground = context.getCutCornersStateDrawable(
+        idleDrawable = context.getCutCornerDrawable(
+            R.color.blurColor,
+            R.color.white_40
+        )
+    )
+    private val onFocusBackground = context.getCutCornersStateDrawable(
+        idleDrawable = context.getCutCornerDrawable(
+            R.color.blurColor,
+            R.color.white
+        )
+    )
+
     init {
         View.inflate(context, R.layout.view_staking_amount, this)
 
-        with(context) {
-            background = getCutCornersStateDrawable(
-                idleDrawable = getCutCornerDrawable(
-                    R.color.blurColor,
-                    R.color.white
-                )
-            )
+        background = defaultBackground
+
+        amountInput.setOnFocusChangeListener { _, hasFocus ->
+            background = if (hasFocus) onFocusBackground else defaultBackground
         }
 
         applyAttributes(attrs)
@@ -45,7 +55,7 @@ class StakingAmountView @JvmOverloads constructor(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
 
-        amountInput.inputType = if (enabled) InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL else InputType.TYPE_NULL
+        amountInput.inputType = if (enabled) InputType.TYPE_NUMBER_FLAG_DECIMAL else InputType.TYPE_NULL
     }
 
     private fun applyAttributes(attributeSet: AttributeSet?) {
