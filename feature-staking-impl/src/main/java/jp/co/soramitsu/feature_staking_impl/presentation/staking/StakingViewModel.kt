@@ -22,6 +22,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -33,22 +34,23 @@ class StakingViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val stakingViewStateFactory: StakingViewStateFactory,
     private val router: StakingRouter,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
 ) : BaseViewModel() {
 
     private val currentAssetFlow = interactor.currentAssetFlow()
         .share()
 
-    val currentStakingState = interactor.selectedAccountStakingState()
+    val currentStakingState = interactor.selectedAccountStakingStateFlow()
         .map { transformStakingState(it) }
         .flowOn(Dispatchers.Default)
         .share()
 
-    val networkInfoStateLiveData = currentAssetFlow
+    val networkInfoStateLiveData = interactor.selectedNetworkTypeFLow()
         .distinctUntilChanged()
-        .withLoading { asset ->
-            interactor.observeNetworkInfoState(asset.token.type.networkType)
-                .map { transformNetworkInfo(asset, it) }
+        .withLoading { networkType ->
+            interactor.observeNetworkInfoState(networkType).combine(currentAssetFlow) { networkInfo, asset ->
+                transformNetworkInfo(asset, networkInfo)
+            }
         }
         .flowOn(Dispatchers.Default)
         .asLiveData()
@@ -81,9 +83,9 @@ class StakingViewModel(
             ::showError
         )
 
-        is StakingState.Stash.None -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope)
+        is StakingState.Stash.None -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope, ::showError)
 
-        is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope)
+        is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope, ::showError)
 
         is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState()
     }

@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.sumByBigDecimal
+import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
@@ -11,8 +12,8 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
+import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
-import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
@@ -24,10 +25,9 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsReposi
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
-import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
+import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
+import kotlin.time.ExperimentalTime
 
 class StakingInteractor(
     private val walletRepository: WalletRepository,
@@ -116,7 +117,7 @@ class StakingInteractor(
         return stakingRepository.stakingStoriesFlow()
     }
 
-    fun selectedAccountStakingState() = accountRepository.selectedAccountFlow()
+    fun selectedAccountStakingStateFlow() = accountRepository.selectedAccountFlow()
         .flatMapLatest { stakingRepository.stakingStateFlow(it.address) }
 
     suspend fun getAccountsInCurrentNetwork() = withContext(Dispatchers.Default) {
@@ -140,6 +141,8 @@ class StakingInteractor(
             .map { mapAccountToStakingAccount(it) }
     }
 
+    fun selectedNetworkTypeFLow() = accountRepository.selectedNetworkTypeFlow()
+
     suspend fun getAccount(address: String) = mapAccountToStakingAccount(accountRepository.getAccount(address))
 
     suspend fun getSelectedAccount(): StakingAccount = withContext(Dispatchers.Default) {
@@ -149,20 +152,18 @@ class StakingInteractor(
     }
 
     suspend fun setupStaking(
-        originAddress: String,
         amount: BigDecimal,
         tokenType: Token.Type,
-        rewardDestination: RewardDestination,
         nominations: List<MultiAddress>,
-        skipBond: Boolean,
+        stashSetup: StashSetup,
     ) = withContext(Dispatchers.Default) {
         runCatching {
-            val extrinsic = extrinsicBuilderFactory.create(originAddress).apply {
-                if (!skipBond) {
+            val extrinsic = extrinsicBuilderFactory.create(stashSetup.controllerAddress).apply {
+                if (stashSetup.alreadyHasStash.not()) {
                     bond(
-                        controllerAddress = MultiAddress.Id(originAddress.toAccountId()),
+                        controllerAddress = MultiAddress.Id(stashSetup.controllerAddress.toAccountId()),
                         amount = tokenType.planksFromAmount(amount),
-                        payee = rewardDestination
+                        payee = stashSetup.rewardDestination
                     )
                 }
 
@@ -173,11 +174,15 @@ class StakingInteractor(
         }
     }
 
-    suspend fun getExistingStashSetup(accountStakingState: StakingState.Stash.None, asset: Asset): StashSetup {
-        val amount = asset.bonded
+    suspend fun isAccountInApp(accountAddress: String): Boolean {
+        return accountRepository.isAccountExists(accountAddress)
+    }
+
+    suspend fun getExistingStashSetup(accountStakingState: StakingState.Stash.None): StashSetup {
+        val networkType = accountStakingState.accountAddress.networkType()
         val rewardDestination = stakingRepository.getRewardDestination(accountStakingState)
 
-        return StashSetup(alreadyHasStash = true, amount, rewardDestination)
+        return StashSetup(rewardDestination, accountStakingState.controllerId.toAddress(networkType), alreadyHasStash = true)
     }
 
     private fun totalRewards(rewards: List<StakingReward>) = rewards.sumByBigDecimal {
@@ -196,10 +201,17 @@ class StakingInteractor(
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun activeNominators(exposures: Collection<Exposure>): Int {
         val activeNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidatorPrefs()
 
-        return exposures.sumOf { it.others.size.coerceAtMost(activeNominatorsPerValidator) }
+        return exposures.fold(mutableSetOf<String>()) { acc, exposure ->
+            acc += exposure.others.sortedByDescending(IndividualExposure::value)
+                .take(activeNominatorsPerValidator)
+                .map { it.who.toHexString() }
+
+            acc
+        }.size
     }
 
     private fun totalStake(exposures: Collection<Exposure>): BigInteger {
@@ -208,7 +220,7 @@ class StakingInteractor(
 
     private fun minimumStake(
         exposures: Collection<Exposure>,
-        existentialDeposit: BigInteger
+        existentialDeposit: BigInteger,
     ): BigInteger {
 
         val stakeByNominator = exposures

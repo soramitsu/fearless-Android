@@ -19,8 +19,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary.Status
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
@@ -156,9 +156,12 @@ class WelcomeViewState(
     private val accountStakingState: StakingState,
     private val currentAssetFlow: Flow<Asset>,
     private val scope: CoroutineScope,
+    private val errorDisplayer: (String) -> Unit
 ) : StakingViewState() {
 
-    val enteredAmountFlow = MutableStateFlow(SetupStakingSharedState.DEFAULT_AMOUNT.toString())
+    private val currentSetupProgress = setupStakingSharedState.get<SetupStakingProcess.Initial>()
+
+    val enteredAmountFlow = MutableStateFlow(currentSetupProgress.defaultAmount.toString())
 
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
@@ -184,11 +187,17 @@ class WelcomeViewState(
         scope.launch {
             if (accountStakingState is StakingState.Stash.None) {
                 val asset = currentAssetFlow.first()
-                setupStakingSharedState.stashSetup = interactor.getExistingStashSetup(accountStakingState, asset)
+                val existingStashSetup = interactor.getExistingStashSetup(accountStakingState)
 
-                router.openRecommendedValidators()
+                if (interactor.isAccountInApp(existingStashSetup.controllerAddress)) {
+                    setupStakingSharedState.set(currentSetupProgress.next(asset.bonded, existingStashSetup))
+
+                    router.openRecommendedValidators()
+                } else {
+                    errorDisplayer(resourceManager.getString(R.string.staking_no_controller_account, existingStashSetup.controllerAddress))
+                }
             } else {
-                setupStakingSharedState.stashSetup = StashSetup.defaultFromAmount(parsedAmountFlow.first())
+                setupStakingSharedState.set(currentSetupProgress.next(parsedAmountFlow.first()))
 
                 router.openSetupStaking()
             }

@@ -1,31 +1,64 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.common
 
-import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
+import android.util.Log
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.math.BigDecimal
 
-class StashSetup(
-    val alreadyHasStash: Boolean,
-    val amount: BigDecimal,
-    val rewardDestination: RewardDestination,
-) {
+sealed class SetupStakingProcess {
 
-    companion object {
-        fun defaultFromAmount(amount: BigDecimal): StashSetup {
-            return StashSetup(alreadyHasStash = false, amount, RewardDestination.Restake)
+    class Initial : SetupStakingProcess() {
+
+        val defaultAmount = 10.toBigDecimal()
+
+        fun next(amount: BigDecimal) = Stash(amount)
+
+        fun next(amount: BigDecimal, setup: StashSetup) = Validators(amount, setup)
+    }
+
+    class Stash(val amount: BigDecimal) : SetupStakingProcess() {
+
+        fun previous() = Initial()
+
+        fun next(stashSetup: StashSetup) = Validators(amount, stashSetup)
+    }
+
+    class Validators(
+        val amount: BigDecimal,
+        val stashSetup: StashSetup,
+    ) : SetupStakingProcess() {
+
+        fun previous() = if (stashSetup.alreadyHasStash) {
+            Initial()
+        } else {
+            Stash(amount)
         }
+
+        fun next(validators: List<Validator>) = Confirm(amount, stashSetup, validators)
+    }
+
+    class Confirm(
+        val amount: BigDecimal,
+        val stashSetup: StashSetup,
+        val validators: List<Validator>,
+    ) : SetupStakingProcess() {
+
+        fun previous() = Validators(amount, stashSetup)
+
+        fun finish() = Initial()
     }
 }
 
 class SetupStakingSharedState {
 
-    companion object {
-        val DEFAULT_AMOUNT = 10.toBigDecimal()
+    val setupStakingProcess = MutableStateFlow<SetupStakingProcess>(SetupStakingProcess.Initial())
+
+    fun set(newState: SetupStakingProcess) {
+        Log.d("RX", "${setupStakingProcess.value.javaClass.simpleName} -> ${newState.javaClass.simpleName}")
+
+        setupStakingProcess.value = newState
     }
 
-    val selectedValidators = MutableSharedFlow<List<Validator>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-
-    var stashSetup: StashSetup = StashSetup.defaultFromAmount(DEFAULT_AMOUNT)
+    inline fun <reified T : SetupStakingProcess> get(): T = setupStakingProcess.value as T
 }
