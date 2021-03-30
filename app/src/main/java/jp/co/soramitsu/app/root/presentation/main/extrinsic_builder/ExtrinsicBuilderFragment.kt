@@ -23,10 +23,8 @@ import jp.co.soramitsu.common.utils.inflateChildTyped
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.LabeledTextView
 import kotlinx.android.synthetic.main.fragment_extrinsic_builder.argumentsContainer
-import kotlinx.android.synthetic.main.fragment_extrinsic_builder.callChooser
 import kotlinx.android.synthetic.main.fragment_extrinsic_builder.extrinsicBuilderContainer
 import kotlinx.android.synthetic.main.fragment_extrinsic_builder.extrinsicBuilderSend
-import kotlinx.android.synthetic.main.fragment_extrinsic_builder.moduleChooser
 
 class ExtrinsicBuilderFragment : BaseFragment<ExtrinsicBuilderViewModel>() {
 
@@ -39,9 +37,6 @@ class ExtrinsicBuilderFragment : BaseFragment<ExtrinsicBuilderViewModel>() {
     }
 
     override fun initViews() {
-        callChooser.setWholeClickListener { viewModel.callClicked() }
-        moduleChooser.setWholeClickListener { viewModel.moduleClicked() }
-
         extrinsicBuilderContainer.applyInsetter {
             type(statusBars = true) {
                 padding()
@@ -57,31 +52,62 @@ class ExtrinsicBuilderFragment : BaseFragment<ExtrinsicBuilderViewModel>() {
     }
 
     override fun subscribe(viewModel: ExtrinsicBuilderViewModel) {
-        viewModel.selectedCallName.observe {
-            callChooser.setMessage(it)
-        }
-
-        viewModel.selectedModuleName.observe {
-            moduleChooser.setMessage(it)
-        }
-
         viewModel.categoryChooserEvent.observeEvent {
             CategoryChooser(requireContext(), it).show()
         }
 
-        viewModel.argumentsState.observe { argumentsState ->
-            argumentsContainer.removeAllViews()
-
-            argumentsState.argumentStates.forEach { (_, state) ->
-                createArgumentView(state)?.let(argumentsContainer::addView)
-            }
-        }
+        argumentsContainer.addView(createArgumentView(viewModel.callState))
 
         extrinsicBuilderSend.setOnClickListener { viewModel.send() }
     }
 
     private fun createArgumentView(argumentState: ArgumentState<*>): View? {
         return when (argumentState) {
+            is ArgumentState.CallState -> LinearLayout(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                orientation = LinearLayout.VERTICAL
+
+                addView(LabeledTextView(requireContext()).apply {
+                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                        setMargins(0, 16.dp, 0, 0)
+                    }
+
+                    setLabel("Module")
+
+                    argumentState.selectedModuleName.observe {
+                        setMessage(it)
+                    }
+
+                    setActionIcon(context.getDrawableCompat(R.drawable.ic_pin_white_24))
+
+                    setWholeClickListener { argumentState.moduleClicked() }
+                })
+
+                addView(LabeledTextView(requireContext()).apply {
+                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                        setMargins(0, 16.dp, 0, 0)
+                    }
+
+                    setLabel("Call")
+
+                    argumentState.selectedCallName.observe {
+                        setMessage(it)
+                    }
+
+                    setActionIcon(context.getDrawableCompat(R.drawable.ic_pin_white_24))
+
+                    setWholeClickListener { argumentState.callClicked() }
+                })
+
+                argumentState.callArgumentsState.observe {
+                    removeViews(2, childCount - 2)
+
+                    it.argumentStates.forEach { (_, state) ->
+                        createArgumentView(state)?.let(::addView)
+                    }
+                }
+            }
+
             is ArgumentState.BoolState -> SwitchMaterial(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
 

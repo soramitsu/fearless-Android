@@ -15,7 +15,9 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Collec
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Vec
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Null
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.OpaqueCall
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.BooleanType
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.DynamicByteArray
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.FixedByteArray
@@ -203,6 +205,61 @@ sealed class ArgumentState<T>(val name: String) {
             return elements.mapValues { (_, state) -> state.collect() }
         }
     }
+
+    class CallState(
+        name: String,
+        val buildingContext: ExtrinsicBuilderContext
+    ) : ArgumentState<GenericCall.Instance>(name), CoroutineScope by buildingContext.coroutineScope {
+
+        val selectedModuleName = mutableShareFlow<String>().also {
+            launch { it.emit(buildingContext.interactor.modules().first()) }
+        }
+
+        val selectedCallName = mutableShareFlow<String>().also { selectedCall ->
+            launch {
+                selectedModuleName.collect { module ->
+                    selectedCall.emit(buildingContext.interactor.calls(module).first())
+                }
+            }
+        }
+
+        val callArgumentsState = selectedModuleName.combine(selectedCallName) { moduleName, callName ->
+            ArgumentsState(buildingContext, buildingContext.interactor.call(moduleName, callName))
+        }.shareIn(this, SharingStarted.Eagerly, replay = 1)
+
+
+        fun callClicked() {
+            launch {
+                val module = selectedModuleName.first()
+                val calls = buildingContext.interactor.calls(module)
+
+                buildingContext.categoryChooserEvent.value = Event(CategoryChooserPayload(module, calls, ::callChosen))
+            }
+        }
+
+        fun moduleClicked() {
+            launch {
+                val modules = buildingContext.interactor.modules()
+
+                buildingContext.categoryChooserEvent.value = Event(CategoryChooserPayload("Module", modules, ::moduleChosen))
+            }
+        }
+
+        private fun callChosen(call: String) = launch {
+            selectedCallName.emit(call)
+        }
+
+        private fun moduleChosen(module: String) = launch {
+            selectedModuleName.emit(module)
+        }
+
+        override suspend fun collect(): GenericCall.Instance {
+            val moduleName = selectedModuleName.first()
+            val callName = selectedCallName.first()
+
+            return buildingContext.interactor.callInstance(moduleName, callName, callArgumentsState.first().collect())
+        }
+    }
 }
 
 fun mapTypeToState(
@@ -222,6 +279,7 @@ fun mapTypeToState(
     is Struct -> ArgumentState.StructState(argName, type, buildingContext)
     is Null -> ArgumentState.NullState
     is Vec -> ArgumentState.ListState(argName, type, buildingContext)
+    is OpaqueCall, is GenericCall -> ArgumentState.CallState(argName, buildingContext)
     else -> ArgumentState.UnknownState(argName)
 }
 
@@ -230,6 +288,7 @@ fun mapArgumentToArgumentState(buildingContext: ExtrinsicBuilderContext, argumen
 }
 
 class ExtrinsicBuilderContext(
+    val interactor: ExtrinsicBuilderInteractor,
     val categoryChooserEvent: MutableLiveData<Event<CategoryChooserPayload>>,
     val coroutineScope: CoroutineScope,
     val currentAssetFlow: Flow<Asset>,
@@ -241,48 +300,17 @@ class ExtrinsicBuilderViewModel(
 
     val categoryChooserEvent = MutableLiveData<Event<CategoryChooserPayload>>()
 
-    val selectedModuleName = mutableShareFlow<String>().also {
-        launch { it.emit(interactor.modules().first()) }
-    }
-
     val currentAssetFlow = interactor.currentAssetFlow().share()
 
-    private val buildingContext = ExtrinsicBuilderContext(categoryChooserEvent, viewModelScope, currentAssetFlow)
+    private val buildingContext = ExtrinsicBuilderContext(interactor, categoryChooserEvent, viewModelScope, currentAssetFlow)
 
-    val selectedCallName = mutableShareFlow<String>().also { selectedCall ->
-        launch {
-            selectedModuleName.collect { module ->
-                selectedCall.emit(interactor.calls(module).first())
-            }
-        }
-    }
-
-    val argumentsState = selectedModuleName.combine(selectedCallName) { moduleName, callName ->
-        ArgumentsState(buildingContext, interactor.call(moduleName, callName))
-    }.share()
-
-    fun callClicked() {
-        viewModelScope.launch {
-            val module = selectedModuleName.first()
-            val calls = interactor.calls(module)
-
-            categoryChooserEvent.value = Event(CategoryChooserPayload(module, calls, ::callChosen))
-        }
-    }
-
-    fun moduleClicked() {
-        viewModelScope.launch {
-            val modules = interactor.modules()
-
-            categoryChooserEvent.value = Event(CategoryChooserPayload("Module", modules, ::moduleChosen))
-        }
-    }
+    val callState = ArgumentState.CallState("Build extrinsic", buildingContext)
 
     fun send() = viewModelScope.launch {
         val result = runCatching {
-            val arguments = argumentsState.first().collect()
+            val call = callState.collect()
 
-            interactor.send(selectedModuleName.first(), selectedCallName.first(), arguments)
+            interactor.send(call)
         }
 
         if (result.isSuccess) {
@@ -292,11 +320,5 @@ class ExtrinsicBuilderViewModel(
         }
     }
 
-    private fun callChosen(call: String) = launch {
-        selectedCallName.emit(call)
-    }
 
-    private fun moduleChosen(module: String) = launch {
-        selectedModuleName.emit(module)
-    }
 }

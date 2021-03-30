@@ -3,6 +3,7 @@ package jp.co.soramitsu.app.root.presentation.main.extrinsic_builder
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.runtime.metadata.Function
 import jp.co.soramitsu.fearless_utils.runtime.metadata.call
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
@@ -44,11 +45,18 @@ class ExtrinsicBuilderInteractor @Inject constructor(
         return runtime().metadata.module(moduleName).call(callName)
     }
 
+    suspend fun callInstance(moduleName: String, callName: String, arguments: Map<String, Any?>) : GenericCall.Instance {
+        val runtimeMetadata =  runtime().metadata
+        val (moduleIndex, callIndex) = runtimeMetadata.module(moduleName).call(callName).index
+
+        return GenericCall.Instance(moduleIndex, callIndex, arguments)
+    }
+
     suspend fun runtime() = runtimeProperty.get()
 
-    suspend fun send(module: String, call: String, arguments: Map<String, Any?>) = withContext(Dispatchers.Default) {
+    suspend fun send(call: GenericCall.Instance) = withContext(Dispatchers.Default) {
         val extrinsic = extrinsicBuilderFactory.create(accountRepository.getSelectedAccount().address)
-            .call(module, call, arguments)
+            .call(call.moduleIndex, call.callIndex, call.arguments)
             .build()
 
         substrateCalls.submitExtrinsic(extrinsic)
