@@ -220,7 +220,7 @@ class SetupStakingViewModel(
             _showNextProgress.value = false
 
             validationResult.unwrap(
-                onValid = { goToNextStep(stashSetup) },
+                onValid = { goToNextStep(amount, stashSetup) },
                 onInvalid = {
                     validationFailureEvent.value = Event(stakingValidationFailure(payload, it, resourceManager))
                 },
@@ -229,8 +229,8 @@ class SetupStakingViewModel(
         }
     }
 
-    private fun goToNextStep(stashSetup: StashSetup) {
-        setupStakingSharedState.set(currentProcessState.next(stashSetup))
+    private fun goToNextStep(newAmount: BigDecimal, stashSetup: StashSetup) {
+        setupStakingSharedState.set(currentProcessState.next(newAmount, stashSetup))
 
         router.openRecommendedValidators()
     }

@@ -21,7 +21,7 @@ sealed class SetupStakingProcess {
 
         fun previous() = Initial()
 
-        fun next(stashSetup: StashSetup) = Validators(amount, stashSetup)
+        fun next(newAmount: BigDecimal, stashSetup: StashSetup) = Validators(newAmount, stashSetup)
     }
 
     class Validators(
