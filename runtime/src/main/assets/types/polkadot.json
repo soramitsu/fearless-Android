@@ -1,9 +1,9 @@
 {
-  "runtime_id": 27,
+  "runtime_id": 28,
   "types": {
-    "Address": "AccountIdAddress",
-    "LookupSource": "AccountIdAddress",
-    "AccountInfo": "AccountInfoWithRefCount",
+    "Address": "MultiAddress",
+    "LookupSource": "MultiAddress",
+    "AccountInfo": "AccountInfoWithDualRefCount",
     "BlockNumber": "U32",
     "LeasePeriod": "BlockNumber",
     "Weight": "u64",
@@ -13,10 +13,12 @@
         ["grandpa", "AccountId"],
         ["babe", "AccountId"],
         ["im_online", "AccountId"],
-        ["authority_discovery", "AccountId"],
-        ["parachains", "AccountId"]
+        ["para_validator", "AccountId"],
+        ["para_assignment", "AccountId"],
+        ["authority_discovery", "AccountId"]
       ]
     },
+    "ValidatorPrefs": "ValidatorPrefsWithBlocked",
     "DispatchInfo": {
       "type": "struct",
       "type_mapping": [
@@ -120,7 +122,7 @@
       "types": {
         "Address": "MultiAddress",
         "LookupSource": "MultiAddress",
-        "AccountInfo": "AccountInfoWithProviders",
+        "AccountInfo": "AccountInfoWithDualRefCount",
         "Keys": {
           "type": "struct",
           "type_mapping": [

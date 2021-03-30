@@ -276,6 +276,81 @@
     },
     "RefCount": "u32",
     "RefCountTo259": "u8",
+    "ExtendedBalance": "u128",
+    "RawSolution": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "compact",
+          "CompactAssignments"
+        ],
+        [
+          "score",
+          "ElectionScore"
+        ],
+        [
+          "round",
+          "u32"
+        ]
+      ]
+    },
+    "ReadySolution": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "supports",
+          "SolutionSupports"
+        ],
+        [
+          "score",
+          "ElectionScore"
+        ],
+        [
+          "compute",
+          "ElectionCompute"
+        ]
+      ]
+    },
+    "RoundSnapshot": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "voters",
+          "Vec<(AccountId, VoteWeight, Vec<AccountId>)>"
+        ],
+        [
+          "targets",
+          "Vec<AccountId>"
+        ]
+      ]
+    },
+    "SolutionSupport": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "total",
+          "ExtendedBalance"
+        ],
+        [
+          "voters",
+          "Vec<(AccountId, ExtendedBalance)>"
+        ]
+      ]
+    },
+    "SolutionSupports": "Vec<(AccountId, SolutionSupport)>",
+    "SolutionOrSnapshotSize": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "voters",
+          "Compact<u32>"
+        ],
+        [
+          "targets",
+          "Compact<u32>"
+        ]
+      ]
+    },
     "SyncState": {
       "type": "struct",
       "type_mapping": [
@@ -423,27 +498,6 @@
     },
     "MessagingStateSnapshotEgressEntry": "(ParaId, AbridgedHrmpChannel)",
     "BTreeMap<ParaId, VecInboundHrmpMessage>": "Vec<(ParaId, VecInboundHrmpMessage)>",
-    "SystemInherentData": {
-      "type": "struct",
-      "type_mapping": [
-        [
-          "validationData",
-          "PersistedValidationData"
-        ],
-        [
-          "relayChainState",
-          "StorageProof"
-        ],
-        [
-          "downwardMessages",
-          "Vec<InboundDownwardMessage>"
-        ],
-        [
-          "horizontalMessages",
-          "BTreeMap<ParaId, VecInboundHrmpMessage>"
-        ]
-      ]
-    },
     "VecInboundHrmpMessage": "Vec<InboundHrmpMessage>",
     "FullIdentification": {
       "type": "struct",
@@ -1020,19 +1074,11 @@
           "HeadData"
         ],
         [
-          "blockNumber",
+          "relayParentNumber",
           "RelayChainBlockNumber"
         ],
         [
-          "relayStorageRoot",
-          "Hash"
-        ],
-        [
-          "hrmpMqcHeads",
-          "Vec<(u32, Hash)>"
-        ],
-        [
-          "dmqMqcHead",
+          "relayParentStorageRoot",
           "Hash"
         ],
         [
@@ -2182,7 +2228,7 @@
         ],
         [
           "own",
-          "AccountId"
+          "Balance"
         ],
         [
           "others",
@@ -2546,6 +2592,79 @@
         [
           "reserved",
           "Option<Weight>"
+        ]
+      ]
+    },
+    "ActiveGilt": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "proportion",
+          "Perquintill"
+        ],
+        [
+          "amount",
+          "Balance"
+        ],
+        [
+          "who",
+          "AccountId"
+        ],
+        [
+          "expiry",
+          "BlockNumber"
+        ]
+      ]
+    },
+    "ActiveGiltsTotal": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "frozen",
+          "Balance"
+        ],
+        [
+          "proportion",
+          "Perquintill"
+        ],
+        [
+          "index",
+          "ActiveIndex"
+        ],
+        [
+          "target",
+          "Perquintill"
+        ]
+      ]
+    },
+    "ActiveIndex": "u32",
+    "GiltBid": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "amount",
+          "Balance"
+        ],
+        [
+          "who",
+          "AccountId"
+        ]
+      ]
+    },
+    "MmrLeafProof": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "blockHash",
+          "BlockHash"
+        ],
+        [
+          "leaf",
+          "Bytes"
+        ],
+        [
+          "proof",
+          "Bytes"
         ]
       ]
     },
@@ -3019,6 +3138,23 @@
     },
     "ModuleId": "LockIdentifier",
     "MultiAddress": "GenericMultiAddress",
+    "MultiSigner": {
+      "type": "enum",
+      "type_mapping": [
+        [
+          "Ed25519",
+          "[u8; 32]"
+        ],
+        [
+          "Sr25519",
+          "[u8; 32]"
+        ],
+        [
+          "Ecdsa",
+          "[u8; 33]"
+        ]
+      ]
+    },
     "RuntimeDbWeight": {
       "type": "struct",
       "type_mapping": [
@@ -3641,6 +3777,10 @@
         [
           "lastWrite",
           "Option<BlockNumber>"
+        ],
+        [
+          "_reserved",
+          "Option<Null>"
         ]
       ]
     },
@@ -3932,6 +4072,10 @@
           "Weight"
         ],
         [
+          "instantiatePerSaltByte",
+          "Weight"
+        ],
+        [
           "hashSha2256",
           "Weight"
         ],
@@ -3961,6 +4105,10 @@
         ],
         [
           "hashBlake2128PerByte",
+          "Weight"
+        ],
+        [
+          "rentParams",
           "Weight"
         ]
       ]
@@ -4231,16 +4379,23 @@
           "Compact<u32>"
         ],
         [
+          "refcount",
+          "Compact<u64>"
+        ],
+        [
           "_reserved",
-          "PrefabWasmModuleReserved"
+          "Option<Null>"
         ],
         [
           "code",
           "Bytes"
+        ],
+        [
+          "originalCodeLen",
+          "u32"
         ]
       ]
     },
-    "PrefabWasmModuleReserved": "Option<Null>",
     "ScheduleTo212": {
       "type": "struct",
       "type_mapping": [
@@ -4419,10 +4574,10 @@
     },
     "ValidatorId": "AccountId",
     "ValidatorIdOf": "ValidatorId",
-    "PreRuntime": "(ConsensusEngineId, Bytes)",
-    "SealV0": "(u64, Signature)",
-    "Seal": "(ConsensusEngineId, Bytes)",
-    "Consensus": "(ConsensusEngineId, Bytes)",
+    "PreRuntime": "GenericPreRuntime",
+    "SealV0": "GenericSealV0",
+    "Seal": "GenericSeal",
+    "Consensus": "GenericConsensus",
     "Period": "(BlockNumber, u32)",
     "Priority": "u8",
     "SchedulePeriod": "Period",
@@ -4575,7 +4730,7 @@
         ],
         [
           "PreEnding",
-          "AuctionIndex"
+          "u32"
         ],
         [
           "Ending",
@@ -4583,33 +4738,20 @@
         ]
       ]
     },
-    "DeployData": {
-      "type": "struct",
-      "type_mapping": [
-        [
-          "codeHash",
-          "Hash"
-        ],
-        [
-          "codeSize",
-          "u32"
-        ],
-        [
-          "initialHeadData",
-          "HeadData"
-        ]
-      ]
-    },
     "FundInfo": {
       "type": "struct",
       "type_mapping": [
         [
-          "parachain",
-          "Option<ParaId>"
+          "retiring",
+          "bool"
         ],
         [
-          "owner",
+          "depositor",
           "AccountId"
+        ],
+        [
+          "verifier",
+          "Option<MultiSigner>"
         ],
         [
           "deposit",
@@ -4633,18 +4775,19 @@
         ],
         [
           "firstSlot",
-          "BlockNumber"
+          "LeasePeriod"
         ],
         [
           "lastSlot",
-          "BlockNumber"
+          "LeasePeriod"
         ],
         [
-          "deployData",
-          "Option<DeployData>"
+          "trieIndex",
+          "TrieIndex"
         ]
       ]
     },
+    "TrieIndex": "u32",
     "GrandpaEquivocationProof": {
       "type": "struct",
       "type_mapping": [
@@ -4829,7 +4972,7 @@
         ]
       ]
     },
-    "AccountInfoWithProviders": {
+    "AccountInfoWithDualRefCount": {
       "type": "struct",
       "type_mapping": [
         [
@@ -4850,7 +4993,33 @@
         ]
       ]
     },
-    "AccountInfo": "AccountInfoWithRefCount",
+    "AccountInfoWithProviders": "AccountInfoWithDualRefCount",
+    "AccountInfoWithTripleRefCount": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "nonce",
+          "Index"
+        ],
+        [
+          "consumers",
+          "RefCount"
+        ],
+        [
+          "providers",
+          "RefCount"
+        ],
+        [
+          "sufficients",
+          "RefCount"
+        ],
+        [
+          "data",
+          "AccountData"
+        ]
+      ]
+    },
+    "AccountInfo": "AccountInfoWithTripleRefCount",
     "BlockWeights": {
       "type": "struct",
       "type_mapping": [
@@ -5291,7 +5460,7 @@
         ]
       ]
     },
-    "ValidatorPrefs": "ValidatorPrefsWithCommission",
+    "ValidatorPrefs": "ValidatorPrefsWithBlocked",
     "ValidatorPrefsTo196": {
       "type": "struct",
       "type_mapping": [
@@ -5568,6 +5737,19 @@
       ]
     },
     "BabeAuthorityWeight": "u64",
+    "BabeEpochConfiguration": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "c",
+          "(u64, u64)"
+        ],
+        [
+          "allowedSlots",
+          "AllowedSlots"
+        ]
+      ]
+    },
     "BabeBlockWeight": "u32",
     "BabeEquivocationProof": {
       "type": "struct",
@@ -5699,6 +5881,32 @@
         ]
       ]
     },
+    "AssetApprovalKey": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "owner",
+          "AccountId"
+        ],
+        [
+          "delegate",
+          "AccountId"
+        ]
+      ]
+    },
+    "AssetApproval": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "amount",
+          "TAssetBalance"
+        ],
+        [
+          "deposit",
+          "TAssetDepositBalance"
+        ]
+      ]
+    },
     "AssetBalance": {
       "type": "struct",
       "type_mapping": [
@@ -5711,8 +5919,25 @@
           "bool"
         ],
         [
-          "isZombie",
+          "isSufficient",
           "bool"
+        ]
+      ]
+    },
+    "AssetDestroyWitness": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "accounts",
+          "Compact<u32>"
+        ],
+        [
+          "sufficients",
+          "Compact<u32>"
+        ],
+        [
+          "approvals",
+          "Compact<u32>"
         ]
       ]
     },
@@ -5744,20 +5969,28 @@
           "TAssetDepositBalance"
         ],
         [
-          "maxZombies",
-          "u32"
-        ],
-        [
           "minBalance",
           "TAssetBalance"
         ],
         [
-          "zombies",
-          "u32"
+          "isSufficient",
+          "bool"
         ],
         [
           "accounts",
           "u32"
+        ],
+        [
+          "sufficients",
+          "u32"
+        ],
+        [
+          "approvals",
+          "u32"
+        ],
+        [
+          "isFrozen",
+          "bool"
         ]
       ]
     },
@@ -5779,6 +6012,10 @@
         [
           "decimals",
           "u8"
+        ],
+        [
+          "isFrozen",
+          "bool"
         ]
       ]
     },
@@ -6355,6 +6592,10 @@
           "Option<u32>"
         ],
         [
+          "maxValidators",
+          "Option<u32>"
+        ],
+        [
           "disputePeriod",
           "SessionIndex"
         ],
@@ -6529,17 +6770,9 @@
         ]
       ]
     },
-    "HrmpChannelTo13": {
+    "HrmpChannel": {
       "type": "struct",
       "type_mapping": [
-        [
-          "senderDeposit",
-          "Balance"
-        ],
-        [
-          "recipientDeposit",
-          "Balance"
-        ],
         [
           "maxCapacity",
           "u32"
@@ -6563,6 +6796,14 @@
         [
           "mqcHead",
           "Option<Hash>"
+        ],
+        [
+          "senderDeposit",
+          "Balance"
+        ],
+        [
+          "recipientDeposit",
+          "Balance"
         ]
       ]
     },
@@ -6674,7 +6915,68 @@
         "Root"
       ]
     },
+    "ParachainInherentData": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "validationData",
+          "PersistedValidationData"
+        ],
+        [
+          "relayChainState",
+          "StorageProof"
+        ],
+        [
+          "downwardMessages",
+          "Vec<InboundDownwardMessage>"
+        ],
+        [
+          "horizontalMessages",
+          "BTreeMap<ParaId, VecInboundHrmpMessage>"
+        ]
+      ]
+    },
+    "ParachainProposal": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "proposer",
+          "AccountId"
+        ],
+        [
+          "genesisHead",
+          "HeadData"
+        ],
+        [
+          "validators",
+          "Vec<ValidatorId>"
+        ],
+        [
+          "name",
+          "Bytes"
+        ],
+        [
+          "balance",
+          "Balance"
+        ]
+      ]
+    },
+    "RegisteredParachainInfo": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "validators",
+          "Vec<ValidatorId>"
+        ],
+        [
+          "proposer",
+          "AccountId"
+        ]
+      ]
+    },
+    "SystemInherentData": "ParachainInherentData",
     "RelayChainBlockNumber": "u32",
+    "RelayChainHash": "Hash",
     "QueuedParathread": {
       "type": "struct",
       "type_mapping": [

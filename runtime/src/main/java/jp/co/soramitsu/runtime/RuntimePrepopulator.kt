@@ -9,9 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private val RUNTIME_CACHE_ENTRIES = listOf(
-    predefinedEntry("kusama", 2028),
-    predefinedEntry("westend", 48),
-    predefinedEntry("polkadot", 27)
+    predefinedEntry("kusama", 2029),
+    predefinedEntry("westend", 49),
+    predefinedEntry("polkadot", 28)
 )
 
 private const val PREDEFINED_METADATA_MASK = "metadata/%s"
