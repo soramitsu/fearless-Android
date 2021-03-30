@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.dp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
@@ -68,6 +69,9 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
             }
         )
     }
+
+    val Int.dp
+        get() = dp(requireContext())
 
     inline fun <V> Flow<V>.observe(crossinline collector: suspend (V) -> Unit) {
         lifecycleScope.launchWhenResumed {

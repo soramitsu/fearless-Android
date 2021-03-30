@@ -54,6 +54,10 @@ inline fun EditText.onDoneClicked(crossinline listener: () -> Unit) {
     }
 }
 
+fun <V : View> ViewGroup.inflateChildTyped(@LayoutRes id: Int) : V {
+    return inflateChild(id) as V
+}
+
 fun ViewGroup.inflateChild(@LayoutRes id: Int): View {
     return LayoutInflater.from(context).run {
         inflate(id, this@inflateChild, false)

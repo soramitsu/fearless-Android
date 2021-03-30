@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.utils
 
 import android.widget.EditText
+import androidx.appcompat.widget.SwitchCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.LiveDataScope
@@ -53,7 +54,7 @@ fun <T> MediatorLiveData<T>.updateFrom(other: LiveData<T>) = addSource(other) {
  */
 fun <R> combine(
     vararg sources: LiveData<*>,
-    combiner: (ComponentHolder) -> R
+    combiner: (ComponentHolder) -> R,
 ): LiveData<R> {
     return MediatorLiveData<R>().apply {
         for (source in sources) {
@@ -73,7 +74,7 @@ fun <R> combine(
 fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(
     another: LiveData<SECOND>,
     initial: RESULT? = null,
-    zipper: (FIRST, SECOND) -> RESULT
+    zipper: (FIRST, SECOND) -> RESULT,
 ): LiveData<RESULT> {
 
     return MediatorLiveData<RESULT>().apply {
@@ -98,12 +99,12 @@ fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(
 }
 
 fun <FROM, TO> LiveData<FROM>.switchMap(
-    mapper: (FROM) -> LiveData<TO>
+    mapper: (FROM) -> LiveData<TO>,
 ) = switchMap(mapper, true)
 
 fun <FROM, TO> LiveData<FROM>.switchMap(
     mapper: (FROM) -> LiveData<TO>,
-    triggerOnSwitch: Boolean
+    triggerOnSwitch: Boolean,
 ): LiveData<TO> {
     val result: MediatorLiveData<TO> = MediatorLiveData()
 
@@ -147,14 +148,25 @@ fun EditText.bindTo(liveData: MutableLiveData<String>, lifecycleOwner: Lifecycle
         }
     }
 
-    liveData.observe(
-        lifecycleOwner,
-        Observer {
-            if (it != text.toString()) {
-                setText(it)
-            }
+    liveData.observe(lifecycleOwner) {
+        if (it != text.toString()) {
+            setText(it)
         }
-    )
+    }
+}
+
+fun SwitchCompat.bindTo(liveData: MutableLiveData<Boolean>, lifecycleOwner: LifecycleOwner) {
+    setOnCheckedChangeListener { _, isChecked ->
+        if (liveData.value != isChecked) {
+            liveData.value = isChecked
+        }
+    }
+
+    liveData.observe(lifecycleOwner) {
+        if (it != isChecked) {
+            isChecked = it
+        }
+    }
 }
 
 fun LiveData<String>.isNotEmpty() = !value.isNullOrEmpty()

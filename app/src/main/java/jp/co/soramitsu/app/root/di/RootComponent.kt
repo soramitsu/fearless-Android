@@ -6,6 +6,7 @@ import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.app.root.presentation.di.RootActivityComponent
 import jp.co.soramitsu.app.root.presentation.main.coming_soon.di.ComingSoonComponent
 import jp.co.soramitsu.app.root.presentation.main.di.MainFragmentComponent
+import jp.co.soramitsu.app.root.presentation.main.extrinsic_builder.ExtrinsicBuilderComponent
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core_db.di.DbApi
@@ -30,6 +31,8 @@ interface RootComponent {
     fun mainFragmentComponentFactory(): MainFragmentComponent.Factory
 
     fun comingSoonComponentFactory(): ComingSoonComponent.Factory
+
+    fun extrinsicBuilderFactory() : ExtrinsicBuilderComponent.Factory
 
     @Component.Factory
     interface Factory {

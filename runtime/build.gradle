@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -45,6 +46,22 @@ dependencies {
 
     implementation daggerDep
     kapt daggerKapt
+
+    implementation androidDep
+
+
+    implementation androidDep
+    implementation materialDep
+    implementation cardViewDep
+    implementation constraintDep
+
+    implementation permissionsDep
+
+    implementation coroutinesDep
+    implementation coroutinesAndroidDep
+    implementation viewModelKtxDep
+    implementation liveDataKtxDep
+    implementation lifeCycleKtxDep
 
     testImplementation project(':test-shared')
 }

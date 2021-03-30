@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    style="@style/TextAppearance.Soramitsu.Body1"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:background="@color/black"
+    android:textColor="@color/white"
+    android:text="Staking"
+    android:id="@+id/itemSheetCategoryName"
+    android:paddingStart="16dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp"
+    android:layout_height="wrap_content" />
