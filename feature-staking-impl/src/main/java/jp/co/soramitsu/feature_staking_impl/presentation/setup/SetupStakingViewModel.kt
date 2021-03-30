@@ -20,18 +20,18 @@ import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.validation.unwrap
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
-import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
+import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.common.StashSetup
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
@@ -62,7 +62,7 @@ sealed class RewardDestinationModel {
 
 class PayoutEstimations(
     val restake: RewardEstimation,
-    val payout: RewardEstimation
+    val payout: RewardEstimation,
 )
 
 class SetupStakingViewModel(
@@ -75,12 +75,14 @@ class SetupStakingViewModel(
     private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
     private val appLinksProvider: AppLinksProvider,
     private val setupStakingSharedState: SetupStakingSharedState,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation
+    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
 ) : BaseViewModel(),
     Retriable,
     Validatable,
     Browserable,
     FeeLoaderMixin by feeLoaderMixin {
+
+    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.Stash>()
 
     private val _rewardDestinationLiveData = MutableLiveData<RewardDestinationModel>(RewardDestinationModel.Restake)
     val rewardDestinationLiveData: LiveData<RewardDestinationModel> = _rewardDestinationLiveData
@@ -93,6 +95,7 @@ class SetupStakingViewModel(
     )
 
     override val validationFailureEvent = MutableLiveData<Event<DefaultFailure>>()
+
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     private val assetFlow = interactor.currentAssetFlow()
@@ -102,7 +105,7 @@ class SetupStakingViewModel(
         .map { mapAssetToAssetModel(it, resourceManager) }
         .flowOn(Dispatchers.Default)
 
-    val enteredAmountFlow = MutableStateFlow(setupStakingSharedState.stashSetup.amount.toString())
+    val enteredAmountFlow = MutableStateFlow(currentProcessState.amount.toString())
 
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
@@ -143,6 +146,8 @@ class SetupStakingViewModel(
     }
 
     fun backClicked() {
+        setupStakingSharedState.set(currentProcessState.previous())
+
         router.back()
     }
 
@@ -179,15 +184,17 @@ class SetupStakingViewModel(
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { account, asset ->
-                maxFeeEstimator.estimateMaxSetupStakingFee(account.address, asset.token.type, skipBond = false)
+            feeConstructor = { asset ->
+                val address = interactor.getSelectedAccount().address
+
+                maxFeeEstimator.estimateMaxSetupStakingFee(asset.token.type, address)
             },
             onRetryCancelled = ::backClicked
         )
     }
 
     private fun maybeGoToNext(
-        ignoreWarnings: Boolean = false
+        ignoreWarnings: Boolean = false,
     ) = requireFee { fee ->
         _showNextProgress.value = true
 
@@ -195,13 +202,15 @@ class SetupStakingViewModel(
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationLiveData.value!!)
             val amount = parsedAmountFlow.first()
             val tokenType = assetFlow.first().token.type
+            val controllerAddress = interactor.getSelectedAccount().address
+
+            val stashSetup = StashSetup(rewardDestination, controllerAddress, alreadyHasStash = false)
 
             val payload = SetupStakingPayload(
-                amount = amount,
                 tokenType = tokenType,
-                originAddress = interactor.getSelectedAccount().address,
-                maxFee = fee,
-                rewardDestination = rewardDestination
+                amount = amount,
+                stashSetup = stashSetup,
+                maxFee = fee
             )
 
             val ignoreLevel = if (ignoreWarnings) DefaultFailureLevel.WARNING else null
@@ -211,7 +220,7 @@ class SetupStakingViewModel(
             _showNextProgress.value = false
 
             validationResult.unwrap(
-                onValid = { goToNextStep(rewardDestination, amount) },
+                onValid = { goToNextStep(stashSetup) },
                 onInvalid = {
                     validationFailureEvent.value = Event(stakingValidationFailure(payload, it, resourceManager))
                 },
@@ -220,11 +229,8 @@ class SetupStakingViewModel(
         }
     }
 
-    private fun goToNextStep(
-        rewardDestination: RewardDestination,
-        amount: BigDecimal
-    ) {
-        setupStakingSharedState.stashSetup = StashSetup(alreadyHasStash = false, amount, rewardDestination)
+    private fun goToNextStep(stashSetup: StashSetup) {
+        setupStakingSharedState.set(currentProcessState.next(stashSetup))
 
         router.openRecommendedValidators()
     }

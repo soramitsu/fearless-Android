@@ -6,6 +6,7 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
+import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -18,18 +19,26 @@ class MaxFeeEstimator(
 ) {
 
     suspend fun estimateMaxSetupStakingFee(
-        originAddress: String,
         tokenType: Token.Type,
-        skipBond: Boolean,
-        amount: BigInteger = fakeAmount(),
-        rewardDestination: RewardDestination = fakeRewardDestination(),
-        nominations: List<MultiAddress> = fakeTargets(),
+        controllerAddress: String
+    ): BigDecimal = estimateMaxSetupStakingFee(
+        tokenType,
+        fakeStashSetup(controllerAddress),
+        fakeAmount(),
+        fakeNominations()
+    )
+
+    suspend fun estimateMaxSetupStakingFee(
+        tokenType: Token.Type,
+        stashSetup: StashSetup,
+        amount: BigInteger,
+        nominations: List<MultiAddress>,
     ): BigDecimal {
-        val extrinsicBuilder = with(extrinsicBuilderFactory) { create(originAddress, fakeKeypairProvider()) }
+        val extrinsicBuilder = with(extrinsicBuilderFactory) { create(stashSetup.controllerAddress, fakeKeypairProvider()) }
 
         val extrinsic = extrinsicBuilder.apply {
-            if (!skipBond) {
-                bond(MultiAddress.Id(originAddress.toAccountId()), amount, rewardDestination)
+            if (stashSetup.alreadyHasStash.not()) {
+                bond(MultiAddress.Id(stashSetup.controllerAddress.toAccountId()), amount, stashSetup.rewardDestination)
             }
 
             nominate(nominations)
@@ -38,9 +47,13 @@ class MaxFeeEstimator(
         return tokenType.amountFromPlanks(substrateCalls.getExtrinsicFee(extrinsic))
     }
 
+    private fun fakeStashSetup(controllerAddress: String): StashSetup {
+        return StashSetup(fakeRewardDestination(), controllerAddress, alreadyHasStash = false)
+    }
+
     private fun fakeRewardDestination() = RewardDestination.Payout(fakeAccountId())
 
-    private fun fakeTargets() = MutableList(16) { MultiAddress.Id(fakeAccountId()) }
+    private fun fakeNominations() = MutableList(16) { MultiAddress.Id(fakeAccountId()) }
 
     private fun fakeAmount() = 1_000_000_000.toBigInteger()
 

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_no_controller_account">Controller account %s is unavailable to update staking setup.</string>
+
     <string name="staking_manage">Manage</string>
     <string name="staking_stake_more">Stake more</string>
     <string name="staking_pause_staking">Pause staking</string>

@@ -87,14 +87,13 @@
             <TextView
                 android:id="@+id/stakingInfoExtraBlockValue"
                 style="@style/TextAppearance.Soramitsu.Body2"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
-                android:layout_weight="1"
                 android:includeFontPadding="false"
                 android:singleLine="true"
                 android:textColor="@color/white_64"
-                tools:text="$8.13" />
+                tools:text="$8.131" />
 
             <TextView
                 android:id="@+id/stakingInfoExtraBlockAdditional"

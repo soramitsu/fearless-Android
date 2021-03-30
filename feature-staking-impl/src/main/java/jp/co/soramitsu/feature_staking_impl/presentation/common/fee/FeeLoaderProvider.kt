@@ -4,7 +4,6 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapFeeToFeeModel
@@ -26,18 +25,17 @@ class FeeLoaderProvider(
 
     override fun loadFee(
         coroutineScope: CoroutineScope,
-        feeConstructor: suspend (StakingAccount, Asset) -> BigDecimal,
+        feeConstructor: suspend (Asset) -> BigDecimal,
         onRetryCancelled: () -> Unit
     ) {
         feeLiveData.value = FeeStatus.Loading
 
         coroutineScope.launch(Dispatchers.Default) {
-            val account = stakingInteractor.getSelectedAccount()
             val asset = stakingInteractor.currentAssetFlow().first()
             val token = asset.token
 
             val feeResult = runCatching {
-                feeConstructor(account, asset)
+                feeConstructor(asset)
             }
 
             val value = if (feeResult.isSuccess) {
