@@ -220,7 +220,10 @@ class StakingRepositoryImpl(
 
     private suspend fun getRuntime() = runtimeProperty.get()
 
-    private suspend fun <T> getFromStorage(keyBuilder: (RuntimeSnapshot) -> String, binding: (scale: String, runtime: RuntimeSnapshot) -> T): T = withContext(Dispatchers.Default) {
+    private suspend fun <T> getFromStorage(
+        keyBuilder: (RuntimeSnapshot) -> String,
+        binding: (scale: String, runtime: RuntimeSnapshot) -> T
+    ): T = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 
         val scale = storageCache.getEntry(keyBuilder(runtime)).content!!

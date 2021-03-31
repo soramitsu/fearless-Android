@@ -35,7 +35,6 @@ fun bindActiveEra(
     return bindEraIndex(decoded.getTyped("index"))
 }
 
-
 /*
 EraIndex
  */

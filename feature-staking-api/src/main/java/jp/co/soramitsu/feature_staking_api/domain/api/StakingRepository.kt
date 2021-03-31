@@ -20,7 +20,7 @@ interface StakingRepository {
 
     suspend fun getActiveEraIndex(): BigInteger
 
-    suspend fun historyDepth() : BigInteger
+    suspend fun historyDepth(): BigInteger
 
     suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<BigInteger>
 

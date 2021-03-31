@@ -34,7 +34,7 @@ abstract class SingleStorageKeyUpdater<S : UpdateScope>(
      */
     abstract suspend fun storageKey(runtime: RuntimeSnapshot): String?
 
-    protected open fun fallbackValue(runtime: RuntimeSnapshot) : String? = null
+    protected open fun fallbackValue(runtime: RuntimeSnapshot): String? = null
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()
