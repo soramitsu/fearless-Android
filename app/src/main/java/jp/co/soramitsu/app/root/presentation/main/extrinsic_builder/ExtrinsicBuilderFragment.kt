@@ -175,16 +175,21 @@ class ExtrinsicBuilderFragment : BaseFragment<ExtrinsicBuilderViewModel>() {
 
                 argumentState.newElementEvent.observeEvent { elementState ->
                     addView(LinearLayout(requireContext()).apply {
-                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                            setMargins(0, 16.dp, 0, 0)
+                        }
+
                         orientation = LinearLayout.HORIZONTAL
 
                         createArgumentView(elementState)?.also {
-                            it.layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT).apply { weight = 1.0f }
+                            it.layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT).apply {
+                                weight = 1.0f
+                            }
                         }?.let(::addView)
 
                         addView(ImageView(requireContext()).apply {
                             layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
-                                setMargins(16.dp, 16.dp, 0, 0)
+                                setMargins(16.dp, 0, 0, 0)
                             }
 
                             setImageResource(R.drawable.ic_delete_symbol)

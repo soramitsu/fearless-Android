@@ -69,7 +69,7 @@ sealed class ArgumentState<T>(val name: String) {
     class PrimitiveState<T>(
         name: String,
         val inputType: Int,
-        val converter: suspend (String) -> T
+        val converter: suspend (String) -> T,
     ) : ArgumentState<T>(name) {
 
         val stringValue = MutableLiveData("")
@@ -161,10 +161,6 @@ sealed class ArgumentState<T>(val name: String) {
 
         val elements = mutableListOf<ArgumentState<*>>()
 
-        init {
-            add()
-        }
-
         fun add() {
             val newElement = createElement()
             elements.add(newElement)
@@ -208,7 +204,7 @@ sealed class ArgumentState<T>(val name: String) {
 
     class CallState(
         name: String,
-        val buildingContext: ExtrinsicBuilderContext
+        val buildingContext: ExtrinsicBuilderContext,
     ) : ArgumentState<GenericCall.Instance>(name), CoroutineScope by buildingContext.coroutineScope {
 
         val selectedModuleName = mutableShareFlow<String>().also {
