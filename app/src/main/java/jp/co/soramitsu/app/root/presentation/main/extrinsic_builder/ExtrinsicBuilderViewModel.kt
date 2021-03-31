@@ -25,7 +25,6 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.Numbe
 import jp.co.soramitsu.fearless_utils.runtime.metadata.Function
 import jp.co.soramitsu.fearless_utils.runtime.metadata.FunctionArgument
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -37,7 +36,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
+import java.math.BigInteger
 
 private fun <T> mutableShareFlow() = MutableSharedFlow<T>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
@@ -266,8 +265,8 @@ fun mapTypeToState(
     BooleanType -> ArgumentState.BoolState(argName)
     is NumberType -> ArgumentState.PrimitiveState(
         argName,
-        InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL,
-        { buildingContext.currentAssetFlow.first().token.planksFromAmount(BigDecimal(it)) }
+        InputType.TYPE_CLASS_NUMBER,
+        ::BigInteger
     )
     is FixedByteArray, is DynamicByteArray -> ArgumentState.PrimitiveState(argName + " (in hex)", InputType.TYPE_CLASS_TEXT) { it.fromHex() }
     is DictEnum -> ArgumentState.DictEnumState(argName, type, buildingContext)
