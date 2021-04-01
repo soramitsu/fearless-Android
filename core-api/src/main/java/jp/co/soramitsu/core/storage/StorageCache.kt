@@ -27,7 +27,7 @@ interface StorageCache {
      */
     suspend fun getEntry(key: String): StorageEntry
 
-    suspend fun filterKeysInCache(keys: List<String>) : List<String>
+    suspend fun filterKeysInCache(keys: List<String>): List<String>
 
     /**
      * Should suspend until any matched result found
