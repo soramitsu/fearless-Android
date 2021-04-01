@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.SlashingSpan
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionStatus
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindHistoryDepth
@@ -79,7 +80,12 @@ class StakingRepositoryImpl(
         binding = ::bindActiveEra
     )
 
-    override suspend fun historyDepth(): BigInteger = getFromStorage(
+    override suspend fun getCurrentEraIndex(): BigInteger = getFromStorage(
+        keyBuilder = { it.metadata.staking().storage("CurrentEra").storageKey() },
+        binding = ::bindCurrentEra
+    )
+
+    override suspend fun getHistoryDepth(): BigInteger = getFromStorage(
         keyBuilder = { it.metadata.staking().storage("HistoryDepth").storageKey() },
         binding = ::bindHistoryDepth
     )
@@ -222,7 +228,7 @@ class StakingRepositoryImpl(
 
     private suspend fun <T> getFromStorage(
         keyBuilder: (RuntimeSnapshot) -> String,
-        binding: (scale: String, runtime: RuntimeSnapshot) -> T
+        binding: (scale: String, runtime: RuntimeSnapshot) -> T,
     ): T = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 

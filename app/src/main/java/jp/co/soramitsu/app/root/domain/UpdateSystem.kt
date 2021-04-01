@@ -8,6 +8,7 @@ import jp.co.soramitsu.runtime.RuntimeUpdater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.withContext
@@ -25,7 +26,7 @@ class UpdateSystem(
             scope.invalidationFlow().flatMapLatest {
                 val subscriptionBuilder = StorageSubscriptionBuilder.create()
 
-                val updatersFlow = scopeUpdaters.map { it.listenForUpdates(subscriptionBuilder) }
+                val updatersFlow = scopeUpdaters.map { it.listenForUpdates(subscriptionBuilder).flowOn(Dispatchers.IO) }
 
                 val cancellable = socketService.subscribeUsing(subscriptionBuilder.proxy.build())
 
