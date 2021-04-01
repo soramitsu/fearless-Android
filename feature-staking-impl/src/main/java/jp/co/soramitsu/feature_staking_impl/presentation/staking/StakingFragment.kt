@@ -76,8 +76,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                         stakingState.statusClicked()
                     }
 
-                    stakingState.syncStakingRewards()
-
                     stakingState.showStatusAlertEvent.observeEvent { (title, message) ->
                         showStatusAlert(title, message)
                     }
