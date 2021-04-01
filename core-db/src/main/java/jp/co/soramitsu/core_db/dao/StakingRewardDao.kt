@@ -16,6 +16,6 @@ abstract class StakingRewardDao {
     @Query("SELECT COUNT(*) FROM staking_rewards WHERE accountAddress = :accountAddress")
     abstract suspend fun rewardCount(accountAddress: String): Int
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    abstract suspend fun insert(rewards: List<StakingRewardLocal>): List<Long>
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract suspend fun insert(rewards: List<StakingRewardLocal>)
 }
