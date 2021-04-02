@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.data.network.rpc.retrieveAllValues
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.StorageEntry
 import jp.co.soramitsu.core.storage.StorageCache
@@ -22,12 +21,18 @@ suspend fun StorageCache.observeActiveEraIndex(runtime: RuntimeSnapshot, network
         .map { bindActiveEra(it.content!!, runtime) }
 }
 
-suspend fun BulkRetriever.fetchPrefixValuesToCache(prefix: String, storageCache: StorageCache) {
-    val allValues = retrieveAllValues(prefix)
+suspend fun BulkRetriever.fetchValuesToCache(keys: List<String>, storageCache: StorageCache) {
+    val allValues = queryKeys(keys)
 
     val runtimeVersion = storageCache.currentRuntimeVersion()
 
     val toInsert = allValues.map { (key, value) -> StorageEntry(key, value, runtimeVersion) }
 
     storageCache.insert(toInsert)
+}
+
+suspend fun BulkRetriever.fetchPrefixValuesToCache(prefix: String, storageCache: StorageCache) {
+    val allKeys = retrieveAllKeys(prefix)
+
+    fetchValuesToCache(allKeys, storageCache)
 }
