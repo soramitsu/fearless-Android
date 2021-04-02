@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings
 
+import jp.co.soramitsu.common.data.network.runtime.binding.HelperBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
@@ -39,7 +40,7 @@ fun bindActiveEra(
 EraIndex
  */
 @UseCaseBinding
-fun bindCurrentEraIndex(
+fun bindCurrentEra(
     scale: String,
     runtime: RuntimeSnapshot
 ): BigInteger {
@@ -48,4 +49,5 @@ fun bindCurrentEraIndex(
     return bindEraIndex(returnType.fromHexOrNull(runtime, scale))
 }
 
-fun bindEraIndex(dynamicInstance: Any?) = dynamicInstance as? BigInteger ?: incompatible()
+@HelperBinding
+fun bindEraIndex(dynamicInstance: Any?) = bindNumber(dynamicInstance)

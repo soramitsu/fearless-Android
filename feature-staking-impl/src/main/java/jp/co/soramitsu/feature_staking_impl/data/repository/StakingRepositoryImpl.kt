@@ -23,8 +23,10 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.SlashingSpan
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionStatus
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindHistoryDepth
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindNominations
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashDeferDuration
@@ -44,11 +46,11 @@ import kotlinx.coroutines.withContext
 import java.math.BigInteger
 
 class StakingRepositoryImpl(
-    val storageCache: StorageCache,
-    val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    val accountStakingDao: AccountStakingDao,
-    val bulkRetriever: BulkRetriever,
-    val stakingStoriesDataSource: StakingStoriesDataSource
+    private val storageCache: StorageCache,
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    private val accountStakingDao: AccountStakingDao,
+    private val bulkRetriever: BulkRetriever,
+    private val stakingStoriesDataSource: StakingStoriesDataSource,
 ) : StakingRepository {
 
     override suspend fun electionStatusFlow(networkType: Node.NetworkType): Flow<ElectionStatus> {
@@ -68,25 +70,25 @@ class StakingRepositoryImpl(
         return inEras.toInt() / networkType.runtimeConfiguration.erasPerDay
     }
 
-    override suspend fun getTotalIssuance(): BigInteger = withContext(Dispatchers.Default) {
-        val runtime = getRuntime()
+    override suspend fun getTotalIssuance(): BigInteger = getFromStorage(
+        keyBuilder = { it.metadata.module("Balances").storage("TotalIssuance").storageKey() },
+        binding = ::bindTotalInsurance
+    )
 
-        val fullKey = runtime.metadata.module("Balances").storage("TotalIssuance").storageKey()
+    override suspend fun getActiveEraIndex(): BigInteger = getFromStorage(
+        keyBuilder = { it.metadata.activeEraStorageKey() },
+        binding = ::bindActiveEra
+    )
 
-        val scale = storageCache.getEntry(fullKey).content!!
+    override suspend fun getCurrentEraIndex(): BigInteger = getFromStorage(
+        keyBuilder = { it.metadata.staking().storage("CurrentEra").storageKey() },
+        binding = ::bindCurrentEra
+    )
 
-        bindTotalInsurance(scale, runtime)
-    }
-
-    override suspend fun getActiveEraIndex(): BigInteger {
-        val runtime = getRuntime()
-
-        val fullKey = runtime.metadata.activeEraStorageKey()
-
-        val scale = storageCache.getEntry(fullKey).content!!
-
-        return bindActiveEra(scale, runtime)
-    }
+    override suspend fun getHistoryDepth(): BigInteger = getFromStorage(
+        keyBuilder = { it.metadata.staking().storage("HistoryDepth").storageKey() },
+        binding = ::bindHistoryDepth
+    )
 
     override suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<BigInteger> {
         return storageCache.observeActiveEraIndex(runtimeProperty.get(), networkType)
@@ -166,7 +168,7 @@ class StakingRepositoryImpl(
 
     private suspend fun observeStashState(
         accessInfo: AccountStakingLocal.AccessInfo,
-        accountAddress: String
+        accountAddress: String,
     ): Flow<StakingState.Stash> {
         val networkType = accountAddress.networkType()
         val runtime = runtimeProperty.get()
@@ -193,7 +195,7 @@ class StakingRepositoryImpl(
     private suspend fun observeAccountValidatorPrefs(
         runtime: RuntimeSnapshot,
         stashId: AccountId,
-        networkType: Node.NetworkType
+        networkType: Node.NetworkType,
     ): Flow<ValidatorPrefs?> {
         val key = runtime.metadata.staking().storage("Validators").storageKey(runtime, stashId)
 
@@ -206,7 +208,7 @@ class StakingRepositoryImpl(
     private suspend fun observeAccountNominations(
         runtime: RuntimeSnapshot,
         stashId: AccountId,
-        networkType: Node.NetworkType
+        networkType: Node.NetworkType,
     ): Flow<Nominations?> {
         val key = runtime.metadata.staking().storage("Nominators").storageKey(runtime, stashId)
 
@@ -219,8 +221,19 @@ class StakingRepositoryImpl(
     private fun isSlashed(
         span: SlashingSpan?,
         activeEraIndex: BigInteger,
-        slashDeferDuration: BigInteger
+        slashDeferDuration: BigInteger,
     ) = span != null && activeEraIndex - span.lastNonZeroSlash < slashDeferDuration
 
     private suspend fun getRuntime() = runtimeProperty.get()
+
+    private suspend fun <T> getFromStorage(
+        keyBuilder: (RuntimeSnapshot) -> String,
+        binding: (scale: String, runtime: RuntimeSnapshot) -> T,
+    ): T = withContext(Dispatchers.Default) {
+        val runtime = getRuntime()
+
+        val scale = storageCache.getEntry(keyBuilder(runtime)).content!!
+
+        binding(scale, runtime)
+    }
 }

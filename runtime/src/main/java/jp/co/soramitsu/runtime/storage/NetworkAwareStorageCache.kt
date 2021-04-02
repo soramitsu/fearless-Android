@@ -60,6 +60,10 @@ class NetworkAwareStorageCache(
 
     override suspend fun getEntry(key: String): StorageEntry = observeEntry(key, currentNetwork()).first()
 
+    override suspend fun filterKeysInCache(keys: List<String>): List<String> {
+        return storageDao.filterKeysInCache(currentNetwork(), keys)
+    }
+
     override suspend fun getEntries(keyPrefix: String): List<StorageEntry> {
         return observeEntries(keyPrefix, currentNetwork()).first()
     }

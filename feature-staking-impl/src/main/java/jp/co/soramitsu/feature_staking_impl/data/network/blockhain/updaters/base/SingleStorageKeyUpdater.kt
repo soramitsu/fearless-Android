@@ -10,6 +10,7 @@ import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
 suspend fun StorageCache.insert(storageChange: StorageChange) {
@@ -33,11 +34,20 @@ abstract class SingleStorageKeyUpdater<S : UpdateScope>(
      */
     abstract suspend fun storageKey(runtime: RuntimeSnapshot): String?
 
+    protected open fun fallbackValue(runtime: RuntimeSnapshot): String? = null
+
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()
         val storageKey = storageKey(runtime) ?: return emptyFlow()
 
         return storageSubscriptionBuilder.subscribe(storageKey)
+            .map {
+                if (it.value == null) {
+                    it.copy(value = fallbackValue(runtime))
+                } else {
+                    it
+                }
+            }
             .onEach(storageCache::insert)
             .noSideAffects()
     }
