@@ -19,10 +19,14 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Acco
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ElectionStatusUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.HistoryDepthUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorExposureUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorPrefsUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalTotalValidatorRewardUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalUpdateMediator
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalValidatorRewardPointsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 
@@ -155,6 +159,35 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideHistoryDepthUpdater(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        storageCache: StorageCache,
+    ) = HistoryDepthUpdater(
+        runtimeProperty, storageCache
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideHistoricalMediator(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        bulkRetriever: BulkRetriever,
+        stakingRepository: StakingRepository,
+        accountRepository: AccountRepository,
+        storageCache: StorageCache,
+    ) = HistoricalUpdateMediator(
+        historicalUpdaters = listOf(
+            HistoricalTotalValidatorRewardUpdater(),
+            HistoricalValidatorRewardPointsUpdater()
+        ),
+        runtimeProperty = runtimeProperty,
+        bulkRetriever = bulkRetriever,
+        stakingRepository = stakingRepository,
+        accountRepository = accountRepository,
+        storageCache = storageCache
+    )
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaters(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
@@ -166,6 +199,8 @@ class StakingUpdatersModule {
         accountNominationsUpdater: AccountNominationsUpdater,
         electionStatusUpdater: ElectionStatusUpdater,
         rewardDestinationUpdater: AccountRewardDestinationUpdater,
+        historyDepthUpdater: HistoryDepthUpdater,
+        historicalUpdateMediator: HistoricalUpdateMediator,
     ) = StakingUpdaters(
         updaters = arrayOf(
             activeEraUpdater,
@@ -177,7 +212,9 @@ class StakingUpdatersModule {
             accountValidatorPrefsUpdater,
             accountNominationsUpdater,
             electionStatusUpdater,
-            rewardDestinationUpdater
+            rewardDestinationUpdater,
+            historyDepthUpdater,
+            historicalUpdateMediator
         )
     )
 }

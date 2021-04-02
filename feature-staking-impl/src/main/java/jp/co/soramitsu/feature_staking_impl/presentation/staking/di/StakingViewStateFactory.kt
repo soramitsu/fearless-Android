@@ -26,7 +26,8 @@ class StakingViewStateFactory(
     fun createWelcomeViewState(
         currentAssetFlow: Flow<Asset>,
         accountStakingState: StakingState,
-        scope: CoroutineScope
+        scope: CoroutineScope,
+        errorDisplayer: (String) -> Unit
     ) = WelcomeViewState(
         setupStakingSharedState,
         rewardCalculatorFactory,
@@ -35,7 +36,8 @@ class StakingViewStateFactory(
         router,
         accountStakingState,
         currentAssetFlow,
-        scope
+        scope,
+        errorDisplayer
     )
 
     fun createNominatorViewState(

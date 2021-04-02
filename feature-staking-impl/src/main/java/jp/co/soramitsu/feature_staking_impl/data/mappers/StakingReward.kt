@@ -35,6 +35,7 @@ fun mapStakingRewardRemoteToLocal(
         StakingRewardLocal(
             accountAddress = accountAddress,
             eventIndex = eventIndex,
+            eventIdx = eventIdx,
             blockNumber = blockNumber,
             extrinsicIndex = extrinsicIndex,
             moduleId = moduleId,

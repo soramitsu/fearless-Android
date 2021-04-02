@@ -76,8 +76,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                         stakingState.statusClicked()
                     }
 
-                    stakingState.syncStakingRewards()
-
                     stakingState.showStatusAlertEvent.observeEvent { (title, message) ->
                         showStatusAlert(title, message)
                     }
@@ -145,6 +143,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
         viewModel.networkInfoStateLiveData.observe { state ->
             when (state) {
+                is LoadingState.Loading<*> -> stakingNetworkInfo.showLoading()
+
                 is LoadingState.Loaded<StakingNetworkInfoModel> -> {
                     with(state.data) {
                         stakingNetworkInfo.hideLoading()

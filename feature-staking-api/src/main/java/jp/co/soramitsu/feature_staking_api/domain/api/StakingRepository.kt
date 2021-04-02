@@ -20,6 +20,10 @@ interface StakingRepository {
 
     suspend fun getActiveEraIndex(): BigInteger
 
+    suspend fun getCurrentEraIndex(): BigInteger
+
+    suspend fun getHistoryDepth(): BigInteger
+
     suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<BigInteger>
 
     suspend fun getElectedValidatorsExposure(eraIndex: BigInteger): AccountIdMap<Exposure>

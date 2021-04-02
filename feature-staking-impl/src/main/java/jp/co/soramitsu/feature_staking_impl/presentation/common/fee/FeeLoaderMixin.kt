@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.common.fee
 
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.mixin.api.Retriable
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.presentation.common.model.FeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import kotlinx.coroutines.CoroutineScope
@@ -24,7 +23,7 @@ interface FeeLoaderMixin : Retriable {
 
         fun loadFee(
             coroutineScope: CoroutineScope,
-            feeConstructor: suspend (StakingAccount, Asset) -> BigDecimal,
+            feeConstructor: suspend (Asset) -> BigDecimal,
             onRetryCancelled: () -> Unit
         )
 

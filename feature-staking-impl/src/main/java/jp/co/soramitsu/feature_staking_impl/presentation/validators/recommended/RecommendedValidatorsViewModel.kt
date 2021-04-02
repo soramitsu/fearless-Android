@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorReco
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
@@ -38,6 +39,8 @@ class RecommendedValidatorsViewModel(
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
+    private val currentProgressState = sharedStateSetup.get<SetupStakingProcess.Validators>()
+
     private val recommendedValidators = flow {
         val validatorRecommendator = validatorRecommendatorFactory.create()
         val validators = validatorRecommendator.recommendations(recommendedSettings())
@@ -52,12 +55,14 @@ class RecommendedValidatorsViewModel(
     }.flowOn(Dispatchers.Default).asLiveData()
 
     fun backClicked() {
+        sharedStateSetup.set(currentProgressState.previous())
+
         router.back()
     }
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
         viewModelScope.launch {
-            recommendedValidators.findSelectedValidator(validatorModel.accountIdHex)?.let {
+            recommendedValidators.first().findSelectedValidator(validatorModel.accountIdHex)?.let {
                 router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(it))
             }
         }
@@ -65,7 +70,7 @@ class RecommendedValidatorsViewModel(
 
     fun nextClicked() {
         viewModelScope.launch {
-            sharedStateSetup.selectedValidators.emit(recommendedValidators.first())
+            sharedStateSetup.set(currentProgressState.next(recommendedValidators.first()))
 
             router.openConfirmStaking()
         }

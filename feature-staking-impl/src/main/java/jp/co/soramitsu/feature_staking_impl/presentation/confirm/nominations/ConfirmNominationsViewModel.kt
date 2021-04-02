@@ -11,13 +11,13 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.findSelectedValidator
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class ConfirmNominationsViewModel(
@@ -25,11 +25,13 @@ class ConfirmNominationsViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
-    private val sharedStateSetup: SetupStakingSharedState
+    private val sharedStateSetup: SetupStakingSharedState,
 ) : BaseViewModel() {
 
+    private val currentSetupStakingProcess = sharedStateSetup.get<SetupStakingProcess.Confirm>()
+
     val selectedValidatorsLiveData = liveData(Dispatchers.Default) {
-        val nominations = sharedStateSetup.selectedValidators.first()
+        val nominations = currentSetupStakingProcess.validators
         val networkType = interactor.getSelectedNetworkType()
 
         emit(convertToModels(nominations, networkType))
@@ -45,7 +47,7 @@ class ConfirmNominationsViewModel(
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
         viewModelScope.launch {
-            sharedStateSetup.selectedValidators.findSelectedValidator(validatorModel.accountIdHex)?.let {
+            currentSetupStakingProcess.validators.findSelectedValidator(validatorModel.accountIdHex)?.let {
                 router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(it))
             }
         }
@@ -53,7 +55,7 @@ class ConfirmNominationsViewModel(
 
     private suspend fun convertToModels(
         validators: List<Validator>,
-        networkType: Node.NetworkType
+        networkType: Node.NetworkType,
     ): List<ValidatorModel> {
         return validators.map {
             mapValidatorToValidatorModel(it, addressIconGenerator, networkType)
