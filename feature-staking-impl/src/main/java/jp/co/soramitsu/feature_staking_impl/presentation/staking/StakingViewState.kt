@@ -69,6 +69,10 @@ class NominatorViewState(
     private val errorDisplayer: (Throwable) -> Unit,
 ) : StakingViewState() {
 
+    init {
+        syncStakingRewards()
+    }
+
     val nominatorSummaryLiveData = liveData<LoadingState<NominatorSummaryModel>> {
         emitAll(
             nominatorSummaryFlow()
