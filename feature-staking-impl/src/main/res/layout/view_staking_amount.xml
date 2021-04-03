@@ -64,7 +64,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:background="@null"
-        android:duplicateParentState="true"
         android:gravity="end"
         android:inputType="numberDecimal"
         android:paddingBottom="27dp"

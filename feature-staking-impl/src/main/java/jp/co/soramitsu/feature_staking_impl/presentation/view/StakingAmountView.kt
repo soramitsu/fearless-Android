@@ -30,14 +30,7 @@ class StakingAmountView @JvmOverloads constructor(
     init {
         View.inflate(context, R.layout.view_staking_amount, this)
 
-        with(context) {
-            background = getCutCornersStateDrawable(
-                idleDrawable = getCutCornerDrawable(
-                    R.color.blurColor,
-                    R.color.white
-                )
-            )
-        }
+        setBackground()
 
         applyAttributes(attrs)
     }
@@ -46,6 +39,21 @@ class StakingAmountView @JvmOverloads constructor(
         super.setEnabled(enabled)
 
         amountInput.inputType = if (enabled) InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL else InputType.TYPE_NULL
+    }
+
+    private fun setBackground() {
+        setAddStatesFromChildren(true)
+
+        background = context.getCutCornersStateDrawable(
+            focusedDrawable = context.getCutCornerDrawable(
+                R.color.blurColor,
+                R.color.white
+            ),
+            idleDrawable = context.getCutCornerDrawable(
+                R.color.blurColor,
+                R.color.white_40
+            )
+        )
     }
 
     private fun applyAttributes(attributeSet: AttributeSet?) {
