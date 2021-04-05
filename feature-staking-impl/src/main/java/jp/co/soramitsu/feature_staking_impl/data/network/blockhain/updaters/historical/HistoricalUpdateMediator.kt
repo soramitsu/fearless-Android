@@ -9,6 +9,7 @@ import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.fetchValuesToCache
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.observeActiveEraIndex
 import kotlinx.coroutines.flow.Flow
@@ -50,12 +51,7 @@ class HistoricalUpdateMediator(
     }
 
     private suspend fun constructHistoricalKeys(runtime: RuntimeSnapshot): List<String> {
-        val activeEra = stakingRepository.getActiveEraIndex().toInt()
-        val currentEra = stakingRepository.getCurrentEraIndex().toInt()
-        val historyDepth = stakingRepository.getHistoryDepth().toInt()
-
-        val historicalRangeInts = (currentEra - historyDepth) until activeEra
-        val historicalRange = historicalRangeInts.map(Int::toBigInteger)
+        val historicalRange = stakingRepository.historicalEras()
 
         return historicalUpdaters.map { updater ->
             historicalRange.map { updater.constructHistoricalKey(runtime, it) }

@@ -15,7 +15,7 @@ import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.data.network.subscan.SubscanValidatorSetFetcher
+import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary.Status.Inactive.Reason
@@ -70,7 +70,7 @@ class NominatorSummaryModel(
     private val currentAssetFlow: Flow<Asset>,
     private val stakingInteractor: StakingInteractor,
     private val resourceManager: ResourceManager,
-    private val validatorSetFetcher: SubscanValidatorSetFetcher,
+    private val payoutRepository: PayoutRepository,
     private val scope: CoroutineScope,
     private val errorDisplayer: (Throwable) -> Unit,
 ) : StakingViewState() {
@@ -80,12 +80,12 @@ class NominatorSummaryModel(
 
         // TODO test
         scope.launch {
-            val (validators, duration) = measureTimedValue { validatorSetFetcher.fetchAllValidators(nominatorState.stashAddress) }
+            val (validators, duration) = measureTimedValue { payoutRepository.calculateUnpaidPayouts(nominatorState.stashAddress) }
 
             Log.d(
                 "RX",
-                "Constructed validator set for ${nominatorState.stashAddress.networkType().readableName} in ${duration.inSeconds} seconds." +
-                    " Size: ${validators.size}. Validators: ${validators.joinToString()}"
+                "Fetched all validators info for ${nominatorState.stashAddress.networkType().readableName} in ${duration.inSeconds} seconds." +
+                    "Size: ${validators.size}"
             )
         }
     }
