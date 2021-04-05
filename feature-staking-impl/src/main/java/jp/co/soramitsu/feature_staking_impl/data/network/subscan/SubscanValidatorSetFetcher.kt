@@ -20,7 +20,6 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchron
 import jp.co.soramitsu.feature_staking_impl.data.repository.fetchAll
 import jp.co.soramitsu.feature_staking_impl.data.repository.subscanCollectionFetcher
 
-
 internal open class CallArg<T>(
     val name: String,
     val type: String,
@@ -64,8 +63,18 @@ class SubscanValidatorSetFetcher(
         val stashBondExtrinsics = fetchExtrinsics(stashAccountAddress, module = MODULE_STAKING, call = BOND)
         val stashSetControllerExtrinsics = fetchExtrinsics(stashAccountAddress, module = MODULE_STAKING, call = SET_CONTROLLER)
 
-        val controllersFromBond = tryExtractCallArgumentFromExtrinsics(stashBondExtrinsics, BOND, "controller", ::extractAccountIdFromArgument)
-        val controllersFromSetController = tryExtractCallArgumentFromExtrinsics(stashSetControllerExtrinsics, SET_CONTROLLER, "controller", ::extractAccountIdFromArgument)
+        val controllersFromBond = tryExtractCallArgumentFromExtrinsics(
+            extrinsics = stashBondExtrinsics,
+            callName = BOND,
+            argumentName = "controller",
+            extractor = ::extractAccountIdFromArgument
+        )
+        val controllersFromSetController = tryExtractCallArgumentFromExtrinsics(
+            extrinsics = stashSetControllerExtrinsics,
+            callName = SET_CONTROLLER,
+            argumentName = "controller",
+            extractor = ::extractAccountIdFromArgument
+        )
         val controllersFromBatches = extractControllerChangesFromBatches(onlyBatches(stashUtilityExtrinsics))
 
         val networkType = stashAccountAddress.networkType()
@@ -83,7 +92,12 @@ class SubscanValidatorSetFetcher(
             }
             val nominateExtrinsics = fetchExtrinsics(controllerAddress, module = MODULE_STAKING, call = NOMINATE)
 
-            val validatorsFromNominate = tryExtractCallArgumentFromExtrinsics(nominateExtrinsics, callName = NOMINATE, "targets", ::extractNominationsFromArgument)
+            val validatorsFromNominate = tryExtractCallArgumentFromExtrinsics(
+                extrinsics = nominateExtrinsics,
+                callName = NOMINATE,
+                argumentName = "targets",
+                extractor = ::extractNominationsFromArgument
+            )
             val validatorsFromBatches = onlyBatches(controllerUtilityExtrinsics).mapNotNull {
                 tryExtractCallArgumentFromBatch(it, NOMINATE, "targets", ::extractNominationsFromArgument)
             }

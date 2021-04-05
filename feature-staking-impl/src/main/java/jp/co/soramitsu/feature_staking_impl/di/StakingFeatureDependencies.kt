@@ -65,5 +65,5 @@ interface StakingFeatureDependencies {
 
     fun walletConstants(): WalletConstants
 
-    fun gson() : Gson
+    fun gson(): Gson
 }

@@ -50,4 +50,3 @@ class ExtrinsicRemote(
         val identity: Boolean
     )
 }
-

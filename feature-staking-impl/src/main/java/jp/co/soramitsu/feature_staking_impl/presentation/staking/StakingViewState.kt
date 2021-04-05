@@ -82,7 +82,11 @@ class NominatorSummaryModel(
         scope.launch {
             val (validators, duration) = measureTimedValue { validatorSetFetcher.fetchAllValidators(nominatorState.stashAddress) }
 
-            Log.d("RX", "Constructed validator set for ${nominatorState.stashAddress.networkType().readableName} in ${duration.inSeconds} seconds. Size: ${validators.size}. Validators: ${validators.joinToString()}")
+            Log.d(
+                "RX",
+                "Constructed validator set for ${nominatorState.stashAddress.networkType().readableName} in ${duration.inSeconds} seconds." +
+                    " Size: ${validators.size}. Validators: ${validators.joinToString()}"
+            )
         }
     }
 

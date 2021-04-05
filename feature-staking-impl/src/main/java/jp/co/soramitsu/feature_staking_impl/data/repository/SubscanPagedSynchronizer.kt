@@ -67,7 +67,7 @@ class SubscanPagedSynchronizer(
 
 suspend fun <T> SubscanPagedSynchronizer.fetchAll(
     pageFetcher: suspend (page: Int, row: Int) -> SubscanPagedSynchronizer.PageResult<T>?
-) : List<T> {
+): List<T> {
     val result = mutableListOf<T>()
 
     retrievePagesFromHead(pageFetcher, pageProcessor = result::addAll)
@@ -77,7 +77,7 @@ suspend fun <T> SubscanPagedSynchronizer.fetchAll(
 
 suspend inline fun <T> subscanCollectionFetcher(
     crossinline fetcher: suspend (page: Int, row: Int) -> SubscanResponse<out CollectionContent<T>>
-) : PageFetcher<T> = { page, row ->
+): PageFetcher<T> = { page, row ->
     val content = fetcher(page, row).content
     val items = content?.items
 
