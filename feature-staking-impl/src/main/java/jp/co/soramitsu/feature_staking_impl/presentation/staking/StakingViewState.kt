@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
@@ -9,10 +10,12 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.emitAll
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.data.network.subscan.SubscanValidatorSetFetcher
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary.Status.Inactive.Reason
@@ -38,6 +41,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 sealed class StakingViewState
 
@@ -60,17 +65,25 @@ class NominatorSummaryModel(
     val currentEraDisplay: String,
 )
 
-class NominatorViewState(
+@OptIn(ExperimentalTime::class) class NominatorViewState(
     private val nominatorState: StakingState.Stash.Nominator,
     private val currentAssetFlow: Flow<Asset>,
     private val stakingInteractor: StakingInteractor,
     private val resourceManager: ResourceManager,
+    private val validatorSetFetcher: SubscanValidatorSetFetcher,
     private val scope: CoroutineScope,
     private val errorDisplayer: (Throwable) -> Unit,
 ) : StakingViewState() {
 
     init {
         syncStakingRewards()
+
+        // TODO test
+        scope.launch {
+            val (validators, duration) = measureTimedValue { validatorSetFetcher.fetchAllValidators(nominatorState.stashAddress) }
+
+            Log.d("RX", "Constructed validator set for ${nominatorState.stashAddress.networkType().readableName} in ${duration.inSeconds} seconds. Size: ${validators.size}. Validators: ${validators.joinToString()}")
+        }
     }
 
     val nominatorSummaryLiveData = liveData<LoadingState<NominatorSummaryModel>> {

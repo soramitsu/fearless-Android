@@ -22,5 +22,7 @@ dependencies {
 
     implementation fearlessLibDep
 
+    implementation project(':common')
+
     api project(':core-api')
 }
