@@ -44,7 +44,7 @@ class ExtrinsicRemote(
         val judgements: Any,
         @SerializedName("parent_display")
         val parentDisplay: String,
-        val parent: String,
+        val parent: Any?,
         @SerializedName("account_index")
         val accountIndex: String,
         val identity: Boolean
