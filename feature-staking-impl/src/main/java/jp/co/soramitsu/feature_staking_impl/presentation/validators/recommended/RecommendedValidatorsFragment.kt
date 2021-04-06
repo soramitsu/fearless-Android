@@ -38,9 +38,8 @@ class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewMode
 
         recommendedValidatorsList.setHasFixedSize(true)
 
-        recommendedValidatorsToolbar.setHomeButtonListener {
-            viewModel.backClicked()
-        }
+        recommendedValidatorsToolbar.setHomeButtonListener { viewModel.backClicked() }
+        onBackPressed { viewModel.backClicked() }
 
         recommendedValidatorLearnMore.setOnClickListener {
             viewModel.learnMoreClicked()
