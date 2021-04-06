@@ -1,13 +1,17 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithType
+import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.mapValuesNotNull
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.staking
-import jp.co.soramitsu.common.utils.toAddress
+import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.metadata.StorageEntry
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
@@ -15,17 +19,23 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.EraRewardPoints
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.StakingLedger
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindEraRewardPoints
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindTotalValidatorEraReward
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.SubscanValidatorSetFetcher
+import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import java.math.BigInteger
+
+typealias HistoricalMapping<T> = Map<BigInteger, T> // EraIndex -> T
 
 class ValidatorHistoricalStats(
     val validatorAddress: String,
     val ledger: StakingLedger,
-    val infoHistory: Map<BigInteger, ValidatorEraStats?>,
+    val infoHistory: HistoricalMapping<ValidatorEraStats?>,
 ) {
 
     class ValidatorEraStats(
@@ -39,35 +49,76 @@ class PayoutRepository(
     private val bulkRetriever: BulkRetriever,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val validatorSetFetcher: SubscanValidatorSetFetcher,
+    private val storageCache: StorageCache,
 ) {
 
-    suspend fun calculateUnpaidPayouts(stashAddress: String): List<Pair<BigInteger, String>> {
-        val networkType = stashAddress.networkType()
+    suspend fun calculatePendingPayouts(stashAddress: String): List<PendingPayout> {
+        val runtime = runtimeProperty.get()
 
         val validatorAddresses = validatorSetFetcher.fetchAllValidators(stashAddress)
 
         val historicalRange = stakingRepository.historicalEras()
-        val validatorStats = getValidatorHistoricalStats(historicalRange, validatorAddresses)
+        val validatorStats = getValidatorHistoricalStats(runtime, historicalRange, validatorAddresses)
         val historicalRangeSet = historicalRange.toSet()
+
+        val historicalTotalEraRewards = retrieveTotalEraReward(runtime, historicalRange)
+        val historicalRewardDistribution = retrieveEraPointsDistribution(runtime, historicalRange)
 
         return validatorStats.map { stats ->
             val claimedRewardsHoles = historicalRangeSet - stats.ledger.claimedRewards.toSet()
 
-            val rewardHoles = claimedRewardsHoles.filter { holeEra ->
-                stats.infoHistory[holeEra]?.let { eraStats ->
-                    stashAddress in eraStats.exposure.others.map { it.who.toAddress(networkType) }
-                } ?: false
-            }
+            claimedRewardsHoles.mapNotNull { holeEra ->
+                val validatorAddress = stats.validatorAddress
 
-            rewardHoles.map { it to stats.validatorAddress }
+                val reward = calculateNominatorReward(
+                    nominatorAccountId = stashAddress.toAccountId(),
+                    validatorAccountId = validatorAddress.toAccountId(),
+                    validatorEraStats = stats.infoHistory[holeEra] ?: return@mapNotNull null,
+                    totalEraReward = historicalTotalEraRewards[holeEra]!!,
+                    eraValidatorPointsDistribution = historicalRewardDistribution[holeEra]!!
+                )
+
+                reward?.let { PendingPayout(validatorAddress, holeEra, it) }
+            }
         }.flatten()
     }
 
+    private fun calculateNominatorReward(
+        nominatorAccountId: AccountId,
+        validatorAccountId: AccountId,
+        validatorEraStats: ValidatorHistoricalStats.ValidatorEraStats,
+        totalEraReward: BigInteger,
+        eraValidatorPointsDistribution: EraRewardPoints
+    ) : BigInteger? {
+        val nominatorIdHex = nominatorAccountId.toHexString()
+        val validatorIdHex = validatorAccountId.toHexString()
+
+        val nominatorStakeInEra = validatorEraStats.exposure.others.firstOrNull {
+            it.who.toHexString() == nominatorIdHex
+        }?.value?.toDouble() ?: return null
+
+        val totalMinted = totalEraReward.toDouble()
+
+        val totalPoints = eraValidatorPointsDistribution.totalPoints.toDouble()
+        val validatorPoints = eraValidatorPointsDistribution.individual.firstOrNull {
+            it.accountId.toHexString() == validatorIdHex
+        }?.rewardPoints?.toDouble() ?: return null
+
+        val validatorTotalStake = validatorEraStats.exposure.total.toDouble()
+        val validatorCommission = validatorEraStats.prefs.commission.toDouble()
+
+        val validatorTotalReward = totalMinted * validatorPoints / totalPoints
+
+        val nominatorReward = validatorTotalReward * (1 - validatorCommission) * (nominatorStakeInEra / validatorTotalStake)
+
+        return nominatorReward.toInt().toBigInteger()
+    }
+
     private suspend fun getValidatorHistoricalStats(
+        runtime: RuntimeSnapshot,
         historicalRange: List<BigInteger>,
-        validatorAddresses: List<String>
+        validatorAddresses: List<String>,
     ): List<ValidatorHistoricalStats> {
-        val runtime = runtimeProperty.get()
 
         val stakingModule = runtime.metadata.staking()
 
@@ -122,5 +173,38 @@ class PayoutRepository(
 
             ValidatorHistoricalStats(validatorAddress, ledger, historicalStats)
         }
+    }
+
+    private suspend fun retrieveEraPointsDistribution(
+        runtime: RuntimeSnapshot,
+        historicalRange: List<BigInteger>
+    ): HistoricalMapping<EraRewardPoints> {
+        val storage = runtime.metadata.staking().storage("ErasRewardPoints")
+
+        return retrieveHistoricalInfo(runtime, historicalRange, storage, ::bindEraRewardPoints)
+    }
+
+    private suspend fun retrieveTotalEraReward(
+        runtime: RuntimeSnapshot,
+        historicalRange: List<BigInteger>
+    ): HistoricalMapping<BigInteger> {
+        val storage = runtime.metadata.staking().storage("ErasValidatorReward")
+
+        return retrieveHistoricalInfo(runtime, historicalRange, storage, ::bindTotalValidatorEraReward)
+    }
+
+    private suspend fun <T> retrieveHistoricalInfo(
+        runtime: RuntimeSnapshot,
+        historicalRange: List<BigInteger>,
+        storage: StorageEntry,
+        binder: BinderWithType<T>,
+    ): HistoricalMapping<T> {
+        val historicalKeysMapping = historicalRange.associateBy { storage.storageKey(runtime, it) }
+        val storageReturnType = storage.returnType()
+
+        return storageCache.getEntries(historicalKeysMapping.keys.toList())
+            .associate {
+                historicalKeysMapping[it.storageKey]!! to binder(it.content, runtime, storageReturnType)
+            }
     }
 }

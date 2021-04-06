@@ -20,10 +20,12 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
+import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
+import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -50,8 +52,13 @@ class StakingInteractor(
     private val stakingConstantsRepository: StakingConstantsRepository,
     private val substrateCalls: SubstrateCalls,
     private val walletConstants: WalletConstants,
+    private val payoutRepository: PayoutRepository,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
+
+    suspend fun calculatePendingPayouts(stashState: StakingState.Stash): Result<List<PendingPayout>> = withContext(Dispatchers.Default) {
+        runCatching { payoutRepository.calculatePendingPayouts(stashState.stashAddress) }
+    }
 
     suspend fun syncStakingRewards(accountAddress: String) = withContext(Dispatchers.IO) {
         runCatching {

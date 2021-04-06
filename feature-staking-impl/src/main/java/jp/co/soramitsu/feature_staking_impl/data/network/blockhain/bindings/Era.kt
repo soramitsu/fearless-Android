@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings
 
 import jp.co.soramitsu.common.data.network.runtime.binding.HelperBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
+import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.storageReturnType
