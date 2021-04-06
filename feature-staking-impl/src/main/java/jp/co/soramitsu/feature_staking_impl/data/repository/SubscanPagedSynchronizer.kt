@@ -81,9 +81,7 @@ suspend inline fun <T> subscanCollectionFetcher(
     val content = fetcher(page, row).content
     val items = content?.items
 
-    if (items != null) {
-        SubscanPagedSynchronizer.PageResult(content.count, items)
-    } else {
-        null
+    items?.let {
+        SubscanPagedSynchronizer.PageResult(content.count, it)
     }
 }
