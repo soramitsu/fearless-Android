@@ -89,7 +89,7 @@ class PayoutRepository(
         validatorEraStats: ValidatorHistoricalStats.ValidatorEraStats,
         totalEraReward: BigInteger,
         eraValidatorPointsDistribution: EraRewardPoints
-    ) : BigInteger? {
+    ): BigInteger? {
         val nominatorIdHex = nominatorAccountId.toHexString()
         val validatorIdHex = validatorAccountId.toHexString()
 

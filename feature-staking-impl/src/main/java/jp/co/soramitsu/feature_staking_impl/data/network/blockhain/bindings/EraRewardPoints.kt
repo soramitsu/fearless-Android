@@ -29,7 +29,7 @@ fun bindEraRewardPoints(
     scale: String?,
     runtime: RuntimeSnapshot,
     type: Type<*>,
-) : EraRewardPoints {
+): EraRewardPoints {
     val dynamicInstance = scale?.let { type.fromHexOrNull(runtime, it) }.cast<Struct.Instance>()
 
     return EraRewardPoints(
