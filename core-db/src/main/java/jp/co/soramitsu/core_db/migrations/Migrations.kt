@@ -10,19 +10,25 @@ val ChangePrimaryKeyForRewards_16_17 = object : Migration(16, 17) {
         database.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `staking_rewards` (
-                `accountAddress` TEXT NOT NULL,
-                `eventId` TEXT NOT NULL,
-                `blockNumber` INTEGER NOT NULL,
-                `extrinsicIndex` INTEGER NOT NULL,
-                `extrinsicHash` TEXT NOT NULL,
-                `moduleId` TEXT NOT NULL,
-                `params` TEXT NOT NULL,
-                `eventIndex` TEXT NOT NULL,
-                `amountInPlanks` TEXT NOT NULL,
-                `blockTimestamp` INTEGER NOT NULL,
-                `slashKton` TEXT NOT NULL,
-                PRIMARY KEY(`accountAddress`, `blockNumber`, `eventIdx`)
-            )
+            `accountAddress` TEXT NOT NULL,
+            `eventId` TEXT NOT NULL,
+            `blockNumber` INTEGER NOT NULL,
+            `extrinsicIndex` INTEGER NOT NULL,
+            `extrinsicHash` TEXT NOT NULL,
+            `moduleId` TEXT NOT NULL,
+            `params` TEXT NOT NULL,
+            `eventIdx` INTEGER NOT NULL,
+            `eventIndex` TEXT NOT NULL,
+            `amountInPlanks` TEXT NOT NULL,
+            `blockTimestamp` INTEGER NOT NULL,
+            `slashKton` TEXT NOT NULL,
+            PRIMARY KEY(`accountAddress`, `blockNumber`, `eventIdx`))
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            CREATE INDEX IF NOT EXISTS `index_staking_rewards_accountAddress` ON `staking_rewards` (`accountAddress`)
             """.trimIndent()
         )
     }
