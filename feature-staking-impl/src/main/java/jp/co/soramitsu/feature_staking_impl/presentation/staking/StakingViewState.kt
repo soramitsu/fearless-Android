@@ -79,13 +79,13 @@ class NominatorSummaryModel(
         syncStakingRewards()
 
         // TODO test
-        scope.launch {
-            val (validators, duration) = measureTimedValue { payoutRepository.calculateUnpaidPayouts(nominatorState.stashAddress) }
+        scope.launch(Dispatchers.Default) {
+            val (payouts, duration) = measureTimedValue { payoutRepository.calculateUnpaidPayouts(nominatorState.stashAddress) }
 
             Log.d(
                 "RX",
-                "Fetched all validators info for ${nominatorState.stashAddress.networkType().readableName} in ${duration.inSeconds} seconds." +
-                    "Size: ${validators.size}"
+                "Fetched payouts for ${nominatorState.stashAddress.networkType().readableName} in ${duration.inSeconds} seconds." +
+                    "Size: ${payouts.size}. Payouts: ${payouts.joinToString()}"
             )
         }
     }
