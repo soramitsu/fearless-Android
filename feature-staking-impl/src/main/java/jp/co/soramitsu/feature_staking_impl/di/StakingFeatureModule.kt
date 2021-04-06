@@ -22,6 +22,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.SubscanValidatorSetFetcher
 import jp.co.soramitsu.feature_staking_impl.data.repository.IdentityRepositoryImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
@@ -194,5 +195,16 @@ class StakingFeatureModule {
             stakingApi,
             subscanPagedSynchronizer
         )
+    }
+
+    @Provides
+    @FeatureScope
+    fun providePayoutRepository(
+        stakingRepository: StakingRepository,
+        validatorSetFetcher: SubscanValidatorSetFetcher,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        bulkRetriever: BulkRetriever,
+    ): PayoutRepository {
+        return PayoutRepository(stakingRepository, bulkRetriever, runtimeProperty, validatorSetFetcher)
     }
 }

@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.di
 
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_impl.data.network.subscan.SubscanValidatorSetFetcher
+import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -19,7 +19,7 @@ class StakingViewStateFactory(
     private val setupStakingSharedState: SetupStakingSharedState,
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
-    private val validatorSetFetcher: SubscanValidatorSetFetcher,
+    private val payoutRepository: PayoutRepository,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
 ) {
 
@@ -52,7 +52,7 @@ class StakingViewStateFactory(
         stakingInteractor = stakingInteractor,
         currentAssetFlow = currentAssetFlow,
         scope = scope,
-        validatorSetFetcher = validatorSetFetcher,
+        payoutRepository = payoutRepository,
         errorDisplayer = errorDisplayer,
         resourceManager = resourceManager
     )
