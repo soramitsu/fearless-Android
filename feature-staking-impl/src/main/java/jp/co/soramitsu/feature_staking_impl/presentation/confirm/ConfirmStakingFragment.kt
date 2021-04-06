@@ -51,6 +51,7 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         }
 
         confirmStakeToolbar.setHomeButtonListener { viewModel.backClicked() }
+        onBackPressed { viewModel.backClicked() }
 
         confirmStakeOriginAccount.setWholeClickListener { viewModel.originAccountClicked() }
 

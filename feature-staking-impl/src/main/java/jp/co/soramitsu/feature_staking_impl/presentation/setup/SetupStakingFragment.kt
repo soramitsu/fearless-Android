@@ -58,6 +58,7 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         setupStakingTargetPayoutDestination.setWholeClickListener { viewModel.payoutDestinationClicked() }
 
         setupStakingToolbar.setHomeButtonListener { viewModel.backClicked() }
+        onBackPressed { viewModel.backClicked() }
 
         setupStakingNext.prepareForProgress(viewLifecycleOwner)
         setupStakingNext.setOnClickListener { viewModel.nextClicked() }
