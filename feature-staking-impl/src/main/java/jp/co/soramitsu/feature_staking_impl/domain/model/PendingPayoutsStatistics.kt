@@ -8,9 +8,11 @@ class PendingPayoutsStatistics(
 )
 
 data class PendingPayout(
-    val validatorAddress: String,
+    val validatorInfo: ValidatorInfo,
     val era: BigInteger,
     val amount: BigInteger,
     val daysLeft: Int,
     val closeToExpire: Boolean,
-)
+) {
+    data class ValidatorInfo(val address: String, val identityName: String?)
+}

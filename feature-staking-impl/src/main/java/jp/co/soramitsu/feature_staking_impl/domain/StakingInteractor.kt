@@ -10,6 +10,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
@@ -19,6 +20,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
+import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
 import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
@@ -53,6 +55,7 @@ class StakingInteractor(
     private val stakingRewardsRepository: StakingRewardsRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
     private val substrateCalls: SubstrateCalls,
+    private val identityRepository: IdentityRepository,
     private val walletConstants: WalletConstants,
     private val payoutRepository: PayoutRepository,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
@@ -64,14 +67,23 @@ class StakingInteractor(
             val activeEraIndex = stakingRepository.getActiveEraIndex()
             val historyDepth = stakingRepository.getHistoryDepth()
 
-            val pendingPayouts = payoutRepository.calculateUnpaidPayouts(stashState.stashAddress).map {
+            val payouts = payoutRepository.calculateUnpaidPayouts(stashState.stashAddress)
+
+            val allValidatorAddresses = payouts.map(Payout::validatorAddress).distinct()
+            val identityMapping = identityRepository.getIdentitiesFromAddresses(allValidatorAddresses)
+
+            val pendingPayouts = payouts.map {
                 val erasLeft = it.era + historyDepth - activeEraIndex
                 val daysLeft = erasLeft.toInt() / erasPerDay
 
                 val closeToExpire = erasLeft < historyDepth / 2.toBigInteger()
 
                 with(it) {
-                    PendingPayout(validatorAddress, era, amount, daysLeft, closeToExpire)
+                    val validatorIdentity = identityMapping[validatorAddress]
+
+                    val validatorInfo = PendingPayout.ValidatorInfo(validatorAddress, validatorIdentity?.display)
+
+                    PendingPayout(validatorInfo, era, amount, daysLeft, closeToExpire)
                 }
             }
 
