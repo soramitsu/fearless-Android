@@ -5,6 +5,7 @@ import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
@@ -36,6 +37,16 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         }
 
         viewModel.messageLiveData.observeEvent(::showMessage)
+    }
+
+    protected inline fun onBackPressed(crossinline action: () -> Unit) {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                action()
+            }
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
     }
 
     protected fun showError(errorMessage: String) {
