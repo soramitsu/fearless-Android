@@ -32,6 +32,9 @@ abstract class StorageDao {
     @Query(SELECT_PREFIX_KEY_QUERY)
     abstract fun observeEntries(networkType: Node.NetworkType, keyPrefix: String): Flow<List<StorageEntryLocal>>
 
+    @Query("SELECT * from storage WHERE networkType = :networkType AND storageKey in (:fullKeys)")
+    abstract fun observeEntries(networkType: Node.NetworkType, fullKeys: List<String>): Flow<List<StorageEntryLocal>>
+
     @Query("SELECT storageKey from storage WHERE networkType = :networkType AND storageKey in (:keys)")
     abstract suspend fun filterKeysInCache(networkType: Node.NetworkType, keys: List<String>): List<String>
 }

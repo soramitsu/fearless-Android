@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -27,7 +26,6 @@ class StakingModule {
         interactor: StakingInteractor,
         setupStakingSharedState: SetupStakingSharedState,
         resourceManager: ResourceManager,
-        payoutRepository: PayoutRepository,
         rewardCalculatorFactory: RewardCalculatorFactory,
         router: StakingRouter
     ) = StakingViewStateFactory(
@@ -35,7 +33,6 @@ class StakingModule {
         setupStakingSharedState,
         resourceManager,
         router,
-        payoutRepository,
         rewardCalculatorFactory
     )
 

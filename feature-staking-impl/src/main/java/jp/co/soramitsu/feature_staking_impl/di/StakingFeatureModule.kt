@@ -77,6 +77,7 @@ class StakingFeatureModule {
         stakingConstantsRepository: StakingConstantsRepository,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         walletConstants: WalletConstants,
+        payoutRepository: PayoutRepository,
         substrateCalls: SubstrateCalls
     ) = StakingInteractor(
         walletRepository,
@@ -86,6 +87,7 @@ class StakingFeatureModule {
         stakingConstantsRepository,
         substrateCalls,
         walletConstants,
+        payoutRepository,
         extrinsicBuilderFactory
     )
 
@@ -204,7 +206,8 @@ class StakingFeatureModule {
         validatorSetFetcher: SubscanValidatorSetFetcher,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         bulkRetriever: BulkRetriever,
+        storageCache: StorageCache,
     ): PayoutRepository {
-        return PayoutRepository(stakingRepository, bulkRetriever, runtimeProperty, validatorSetFetcher)
+        return PayoutRepository(stakingRepository, bulkRetriever, runtimeProperty, validatorSetFetcher, storageCache)
     }
 }

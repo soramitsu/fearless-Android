@@ -68,6 +68,13 @@ class NetworkAwareStorageCache(
         return observeEntries(keyPrefix, currentNetwork()).first()
     }
 
+    override suspend fun getEntries(fullKeys: List<String>): List<StorageEntry> {
+        return storageDao.observeEntries(currentNetwork(), fullKeys)
+            .filter { it.size == fullKeys.size }
+            .mapList { mapStorageEntryFromLocal(it) }
+            .first()
+    }
+
     override suspend fun currentRuntimeVersion(): BigInteger {
         val key = currentNetwork().runtimeCacheName()
 

@@ -35,5 +35,11 @@ interface StorageCache {
      */
     suspend fun getEntries(keyPrefix: String): List<StorageEntry>
 
+    /**
+     * Should suspend until all keys will be found
+     * Thus, result.size == fullKeys.size
+     */
+    suspend fun getEntries(fullKeys: List<String>): List<StorageEntry>
+
     suspend fun currentRuntimeVersion(): BigInteger
 }
