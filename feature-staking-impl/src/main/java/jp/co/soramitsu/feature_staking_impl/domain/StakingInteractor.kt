@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.sumByBigDecimal
+import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -26,6 +27,7 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsReposi
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
+import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -56,8 +58,28 @@ class StakingInteractor(
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
 
-    suspend fun calculatePendingPayouts(stashState: StakingState.Stash): Result<List<PendingPayout>> = withContext(Dispatchers.Default) {
-        runCatching { payoutRepository.calculatePendingPayouts(stashState.stashAddress) }
+    suspend fun calculatePendingPayouts(stashState: StakingState.Stash): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
+        runCatching {
+            val erasPerDay = stashState.stashAddress.networkType().runtimeConfiguration.erasPerDay
+            val activeEraIndex = stakingRepository.getActiveEraIndex()
+            val historyDepth = stakingRepository.getHistoryDepth()
+
+            val pendingPayouts = payoutRepository.calculateUnpaidPayouts(stashState.stashAddress).map {
+                val erasLeft = it.era + historyDepth - activeEraIndex
+                val daysLeft = erasLeft.toInt() / erasPerDay
+
+                val closeToExpire = erasLeft < historyDepth / 2.toBigInteger()
+
+                with(it) {
+                    PendingPayout(validatorAddress, era, amount, daysLeft, closeToExpire)
+                }
+            }
+
+            PendingPayoutsStatistics(
+                payouts = pendingPayouts,
+                totalAmount = pendingPayouts.sumByBigInteger(PendingPayout::amount)
+            )
+        }
     }
 
     suspend fun syncStakingRewards(accountAddress: String) = withContext(Dispatchers.IO) {

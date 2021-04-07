@@ -14,14 +14,12 @@ import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.sendEvent
-import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary.Status.Inactive.Reason
-import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -88,8 +86,8 @@ class NominatorSummaryModel(
             if (result.isFailure) {
                 errorDisplayer(result.requireException())
             } else {
-                val payouts = result.requireValue()
-                val totalAmountInPlanks = payouts.sumByBigInteger(PendingPayout::amount)
+                val payoutsStatistics = result.requireValue()
+                val totalAmountInPlanks = payoutsStatistics.totalAmount
                 val token = currentAssetFlow.first().token
                 val totalAmount = token.amountFromPlanks(totalAmountInPlanks)
 
@@ -97,8 +95,8 @@ class NominatorSummaryModel(
                     "RX",
                     "Fetched payouts for ${nominatorState.stashAddress.networkType().readableName} in ${duration.inSeconds} seconds.\n" +
                         "Total amount: $totalAmount ${token.type.displayName}.\n" +
-                        "Size: ${payouts.size}.\n" +
-                        "Payouts: ${payouts.joinToString(prefix = "\n", separator = "\n")}"
+                        "Size: ${payoutsStatistics.payouts.size}.\n" +
+                        "Payouts: ${payoutsStatistics.payouts.joinToString(prefix = "\n", separator = "\n")}"
                 )
             }
         }

@@ -1,8 +1,8 @@
-package jp.co.soramitsu.feature_staking_impl.domain.model
+package jp.co.soramitsu.feature_staking_impl.data.model
 
 import java.math.BigInteger
 
-data class PendingPayout(
+class Payout(
     val validatorAddress: String,
     val era: BigInteger,
     val amount: BigInteger
