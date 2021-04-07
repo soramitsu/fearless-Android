@@ -21,5 +21,7 @@ interface StakingRouter {
 
     fun openStory(story: StakingStoryModel)
 
+    fun openPayouts()
+
     fun back()
 }

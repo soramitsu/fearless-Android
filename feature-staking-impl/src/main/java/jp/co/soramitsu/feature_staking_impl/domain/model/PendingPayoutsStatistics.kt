@@ -4,15 +4,18 @@ import java.math.BigInteger
 
 class PendingPayoutsStatistics(
     val payouts: List<PendingPayout>,
-    val totalAmount: BigInteger,
+    val totalAmountInPlanks: BigInteger,
 )
 
 data class PendingPayout(
     val validatorInfo: ValidatorInfo,
     val era: BigInteger,
-    val amount: BigInteger,
+    val amountInPlanks: BigInteger,
+    val createdAt: Long,
     val daysLeft: Int,
     val closeToExpire: Boolean,
 ) {
-    data class ValidatorInfo(val address: String, val identityName: String?)
+    data class ValidatorInfo(val address: String, val identityName: String?) {
+        val nameOrAddress = identityName ?: address
+    }
 }

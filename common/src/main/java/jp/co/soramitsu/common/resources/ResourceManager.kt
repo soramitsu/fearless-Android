@@ -9,6 +9,7 @@ interface ResourceManager {
     fun getColor(res: Int): Int
 
     fun getQuantityString(id: Int, quantity: Int): String
+    fun getQuantityString(id: Int, quantity: Int, vararg arguments: Any): String
 
     fun measureInPx(dp: Int): Int
 }

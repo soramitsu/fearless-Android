@@ -15,7 +15,7 @@ private const val DOLLAR_CODE = "USD"
 
 private const val DECIMAL_PATTERN_BASE = "###,###."
 
-private const val DEFAULT_PRECISION = 4
+const val DEFAULT_PRECISION = 5
 
 private const val GROUPING_SEPARATOR = ' '
 private const val DECIMAL_SEPARATOR = '.'

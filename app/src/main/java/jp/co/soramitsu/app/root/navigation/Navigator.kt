@@ -157,6 +157,10 @@ class Navigator :
         navController?.navigate(R.id.open_staking_story, StoryFragment.getBundle(story))
     }
 
+    override fun openPayouts() {
+        navController?.navigate(R.id.action_mainFragment_to_payoutsListFragment)
+    }
+
     override fun back() {
         val popped = navController!!.popBackStack()
 

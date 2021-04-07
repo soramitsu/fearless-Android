@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="staking_payout_all">Payout all (%s)</string>
+    <string name="staking_payout_rewards">Payout rewards</string>
+</resources>

@@ -41,12 +41,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.time.ExperimentalTime
+import kotlin.time.days
+import kotlin.time.milliseconds
 
 class StakingInteractor(
     private val walletRepository: WalletRepository,
@@ -61,20 +64,29 @@ class StakingInteractor(
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
 
-    suspend fun calculatePendingPayouts(stashState: StakingState.Stash): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
+    @OptIn(ExperimentalTime::class)
+    suspend fun calculatePendingPayouts(): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
         runCatching {
-            val erasPerDay = stashState.stashAddress.networkType().runtimeConfiguration.erasPerDay
+            val currentStakingState = selectedAccountStakingStateFlow().first()
+            require(currentStakingState is StakingState.Stash)
+
+            val erasPerDay = currentStakingState.stashAddress.networkType().runtimeConfiguration.erasPerDay
             val activeEraIndex = stakingRepository.getActiveEraIndex()
             val historyDepth = stakingRepository.getHistoryDepth()
 
-            val payouts = payoutRepository.calculateUnpaidPayouts(stashState.stashAddress)
+            val payouts = payoutRepository.calculateUnpaidPayouts(currentStakingState.stashAddress)
 
             val allValidatorAddresses = payouts.map(Payout::validatorAddress).distinct()
             val identityMapping = identityRepository.getIdentitiesFromAddresses(allValidatorAddresses)
 
             val pendingPayouts = payouts.map {
-                val erasLeft = it.era + historyDepth - activeEraIndex
+                val erasPast = activeEraIndex - it.era
+                val erasLeft = historyDepth - erasPast
+
+                val daysPast = erasPast.toInt() / erasPerDay
                 val daysLeft = erasLeft.toInt() / erasPerDay
+
+                val estimatedCreatedAt = System.currentTimeMillis().milliseconds - daysPast.days
 
                 val closeToExpire = erasLeft < historyDepth / 2.toBigInteger()
 
@@ -83,13 +95,13 @@ class StakingInteractor(
 
                     val validatorInfo = PendingPayout.ValidatorInfo(validatorAddress, validatorIdentity?.display)
 
-                    PendingPayout(validatorInfo, era, amount, daysLeft, closeToExpire)
+                    PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), daysLeft, closeToExpire)
                 }
             }
 
             PendingPayoutsStatistics(
                 payouts = pendingPayouts,
-                totalAmount = pendingPayouts.sumByBigInteger(PendingPayout::amount)
+                totalAmountInPlanks = pendingPayouts.sumByBigInteger(PendingPayout::amountInPlanks)
             )
         }
     }

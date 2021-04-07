@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <plurals name="staking_payouts_days_left">
+        <item quantity="one">%d day left</item>
+        <item quantity="other">%d days left</item>
+    </plurals>
+
     <string name="staking_no_controller_account">Controller account %s is unavailable to update staking setup.</string>
 
     <string name="staking_manage">Manage</string>
