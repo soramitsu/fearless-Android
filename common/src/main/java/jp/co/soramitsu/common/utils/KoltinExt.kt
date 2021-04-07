@@ -42,3 +42,5 @@ fun List<Double>.median(): Double = sorted().let {
 
     (middleLeft + middleRight) / 2
 }
+
+fun generateLinearSequence(initial: Int, step: Int) = generateSequence(initial) { it + step }

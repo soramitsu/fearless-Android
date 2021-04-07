@@ -4,8 +4,4 @@ class StakingRewardRequest(
     val page: Int,
     val address: String,
     val row: Int,
-) {
-    companion object {
-        const val ROW_MAX = 100
-    }
-}
+)

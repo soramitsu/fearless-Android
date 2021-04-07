@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
@@ -9,13 +10,18 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.emitAll
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.sendEvent
+import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary.Status.Inactive.Reason
+import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -25,6 +31,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetM
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,6 +45,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 sealed class StakingViewState
 
@@ -60,7 +69,7 @@ class NominatorSummaryModel(
     val currentEraDisplay: String,
 )
 
-class NominatorViewState(
+@OptIn(ExperimentalTime::class) class NominatorViewState(
     private val nominatorState: StakingState.Stash.Nominator,
     private val currentAssetFlow: Flow<Asset>,
     private val stakingInteractor: StakingInteractor,
@@ -71,6 +80,28 @@ class NominatorViewState(
 
     init {
         syncStakingRewards()
+
+        // TODO test
+        scope.launch(Dispatchers.Default) {
+            val (result, duration) = measureTimedValue { stakingInteractor.calculatePendingPayouts(nominatorState) }
+
+            if (result.isFailure) {
+                errorDisplayer(result.requireException())
+            } else {
+                val payouts = result.requireValue()
+                val totalAmountInPlanks = payouts.sumByBigInteger(PendingPayout::amount)
+                val token = currentAssetFlow.first().token
+                val totalAmount = token.amountFromPlanks(totalAmountInPlanks)
+
+                Log.d(
+                    "RX",
+                    "Fetched payouts for ${nominatorState.stashAddress.networkType().readableName} in ${duration.inSeconds} seconds.\n" +
+                        "Total amount: $totalAmount ${token.type.displayName}.\n" +
+                        "Size: ${payouts.size}.\n" +
+                        "Payouts: ${payouts.joinToString(prefix = "\n", separator = "\n")}"
+                )
+            }
+        }
     }
 
     val nominatorSummaryLiveData = liveData<LoadingState<NominatorSummaryModel>> {
@@ -160,7 +191,7 @@ class WelcomeViewState(
     private val accountStakingState: StakingState,
     private val currentAssetFlow: Flow<Asset>,
     private val scope: CoroutineScope,
-    private val errorDisplayer: (String) -> Unit
+    private val errorDisplayer: (String) -> Unit,
 ) : StakingViewState() {
 
     private val currentSetupProgress = setupStakingSharedState.get<SetupStakingProcess.Initial>()

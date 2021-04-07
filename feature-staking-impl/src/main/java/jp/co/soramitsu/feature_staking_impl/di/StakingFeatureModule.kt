@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.di
 
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
@@ -18,8 +19,10 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingRewardsApi
+import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
+import jp.co.soramitsu.feature_staking_impl.data.network.subscan.SubscanValidatorSetFetcher
 import jp.co.soramitsu.feature_staking_impl.data.repository.IdentityRepositoryImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
@@ -74,6 +77,7 @@ class StakingFeatureModule {
         stakingConstantsRepository: StakingConstantsRepository,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         walletConstants: WalletConstants,
+        payoutRepository: PayoutRepository,
         substrateCalls: SubstrateCalls
     ) = StakingInteractor(
         walletRepository,
@@ -83,6 +87,7 @@ class StakingFeatureModule {
         stakingConstantsRepository,
         substrateCalls,
         walletConstants,
+        payoutRepository,
         extrinsicBuilderFactory
     )
 
@@ -156,8 +161,8 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideStakingRewardsApi(networkApiCreator: NetworkApiCreator): StakingRewardsApi {
-        return networkApiCreator.create(StakingRewardsApi::class.java)
+    fun provideStakingRewardsApi(networkApiCreator: NetworkApiCreator): StakingApi {
+        return networkApiCreator.create(StakingApi::class.java)
     }
 
     @Provides
@@ -169,14 +174,40 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideStakingRewardsRepository(
-        stakingRewardsApi: StakingRewardsApi,
+        stakingApi: StakingApi,
         stakingRewardDao: StakingRewardDao,
         subscanPagedSynchronizer: SubscanPagedSynchronizer,
     ): StakingRewardsRepository {
         return StakingRewardsRepository(
-            stakingRewardsApi,
+            stakingApi,
             stakingRewardDao,
             subscanPagedSynchronizer
         )
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideValidatorSetFetcher(
+        gson: Gson,
+        stakingApi: StakingApi,
+        subscanPagedSynchronizer: SubscanPagedSynchronizer,
+    ): SubscanValidatorSetFetcher {
+        return SubscanValidatorSetFetcher(
+            gson,
+            stakingApi,
+            subscanPagedSynchronizer
+        )
+    }
+
+    @Provides
+    @FeatureScope
+    fun providePayoutRepository(
+        stakingRepository: StakingRepository,
+        validatorSetFetcher: SubscanValidatorSetFetcher,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        bulkRetriever: BulkRetriever,
+        storageCache: StorageCache,
+    ): PayoutRepository {
+        return PayoutRepository(stakingRepository, bulkRetriever, runtimeProperty, validatorSetFetcher, storageCache)
     }
 }

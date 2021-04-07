@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.di
 
+import com.google.gson.Gson
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
@@ -63,4 +64,6 @@ interface StakingFeatureDependencies {
     fun httpExceptionHandler(): HttpExceptionHandler
 
     fun walletConstants(): WalletConstants
+
+    fun gson(): Gson
 }

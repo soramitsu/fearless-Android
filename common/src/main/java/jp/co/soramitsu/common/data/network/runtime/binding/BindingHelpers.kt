@@ -5,6 +5,7 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
+import jp.co.soramitsu.fearless_utils.runtime.metadata.StorageEntry
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import kotlin.contracts.ExperimentalContracts
@@ -15,6 +16,9 @@ annotation class UseCaseBinding
 annotation class HelperBinding
 
 fun incompatible(): Nothing = throw IllegalStateException("Binding is incompatible")
+
+typealias Binder<T> = (scale: String?, RuntimeSnapshot) -> T
+typealias BinderWithType<T> = (scale: String?, RuntimeSnapshot, Type<*>) -> T
 
 @OptIn(ExperimentalContracts::class)
 inline fun <reified T> requireType(dynamicInstance: Any?): T {
@@ -36,8 +40,10 @@ fun Struct.Instance.getList(key: String) = get<List<*>>(key) ?: incompatible()
 
 inline fun <T> bindOrNull(binder: () -> T): T? = runCatching(binder).getOrNull()
 
+fun StorageEntry.returnType() = type.value ?: incompatible()
+
 fun RuntimeMetadata.storageReturnType(moduleName: String, storageName: String): Type<*> {
-    return module(moduleName).storage(storageName).type.value ?: incompatible()
+    return module(moduleName).storage(storageName).returnType()
 }
 
 fun <T> Type<T>.fromHexOrIncompatible(scale: String, runtime: RuntimeSnapshot) = fromHexOrNull(runtime, scale) ?: incompatible()

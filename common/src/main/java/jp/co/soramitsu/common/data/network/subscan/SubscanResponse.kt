@@ -19,3 +19,9 @@ class SubscanResponse<T>(
         )
     }
 }
+
+interface CollectionContent<T> {
+    val count: Int
+
+    val items: List<T>?
+}

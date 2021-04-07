@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingRewardLocalToStakingReward
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingRewardRemoteToLocal
-import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingRewardsApi
+import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingRewardRequest
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 class StakingRewardsRepository(
-    private val stakingRewardsApi: StakingRewardsApi,
+    private val stakingApi: StakingApi,
     private val stakingRewardDao: StakingRewardDao,
     private val subscanPagedSynchronizer: SubscanPagedSynchronizer,
 ) {
@@ -27,16 +27,10 @@ class StakingRewardsRepository(
 
         subscanPagedSynchronizer.sync(
             alreadySavedItems = rewardsInDatabase,
-            pageFetcher = { page, row ->
+            pageFetcher = subscanCollectionFetcher { page, row ->
                 val request = StakingRewardRequest(page, accountAddress, row)
 
-                val content = stakingRewardsApi.getTransactionHistory(subDomain, request).content
-
-                if (content?.rewards != null) {
-                    SubscanPagedSynchronizer.PageResult(content.count, content.rewards)
-                } else {
-                    null
-                }
+                stakingApi.getRewardsHistory(subDomain, request)
             },
             pageCacher = { rewardsRemote ->
                 val rewardsLocal = rewardsRemote.map { mapStakingRewardRemoteToLocal(it, accountAddress) }

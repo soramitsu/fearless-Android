@@ -1,13 +1,14 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.subscan.response
 
 import com.google.gson.annotations.SerializedName
+import jp.co.soramitsu.common.data.network.subscan.CollectionContent
 import java.math.BigInteger
 
 class StakingRewardHistory(
-    val count: Int,
+    override val count: Int,
     @SerializedName("list")
-    val rewards: List<StakingRewardRemote>?,
-)
+    override val items: List<StakingRewardRemote>?,
+) : CollectionContent<StakingRewardRemote>
 
 class StakingRewardRemote(
     @SerializedName("event_index")
