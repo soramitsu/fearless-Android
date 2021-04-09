@@ -37,7 +37,7 @@ private fun SubscriptionChange.tripleRefCountChange(): Boolean {
 
 class AccountInfoSchemaUpdater(
     private val tripleRefCountProperty: SuspendableProperty<Boolean>,
-    private val socketService: SocketService,
+    private val socketService: SocketService
 ) : Updater {
 
     override suspend fun listenForUpdates() {

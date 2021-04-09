@@ -16,7 +16,7 @@ class TransferExtrinsic(
     val recipientId: ByteArray,
     val amountInPlanks: BigInteger,
     val index: Pair<UByte, UByte>,
-    val hash: String,
+    val hash: String
 )
 
 class EncodeExtrinsicParams(
@@ -27,11 +27,11 @@ class EncodeExtrinsicParams(
     val runtimeVersion: RuntimeVersion,
     val networkType: Node.NetworkType,
     val encryptionType: EncryptionType,
-    val genesis: ByteArray,
+    val genesis: ByteArray
 )
 
 class TransferExtrinsicFactory(
-    private val signer: Signer,
+    private val signer: Signer
 ) {
 
     fun decode(scale: String): TransferExtrinsic? {
@@ -40,14 +40,14 @@ class TransferExtrinsicFactory(
 
     fun createEncodedExtrinsic(
         encodeExtrinsicParams: EncodeExtrinsicParams,
-        keypair: Keypair,
+        keypair: Keypair
     ): String {
         return createExtrinsicV28(encodeExtrinsicParams, keypair)
     }
 
     private fun createExtrinsicV28(
         encodeExtrinsicParams: EncodeExtrinsicParams,
-        keypair: Keypair,
+        keypair: Keypair
     ): String = with(encodeExtrinsicParams) {
 
         val callStruct = TransferCallV28 { call ->
@@ -87,7 +87,7 @@ class TransferExtrinsicFactory(
 
     private fun createExtrinsicPayloadValue(
         callBytes: ByteArray,
-        encodeExtrinsicParams: EncodeExtrinsicParams,
+        encodeExtrinsicParams: EncodeExtrinsicParams
     ) = with(encodeExtrinsicParams) {
         ExtrinsicPayloadValue { payload ->
             payload[ExtrinsicPayloadValue.call] = callBytes
