@@ -44,20 +44,19 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideDualRefCountProperty() = SuspendableProperty<Boolean>()
+    fun provideTripleRefCountProperty() = SuspendableProperty<Boolean>()
 
     @Provides
     @FeatureScope
     fun provideExtrinsicFactory(
-        dualRefCountProperty: SuspendableProperty<Boolean>,
         signer: Signer
-    ) = TransferExtrinsicFactory(dualRefCountProperty, signer)
+    ) = TransferExtrinsicFactory(signer)
 
     @Provides
     @FeatureScope
     fun provideAccountInfoFactory(
-        dualRefCountProperty: SuspendableProperty<Boolean>
-    ) = AccountInfoFactory(dualRefCountProperty)
+        tripleRefCountProperty: SuspendableProperty<Boolean>
+    ) = AccountInfoFactory(tripleRefCountProperty)
 
     @Provides
     @FeatureScope
@@ -125,10 +124,10 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideAccountSchemaUpdater(
-        accountInfoFactory: AccountInfoFactory,
+        tripleRefCountProperty: SuspendableProperty<Boolean>,
         socketService: SocketService
     ): AccountInfoSchemaUpdater {
-        return AccountInfoSchemaUpdater(accountInfoFactory, socketService)
+        return AccountInfoSchemaUpdater(tripleRefCountProperty, socketService)
     }
 
     @Provides

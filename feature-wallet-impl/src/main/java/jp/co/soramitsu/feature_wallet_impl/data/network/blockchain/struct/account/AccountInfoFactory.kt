@@ -4,15 +4,15 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 
 class AccountInfoFactory(
-    val isUpgradedToDualRefCount: SuspendableProperty<Boolean>
+    private val isUpgradedToTripleRefCount: SuspendableProperty<Boolean>
 ) {
 
     suspend fun decode(scale: String): EncodableStruct<AccountInfoSchema> {
 
-        return if (isUpgradedToDualRefCount.get()) {
-            AccountInfoSchemaV28.read(scale)
+        return if (isUpgradedToTripleRefCount.get()) {
+            AccountInfoSchemaWithTripleRefCount.read(scale)
         } else {
-            AccountInfoSchemaV27.read(scale)
+            AccountInfoSchemaWithDualRefCount.read(scale)
         }
     }
 }

@@ -41,7 +41,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Stakin
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountData
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchema
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchemaV28
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.account.AccountInfoSchemaWithTripleRefCount
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.EncodeExtrinsicParams
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferExtrinsicFactory
@@ -235,12 +235,12 @@ class WssSubstrateSource(
         return hex?.let { accountInfoFactory.decode(it) } ?: emptyAccountInfo()
     }
 
-    private fun emptyAccountInfo(): EncodableStruct<AccountInfoSchema> = AccountInfoSchemaV28 { info ->
-        info[AccountInfoSchemaV28.nonce] = 0.toUInt()
-        info[AccountInfoSchemaV28.providers] = 0.toUInt()
-        info[AccountInfoSchemaV28.consumers] = 0.toUInt()
+    private fun emptyAccountInfo(): EncodableStruct<AccountInfoSchema> = AccountInfoSchemaWithTripleRefCount { info ->
+        info[AccountInfoSchemaWithTripleRefCount.nonce] = 0.toUInt()
+        info[AccountInfoSchemaWithTripleRefCount.providers] = 0.toUInt()
+        info[AccountInfoSchemaWithTripleRefCount.consumers] = 0.toUInt()
 
-        info[AccountInfoSchemaV28.data] = AccountData { data ->
+        info[AccountInfoSchemaWithTripleRefCount.data] = AccountData { data ->
             data[AccountData.free] = 0.toBigInteger()
             data[AccountData.reserved] = 0.toBigInteger()
             data[AccountData.miscFrozen] = 0.toBigInteger()
