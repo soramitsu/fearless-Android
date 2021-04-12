@@ -33,8 +33,8 @@ class PayoutsListViewModel(
 
     override val retryEvent: MutableLiveData<Event<RetryPayload>> = MutableLiveData()
 
-    private val _payoutsStatisticsState : MutableLiveData<LoadingState<PendingPayoutsStatisticsModel>> = MutableLiveData(LoadingState.Loading())
-    val payoutsStatisticsState : LiveData<LoadingState<PendingPayoutsStatisticsModel>> = _payoutsStatisticsState
+    private val _payoutsStatisticsState: MutableLiveData<LoadingState<PendingPayoutsStatisticsModel>> = MutableLiveData(LoadingState.Loading())
+    val payoutsStatisticsState: LiveData<LoadingState<PendingPayoutsStatisticsModel>> = _payoutsStatisticsState
 
     init {
         loadPayouts()
@@ -49,12 +49,14 @@ class PayoutsListViewModel(
 
                 _payoutsStatisticsState.postValue(LoadingState.Loaded(statisticsModels))
             } else {
-                retryEvent.value = Event(RetryPayload(
-                    title = resourceManager.getString(R.string.common_error_general_title),
-                    message = resourceManager.getString(R.string.common_error_general_message),
-                    onRetry = ::loadPayouts,
-                    onCancel = ::backClicked
-                ))
+                retryEvent.value = Event(
+                    RetryPayload(
+                        title = resourceManager.getString(R.string.common_error_general_title),
+                        message = resourceManager.getString(R.string.common_error_general_message),
+                        onRetry = ::loadPayouts,
+                        onCancel = ::backClicked
+                    )
+                )
             }
         }
     }
@@ -68,7 +70,7 @@ class PayoutsListViewModel(
     }
 
     private suspend fun convertToUiModel(
-       statistics: PendingPayoutsStatistics
+        statistics: PendingPayoutsStatistics
     ): PendingPayoutsStatisticsModel {
         val token = interactor.currentAssetFlow().first().token
         val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatTokenAmount(token.type, 6)
@@ -81,7 +83,7 @@ class PayoutsListViewModel(
         )
     }
 
-    private fun mapPayoutToPayoutModel(token: Token, payout: PendingPayout) : PendingPayoutModel {
+    private fun mapPayoutToPayoutModel(token: Token, payout: PendingPayout): PendingPayoutModel {
         return with(payout) {
             val amount = token.amountFromPlanks(amountInPlanks)
 

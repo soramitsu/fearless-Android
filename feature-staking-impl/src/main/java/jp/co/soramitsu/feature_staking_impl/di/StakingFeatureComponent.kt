@@ -45,7 +45,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun storyComponentFactory(): StoryComponent.Factory
 
-    fun payoutsListFactory() : PayoutsListComponent.Factory
+    fun payoutsListFactory(): PayoutsListComponent.Factory
 
     @Component.Factory
     interface Factory {

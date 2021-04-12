@@ -26,7 +26,7 @@ fun bindElectionFromStatus(
         else -> incompatible()
     }
 
-    return when(status) {
+    return when (status) {
         is ElectionStatus.Open -> Election.OPEN
         else -> Election.CLOSED
     }

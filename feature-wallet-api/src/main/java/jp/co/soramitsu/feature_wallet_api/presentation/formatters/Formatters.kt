@@ -13,11 +13,11 @@ fun BigDecimal.formatWithDefaultPrecision(type: Token.Type): String {
     return formatTokenAmount(type, DEFAULT_PRECISION)
 }
 
-fun BigDecimal.formatTokenAmount(type: Token.Type, precision: Int) : String {
+fun BigDecimal.formatTokenAmount(type: Token.Type, precision: Int): String {
     return "${format(precision)} ${type.displayName}"
 }
 
-fun BigDecimal.formatTokenChange(type: Token.Type, isIncome: Boolean, precision: Int = DEFAULT_PRECISION) : String {
+fun BigDecimal.formatTokenChange(type: Token.Type, isIncome: Boolean, precision: Int = DEFAULT_PRECISION): String {
     val withoutSign = formatTokenAmount(type, precision)
     val sign = if (isIncome) '+' else '-'
 

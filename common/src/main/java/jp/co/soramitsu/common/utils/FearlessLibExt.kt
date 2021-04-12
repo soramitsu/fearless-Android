@@ -47,7 +47,7 @@ fun String.extrinsicHash(): String {
     return fromHex().blake2b256().toHexString(withPrefix = true)
 }
 
-fun String.toHexAccountId() : String = toAccountId().toHexString()
+fun String.toHexAccountId(): String = toAccountId().toHexString()
 
 fun preBinder() = pojo<String>().nonNull()
 

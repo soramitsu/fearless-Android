@@ -110,7 +110,7 @@ enum class ManageStakeAction {
     }
 
     fun manageActionChosen(action: ManageStakeAction) {
-        when(action) {
+        when (action) {
             ManageStakeAction.PAYOUTS -> router.openPayouts()
         }
     }

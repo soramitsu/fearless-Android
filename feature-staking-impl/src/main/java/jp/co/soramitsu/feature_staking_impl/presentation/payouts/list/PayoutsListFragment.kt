@@ -80,5 +80,4 @@ class PayoutsListFragment : BaseFragment<PayoutsListViewModel>(), PayoutAdapter.
     override fun payoutClicked(index: Int) {
         viewModel.payoutClicked(index)
     }
-
 }

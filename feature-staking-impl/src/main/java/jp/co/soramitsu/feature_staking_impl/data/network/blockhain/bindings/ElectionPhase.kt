@@ -14,17 +14,23 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.u32
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.ElectionPhase
 
-private val electionPhaseType = DictEnum("ElectionPhase",
+private val electionPhaseType = DictEnum(
+    "ElectionPhase",
     listOf(
         DictEnum.Entry("Off", TypeReference(Null)),
         DictEnum.Entry("Signed", TypeReference(Null)),
-        DictEnum.Entry("Unsigned", TypeReference(Tuple(
-            "(bool, Bn)",
-            listOf(
-                TypeReference(BooleanType),
-                TypeReference(u32)
+        DictEnum.Entry(
+            "Unsigned",
+            TypeReference(
+                Tuple(
+                    "(bool, Bn)",
+                    listOf(
+                        TypeReference(BooleanType),
+                        TypeReference(u32)
+                    )
+                )
             )
-        )))
+        )
     )
 )
 
@@ -49,7 +55,7 @@ fun bindElectionFromPhase(
         else -> incompatible()
     }
 
-    return when(phase) {
+    return when (phase) {
         ElectionPhase.Off -> Election.CLOSED
         else -> Election.OPEN
     }
