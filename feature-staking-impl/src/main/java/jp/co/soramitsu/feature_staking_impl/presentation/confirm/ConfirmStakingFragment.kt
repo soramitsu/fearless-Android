@@ -88,7 +88,7 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
                     confirmStakeRewardDestination.setText(R.string.staking_setup_restake)
                 }
                 is RewardDestinationModel.Payout -> {
-                    confirmStakeRewardDestination.setText(R.string.staking_setup_payout)
+                    confirmStakeRewardDestination.setText(R.string.staking_payout)
                     confirmStakePayoutAccount.setMessage(it.destination.nameOrAddress)
                     confirmStakePayoutAccount.setTextIcon(it.destination.image)
                 }

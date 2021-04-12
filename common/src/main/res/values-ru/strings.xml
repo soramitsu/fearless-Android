@@ -4,7 +4,7 @@
     <string name="staking_setup_reward_payout_account">Аккаунт для выплат вознаграждения</string>
     <string name="staking_setup_reward_destination">Что делать с вознаграждением</string>
     <string name="staking_setup_restake">В стекинг</string>
-    <string name="staking_setup_payout">Выплатить</string>
+    <string name="staking_payout">Выплатить</string>
     <string name="staking_setup_learn_more">Узнать больше про выплаты</string>
 
     <string name="fee_not_yet_loaded_title">Расчет комиссии в процессе</string>
@@ -190,7 +190,7 @@
     <string name="transaction_details_title">Детали транзакции</string>
     <string name="transaction_details_from">От</string>
     <string name="transaction_detail_status">Статус</string>
-    <string name="transaction_detail_date">Дата</string>
+    <string name="common_date">Дата</string>
 
     <string name="transaction_details_view_subscan">Просмотреть в Subscan</string>
     <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>

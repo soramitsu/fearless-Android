@@ -6,7 +6,7 @@
     <string name="staking_setup_reward_payout_account">Cuenta de pago</string>
     <string name="staking_setup_reward_destination">Elija el destino de la recompensa</string>
     <string name="staking_setup_restake">Reanudar</string>
-    <string name="staking_setup_payout">Pagar</string>
+    <string name="staking_payout">Pagar</string>
     <string name="staking_setup_learn_more">Obtenga más información sobre los pagos</string>
 
     <string name="fee_not_yet_loaded_title">El cálculo de la tarifa está en curso</string>
@@ -191,7 +191,7 @@
     <string name="transaction_details_title">Detalles de la transacción</string>
     <string name="transaction_details_from">Desde</string>
     <string name="transaction_detail_status">Estado</string>
-    <string name="transaction_detail_date">Fecha</string>
+    <string name="common_date">Fecha</string>
 
     <string name="transaction_details_view_subscan">Ver en Subscan</string>
     <string name="transaction_details_view_polkascan">Ver en Polkascan</string>
