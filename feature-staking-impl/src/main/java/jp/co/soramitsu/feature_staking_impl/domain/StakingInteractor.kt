@@ -12,7 +12,7 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
+import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
@@ -117,7 +117,7 @@ class StakingInteractor(
         val tokenType = Token.Type.fromNetworkType(networkType)
 
         combine(
-            stakingRepository.electionStatusFlow(networkType),
+            stakingRepository.electionFlow(networkType),
             stakingRepository.observeActiveEraIndex(networkType),
             stakingRewardsRepository.stakingRewardsFlow(nominatorState.accountAddress),
             walletRepository.assetFlow(nominatorState.accountAddress, tokenType)
@@ -129,7 +129,7 @@ class StakingInteractor(
             val existentialDeposit = walletConstants.existentialDeposit()
 
             val status = when {
-                electionStatus is ElectionStatus.Open -> NominatorSummary.Status.Election
+                electionStatus == Election.OPEN -> NominatorSummary.Status.Election
                 isNominationActive(nominatorState.stashId, eraStakers) -> NominatorSummary.Status.Active
                 isNominationWaiting(nominatorState.nominations, activeEraIndex) -> NominatorSummary.Status.Waiting
                 else -> {
