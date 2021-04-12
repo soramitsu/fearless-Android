@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.viewModelSharedFlow
@@ -39,6 +40,7 @@ class PayoutsListViewModel(
     val payoutsStatisticsState = payoutsStatisticsFlow
         .map(::convertToUiModel)
         .withLoading()
+        .inBackground()
 
     init {
         loadPayouts()
