@@ -5,7 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.presentation.LoadingState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
@@ -53,6 +55,8 @@ fun <T> Flow<T>.asLiveData(scope: CoroutineScope): LiveData<T> {
 
     return liveData
 }
+
+fun <T> viewModelSharedFlow() = MutableSharedFlow<T>(replay = 1, onBufferOverflow = BufferOverflow.DROP_LATEST)
 
 fun EditText.bindTo(flow: MutableStateFlow<String>, scope: CoroutineScope) {
     scope.launch {

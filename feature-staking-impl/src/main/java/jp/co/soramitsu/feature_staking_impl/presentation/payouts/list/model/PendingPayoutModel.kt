@@ -4,7 +4,8 @@ import androidx.annotation.ColorRes
 
 class PendingPayoutsStatisticsModel(
     val payouts: List<PendingPayoutModel>,
-    val payoutAllTitle: String
+    val payoutAllTitle: String,
+    val placeholderVisible: Boolean
 )
 
 class PendingPayoutModel(

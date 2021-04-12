@@ -15,7 +15,10 @@ data class PendingPayout(
     val daysLeft: Int,
     val closeToExpire: Boolean,
 ) {
-    data class ValidatorInfo(val address: String, val identityName: String?) {
+    class ValidatorInfo(
+        private val address: String,
+        private val identityName: String?,
+    ) {
         val nameOrAddress = identityName ?: address
     }
 }

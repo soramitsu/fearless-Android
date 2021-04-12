@@ -1,15 +1,16 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.payouts.list
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.RetryPayload
-import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.viewModelSharedFlow
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
@@ -21,8 +22,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenChange
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class PayoutsListViewModel(
@@ -33,26 +34,50 @@ class PayoutsListViewModel(
 
     override val retryEvent: MutableLiveData<Event<RetryPayload>> = MutableLiveData()
 
-    private val _payoutsStatisticsState: MutableLiveData<LoadingState<PendingPayoutsStatisticsModel>> = MutableLiveData(LoadingState.Loading())
-    val payoutsStatisticsState: LiveData<LoadingState<PendingPayoutsStatisticsModel>> = _payoutsStatisticsState
+    private val payoutsStatisticsFlow = viewModelSharedFlow<PendingPayoutsStatistics>()
+
+    val payoutsStatisticsState = payoutsStatisticsFlow
+        .map(::convertToUiModel)
+        .withLoading()
 
     init {
         loadPayouts()
     }
 
+    fun backClicked() {
+        router.back()
+    }
+
+    fun payoutAllClicked() {
+       launch {
+           val payouts = retrievePayoutsFromFlow()
+
+           // TODO
+       }
+    }
+
+    fun payoutClicked(index: Int) {
+        launch {
+            val payouts = retrievePayoutsFromFlow()
+            val payout = payouts[index]
+
+            // TODO
+        }
+    }
+
     private fun loadPayouts() {
-        launch(Dispatchers.Default) {
+        launch {
             val result = interactor.calculatePendingPayouts()
 
             if (result.isSuccess) {
-                val statisticsModels = convertToUiModel(result.requireValue())
-
-                _payoutsStatisticsState.postValue(LoadingState.Loaded(statisticsModels))
+                payoutsStatisticsFlow.emit(result.requireValue())
             } else {
+                val errorMessage = result.requireException().message ?: resourceManager.getString(R.string.common_error_general_message)
+
                 retryEvent.value = Event(
                     RetryPayload(
                         title = resourceManager.getString(R.string.common_error_general_title),
-                        message = resourceManager.getString(R.string.common_error_general_message),
+                        message = errorMessage,
                         onRetry = ::loadPayouts,
                         onCancel = ::backClicked
                     )
@@ -61,16 +86,8 @@ class PayoutsListViewModel(
         }
     }
 
-    fun backClicked() {
-        router.back()
-    }
-
-    fun payoutAllClicked() {
-        // TODO
-    }
-
     private suspend fun convertToUiModel(
-        statistics: PendingPayoutsStatistics
+        statistics: PendingPayoutsStatistics,
     ): PendingPayoutsStatisticsModel {
         val token = interactor.currentAssetFlow().first().token
         val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatTokenAmount(token.type, 6)
@@ -79,7 +96,8 @@ class PayoutsListViewModel(
 
         return PendingPayoutsStatisticsModel(
             payouts = payouts,
-            payoutAllTitle = resourceManager.getString(R.string.staking_payout_all, totalAmount)
+            payoutAllTitle = resourceManager.getString(R.string.staking_payout_all, totalAmount),
+            placeholderVisible = payouts.isEmpty()
         )
     }
 
@@ -98,7 +116,5 @@ class PayoutsListViewModel(
         }
     }
 
-    fun payoutClicked(index: Int) {
-        // TODO
-    }
+    private suspend fun retrievePayoutsFromFlow() = payoutsStatisticsFlow.first().payouts
 }
