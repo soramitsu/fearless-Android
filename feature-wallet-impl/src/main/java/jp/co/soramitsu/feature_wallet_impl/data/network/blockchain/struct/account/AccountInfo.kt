@@ -20,19 +20,21 @@ object AccountData : Schema<AccountData>() {
     val feeFrozen by uint128()
 }
 
-object AccountInfoSchemaV27 : AccountInfoSchema() {
-    override val nonce by uint32()
-
-    val refCount by uint32()
-
-    override val data by schema(AccountData)
-}
-
-object AccountInfoSchemaV28 : AccountInfoSchema() {
+object AccountInfoSchemaWithDualRefCount : AccountInfoSchema() {
     override val nonce by uint32()
 
     val consumers by uint32()
     val providers by uint32()
+
+    override val data by schema(AccountData)
+}
+
+object AccountInfoSchemaWithTripleRefCount : AccountInfoSchema() {
+    override val nonce by uint32()
+
+    val consumers by uint32()
+    val providers by uint32()
+    val selfSufficient by uint32()
 
     override val data by schema(AccountData)
 }
