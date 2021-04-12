@@ -40,6 +40,7 @@
     <string name="staking_nominator_status_alert_low_stake">Your staked amount is less than the minimum stake to get a reward.</string>
 
     <string name="staking_era_index">Era #%d</string>
+    <string name="staking_era_index_no_prefix">#%d</string>
 
     <string name="staking_validator_summary_title">Staking for validator</string>
     <string name="staking_validator_summary_description">In future updates, we will add staking features for the validators. \n \n #StayFearless</string>

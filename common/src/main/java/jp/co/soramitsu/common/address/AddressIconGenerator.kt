@@ -12,6 +12,11 @@ class AddressIconGenerator(
     private val resourceManager: ResourceManager
 ) {
 
+    companion object {
+        const val SIZE_SMALL = 18
+        const val SIZE_MEDIUM = 24
+    }
+
     @Throws(AddressFormatException::class)
     suspend fun createAddressModel(accountAddress: String, sizeInDp: Int, accountName: String? = null): AddressModel {
         val icon = createAddressIcon(accountAddress, sizeInDp)

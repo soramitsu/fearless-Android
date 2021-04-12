@@ -9,17 +9,12 @@
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <jp.co.soramitsu.common.view.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:homeButtonVisible="false" />
-
     <TextView
         style="@style/TextAppearance.Soramitsu.Header1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="52dp"
         android:layout_marginBottom="@dimen/x2"
         android:text="@string/profile_settings_title"
         android:textColor="@color/white" />

@@ -30,6 +30,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfigur
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDetailsFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
@@ -159,6 +161,10 @@ class Navigator :
 
     override fun openPayouts() {
         navController?.navigate(R.id.action_mainFragment_to_payoutsListFragment)
+    }
+
+    override fun openPayoutDetails(payout: PendingPayoutParcelable) {
+        navController?.navigate(R.id.action_payoutsListFragment_to_payoutDetailsFragment, PayoutDetailsFragment.getBundle(payout))
     }
 
     override fun back() {

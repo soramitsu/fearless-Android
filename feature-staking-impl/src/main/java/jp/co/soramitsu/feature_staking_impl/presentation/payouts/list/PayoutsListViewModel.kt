@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistic
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutsStatisticsModel
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -63,7 +64,9 @@ class PayoutsListViewModel(
             val payouts = retrievePayoutsFromFlow()
             val payout = payouts[index]
 
-            // TODO
+            val payoutParcelable = mapPayoutToParcelable(payout)
+
+            router.openPayoutDetails(payoutParcelable)
         }
     }
 
@@ -114,6 +117,22 @@ class PayoutsListViewModel(
                 // TODO decide on precision
                 amount = amount.formatTokenChange(token.type, isIncome = true, precision = 6),
                 amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
+            )
+        }
+    }
+
+    private fun mapPayoutToParcelable(payout: PendingPayout) : PendingPayoutParcelable {
+        return with(payout) {
+            PendingPayoutParcelable(
+                validatorInfo = PendingPayoutParcelable.ValidatorInfoParcelable(
+                    address = validatorInfo.address,
+                    identityName = validatorInfo.identityName
+                ),
+                era = era,
+                amountInPlanks = amountInPlanks,
+                createdAt = createdAt,
+                daysLeft = daysLeft,
+                closeToExpire = closeToExpire
             )
         }
     }

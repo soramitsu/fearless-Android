@@ -23,6 +23,7 @@
     <!--text sizes-->
 
     <declare-styleable name="Toolbar">
+        <attr name="dividerVisible" format="boolean" />
         <attr name="titleText" format="string" />
         <attr name="iconRight" format="reference|color" />
         <attr name="textRight" format="string" />
