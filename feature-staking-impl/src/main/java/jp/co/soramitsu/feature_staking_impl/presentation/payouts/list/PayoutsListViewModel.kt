@@ -49,11 +49,11 @@ class PayoutsListViewModel(
     }
 
     fun payoutAllClicked() {
-       launch {
-           val payouts = retrievePayoutsFromFlow()
+        launch {
+            val payouts = retrievePayoutsFromFlow()
 
-           // TODO
-       }
+            // TODO
+        }
     }
 
     fun payoutClicked(index: Int) {
