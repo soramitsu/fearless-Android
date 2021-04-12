@@ -121,7 +121,7 @@ class PayoutsListViewModel(
         }
     }
 
-    private fun mapPayoutToParcelable(payout: PendingPayout) : PendingPayoutParcelable {
+    private fun mapPayoutToParcelable(payout: PendingPayout): PendingPayoutParcelable {
         return with(payout) {
             PendingPayoutParcelable(
                 validatorInfo = PendingPayoutParcelable.ValidatorInfoParcelable(

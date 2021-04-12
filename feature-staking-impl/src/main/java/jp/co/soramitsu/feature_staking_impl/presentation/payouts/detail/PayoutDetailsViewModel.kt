@@ -24,7 +24,7 @@ class PayoutDetailsViewModel(
     private val resourceManager: ResourceManager,
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
-    val payoutDetails =  interactor.currentAssetFlow()
+    val payoutDetails = interactor.currentAssetFlow()
         .map(::mapPayoutParcelableToPayoutDetailsModel)
         .inBackground()
         .asLiveData()
@@ -39,7 +39,7 @@ class PayoutDetailsViewModel(
         externalAccountActions.showExternalActions(payload)
     }
 
-    private suspend fun mapPayoutParcelableToPayoutDetailsModel(asset: Asset) : PayoutDetailsModel {
+    private suspend fun mapPayoutParcelableToPayoutDetailsModel(asset: Asset): PayoutDetailsModel {
         val tokenType = asset.token.type
         val rewardAmount = asset.token.amountFromPlanks(payout.amountInPlanks)
 
