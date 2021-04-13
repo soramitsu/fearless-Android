@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistic
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutsStatisticsModel
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -63,7 +64,9 @@ class PayoutsListViewModel(
             val payouts = retrievePayoutsFromFlow()
             val payout = payouts[index]
 
-            // TODO
+            val payoutParcelable = mapPayoutToParcelable(payout)
+
+            router.openPayoutDetails(payoutParcelable)
         }
     }
 
@@ -108,12 +111,28 @@ class PayoutsListViewModel(
             val amount = token.amountFromPlanks(amountInPlanks)
 
             PendingPayoutModel(
-                validatorTitle = validatorInfo.nameOrAddress,
+                validatorTitle = validatorInfo.identityName ?: validatorInfo.address,
                 daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
                 // TODO decide on precision
-                amount = amount.formatTokenChange(token.type, isIncome = true, precision = 6),
+                amount = amount.formatTokenChange(token.type, isIncome = true, precision = 7),
                 amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
+            )
+        }
+    }
+
+    private fun mapPayoutToParcelable(payout: PendingPayout): PendingPayoutParcelable {
+        return with(payout) {
+            PendingPayoutParcelable(
+                validatorInfo = PendingPayoutParcelable.ValidatorInfoParcelable(
+                    address = validatorInfo.address,
+                    identityName = validatorInfo.identityName
+                ),
+                era = era,
+                amountInPlanks = amountInPlanks,
+                createdAt = createdAt,
+                daysLeft = daysLeft,
+                closeToExpire = closeToExpire
             )
         }
     }

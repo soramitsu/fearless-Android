@@ -60,6 +60,8 @@ fun Long.formatDaysSinceEpoch(context: Context): String? {
     }
 }
 
+fun Long.formatDateFromMillis(context: Context) = DateUtils.formatDateTime(context, this, 0)
+
 fun Long.formatDateTime(context: Context) = DateUtils.getRelativeDateTimeString(context, this, DateUtils.SECOND_IN_MILLIS, 0, 0)
 
 private fun decimalFormatterFor(pattern: String): DecimalFormat {

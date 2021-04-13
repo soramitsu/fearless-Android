@@ -4,7 +4,7 @@
     <string name="staking_setup_reward_payout_account">支払い口座</string>
     <string name="staking_setup_reward_destination">報酬の目的地を選択してください</string>
     <string name="staking_setup_restake">再テイク</string>
-    <string name="staking_setup_payout">配当性向</string>
+    <string name="staking_payout">配当性向</string>
     <string name="staking_setup_learn_more">支払いの詳細</string>
 
     <string name="fee_not_yet_loaded_title">料金計算中</string>
@@ -189,7 +189,7 @@
     <string name="transaction_details_title">取引の詳細</string>
     <string name="transaction_details_from">から</string>
     <string name="transaction_detail_status">状態</string>
-    <string name="transaction_detail_date">日付</string>
+    <string name="common_date">日付</string>
 
     <string name="transaction_details_view_subscan">サブスキャンで表示</string>
     <string name="transaction_details_view_polkascan">ポルカスカンで見る</string>

@@ -8,10 +8,12 @@ import android.widget.LinearLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setVisible
 import kotlinx.android.synthetic.main.view_toolbar.view.backImg
 import kotlinx.android.synthetic.main.view_toolbar.view.rightImg
 import kotlinx.android.synthetic.main.view_toolbar.view.rightText
 import kotlinx.android.synthetic.main.view_toolbar.view.titleTv
+import kotlinx.android.synthetic.main.view_toolbar.view.toolbarDivider
 
 class Toolbar @JvmOverloads constructor(
     context: Context,
@@ -42,6 +44,9 @@ class Toolbar @JvmOverloads constructor(
 
             val homeButtonVisible = typedArray.getBoolean(R.styleable.Toolbar_homeButtonVisible, true)
             setHomeButtonVisibility(homeButtonVisible)
+
+            val dividerVisible = typedArray.getBoolean(R.styleable.Toolbar_dividerVisible, true)
+            toolbarDivider.setVisible(dividerVisible)
 
             typedArray.recycle()
         }

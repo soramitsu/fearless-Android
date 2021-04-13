@@ -17,18 +17,9 @@
         app:layout_constraintTop_toTopOf="parent"
         app:titleText="@string/staking_payout_rewards" />
 
-    <View
-        android:id="@+id/divider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="@color/dividerGray"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/payoutsListToolbar" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/payoutsList"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:paddingTop="8dp"
@@ -36,7 +27,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider"
+        app:layout_constraintTop_toBottomOf="@+id/payoutsListToolbar"
         tools:itemCount="20"
         tools:listitem="@layout/item_payout" />
 
@@ -61,7 +52,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider" />
+        app:layout_constraintTop_toBottomOf="@+id/payoutsListToolbar" />
 
 
     <ImageView
@@ -74,7 +65,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         android:layout_marginBottom="18dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider"
+        app:layout_constraintTop_toBottomOf="@+id/payoutsListToolbar"
         app:layout_constraintVertical_chainStyle="packed" />
 
     <TextView

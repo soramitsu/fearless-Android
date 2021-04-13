@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_era">Era</string>
+    <string name="staking_reward">Reward</string>
+    <string name="staking_validator">Validator</string>
+    <string name="staking_reward_details">Reward details</string>
+
     <string name="staking_payout_all">Payout all (%s)</string>
     <string name="staking_payout_rewards">Payout rewards</string>
 
@@ -35,6 +40,7 @@
     <string name="staking_nominator_status_alert_low_stake">Your staked amount is less than the minimum stake to get a reward.</string>
 
     <string name="staking_era_index">Era #%d</string>
+    <string name="staking_era_index_no_prefix">#%d</string>
 
     <string name="staking_validator_summary_title">Staking for validator</string>
     <string name="staking_validator_summary_description">In future updates, we will add staking features for the validators. \n \n #StayFearless</string>
@@ -69,7 +75,7 @@
     <string name="staking_setup_learn_more">Learn more about Payouts</string>
     <string name="staking_setup_reward_destination">Choose reward destination</string>
     <string name="staking_setup_restake">Restake</string>
-    <string name="staking_setup_payout">Payout</string>
+    <string name="staking_payout">Payout</string>
 
     <string name="staking_selected_accounts_mask">Accounts(%d)</string>
 
@@ -296,7 +302,7 @@
 
     <string name="transaction_details_title">Transaction details</string>
     <string name="transaction_detail_status">Status</string>
-    <string name="transaction_detail_date">Date</string>
+    <string name="common_date">Date</string>
 
     <string name="transaction_details_from">From</string>
 

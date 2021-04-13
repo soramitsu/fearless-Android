@@ -449,6 +449,20 @@
         tools:layout="@layout/fragment_payouts_list"
         android:id="@+id/payoutsListFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.PayoutsListFragment"
-        android:label="PayoutsListFragment" />
+        android:label="PayoutsListFragment" >
+
+        <action
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_payoutsListFragment_to_payoutDetailsFragment"
+            app:destination="@id/payoutDetailsFragment" />
+    </fragment>
+    <fragment
+        tools:layout="@layout/fragment_payout_details"
+        android:id="@+id/payoutDetailsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDetailsFragment"
+        android:label="PayoutDetailsFragment" />
 
 </navigation>
