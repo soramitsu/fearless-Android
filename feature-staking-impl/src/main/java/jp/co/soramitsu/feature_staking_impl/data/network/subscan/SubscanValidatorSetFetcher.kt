@@ -42,9 +42,9 @@ internal typealias GenericParams = List<CallArg<Any?>>
 internal fun GenericParams.argumentValue(name: String): Any? = firstOrNull { it.name == name }?.value
 
 internal class CallDescription(
-    @SerializedName("call_args")
+    @SerializedName("call_args", alternate = ["params"])
     val callArgs: List<CallArg<Any?>>,
-    @SerializedName("call_function")
+    @SerializedName("call_function", alternate = ["call_name"])
     val callFunction: String,
     @SerializedName("call_index")
     val callIndex: String,

@@ -111,7 +111,7 @@ class PayoutRepository(
 
         val nominatorReward = validatorTotalReward * (1 - validatorCommission) * (nominatorStakeInEra / validatorTotalStake)
 
-        return nominatorReward.toInt().toBigInteger()
+        return nominatorReward.toBigDecimal().toBigInteger()
     }
 
     private suspend fun getValidatorHistoricalStats(
