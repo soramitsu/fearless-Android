@@ -53,7 +53,7 @@
     <string name="staking_nominator_status_waiting">Waiting for the next era</string>
 
     <string name="network_fee">Network fee</string>
-    <string name="staking_confirm_reward_destination">Reward destination</string>
+    <string name="staking_reward_destination">Reward destination</string>
     <string name="common_confirm">Confirm</string>
     <string name="staking_confirm_selected_validators">Selected validators</string>
 

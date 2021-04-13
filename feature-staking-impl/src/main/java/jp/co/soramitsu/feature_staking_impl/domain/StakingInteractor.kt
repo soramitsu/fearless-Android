@@ -231,7 +231,7 @@ class StakingInteractor(
         return accountRepository.isAccountExists(accountAddress)
     }
 
-    suspend fun getExistingStashSetup(accountStakingState: StakingState.Stash.None): StashSetup {
+    suspend fun getExistingStashSetup(accountStakingState: StakingState.Stash): StashSetup {
         val networkType = accountStakingState.accountAddress.networkType()
         val rewardDestination = stakingRepository.getRewardDestination(accountStakingState)
 

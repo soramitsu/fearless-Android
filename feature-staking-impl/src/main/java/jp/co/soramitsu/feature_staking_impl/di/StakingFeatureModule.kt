@@ -10,8 +10,6 @@ import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.common.validation.CompositeValidation
-import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
@@ -34,8 +32,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorReco
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
-import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.EnoughToPayFeesValidation
-import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
@@ -125,31 +121,6 @@ class StakingFeatureModule {
         substrateCalls: SubstrateCalls,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory
     ) = MaxFeeEstimator(substrateCalls, extrinsicBuilderFactory)
-
-    @Provides
-    @FeatureScope
-    fun provideEnoughToPayFeesValidation(
-        walletRepository: WalletRepository,
-        accountRepository: AccountRepository
-    ) = EnoughToPayFeesValidation(
-        walletRepository,
-        accountRepository
-    )
-
-    @Provides
-    @FeatureScope
-    fun provideMinimumAmountValidation(
-        walletConstants: WalletConstants
-    ) = MinimumAmountValidation(walletConstants)
-
-    @Provides
-    @FeatureScope
-    fun provideSetupStakingValidationSystem(
-        enoughToPayFeesValidation: EnoughToPayFeesValidation,
-        minimumAmountValidation: MinimumAmountValidation
-    ) = ValidationSystem(
-        CompositeValidation(listOf(enoughToPayFeesValidation, minimumAmountValidation))
-    )
 
     @Provides
     @FeatureScope

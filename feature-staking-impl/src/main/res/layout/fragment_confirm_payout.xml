@@ -10,115 +10,65 @@
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.Toolbar
-        android:id="@+id/confirmStakeToolbar"
+        android:id="@+id/confirmPayoutToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:titleText="Confirm stake" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/confirmStakeOriginAccount"
+        android:id="@+id/confirmPayoutOriginAccount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:enabled="false"
         app:label="@string/profile_title" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
-        android:id="@+id/confirmStakeAmount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:enabled="false" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="horizontal"
-        android:paddingTop="16dp"
-        android:paddingBottom="15dp">
-
-        <TextView
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_weight="1"
-            android:text="@string/staking_reward_destination"
-            android:textColor="@color/gray1" />
-
-        <TextView
-            android:id="@+id/confirmStakeRewardDestination"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:text="@string/staking_payout"
-            android:textColor="@color/white" />
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:background="@color/gray3" />
-
     <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/confirmStakePayoutAccount"
+        android:id="@+id/confirmPayoutRewardDestination"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
-        app:enabled="false"
-        app:label="@string/staking_setup_reward_payout_account" />
+        app:actionIcon="@drawable/ic_more_vertical"
+        app:label="@string/staking_reward_destination" />
 
     <LinearLayout
-        android:id="@+id/confirmStakeSelectedValidators"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:gravity="center_vertical"
+        android:layout_marginTop="16dp"
         android:orientation="horizontal"
         android:paddingTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:paddingBottom="15dp">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:src="@drawable/ic_profile_24"
-            app:tint="@color/white" />
 
         <TextView
             style="@style/TextAppearance.Soramitsu.Body1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:text="@string/staking_confirm_selected_validators"
+            android:text="@string/staking_reward"
             android:textColor="@color/gray1" />
 
         <TextView
-            android:id="@+id/confirmStakeSelectedValidatorsCount"
+            android:id="@+id/confirmPayoutRewardToken"
             style="@style/TextAppearance.Soramitsu.Body1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            tools:text="16 of 16" />
+            android:layout_marginEnd="8dp"
+            tools:text="0.0001 KSM"
+            android:textColor="@color/white" />
 
-        <ImageView
+        <TextView
+            android:id="@+id/confirmPayoutRewardFiat"
+            style="@style/TextAppearance.Soramitsu.Body1"
             android:layout_width="wrap_content"
+            tools:text="$0.5"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_arrow_right_24" />
+            android:textColor="@color/gray2" />
     </LinearLayout>
 
     <View
@@ -158,13 +108,13 @@
             <ProgressBar
                 android:layout_width="16dp"
                 android:indeterminate="true"
-                android:id="@+id/confirmStakingFeeProgress"
+                android:id="@+id/confirmPayoutFeeProgress"
                 android:layout_gravity="center_vertical"
                 android:indeterminateTint="@color/white"
                 android:layout_height="16dp" />
 
             <TextView
-                android:id="@+id/confirmStakingFeeToken"
+                android:id="@+id/confirmPayoutFeeToken"
                 style="@style/TextAppearance.Soramitsu.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -174,7 +124,7 @@
 
 
             <TextView
-                android:id="@+id/confirmStakingFeeFiat"
+                android:id="@+id/confirmPayoutFeeFiat"
                 style="@style/TextAppearance.Soramitsu.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -191,7 +141,7 @@
             android:background="@color/gray3" />
 
         <jp.co.soramitsu.common.view.PrimaryButton
-            android:id="@+id/confirmStakeConfirm"
+            android:id="@+id/confirmPayoutConfirm"
             style="@style/Widget.Fearless.Button.Primary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

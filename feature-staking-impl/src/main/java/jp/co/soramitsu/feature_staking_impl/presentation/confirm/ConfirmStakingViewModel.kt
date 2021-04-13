@@ -26,10 +26,10 @@ import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
-import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidtionFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -53,7 +53,7 @@ class ConfirmStakingViewModel(
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
-    private val validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
+    private val validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidtionFailure>,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val maxFeeEstimator: MaxFeeEstimator,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,

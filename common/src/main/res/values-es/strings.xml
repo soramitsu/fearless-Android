@@ -255,7 +255,7 @@
     <string name="identity_riot_name_title">Nombre de Riot</string>
     <string name="staking_setup_sent_message">Транзакция на установку стекинга отправлена</string>
     <string name="network_fee">Tarifa de red</string>
-    <string name="staking_confirm_reward_destination">Destino de recompensa</string>
+    <string name="staking_reward_destination">Destino de recompensa</string>
     <string name="common_confirm">Confirmar</string>
     <string name="staking_confirm_selected_validators">Validadores seleccionados</string>
     <string name="staking_confirm_nominations">%s de %s</string>
