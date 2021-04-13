@@ -115,7 +115,7 @@ class PayoutsListViewModel(
                 daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
                 // TODO decide on precision
-                amount = amount.formatTokenChange(token.type, isIncome = true, precision = 6),
+                amount = amount.formatTokenChange(token.type, isIncome = true, precision = 7),
                 amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
             )
         }

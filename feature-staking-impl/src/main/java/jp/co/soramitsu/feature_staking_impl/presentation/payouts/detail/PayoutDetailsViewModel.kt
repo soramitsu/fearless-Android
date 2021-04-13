@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.map
 
 class PayoutDetailsViewModel(
@@ -51,7 +51,7 @@ class PayoutDetailsViewModel(
             validatorAddressModel = addressModel,
             createdAt = payout.createdAt,
             eraDisplay = resourceManager.getString(R.string.staking_era_index_no_prefix, payout.era.toLong()),
-            reward = rewardAmount.formatWithDefaultPrecision(tokenType),
+            reward = rewardAmount.formatTokenAmount(tokenType, precision = 7),
             rewardFiat = asset.token.fiatAmount(rewardAmount)?.formatAsCurrency()
         )
     }
