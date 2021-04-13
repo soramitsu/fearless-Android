@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/bg_primary_list_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/itemPayoutIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/itemPayoutTime"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/itemPayoutAddress"
+        android:src="@drawable/ic_subtract" />
+
+    <TextView
+        android:id="@+id/itemPayoutAddress"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="48dp"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        app:layout_constraintEnd_toStartOf="@+id/itemPayoutAmount"
+        app:layout_constraintStart_toEndOf="@+id/itemPayoutIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="F2dMuaCik4Ackmo9hoMMV79ETtVNvKSZMVK5sue9q1syPrW" />
+
+    <TextView
+        android:id="@+id/itemPayoutTime"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textColor="@color/colorGreyText"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/itemPayoutAddress"
+        app:layout_constraintTop_toBottomOf="@+id/itemPayoutAddress"
+        tools:text="10/04/20, 22:36:45" />
+
+    <TextView
+        android:id="@+id/itemPayoutAmount"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:ellipsize="middle"
+        android:layout_marginTop="8dp"
+        android:singleLine="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_goneMarginEnd="12dp"
+        tools:text="+0.012 KSM" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:id="@+id/itemPayoutFiat"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        android:textColor="@color/black1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/itemPayoutAmount"
+        app:layout_constraintTop_toBottomOf="@+id/itemPayoutAmount"
+        tools:text="$1.4" />
+</androidx.constraintlayout.widget.ConstraintLayout>

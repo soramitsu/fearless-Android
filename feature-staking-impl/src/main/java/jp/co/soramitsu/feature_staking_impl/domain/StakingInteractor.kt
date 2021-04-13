@@ -4,13 +4,15 @@ import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.sumByBigDecimal
+import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
+import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
@@ -18,6 +20,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
+import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
 import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
@@ -26,6 +29,7 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsReposi
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
+import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -37,12 +41,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.time.ExperimentalTime
+import kotlin.time.days
+import kotlin.time.milliseconds
 
 class StakingInteractor(
     private val walletRepository: WalletRepository,
@@ -51,13 +58,52 @@ class StakingInteractor(
     private val stakingRewardsRepository: StakingRewardsRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
     private val substrateCalls: SubstrateCalls,
+    private val identityRepository: IdentityRepository,
     private val walletConstants: WalletConstants,
     private val payoutRepository: PayoutRepository,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
 
-    suspend fun calculatePendingPayouts(stashState: StakingState.Stash): Result<List<PendingPayout>> = withContext(Dispatchers.Default) {
-        runCatching { payoutRepository.calculatePendingPayouts(stashState.stashAddress) }
+    @OptIn(ExperimentalTime::class)
+    suspend fun calculatePendingPayouts(): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
+        runCatching {
+            val currentStakingState = selectedAccountStakingStateFlow().first()
+            require(currentStakingState is StakingState.Stash)
+
+            val erasPerDay = currentStakingState.stashAddress.networkType().runtimeConfiguration.erasPerDay
+            val activeEraIndex = stakingRepository.getActiveEraIndex()
+            val historyDepth = stakingRepository.getHistoryDepth()
+
+            val payouts = payoutRepository.calculateUnpaidPayouts(currentStakingState.stashAddress)
+
+            val allValidatorAddresses = payouts.map(Payout::validatorAddress).distinct()
+            val identityMapping = identityRepository.getIdentitiesFromAddresses(allValidatorAddresses)
+
+            val pendingPayouts = payouts.map {
+                val erasPast = activeEraIndex - it.era
+                val erasLeft = historyDepth - erasPast
+
+                val daysPast = erasPast.toInt() / erasPerDay
+                val daysLeft = erasLeft.toInt() / erasPerDay
+
+                val estimatedCreatedAt = System.currentTimeMillis().milliseconds - daysPast.days
+
+                val closeToExpire = erasLeft < historyDepth / 2.toBigInteger()
+
+                with(it) {
+                    val validatorIdentity = identityMapping[validatorAddress]
+
+                    val validatorInfo = PendingPayout.ValidatorInfo(validatorAddress, validatorIdentity?.display)
+
+                    PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), daysLeft, closeToExpire)
+                }
+            }
+
+            PendingPayoutsStatistics(
+                payouts = pendingPayouts,
+                totalAmountInPlanks = pendingPayouts.sumByBigInteger(PendingPayout::amountInPlanks)
+            )
+        }
     }
 
     suspend fun syncStakingRewards(accountAddress: String) = withContext(Dispatchers.IO) {
@@ -71,7 +117,7 @@ class StakingInteractor(
         val tokenType = Token.Type.fromNetworkType(networkType)
 
         combine(
-            stakingRepository.electionStatusFlow(networkType),
+            stakingRepository.electionFlow(networkType),
             stakingRepository.observeActiveEraIndex(networkType),
             stakingRewardsRepository.stakingRewardsFlow(nominatorState.accountAddress),
             walletRepository.assetFlow(nominatorState.accountAddress, tokenType)
@@ -83,7 +129,7 @@ class StakingInteractor(
             val existentialDeposit = walletConstants.existentialDeposit()
 
             val status = when {
-                electionStatus is ElectionStatus.Open -> NominatorSummary.Status.Election
+                electionStatus == Election.OPEN -> NominatorSummary.Status.Election
                 isNominationActive(nominatorState.stashId, eraStakers) -> NominatorSummary.Status.Active
                 isNominationWaiting(nominatorState.nominations, activeEraIndex) -> NominatorSummary.Status.Waiting
                 else -> {

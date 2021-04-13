@@ -3,10 +3,12 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.mapValuesNotNull
+import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.feature_staking_api.domain.api.AccountAddressMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.ChildIdentity
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
@@ -21,7 +23,7 @@ class IdentityRepositoryImpl(
     val bulkRetriever: BulkRetriever
 ) : IdentityRepository {
 
-    override suspend fun getIdentities(accountIdsHex: List<String>) = withContext(Dispatchers.Default) {
+    override suspend fun getIdentitiesFromIds(accountIdsHex: List<String>) = withContext(Dispatchers.Default) {
         val runtime = runtimeProperty.get()
 
         val identityModule = runtime.metadata.module("Identity")
@@ -56,6 +58,14 @@ class IdentityRepositoryImpl(
         val rootIdentities = fetchIdentities(leftIdentityKeys, runtime, identityOfReturnType)
 
         rootIdentities + childIdentities
+    }
+
+    override suspend fun getIdentitiesFromAddresses(accountAddresses: List<String>): AccountAddressMap<Identity?> {
+        val accountIds = accountAddresses.map(String::toHexAccountId)
+
+        val identitiesByAccountId = getIdentitiesFromIds(accountIds)
+
+        return accountAddresses.associateWith { identitiesByAccountId[it.toHexAccountId()] }
     }
 
     private suspend fun fetchIdentities(

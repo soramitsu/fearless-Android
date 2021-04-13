@@ -22,7 +22,7 @@ class ValidatorRecommendatorFactory(
 
         val validatorIds = exposures.keys.toList()
 
-        val identities = identityRepository.getIdentities(validatorIds)
+        val identities = identityRepository.getIdentitiesFromIds(validatorIds)
         val slashes = stakingRepository.getSlashes(validatorIds)
 
         val rewardCalculator = rewardCalculatorFactory.create(exposures, validatorsPrefs)

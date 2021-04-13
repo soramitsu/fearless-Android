@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
+import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.EraRewardPoints
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.StakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindEraRewardPoints
@@ -27,7 +28,6 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindTotalValidatorEraReward
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.SubscanValidatorSetFetcher
-import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import java.math.BigInteger
 
 typealias HistoricalMapping<T> = Map<BigInteger, T> // EraIndex -> T
@@ -52,7 +52,7 @@ class PayoutRepository(
     private val storageCache: StorageCache,
 ) {
 
-    suspend fun calculatePendingPayouts(stashAddress: String): List<PendingPayout> {
+    suspend fun calculateUnpaidPayouts(stashAddress: String): List<Payout> {
         val runtime = runtimeProperty.get()
 
         val validatorAddresses = validatorSetFetcher.fetchAllValidators(stashAddress)
@@ -78,7 +78,7 @@ class PayoutRepository(
                     eraValidatorPointsDistribution = historicalRewardDistribution[holeEra]!!
                 )
 
-                reward?.let { PendingPayout(validatorAddress, holeEra, it) }
+                reward?.let { Payout(validatorAddress, holeEra, it) }
             }
         }.flatten()
     }
@@ -88,7 +88,7 @@ class PayoutRepository(
         validatorAccountId: AccountId,
         validatorEraStats: ValidatorHistoricalStats.ValidatorEraStats,
         totalEraReward: BigInteger,
-        eraValidatorPointsDistribution: EraRewardPoints
+        eraValidatorPointsDistribution: EraRewardPoints,
     ): BigInteger? {
         val nominatorIdHex = nominatorAccountId.toHexString()
         val validatorIdHex = validatorAccountId.toHexString()
@@ -177,7 +177,7 @@ class PayoutRepository(
 
     private suspend fun retrieveEraPointsDistribution(
         runtime: RuntimeSnapshot,
-        historicalRange: List<BigInteger>
+        historicalRange: List<BigInteger>,
     ): HistoricalMapping<EraRewardPoints> {
         val storage = runtime.metadata.staking().storage("ErasRewardPoints")
 
@@ -186,7 +186,7 @@ class PayoutRepository(
 
     private suspend fun retrieveTotalEraReward(
         runtime: RuntimeSnapshot,
-        historicalRange: List<BigInteger>
+        historicalRange: List<BigInteger>,
     ): HistoricalMapping<BigInteger> {
         val storage = runtime.metadata.staking().storage("ErasValidatorReward")
 

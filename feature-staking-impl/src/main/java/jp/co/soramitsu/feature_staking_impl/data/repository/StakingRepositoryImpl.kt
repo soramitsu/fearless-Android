@@ -13,10 +13,11 @@ import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_api.domain.model.ElectionStatus
+import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
@@ -24,7 +25,8 @@ import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.SlashingSpan
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionStatus
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionFromPhase
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionFromStatus
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindHistoryDepth
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindNominations
@@ -53,13 +55,23 @@ class StakingRepositoryImpl(
     private val stakingStoriesDataSource: StakingStoriesDataSource,
 ) : StakingRepository {
 
-    override suspend fun electionStatusFlow(networkType: Node.NetworkType): Flow<ElectionStatus> {
+    override suspend fun electionFlow(networkType: Node.NetworkType): Flow<Election> {
         val runtime = runtimeProperty.get()
 
-        val key = runtime.metadata.staking().storage("EraElectionStatus").storageKey()
+        val electionNewStorage = runtime.metadata.moduleOrNull("ElectionProviderMultiPhase")?.storage("CurrentPhase")
 
-        return storageCache.observeEntry(key, networkType)
-            .map { bindElectionStatus(it.content!!, runtime) }
+        val electionStorage = electionNewStorage ?: runtime.metadata.staking().storage("CurrentPhase")
+
+        return storageCache.observeEntry(electionStorage.storageKey(), networkType)
+            .map {
+                val content = it.content!!
+
+                if (electionNewStorage != null) {
+                    bindElectionFromPhase(content, runtime)
+                } else {
+                    bindElectionFromStatus(content, runtime)
+                }
+            }
     }
 
     override suspend fun getLockupPeriodInDays(networkType: Node.NetworkType): Int {

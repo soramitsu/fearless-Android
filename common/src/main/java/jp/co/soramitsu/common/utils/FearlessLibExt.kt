@@ -16,6 +16,7 @@ import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
@@ -45,6 +46,8 @@ fun <S : Schema<S>> EncodableStruct<S>.hash(): String {
 fun String.extrinsicHash(): String {
     return fromHex().blake2b256().toHexString(withPrefix = true)
 }
+
+fun String.toHexAccountId(): String = toAccountId().toHexString()
 
 fun preBinder() = pojo<String>().nonNull()
 

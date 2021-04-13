@@ -1,0 +1,122 @@
+package jp.co.soramitsu.feature_staking_impl.presentation.payouts.list
+
+import androidx.lifecycle.MutableLiveData
+import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.mixin.api.Retriable
+import jp.co.soramitsu.common.mixin.api.RetryPayload
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.viewModelSharedFlow
+import jp.co.soramitsu.common.utils.withLoading
+import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
+import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
+import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutModel
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutsStatisticsModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenChange
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+
+class PayoutsListViewModel(
+    private val router: StakingRouter,
+    private val resourceManager: ResourceManager,
+    private val interactor: StakingInteractor,
+) : BaseViewModel(), Retriable {
+
+    override val retryEvent: MutableLiveData<Event<RetryPayload>> = MutableLiveData()
+
+    private val payoutsStatisticsFlow = viewModelSharedFlow<PendingPayoutsStatistics>()
+
+    val payoutsStatisticsState = payoutsStatisticsFlow
+        .map(::convertToUiModel)
+        .withLoading()
+        .inBackground()
+
+    init {
+        loadPayouts()
+    }
+
+    fun backClicked() {
+        router.back()
+    }
+
+    fun payoutAllClicked() {
+        launch {
+            val payouts = retrievePayoutsFromFlow()
+
+            // TODO
+        }
+    }
+
+    fun payoutClicked(index: Int) {
+        launch {
+            val payouts = retrievePayoutsFromFlow()
+            val payout = payouts[index]
+
+            // TODO
+        }
+    }
+
+    private fun loadPayouts() {
+        launch {
+            val result = interactor.calculatePendingPayouts()
+
+            if (result.isSuccess) {
+                payoutsStatisticsFlow.emit(result.requireValue())
+            } else {
+                val errorMessage = result.requireException().message ?: resourceManager.getString(R.string.common_error_general_message)
+
+                retryEvent.value = Event(
+                    RetryPayload(
+                        title = resourceManager.getString(R.string.common_error_general_title),
+                        message = errorMessage,
+                        onRetry = ::loadPayouts,
+                        onCancel = ::backClicked
+                    )
+                )
+            }
+        }
+    }
+
+    private suspend fun convertToUiModel(
+        statistics: PendingPayoutsStatistics,
+    ): PendingPayoutsStatisticsModel {
+        val token = interactor.currentAssetFlow().first().token
+        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatTokenAmount(token.type, 6)
+
+        val payouts = statistics.payouts.map { mapPayoutToPayoutModel(token, it) }
+
+        return PendingPayoutsStatisticsModel(
+            payouts = payouts,
+            payoutAllTitle = resourceManager.getString(R.string.staking_payout_all, totalAmount),
+            placeholderVisible = payouts.isEmpty()
+        )
+    }
+
+    private fun mapPayoutToPayoutModel(token: Token, payout: PendingPayout): PendingPayoutModel {
+        return with(payout) {
+            val amount = token.amountFromPlanks(amountInPlanks)
+
+            PendingPayoutModel(
+                validatorTitle = validatorInfo.nameOrAddress,
+                daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
+                daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
+                // TODO decide on precision
+                amount = amount.formatTokenChange(token.type, isIncome = true, precision = 6),
+                amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
+            )
+        }
+    }
+
+    private suspend fun retrievePayoutsFromFlow() = payoutsStatisticsFlow.first().payouts
+}

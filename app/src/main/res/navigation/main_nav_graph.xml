@@ -128,6 +128,13 @@
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
 
+        <action
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_mainFragment_to_payoutsListFragment"
+            app:destination="@id/payoutsListFragment" />
     </fragment>
 
     <fragment
@@ -437,5 +444,11 @@
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment"
         android:label="StakingStoryFragment"
         tools:layout="@layout/fragment_story" />
+
+    <fragment
+        tools:layout="@layout/fragment_payouts_list"
+        android:id="@+id/payoutsListFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.PayoutsListFragment"
+        android:label="PayoutsListFragment" />
 
 </navigation>

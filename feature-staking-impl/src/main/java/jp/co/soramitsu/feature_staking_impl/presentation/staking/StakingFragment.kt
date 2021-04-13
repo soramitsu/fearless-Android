@@ -82,7 +82,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
                     stakingState.nominatorSummaryLiveData.observe { summaryState ->
                         stakingState.showManageActionsEvent.observeEvent {
-                            ManageStakingBottomSheet(requireContext()).show()
+                            ManageStakingBottomSheet(requireContext(), stakingState::manageActionChosen).show()
                         }
 
                         nominatorMoreActions.setOnClickListener {

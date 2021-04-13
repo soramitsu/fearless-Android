@@ -13,8 +13,10 @@ import kotlinx.android.synthetic.main.item_sheet_staking_action.view.itemSheetSt
 import kotlinx.android.synthetic.main.item_sheet_staking_action.view.itemSheetStakingActionText
 
 class ManageStakingBottomSheet(
-    context: Context
+    context: Context,
+    private val onItemChosen: (ManageStakeAction) -> Unit,
 ) : FixedListBottomSheet(context) {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -25,7 +27,7 @@ class ManageStakingBottomSheet(
         manageItem(R.drawable.ic_send, R.string.staking_unstake)
         manageItem(R.drawable.ic_dotted_list_24, R.string.staking_unstaking_requests)
         manageItem(R.drawable.ic_maps_compas_24, R.string.staking_validators)
-        manageItem(R.drawable.ic_lightning_24, R.string.staking_reward_payouts)
+        manageItem(R.drawable.ic_lightning_24, R.string.staking_reward_payouts, ManageStakeAction.PAYOUTS)
         manageItem(R.drawable.ic_finance_wallet_24, R.string.staking_confirm_reward_destination)
 
         manageItem(R.drawable.ic_profile_24, R.string.staking_controller_account) {
@@ -36,6 +38,7 @@ class ManageStakingBottomSheet(
     private inline fun manageItem(
         @DrawableRes iconRes: Int,
         @StringRes titleRes: Int,
+        action: ManageStakeAction = ManageStakeAction.STUB,
         crossinline extraBuilder: (View) -> Unit = {}
     ) {
         item(R.layout.item_sheet_staking_action) {
@@ -45,7 +48,7 @@ class ManageStakingBottomSheet(
             extraBuilder(it)
 
             it.setDismissingClickListener {
-                // TODO
+                onItemChosen(action)
             }
         }
     }

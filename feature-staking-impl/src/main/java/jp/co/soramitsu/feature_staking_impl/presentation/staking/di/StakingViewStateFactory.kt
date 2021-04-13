@@ -50,6 +50,7 @@ class StakingViewStateFactory(
         stakingInteractor = stakingInteractor,
         currentAssetFlow = currentAssetFlow,
         scope = scope,
+        router = router,
         errorDisplayer = errorDisplayer,
         resourceManager = resourceManager
     )
