@@ -18,7 +18,5 @@ data class PendingPayout(
     class ValidatorInfo(
         val address: String,
         val identityName: String?,
-    ) {
-        val nameOrAddress = identityName ?: address
-    }
+    )
 }

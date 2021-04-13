@@ -111,7 +111,7 @@ class PayoutsListViewModel(
             val amount = token.amountFromPlanks(amountInPlanks)
 
             PendingPayoutModel(
-                validatorTitle = validatorInfo.nameOrAddress,
+                validatorTitle = validatorInfo.identityName ?: validatorInfo.address,
                 daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
                 // TODO decide on precision

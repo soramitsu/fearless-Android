@@ -69,6 +69,7 @@ class PayoutDetailsFragment : BaseFragment<PayoutDetailsViewModel>() {
         setupExternalActions(viewModel)
 
         viewModel.payoutDetails.observe {
+            // TODO perform date formatting in viewModel
             payoutDetailsDate.text = it.createdAt.formatDateFromMillis(requireContext())
             payoutDetailsEra.text = it.eraDisplay
             payoutDetailsReward.text = it.reward
