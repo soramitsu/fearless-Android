@@ -5,7 +5,7 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.ConfirmPayoutFragment
-import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 
 @Subcomponent(
     modules = [
@@ -20,7 +20,7 @@ interface ConfirmPayoutComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance payouts: List<PendingPayoutParcelable>
+            @BindsInstance payload: ConfirmPayoutPayload
         ): ConfirmPayoutComponent
     }
 

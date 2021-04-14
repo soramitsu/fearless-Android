@@ -18,7 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutVali
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.ConfirmPayoutViewModel
-import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 
 @Module(includes = [ViewModelModule::class])
 class ConfirmPayoutModule {
@@ -29,7 +29,7 @@ class ConfirmPayoutModule {
     fun provideViewModel(
         interactor: StakingInteractor,
         router: StakingRouter,
-        payouts: List<PendingPayoutParcelable>,
+        payload: ConfirmPayoutPayload,
         addressIconGenerator: AddressIconGenerator,
         externalAccountActions: ExternalAccountActions.Presentation,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
@@ -39,7 +39,7 @@ class ConfirmPayoutModule {
         return ConfirmPayoutViewModel(
             interactor,
             router,
-            payouts,
+            payload,
             addressIconGenerator,
             externalAccountActions,
             feeLoaderMixin,

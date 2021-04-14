@@ -4,4 +4,6 @@ sealed class PayoutValidationFailure {
     object CannotPayFee : PayoutValidationFailure()
 
     object UnprofitablePayout : PayoutValidationFailure()
+
+    object ControllerRequired : PayoutValidationFailure()
 }

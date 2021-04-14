@@ -5,7 +5,10 @@ import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_staking_impl.domain.validations.ControllerRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayoutPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutControllerRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.ProfitablePayoutValidation
@@ -17,16 +20,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 
-//@Qualifier
-//@MustBeDocumented
-//@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
-//annotation class StakingValidationSystem(val value: StakingValidationSystemType)
-//
-//enum class StakingValidationSystemType {
-//    SETUP_STAKING,
-//    MAKE_PAYOUT
-//}
-
 @Module
 class StakingValidationModule {
 
@@ -36,7 +29,7 @@ class StakingValidationModule {
         walletRepository: WalletRepository,
     ): SetupStakingFeeValidation {
         return EnoughToPayFeesValidation(
-            walletRepository,
+            walletRepository = walletRepository,
             feeExtractor = SetupStakingPayload::maxFee,
             originAddressExtractor = { it.stashSetup.controllerAddress },
             tokenTypeExtractor = SetupStakingPayload::tokenType,
@@ -51,7 +44,7 @@ class StakingValidationModule {
         walletRepository: WalletRepository,
     ): PayoutFeeValidation {
         return EnoughToPayFeesValidation(
-            walletRepository,
+            walletRepository = walletRepository,
             feeExtractor = MakePayoutPayload::fee,
             originAddressExtractor = { it.originAddress },
             tokenTypeExtractor = MakePayoutPayload::tokenType,
@@ -66,7 +59,6 @@ class StakingValidationModule {
     ) = MinimumAmountValidation(walletConstants)
 
     @Provides
-//    @StakingValidationSystem(StakingValidationSystemType.SETUP_STAKING)
     @FeatureScope
     fun provideSetupStakingValidationSystem(
         enoughToPayFeesValidation: SetupStakingFeeValidation,
@@ -79,13 +71,27 @@ class StakingValidationModule {
     @Provides
     fun provideProfitablePayoutValidation() = ProfitablePayoutValidation()
 
+    @FeatureScope
     @Provides
-//    @StakingValidationSystem(StakingValidationSystemType.MAKE_PAYOUT)
+    fun providePayoutControllerRequiredValidation(
+        accountRepository: AccountRepository
+    ) = ControllerRequiredValidation(
+        accountRepository = accountRepository,
+        controllerAddressExtractor = MakePayoutPayload::originAddress,
+        errorProducer = { PayoutValidationFailure.ControllerRequired }
+    )
+
+    @Provides
     @FeatureScope
     fun provideMakePayoutValidationSystem(
         enoughToPayFeesValidation: PayoutFeeValidation,
+        controllerRequiredValidation: PayoutControllerRequiredValidation,
         profitablePayoutValidation: ProfitablePayoutValidation,
     ) = ValidationSystem(
-        CompositeValidation(listOf(enoughToPayFeesValidation, profitablePayoutValidation))
+        CompositeValidation(listOf(
+            enoughToPayFeesValidation,
+            profitablePayoutValidation,
+            controllerRequiredValidation
+        ))
     )
 }
