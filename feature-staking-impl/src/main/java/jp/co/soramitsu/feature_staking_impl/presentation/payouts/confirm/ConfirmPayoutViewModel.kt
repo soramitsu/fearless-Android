@@ -35,6 +35,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMix
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.requireFee
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -74,7 +75,7 @@ class ConfirmPayoutViewModel(
     val totalRewardDisplay = assetFlow.map {
         val token = it.token
         val totalReward = token.amountFromPlanks(payload.totalRewardInPlanks)
-        val inToken = totalReward.formatWithDefaultPrecision(token.type)
+        val inToken = totalReward.formatTokenAmount(token.type, precision = 7)
         val inFiat = token.fiatAmount(totalReward)?.formatAsCurrency()
 
         inToken to inFiat
