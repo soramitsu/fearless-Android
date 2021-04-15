@@ -13,5 +13,5 @@ interface AccountFeatureApi {
 
     fun accountUpdateScope(): AccountUpdateScope
 
-    fun addressDisplayUseCase() : AddressDisplayUseCase
+    fun addressDisplayUseCase(): AddressDisplayUseCase
 }

@@ -9,7 +9,7 @@ class ControllerRequiredValidation<P, E>(
     val accountRepository: AccountRepository,
     val controllerAddressExtractor: (P) -> String,
     val errorProducer: () -> E
-) : Validation<P, E>{
+) : Validation<P, E> {
 
     override suspend fun validate(value: P): ValidationStatus<E> {
         val controllerAddress = controllerAddressExtractor(value)

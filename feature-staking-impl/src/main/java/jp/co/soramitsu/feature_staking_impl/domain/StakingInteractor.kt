@@ -239,7 +239,7 @@ class StakingInteractor(
         return StashSetup(rewardDestination, accountStakingState.controllerId.toAddress(networkType), alreadyHasStash = true)
     }
 
-    suspend fun getRewardDestination(accountStakingState: StakingState.Stash) : RewardDestination {
+    suspend fun getRewardDestination(accountStakingState: StakingState.Stash): RewardDestination {
         return stakingRepository.getRewardDestination(accountStakingState)
     }
 

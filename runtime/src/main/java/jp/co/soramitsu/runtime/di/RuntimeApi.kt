@@ -18,7 +18,7 @@ interface RuntimeApi {
 
     fun storageCache(): StorageCache
 
-    fun feeEstimator() : FeeEstimator
+    fun feeEstimator(): FeeEstimator
 
-    fun extrinsicService() : ExtrinsicService
+    fun extrinsicService(): ExtrinsicService
 }

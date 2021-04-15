@@ -57,7 +57,7 @@ class PayoutsListViewModel(
             val payoutStatistics = payoutsStatisticsFlow.first()
 
             val payload = ConfirmPayoutPayload(
-                totalRewardInPlanks= payoutStatistics.totalAmountInPlanks,
+                totalRewardInPlanks = payoutStatistics.totalAmountInPlanks,
                 payouts = payoutStatistics.payouts.map { mapPayoutToParcelable(it) }
             )
 

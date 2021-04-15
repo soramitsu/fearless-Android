@@ -6,7 +6,7 @@ class AddressDisplayUseCase(
     private val accountRepository: AccountRepository
 ) {
 
-    suspend operator fun invoke(address: String) : String? {
+    suspend operator fun invoke(address: String): String? {
         return accountRepository.getAccountOrNull(address)?.name
     }
 }

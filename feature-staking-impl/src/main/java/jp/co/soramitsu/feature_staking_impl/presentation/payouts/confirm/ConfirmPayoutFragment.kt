@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.view.ButtonState
-import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.typePreset
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
@@ -28,7 +27,6 @@ import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutRewar
 import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutRewardFiat
 import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutRewardToken
 import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutToolbar
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeConfirm
 
 class ConfirmPayoutFragment : BaseFragment<ConfirmPayoutViewModel>() {
 

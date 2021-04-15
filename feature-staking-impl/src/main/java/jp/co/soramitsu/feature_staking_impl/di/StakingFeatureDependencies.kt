@@ -70,9 +70,9 @@ interface StakingFeatureDependencies {
 
     fun gson(): Gson
 
-    fun addressxDisplayUseCase() : AddressDisplayUseCase
+    fun addressxDisplayUseCase(): AddressDisplayUseCase
 
-    fun feeEstimator() : FeeEstimator
+    fun feeEstimator(): FeeEstimator
 
-    fun extrinsicService() : ExtrinsicService
+    fun extrinsicService(): ExtrinsicService
 }

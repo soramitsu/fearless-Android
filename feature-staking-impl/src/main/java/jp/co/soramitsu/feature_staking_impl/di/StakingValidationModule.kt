@@ -5,8 +5,6 @@ import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_staking_impl.domain.validations.ControllerRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayoutPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutValidationFailure
@@ -76,9 +74,11 @@ class StakingValidationModule {
         enoughToPayFeesValidation: PayoutFeeValidation,
         profitablePayoutValidation: ProfitablePayoutValidation,
     ) = ValidationSystem(
-        CompositeValidation(listOf(
-            enoughToPayFeesValidation,
-            profitablePayoutValidation,
-        ))
+        CompositeValidation(
+            listOf(
+                enoughToPayFeesValidation,
+                profitablePayoutValidation,
+            )
+        )
     )
 }
