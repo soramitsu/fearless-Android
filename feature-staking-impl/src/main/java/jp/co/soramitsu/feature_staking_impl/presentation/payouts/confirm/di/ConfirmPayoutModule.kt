@@ -11,8 +11,10 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayoutPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -30,19 +32,23 @@ class ConfirmPayoutModule {
         interactor: StakingInteractor,
         router: StakingRouter,
         payload: ConfirmPayoutPayload,
+        payoutInteractor: PayoutInteractor,
         addressIconGenerator: AddressIconGenerator,
         externalAccountActions: ExternalAccountActions.Presentation,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         validationSystem: ValidationSystem<MakePayoutPayload, PayoutValidationFailure>,
+        addressDisplayUseCase: AddressDisplayUseCase,
         resourceManager: ResourceManager
     ): ViewModel {
         return ConfirmPayoutViewModel(
             interactor,
+            payoutInteractor,
             router,
             payload,
             addressIconGenerator,
             externalAccountActions,
             feeLoaderMixin,
+            addressDisplayUseCase,
             validationSystem,
             resourceManager
         )

@@ -18,6 +18,7 @@ import kotlinx.android.synthetic.main.fragment_payout_details.payoutDetailsDate
 import kotlinx.android.synthetic.main.fragment_payout_details.payoutDetailsEra
 import kotlinx.android.synthetic.main.fragment_payout_details.payoutDetailsReward
 import kotlinx.android.synthetic.main.fragment_payout_details.payoutDetailsRewardFiat
+import kotlinx.android.synthetic.main.fragment_payout_details.payoutDetailsSubmit
 import kotlinx.android.synthetic.main.fragment_payout_details.payoutDetailsToolbar
 import kotlinx.android.synthetic.main.fragment_payout_details.payoutDetailsValidator
 
@@ -49,6 +50,8 @@ class PayoutDetailsFragment : BaseFragment<PayoutDetailsViewModel>() {
         }
 
         payoutDetailsToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        payoutDetailsSubmit.setOnClickListener { viewModel.payoutClicked() }
 
         payoutDetailsValidator.setWholeClickListener { viewModel.validatorExternalActionClicked() }
     }

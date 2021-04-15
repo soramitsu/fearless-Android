@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.ControllerRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayoutPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutControllerRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.ProfitablePayoutValidation
@@ -71,27 +70,15 @@ class StakingValidationModule {
     @Provides
     fun provideProfitablePayoutValidation() = ProfitablePayoutValidation()
 
-    @FeatureScope
-    @Provides
-    fun providePayoutControllerRequiredValidation(
-        accountRepository: AccountRepository
-    ) = ControllerRequiredValidation(
-        accountRepository = accountRepository,
-        controllerAddressExtractor = MakePayoutPayload::originAddress,
-        errorProducer = { PayoutValidationFailure.ControllerRequired }
-    )
-
     @Provides
     @FeatureScope
     fun provideMakePayoutValidationSystem(
         enoughToPayFeesValidation: PayoutFeeValidation,
-        controllerRequiredValidation: PayoutControllerRequiredValidation,
         profitablePayoutValidation: ProfitablePayoutValidation,
     ) = ValidationSystem(
         CompositeValidation(listOf(
             enoughToPayFeesValidation,
             profitablePayoutValidation,
-            controllerRequiredValidation
         ))
     )
 }

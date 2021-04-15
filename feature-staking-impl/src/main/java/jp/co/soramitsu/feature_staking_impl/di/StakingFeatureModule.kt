@@ -28,6 +28,7 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchron
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
@@ -38,6 +39,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderPro
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
+import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 
 @Module
 class StakingFeatureModule {
@@ -183,4 +186,11 @@ class StakingFeatureModule {
     ): PayoutRepository {
         return PayoutRepository(stakingRepository, bulkRetriever, runtimeProperty, validatorSetFetcher, storageCache)
     }
+
+    @Provides
+    @FeatureScope
+    fun providePayoutInteractor(
+        feeEstimator: FeeEstimator,
+        extrinsicService: ExtrinsicService
+    ) = PayoutInteractor(feeEstimator, extrinsicService)
 }

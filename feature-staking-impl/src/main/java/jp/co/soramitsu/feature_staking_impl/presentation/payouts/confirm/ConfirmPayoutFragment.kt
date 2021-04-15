@@ -4,17 +4,31 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeRetries
+import jp.co.soramitsu.common.mixin.impl.observeValidations
+import jp.co.soramitsu.common.view.ButtonState
+import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.typePreset
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeViews
+import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.displayFeeStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
+import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutConfirm
+import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutContainer
+import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutFeeFiat
+import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutFeeProgress
+import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutFeeToken
 import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutOriginAccount
 import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutRewardDestination
 import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutRewardFiat
 import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutRewardToken
+import kotlinx.android.synthetic.main.fragment_confirm_payout.confirmPayoutToolbar
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeConfirm
 
 class ConfirmPayoutFragment : BaseFragment<ConfirmPayoutViewModel>() {
 
@@ -37,6 +51,18 @@ class ConfirmPayoutFragment : BaseFragment<ConfirmPayoutViewModel>() {
     }
 
     override fun initViews() {
+        confirmPayoutContainer.applyInsetter {
+            type(statusBars = true) {
+                padding()
+            }
+        }
+
+        confirmPayoutConfirm.setOnClickListener { viewModel.submitClicked() }
+
+        confirmPayoutToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        confirmPayoutConfirm.prepareForProgress(viewLifecycleOwner)
+
         confirmPayoutOriginAccount.setWholeClickListener { viewModel.controllerClicked() }
         confirmPayoutRewardDestination.setWholeClickListener { viewModel.rewardDestinationClicked() }
     }
@@ -55,8 +81,14 @@ class ConfirmPayoutFragment : BaseFragment<ConfirmPayoutViewModel>() {
 
     override fun subscribe(viewModel: ConfirmPayoutViewModel) {
         setupExternalActions(viewModel)
+        observeValidations(viewModel)
+        observeRetries(viewModel)
 
-        viewModel.controllerModel.observe {
+        viewModel.feeLiveData.observe {
+            displayFeeStatus(it, FeeViews(confirmPayoutFeeProgress, confirmPayoutFeeFiat, confirmPayoutFeeToken))
+        }
+
+        viewModel.initiatorAddressModel.observe {
             with(confirmPayoutOriginAccount) {
                 setMessage(it.nameOrAddress)
                 setTextIcon(it.image)
@@ -73,6 +105,10 @@ class ConfirmPayoutFragment : BaseFragment<ConfirmPayoutViewModel>() {
         viewModel.totalRewardDisplay.observe { (inToken, inFiat) ->
             confirmPayoutRewardToken.text = inToken
             confirmPayoutRewardFiat.text = inFiat
+        }
+
+        viewModel.showNextProgress.observe { show ->
+            confirmPayoutConfirm.setState(if (show) ButtonState.PROGRESS else ButtonState.NORMAL)
         }
     }
 }

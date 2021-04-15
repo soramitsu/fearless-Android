@@ -65,7 +65,7 @@ class ConfirmStakingViewModel(
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
 
-    val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.Confirm>()
+    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.Confirm>()
 
     override val retryEvent: MutableLiveData<Event<RetryPayload>> = multipleSourceLiveData(
         feeLoaderMixin.retryEvent
@@ -224,7 +224,7 @@ class ConfirmStakingViewModel(
 
             setupStakingSharedState.set(currentProcessState.finish())
 
-            router.finishSetupStakingFlow()
+            router.returnToMain()
         } else {
             showError(setupResult.requireException())
         }

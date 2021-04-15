@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/stakingConfirmationContainer"
+    android:id="@+id/confirmPayoutContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -13,7 +13,7 @@
         android:id="@+id/confirmPayoutToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="Confirm stake" />
+        app:titleText="@string/common_confirmation" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/confirmPayoutOriginAccount"
@@ -102,7 +102,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/choose_amount_fee"
+                android:text="@string/network_fee"
                 android:textColor="@color/gray1" />
 
             <ProgressBar
