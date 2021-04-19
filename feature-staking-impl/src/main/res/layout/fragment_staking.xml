@@ -48,7 +48,7 @@
             android:layout_marginEnd="16dp"
             app:expanded="true" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.view.NominatorSummaryView
+        <jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
             android:id="@+id/stakingNominatorSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -59,7 +59,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:visibility="visible" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.view.ValidatorSummary
+        <jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
             android:id="@+id/stakingValidatorSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -67,6 +67,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
             android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
             tools:visibility="visible" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.EstimateEarningView

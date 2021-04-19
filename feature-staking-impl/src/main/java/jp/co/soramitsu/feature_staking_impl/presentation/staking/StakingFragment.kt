@@ -17,7 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
-import jp.co.soramitsu.feature_staking_impl.presentation.view.NominatorSummaryView
+import jp.co.soramitsu.feature_staking_impl.presentation.view.StakerSummarySummaryView
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
@@ -186,12 +186,12 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
     }
 
-    private fun mapNominatorStatus(summary: NominatorSummaryModel): NominatorSummaryView.Status {
+    private fun mapNominatorStatus(summary: NominatorSummaryModel): StakerSummarySummaryView.Status {
         return when (summary.status) {
-            is NominatorSummary.Status.Inactive -> NominatorSummaryView.Status.Inactive(summary.currentEraDisplay)
-            NominatorSummary.Status.Active -> NominatorSummaryView.Status.Active(summary.currentEraDisplay)
-            NominatorSummary.Status.Waiting -> NominatorSummaryView.Status.Waiting
-            NominatorSummary.Status.Election -> NominatorSummaryView.Status.Election
+            is NominatorSummary.NominatorStatus.Inactive -> StakerSummarySummaryView.Status.Inactive(summary.currentEraDisplay)
+            NominatorSummary.NominatorStatus.Active -> StakerSummarySummaryView.Status.Active(summary.currentEraDisplay)
+            NominatorSummary.NominatorStatus.Waiting -> StakerSummarySummaryView.Status.Waiting
+            NominatorSummary.NominatorStatus.Election -> StakerSummarySummaryView.Status.Election
         }
     }
 }
