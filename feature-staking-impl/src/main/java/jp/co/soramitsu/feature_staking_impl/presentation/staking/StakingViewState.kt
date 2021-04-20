@@ -133,9 +133,9 @@ sealed class StakeViewState<S>(
         }
     }
 
-    private fun loadedSummaryOrNull(): NominatorSummaryModel? {
+    private fun loadedSummaryOrNull(): StakeSummaryModel<S>? {
         return when (val state = nominatorSummaryFlow.replayCache.firstOrNull()) {
-            is LoadingState.Loaded<NominatorSummaryModel> -> state.data
+            is LoadingState.Loaded<StakeSummaryModel<S>> -> state.data
             else -> null
         }
     }

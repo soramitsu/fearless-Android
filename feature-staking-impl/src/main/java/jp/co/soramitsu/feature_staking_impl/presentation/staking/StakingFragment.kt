@@ -165,7 +165,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             showStatusAlert(title, message)
         }
 
-        stakingViewState.stakeSummaryLiveData.observe { summaryState ->
+        stakingViewState.nominatorSummaryFlow.observe { summaryState ->
             when (summaryState) {
                 is LoadingState.Loaded<StakeSummaryModel<S>> -> {
                     val summary = summaryState.data
