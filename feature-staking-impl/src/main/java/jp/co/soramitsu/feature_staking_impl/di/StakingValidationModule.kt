@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.Profitable
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidtionFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
@@ -30,7 +30,7 @@ class StakingValidationModule {
             feeExtractor = SetupStakingPayload::maxFee,
             originAddressExtractor = { it.stashSetup.controllerAddress },
             tokenTypeExtractor = SetupStakingPayload::tokenType,
-            errorProducer = { SetupStakingValidtionFailure.CannotPayFee },
+            errorProducer = { SetupStakingValidationFailure.CannotPayFee },
             extraAmountExtractor = SetupStakingPayload::amount
         )
     }
