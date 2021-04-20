@@ -49,7 +49,14 @@ class RuntimeUpdater(
 
         runtimePrepopulator.maybePrepopulateCache()
 
-        val result = runCatching { runtimeConstructor.constructFromCache(getCurrentNetworkName()) }
+        val result = runCatching {
+            runtimeConstructor.constructFromCache(getCurrentNetworkName())
+        }.recoverCatching {
+            // Android may clear cache files if device memory is low
+            runtimePrepopulator.forcePrepopulateCache()
+
+            runtimeConstructor.constructFromCache(getCurrentNetworkName())
+        }
 
         val runtime = result.getOrNull() ?: return
 
