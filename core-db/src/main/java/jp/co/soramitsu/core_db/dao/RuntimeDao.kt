@@ -21,6 +21,6 @@ abstract class RuntimeDao {
     @Query("UPDATE runtimeCache SET typesVersion = :typesVersion WHERE networkName = :networkName")
     abstract suspend fun updateTypesVersion(networkName: String, typesVersion: Int)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    abstract suspend fun insertOrSkipCacheEntry(cacheEntry: RuntimeCacheEntry)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertRuntimeCacheEntry(cacheEntry: RuntimeCacheEntry)
 }
