@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.di
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -15,7 +15,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.StakingViewModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewModel
 
 @Module(includes = [ViewModelModule::class])
 class StakingModule {

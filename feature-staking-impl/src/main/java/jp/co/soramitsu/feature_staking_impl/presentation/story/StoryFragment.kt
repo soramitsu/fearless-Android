@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.shts.android.storiesprogressview.StoriesProgressView
 import kotlinx.android.synthetic.main.fragment_story.stakingStoryLearnMore
 import kotlinx.android.synthetic.main.fragment_story.stories

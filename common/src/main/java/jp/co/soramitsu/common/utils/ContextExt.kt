@@ -2,14 +2,17 @@ package jp.co.soramitsu.common.utils
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.TypedArray
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
+import androidx.annotation.DimenRes
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.R
+
 
 fun Context.getDrawableCompat(@DrawableRes drawableRes: Int) =
     ContextCompat.getDrawable(this, drawableRes)!!
@@ -47,5 +50,20 @@ fun Context.getColorFromAttr(
     theme.resolveAttribute(attrColor, typedValue, resolveRefs)
     return typedValue.data
 }
+
+private fun Context.getDimension(@DimenRes resId: Int): Int {
+    val value = TypedValue()
+    resources.getValue(resId, value, true)
+
+    return if (value.type == TypedValue.TYPE_ATTRIBUTE) {
+        val attributes: TypedArray = theme.obtainStyledAttributes(intArrayOf(value.data))
+        val dimension = attributes.getDimensionPixelOffset(0, 0)
+        attributes.recycle()
+        dimension
+    } else {
+        resources.getDimensionPixelOffset(resId)
+    }
+}
+
 @ColorInt
 fun Context.getPrimaryColor() = getColorFromAttr(R.attr.colorPrimary)

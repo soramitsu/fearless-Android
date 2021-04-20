@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.view
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view
 
 import android.content.Context
 import android.util.AttributeSet

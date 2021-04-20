@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/drawable_background_image"
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:layout_width="match_parent"
+        app:titleText="@string/staking_balance"
+        app:dividerVisible="false"
+        app:contentBackground="@android:color/transparent"
+        android:id="@+id/stakingBalanceToolbar"
+        android:background="@color/blurColor"
+        android:layout_height="wrap_content" />
+
+
+</LinearLayout>

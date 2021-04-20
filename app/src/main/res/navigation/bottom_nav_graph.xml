@@ -20,7 +20,7 @@
     <fragment
         android:id="@+id/stakingFragment"
         tools:layout="@layout/fragment_staking"
-        android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.StakingFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingFragment"
         android:label="StakingFragment" />
 
     <fragment

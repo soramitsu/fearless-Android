@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -24,7 +24,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProc
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.CoroutineScope
@@ -65,7 +65,7 @@ typealias NominatorSummaryModel = StakeSummaryModel<NominatorStatus>
 typealias ValidatorSummaryModel = StakeSummaryModel<ValidatorStatus>
 
 enum class ManageStakeAction {
-    PAYOUTS, STUB
+    PAYOUTS, BALANCE, STUB
 }
 
 typealias TitleAndMessage = Pair<String, String>
@@ -188,6 +188,7 @@ class NominatorViewState(
     fun manageActionChosen(action: ManageStakeAction) {
         when (action) {
             ManageStakeAction.PAYOUTS -> router.openPayouts()
+            ManageStakeAction.BALANCE -> router.openStakingBalance()
         }
     }
 

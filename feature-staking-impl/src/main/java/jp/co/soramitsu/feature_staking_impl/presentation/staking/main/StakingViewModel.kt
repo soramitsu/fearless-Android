@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -16,9 +16,9 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingViewStateFactory
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision

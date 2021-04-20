@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.view
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -9,7 +9,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
 import kotlinx.android.synthetic.main.view_estimate_earning.view.estimateEarningAmount
 import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingMonthGain
 import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingYearGain

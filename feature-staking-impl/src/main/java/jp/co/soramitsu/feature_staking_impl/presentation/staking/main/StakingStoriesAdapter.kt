@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import android.view.View
 import android.view.ViewGroup
@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import kotlinx.android.synthetic.main.item_staking_story.view.stakingStoryItemIcon
 import kotlinx.android.synthetic.main.item_staking_story.view.stakingStoryItemTitle
 

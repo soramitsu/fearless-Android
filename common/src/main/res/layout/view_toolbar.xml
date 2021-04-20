@@ -5,6 +5,7 @@
     android:layout_height="?attr/actionBarSize"
     android:background="@android:color/black"
     android:gravity="center_vertical"
+    android:id="@+id/toolbarContainer"
     android:orientation="horizontal"
     tools:layout_height="48dp">
 

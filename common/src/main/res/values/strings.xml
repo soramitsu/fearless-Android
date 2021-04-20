@@ -25,6 +25,7 @@
     <string name="staking_no_controller_account">Controller account %s is unavailable to update staking setup.</string>
 
     <string name="staking_manage">Manage</string>
+    <string name="staking_balance">Staking balance</string>
     <string name="staking_stake_more">Stake more</string>
     <string name="staking_pause_staking">Pause staking</string>
     <string name="staking_unstake">Unstake</string>

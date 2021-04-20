@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.model
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model
 
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token

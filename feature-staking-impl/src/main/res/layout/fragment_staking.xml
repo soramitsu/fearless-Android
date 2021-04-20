@@ -39,7 +39,7 @@
 
         </FrameLayout>
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.NetworkInfoView
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.NetworkInfoView
             android:id="@+id/stakingNetworkInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -70,7 +70,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:visibility="visible" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.EstimateEarningView
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.EstimateEarningView
             android:id="@+id/stakingEstimate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

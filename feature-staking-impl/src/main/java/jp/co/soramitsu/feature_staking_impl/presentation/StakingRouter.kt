@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation
 
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 
 interface StakingRouter {
@@ -28,6 +28,8 @@ interface StakingRouter {
     fun openPayoutDetails(payout: PendingPayoutParcelable)
 
     fun openConfirmPayout(payload: ConfirmPayoutPayload)
+
+    fun openStakingBalance()
 
     fun back()
 }

@@ -37,7 +37,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetM
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow

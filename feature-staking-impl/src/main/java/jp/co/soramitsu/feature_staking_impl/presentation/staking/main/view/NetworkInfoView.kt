@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.view
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view
 
 import android.content.Context
 import android.util.AttributeSet
@@ -9,8 +9,8 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.StakingStoriesAdapter
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingStoriesAdapter
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import kotlinx.android.synthetic.main.view_network_info.view.activeNominatorsView
 import kotlinx.android.synthetic.main.view_network_info.view.lockUpPeriodView
 import kotlinx.android.synthetic.main.view_network_info.view.minimumStakeView

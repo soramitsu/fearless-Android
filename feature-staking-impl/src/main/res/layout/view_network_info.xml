@@ -42,7 +42,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/totalStakeView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
             app:titleText="@string/staking_total_staked"
             app:startWithLoading="true" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/minimumStakeView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -66,7 +66,7 @@
             app:titleText="@string/staking_main_minimum_stake_title"
             app:startWithLoading="true" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/activeNominatorsView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -79,7 +79,7 @@
             app:titleText="@string/staking_main_active_nominators_title"
             app:startWithLoading="true" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/lockUpPeriodView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

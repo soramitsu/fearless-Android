@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import android.content.Context
 import android.os.Bundle
@@ -22,7 +22,7 @@ class ManageStakingBottomSheet(
 
         setTitle(R.string.staking_manage)
 
-//        manageItem(R.drawable.ic_plus_circle, R.string.staking_stake_more)
+        manageItem(R.drawable.ic_basic_layers_24, R.string.staking_balance, ManageStakeAction.BALANCE)
 //        manageItem(R.drawable.ic_stop_circle_24, R.string.staking_pause_staking)
 //        manageItem(R.drawable.ic_send, R.string.staking_unstake)
 //        manageItem(R.drawable.ic_dotted_list_24, R.string.staking_unstaking_requests)
