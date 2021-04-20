@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.data.network.runtime.binding.Binder
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.constant
 import jp.co.soramitsu.common.utils.networkType
@@ -19,6 +20,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
@@ -33,6 +35,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashDeferDuration
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashingSpans
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindTotalInsurance
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.activeEraStorageKey
@@ -41,6 +44,7 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingSt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -178,18 +182,25 @@ class StakingRepositoryImpl(
         return stakingStoriesDataSource.getStoriesFlow()
     }
 
+    override suspend fun observeLedger(stakingState: StakingState.Stash): Flow<StakingLedger> {
+        return observeStorage(
+            networkType = stakingState.controllerAddress.networkType(),
+            keyBuilder = { it.metadata.staking().storage("Ledger").storageKey(it, stakingState.controllerId) },
+            binder = { scale, runtime -> scale?.let { bindStakingLedger(it, runtime) } }
+        ).filterNotNull()
+    }
+
     private suspend fun observeStashState(
         accessInfo: AccountStakingLocal.AccessInfo,
         accountAddress: String,
     ): Flow<StakingState.Stash> {
         val networkType = accountAddress.networkType()
-        val runtime = runtimeProperty.get()
         val stashId = accessInfo.stashId
         val controllerId = accessInfo.controllerId
 
         return combine(
-            observeAccountNominations(runtime, stashId, networkType),
-            observeAccountValidatorPrefs(runtime, stashId, networkType)
+            observeAccountNominations(stashId, networkType),
+            observeAccountValidatorPrefs(stashId, networkType)
         ) { nominations, prefs ->
             when {
                 prefs != null -> StakingState.Stash.Validator(
@@ -205,29 +216,27 @@ class StakingRepositoryImpl(
     }
 
     private suspend fun observeAccountValidatorPrefs(
-        runtime: RuntimeSnapshot,
         stashId: AccountId,
         networkType: Node.NetworkType,
     ): Flow<ValidatorPrefs?> {
-        val key = runtime.metadata.staking().storage("Validators").storageKey(runtime, stashId)
-
-        return storageCache.observeEntry(key, networkType)
-            .map { entry ->
-                entry.content?.let { bindValidatorPrefs(it, runtime) }
+        return observeStorage(
+            networkType = networkType,
+            keyBuilder = { it.metadata.staking().storage("Validators").storageKey(it, stashId) },
+            binder = { scale, runtime ->
+                scale?.let { bindValidatorPrefs(it, runtime) }
             }
+        )
     }
 
     private suspend fun observeAccountNominations(
-        runtime: RuntimeSnapshot,
         stashId: AccountId,
         networkType: Node.NetworkType,
     ): Flow<Nominations?> {
-        val key = runtime.metadata.staking().storage("Nominators").storageKey(runtime, stashId)
-
-        return storageCache.observeEntry(key, networkType)
-            .map { entry ->
-                entry.content?.let { bindNominations(it, runtime) }
-            }
+        return observeStorage(
+            networkType = networkType,
+            keyBuilder = { it.metadata.staking().storage("Nominators").storageKey(it, stashId) },
+            binder = { scale, runtime -> scale?.let { bindNominations(it, runtime) } }
+        )
     }
 
     private fun isSlashed(
@@ -247,5 +256,16 @@ class StakingRepositoryImpl(
         val scale = storageCache.getEntry(keyBuilder(runtime)).content!!
 
         binding(scale, runtime)
+    }
+
+    private suspend fun <T> observeStorage(
+        networkType: Node.NetworkType,
+        keyBuilder: (RuntimeSnapshot) -> String,
+        binder: Binder<T>,
+    ): Flow<T> = withContext(Dispatchers.Default) {
+        val runtime = getRuntime()
+
+        storageCache.observeEntry(keyBuilder(runtime), networkType)
+            .map { binder(it.content, runtime) }
     }
 }

@@ -4,6 +4,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
@@ -35,6 +36,8 @@ interface StakingRepository {
     fun stakingStateFlow(accountAddress: String): Flow<StakingState>
 
     fun stakingStoriesFlow(): Flow<List<StakingStory>>
+
+    suspend fun observeLedger(stakingState: StakingState.Stash): Flow<StakingLedger>
 
     suspend fun getRewardDestination(stakingState: StakingState.Stash): RewardDestination
 }
