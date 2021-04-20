@@ -6,21 +6,11 @@ import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
-import java.math.BigInteger
-
-class StakingLedger(
-    val stashId: AccountId,
-    val total: BigInteger,
-    val active: BigInteger,
-    val unlocking: List<UnlockChunk>,
-    val claimedRewards: List<BigInteger>
-)
-
-class UnlockChunk(val amount: BigInteger, val era: BigInteger)
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
+import jp.co.soramitsu.feature_staking_api.domain.model.UnlockChunk
 
 @UseCaseBinding
 fun bindStakingLedger(scale: String, runtime: RuntimeSnapshot): StakingLedger {

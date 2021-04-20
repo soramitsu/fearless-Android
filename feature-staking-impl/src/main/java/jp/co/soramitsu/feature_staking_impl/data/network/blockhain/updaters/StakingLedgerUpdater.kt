@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.sumByBigInteger
+import jp.co.soramitsu.core.model.StorageChange
+import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
@@ -19,9 +21,10 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChang
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.StakingLedger
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.UnlockChunk
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
+import jp.co.soramitsu.feature_staking_api.domain.model.UnlockChunk
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.insert
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -41,6 +44,7 @@ class StakingLedgerUpdater(
     private val stakingRepository: StakingRepository,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val accountStakingDao: AccountStakingDao,
+    private val storageCache: StorageCache,
     private val assetCache: AssetCache,
     override val scope: AccountUpdateScope
 ) : Updater {
@@ -95,8 +99,11 @@ class StakingLedgerUpdater(
         val request = SubscribeStorageRequest(key)
 
         return socketService.subscriptionFlow(request)
-            .map { it.storageChange().getSingleChange() }
-            .map { change ->
+            .map { it.storageChange() }
+            .onEach { storageCache.insert(StorageChange(it.block, key, it.getSingleChange())) }
+            .map {
+                val change = it.getSingleChange()
+
                 if (change != null) {
                     val ledger = bindStakingLedger(change, runtimeProperty.get())
 

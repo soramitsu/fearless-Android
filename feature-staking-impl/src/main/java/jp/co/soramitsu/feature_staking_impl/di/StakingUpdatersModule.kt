@@ -106,6 +106,7 @@ class StakingUpdatersModule {
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         accountStakingDao: AccountStakingDao,
         assetCache: AssetCache,
+        storageCache: StorageCache,
         accountUpdateScope: AccountUpdateScope
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
@@ -113,6 +114,7 @@ class StakingUpdatersModule {
             stakingRepository,
             runtimeProperty,
             accountStakingDao,
+            storageCache,
             assetCache,
             accountUpdateScope
         )
