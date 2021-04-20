@@ -10,14 +10,16 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
+import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
+import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingNetworkInfoModel
-import jp.co.soramitsu.feature_staking_impl.presentation.view.NominatorSummaryView
+import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
@@ -25,7 +27,6 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingNominatorSummary
 import kotlinx.android.synthetic.main.fragment_staking.stakingValidatorSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
-import kotlinx.android.synthetic.main.view_nominator_summary.nominatorMoreActions
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -72,48 +73,21 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
             when (stakingState) {
                 is NominatorViewState -> {
-                    stakingNominatorSummary.setStatusClickListener {
-                        stakingState.statusClicked()
+                    stakingState.showManageActionsEvent.observeEvent {
+                        ManageStakingBottomSheet(requireContext(), stakingState::manageActionChosen).show()
                     }
 
-                    stakingState.showStatusAlertEvent.observeEvent { (title, message) ->
-                        showStatusAlert(title, message)
+                    stakingNominatorSummary.moreActions.setOnClickListener {
+                        stakingState.moreActionsClicked()
                     }
 
-                    stakingState.nominatorSummaryFlow.observe { summaryState ->
-                        stakingState.showManageActionsEvent.observeEvent {
-                            ManageStakingBottomSheet(requireContext(), stakingState::manageActionChosen).show()
-                        }
+                    stakingNominatorSummary.bindStakeSummary(stakingState, ::mapNominatorStatus)
+                }
 
-                        nominatorMoreActions.setOnClickListener {
-                            stakingState.moreActionsClicked()
-                        }
+                is ValidatorViewState -> {
+                    stakingValidatorSummary.moreActions.makeInvisible()
 
-                        when (summaryState) {
-                            is LoadingState.Loaded<NominatorSummaryModel> -> {
-                                val summary = summaryState.data
-
-                                stakingNominatorSummary.hideLoading()
-                                stakingNominatorSummary.setElectionStatus(mapNominatorStatus(summary))
-                                stakingNominatorSummary.setTotalStaked(summary.totalStaked)
-                                stakingNominatorSummary.setTotalRewards(summary.totalRewards)
-
-                                if (summary.totalStakedFiat == null) {
-                                    stakingNominatorSummary.hideTotalStakeFiat()
-                                } else {
-                                    stakingNominatorSummary.showTotalStakedFiat()
-                                    stakingNominatorSummary.setTotalStakedFiat(summary.totalStakedFiat)
-                                }
-
-                                if (summary.totalRewardsFiat == null) {
-                                    stakingNominatorSummary.hideTotalRewardsFiat()
-                                } else {
-                                    stakingNominatorSummary.showTotalRewardsFiat()
-                                    stakingNominatorSummary.setTotalRewardsFiat(summary.totalRewardsFiat)
-                                }
-                            }
-                        }
-                    }
+                    stakingValidatorSummary.bindStakeSummary(stakingState, ::mapValidatorStatus)
                 }
 
                 is WelcomeViewState -> {
@@ -134,7 +108,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                         stakingEstimate.populateYearEstimation(rewards.yearly)
                     }
 
-                    stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, lifecycleScope)
+                    stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
 
                     startStakingBtn.setOnClickListener { stakingState.nextClicked() }
                 }
@@ -179,6 +153,46 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
     }
 
+    private fun <S> StakeSummaryView.bindStakeSummary(
+        stakingViewState: StakeViewState<S>,
+        mapStatus: (StakeSummaryModel<S>) -> StakeSummaryView.Status
+    ) {
+        setStatusClickListener {
+            stakingViewState.statusClicked()
+        }
+
+        stakingViewState.showStatusAlertEvent.observeEvent { (title, message) ->
+            showStatusAlert(title, message)
+        }
+
+        stakingViewState.nominatorSummaryFlow.observe { summaryState ->
+            when (summaryState) {
+                is LoadingState.Loaded<StakeSummaryModel<S>> -> {
+                    val summary = summaryState.data
+
+                    hideLoading()
+                    setElectionStatus(mapStatus(summary))
+                    setTotalStaked(summary.totalStaked)
+                    setTotalRewards(summary.totalRewards)
+
+                    if (summary.totalStakedFiat == null) {
+                        hideTotalStakeFiat()
+                    } else {
+                        showTotalStakedFiat()
+                        setTotalStakedFiat(summary.totalStakedFiat)
+                    }
+
+                    if (summary.totalRewardsFiat == null) {
+                        hideTotalRewardsFiat()
+                    } else {
+                        showTotalRewardsFiat()
+                        setTotalRewardsFiat(summary.totalRewardsFiat)
+                    }
+                }
+            }
+        }
+    }
+
     private fun showStatusAlert(title: String, message: String) {
         infoDialog(requireContext()) {
             setTitle(title)
@@ -186,12 +200,20 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
     }
 
-    private fun mapNominatorStatus(summary: NominatorSummaryModel): NominatorSummaryView.Status {
+    private fun mapNominatorStatus(summary: NominatorSummaryModel): StakeSummaryView.Status {
         return when (summary.status) {
-            is NominatorSummary.Status.Inactive -> NominatorSummaryView.Status.Inactive(summary.currentEraDisplay)
-            NominatorSummary.Status.Active -> NominatorSummaryView.Status.Active(summary.currentEraDisplay)
-            NominatorSummary.Status.Waiting -> NominatorSummaryView.Status.Waiting
-            NominatorSummary.Status.Election -> NominatorSummaryView.Status.Election
+            is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
+            NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
+            NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting
+            NominatorStatus.Election -> StakeSummaryView.Status.Election
+        }
+    }
+
+    private fun mapValidatorStatus(summary: ValidatorSummaryModel): StakeSummaryView.Status {
+        return when (summary.status) {
+            is ValidatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
+            ValidatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
+            ValidatorStatus.Election -> StakeSummaryView.Status.Election
         }
     }
 }

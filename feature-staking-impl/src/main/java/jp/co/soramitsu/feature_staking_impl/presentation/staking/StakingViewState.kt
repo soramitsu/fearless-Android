@@ -13,8 +13,10 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
-import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary.Status.Inactive.Reason
+import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
+import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus.Inactive.Reason
+import jp.co.soramitsu.feature_staking_impl.domain.model.StakerSummary
+import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -39,7 +41,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import kotlin.time.ExperimentalTime
 
 sealed class StakingViewState
 
@@ -51,10 +52,8 @@ class ReturnsModel(
     val yearly: RewardEstimation,
 )
 
-object ValidatorViewState : StakingViewState()
-
-class NominatorSummaryModel(
-    val status: NominatorSummary.Status,
+class StakeSummaryModel<S>(
+    val status: S,
     val totalStaked: String,
     val totalStakedFiat: String?,
     val totalRewards: String,
@@ -62,25 +61,32 @@ class NominatorSummaryModel(
     val currentEraDisplay: String,
 )
 
+typealias NominatorSummaryModel = StakeSummaryModel<NominatorStatus>
+typealias ValidatorSummaryModel = StakeSummaryModel<ValidatorStatus>
+
 enum class ManageStakeAction {
     PAYOUTS, STUB
 }
 
-@OptIn(ExperimentalTime::class) class NominatorViewState(
-    private val nominatorState: StakingState.Stash.Nominator,
-    private val currentAssetFlow: Flow<Asset>,
-    private val stakingInteractor: StakingInteractor,
-    private val resourceManager: ResourceManager,
-    private val scope: CoroutineScope,
-    private val router: StakingRouter,
-    private val errorDisplayer: (Throwable) -> Unit,
+typealias TitleAndMessage = Pair<String, String>
+
+sealed class StakeViewState<S>(
+    private val stakeState: StakingState.Stash,
+    protected val currentAssetFlow: Flow<Asset>,
+    protected val stakingInteractor: StakingInteractor,
+    protected val resourceManager: ResourceManager,
+    protected val scope: CoroutineScope,
+    protected val router: StakingRouter,
+    protected val errorDisplayer: (Throwable) -> Unit,
+    protected val summaryFlowProvider: suspend (StakingState.Stash) -> Flow<StakerSummary<S>>,
+    protected val statusMessageProvider: (S) -> TitleAndMessage
 ) : StakingViewState() {
 
     init {
         syncStakingRewards()
     }
 
-    val nominatorSummaryFlow = flow { emitAll(nominatorSummaryFlow()) }
+    val nominatorSummaryFlow = flow { emitAll(summaryFlow()) }
         .withLoading()
         .inBackground()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
@@ -88,40 +94,31 @@ enum class ManageStakeAction {
     private val _showStatusAlertEvent = MutableLiveData<Event<Pair<String, String>>>()
     val showStatusAlertEvent: LiveData<Event<Pair<String, String>>> = _showStatusAlertEvent
 
-    private val _showManageActionsEvent = MutableLiveData<Event<Unit>>()
-    val showManageActionsEvent: LiveData<Event<Unit>> = _showManageActionsEvent
+    fun statusClicked() {
+        val nominatorSummaryModel = loadedSummaryOrNull() ?: return
 
-    fun syncStakingRewards() {
+        val titleAndMessage = statusMessageProvider(nominatorSummaryModel.status)
+
+        _showStatusAlertEvent.value = Event(titleAndMessage)
+    }
+
+    private fun syncStakingRewards() {
         scope.launch {
-            val syncResult = stakingInteractor.syncStakingRewards(nominatorState.accountAddress)
+            val syncResult = stakingInteractor.syncStakingRewards(stakeState.accountAddress)
 
             syncResult.exceptionOrNull()?.let { errorDisplayer(it) }
         }
     }
 
-    fun statusClicked() {
-        val nominatorSummaryModel = loadedNominatorSummaryOrNull() ?: return
-
-        val titleAndMessage = getStatusAlertTitleAndMessage(nominatorSummaryModel.status)
-
-        _showStatusAlertEvent.value = Event(titleAndMessage)
-    }
-
-    fun manageActionChosen(action: ManageStakeAction) {
-        when (action) {
-            ManageStakeAction.PAYOUTS -> router.openPayouts()
-        }
-    }
-
-    private suspend fun nominatorSummaryFlow(): Flow<NominatorSummaryModel> {
+    private suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
         return combine(
-            stakingInteractor.observeNominatorSummary(nominatorState),
+            summaryFlowProvider(stakeState),
             currentAssetFlow
         ) { summary, asset ->
             val token = asset.token
             val tokenType = token.type
 
-            NominatorSummaryModel(
+            StakeSummaryModel(
                 status = summary.status,
                 totalStaked = summary.totalStaked.formatWithDefaultPrecision(tokenType),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
@@ -132,33 +129,91 @@ enum class ManageStakeAction {
         }
     }
 
-    private fun getStatusAlertTitleAndMessage(status: NominatorSummary.Status): Pair<String, String> {
-        val (titleRes, messageRes) = when (status) {
-            is NominatorSummary.Status.Active -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
-
-            is NominatorSummary.Status.Election -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
-
-            is NominatorSummary.Status.Waiting -> R.string.staking_nominator_status_waiting to R.string.staking_nominator_status_alert_waiting_message
-
-            is NominatorSummary.Status.Inactive -> when (status.reason) {
-                Reason.MIN_STAKE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_low_stake
-                Reason.NO_ACTIVE_VALIDATOR -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
-            }
+    private fun loadedSummaryOrNull(): StakeSummaryModel<S>? {
+        return when (val state = nominatorSummaryFlow.replayCache.firstOrNull()) {
+            is LoadingState.Loaded<StakeSummaryModel<S>> -> state.data
+            else -> null
         }
+    }
+}
 
-        return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
+class ValidatorViewState(
+    private val validatorState: StakingState.Stash.Validator,
+    currentAssetFlow: Flow<Asset>,
+    stakingInteractor: StakingInteractor,
+    resourceManager: ResourceManager,
+    scope: CoroutineScope,
+    router: StakingRouter,
+    errorDisplayer: (Throwable) -> Unit,
+) : StakeViewState<ValidatorStatus>(
+    validatorState, currentAssetFlow, stakingInteractor,
+    resourceManager, scope, router, errorDisplayer,
+    summaryFlowProvider = { stakingInteractor.observeValidatorSummary(validatorState) },
+    statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) }
+)
+
+private fun getValidatorStatusTitleAndMessage(
+    resourceManager: ResourceManager,
+    status: ValidatorStatus
+): Pair<String, String> {
+    val (titleRes, messageRes) = when (status) {
+        is ValidatorStatus.Active -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
+
+        is ValidatorStatus.Election -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
+
+        is ValidatorStatus.Inactive -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
     }
 
-    private fun loadedNominatorSummaryOrNull(): NominatorSummaryModel? {
-        return when (val state = nominatorSummaryFlow.replayCache.firstOrNull()) {
-            is LoadingState.Loaded<NominatorSummaryModel> -> state.data
-            else -> null
+    return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
+}
+
+class NominatorViewState(
+    private val nominatorState: StakingState.Stash.Nominator,
+    currentAssetFlow: Flow<Asset>,
+    stakingInteractor: StakingInteractor,
+    resourceManager: ResourceManager,
+    scope: CoroutineScope,
+    router: StakingRouter,
+    errorDisplayer: (Throwable) -> Unit,
+) : StakeViewState<NominatorStatus>(
+    nominatorState, currentAssetFlow, stakingInteractor,
+    resourceManager, scope, router, errorDisplayer,
+    summaryFlowProvider = { stakingInteractor.observeNominatorSummary(nominatorState) },
+    statusMessageProvider = { getNominatorStatusTitleAndMessage(resourceManager, it) }
+) {
+
+    private val _showManageActionsEvent = MutableLiveData<Event<Unit>>()
+    val showManageActionsEvent: LiveData<Event<Unit>> = _showManageActionsEvent
+
+    fun manageActionChosen(action: ManageStakeAction) {
+        when (action) {
+            ManageStakeAction.PAYOUTS -> router.openPayouts()
         }
     }
 
     fun moreActionsClicked() {
         _showManageActionsEvent.sendEvent()
     }
+}
+
+private fun getNominatorStatusTitleAndMessage(
+    resourceManager: ResourceManager,
+    status: NominatorStatus
+): Pair<String, String> {
+    val (titleRes, messageRes) = when (status) {
+        is NominatorStatus.Active -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
+
+        is NominatorStatus.Election -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
+
+        is NominatorStatus.Waiting -> R.string.staking_nominator_status_waiting to R.string.staking_nominator_status_alert_waiting_message
+
+        is NominatorStatus.Inactive -> when (status.reason) {
+            Reason.MIN_STAKE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_low_stake
+            Reason.NO_ACTIVE_VALIDATOR -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
+        }
+    }
+
+    return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
 }
 
 class WelcomeViewState(

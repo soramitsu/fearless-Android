@@ -10,13 +10,14 @@ import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStatus
-import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorSummaryStatusHelper
-import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorTotalRewardsView
-import kotlinx.android.synthetic.main.view_nominator_summary.view.nominatorTotalStakedView
-import kotlinx.android.synthetic.main.view_nominator_summary.view.statusTapZone
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeMoreActions
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryStatus
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryStatusHelper
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeTotalRewardsView
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeTotalStakedView
+import kotlinx.android.synthetic.main.view_stake_summary.view.statusTapZone
 
-class NominatorSummaryView @JvmOverloads constructor(
+class StakeSummaryView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0,
@@ -34,7 +35,7 @@ class NominatorSummaryView @JvmOverloads constructor(
     }
 
     init {
-        View.inflate(context, R.layout.view_nominator_summary, this)
+        View.inflate(context, R.layout.view_stake_summary, this)
 
         orientation = VERTICAL
 
@@ -44,53 +45,56 @@ class NominatorSummaryView @JvmOverloads constructor(
     }
 
     fun setElectionStatus(status: Status) {
-        with(nominatorSummaryStatus) {
+        with(stakeSummaryStatus) {
             setCompoundDrawableTint(status.tintRes)
             setTextColorRes(status.tintRes)
             setText(status.textRes)
         }
 
-        nominatorSummaryStatusHelper.text = status.extraMessage
+        stakeSummaryStatusHelper.text = status.extraMessage
     }
 
     fun hideLoading() {
-        nominatorTotalStakedView.hideLoading()
-        nominatorTotalRewardsView.hideLoading()
+        stakeTotalStakedView.hideLoading()
+        stakeTotalRewardsView.hideLoading()
     }
 
     fun setTotalStaked(inTokens: String) {
-        nominatorTotalStakedView.setBody(inTokens)
+        stakeTotalStakedView.setBody(inTokens)
     }
 
     fun showTotalStakedFiat() {
-        nominatorTotalStakedView.showWholeExtraBlock()
+        stakeTotalStakedView.showWholeExtraBlock()
     }
 
     fun hideTotalStakeFiat() {
-        nominatorTotalStakedView.makeExtraBlockInvisible()
+        stakeTotalStakedView.makeExtraBlockInvisible()
     }
 
     fun setTotalStakedFiat(totalStake: String) {
-        nominatorTotalStakedView.setExtraBlockValueText(totalStake)
+        stakeTotalStakedView.setExtraBlockValueText(totalStake)
     }
 
     fun setTotalRewards(inTokens: String) {
-        nominatorTotalRewardsView.setBody(inTokens)
+        stakeTotalRewardsView.setBody(inTokens)
     }
 
     fun showTotalRewardsFiat() {
-        nominatorTotalRewardsView.showWholeExtraBlock()
+        stakeTotalRewardsView.showWholeExtraBlock()
     }
 
     fun hideTotalRewardsFiat() {
-        nominatorTotalRewardsView.makeExtraBlockInvisible()
+        stakeTotalRewardsView.makeExtraBlockInvisible()
     }
 
     fun setTotalRewardsFiat(totalRewards: String) {
-        nominatorTotalRewardsView.setExtraBlockValueText(totalRewards)
+        stakeTotalRewardsView.setExtraBlockValueText(totalRewards)
     }
 
     fun setStatusClickListener(listener: OnClickListener) {
         statusTapZone.setOnClickListener(listener)
     }
+
+    val moreActions: View
+        get() = stakeMoreActions
 }

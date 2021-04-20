@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -21,12 +22,10 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingSt
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
@@ -47,7 +46,7 @@ class StakingViewModel(
     val currentStakingState = interactor.selectedAccountStakingStateFlow()
         .onEach { stakingStateScope.coroutineContext.cancelChildren() }
         .map { transformStakingState(it) }
-        .flowOn(Dispatchers.Default)
+        .inBackground()
         .share()
 
     val networkInfoStateLiveData = interactor.selectedNetworkTypeFLow()
@@ -57,7 +56,7 @@ class StakingViewModel(
                 transformNetworkInfo(asset, networkInfo)
             }
         }
-        .flowOn(Dispatchers.Default)
+        .inBackground()
         .asLiveData()
 
     val stories = interactor.stakingStoriesFlow()
@@ -92,7 +91,12 @@ class StakingViewModel(
 
         is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, stakingStateScope, ::showError)
 
-        is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState()
+        is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState(
+            accountStakingState,
+            currentAssetFlow,
+            stakingStateScope,
+            ::showError
+        )
     }
 
     private fun transformStories(story: StakingStory): StakingStoryModel = with(story) {

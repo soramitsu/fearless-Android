@@ -10,6 +10,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
@@ -28,13 +29,16 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
-import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorSummary
+import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
+import jp.co.soramitsu.feature_staking_impl.domain.model.StakerSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
+import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -113,42 +117,34 @@ class StakingInteractor(
         }
     }
 
-    suspend fun observeNominatorSummary(nominatorState: StakingState.Stash.Nominator): Flow<NominatorSummary> = withContext(Dispatchers.Default) {
-        val networkType = nominatorState.accountAddress.networkType()
-        val tokenType = Token.Type.fromNetworkType(networkType)
+    suspend fun observeValidatorSummary(
+        validatorState: StakingState.Stash.Validator
+    ): Flow<StakerSummary<ValidatorStatus>> = observeStakerSummary(validatorState) {
+        when {
+            it.electionStatus == Election.OPEN -> ValidatorStatus.Election
+            isValidatorActive(validatorState.stashId, it.eraStakers) -> ValidatorStatus.Active
+            else -> ValidatorStatus.Inactive
+        }
+    }
 
-        combine(
-            stakingRepository.electionFlow(networkType),
-            stakingRepository.observeActiveEraIndex(networkType),
-            stakingRewardsRepository.stakingRewardsFlow(nominatorState.accountAddress),
-            walletRepository.assetFlow(nominatorState.accountAddress, tokenType)
-        ) { electionStatus, activeEraIndex, rewards, asset ->
-            val totalStakedInPlanks = asset.bondedInPlanks
-            val totalStaked = asset.bonded
+    suspend fun observeNominatorSummary(
+        nominatorState: StakingState.Stash.Nominator
+    ): Flow<StakerSummary<NominatorStatus>> = observeStakerSummary(nominatorState) {
+        val existentialDeposit = walletConstants.existentialDeposit()
+        val eraStakers = it.eraStakers.values
 
-            val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex).values
-            val existentialDeposit = walletConstants.existentialDeposit()
-
-            val status = when {
-                electionStatus == Election.OPEN -> NominatorSummary.Status.Election
-                isNominationActive(nominatorState.stashId, eraStakers) -> NominatorSummary.Status.Active
-                isNominationWaiting(nominatorState.nominations, activeEraIndex) -> NominatorSummary.Status.Waiting
-                else -> {
-                    val inactiveReason = when {
-                        totalStakedInPlanks < minimumStake(eraStakers, existentialDeposit) -> NominatorSummary.Status.Inactive.Reason.MIN_STAKE
-                        else -> NominatorSummary.Status.Inactive.Reason.NO_ACTIVE_VALIDATOR
-                    }
-
-                    NominatorSummary.Status.Inactive(inactiveReason)
+        when {
+            it.electionStatus == Election.OPEN -> NominatorStatus.Election
+            isNominationActive(nominatorState.stashId, it.eraStakers.values) -> NominatorStatus.Active
+            isNominationWaiting(nominatorState.nominations, it.activeEraIndex) -> NominatorStatus.Waiting
+            else -> {
+                val inactiveReason = when {
+                    it.asset.bondedInPlanks < minimumStake(eraStakers, existentialDeposit) -> NominatorStatus.Inactive.Reason.MIN_STAKE
+                    else -> NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR
                 }
-            }
 
-            NominatorSummary(
-                status = status,
-                totalStaked = totalStaked,
-                totalRewards = totalRewards(rewards),
-                currentEra = activeEraIndex.toInt()
-            )
+                NominatorStatus.Inactive(inactiveReason)
+            }
         }
     }
 
@@ -243,6 +239,37 @@ class StakingInteractor(
         return stakingRepository.getRewardDestination(accountStakingState)
     }
 
+    private suspend fun <S> observeStakerSummary(
+        state: StakingState.Stash,
+        statusResolver: suspend (StatusResolutionContext) -> S
+    ): Flow<StakerSummary<S>> = withContext(Dispatchers.Default) {
+        val networkType = state.accountAddress.networkType()
+        val tokenType = Token.Type.fromNetworkType(networkType)
+
+        combine(
+            stakingRepository.electionFlow(networkType),
+            stakingRepository.observeActiveEraIndex(networkType),
+            stakingRewardsRepository.stakingRewardsFlow(state.accountAddress),
+            walletRepository.assetFlow(state.accountAddress, tokenType)
+        ) { electionStatus, activeEraIndex, rewards, asset ->
+
+            val totalStaked = asset.bonded
+
+            val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex)
+
+            val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, electionStatus, asset)
+
+            val status = statusResolver(statusResolutionContext)
+
+            StakerSummary(
+                status = status,
+                totalStaked = totalStaked,
+                totalRewards = totalRewards(rewards),
+                currentEra = activeEraIndex.toInt()
+            )
+        }
+    }
+
     private fun totalRewards(rewards: List<StakingReward>) = rewards.sumByBigDecimal {
         it.amount * it.type.summingCoefficient.toBigDecimal()
     }
@@ -257,6 +284,12 @@ class StakingInteractor(
                 it.who.contentEquals(stashId)
             }
         }
+    }
+
+    private fun isValidatorActive(stashId: ByteArray, exposures: AccountIdMap<Exposure>): Boolean {
+        val stashIdHex = stashId.toHexString()
+
+        return stashIdHex in exposures.keys
     }
 
     @OptIn(ExperimentalTime::class)
@@ -294,4 +327,11 @@ class StakingInteractor(
 
         return stakeByNominator.values.minOrNull()!!.coerceAtLeast(existentialDeposit)
     }
+
+    private class StatusResolutionContext(
+        val eraStakers: AccountIdMap<Exposure>,
+        val activeEraIndex: BigInteger,
+        val electionStatus: Election,
+        val asset: Asset
+    )
 }

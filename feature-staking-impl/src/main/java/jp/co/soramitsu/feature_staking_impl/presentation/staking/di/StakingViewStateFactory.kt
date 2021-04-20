@@ -21,7 +21,20 @@ class StakingViewStateFactory(
     private val rewardCalculatorFactory: RewardCalculatorFactory,
 ) {
 
-    fun createValidatorViewState() = ValidatorViewState
+    fun createValidatorViewState(
+        stakingState: StakingState.Stash.Validator,
+        currentAssetFlow: Flow<Asset>,
+        scope: CoroutineScope,
+        errorDisplayer: (Throwable) -> Unit
+    ) = ValidatorViewState(
+        validatorState = stakingState,
+        stakingInteractor = stakingInteractor,
+        currentAssetFlow = currentAssetFlow,
+        scope = scope,
+        router = router,
+        errorDisplayer = errorDisplayer,
+        resourceManager = resourceManager
+    )
 
     fun createWelcomeViewState(
         currentAssetFlow: Flow<Asset>,
