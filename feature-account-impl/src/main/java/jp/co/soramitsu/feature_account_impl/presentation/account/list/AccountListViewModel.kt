@@ -42,7 +42,7 @@ class AccountListViewModel(
     private fun dispatchNavigation() {
         when (accountChosenNavDirection) {
             AccountChosenNavDirection.BACK -> accountRouter.back()
-            AccountChosenNavDirection.MAIN -> accountRouter.returnToMain()
+            AccountChosenNavDirection.MAIN -> accountRouter.returnToWallet()
         }
     }
 

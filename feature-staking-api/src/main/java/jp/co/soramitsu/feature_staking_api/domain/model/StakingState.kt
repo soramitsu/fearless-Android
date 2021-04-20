@@ -15,6 +15,7 @@ sealed class StakingState(val accountAddress: String) {
     ) : StakingState(accountAddress) {
 
         val stashAddress = stashId.toAddress(accountAddress.networkType())
+        val controllerAddress = controllerId.toAddress(accountAddress.networkType())
 
         class None(
             accountAddress: String,

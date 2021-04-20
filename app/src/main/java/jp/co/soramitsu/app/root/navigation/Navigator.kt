@@ -30,6 +30,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfigur
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.ConfirmPayoutFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
@@ -167,6 +169,10 @@ class Navigator :
         navController?.navigate(R.id.action_payoutsListFragment_to_payoutDetailsFragment, PayoutDetailsFragment.getBundle(payout))
     }
 
+    override fun openConfirmPayout(payload: ConfirmPayoutPayload) {
+        navController?.navigate(R.id.action_open_confirm_payout, ConfirmPayoutFragment.getBundle(payload))
+    }
+
     override fun back() {
         val popped = navController!!.popBackStack()
 
@@ -187,8 +193,8 @@ class Navigator :
         navController?.navigate(R.id.action_confirmStakingFragment_to_confirmNominationsFragment)
     }
 
-    override fun finishSetupStakingFlow() {
-        navController?.navigate(R.id.finish_setup_staking_flow)
+    override fun returnToMain() {
+        navController?.navigate(R.id.back_to_main)
     }
 
     override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
@@ -255,7 +261,7 @@ class Navigator :
         navController?.navigate(R.id.action_open_receive)
     }
 
-    override fun returnToMain() {
+    override fun returnToWallet() {
         // to achieve smooth animation
         postToUiThread {
             navController?.navigate(R.id.action_return_to_wallet)

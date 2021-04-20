@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
+import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
@@ -227,11 +228,15 @@ class StakingInteractor(
         return accountRepository.isAccountExists(accountAddress)
     }
 
-    suspend fun getExistingStashSetup(accountStakingState: StakingState.Stash.None): StashSetup {
+    suspend fun getExistingStashSetup(accountStakingState: StakingState.Stash): StashSetup {
         val networkType = accountStakingState.accountAddress.networkType()
         val rewardDestination = stakingRepository.getRewardDestination(accountStakingState)
 
         return StashSetup(rewardDestination, accountStakingState.controllerId.toAddress(networkType), alreadyHasStash = true)
+    }
+
+    suspend fun getRewardDestination(accountStakingState: StakingState.Stash): RewardDestination {
+        return stakingRepository.getRewardDestination(accountStakingState)
     }
 
     private suspend fun <S> observeStakerSummary(

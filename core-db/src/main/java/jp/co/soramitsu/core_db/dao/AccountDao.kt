@@ -19,7 +19,7 @@ abstract class AccountDao {
     abstract suspend fun getAccounts(): List<AccountLocal>
 
     @Query("select * from users where address = :address")
-    abstract suspend fun getAccount(address: String): AccountLocal
+    abstract suspend fun getAccount(address: String): AccountLocal?
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     abstract suspend fun insert(account: AccountLocal): Long

@@ -16,12 +16,15 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
+import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 
 interface StakingFeatureDependencies {
 
@@ -66,4 +69,10 @@ interface StakingFeatureDependencies {
     fun walletConstants(): WalletConstants
 
     fun gson(): Gson
+
+    fun addressxDisplayUseCase(): AddressDisplayUseCase
+
+    fun feeEstimator(): FeeEstimator
+
+    fun extrinsicService(): ExtrinsicService
 }

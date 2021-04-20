@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="make_payout_transaction_sent">Make payout transaction sent</string>
+    <string name="staking_non_profitable_payout">The reward is less than the network fee.</string>
+    <string name="common_are_you_sure">Are you sure?</string>
+    <string name="common_not_enough_funds_title">Insufficient balance</string>
+    <string name="common_not_enough_funds_message">Sorry, you don’t have enough funds to pay the network fee.</string>
+    <string name="common_confirmation">Confirmation</string>
+
     <string name="staking_era">Era</string>
     <string name="staking_reward">Reward</string>
     <string name="staking_validator">Validator</string>
@@ -53,7 +60,7 @@
     <string name="staking_nominator_status_waiting">Waiting for the next era</string>
 
     <string name="network_fee">Network fee</string>
-    <string name="staking_confirm_reward_destination">Reward destination</string>
+    <string name="staking_reward_destination">Reward destination</string>
     <string name="common_confirm">Confirm</string>
     <string name="staking_confirm_selected_validators">Selected validators</string>
 

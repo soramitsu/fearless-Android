@@ -132,7 +132,7 @@ class NodesViewModel(
         viewModelScope.launch {
             interactor.selectNodeAndAccount(nodeId, accountAddress)
 
-            router.returnToMain()
+            router.returnToWallet()
         }
     }
 
@@ -140,7 +140,7 @@ class NodesViewModel(
         viewModelScope.launch {
             interactor.selectNode(nodeId)
 
-            router.returnToMain()
+            router.returnToWallet()
         }
     }
 }

@@ -1,17 +1,16 @@
-package jp.co.soramitsu.feature_staking_impl.domain.setup.validations
+package jp.co.soramitsu.feature_staking_impl.domain.validations.setup
 
 import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
-import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 
 class MinimumAmountValidation(
     private val walletConstants: WalletConstants,
-) : Validation<SetupStakingPayload, StakingValidationFailure> {
+) : Validation<SetupStakingPayload, SetupStakingValidationFailure> {
 
-    override suspend fun validate(value: SetupStakingPayload): ValidationStatus<StakingValidationFailure> {
+    override suspend fun validate(value: SetupStakingPayload): ValidationStatus<SetupStakingValidationFailure> {
 
         val existentialDepositInPlanks = walletConstants.existentialDeposit()
         val existentialDeposit = value.tokenType.amountFromPlanks(existentialDepositInPlanks)
@@ -19,7 +18,7 @@ class MinimumAmountValidation(
         return if (value.amount >= existentialDeposit) {
             ValidationStatus.Valid()
         } else {
-            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, StakingValidationFailure.TooSmallAmount(existentialDeposit))
+            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, SetupStakingValidationFailure.TooSmallAmount(existentialDeposit))
         }
     }
 }

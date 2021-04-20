@@ -18,7 +18,7 @@ interface WalletRepository {
 
     fun assetFlow(accountAddress: String, type: Token.Type): Flow<Asset>
 
-    suspend fun getAsset(account: WalletAccount, type: Token.Type): Asset?
+    suspend fun getAsset(accountAddress: String, type: Token.Type): Asset?
 
     suspend fun syncAsset(account: WalletAccount, type: Token.Type)
 

@@ -202,7 +202,7 @@ class WalletInteractorImpl(
         val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
         val tokenType = getPrimaryTokenType(account)
 
-        return walletRepository.getAsset(account, tokenType)!!
+        return walletRepository.getAsset(account.address, tokenType)!!
     }
 
     private fun getPrimaryTokenType(account: WalletAccount): Token.Type {

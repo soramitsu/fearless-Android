@@ -13,10 +13,10 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
-import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
@@ -35,7 +35,7 @@ class SetupStakingModule {
         rewardCalculatorFactory: RewardCalculatorFactory,
         resourceManager: ResourceManager,
         maxFeeEstimator: MaxFeeEstimator,
-        validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
+        validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
         appLinksProvider: AppLinksProvider,
         setupStakingSharedState: SetupStakingSharedState,
         feeLoaderMixin: FeeLoaderMixin.Presentation

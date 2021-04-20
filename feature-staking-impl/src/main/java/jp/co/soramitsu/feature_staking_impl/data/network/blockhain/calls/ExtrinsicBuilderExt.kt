@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls
 
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
@@ -36,6 +37,16 @@ fun ExtrinsicBuilder.nominate(targets: List<MultiAddress>): ExtrinsicBuilder {
         "Staking", "nominate",
         mapOf(
             "targets" to targets.map(::bindMultiAddress)
+        )
+    )
+}
+
+fun ExtrinsicBuilder.payoutStakers(era: BigInteger, validatorId: AccountId): ExtrinsicBuilder {
+    return call(
+        "Staking", "payout_stakers",
+        mapOf(
+            "validator_stash" to validatorId,
+            "era" to era
         )
     )
 }

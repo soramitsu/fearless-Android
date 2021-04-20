@@ -13,10 +13,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.model.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
-import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.StakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
@@ -34,7 +34,7 @@ class ConfirmStakingModule {
         addressIconGenerator: AddressIconGenerator,
         resourceManager: ResourceManager,
         maxFeeEstimator: MaxFeeEstimator,
-        validationSystem: ValidationSystem<SetupStakingPayload, StakingValidationFailure>,
+        validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
         setupStakingSharedState: SetupStakingSharedState,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         externalAccountActions: ExternalAccountActions.Presentation,
