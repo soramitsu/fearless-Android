@@ -35,13 +35,13 @@ class RuntimePrepopulator(
 
     suspend fun maybePrepopulateCache(): Unit = withContext(Dispatchers.IO) {
         if (!preferences.contains(PREPOPULATED_FLAG)) {
-            prepopulateCache()
+            forcePrepopulateCache()
 
             preferences.putBoolean(PREPOPULATED_FLAG, true)
         }
     }
 
-    private suspend fun prepopulateCache() {
+    suspend fun forcePrepopulateCache() {
         saveTypes("default")
 
         RUNTIME_CACHE_ENTRIES.forEach {
@@ -51,7 +51,7 @@ class RuntimePrepopulator(
 
             saveTypes(networkType)
 
-            runtimeDao.insertOrSkipCacheEntry(it)
+            runtimeDao.insertRuntimeCacheEntry(it)
         }
     }
 

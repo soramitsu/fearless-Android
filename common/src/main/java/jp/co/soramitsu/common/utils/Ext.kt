@@ -9,6 +9,9 @@ import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import java.net.URLEncoder
 
 fun Activity.showToast(msg: String, duration: Int = Toast.LENGTH_LONG) {
@@ -58,3 +61,11 @@ fun @receiver:ColorInt Int.toHexColor(): String {
 }
 
 fun String.urlEncoded() = URLEncoder.encode(this, Charsets.UTF_8.displayName())
+
+fun CoroutineScope.childScope(supervised: Boolean = true): CoroutineScope {
+    val parentJob = coroutineContext[Job]
+
+    val job = if (supervised) SupervisorJob(parent = parentJob) else Job(parent = parentJob)
+
+    return CoroutineScope(coroutineContext + job)
+}
