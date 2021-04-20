@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccount
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
@@ -31,6 +32,15 @@ class PayoutDetailsViewModel(
 
     fun backClicked() {
         router.back()
+    }
+
+    fun payoutClicked() {
+        val payload = ConfirmPayoutPayload(
+            totalRewardInPlanks = payout.amountInPlanks,
+            payouts = listOf(payout)
+        )
+
+        router.openConfirmPayout(payload)
     }
 
     fun validatorExternalActionClicked() {

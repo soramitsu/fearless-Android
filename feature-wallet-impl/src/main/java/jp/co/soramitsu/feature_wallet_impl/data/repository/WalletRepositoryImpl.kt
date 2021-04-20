@@ -74,8 +74,8 @@ class WalletRepositoryImpl(
             .map { mapAssetLocalToAsset(it) }
     }
 
-    override suspend fun getAsset(account: WalletAccount, type: Token.Type): Asset? {
-        val assetLocal = assetCache.getAsset(account.address, mapTokenTypeToTokenTypeLocal(type))
+    override suspend fun getAsset(accountAddress: String, type: Token.Type): Asset? {
+        val assetLocal = assetCache.getAsset(accountAddress, mapTokenTypeToTokenTypeLocal(type))
 
         return assetLocal?.let(::mapAssetLocalToAsset)
     }

@@ -145,8 +145,12 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun getAccount(address: String): Account {
-        val account = accountDao.getAccount(address)
+        val account = accountDao.getAccount(address) ?: throw NoSuchElementException("No account found for address $address")
         return mapAccountLocalToAccount(account)
+    }
+
+    override suspend fun getAccountOrNull(address: String): Account? {
+        return accountDao.getAccount(address)?.let { mapAccountLocalToAccount(it) }
     }
 
     override suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<Account> {

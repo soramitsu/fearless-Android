@@ -254,7 +254,7 @@
     <string name="identity_riot_name_title">Назва бунту</string>
     <string name="staking_setup_sent_message">Транзакція налаштування ставки надіслана</string>
     <string name="network_fee">Плата за мережу</string>
-    <string name="staking_confirm_reward_destination">Нагорода призначення</string>
+    <string name="staking_reward_destination">Нагорода призначення</string>
     <string name="common_confirm">Підтвердити</string>
     <string name="staking_confirm_selected_validators">Вибрані валідатори</string>
     <string name="staking_confirm_nominations">%s з %s</string>

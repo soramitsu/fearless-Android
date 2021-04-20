@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutsStatisticsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
@@ -53,15 +54,20 @@ class PayoutsListViewModel(
 
     fun payoutAllClicked() {
         launch {
-            val payouts = retrievePayoutsFromFlow()
+            val payoutStatistics = payoutsStatisticsFlow.first()
 
-            // TODO
+            val payload = ConfirmPayoutPayload(
+                totalRewardInPlanks = payoutStatistics.totalAmountInPlanks,
+                payouts = payoutStatistics.payouts.map { mapPayoutToParcelable(it) }
+            )
+
+            router.openConfirmPayout(payload)
         }
     }
 
     fun payoutClicked(index: Int) {
         launch {
-            val payouts = retrievePayoutsFromFlow()
+            val payouts = payoutsStatisticsFlow.first().payouts
             val payout = payouts[index]
 
             val payoutParcelable = mapPayoutToParcelable(payout)
@@ -136,6 +142,4 @@ class PayoutsListViewModel(
             )
         }
     }
-
-    private suspend fun retrievePayoutsFromFlow() = payoutsStatisticsFlow.first().payouts
 }

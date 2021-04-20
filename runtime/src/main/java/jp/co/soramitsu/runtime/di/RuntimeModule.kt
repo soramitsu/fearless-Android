@@ -23,6 +23,8 @@ import jp.co.soramitsu.runtime.RuntimeConstructor
 import jp.co.soramitsu.runtime.RuntimePrepopulator
 import jp.co.soramitsu.runtime.RuntimeUpdater
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
+import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import jp.co.soramitsu.runtime.storage.NetworkAwareStorageCache
 
 @Module
@@ -111,4 +113,18 @@ class RuntimeModule {
         runtimeDao: RuntimeDao,
         accountRepository: AccountRepository
     ): StorageCache = NetworkAwareStorageCache(storageDao, runtimeDao, accountRepository)
+
+    @Provides
+    @ApplicationScope
+    fun provideFeeEstimator(
+        substrateCalls: SubstrateCalls,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+    ): FeeEstimator = FeeEstimator(substrateCalls, extrinsicBuilderFactory)
+
+    @Provides
+    @ApplicationScope
+    fun provideExtrinsicService(
+        substrateCalls: SubstrateCalls,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+    ): ExtrinsicService = ExtrinsicService(substrateCalls, extrinsicBuilderFactory)
 }

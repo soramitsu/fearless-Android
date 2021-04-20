@@ -63,7 +63,7 @@ interface AccountRouter : SecureRouter {
 
     fun openExportJsonConfirm(payload: ExportJsonConfirmPayload)
 
-    fun returnToMain()
+    fun returnToWallet()
 
     fun finishExportFlow()
 

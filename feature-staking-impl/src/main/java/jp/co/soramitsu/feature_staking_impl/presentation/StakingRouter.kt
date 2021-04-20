@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation
 
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
@@ -16,7 +17,7 @@ interface StakingRouter {
 
     fun openConfirmNominations()
 
-    fun finishSetupStakingFlow()
+    fun returnToMain()
 
     fun openChangeAccountFromStaking()
 
@@ -25,6 +26,8 @@ interface StakingRouter {
     fun openPayouts()
 
     fun openPayoutDetails(payout: PendingPayoutParcelable)
+
+    fun openConfirmPayout(payload: ConfirmPayoutPayload)
 
     fun back()
 }

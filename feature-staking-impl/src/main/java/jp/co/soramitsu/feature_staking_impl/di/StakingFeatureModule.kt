@@ -10,8 +10,6 @@ import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.common.validation.CompositeValidation
-import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
@@ -30,18 +28,19 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchron
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
-import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.EnoughToPayFeesValidation
-import jp.co.soramitsu.feature_staking_impl.domain.setup.validations.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
+import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 
 @Module
 class StakingFeatureModule {
@@ -128,31 +127,6 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideEnoughToPayFeesValidation(
-        walletRepository: WalletRepository,
-        accountRepository: AccountRepository
-    ) = EnoughToPayFeesValidation(
-        walletRepository,
-        accountRepository
-    )
-
-    @Provides
-    @FeatureScope
-    fun provideMinimumAmountValidation(
-        walletConstants: WalletConstants
-    ) = MinimumAmountValidation(walletConstants)
-
-    @Provides
-    @FeatureScope
-    fun provideSetupStakingValidationSystem(
-        enoughToPayFeesValidation: EnoughToPayFeesValidation,
-        minimumAmountValidation: MinimumAmountValidation
-    ) = ValidationSystem(
-        CompositeValidation(listOf(enoughToPayFeesValidation, minimumAmountValidation))
-    )
-
-    @Provides
-    @FeatureScope
     fun provideSetupStakingSharedState() = SetupStakingSharedState()
 
     @Provides
@@ -212,4 +186,11 @@ class StakingFeatureModule {
     ): PayoutRepository {
         return PayoutRepository(stakingRepository, bulkRetriever, runtimeProperty, validatorSetFetcher, storageCache)
     }
+
+    @Provides
+    @FeatureScope
+    fun providePayoutInteractor(
+        feeEstimator: FeeEstimator,
+        extrinsicService: ExtrinsicService
+    ) = PayoutInteractor(feeEstimator, extrinsicService)
 }

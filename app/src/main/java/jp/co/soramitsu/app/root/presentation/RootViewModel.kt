@@ -142,7 +142,7 @@ class RootViewModel(
 
     fun restoredAfterConfigChange() {
         if (willBeClearedForLanguageChange) {
-            rootRouter.returnToMain()
+            rootRouter.returnToWallet()
 
             willBeClearedForLanguageChange = false
         }
