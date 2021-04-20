@@ -87,7 +87,12 @@ class StakingViewModel(
 
         is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, viewModelScope, ::showError)
 
-        is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState()
+        is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState(
+            accountStakingState,
+            currentAssetFlow,
+            viewModelScope,
+            ::showError
+        )
     }
 
     private fun transformStories(story: StakingStory): StakingStoryModel = with(story) {
