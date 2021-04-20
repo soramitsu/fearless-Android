@@ -8,13 +8,13 @@
     tools:parentTag="android.widget.LinearLayout">
 
     <TextView
-        android:id="@+id/assetActionsSend"
+        android:id="@+id/stakingBalanceActionsBondMore"
         style="@style/Widget.Fearless.ActionButton"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:drawableTop="@drawable/ic_send"
-        android:text="@string/wallet_asset_send" />
+        android:drawableTop="@drawable/ic_plus_circle"
+        android:text="@string/staking_bond_more" />
 
     <View
         android:layout_width="1dp"
@@ -24,13 +24,13 @@
         android:background="@color/white_10" />
 
     <TextView
-        android:id="@+id/assetActionsReceive"
+        android:id="@+id/stakingBalanceActionsUnbond"
         style="@style/Widget.Fearless.ActionButton"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:drawableTop="@drawable/ic_receive"
-        android:text="@string/wallet_asset_receive" />
+        android:drawableTop="@drawable/ic_security_unlock_24"
+        android:text="@string/staking_unbond" />
 
     <View
         android:layout_width="1dp"
@@ -40,11 +40,11 @@
         android:background="@color/white_10" />
 
     <TextView
-        android:id="@+id/assetActionsBuy"
+        android:id="@+id/stakingBalanceActionsRedeem"
         style="@style/Widget.Fearless.ActionButton"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:drawableTop="@drawable/ic_buy"
-        android:text="@string/wallet_asset_buy" />
+        android:drawableTop="@drawable/ic_arrows_circle_arrow_right_24"
+        android:text="@string/staking_redeem" />
 </merge>

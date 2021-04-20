@@ -20,6 +20,7 @@ import kotlinx.android.synthetic.main.fragment_recommended_validators.recommende
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsNext
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsProgress
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsToolbar
+import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceInfo
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceToolbar
 
 class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
@@ -38,6 +39,8 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
                 padding()
             }
         }
+
+        stakingBalanceToolbar.setHomeButtonListener { viewModel.backClicked() }
     }
 
     override fun inject() {
@@ -51,6 +54,17 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
     }
 
     override fun subscribe(viewModel: StakingBalanceViewModel) {
+        viewModel.stakingBalanceModelLiveData.observe {
+            with(stakingBalanceInfo) {
+                bonded.setTokenAmount(it.bonded.token)
+                bonded.setFiatAmount(it.bonded.fiat)
 
+                unbonding.setTokenAmount(it.unbonding.token)
+                unbonding.setFiatAmount(it.unbonding.fiat)
+
+                redeemable.setTokenAmount(it.redeemable.token)
+                redeemable.setFiatAmount(it.redeemable.fiat)
+            }
+        }
     }
 }

@@ -51,19 +51,5 @@ fun Context.getColorFromAttr(
     return typedValue.data
 }
 
-private fun Context.getDimension(@DimenRes resId: Int): Int {
-    val value = TypedValue()
-    resources.getValue(resId, value, true)
-
-    return if (value.type == TypedValue.TYPE_ATTRIBUTE) {
-        val attributes: TypedArray = theme.obtainStyledAttributes(intArrayOf(value.data))
-        val dimension = attributes.getDimensionPixelOffset(0, 0)
-        attributes.recycle()
-        dimension
-    } else {
-        resources.getDimensionPixelOffset(resId)
-    }
-}
-
 @ColorInt
 fun Context.getPrimaryColor() = getColorFromAttr(R.attr.colorPrimary)

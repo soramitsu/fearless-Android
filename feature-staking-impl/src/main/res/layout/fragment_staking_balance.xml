@@ -15,5 +15,19 @@
         android:background="@color/blurColor"
         android:layout_height="wrap_content" />
 
+    <jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view.StakingBalanceView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:id="@+id/stakingBalanceInfo"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view.StakingBalanceActions
+        android:layout_width="match_parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_height="80dp" />
 
 </LinearLayout>

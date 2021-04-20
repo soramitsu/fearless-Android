@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_bond_more">Bond more</string>
+    <string name="staking_unbond">Unbond</string>
+    <string name="staking_redeem">Redeem</string>
+
+    <string name="common_balance">Balance</string>
+
     <string name="make_payout_transaction_sent">Make payout transaction sent</string>
     <string name="staking_non_profitable_payout">The reward is less than the network fee.</string>
     <string name="common_are_you_sure">Are you sure?</string>
