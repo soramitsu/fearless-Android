@@ -80,7 +80,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                         showStatusAlert(title, message)
                     }
 
-                    stakingState.nominatorSummaryLiveData.observe { summaryState ->
+                    stakingState.nominatorSummaryFlow.observe { summaryState ->
                         stakingState.showManageActionsEvent.observeEvent {
                             ManageStakingBottomSheet(requireContext(), stakingState::manageActionChosen).show()
                         }

@@ -2,13 +2,12 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
-import jp.co.soramitsu.common.utils.emitAll
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -27,16 +26,18 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEst
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlin.time.ExperimentalTime
 
@@ -79,13 +80,10 @@ enum class ManageStakeAction {
         syncStakingRewards()
     }
 
-    val nominatorSummaryLiveData = liveData<LoadingState<NominatorSummaryModel>> {
-        emitAll(
-            nominatorSummaryFlow()
-                .withLoading()
-                .flowOn(Dispatchers.Default)
-        )
-    }
+    val nominatorSummaryFlow = flow { emitAll(nominatorSummaryFlow()) }
+        .withLoading()
+        .inBackground()
+        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     private val _showStatusAlertEvent = MutableLiveData<Event<Pair<String, String>>>()
     val showStatusAlertEvent: LiveData<Event<Pair<String, String>>> = _showStatusAlertEvent
@@ -152,7 +150,7 @@ enum class ManageStakeAction {
     }
 
     private fun loadedNominatorSummaryOrNull(): NominatorSummaryModel? {
-        return when (val state = nominatorSummaryLiveData.value) {
+        return when (val state = nominatorSummaryFlow.replayCache.firstOrNull()) {
             is LoadingState.Loaded<NominatorSummaryModel> -> state.data
             else -> null
         }
