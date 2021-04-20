@@ -94,10 +94,6 @@ sealed class StakeViewState<S>(
     private val _showStatusAlertEvent = MutableLiveData<Event<Pair<String, String>>>()
     val showStatusAlertEvent: LiveData<Event<Pair<String, String>>> = _showStatusAlertEvent
 
-    init {
-        syncStakingRewards()
-    }
-
     fun statusClicked() {
         val nominatorSummaryModel = loadedSummaryOrNull() ?: return
 
