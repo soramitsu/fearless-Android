@@ -72,8 +72,8 @@ class StakingBalanceViewModel(
         }
     }
 
-    private fun manageStakingActionValidationFailure(reason: ManageStakingValidationFailure) : TitleAndMessage {
-        return when(reason) {
+    private fun manageStakingActionValidationFailure(reason: ManageStakingValidationFailure): TitleAndMessage {
+        return when (reason) {
             is ManageStakingValidationFailure.ControllerRequired -> {
                 resourceManager.getString(R.string.common_error_general_title) to
                     resourceManager.getString(R.string.staking_no_controller_account, reason.controllerAddress)
