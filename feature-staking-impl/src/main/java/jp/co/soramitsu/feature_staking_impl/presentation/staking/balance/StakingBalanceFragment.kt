@@ -8,6 +8,7 @@ import androidx.core.view.doOnNextLayout
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
@@ -57,6 +58,8 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
     }
 
     override fun subscribe(viewModel: StakingBalanceViewModel) {
+        observeValidations(viewModel)
+
         viewModel.stakingBalanceModelLiveData.observe {
             with(stakingBalanceInfo) {
                 bonded.setTokenAmount(it.bonded.token)

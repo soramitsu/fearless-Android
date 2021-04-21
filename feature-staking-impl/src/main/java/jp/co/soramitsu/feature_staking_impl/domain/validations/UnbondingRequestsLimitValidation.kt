@@ -12,7 +12,7 @@ private const val UNLOCKING_LIMIT = 32
 class UnbondingRequestsLimitValidation<P, E>(
     val stakingRepository: StakingRepository,
     val stashStateProducer: (P) -> StakingState.Stash,
-    val errorProducer: () -> E
+    val errorProducer: (limit: Int) -> E
 ) : Validation<P, E> {
 
     override suspend fun validate(value: P): ValidationStatus<E> {
@@ -21,7 +21,7 @@ class UnbondingRequestsLimitValidation<P, E>(
         return if (ledger.unlocking.size < UNLOCKING_LIMIT) {
             ValidationStatus.Valid()
         } else {
-            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, errorProducer())
+            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, errorProducer(UNLOCKING_LIMIT))
         }
     }
 }

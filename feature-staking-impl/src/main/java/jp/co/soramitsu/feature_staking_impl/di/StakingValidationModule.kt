@@ -86,7 +86,7 @@ class StakingValidationModule {
     ) = BalanceControllerRequiredValidation(
         accountRepository,
         controllerAddressExtractor = { it.stashState.controllerAddress },
-        errorProducer = { ManageStakingValidationFailure.ControllerRequired(it) }
+        errorProducer = ManageStakingValidationFailure::ControllerRequired
     )
 
     @FeatureScope
@@ -106,7 +106,7 @@ class StakingValidationModule {
     ) = BalanceUnlockingLimitValidation(
         stakingRepository,
         stashStateProducer = { it.stashState },
-        errorProducer = { ManageStakingValidationFailure.ElectionPeriodOpen }
+        errorProducer = ManageStakingValidationFailure::UnbondingRequestLimitReached
     )
 
     @FeatureScope
