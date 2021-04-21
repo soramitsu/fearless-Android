@@ -272,4 +272,5 @@
     <string name="staking_main_lockup_period_title">Период блокировки</string>
     <string name="staking_main_network_title">Сеть %s</string>
     <string name="staking_total_staked">Общая ставка</string>
+    <string name="wallet_balance_frozen">Заморожено</string>
 </resources>

@@ -153,7 +153,7 @@
     <string name="transfers_empty">Вхідні й вихідні транзакції з\'являтимуться тут</string>
 
     <string name="wallet_balance_available">Доступні</string>
-    <string name="wallet_balance_bonded">Кабальний</string>
+    <string name="wallet_balance_bonded">Закреплено</string>
     <string name="language_title">Мова</string>
     <string name="common_add">Додати</string>
     <string name="connection_add_invalid_error">Не вдається встановити зв’язок з вузлом. Будь ласка, спробуйте інший.</string>
@@ -272,4 +272,5 @@
     <string name="staking_main_lockup_period_title">Період блокування</string>
     <string name="staking_main_network_title">Мережа %s</string>
     <string name="staking_total_staked">Загальна ставка</string>
+    <string name="wallet_balance_frozen">Заморожено</string>
 </resources>

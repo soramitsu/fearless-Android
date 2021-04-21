@@ -4,14 +4,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.doOnNextLayout
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceActions
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceInfo
+import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceScrollingArea
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceToolbar
 
 class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
@@ -36,6 +39,11 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
         stakingBalanceActions.bondMore.setOnClickListener { viewModel.bondMoreClicked() }
         stakingBalanceActions.unbond.setOnClickListener { viewModel.unbondClicked() }
         stakingBalanceActions.redeem.setOnClickListener { viewModel.redeemClicked() }
+
+        // set padding dynamically so initially scrolling area in under toolbar
+        stakingBalanceToolbar.doOnNextLayout {
+            stakingBalanceScrollingArea.updatePadding(top = it.height + 8.dp)
+        }
     }
 
     override fun inject() {

@@ -1,34 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout android:orientation="vertical"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@drawable/drawable_background_image"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/drawable_background_image"
+    android:orientation="vertical">
 
-    <jp.co.soramitsu.common.view.Toolbar
-        android:layout_width="match_parent"
-        app:titleText="@string/staking_balance"
-        app:dividerVisible="false"
-        app:contentBackground="@android:color/transparent"
-        android:id="@+id/stakingBalanceToolbar"
-        android:background="@color/blurColor"
-        android:layout_height="wrap_content" />
-
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view.StakingBalanceView
+    <ScrollView
+        android:id="@+id/stakingBalanceScrollingArea"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:id="@+id/stakingBalanceInfo"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp" />
+        android:clipToPadding="false"
+        tools:paddingTop="56dp">
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view.StakingBalanceActions
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view.StakingBalanceView
+                android:id="@+id/stakingBalanceInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp" />
+
+            <jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view.StakingBalanceActions
+                android:id="@+id/stakingBalanceActions"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/stakingBalanceToolbar"
         android:layout_width="match_parent"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:id="@+id/stakingBalanceActions"
-        android:layout_marginEnd="16dp"
-        android:layout_height="80dp" />
-
-</LinearLayout>
+        android:layout_height="wrap_content"
+        android:background="@color/blurColor"
+        app:contentBackground="@android:color/transparent"
+        app:dividerVisible="false"
+        app:titleText="@string/staking_balance" />
+</FrameLayout>
