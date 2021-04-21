@@ -5,21 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.mixin.api.DefaultFailure
-import jp.co.soramitsu.common.mixin.api.RetryPayload
+import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.multipleSourceLiveData
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.toAddress
-import jp.co.soramitsu.common.validation.DefaultFailureLevel
-import jp.co.soramitsu.common.validation.ValidationStatus
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.common.validation.unwrap
+import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
@@ -50,11 +46,12 @@ class ConfirmPayoutViewModel(
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val validationSystem: ValidationSystem<MakePayoutPayload, PayoutValidationFailure>,
+    private val validationExecutor: ValidationExecutor,
     private val resourceManager: ResourceManager,
 ) : BaseViewModel(),
     ExternalAccountActions.Presentation by externalAccountActions,
     FeeLoaderMixin by feeLoaderMixin,
-    Validatable {
+    Validatable by validationExecutor {
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()
@@ -66,10 +63,6 @@ class ConfirmPayoutViewModel(
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
-
-    override val retryEvent: MutableLiveData<Event<RetryPayload>> = multipleSourceLiveData(
-        feeLoaderMixin.retryEvent
-    )
 
     val totalRewardDisplay = assetFlow.map {
         val token = it.token
@@ -108,14 +101,8 @@ class ConfirmPayoutViewModel(
         .inBackground()
         .asLiveData()
 
-    override val validationFailureEvent = MutableLiveData<Event<DefaultFailure>>()
-
     init {
         loadFee()
-    }
-
-    override fun validationWarningConfirmed() {
-        sendTransactionIfValid(ignoreWarnings = true)
     }
 
     fun controllerClicked() {
@@ -134,34 +121,24 @@ class ConfirmPayoutViewModel(
         router.back()
     }
 
-    private fun sendTransactionIfValid(
-        ignoreWarnings: Boolean = false,
-    ) = feeLoaderMixin.requireFee(this) { fee ->
-        _showNextProgress.value = true
-
-        viewModelScope.launch {
+    private fun sendTransactionIfValid() = feeLoaderMixin.requireFee(this) { fee ->
+        launch {
             val tokenType = assetFlow.first().token.type
             val accountAddress = stakingStateFlow.first().accountAddress
             val amount = tokenType.amountFromPlanks(payload.totalRewardInPlanks)
 
             val payoutStakersPayloads = payouts.map { MakePayoutPayload.PayoutStakersPayload(it.era, it.validatorAddress) }
 
-            val ignoreLevel = if (ignoreWarnings) DefaultFailureLevel.WARNING else null
-
             val makePayoutPayload = MakePayoutPayload(accountAddress, fee, amount, tokenType, payoutStakersPayloads)
-            val validationResult = validationSystem.validate(makePayoutPayload, ignoreLevel)
 
-            validationResult.unwrap(
-                onValid = { sendTransaction(makePayoutPayload) },
-                onFailure = {
-                    _showNextProgress.value = false
-                    showValidationFailedToComplete()
-                },
-                onInvalid = {
-                    _showNextProgress.value = false
-                    validationFailureEvent.value = Event(payloadValidationFailure(it))
-                }
-            )
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = makePayoutPayload,
+                validationFailureTransformer = ::payloadValidationFailure,
+                progressConsumer = _showNextProgress.progressConsumer()
+            ) {
+                sendTransaction(makePayoutPayload)
+            }
         }
     }
 
@@ -193,27 +170,13 @@ class ConfirmPayoutViewModel(
         )
     }
 
-    private fun payloadValidationFailure(status: ValidationStatus.NotValid<PayoutValidationFailure>): DefaultFailure {
-        val (titleRes, messageRes) = when (status.reason) {
+    private fun payloadValidationFailure(reason: PayoutValidationFailure): TitleAndMessage {
+        val (titleRes, messageRes) = when (reason) {
             PayoutValidationFailure.CannotPayFee -> R.string.common_not_enough_funds_title to R.string.common_not_enough_funds_message
             PayoutValidationFailure.UnprofitablePayout -> R.string.common_are_you_sure to R.string.staking_non_profitable_payout
         }
 
-        return DefaultFailure(
-            level = status.level,
-            title = resourceManager.getString(titleRes),
-            message = resourceManager.getString(messageRes)
-        )
-    }
-
-    private fun showValidationFailedToComplete() {
-        retryEvent.value = Event(
-            RetryPayload(
-                title = resourceManager.getString(R.string.choose_amount_network_error),
-                message = resourceManager.getString(R.string.choose_amount_error_balance),
-                onRetry = ::sendTransactionIfValid
-            )
-        )
+        return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
     }
 
     private fun maybeShowExternalActions(addressProducer: () -> String?) {

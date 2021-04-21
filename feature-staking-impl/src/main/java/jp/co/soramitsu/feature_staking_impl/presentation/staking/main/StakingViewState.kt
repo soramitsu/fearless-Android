@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -67,8 +68,6 @@ typealias ValidatorSummaryModel = StakeSummaryModel<ValidatorStatus>
 enum class ManageStakeAction {
     PAYOUTS, BALANCE, STUB
 }
-
-typealias TitleAndMessage = Pair<String, String>
 
 sealed class StakeViewState<S>(
     private val stakeState: StakingState.Stash,

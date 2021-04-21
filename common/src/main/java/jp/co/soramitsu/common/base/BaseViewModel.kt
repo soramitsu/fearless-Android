@@ -6,19 +6,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
+import jp.co.soramitsu.common.validation.ProgressConsumer
+import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.common.validation.ValidationSystem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
 import kotlin.coroutines.CoroutineContext
 
+typealias TitleAndMessage = Pair<String, String>
+
 open class BaseViewModel : ViewModel(), CoroutineScope {
 
     private val _errorLiveData = MutableLiveData<Event<String>>()
     val errorLiveData: LiveData<Event<String>> = _errorLiveData
 
-    private val _errorWithTitleLiveData = MutableLiveData<Event<Pair<String, String>>>()
-    val errorWithTitleLiveData: LiveData<Event<Pair<String, String>>> = _errorWithTitleLiveData
+    private val _errorWithTitleLiveData = MutableLiveData<Event<TitleAndMessage>>()
+    val errorWithTitleLiveData: LiveData<Event<TitleAndMessage>> = _errorWithTitleLiveData
 
     private val _messageLiveData = MutableLiveData<Event<String>>()
     val messageLiveData: LiveData<Event<String>> = _messageLiveData
@@ -47,4 +52,19 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
     }
 
     fun <T> Flow<T>.share() = shareIn(viewModelScope, started = SharingStarted.Eagerly, replay = 1)
+
+    suspend fun <P, S> ValidationExecutor.requireValid(
+        validationSystem: ValidationSystem<P, S>,
+        payload: P,
+        validationFailureTransformer: (S) -> TitleAndMessage,
+        progressConsumer: ProgressConsumer? = null,
+        block: () -> Unit,
+    ) = requireValid(
+        validationSystem = validationSystem,
+        payload = payload,
+        errorDisplayer = ::showError,
+        validationFailureTransformer,
+        progressConsumer,
+        block
+    )
 }

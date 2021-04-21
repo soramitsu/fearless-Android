@@ -55,7 +55,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun confirmPayoutFactory(): ConfirmPayoutComponent.Factory
 
-    fun stakingBalanceFactory() : StakingBalanceComponent.Factory
+    fun stakingBalanceFactory(): StakingBalanceComponent.Factory
 
     @Component.Factory
     interface Factory {

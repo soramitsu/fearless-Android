@@ -2,17 +2,14 @@ package jp.co.soramitsu.common.utils
 
 import android.content.Context
 import android.content.Intent
-import android.content.res.TypedArray
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
-import androidx.annotation.DimenRes
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.R
-
 
 fun Context.getDrawableCompat(@DrawableRes drawableRes: Int) =
     ContextCompat.getDrawable(this, drawableRes)!!

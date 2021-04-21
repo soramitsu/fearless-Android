@@ -8,18 +8,14 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
-import jp.co.soramitsu.common.mixin.api.DefaultFailure
 import jp.co.soramitsu.common.mixin.api.Retriable
-import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.multipleSourceLiveData
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.toAddress
-import jp.co.soramitsu.common.validation.DefaultFailureLevel
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.common.validation.unwrap
+import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
@@ -58,20 +54,15 @@ class ConfirmStakingViewModel(
     private val maxFeeEstimator: MaxFeeEstimator,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val validationExecutor: ValidationExecutor,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
 ) : BaseViewModel(),
     Retriable,
-    Validatable,
+    Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
 
     private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.Confirm>()
-
-    override val retryEvent: MutableLiveData<Event<RetryPayload>> = multipleSourceLiveData(
-        feeLoaderMixin.retryEvent
-    )
-
-    override val validationFailureEvent = MutableLiveData<Event<DefaultFailure>>()
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()
@@ -102,10 +93,6 @@ class ConfirmStakingViewModel(
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
-
-    override fun validationWarningConfirmed() {
-        sendTransactionIfValid(ignoreWarnings = true)
-    }
 
     init {
         loadFee()
@@ -173,12 +160,8 @@ class ConfirmStakingViewModel(
         }
     }
 
-    private fun sendTransactionIfValid(
-        ignoreWarnings: Boolean = false,
-    ) = requireFee { fee ->
-        _showNextProgress.value = true
-
-        viewModelScope.launch {
+    private fun sendTransactionIfValid() = requireFee { fee ->
+        launch {
             val tokenType = assetFlow.first().token.type
 
             val payload = SetupStakingPayload(
@@ -188,21 +171,14 @@ class ConfirmStakingViewModel(
                 amount = currentProcessState.amount
             )
 
-            val ignoreLevel = if (ignoreWarnings) DefaultFailureLevel.WARNING else null
-
-            val validationResult = validationSystem.validate(payload, ignoreLevel)
-
-            validationResult.unwrap(
-                onValid = { sendTransaction(payload, tokenType) },
-                onInvalid = {
-                    _showNextProgress.value = false
-                    validationFailureEvent.value = Event(stakingValidationFailure(payload, it, resourceManager))
-                },
-                onFailure = {
-                    _showNextProgress.value = false
-                    showValidationFailedToComplete()
-                }
-            )
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = payload,
+                validationFailureTransformer = { stakingValidationFailure(payload, it, resourceManager) },
+                progressConsumer = _showNextProgress.progressConsumer()
+            ) {
+                sendTransaction(payload, tokenType)
+            }
         }
     }
 
@@ -234,16 +210,6 @@ class ConfirmStakingViewModel(
         block,
         onError = { title, message -> showError(title, message) }
     )
-
-    private fun showValidationFailedToComplete() {
-        retryEvent.value = Event(
-            RetryPayload(
-                title = resourceManager.getString(R.string.choose_amount_network_error),
-                message = resourceManager.getString(R.string.choose_amount_error_balance),
-                onRetry = ::sendTransactionIfValid
-            )
-        )
-    }
 
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {
         return addressIconGenerator.createAddressModel(account.address, DESTINATION_SIZE_DP, account.name)

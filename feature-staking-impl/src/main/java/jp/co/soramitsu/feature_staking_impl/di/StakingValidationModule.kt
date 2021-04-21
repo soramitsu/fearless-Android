@@ -83,7 +83,7 @@ class StakingValidationModule {
     fun provideBalanceControllerValidation(
         accountRepository: AccountRepository,
 
-        ) = BalanceControllerRequiredValidation(
+    ) = BalanceControllerRequiredValidation(
         accountRepository,
         controllerAddressExtractor = { it.stashState.controllerAddress },
         errorProducer = { ManageStakingValidationFailure.ControllerRequired }
@@ -127,7 +127,7 @@ class StakingValidationModule {
     @FeatureScope
     @Named(SYSTEM_MANAGE_STAKING_UNBOND)
     @Provides
-    fun provideDefaultManageStakingValidationSystem(
+    fun provideUnbondManageStakingValidationSystem(
         balanceElectionPeriodValidation: BalanceElectionPeriodValidation,
         balanceControllerRequiredValidation: BalanceControllerRequiredValidation,
         balanceUnlockingLimitValidation: BalanceUnlockingLimitValidation
