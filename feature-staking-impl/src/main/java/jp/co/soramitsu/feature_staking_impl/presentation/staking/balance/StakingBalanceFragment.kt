@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
+import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceActions
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceInfo
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceToolbar
 
@@ -31,6 +32,10 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
         }
 
         stakingBalanceToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        stakingBalanceActions.bondMore.setOnClickListener { viewModel.bondMoreClicked() }
+        stakingBalanceActions.unbond.setOnClickListener { viewModel.unbondClicked() }
+        stakingBalanceActions.redeem.setOnClickListener { viewModel.redeemClicked() }
     }
 
     override fun inject() {

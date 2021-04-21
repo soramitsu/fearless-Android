@@ -33,9 +33,9 @@ class StakingBalanceActions
     val bondMore: TextView
         get() = stakingBalanceActionsBondMore
 
-    val receive: TextView
+    val unbond: TextView
         get() = stakingBalanceActionsUnbond
 
-    val buy: TextView
+    val redeem: TextView
         get() = stakingBalanceActionsRedeem
 }

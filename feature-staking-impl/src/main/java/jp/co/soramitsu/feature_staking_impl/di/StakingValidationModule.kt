@@ -86,7 +86,7 @@ class StakingValidationModule {
     ) = BalanceControllerRequiredValidation(
         accountRepository,
         controllerAddressExtractor = { it.stashState.controllerAddress },
-        errorProducer = { ManageStakingValidationFailure.ControllerRequired }
+        errorProducer = { ManageStakingValidationFailure.ControllerRequired(it) }
     )
 
     @FeatureScope

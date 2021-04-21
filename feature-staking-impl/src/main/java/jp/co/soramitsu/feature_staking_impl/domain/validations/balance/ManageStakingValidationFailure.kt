@@ -4,7 +4,7 @@ sealed class ManageStakingValidationFailure {
 
     object UnbondingRequestLimitReached : ManageStakingValidationFailure()
 
-    object ControllerRequired : ManageStakingValidationFailure()
+    class ControllerRequired(val controllerAddress: String) : ManageStakingValidationFailure()
 
     object ElectionPeriodOpen : ManageStakingValidationFailure()
 }
