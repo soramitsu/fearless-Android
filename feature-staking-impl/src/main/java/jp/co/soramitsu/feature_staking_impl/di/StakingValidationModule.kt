@@ -81,8 +81,7 @@ class StakingValidationModule {
     @FeatureScope
     @Provides
     fun provideBalanceControllerValidation(
-        accountRepository: AccountRepository,
-
+        accountRepository: AccountRepository
     ) = BalanceControllerRequiredValidation(
         accountRepository,
         controllerAddressExtractor = { it.stashState.controllerAddress },
