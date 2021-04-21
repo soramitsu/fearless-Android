@@ -61,6 +61,10 @@ class ValidationSystem<T, S>(
     }
 }
 
+suspend fun <S> ValidationSystem<Unit, S>.validate(
+    ignoreUntil: ValidationStatus.NotValid.Level? = null
+) = validate(Unit, ignoreUntil)
+
 fun <S> Result<ValidationStatus<S>>.unwrap(
     onValid: () -> Unit,
     onInvalid: (ValidationStatus.NotValid<S>) -> Unit,
