@@ -259,7 +259,7 @@ class StakingInteractor(
         return stakingRepository.getRewardDestination(accountStakingState)
     }
 
-     fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
+    fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
         return selectedAccountStakingStateFlow()
             .filterIsInstance<StakingState.Stash>()
             .flatMapLatest { stash ->

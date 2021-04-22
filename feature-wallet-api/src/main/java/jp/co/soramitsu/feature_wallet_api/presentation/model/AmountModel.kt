@@ -15,7 +15,7 @@ data class AmountModel(
 fun mapAmountToAmountModel(
     amountInPlanks: BigInteger,
     asset: Asset
-) : AmountModel = mapAmountToAmountModel(
+): AmountModel = mapAmountToAmountModel(
     amount = asset.token.amountFromPlanks(amountInPlanks),
     asset = asset
 )
