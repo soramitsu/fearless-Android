@@ -42,7 +42,7 @@ interface StakingRepository {
 
     suspend fun getRewardDestination(stakingState: StakingState.Stash): RewardDestination
 
-    suspend fun controllerAccountInfoFlow(stakingState: StakingState.Stash): Flow<AccountInfo>
+    suspend fun getControllerAccountInfo(stakingState: StakingState.Stash): AccountInfo
 }
 
 suspend fun StakingRepository.historicalEras(): List<BigInteger> {
