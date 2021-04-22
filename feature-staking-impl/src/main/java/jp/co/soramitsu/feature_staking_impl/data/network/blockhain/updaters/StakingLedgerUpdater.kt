@@ -68,7 +68,7 @@ class StakingLedgerUpdater(
                 ledgerWithController?.ledger?.let {
                     val era = stakingRepository.getActiveEraIndex()
                     updateAssetStaking(accountAddress, it, era)
-                }
+                } ?: updateAssetStakingForEmptyLedger(accountAddress)
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()
@@ -128,6 +128,16 @@ class StakingLedgerUpdater(
                 redeemableInPlanks = redeemable,
                 unbondingInPlanks = unbonding,
                 bondedInPlanks = stakingLedger.active
+            )
+        }
+    }
+
+    private suspend fun updateAssetStakingForEmptyLedger(accountAddress: String) {
+        return assetCache.updateAsset(accountAddress) { cached ->
+            cached.copy(
+                redeemableInPlanks = BigInteger.ZERO,
+                unbondingInPlanks = BigInteger.ZERO,
+                bondedInPlanks = BigInteger.ZERO
             )
         }
     }

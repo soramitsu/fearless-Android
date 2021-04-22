@@ -8,7 +8,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 class ControllerRequiredValidation<P, E>(
     val accountRepository: AccountRepository,
     val controllerAddressExtractor: (P) -> String,
-    val errorProducer: () -> E
+    val errorProducer: (controllerAddress: String) -> E
 ) : Validation<P, E> {
 
     override suspend fun validate(value: P): ValidationStatus<E> {
@@ -17,7 +17,7 @@ class ControllerRequiredValidation<P, E>(
         return if (accountRepository.isAccountExists(controllerAddress)) {
             ValidationStatus.Valid()
         } else {
-            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, errorProducer())
+            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, errorProducer(controllerAddress))
         }
     }
 }

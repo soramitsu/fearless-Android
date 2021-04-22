@@ -16,8 +16,6 @@ class EnoughToPayFeesValidation<T, E>(
     private val extraAmountExtractor: (T) -> BigDecimal = { BigDecimal.ZERO },
 ) : Validation<T, E> {
 
-    companion object;
-
     override suspend fun validate(value: T): ValidationStatus<E> {
         val asset = walletRepository.getAsset(originAddressExtractor(value), tokenTypeExtractor(value))!!
 

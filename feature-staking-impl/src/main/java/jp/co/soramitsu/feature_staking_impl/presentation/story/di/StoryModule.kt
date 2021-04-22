@@ -9,7 +9,7 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryViewModel
 
 @Module(includes = [ViewModelModule::class])

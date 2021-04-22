@@ -7,11 +7,10 @@ import jp.co.soramitsu.common.validation.ValidationStatus
 class DefaultFailure(
     val level: ValidationStatus.NotValid.Level,
     val title: String,
-    val message: String
+    val message: String,
+    val confirmWarning: Action
 )
 
-interface Validatable : Retriable {
+interface Validatable {
     val validationFailureEvent: LiveData<Event<DefaultFailure>>
-
-    fun validationWarningConfirmed()
 }

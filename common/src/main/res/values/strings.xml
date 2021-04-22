@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_unbonding_limit_reached_message">You have reached the unbonding requests limit (%d active requests).</string>
+    <string name="staking_unbonding_limit_reached_title">Unbonding requests limit reached</string>
+
+    <string name="staking_bond_more">Bond more</string>
+    <string name="staking_unbond">Unbond</string>
+    <string name="staking_redeem">Redeem</string>
+
+    <string name="common_balance">Balance</string>
+
     <string name="make_payout_transaction_sent">Make payout transaction sent</string>
     <string name="staking_non_profitable_payout">The reward is less than the network fee.</string>
     <string name="common_are_you_sure">Are you sure?</string>
@@ -25,6 +34,7 @@
     <string name="staking_no_controller_account">Controller account %s is unavailable to update staking setup.</string>
 
     <string name="staking_manage">Manage</string>
+    <string name="staking_balance">Staking balance</string>
     <string name="staking_stake_more">Stake more</string>
     <string name="staking_pause_staking">Pause staking</string>
     <string name="staking_unstake">Unstake</string>
@@ -269,7 +279,8 @@
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>
 
-    <string name="wallet_balance_bonded">Frozen</string>
+    <string name="wallet_balance_bonded">Bonded</string>
+    <string name="wallet_balance_frozen">Frozen</string>
     <string name="wallet_balance_available">Available</string>
     <string name="language_title">Language</string>
 

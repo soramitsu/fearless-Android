@@ -8,20 +8,16 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
-import jp.co.soramitsu.common.mixin.api.DefaultFailure
 import jp.co.soramitsu.common.mixin.api.Retriable
-import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
-import jp.co.soramitsu.common.utils.multipleSourceLiveData
-import jp.co.soramitsu.common.validation.DefaultFailureLevel
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.common.validation.unwrap
+import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
-import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
@@ -37,7 +33,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetM
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.model.RewardEstimation
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,10 +71,11 @@ class SetupStakingViewModel(
     private val validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
     private val appLinksProvider: AppLinksProvider,
     private val setupStakingSharedState: SetupStakingSharedState,
+    private val validationExecutor: ValidationExecutor,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
 ) : BaseViewModel(),
     Retriable,
-    Validatable,
+    Validatable by validationExecutor,
     Browserable,
     FeeLoaderMixin by feeLoaderMixin {
 
@@ -89,12 +86,6 @@ class SetupStakingViewModel(
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
-
-    override val retryEvent: MutableLiveData<Event<RetryPayload>> = multipleSourceLiveData(
-        feeLoaderMixin.retryEvent
-    )
-
-    override val validationFailureEvent = MutableLiveData<Event<DefaultFailure>>()
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
@@ -135,10 +126,6 @@ class SetupStakingViewModel(
 
     init {
         loadFee()
-    }
-
-    override fun validationWarningConfirmed() {
-        maybeGoToNext(ignoreWarnings = true)
     }
 
     fun nextClicked() {
@@ -193,12 +180,8 @@ class SetupStakingViewModel(
         )
     }
 
-    private fun maybeGoToNext(
-        ignoreWarnings: Boolean = false,
-    ) = requireFee { fee ->
-        _showNextProgress.value = true
-
-        viewModelScope.launch {
+    private fun maybeGoToNext() = requireFee { fee ->
+        launch {
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationLiveData.value!!)
             val amount = parsedAmountFlow.first()
             val tokenType = assetFlow.first().token.type
@@ -213,19 +196,16 @@ class SetupStakingViewModel(
                 maxFee = fee
             )
 
-            val ignoreLevel = if (ignoreWarnings) DefaultFailureLevel.WARNING else null
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = payload,
+                validationFailureTransformer = { stakingValidationFailure(payload, it, resourceManager) },
+                progressConsumer = _showNextProgress.progressConsumer()
+            ) {
+                _showNextProgress.value = false
 
-            val validationResult = validationSystem.validate(payload, ignoreLevel)
-
-            _showNextProgress.value = false
-
-            validationResult.unwrap(
-                onValid = { goToNextStep(amount, stashSetup) },
-                onInvalid = {
-                    validationFailureEvent.value = Event(stakingValidationFailure(payload, it, resourceManager))
-                },
-                onFailure = { showValidationFailedToComplete() }
-            )
+                goToNextStep(amount, stashSetup)
+            }
         }
     }
 
@@ -233,16 +213,6 @@ class SetupStakingViewModel(
         setupStakingSharedState.set(currentProcessState.next(newAmount, stashSetup))
 
         router.openRecommendedValidators()
-    }
-
-    private fun showValidationFailedToComplete() {
-        retryEvent.value = Event(
-            RetryPayload(
-                title = resourceManager.getString(R.string.choose_amount_network_error),
-                message = resourceManager.getString(R.string.choose_amount_error_balance),
-                onRetry = ::nextClicked
-            )
-        )
     }
 
     private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(

@@ -1,6 +1,8 @@
 package jp.co.soramitsu.common.validation
 
 import jp.co.soramitsu.common.utils.requireException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 interface Validation<T, S> {
 
@@ -47,19 +49,25 @@ class ValidationSystem<T, S>(
         value: T,
         ignoreUntil: ValidationStatus.NotValid.Level? = null
     ): Result<ValidationStatus<S>> = runCatching {
-        when (val status = validation.validate(value)) {
-            is ValidationStatus.Valid -> status
+        withContext(Dispatchers.Default) {
+            when (val status = validation.validate(value)) {
+                is ValidationStatus.Valid -> status
 
-            is ValidationStatus.NotValid -> {
-                if (ignoreUntil != null && status.level.value <= ignoreUntil.value) {
-                    ValidationStatus.Valid()
-                } else {
-                    status
+                is ValidationStatus.NotValid -> {
+                    if (ignoreUntil != null && status.level.value <= ignoreUntil.value) {
+                        ValidationStatus.Valid()
+                    } else {
+                        status
+                    }
                 }
             }
         }
     }
 }
+
+suspend fun <S> ValidationSystem<Unit, S>.validate(
+    ignoreUntil: ValidationStatus.NotValid.Level? = null
+) = validate(Unit, ignoreUntil)
 
 fun <S> Result<ValidationStatus<S>>.unwrap(
     onValid: () -> Unit,

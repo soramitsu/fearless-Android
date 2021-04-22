@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.dp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
@@ -89,6 +90,9 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     fun <V> LiveData<V>.observe(observer: (V) -> Unit) {
         observe(viewLifecycleOwner, observer)
     }
+
+    val Int.dp: Int
+        get() = dp(requireContext())
 
     protected fun EditText.bindTo(liveData: MutableLiveData<String>) = bindTo(liveData, viewLifecycleOwner)
 

@@ -1,0 +1,9 @@
+package jp.co.soramitsu.feature_staking_impl.domain.validations.balance
+
+import jp.co.soramitsu.feature_staking_impl.domain.validations.ControllerRequiredValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.ElectionPeriodClosedValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.UnbondingRequestsLimitValidation
+
+typealias BalanceElectionPeriodValidation = ElectionPeriodClosedValidation<ManageStakingValidationPayload, ManageStakingValidationFailure>
+typealias BalanceControllerRequiredValidation = ControllerRequiredValidation<ManageStakingValidationPayload, ManageStakingValidationFailure>
+typealias BalanceUnlockingLimitValidation = UnbondingRequestsLimitValidation<ManageStakingValidationPayload, ManageStakingValidationFailure>

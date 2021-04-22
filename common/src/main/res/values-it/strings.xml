@@ -152,7 +152,7 @@
     <string name="transfers_empty">In entrata e in uscita trasferimenti appariranno qui</string>
 
     <string name="wallet_balance_available">A disposizione</string>
-    <string name="wallet_balance_bonded">Legato</string>
+    <string name="wallet_balance_bonded">In bonding</string>
     <string name="language_title">Lingua</string>
     <string name="common_add">Inserisci</string>
     <string name="connection_add_invalid_error">Impossibile stabilire la connessione con il nodo. Per favore, provane un altro.</string>
@@ -269,4 +269,5 @@
     <string name="staking_main_lockup_period_title">Periodo di lock-up</string>
     <string name="staking_main_network_title">%s rete</string>
     <string name="staking_total_staked">Totale puntato</string>
+    <string name="wallet_balance_frozen">Congelato</string>
 </resources>

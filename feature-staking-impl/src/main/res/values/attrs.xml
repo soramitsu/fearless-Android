@@ -27,4 +27,8 @@
     <declare-styleable name="NetworkInfoView">
         <attr name="expanded" format="boolean" />
     </declare-styleable>
+
+    <declare-styleable name="StakingBalanceItemView">
+        <attr name="title" format="string" />
+    </declare-styleable>
 </resources>

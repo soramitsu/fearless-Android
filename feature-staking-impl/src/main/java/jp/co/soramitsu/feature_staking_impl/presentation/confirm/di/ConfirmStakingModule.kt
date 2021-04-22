@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -35,6 +36,7 @@ class ConfirmStakingModule {
         resourceManager: ResourceManager,
         maxFeeEstimator: MaxFeeEstimator,
         validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
+        validationExecutor: ValidationExecutor,
         setupStakingSharedState: SetupStakingSharedState,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         externalAccountActions: ExternalAccountActions.Presentation,
@@ -50,6 +52,7 @@ class ConfirmStakingModule {
             maxFeeEstimator,
             feeLoaderMixin,
             externalAccountActions,
+            validationExecutor,
             recommendationSettingsProviderFactory
         )
     }

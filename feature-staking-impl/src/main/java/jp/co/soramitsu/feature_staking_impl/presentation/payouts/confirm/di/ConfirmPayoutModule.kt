@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
@@ -37,6 +38,7 @@ class ConfirmPayoutModule {
         externalAccountActions: ExternalAccountActions.Presentation,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         validationSystem: ValidationSystem<MakePayoutPayload, PayoutValidationFailure>,
+        validationExecutor: ValidationExecutor,
         addressDisplayUseCase: AddressDisplayUseCase,
         resourceManager: ResourceManager
     ): ViewModel {
@@ -50,6 +52,7 @@ class ConfirmPayoutModule {
             feeLoaderMixin,
             addressDisplayUseCase,
             validationSystem,
+            validationExecutor,
             resourceManager
         )
     }

@@ -14,7 +14,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.di.Conf
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.di.PayoutDetailsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.di.PayoutsListComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.setup.di.SetupStakingComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.di.StakingComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.di.StakingBalanceComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.story.di.StoryComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.di.ValidatorDetailsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.di.RecommendedValidatorsComponent
@@ -53,6 +54,8 @@ interface StakingFeatureComponent : StakingFeatureApi {
     fun payoutDetailsFactory(): PayoutDetailsComponent.Factory
 
     fun confirmPayoutFactory(): ConfirmPayoutComponent.Factory
+
+    fun stakingBalanceFactory(): StakingBalanceComponent.Factory
 
     @Component.Factory
     interface Factory {

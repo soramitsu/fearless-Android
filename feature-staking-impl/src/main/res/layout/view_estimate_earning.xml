@@ -20,7 +20,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+    <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
         android:id="@+id/stakingMonthGain"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -34,7 +34,7 @@
         app:startWithLoading="true"
         app:titleText="@string/staking_month_period_title" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+    <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
         android:id="@+id/stakingYearGain"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

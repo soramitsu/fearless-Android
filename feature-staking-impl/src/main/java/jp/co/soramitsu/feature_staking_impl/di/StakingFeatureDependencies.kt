@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
@@ -75,4 +76,6 @@ interface StakingFeatureDependencies {
     fun feeEstimator(): FeeEstimator
 
     fun extrinsicService(): ExtrinsicService
+
+    fun validationExecutor(): ValidationExecutor
 }

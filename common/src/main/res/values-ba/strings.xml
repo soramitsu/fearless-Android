@@ -153,7 +153,7 @@
     <string name="transfers_empty">Килгән һәм ебәрелгән транзакциялар бында күрһәтеләсәк</string>
 
     <string name="wallet_balance_available">Доступно</string>
-    <string name="wallet_balance_bonded">Заморожено</string>
+    <string name="wallet_balance_bonded">Тоташыу</string>
     <string name="language_title">Тел</string>
     <string name="common_add">Добавить</string>
     <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
@@ -271,4 +271,5 @@
     <string name="staking_main_lockup_period_title">Ҡамау ваҡыты</string>
     <string name="staking_main_network_title">%s селтәр</string>
     <string name="staking_total_staked">Дөйөм стейкта</string>
+    <string name="wallet_balance_frozen">Туңдырылған</string>
 </resources>

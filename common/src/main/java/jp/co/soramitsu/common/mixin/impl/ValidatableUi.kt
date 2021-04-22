@@ -22,7 +22,7 @@ fun <T> BaseFragment<T>.observeValidations(
             }
             level >= DefaultFailureLevel.WARNING -> warningDialog(
                 dialogContext,
-                onConfirm = viewModel::validationWarningConfirmed
+                onConfirm = it.confirmWarning
             ) {
                 setTitle(it.title)
                 setMessage(it.message)

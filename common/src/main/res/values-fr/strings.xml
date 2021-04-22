@@ -152,7 +152,7 @@
     <string name="transfers_empty">Les transactions entrantes et sortantes apparaitront ici</string>
 
     <string name="wallet_balance_available">Disponible</string>
-    <string name="wallet_balance_bonded">Collé</string>
+    <string name="wallet_balance_bonded">Stacké</string>
     <string name="language_title">Langue</string>
 
     <string name="common_add">Ajouter</string>
@@ -270,4 +270,5 @@
     <string name="staking_main_lockup_period_title">Période de blocage</string>
     <string name="staking_main_network_title">%s réseau</string>
     <string name="staking_total_staked">Total jalonné</string>
+    <string name="wallet_balance_frozen">Gelé</string>
 </resources>

@@ -42,7 +42,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/stakeTotalStakedView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
             app:startWithLoading="true"
             app:titleText="@string/staking_total_staked" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.view.StakingInfoView
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/stakeTotalRewardsView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
