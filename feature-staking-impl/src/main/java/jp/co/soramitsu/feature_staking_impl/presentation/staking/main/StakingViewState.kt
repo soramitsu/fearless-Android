@@ -16,7 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus.Inactive.Reason
-import jp.co.soramitsu.feature_staking_impl.domain.model.StakerSummary
+import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
@@ -77,7 +77,7 @@ sealed class StakeViewState<S>(
     protected val scope: CoroutineScope,
     protected val router: StakingRouter,
     protected val errorDisplayer: (Throwable) -> Unit,
-    protected val summaryFlowProvider: suspend (StakingState.Stash) -> Flow<StakerSummary<S>>,
+    protected val summaryFlowProvider: suspend (StakingState.Stash) -> Flow<StakeSummary<S>>,
     protected val statusMessageProvider: (S) -> TitleAndMessage
 ) : StakingViewState() {
 

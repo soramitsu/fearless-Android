@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
+import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
@@ -32,7 +33,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
-import jp.co.soramitsu.feature_staking_impl.domain.model.StakerSummary
+import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
@@ -116,21 +117,6 @@ class StakingInteractor(
         }
     }
 
-    private fun eraRelativeInfo(
-        referenceEra: BigInteger,
-        activeEra: BigInteger,
-        historyDepth: BigInteger,
-        erasPerDay: Int,
-    ): EraRelativeInfo {
-        val erasPast = activeEra - referenceEra
-        val erasLeft = historyDepth - erasPast
-
-        val daysPast = erasPast.toInt() / erasPerDay
-        val daysLeft = erasLeft.toInt() / erasPerDay
-
-        return EraRelativeInfo(daysLeft, daysPast, erasLeft, erasPast)
-    }
-
     suspend fun syncStakingRewards(accountAddress: String) = withContext(Dispatchers.IO) {
         runCatching {
             stakingRewardsRepository.syncTotalRewards(accountAddress)
@@ -139,7 +125,7 @@ class StakingInteractor(
 
     suspend fun observeValidatorSummary(
         validatorState: StakingState.Stash.Validator,
-    ): Flow<StakerSummary<ValidatorStatus>> = observeStakerSummary(validatorState) {
+    ): Flow<StakeSummary<ValidatorStatus>> = observeStakeSummary(validatorState) {
         when {
             it.electionStatus == Election.OPEN -> ValidatorStatus.Election
             isValidatorActive(validatorState.stashId, it.eraStakers) -> ValidatorStatus.Active
@@ -149,7 +135,7 @@ class StakingInteractor(
 
     suspend fun observeNominatorSummary(
         nominatorState: StakingState.Stash.Nominator,
-    ): Flow<StakerSummary<NominatorStatus>> = observeStakerSummary(nominatorState) {
+    ): Flow<StakeSummary<NominatorStatus>> = observeStakeSummary(nominatorState) {
         val existentialDeposit = walletConstants.existentialDeposit()
         val eraStakers = it.eraStakers.values
 
@@ -271,7 +257,7 @@ class StakingInteractor(
                     val historyDepth = stakingRepository.getHistoryDepth()
 
                     ledger.unlocking
-                        .filter { it.era > activeEraIndex }
+                        .filter { it.isUnbondingIn(activeEraIndex) }
                         .map {
                             val relativeInfo = eraRelativeInfo(it.era, activeEraIndex, historyDepth, erasPerDay)
 
@@ -281,10 +267,25 @@ class StakingInteractor(
             }
     }
 
-    private suspend fun <S> observeStakerSummary(
+    private fun eraRelativeInfo(
+        referenceEra: BigInteger,
+        activeEra: BigInteger,
+        historyDepth: BigInteger,
+        erasPerDay: Int,
+    ): EraRelativeInfo {
+        val erasPast = activeEra - referenceEra
+        val erasLeft = historyDepth - erasPast
+
+        val daysPast = erasPast.toInt() / erasPerDay
+        val daysLeft = erasLeft.toInt() / erasPerDay
+
+        return EraRelativeInfo(daysLeft, daysPast, erasLeft, erasPast)
+    }
+
+    private suspend fun <S> observeStakeSummary(
         state: StakingState.Stash,
         statusResolver: suspend (StatusResolutionContext) -> S,
-    ): Flow<StakerSummary<S>> = withContext(Dispatchers.Default) {
+    ): Flow<StakeSummary<S>> = withContext(Dispatchers.Default) {
         val networkType = state.accountAddress.networkType()
         val tokenType = Token.Type.fromNetworkType(networkType)
 
@@ -303,7 +304,7 @@ class StakingInteractor(
 
             val status = statusResolver(statusResolutionContext)
 
-            StakerSummary(
+            StakeSummary(
                 status = status,
                 totalStaked = totalStaked,
                 totalRewards = totalRewards(rewards),

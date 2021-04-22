@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.staking
-import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.core.model.StorageChange
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
@@ -22,7 +21,9 @@ import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
-import jp.co.soramitsu.feature_staking_api.domain.model.UnlockChunk
+import jp.co.soramitsu.feature_staking_api.domain.model.isRedeemableIn
+import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
+import jp.co.soramitsu.feature_staking_api.domain.model.sumStaking
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.insert
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
@@ -121,8 +122,8 @@ class StakingLedgerUpdater(
     ) {
         return assetCache.updateAsset(accountAddress) { cached ->
 
-            val redeemable = stakingLedger.sumStaking { it <= era }
-            val unbonding = stakingLedger.sumStaking { it > era }
+            val redeemable = stakingLedger.sumStaking { it.isRedeemableIn(era) }
+            val unbonding = stakingLedger.sumStaking { it.isUnbondingIn(era) }
 
             cached.copy(
                 redeemableInPlanks = redeemable,
@@ -140,13 +141,5 @@ class StakingLedgerUpdater(
                 bondedInPlanks = BigInteger.ZERO
             )
         }
-    }
-
-    private fun StakingLedger.sumStaking(
-        condition: (chunkEra: BigInteger) -> Boolean
-    ): BigInteger {
-        return unlocking
-            .filter { condition(it.era) }
-            .sumByBigInteger(UnlockChunk::amount)
     }
 }
