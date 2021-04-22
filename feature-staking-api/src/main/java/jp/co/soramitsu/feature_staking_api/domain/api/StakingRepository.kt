@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_api.domain.api
 
+import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
@@ -40,6 +41,8 @@ interface StakingRepository {
     suspend fun ledgerFlow(stakingState: StakingState.Stash): Flow<StakingLedger>
 
     suspend fun getRewardDestination(stakingState: StakingState.Stash): RewardDestination
+
+    suspend fun controllerAccountInfoFlow(stakingState: StakingState.Stash): Flow<AccountInfo>
 }
 
 suspend fun StakingRepository.historicalEras(): List<BigInteger> {

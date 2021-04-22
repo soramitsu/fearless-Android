@@ -62,4 +62,8 @@ fun Module.constantOrNull(name: String) = constants[name]
 
 fun RuntimeMetadata.staking() = module("Staking")
 
+fun RuntimeMetadata.system() = module("System")
+
+fun RuntimeMetadata.balances() = module("Balances")
+
 fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())!!

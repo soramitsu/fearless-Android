@@ -1,15 +1,16 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings
 
 import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddressId
+import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.network.runtime.binding.fromHexOrIncompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
+import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.extrinsicHash
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Extrinsic
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.runtime.metadata.call
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import java.math.BigInteger
 
 class TransferExtrinsic(
@@ -31,7 +32,7 @@ fun bindTransferExtrinsic(scale: String, runtime: RuntimeSnapshot): TransferExtr
     val extrinsicInstance = Extrinsic.fromHexOrIncompatible(scale, runtime)
     val call = extrinsicInstance.call
 
-    val transferModule = runtime.metadata.module("Balances")
+    val transferModule = runtime.metadata.balances()
     val transferCalls = TRANSFER_CALL_NAMES.map(transferModule::call)
 
     val isTransferCall = transferCalls.any { it.index == call.index }

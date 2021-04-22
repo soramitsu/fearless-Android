@@ -21,6 +21,8 @@ dependencies {
     implementation coroutinesDep
     implementation project(":common")
 
+    implementation fearlessLibDep
+
     implementation androidDep
 
     api project(':core-api')
