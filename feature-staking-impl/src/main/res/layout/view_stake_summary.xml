@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:background="@drawable/bg_primary_list_item"
+            app:tint="@color/actions_color"
             android:layout_marginEnd="11dp"
             android:padding="8dp"
             android:id="@+id/stakeMoreActions"

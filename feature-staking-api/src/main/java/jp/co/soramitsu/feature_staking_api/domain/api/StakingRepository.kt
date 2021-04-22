@@ -37,7 +37,7 @@ interface StakingRepository {
 
     fun stakingStoriesFlow(): Flow<List<StakingStory>>
 
-    suspend fun observeLedger(stakingState: StakingState.Stash): Flow<StakingLedger>
+    suspend fun ledgerFlow(stakingState: StakingState.Stash): Flow<StakingLedger>
 
     suspend fun getRewardDestination(stakingState: StakingState.Stash): RewardDestination
 }

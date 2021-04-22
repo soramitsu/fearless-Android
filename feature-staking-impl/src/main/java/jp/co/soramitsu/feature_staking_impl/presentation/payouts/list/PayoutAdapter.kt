@@ -10,10 +10,10 @@ import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutModel
 import kotlinx.android.extensions.LayoutContainer
-import kotlinx.android.synthetic.main.item_payout.view.itemPayoutAddress
-import kotlinx.android.synthetic.main.item_payout.view.itemPayoutAmount
-import kotlinx.android.synthetic.main.item_payout.view.itemPayoutFiat
-import kotlinx.android.synthetic.main.item_payout.view.itemPayoutTime
+import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionLeft
+import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionRight
+import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleLeft
+import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleRight
 
 class PayoutAdapter(
     private val itemHandler: ItemHandler,
@@ -24,7 +24,7 @@ class PayoutAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PayoutViewHolder {
-        val view = parent.inflateChild(R.layout.item_payout)
+        val view = parent.inflateChild(R.layout.item_list_default)
 
         return PayoutViewHolder(view)
     }
@@ -38,20 +38,20 @@ class PayoutAdapter(
 
 class PayoutViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
 
-    fun bind(validator: PendingPayoutModel, itemHandler: PayoutAdapter.ItemHandler) = with(containerView) {
-        with(validator) {
-            itemPayoutAddress.text = validatorTitle
-            itemPayoutAmount.text = amount
-            itemPayoutFiat.text = amountFiat
-            itemPayoutTime.text = daysLeft
-            itemPayoutTime.setTextColorRes(daysLeftColor)
+    fun bind(payout: PendingPayoutModel, itemHandler: PayoutAdapter.ItemHandler) = with(containerView) {
+        with(payout) {
+            itemListElementTitleLeft.text = validatorTitle
+            itemListElementTitleRight.text = amount
+            itemListElementDescriptionRight.text = amountFiat
+            itemListElementDescriptionLeft.text = daysLeft
+            itemListElementDescriptionLeft.setTextColorRes(daysLeftColor)
         }
 
         setOnClickListener { itemHandler.payoutClicked(adapterPosition) }
     }
 }
 
-class PayoutModelDiffCallback : DiffUtil.ItemCallback<PendingPayoutModel>() {
+private class PayoutModelDiffCallback : DiffUtil.ItemCallback<PendingPayoutModel>() {
 
     override fun areItemsTheSame(oldItem: PendingPayoutModel, newItem: PendingPayoutModel): Boolean {
         return oldItem === newItem
