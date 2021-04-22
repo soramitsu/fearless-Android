@@ -74,6 +74,7 @@
             android:id="@+id/unbondingsList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:overScrollMode="never"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:itemCount="15"
             tools:listitem="@layout/item_list_default" />
