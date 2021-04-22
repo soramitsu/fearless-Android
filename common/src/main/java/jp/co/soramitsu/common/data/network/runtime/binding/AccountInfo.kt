@@ -1,10 +1,5 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings
+package jp.co.soramitsu.common.data.network.runtime.binding
 
-import jp.co.soramitsu.common.data.network.runtime.binding.HelperBinding
-import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
-import jp.co.soramitsu.common.data.network.runtime.binding.cast
-import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
-import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
@@ -36,11 +31,6 @@ class AccountInfo(
 }
 
 @HelperBinding
-fun bindNumber(dynamicInstance: Any?): BigInteger {
-    return dynamicInstance.cast()
-}
-
-@HelperBinding
 fun bindAccountData(dynamicInstance: Struct.Instance) = AccountData(
     free = bindNumber(dynamicInstance["free"]),
     reserved = bindNumber(dynamicInstance["reserved"]),
@@ -50,7 +40,7 @@ fun bindAccountData(dynamicInstance: Struct.Instance) = AccountData(
 
 @HelperBinding
 fun bindNonce(dynamicInstance: Any?): BigInteger {
-    return dynamicInstance.cast()
+    return bindNumber(dynamicInstance)
 }
 
 @UseCaseBinding

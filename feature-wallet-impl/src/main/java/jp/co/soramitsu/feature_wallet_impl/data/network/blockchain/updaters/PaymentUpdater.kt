@@ -1,15 +1,17 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
+import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
+import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
@@ -21,9 +23,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionStatusToTransactionStatusLocal
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.AccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.TransferExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.bindAccountInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -41,7 +41,7 @@ class PaymentUpdater(
         val address = scope.getAccount().address
 
         val runtime = runtimeProperty.get()
-        val key = runtime.metadata.module("System").storage("Account").storageKey(runtime, address.toAccountId())
+        val key = runtime.metadata.system().storage("Account").storageKey(runtime, address.toAccountId())
 
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->

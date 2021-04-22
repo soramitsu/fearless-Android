@@ -2,18 +2,20 @@
 
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
+import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EventRecord
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.Phase
+import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
 import jp.co.soramitsu.common.data.network.runtime.calls.FeeCalculationRequest
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.preBinder
+import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.transfer
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
@@ -26,8 +28,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.account.AccountInfoR
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.SubmitExtrinsicRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.AccountInfo
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.bindAccountInfo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.bindTransferExtrinsic
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetBlockRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
@@ -80,7 +80,7 @@ class WssSubstrateSource(
 
         val runtime = runtimeProperty.get()
 
-        val eventsKey = runtime.metadata.module("System").storage("Events").storageKey()
+        val eventsKey = runtime.metadata.system().storage("Events").storageKey()
         val eventsRequest = GetStorageRequest(listOf(eventsKey, blockHash))
 
         val rawResponse = socketService.executeAsync(eventsRequest, mapper = preBinder())

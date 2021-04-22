@@ -1,19 +1,22 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.Binder
+import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.constant
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.staking
+import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
@@ -87,7 +90,7 @@ class StakingRepositoryImpl(
     }
 
     override suspend fun getTotalIssuance(): BigInteger = getFromStorage(
-        keyBuilder = { it.metadata.module("Balances").storage("TotalIssuance").storageKey() },
+        keyBuilder = { it.metadata.balances().storage("TotalIssuance").storageKey() },
         binding = ::bindTotalInsurance
     )
 
@@ -113,7 +116,7 @@ class StakingRepositoryImpl(
     override suspend fun getElectedValidatorsExposure(eraIndex: BigInteger) = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 
-        val prefixKey = runtime.metadata.module("Staking").storage("ErasStakers").storageKey(runtime, eraIndex)
+        val prefixKey = runtime.metadata.staking().storage("ErasStakers").storageKey(runtime, eraIndex)
 
         storageCache.getEntries(prefixKey).associate {
             val accountId = it.storageKey.accountIdFromMapKey()
@@ -125,7 +128,7 @@ class StakingRepositoryImpl(
     override suspend fun getElectedValidatorsPrefs(eraIndex: BigInteger) = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 
-        val prefixKey = runtime.metadata.module("Staking").storage("ErasValidatorPrefs").storageKey(runtime, eraIndex)
+        val prefixKey = runtime.metadata.staking().storage("ErasValidatorPrefs").storageKey(runtime, eraIndex)
 
         storageCache.getEntries(prefixKey).associate {
             val accountId = it.storageKey.accountIdFromMapKey()
@@ -137,14 +140,14 @@ class StakingRepositoryImpl(
     override suspend fun getSlashes(accountIdsHex: List<String>) = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 
-        val storage = runtime.metadata.module("Staking").storage("SlashingSpans")
+        val storage = runtime.metadata.staking().storage("SlashingSpans")
         val fullKeys = storage.accountMapStorageKeys(runtime, accountIdsHex)
 
         val activeEraIndex = getActiveEraIndex()
 
         val returnType = storage.type.value!!
 
-        val slashDeferDurationConstant = runtime.metadata.module("Staking").constant("SlashDeferDuration")
+        val slashDeferDurationConstant = runtime.metadata.staking().constant("SlashDeferDuration")
         val slashDeferDuration = bindSlashDeferDuration(slashDeferDurationConstant, runtime)
 
         bulkRetriever.queryKeys(fullKeys)
@@ -176,6 +179,14 @@ class StakingRepositoryImpl(
         val rewardDestinationEncoded = storageCache.getEntry(storageKey).content!!
 
         bindRewardDestination(rewardDestinationEncoded, runtime, stakingState.stashId, stakingState.controllerId)
+    }
+
+    override suspend fun controllerAccountInfoFlow(stakingState: StakingState.Stash): Flow<AccountInfo> {
+        return observeStorage(
+            stakingState.controllerAddress.networkType(),
+            keyBuilder = { it.metadata.system().storage("Account").storageKey(it, stakingState.stashId) },
+            binder = { scale, runtime -> scale?.let { bindAccountInfo(it, runtime) } ?: AccountInfo.empty() }
+        )
     }
 
     override fun stakingStoriesFlow(): Flow<List<StakingStory>> {
