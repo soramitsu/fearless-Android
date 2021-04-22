@@ -11,7 +11,7 @@
 
     <string name="common_balance">Balance</string>
 
-    <string name="make_payout_transaction_sent">Make payout transaction sent</string>
+    <string name="make_payout_transaction_sent">Payout transaction sent</string>
     <string name="staking_non_profitable_payout">The reward is less than the network fee.</string>
     <string name="common_are_you_sure">Are you sure?</string>
     <string name="common_not_enough_funds_title">Insufficient balance</string>
