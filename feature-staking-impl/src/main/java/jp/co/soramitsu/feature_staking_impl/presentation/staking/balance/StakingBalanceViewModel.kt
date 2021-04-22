@@ -15,7 +15,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageSta
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.UnbondingModel
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -43,6 +45,20 @@ class StakingBalanceViewModel(
         .inBackground()
         .asLiveData()
 
+    val unbondingsLiveData = interactor.currentUnbondingsFlow()
+        .combine(assetFlow) { unbondings, asset ->
+            unbondings.map { unbonding ->
+                val daysLeft = unbonding.daysLeft
+
+                UnbondingModel(
+                    daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
+                    amountModel = mapAmountToAmountModel(unbonding.amount, asset)
+                )
+            }
+        }
+        .inBackground()
+        .asLiveData()
+
     fun bondMoreClicked() = requireValidManageAction(defaultActionValidationSystem) {
         showMessage("Ready to open BOND MORE")
     }
@@ -53,6 +69,14 @@ class StakingBalanceViewModel(
 
     fun redeemClicked() = requireValidManageAction(defaultActionValidationSystem) {
         showMessage("Ready to open REDEEM")
+    }
+
+    fun backClicked() {
+        router.back()
+    }
+
+    fun unbondingsMoreClicked() {
+        showMessage("Ready to show REBOND actions")
     }
 
     private fun requireValidManageAction(
@@ -89,9 +113,5 @@ class StakingBalanceViewModel(
                     resourceManager.getString(R.string.staking_unbonding_limit_reached_message, reason.limit)
             }
         }
-    }
-
-    fun backClicked() {
-        router.back()
     }
 }

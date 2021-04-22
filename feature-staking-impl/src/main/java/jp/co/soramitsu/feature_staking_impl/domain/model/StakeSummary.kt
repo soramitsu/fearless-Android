@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.domain.model
 
 import java.math.BigDecimal
 
-class StakerSummary<S>(
+class StakeSummary<S>(
     val status: S,
     val totalStaked: BigDecimal,
     val totalRewards: BigDecimal,

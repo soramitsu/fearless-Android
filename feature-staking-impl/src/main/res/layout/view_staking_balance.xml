@@ -8,7 +8,7 @@
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
     <TextView
-        android:id="@+id/stakingBalanceTitle"
+        android:id="@+id/unbondingsTitle"
         style="@style/TextAppearance.Soramitsu.Header5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -28,7 +28,7 @@
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/stakingBalanceTitle"
+        app:layout_constraintTop_toBottomOf="@+id/unbondingsTitle"
         app:title="@string/wallet_balance_bonded" />
 
     <View

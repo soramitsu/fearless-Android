@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
+import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
@@ -32,9 +33,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
-import jp.co.soramitsu.feature_staking_impl.domain.model.StakerSummary
+import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
+import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -46,6 +48,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -55,6 +58,13 @@ import java.math.BigInteger
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
 import kotlin.time.milliseconds
+
+class EraRelativeInfo(
+    val daysLeft: Int,
+    val daysPast: Int,
+    val erasLeft: BigInteger,
+    val erasPast: BigInteger,
+)
 
 class StakingInteractor(
     private val walletRepository: WalletRepository,
@@ -85,22 +95,18 @@ class StakingInteractor(
             val identityMapping = identityRepository.getIdentitiesFromAddresses(allValidatorAddresses)
 
             val pendingPayouts = payouts.map {
-                val erasPast = activeEraIndex - it.era
-                val erasLeft = historyDepth - erasPast
+                val relativeInfo = eraRelativeInfo(it.era, activeEraIndex, historyDepth, erasPerDay)
 
-                val daysPast = erasPast.toInt() / erasPerDay
-                val daysLeft = erasLeft.toInt() / erasPerDay
+                val estimatedCreatedAt = System.currentTimeMillis().milliseconds - relativeInfo.daysPast.days
 
-                val estimatedCreatedAt = System.currentTimeMillis().milliseconds - daysPast.days
-
-                val closeToExpire = erasLeft < historyDepth / 2.toBigInteger()
+                val closeToExpire = relativeInfo.erasLeft < historyDepth / 2.toBigInteger()
 
                 with(it) {
                     val validatorIdentity = identityMapping[validatorAddress]
 
                     val validatorInfo = PendingPayout.ValidatorInfo(validatorAddress, validatorIdentity?.display)
 
-                    PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), daysLeft, closeToExpire)
+                    PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), relativeInfo.daysLeft, closeToExpire)
                 }
             }
 
@@ -118,8 +124,8 @@ class StakingInteractor(
     }
 
     suspend fun observeValidatorSummary(
-        validatorState: StakingState.Stash.Validator
-    ): Flow<StakerSummary<ValidatorStatus>> = observeStakerSummary(validatorState) {
+        validatorState: StakingState.Stash.Validator,
+    ): Flow<StakeSummary<ValidatorStatus>> = observeStakeSummary(validatorState) {
         when {
             it.electionStatus == Election.OPEN -> ValidatorStatus.Election
             isValidatorActive(validatorState.stashId, it.eraStakers) -> ValidatorStatus.Active
@@ -128,8 +134,8 @@ class StakingInteractor(
     }
 
     suspend fun observeNominatorSummary(
-        nominatorState: StakingState.Stash.Nominator
-    ): Flow<StakerSummary<NominatorStatus>> = observeStakerSummary(nominatorState) {
+        nominatorState: StakingState.Stash.Nominator,
+    ): Flow<StakeSummary<NominatorStatus>> = observeStakeSummary(nominatorState) {
         val existentialDeposit = walletConstants.existentialDeposit()
         val eraStakers = it.eraStakers.values
 
@@ -239,10 +245,47 @@ class StakingInteractor(
         return stakingRepository.getRewardDestination(accountStakingState)
     }
 
-    private suspend fun <S> observeStakerSummary(
+    fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
+        return selectedAccountStakingStateFlow()
+            .filterIsInstance<StakingState.Stash>()
+            .flatMapLatest { stash ->
+                val networkType = stash.stashAddress.networkType()
+
+                stakingRepository.ledgerFlow(stash).map { ledger ->
+                    val erasPerDay = networkType.runtimeConfiguration.erasPerDay
+                    val activeEraIndex = stakingRepository.getActiveEraIndex()
+                    val historyDepth = stakingRepository.getHistoryDepth()
+
+                    ledger.unlocking
+                        .filter { it.isUnbondingIn(activeEraIndex) }
+                        .map {
+                            val relativeInfo = eraRelativeInfo(it.era, activeEraIndex, historyDepth, erasPerDay)
+
+                            Unbonding(it.amount, relativeInfo.daysLeft)
+                        }
+                }
+            }
+    }
+
+    private fun eraRelativeInfo(
+        referenceEra: BigInteger,
+        activeEra: BigInteger,
+        historyDepth: BigInteger,
+        erasPerDay: Int,
+    ): EraRelativeInfo {
+        val erasPast = activeEra - referenceEra
+        val erasLeft = historyDepth - erasPast
+
+        val daysPast = erasPast.toInt() / erasPerDay
+        val daysLeft = erasLeft.toInt() / erasPerDay
+
+        return EraRelativeInfo(daysLeft, daysPast, erasLeft, erasPast)
+    }
+
+    private suspend fun <S> observeStakeSummary(
         state: StakingState.Stash,
-        statusResolver: suspend (StatusResolutionContext) -> S
-    ): Flow<StakerSummary<S>> = withContext(Dispatchers.Default) {
+        statusResolver: suspend (StatusResolutionContext) -> S,
+    ): Flow<StakeSummary<S>> = withContext(Dispatchers.Default) {
         val networkType = state.accountAddress.networkType()
         val tokenType = Token.Type.fromNetworkType(networkType)
 
@@ -261,7 +304,7 @@ class StakingInteractor(
 
             val status = statusResolver(statusResolutionContext)
 
-            StakerSummary(
+            StakeSummary(
                 status = status,
                 totalStaked = totalStaked,
                 totalRewards = totalRewards(rewards),
@@ -332,6 +375,6 @@ class StakingInteractor(
         val eraStakers: AccountIdMap<Exposure>,
         val activeEraIndex: BigInteger,
         val electionStatus: Election,
-        val asset: Asset
+        val asset: Asset,
     )
 }

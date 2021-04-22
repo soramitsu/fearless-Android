@@ -16,7 +16,7 @@ class UnbondingRequestsLimitValidation<P, E>(
 ) : Validation<P, E> {
 
     override suspend fun validate(value: P): ValidationStatus<E> {
-        val ledger = stakingRepository.observeLedger(stashStateProducer(value)).first()
+        val ledger = stakingRepository.ledgerFlow(stashStateProducer(value)).first()
 
         return if (ledger.unlocking.size < UNLOCKING_LIMIT) {
             ValidationStatus.Valid()

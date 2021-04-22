@@ -17,13 +17,14 @@ import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceAct
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceInfo
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceScrollingArea
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceToolbar
+import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceUnbondings
 
 class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         return inflater.inflate(R.layout.fragment_staking_balance, container, false)
     }
@@ -44,6 +45,10 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
         // set padding dynamically so initially scrolling area in under toolbar
         stakingBalanceToolbar.doOnNextLayout {
             stakingBalanceScrollingArea.updatePadding(top = it.height + 8.dp)
+        }
+
+        stakingBalanceUnbondings.setMoreActionClickListener {
+            viewModel.unbondingsMoreClicked()
         }
     }
 
@@ -72,5 +77,7 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
                 redeemable.setFiatAmount(it.redeemable.fiat)
             }
         }
+
+        viewModel.unbondingsLiveData.observe(stakingBalanceUnbondings::submitList)
     }
 }

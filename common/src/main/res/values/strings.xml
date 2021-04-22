@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_unbondings_placeholder">Your unbondings will appear here.</string>
+
     <string name="staking_unbonding_limit_reached_message">You have reached the unbonding requests limit (%d active requests).</string>
     <string name="staking_unbonding_limit_reached_title">Unbonding requests limit reached</string>
 

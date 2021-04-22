@@ -8,17 +8,17 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:id="@+id/itemPayoutIcon"
+        android:id="@+id/itemListDefaultIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/itemPayoutTime"
+        app:layout_constraintBottom_toBottomOf="@+id/itemListElementDescriptionLeft"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/itemPayoutAddress"
+        app:layout_constraintTop_toTopOf="@+id/itemListElementTitleLeft"
         android:src="@drawable/ic_subtract" />
 
     <TextView
-        android:id="@+id/itemPayoutAddress"
+        android:id="@+id/itemListElementTitleLeft"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -27,25 +27,25 @@
         android:layout_marginEnd="48dp"
         android:ellipsize="middle"
         android:singleLine="true"
-        app:layout_constraintEnd_toStartOf="@+id/itemPayoutAmount"
-        app:layout_constraintStart_toEndOf="@+id/itemPayoutIcon"
+        app:layout_constraintEnd_toStartOf="@+id/itemListElementTitleRight"
+        app:layout_constraintStart_toEndOf="@+id/itemListDefaultIcon"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="F2dMuaCik4Ackmo9hoMMV79ETtVNvKSZMVK5sue9q1syPrW" />
 
     <TextView
-        android:id="@+id/itemPayoutTime"
+        android:id="@+id/itemListElementDescriptionLeft"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:textColor="@color/colorGreyText"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/itemPayoutAddress"
-        app:layout_constraintTop_toBottomOf="@+id/itemPayoutAddress"
+        app:layout_constraintStart_toStartOf="@+id/itemListElementTitleLeft"
+        app:layout_constraintTop_toBottomOf="@+id/itemListElementTitleLeft"
         tools:text="10/04/20, 22:36:45" />
 
     <TextView
-        android:id="@+id/itemPayoutAmount"
+        android:id="@+id/itemListElementTitleRight"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -63,12 +63,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:id="@+id/itemPayoutFiat"
+        android:id="@+id/itemListElementDescriptionRight"
         android:ellipsize="middle"
         android:singleLine="true"
         android:textColor="@color/black1"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/itemPayoutAmount"
-        app:layout_constraintTop_toBottomOf="@+id/itemPayoutAmount"
+        app:layout_constraintEnd_toEndOf="@+id/itemListElementTitleRight"
+        app:layout_constraintTop_toBottomOf="@+id/itemListElementTitleRight"
         tools:text="$1.4" />
 </androidx.constraintlayout.widget.ConstraintLayout>

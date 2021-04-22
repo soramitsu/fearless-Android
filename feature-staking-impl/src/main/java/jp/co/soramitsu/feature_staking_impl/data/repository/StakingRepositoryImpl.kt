@@ -182,7 +182,7 @@ class StakingRepositoryImpl(
         return stakingStoriesDataSource.getStoriesFlow()
     }
 
-    override suspend fun observeLedger(stakingState: StakingState.Stash): Flow<StakingLedger> {
+    override suspend fun ledgerFlow(stakingState: StakingState.Stash): Flow<StakingLedger> {
         return observeStorage(
             networkType = stakingState.controllerAddress.networkType(),
             keyBuilder = { it.metadata.staking().storage("Ledger").storageKey(it, stakingState.controllerId) },

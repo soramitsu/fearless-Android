@@ -29,7 +29,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/payoutsListToolbar"
         tools:itemCount="20"
-        tools:listitem="@layout/item_payout" />
+        tools:listitem="@layout/item_list_default" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/payoutsListAll"
