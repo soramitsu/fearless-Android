@@ -59,7 +59,7 @@ class StakingBalanceViewModel(
         .asLiveData()
 
     fun bondMoreClicked() = requireValidManageAction(bondMoreValidationSystem) {
-        showMessage("Ready to open BOND MORE")
+        router.openBondMore()
     }
 
     fun unbondClicked() = requireValidManageAction(unbondValidationSystem) {

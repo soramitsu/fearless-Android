@@ -66,8 +66,6 @@ class SelectBondMoreViewModel(
 
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
-
-
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
         asset.token.fiatAmount(amount)?.formatAsCurrency()
     }
@@ -103,7 +101,6 @@ class SelectBondMoreViewModel(
                 val feeInPlanks = bondMoreInteractor.estimateFee(controllerAddress(), amountInPlanks)
 
                 asset.token.amountFromPlanks(feeInPlanks)
-
             },
             onRetryCancelled = ::backClicked
         )
@@ -115,7 +112,6 @@ class SelectBondMoreViewModel(
     )
 
     private fun maybeGoToNext() = requireFee { fee ->
-
     }
 
     private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress

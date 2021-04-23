@@ -5,9 +5,11 @@ import jp.co.soramitsu.feature_staking_impl.di.validations.MakePayoutValidations
 import jp.co.soramitsu.feature_staking_impl.di.validations.SetupStakingValidationsModule
 import jp.co.soramitsu.feature_staking_impl.di.validations.StakingBalanceValidationsModule
 
-@Module(includes = [
-    MakePayoutValidationsModule::class,
-    SetupStakingValidationsModule::class,
-    StakingBalanceValidationsModule::class
-])
+@Module(
+    includes = [
+        MakePayoutValidationsModule::class,
+        SetupStakingValidationsModule::class,
+        StakingBalanceValidationsModule::class
+    ]
+)
 class StakingValidationModule

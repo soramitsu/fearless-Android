@@ -177,6 +177,10 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_stakingBalanceFragment)
     }
 
+    override fun openBondMore() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_selectBondMoreFragment)
+    }
+
     override fun back() {
         val popped = navController!!.popBackStack()
 

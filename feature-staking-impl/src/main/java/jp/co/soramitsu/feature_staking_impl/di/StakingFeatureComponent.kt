@@ -58,7 +58,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun stakingBalanceFactory(): StakingBalanceComponent.Factory
 
-    fun selectBondMoreFactory() : SelectBondMoreComponent.Factory
+    fun selectBondMoreFactory(): SelectBondMoreComponent.Factory
 
     @Component.Factory
     interface Factory {

@@ -12,8 +12,8 @@
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:includeFontPadding="false"
         android:text="@string/network_fee"
         android:textColor="@color/white_64"
@@ -27,18 +27,16 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
         android:ellipsize="middle"
         android:gravity="end"
         android:includeFontPadding="false"
         android:singleLine="true"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/feeFiat"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/feeTitle"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
-        app:layout_goneMarginBottom="8dp"
         tools:text="10.00003 KSM"
         tools:textColor="@color/white" />
 
@@ -47,10 +45,9 @@
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
         android:includeFontPadding="false"
         android:textColor="@color/white_50"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/feeToken"
         app:layout_constraintTop_toBottomOf="@id/feeToken"
@@ -75,4 +72,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/feeContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="feeFiat, feeToken" />
 </merge>

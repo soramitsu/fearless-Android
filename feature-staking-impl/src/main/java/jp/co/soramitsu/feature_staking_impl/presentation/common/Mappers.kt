@@ -12,7 +12,8 @@ import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefa
 import java.math.BigDecimal
 
 fun mapAssetToAssetModel(
-    asset: Asset, resourceManager: ResourceManager,
+    asset: Asset,
+    resourceManager: ResourceManager,
     retrieveAmount: (Asset) -> BigDecimal = Asset::transferable
 ): AssetModel {
     val available = retrieveAmount(asset).formatWithDefaultPrecision(asset.token.type)

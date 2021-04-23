@@ -4,10 +4,12 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeStatus
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeViews
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.displayFeeStatus
+import kotlinx.android.synthetic.main.view_fee.view.feeContent
 import kotlinx.android.synthetic.main.view_fee.view.feeFiat
 import kotlinx.android.synthetic.main.view_fee.view.feeProgress
 import kotlinx.android.synthetic.main.view_fee.view.feeToken
@@ -22,11 +24,24 @@ class FeeView @JvmOverloads constructor(
         View.inflate(context, R.layout.view_fee, this)
     }
 
-    private val feeViews by lazy {
-        FeeViews(feeProgress, feeFiat, feeToken)
-    }
-
     fun setFeeStatus(feeStatus: FeeStatus) {
-        displayFeeStatus(feeStatus, feeViews, hiddenState = View.INVISIBLE)
+        when (feeStatus) {
+            is FeeStatus.Loading -> {
+                feeContent.makeGone()
+                feeProgress.makeVisible()
+            }
+            is FeeStatus.Error -> {
+                feeToken.text = context.getString(R.string.common_error_general_title)
+                feeFiat.makeGone()
+                feeProgress.makeGone()
+            }
+            is FeeStatus.Loaded -> {
+                feeContent.makeVisible()
+                feeToken.text = feeStatus.feeModel.displayToken
+                feeFiat.setTextOrHide(feeStatus.feeModel.displayFiat)
+
+                feeProgress.makeGone()
+            }
+        }
     }
 }
