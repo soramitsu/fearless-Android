@@ -33,6 +33,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorReco
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
+import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
@@ -193,4 +194,11 @@ class StakingFeatureModule {
         feeEstimator: FeeEstimator,
         extrinsicService: ExtrinsicService
     ) = PayoutInteractor(feeEstimator, extrinsicService)
+
+    @Provides
+    @FeatureScope
+    fun provideBondMoreInteractor(
+        feeEstimator: FeeEstimator,
+        extrinsicService: ExtrinsicService
+    ) = BondMoreInteractor(feeEstimator, extrinsicService)
 }

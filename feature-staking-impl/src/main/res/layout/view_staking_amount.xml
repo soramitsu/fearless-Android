@@ -65,16 +65,17 @@
         android:layout_marginEnd="16dp"
         android:background="@null"
         android:gravity="end"
+        android:hint="0"
         android:inputType="numberDecimal"
         android:paddingBottom="27dp"
-        android:text="@string/choose_amount_initial"
         android:textColor="@color/white"
+        android:textColorHint="@color/white_30"
         android:textCursorDrawable="@null"
+        android:textStyle="bold"
         app:layout_constraintBaseline_toBaselineOf="@id/stakingAssetToken"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@id/stakingAssetToken"
-        tools:text="10" />
+        app:layout_constraintStart_toEndOf="@id/stakingAssetToken" />
 
     <TextView
         android:id="@+id/stakingAssetBalance"

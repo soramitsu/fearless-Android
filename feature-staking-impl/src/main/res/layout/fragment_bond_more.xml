@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/bondMoreContainer"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:layout_width="match_parent"
+        android:id="@+id/bondMoreToolbar"
+        android:layout_height="wrap_content"
+        app:homeButtonIcon="@drawable/ic_close"
+        app:titleText="@string/staking_bond_more" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:id="@+id/bondMoreAmount"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.FeeView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:id="@+id/bondMoreFee"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:id="@+id/bondMoreContinue"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/common_continue" />
+</LinearLayout>
