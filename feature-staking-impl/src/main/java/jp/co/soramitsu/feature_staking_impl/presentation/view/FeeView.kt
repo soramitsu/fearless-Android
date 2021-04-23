@@ -32,6 +32,8 @@ class FeeView @JvmOverloads constructor(
             }
             is FeeStatus.Error -> {
                 feeToken.text = context.getString(R.string.common_error_general_title)
+
+                feeToken.makeVisible()
                 feeFiat.makeGone()
                 feeProgress.makeGone()
             }
