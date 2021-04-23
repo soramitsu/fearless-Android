@@ -38,7 +38,7 @@ class StakingValidationModule {
             feeExtractor = { it.maxFee },
             availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
                 walletRepository,
-                originAddressExtractor = {  it.stashSetup.controllerAddress },
+                originAddressExtractor = { it.stashSetup.controllerAddress },
                 tokenTypeExtractor = { it.tokenType }
             ),
             errorProducer = { SetupStakingValidationFailure.CannotPayFee },
@@ -55,7 +55,7 @@ class StakingValidationModule {
             feeExtractor = { it.fee },
             availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
                 walletRepository,
-                originAddressExtractor = {  it.originAddress },
+                originAddressExtractor = { it.originAddress },
                 tokenTypeExtractor = { it.tokenType }
             ),
             errorProducer = { PayoutValidationFailure.CannotPayFee }

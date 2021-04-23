@@ -64,7 +64,7 @@ class ConfirmStakingViewModel(
 
     private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.Confirm>()
 
-    private val assetFlow = interactor.currentAssetFlow()
+    private val assetFlow = interactor.assetFlow(currentProcessState.stashSetup.controllerAddress)
         .share()
 
     val assetLiveData = assetFlow
