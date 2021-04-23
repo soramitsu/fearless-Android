@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMoreViewModel
@@ -28,6 +29,7 @@ class SelectBondMoreModule {
         bondMoreInteractor: BondMoreInteractor,
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
+        validationSystem: BondMoreValidationSystem,
         feeLoaderMixin: FeeLoaderMixin.Presentation
     ): ViewModel {
         return SelectBondMoreViewModel(
@@ -36,6 +38,7 @@ class SelectBondMoreModule {
             bondMoreInteractor,
             resourceManager,
             validationExecutor,
+            validationSystem,
             feeLoaderMixin
         )
     }

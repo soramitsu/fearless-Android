@@ -28,11 +28,11 @@ enum class DefaultFailureLevel(override val value: Int) : ValidationStatus.NotVa
 }
 
 class CompositeValidation<T, S>(
-    val validators: List<Validation<T, S>>
+    val validations: List<Validation<T, S>>
 ) : Validation<T, S> {
 
     override suspend fun validate(value: T): ValidationStatus<S> {
-        val failureStatuses = validators.map { it.validate(value) }
+        val failureStatuses = validations.map { it.validate(value) }
             .filterIsInstance<ValidationStatus.NotValid<S>>()
 
         val mostSeriousReason = failureStatuses.maxByOrNull { it.level.value }

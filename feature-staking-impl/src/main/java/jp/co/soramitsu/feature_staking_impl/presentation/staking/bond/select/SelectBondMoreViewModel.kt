@@ -4,14 +4,20 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
@@ -27,6 +33,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
@@ -40,6 +47,7 @@ class SelectBondMoreViewModel(
     private val bondMoreInteractor: BondMoreInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
+    private val validationSystem: BondMoreValidationSystem,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
 ) : BaseViewModel(),
     Validatable by validationExecutor,
@@ -110,7 +118,45 @@ class SelectBondMoreViewModel(
     )
 
     private fun maybeGoToNext() = requireFee { fee ->
+        launch {
+            val payload = BondMoreValidationPayload(
+                stashState = accountStakingFlow.first(),
+                fee = fee,
+                amount = parsedAmountFlow.first(),
+                tokenType = assetFlow.first().token.type
+            )
+
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = payload,
+                validationFailureTransformer = ::bondMoreValidationFailure,
+                progressConsumer = _showNextProgress.progressConsumer()
+            ) {
+                _showNextProgress.value = false
+
+                showMessage("Ready to go to confirm")
+            }
+        }
     }
 
     private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress
+
+    private fun bondMoreValidationFailure(reason: BondMoreValidationFailure): TitleAndMessage {
+        return when (reason) {
+            BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES -> {
+                resourceManager.getString(R.string.common_not_enough_funds_title) to
+                    resourceManager.getString(R.string.common_not_enough_funds_message)
+            }
+
+            BondMoreValidationFailure.ZERO_BOND -> {
+                resourceManager.getString(R.string.common_error_general_title) to
+                    resourceManager.getString(R.string.staking_zero_bond_error)
+            }
+
+            BondMoreValidationFailure.ELECTION_IS_OPEN -> {
+                resourceManager.getString(R.string.staking_nominator_status_election) to
+                    resourceManager.getString(R.string.staking_nominator_status_alert_election_message)
+            }
+        }
+    }
 }

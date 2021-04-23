@@ -73,7 +73,7 @@ class StakingBalanceValidationsModule {
         controllerRequiredValidation: BalanceAccountRequiredValidation,
     ) = ValidationSystem(
         CompositeValidation(
-            validators = listOf(
+            validations = listOf(
                 controllerRequiredValidation,
                 balanceElectionPeriodValidation
             )
@@ -89,7 +89,7 @@ class StakingBalanceValidationsModule {
         stashRequiredValidation: BalanceAccountRequiredValidation,
     ) = ValidationSystem(
         CompositeValidation(
-            validators = listOf(
+            validations = listOf(
                 stashRequiredValidation,
                 balanceElectionPeriodValidation
             )
@@ -106,7 +106,7 @@ class StakingBalanceValidationsModule {
         balanceUnlockingLimitValidation: BalanceUnlockingLimitValidation
     ) = ValidationSystem(
         CompositeValidation(
-            validators = listOf(
+            validations = listOf(
                 controllerRequiredValidation,
                 balanceElectionPeriodValidation,
                 balanceUnlockingLimitValidation
