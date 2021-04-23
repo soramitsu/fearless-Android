@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -14,17 +15,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteract
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -59,8 +57,8 @@ class SelectBondMoreViewModel(
         .share()
 
     val assetModelFlow = assetFlow
-        .map { mapAssetToAssetModel(it, resourceManager, Asset::bonded) }
-        .flowOn(Dispatchers.Default)
+        .map { mapAssetToAssetModel(it, resourceManager) }
+        .inBackground()
 
     val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
 
@@ -69,7 +67,7 @@ class SelectBondMoreViewModel(
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
         asset.token.fiatAmount(amount)?.formatAsCurrency()
     }
-        .flowOn(Dispatchers.Default)
+        .inBackground()
         .asLiveData()
 
     init {
