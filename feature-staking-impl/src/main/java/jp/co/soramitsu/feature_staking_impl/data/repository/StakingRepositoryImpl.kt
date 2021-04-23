@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.Binder
+import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinder
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.balances
@@ -89,22 +90,22 @@ class StakingRepositoryImpl(
         return inEras.toInt() / networkType.runtimeConfiguration.erasPerDay
     }
 
-    override suspend fun getTotalIssuance(): BigInteger = getFromStorage(
+    override suspend fun getTotalIssuance(): BigInteger = getFromStorageNonNull(
         keyBuilder = { it.metadata.balances().storage("TotalIssuance").storageKey() },
         binding = ::bindTotalInsurance
     )
 
-    override suspend fun getActiveEraIndex(): BigInteger = getFromStorage(
+    override suspend fun getActiveEraIndex(): BigInteger = getFromStorageNonNull(
         keyBuilder = { it.metadata.activeEraStorageKey() },
         binding = ::bindActiveEra
     )
 
-    override suspend fun getCurrentEraIndex(): BigInteger = getFromStorage(
+    override suspend fun getCurrentEraIndex(): BigInteger = getFromStorageNonNull(
         keyBuilder = { it.metadata.staking().storage("CurrentEra").storageKey() },
         binding = ::bindCurrentEra
     )
 
-    override suspend fun getHistoryDepth(): BigInteger = getFromStorage(
+    override suspend fun getHistoryDepth(): BigInteger = getFromStorageNonNull(
         keyBuilder = { it.metadata.staking().storage("HistoryDepth").storageKey() },
         binding = ::bindHistoryDepth
     )
@@ -181,11 +182,10 @@ class StakingRepositoryImpl(
         bindRewardDestination(rewardDestinationEncoded, runtime, stakingState.stashId, stakingState.controllerId)
     }
 
-    override suspend fun controllerAccountInfoFlow(stakingState: StakingState.Stash): Flow<AccountInfo> {
-        return observeStorage(
-            stakingState.controllerAddress.networkType(),
+    override suspend fun getControllerAccountInfo(stakingState: StakingState.Stash): AccountInfo {
+        return getFromStorage(
             keyBuilder = { it.metadata.system().storage("Account").storageKey(it, stakingState.stashId) },
-            binder = { scale, runtime -> scale?.let { bindAccountInfo(it, runtime) } ?: AccountInfo.empty() }
+            binding = { scale, runtime -> scale?.let { bindAccountInfo(it, runtime) } ?: AccountInfo.empty() }
         )
     }
 
@@ -260,14 +260,19 @@ class StakingRepositoryImpl(
 
     private suspend fun <T> getFromStorage(
         keyBuilder: (RuntimeSnapshot) -> String,
-        binding: (scale: String, runtime: RuntimeSnapshot) -> T,
+        binding: Binder<T>,
     ): T = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 
-        val scale = storageCache.getEntry(keyBuilder(runtime)).content!!
+        val scale = storageCache.getEntry(keyBuilder(runtime)).content
 
         binding(scale, runtime)
     }
+
+    private suspend inline fun <T> getFromStorageNonNull(
+        noinline keyBuilder: (RuntimeSnapshot) -> String,
+        crossinline binding: NonNullBinder<T>,
+    ) = getFromStorage(keyBuilder) { scale, runtime -> binding(scale!!, runtime) }
 
     private suspend fun <T> observeStorage(
         networkType: Node.NetworkType,

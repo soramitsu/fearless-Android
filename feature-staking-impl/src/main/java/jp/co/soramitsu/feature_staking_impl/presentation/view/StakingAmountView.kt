@@ -21,7 +21,7 @@ import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetToken
 class StakingAmountView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyle: Int = 0
+    defStyle: Int = 0,
 ) : ConstraintLayout(context, attrs, defStyle) {
 
     val amountInput: EditText
@@ -38,12 +38,26 @@ class StakingAmountView @JvmOverloads constructor(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
 
+        amountInput.isEnabled = enabled
         amountInput.inputType = if (enabled) InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL else InputType.TYPE_NULL
     }
 
-    private fun setBackground() {
-        setAddStatesFromChildren(true)
+    override fun childDrawableStateChanged(child: View?) {
+        refreshDrawableState()
+    }
 
+    // Make this view be aware of amountInput state changes (i.e. state_focused)
+    override fun onCreateDrawableState(extraSpace: Int): IntArray {
+        val fieldState: IntArray? = amountInput.drawableState
+
+        val need = fieldState?.size ?: 0
+
+        val selfState = super.onCreateDrawableState(extraSpace + need)
+
+        return mergeDrawableStates(selfState, fieldState)
+    }
+
+    private fun setBackground() {
         background = context.getCutCornersStateDrawable(
             focusedDrawable = context.getCutCornerDrawable(
                 R.color.blurColor,

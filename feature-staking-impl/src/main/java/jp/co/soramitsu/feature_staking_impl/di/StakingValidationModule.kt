@@ -14,17 +14,16 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceUn
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_DEFAULT
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_UNBOND
-import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayoutPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.ProfitablePayoutValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
+import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
 import javax.inject.Named
 
 @Module
@@ -36,12 +35,14 @@ class StakingValidationModule {
         walletRepository: WalletRepository,
     ): SetupStakingFeeValidation {
         return EnoughToPayFeesValidation(
-            walletRepository = walletRepository,
-            feeExtractor = SetupStakingPayload::maxFee,
-            originAddressExtractor = { it.stashSetup.controllerAddress },
-            tokenTypeExtractor = SetupStakingPayload::tokenType,
+            feeExtractor = { it.maxFee },
+            availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
+                walletRepository,
+                originAddressExtractor = { it.stashSetup.controllerAddress },
+                tokenTypeExtractor = { it.tokenType }
+            ),
             errorProducer = { SetupStakingValidationFailure.CannotPayFee },
-            extraAmountExtractor = SetupStakingPayload::amount
+            extraAmountExtractor = { it.amount }
         )
     }
 
@@ -51,10 +52,12 @@ class StakingValidationModule {
         walletRepository: WalletRepository,
     ): PayoutFeeValidation {
         return EnoughToPayFeesValidation(
-            walletRepository = walletRepository,
-            feeExtractor = MakePayoutPayload::fee,
-            originAddressExtractor = { it.originAddress },
-            tokenTypeExtractor = MakePayoutPayload::tokenType,
+            feeExtractor = { it.fee },
+            availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
+                walletRepository,
+                originAddressExtractor = { it.originAddress },
+                tokenTypeExtractor = { it.tokenType }
+            ),
             errorProducer = { PayoutValidationFailure.CannotPayFee }
         )
     }

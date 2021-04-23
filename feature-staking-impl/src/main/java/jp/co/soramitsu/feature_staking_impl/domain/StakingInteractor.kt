@@ -184,9 +184,13 @@ class StakingInteractor(
     }
 
     fun currentAssetFlow() = accountRepository.selectedAccountFlow()
-        .flatMapLatest { walletRepository.assetsFlow(it.address) }
-        .filter { it.isNotEmpty() }
-        .map { it.first() }
+        .flatMapLatest { assetFlow(it.address) }
+
+    fun assetFlow(accountAddress: String): Flow<Asset> {
+        return walletRepository.assetsFlow(accountAddress)
+            .filter { it.isNotEmpty() }
+            .map { it.first() }
+    }
 
     suspend fun getSelectedNetworkType(): Node.NetworkType {
         return accountRepository.getSelectedNode().networkType

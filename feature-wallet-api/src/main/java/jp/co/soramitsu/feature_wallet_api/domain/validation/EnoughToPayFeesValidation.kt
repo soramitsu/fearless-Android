@@ -7,22 +7,33 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import java.math.BigDecimal
 
-class EnoughToPayFeesValidation<T, E>(
-    private val walletRepository: WalletRepository,
-    private val feeExtractor: (T) -> BigDecimal,
-    private val originAddressExtractor: (T) -> String,
-    private val tokenTypeExtractor: (T) -> Token.Type,
+typealias AmountProducer<P> = suspend (P) -> BigDecimal
+
+class EnoughToPayFeesValidation<P, E>(
+    private val feeExtractor: AmountProducer<P>,
+    private val availableBalanceProducer: AmountProducer<P>,
     private val errorProducer: () -> E,
-    private val extraAmountExtractor: (T) -> BigDecimal = { BigDecimal.ZERO },
-) : Validation<T, E> {
+    private val extraAmountExtractor: AmountProducer<P> = { BigDecimal.ZERO },
+) : Validation<P, E> {
 
-    override suspend fun validate(value: T): ValidationStatus<E> {
-        val asset = walletRepository.getAsset(originAddressExtractor(value), tokenTypeExtractor(value))!!
+    companion object;
 
-        return if (extraAmountExtractor(value) + feeExtractor(value) < asset.transferable) {
+    override suspend fun validate(value: P): ValidationStatus<E> {
+
+        return if (extraAmountExtractor(value) + feeExtractor(value) < availableBalanceProducer(value)) {
             ValidationStatus.Valid()
         } else {
             ValidationStatus.NotValid(DefaultFailureLevel.ERROR, errorProducer())
         }
     }
+}
+
+fun <P> EnoughToPayFeesValidation.Companion.assetBalanceProducer(
+    walletRepository: WalletRepository,
+    originAddressExtractor: (P) -> String,
+    tokenTypeExtractor: (P) -> Token.Type,
+): AmountProducer<P> = { payload ->
+    val asset = walletRepository.getAsset(originAddressExtractor(payload), tokenTypeExtractor(payload))!!
+
+    asset.transferable
 }
