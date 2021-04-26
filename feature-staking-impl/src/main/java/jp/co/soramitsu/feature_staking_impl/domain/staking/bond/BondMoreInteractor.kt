@@ -21,10 +21,10 @@ class BondMoreInteractor(
     }
 
     suspend fun bondMore(accountAddress: String, amount: BigInteger): Result<String> {
-       return withContext(Dispatchers.IO) {
-           extrinsicService.submitExtrinsic(accountAddress) {
-               bondMore(amount)
-           }
-       }
+        return withContext(Dispatchers.IO) {
+            extrinsicService.submitExtrinsic(accountAddress) {
+                bondMore(amount)
+            }
+        }
     }
 }
