@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_unbond_explanation">Your tokens will be available to redeem after the unbonding period.</string>
+
     <string name="common_transaction_submitted">Transaction submitted</string>
 
     <string name="staking_zero_bond_error">Amount must be positive</string>
