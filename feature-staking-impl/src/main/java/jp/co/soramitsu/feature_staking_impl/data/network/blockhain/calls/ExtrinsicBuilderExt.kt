@@ -50,3 +50,12 @@ fun ExtrinsicBuilder.payoutStakers(era: BigInteger, validatorId: AccountId): Ext
         )
     )
 }
+
+fun ExtrinsicBuilder.bondMore(amount: BigInteger): ExtrinsicBuilder {
+    return call(
+        "Staking", "bond_extra",
+        mapOf(
+            "max_additional" to amount
+        )
+    )
+}

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_no_stash_account">Stash account %s is unavailable to update staking setup.</string>
+    <string name="common_available_format">Available: %s</string>
     <string name="staking_unbondings_placeholder">Your unbondings will appear here.</string>
 
     <string name="staking_unbonding_limit_reached_message">You have reached the unbonding requests limit (%d active requests).</string>

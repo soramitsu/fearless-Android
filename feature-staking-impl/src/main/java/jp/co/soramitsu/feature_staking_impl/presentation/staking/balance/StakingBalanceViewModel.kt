@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
-import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -24,9 +23,9 @@ import kotlinx.coroutines.launch
 
 class StakingBalanceViewModel(
     private val router: StakingRouter,
-    private val addressIconGenerator: AddressIconGenerator,
-    private val defaultActionValidationSystem: ManageStakingValidationSystem,
+    private val redeemValidationSystem: ManageStakingValidationSystem,
     private val unbondValidationSystem: ManageStakingValidationSystem,
+    private val bondMoreValidationSystem: ManageStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
     private val resourceManager: ResourceManager,
     private val interactor: StakingInteractor,
@@ -59,15 +58,15 @@ class StakingBalanceViewModel(
         .inBackground()
         .asLiveData()
 
-    fun bondMoreClicked() = requireValidManageAction(defaultActionValidationSystem) {
-        showMessage("Ready to open BOND MORE")
+    fun bondMoreClicked() = requireValidManageAction(bondMoreValidationSystem) {
+        router.openBondMore()
     }
 
     fun unbondClicked() = requireValidManageAction(unbondValidationSystem) {
         showMessage("Ready to open UNBOND")
     }
 
-    fun redeemClicked() = requireValidManageAction(defaultActionValidationSystem) {
+    fun redeemClicked() = requireValidManageAction(redeemValidationSystem) {
         showMessage("Ready to open REDEEM")
     }
 
@@ -81,7 +80,7 @@ class StakingBalanceViewModel(
 
     private fun requireValidManageAction(
         validationSystem: ManageStakingValidationSystem,
-        block: () -> Unit
+        block: () -> Unit,
     ) {
         launch {
             val stakingState = interactor.selectedAccountStakingStateFlow().first()
@@ -111,6 +110,10 @@ class StakingBalanceViewModel(
             is ManageStakingValidationFailure.UnbondingRequestLimitReached -> {
                 resourceManager.getString(R.string.staking_unbonding_limit_reached_title) to
                     resourceManager.getString(R.string.staking_unbonding_limit_reached_message, reason.limit)
+            }
+            is ManageStakingValidationFailure.StashRequired -> {
+                resourceManager.getString(R.string.common_error_general_title) to
+                    resourceManager.getString(R.string.staking_no_stash_account, reason.stashAddress)
             }
         }
     }

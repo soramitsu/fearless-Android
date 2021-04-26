@@ -8,12 +8,12 @@ import jp.co.soramitsu.feature_staking_impl.R
 class FeeViews(
     val progress: ProgressBar,
     val fiat: TextView,
-    val token: TextView
+    val token: TextView,
 )
 
 fun displayFeeStatus(
     feeStatus: FeeStatus,
-    feeViews: FeeViews
+    feeViews: FeeViews,
 ) = with(feeViews) {
     val context = progress.context
 
@@ -36,7 +36,7 @@ fun displayFeeStatus(
 
 private fun feeProgressShown(
     shown: Boolean,
-    feeViews: FeeViews
+    feeViews: FeeViews,
 ) = with(feeViews) {
     fiat.setVisible(!shown)
     token.setVisible(!shown)

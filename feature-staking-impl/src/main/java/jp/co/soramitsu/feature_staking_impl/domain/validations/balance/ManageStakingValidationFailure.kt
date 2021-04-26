@@ -6,5 +6,7 @@ sealed class ManageStakingValidationFailure {
 
     class ControllerRequired(val controllerAddress: String) : ManageStakingValidationFailure()
 
+    class StashRequired(val stashAddress: String) : ManageStakingValidationFailure()
+
     object ElectionPeriodOpen : ManageStakingValidationFailure()
 }

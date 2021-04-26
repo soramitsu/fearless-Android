@@ -11,14 +11,18 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import java.math.BigDecimal
 
-fun mapAssetToAssetModel(asset: Asset, resourceManager: ResourceManager): AssetModel {
-    return with(asset) {
-        val transferable = transferable.formatWithDefaultPrecision(asset.token.type)
+fun mapAssetToAssetModel(
+    asset: Asset,
+    resourceManager: ResourceManager,
+    retrieveAmount: (Asset) -> BigDecimal = Asset::transferable
+): AssetModel {
+    val available = retrieveAmount(asset).formatWithDefaultPrecision(asset.token.type)
 
+    return with(asset) {
         AssetModel(
             token.type.icon,
             token.type.displayName,
-            resourceManager.getString(R.string.common_balance_format, transferable)
+            resourceManager.getString(R.string.common_available_format, available)
         )
     }
 }

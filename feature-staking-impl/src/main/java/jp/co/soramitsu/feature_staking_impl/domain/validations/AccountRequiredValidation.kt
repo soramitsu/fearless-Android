@@ -5,19 +5,19 @@ import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 
-class ControllerRequiredValidation<P, E>(
+class AccountRequiredValidation<P, E>(
     val accountRepository: AccountRepository,
-    val controllerAddressExtractor: (P) -> String,
+    val accountAddressExtractor: (P) -> String,
     val errorProducer: (controllerAddress: String) -> E
 ) : Validation<P, E> {
 
     override suspend fun validate(value: P): ValidationStatus<E> {
-        val controllerAddress = controllerAddressExtractor(value)
+        val accountAddress = accountAddressExtractor(value)
 
-        return if (accountRepository.isAccountExists(controllerAddress)) {
+        return if (accountRepository.isAccountExists(accountAddress)) {
             ValidationStatus.Valid()
         } else {
-            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, errorProducer(controllerAddress))
+            ValidationStatus.NotValid(DefaultFailureLevel.ERROR, errorProducer(accountAddress))
         }
     }
 }

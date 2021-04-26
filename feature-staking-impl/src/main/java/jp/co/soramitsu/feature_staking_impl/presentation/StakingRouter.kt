@@ -31,5 +31,7 @@ interface StakingRouter {
 
     fun openStakingBalance()
 
+    fun openBondMore()
+
     fun back()
 }
