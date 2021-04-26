@@ -129,14 +129,15 @@
             app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
+            android:id="@+id/action_mainFragment_to_payoutsListFragment"
+            app:destination="@id/payoutsListFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_mainFragment_to_payoutsListFragment"
-            app:destination="@id/payoutsListFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
 
-        <action android:id="@+id/action_mainFragment_to_stakingBalanceFragment"
+        <action
+            android:id="@+id/action_mainFragment_to_stakingBalanceFragment"
             app:destination="@id/stakingBalanceFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
@@ -390,39 +391,41 @@
         tools:layout="@layout/fragment_recommended_validators">
 
         <action
+            android:id="@+id/action_recommendedValidatorsFragment_to_confirmStakingFragment"
+            app:destination="@id/confirmStakingFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_recommendedValidatorsFragment_to_confirmStakingFragment"
-            app:destination="@id/confirmStakingFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
-    <action android:id="@+id/back_to_main"
-        app:popUpTo="@id/mainFragment"
+    <action
+        android:id="@+id/back_to_main"
         app:enterAnim="@anim/fragment_close_enter"
         app:exitAnim="@anim/fragment_close_exit"
         app:popEnterAnim="@anim/fragment_open_enter"
-        app:popExitAnim="@anim/fragment_open_exit" />
+        app:popExitAnim="@anim/fragment_open_exit"
+        app:popUpTo="@id/mainFragment" />
 
-    <fragment android:id="@+id/confirmStakingFragment"
+    <fragment
+        android:id="@+id/confirmStakingFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.confirm.ConfirmStakingFragment"
-        tools:layout="@layout/fragment_confirm_stake"
-        android:label="confirmStakingFragment" >
+        android:label="confirmStakingFragment"
+        tools:layout="@layout/fragment_confirm_stake">
         <action
+            android:id="@+id/action_confirmStakingFragment_to_confirmNominationsFragment"
+            app:destination="@id/confirmNominationsFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_confirmStakingFragment_to_confirmNominationsFragment"
-            app:destination="@id/confirmNominationsFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <fragment
-        tools:layout="@layout/fragment_confirm_nominations"
         android:id="@+id/confirmNominationsFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.confirm.nominations.ConfirmNominationsFragment"
-        android:label="ConfirmNominationsFragment" />
+        android:label="ConfirmNominationsFragment"
+        tools:layout="@layout/fragment_confirm_nominations" />
 
     <action
         android:id="@+id/open_validator_details"
@@ -453,72 +456,83 @@
         tools:layout="@layout/fragment_story" />
 
     <fragment
-        tools:layout="@layout/fragment_payouts_list"
         android:id="@+id/payoutsListFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.PayoutsListFragment"
-        android:label="PayoutsListFragment" >
+        android:label="PayoutsListFragment"
+        tools:layout="@layout/fragment_payouts_list">
 
         <action
+            android:id="@+id/action_payoutsListFragment_to_payoutDetailsFragment"
+            app:destination="@id/payoutDetailsFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_payoutsListFragment_to_payoutDetailsFragment"
-            app:destination="@id/payoutDetailsFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
+
     <fragment
-        tools:layout="@layout/fragment_payout_details"
         android:id="@+id/payoutDetailsFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDetailsFragment"
-        android:label="PayoutDetailsFragment" />
+        android:label="PayoutDetailsFragment"
+        tools:layout="@layout/fragment_payout_details" />
 
-    <action app:enterAnim="@anim/fragment_open_enter"
+    <action
+        android:id="@+id/action_open_confirm_payout"
+        app:destination="@id/confirmPayoutFragment"
+        app:enterAnim="@anim/fragment_open_enter"
         app:exitAnim="@anim/fragment_open_exit"
         app:popEnterAnim="@anim/fragment_close_enter"
-        app:popExitAnim="@anim/fragment_close_exit"
-        android:id="@+id/action_open_confirm_payout"
-        app:destination="@id/confirmPayoutFragment" />
+        app:popExitAnim="@anim/fragment_close_exit" />
 
     <fragment
-        tools:layout="@layout/fragment_confirm_payout"
         android:id="@+id/confirmPayoutFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.ConfirmPayoutFragment"
-        android:label="ConfirmPayoutFragment" />
+        android:label="ConfirmPayoutFragment"
+        tools:layout="@layout/fragment_confirm_payout" />
 
-    <fragment tools:layout="@layout/fragment_staking_balance"
+    <fragment
         android:id="@+id/stakingBalanceFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.StakingBalanceFragment"
-        android:label="StakingBalanceFragment">
+        android:label="StakingBalanceFragment"
+        tools:layout="@layout/fragment_staking_balance">
 
         <action
+            android:id="@+id/action_stakingBalanceFragment_to_selectBondMoreFragment"
+            app:destination="@id/selectBondMoreFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_stakingBalanceFragment_to_selectBondMoreFragment"
-            app:destination="@id/selectBondMoreFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
+
+    <action
+        android:id="@+id/action_return_to_staking_balance"
+        app:enterAnim="@anim/fragment_close_enter"
+        app:exitAnim="@anim/fragment_close_exit"
+        app:popEnterAnim="@anim/fragment_open_enter"
+        app:popExitAnim="@anim/fragment_open_exit"
+        app:popUpTo="@id/stakingBalanceFragment" />
 
     <fragment
         android:id="@+id/selectBondMoreFragment"
-        tools:layout="@layout/fragment_bond_more"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMoreFragment"
-        android:label="SelectBondMoreFragment" >
+        android:label="SelectBondMoreFragment"
+        tools:layout="@layout/fragment_bond_more">
 
         <action
+            android:id="@+id/action_selectBondMoreFragment_to_confirmBondMoreFragment"
+            app:destination="@id/confirmBondMoreFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_selectBondMoreFragment_to_confirmBondMoreFragment"
-            app:destination="@id/confirmBondMoreFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <fragment
-        tools:layout="@layout/fragment_confirm_bond_more"
         android:id="@+id/confirmBondMoreFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment"
-        android:label="ConfirmBondMoreFragment" />
+        android:label="ConfirmBondMoreFragment"
+        tools:layout="@layout/fragment_confirm_bond_more" />
 
 
 </navigation>

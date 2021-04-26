@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_transaction_submitted">Transaction submitted</string>
+
     <string name="staking_zero_bond_error">Amount must be positive</string>
     <string name="staking_no_stash_account">Stash account %s is unavailable to update staking setup.</string>
     <string name="common_available_format">Available: %s</string>

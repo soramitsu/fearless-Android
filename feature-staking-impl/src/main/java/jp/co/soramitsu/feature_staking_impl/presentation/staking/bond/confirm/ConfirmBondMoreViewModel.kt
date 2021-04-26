@@ -9,9 +9,11 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
@@ -21,6 +23,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapFeeToFeeModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.bondMoreValidationFailure
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -103,9 +106,24 @@ class ConfirmBondMoreViewModel(
             validationFailureTransformer = { bondMoreValidationFailure(it, resourceManager) },
             progressConsumer = _showNextProgress.progressConsumer()
         ) {
-            _showNextProgress.value = false
+            sendTransaction()
+        }
+    }
 
-            showMessage("Ready to confirm")
+    private fun sendTransaction() = launch {
+        val token = assetFlow.first().token
+        val amountInPlanks = token.planksFromAmount(payload.amount)
+
+        val result = bondMoreInteractor.bondMore(payload.stashAddress, amountInPlanks)
+
+        _showNextProgress.value = false
+
+        if (result.isSuccess) {
+            showMessage(resourceManager.getString(R.string.common_transaction_submitted))
+
+            router.returnToStakingBalance()
+        } else {
+            showError(result.requireException())
         }
     }
 }

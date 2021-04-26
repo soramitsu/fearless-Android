@@ -187,6 +187,10 @@ class Navigator :
         navController?.navigate(R.id.action_selectBondMoreFragment_to_confirmBondMoreFragment, ConfirmBondMoreFragment.getBundle(payload))
     }
 
+    override fun returnToStakingBalance() {
+        navController?.navigate(R.id.action_return_to_staking_balance)
+    }
+
     override fun back() {
         val popped = navController!!.popBackStack()
 

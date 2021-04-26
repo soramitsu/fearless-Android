@@ -36,5 +36,7 @@ interface StakingRouter {
 
     fun openConfirmBondMore(payload: ConfirmBondMorePayload)
 
+    fun returnToStakingBalance()
+
     fun back()
 }
