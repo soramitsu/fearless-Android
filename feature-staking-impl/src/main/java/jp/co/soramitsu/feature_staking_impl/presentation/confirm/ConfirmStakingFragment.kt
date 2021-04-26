@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.common.view.ButtonState
+import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
@@ -76,9 +76,7 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         observeValidations(viewModel)
         setupExternalActions(viewModel)
 
-        viewModel.showNextProgress.observe { show ->
-            confirmStakeConfirm.setState(if (show) ButtonState.PROGRESS else ButtonState.NORMAL)
-        }
+        viewModel.showNextProgress.observe(confirmStakeConfirm::setProgress)
 
         viewModel.rewardDestinationLiveData.observe {
             confirmStakePayoutAccount.setVisible(it is RewardDestinationModel.Payout)

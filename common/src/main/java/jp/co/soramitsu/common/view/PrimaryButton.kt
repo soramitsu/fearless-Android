@@ -66,3 +66,7 @@ class PrimaryButton @JvmOverloads constructor(
         }
     }
 }
+
+fun PrimaryButton.setProgress(show: Boolean) {
+    setState(if (show) ButtonState.PROGRESS else ButtonState.NORMAL)
+}

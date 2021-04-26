@@ -488,8 +488,7 @@
     <fragment tools:layout="@layout/fragment_staking_balance"
         android:id="@+id/stakingBalanceFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.StakingBalanceFragment"
-        android:label="StakingBalanceFragment"
-        >
+        android:label="StakingBalanceFragment">
 
         <action
             app:enterAnim="@anim/fragment_open_enter"
@@ -504,7 +503,22 @@
         android:id="@+id/selectBondMoreFragment"
         tools:layout="@layout/fragment_bond_more"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMoreFragment"
-        android:label="SelectBondMoreFragment" />
+        android:label="SelectBondMoreFragment" >
+
+        <action
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_selectBondMoreFragment_to_confirmBondMoreFragment"
+            app:destination="@id/confirmBondMoreFragment" />
+    </fragment>
+
+    <fragment
+        tools:layout="@layout/fragment_confirm_bond_more"
+        android:id="@+id/confirmBondMoreFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment"
+        android:label="ConfirmBondMoreFragment" />
 
 
 </navigation>

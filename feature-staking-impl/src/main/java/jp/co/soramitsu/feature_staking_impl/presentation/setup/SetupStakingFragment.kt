@@ -14,8 +14,8 @@ import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
@@ -81,9 +81,7 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         observeValidations(viewModel)
         observeBrowserEvents(viewModel)
 
-        viewModel.showNextProgress.observe { show ->
-            setupStakingNext.setState(if (show) ButtonState.PROGRESS else ButtonState.NORMAL)
-        }
+        viewModel.showNextProgress.observe(setupStakingNext::setProgress)
 
         viewModel.rewardDestinationLiveData.observe {
             setupStakingTargetPayoutDestination.setVisible(it is RewardDestinationModel.Payout)
