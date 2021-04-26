@@ -8,21 +8,21 @@
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
     <TextView
-        android:id="@+id/feeTitle"
+        android:id="@+id/tableCellTitle"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
         android:includeFontPadding="false"
-        android:text="@string/network_fee"
+        tools:text="Title"
         android:textColor="@color/black1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/feeToken"
+        android:id="@+id/tableCellValuePrimary"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -31,33 +31,33 @@
         android:gravity="end"
         android:includeFontPadding="false"
         android:singleLine="true"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/feeFiat"
+        app:layout_constraintBottom_toTopOf="@id/tableCellValueSecondary"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/feeTitle"
+        app:layout_constraintStart_toEndOf="@id/tableCellTitle"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
-        tools:text="10.00003 KSM"
+        tools:text="Value primary"
         tools:textColor="@color/white" />
 
     <TextView
-        android:id="@+id/feeFiat"
+        android:id="@+id/tableCellValueSecondary"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:includeFontPadding="false"
-        android:textColor="@color/black2"
         android:visibility="gone"
+        android:textColor="@color/black2"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/feeToken"
-        app:layout_constraintTop_toBottomOf="@id/feeToken"
-        tools:text="$4,524.1" />
+        app:layout_constraintEnd_toEndOf="@+id/tableCellValuePrimary"
+        app:layout_constraintTop_toBottomOf="@id/tableCellValuePrimary"
+        tools:text="Value secondary" />
 
     <ProgressBar
-        android:id="@+id/feeProgress"
+        android:id="@+id/tableCellValueProgress"
         android:layout_width="16dp"
         android:layout_height="16dp"
         android:indeterminate="true"
+        android:visibility="gone"
         android:indeterminateTint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -74,8 +74,8 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.constraintlayout.widget.Group
-        android:id="@+id/feeContent"
+        android:id="@+id/tableCellContent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="feeFiat, feeToken" />
+        app:constraint_referenced_ids="tableCellValueSecondary, tableCellValuePrimary" />
 </merge>
