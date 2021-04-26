@@ -58,13 +58,15 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
         payload: P,
         validationFailureTransformer: (S) -> TitleAndMessage,
         progressConsumer: ProgressConsumer? = null,
-        block: () -> Unit,
+        autoFixPayload: (original: P, failureStatus: S) -> P = { original, _ -> original },
+        block: (P) -> Unit,
     ) = requireValid(
         validationSystem = validationSystem,
         payload = payload,
         errorDisplayer = ::showError,
-        validationFailureTransformer,
-        progressConsumer,
-        block
+        validationFailureTransformer = validationFailureTransformer,
+        progressConsumer = progressConsumer,
+        autoFixPayload = autoFixPayload,
+        block = block
     )
 }

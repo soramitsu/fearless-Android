@@ -80,7 +80,7 @@ class StakingBalanceViewModel(
 
     private fun requireValidManageAction(
         validationSystem: ManageStakingValidationSystem,
-        block: () -> Unit,
+        block: (ManageStakingValidationPayload) -> Unit,
     ) {
         launch {
             val stakingState = interactor.selectedAccountStakingStateFlow().first()
