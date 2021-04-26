@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.staking.bond
 
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bondMore
-import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayoutPayload
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +20,11 @@ class BondMoreInteractor(
         }
     }
 
-    suspend fun bondMore(payload: MakePayoutPayload): Result<String> {
-        TODO()
+    suspend fun bondMore(accountAddress: String, amount: BigInteger): Result<String> {
+        return withContext(Dispatchers.IO) {
+            extrinsicService.submitExtrinsic(accountAddress) {
+                bondMore(amount)
+            }
+        }
     }
 }

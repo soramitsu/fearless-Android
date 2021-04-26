@@ -26,6 +26,7 @@ interface ExternalAccountActions : Browserable {
     fun copyAddress(address: String, messageShower: (message: String) -> Unit)
 
     interface Presentation : ExternalAccountActions, Browserable.Presentation {
+
         fun showExternalActions(payload: Payload)
     }
 }

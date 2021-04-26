@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -12,15 +11,15 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.bondMoreValidationFailure
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,6 +66,7 @@ class SelectBondMoreViewModel(
     val assetModelFlow = assetFlow
         .map { mapAssetToAssetModel(it, resourceManager) }
         .inBackground()
+        .asLiveData()
 
     val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
 
@@ -104,7 +104,7 @@ class SelectBondMoreViewModel(
             feeConstructor = { asset ->
                 val amountInPlanks = asset.token.planksFromAmount(amount)
 
-                val feeInPlanks = bondMoreInteractor.estimateFee(controllerAddress(), amountInPlanks)
+                val feeInPlanks = bondMoreInteractor.estimateFee(stashAddress(), amountInPlanks)
 
                 asset.token.amountFromPlanks(feeInPlanks)
             },
@@ -120,7 +120,7 @@ class SelectBondMoreViewModel(
     private fun maybeGoToNext() = requireFee { fee ->
         launch {
             val payload = BondMoreValidationPayload(
-                stashState = accountStakingFlow.first(),
+                stashAddress = stashAddress(),
                 fee = fee,
                 amount = parsedAmountFlow.first(),
                 tokenType = assetFlow.first().token.type
@@ -129,34 +129,25 @@ class SelectBondMoreViewModel(
             validationExecutor.requireValid(
                 validationSystem = validationSystem,
                 payload = payload,
-                validationFailureTransformer = ::bondMoreValidationFailure,
+                validationFailureTransformer = { bondMoreValidationFailure(it, resourceManager) },
                 progressConsumer = _showNextProgress.progressConsumer()
             ) {
                 _showNextProgress.value = false
 
-                showMessage("Ready to go to confirm")
+                openConfirm(payload)
             }
         }
     }
 
-    private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress
+    private fun openConfirm(validationPayload: BondMoreValidationPayload) {
+        val confirmPayload = ConfirmBondMorePayload(
+            amount = validationPayload.amount,
+            fee = validationPayload.fee,
+            stashAddress = validationPayload.stashAddress
+        )
 
-    private fun bondMoreValidationFailure(reason: BondMoreValidationFailure): TitleAndMessage {
-        return when (reason) {
-            BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES -> {
-                resourceManager.getString(R.string.common_not_enough_funds_title) to
-                    resourceManager.getString(R.string.common_not_enough_funds_message)
-            }
-
-            BondMoreValidationFailure.ZERO_BOND -> {
-                resourceManager.getString(R.string.common_error_general_title) to
-                    resourceManager.getString(R.string.staking_zero_bond_error)
-            }
-
-            BondMoreValidationFailure.ELECTION_IS_OPEN -> {
-                resourceManager.getString(R.string.staking_nominator_status_election) to
-                    resourceManager.getString(R.string.staking_nominator_status_alert_election_message)
-            }
-        }
+        router.openConfirmBondMore(confirmPayload)
     }
+
+    private suspend fun stashAddress() = accountStakingFlow.first().stashAddress
 }

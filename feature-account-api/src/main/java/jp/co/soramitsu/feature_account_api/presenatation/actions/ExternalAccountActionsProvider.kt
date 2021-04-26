@@ -14,6 +14,7 @@ class ExternalAccountActionsProvider(
     val appLinksProvider: AppLinksProvider,
     val resourceManager: ResourceManager
 ) : ExternalAccountActions.Presentation {
+
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     override val showExternalActionsEvent = MutableLiveData<Event<ExternalAccountActions.Payload>>()

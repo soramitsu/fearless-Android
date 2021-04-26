@@ -25,7 +25,7 @@ class BondMoreValidationsModule {
         stakingRepository: StakingRepository,
     ) = BondMoreElectionClosedValidation(
         stakingRepository,
-        networkTypeProvider = { it.stashState.accountAddress.networkType() },
+        networkTypeProvider = { it.stashAddress.networkType() },
         errorProducer = { BondMoreValidationFailure.ELECTION_IS_OPEN }
     )
 
@@ -38,7 +38,7 @@ class BondMoreValidationsModule {
             feeExtractor = { it.fee },
             availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
                 walletRepository,
-                originAddressExtractor = { it.stashState.stashAddress },
+                originAddressExtractor = { it.stashAddress },
                 tokenTypeExtractor = { it.tokenType },
             ),
             errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },

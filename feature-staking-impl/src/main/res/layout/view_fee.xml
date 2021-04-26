@@ -16,7 +16,7 @@
         android:layout_marginBottom="16dp"
         android:includeFontPadding="false"
         android:text="@string/network_fee"
-        android:textColor="@color/white_64"
+        android:textColor="@color/black1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -46,7 +46,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:includeFontPadding="false"
-        android:textColor="@color/white_50"
+        android:textColor="@color/black2"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/feeToken"
