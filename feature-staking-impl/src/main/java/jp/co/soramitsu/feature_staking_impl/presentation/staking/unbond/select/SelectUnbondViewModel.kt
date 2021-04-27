@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondVali
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,7 +65,7 @@ class SelectUnbondViewModel(
         .share()
 
     val assetModelFlow = assetFlow
-        .map { mapAssetToAssetModel(it, resourceManager) }
+        .map { mapAssetToAssetModel(it, resourceManager, Asset::bonded, R.string.staking_bonded_format) }
         .inBackground()
         .asLiveData()
 

@@ -191,6 +191,10 @@ class Navigator :
         navController?.navigate(R.id.action_return_to_staking_balance)
     }
 
+    override fun openSelectUnbond() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_selectUnbondFragment)
+    }
+
     override fun back() {
         val popped = navController!!.popBackStack()
 

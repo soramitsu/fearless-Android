@@ -51,7 +51,7 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>() {
             requireContext(),
             StakingFeatureApi::class.java
         )
-            .selectBondMoreFactory()
+            .selectUnbondFactory()
             .create(this)
             .inject(this)
     }

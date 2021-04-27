@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.common
 
+import androidx.annotation.StringRes
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_staking_impl.R
@@ -14,15 +15,16 @@ import java.math.BigDecimal
 fun mapAssetToAssetModel(
     asset: Asset,
     resourceManager: ResourceManager,
-    retrieveAmount: (Asset) -> BigDecimal = Asset::transferable
+    retrieveAmount: (Asset) -> BigDecimal = Asset::transferable,
+    @StringRes patternId: Int = R.string.common_available_format
 ): AssetModel {
-    val available = retrieveAmount(asset).formatWithDefaultPrecision(asset.token.type)
+    val amount = retrieveAmount(asset).formatWithDefaultPrecision(asset.token.type)
 
     return with(asset) {
         AssetModel(
             token.type.icon,
             token.type.displayName,
-            resourceManager.getString(R.string.common_available_format, available)
+            resourceManager.getString(patternId, amount)
         )
     }
 }

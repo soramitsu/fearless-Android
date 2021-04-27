@@ -7,6 +7,5 @@ class BondMoreValidationPayload(
     val stashAddress: String,
     val fee: BigDecimal,
     val amount: BigDecimal,
-    val bonded: BigDecimal,
     val tokenType: Token.Type,
 )

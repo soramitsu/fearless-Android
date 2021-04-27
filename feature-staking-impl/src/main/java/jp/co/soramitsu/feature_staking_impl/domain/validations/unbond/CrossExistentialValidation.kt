@@ -13,7 +13,7 @@ class CrossExistentialValidation(
         val existentialDepositInPlanks = walletConstants.existentialDeposit()
         val existentialDeposit = value.tokenType.amountFromPlanks(existentialDepositInPlanks)
 
-        return validOrWarning(value.bonded - value.amount < existentialDeposit) {
+        return validOrWarning(value.bonded - value.amount >= existentialDeposit) {
             UnbondValidationFailure.BondedWillCrossExistential(willBeUnbonded = value.bonded)
         }
     }

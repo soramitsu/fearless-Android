@@ -13,7 +13,7 @@ fun unbondMoreValidationFailure(
     return when (reason) {
         is UnbondValidationFailure.BondedWillCrossExistential -> {
             resourceManager.getString(R.string.common_warning) to
-                resourceManager.getString(R.string.staking_unbond_too_big)
+                resourceManager.getString(R.string.staking_unbond_crossed_existential)
         }
 
         UnbondValidationFailure.CannotPayFees -> {

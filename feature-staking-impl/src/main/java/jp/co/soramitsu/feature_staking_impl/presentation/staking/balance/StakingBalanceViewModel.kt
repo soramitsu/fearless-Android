@@ -68,7 +68,7 @@ class StakingBalanceViewModel(
     }
 
     fun unbondClicked() = requireValidManageAction(unbondValidationSystem) {
-        showMessage("Ready to open UNBOND")
+        router.openSelectUnbond()
     }
 
     fun redeemClicked() = requireValidManageAction(redeemValidationSystem) {
