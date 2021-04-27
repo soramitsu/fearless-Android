@@ -155,7 +155,7 @@ class StakingInteractor(
     }
 
     suspend fun observeNetworkInfoState(networkType: Node.NetworkType): Flow<NetworkInfo> {
-        val lockupPeriod = stakingRepository.getLockupPeriodInDays(networkType)
+        val lockupPeriod = getLockupPeriodInDays(networkType)
 
         return stakingRepository.observeActiveEraIndex(networkType).map { eraIndex ->
             val exposures = stakingRepository.getElectedValidatorsExposure(eraIndex).values
@@ -169,7 +169,7 @@ class StakingInteractor(
         }
     }
 
-    suspend fun getLockupPeriodInDays() = stakingRepository.getLockupPeriodInDays(getSelectedNetworkType())
+    suspend fun getLockupPeriodInDays() = getLockupPeriodInDays(getSelectedNetworkType())
 
     fun stakingStoriesFlow(): Flow<List<StakingStory>> {
         return stakingRepository.stakingStoriesFlow()
@@ -260,12 +260,13 @@ class StakingInteractor(
                 stakingRepository.ledgerFlow(stash).map { ledger ->
                     val erasPerDay = networkType.runtimeConfiguration.erasPerDay
                     val activeEraIndex = stakingRepository.getActiveEraIndex()
-                    val historyDepth = stakingRepository.getHistoryDepth()
+                    val unbondingDuration = stakingConstantsRepository.lockupPeriodInEras()
 
                     ledger.unlocking
                         .filter { it.isUnbondingIn(activeEraIndex) }
                         .map {
-                            val relativeInfo = eraRelativeInfo(it.era, activeEraIndex, historyDepth, erasPerDay)
+                            val createdAtEra = it.era - unbondingDuration
+                            val relativeInfo = eraRelativeInfo(createdAtEra, activeEraIndex, unbondingDuration, erasPerDay)
 
                             Unbonding(it.amount, relativeInfo.daysLeft)
                         }
@@ -274,13 +275,13 @@ class StakingInteractor(
     }
 
     private fun eraRelativeInfo(
-        referenceEra: BigInteger,
+        createdAtEra: BigInteger,
         activeEra: BigInteger,
-        historyDepth: BigInteger,
+        lifespanInEras: BigInteger,
         erasPerDay: Int,
     ): EraRelativeInfo {
-        val erasPast = activeEra - referenceEra
-        val erasLeft = historyDepth - erasPast
+        val erasPast = activeEra - createdAtEra
+        val erasLeft = lifespanInEras - erasPast
 
         val daysPast = erasPast.toInt() / erasPerDay
         val daysLeft = erasLeft.toInt() / erasPerDay
@@ -375,6 +376,10 @@ class StakingInteractor(
             }
 
         return stakeByNominator.values.minOrNull()!!.coerceAtLeast(existentialDeposit)
+    }
+
+    private suspend fun getLockupPeriodInDays(networkType: Node.NetworkType) : Int {
+        return stakingConstantsRepository.lockupPeriodInEras().toInt() / networkType.runtimeConfiguration.erasPerDay
     }
 
     private class StatusResolutionContext(

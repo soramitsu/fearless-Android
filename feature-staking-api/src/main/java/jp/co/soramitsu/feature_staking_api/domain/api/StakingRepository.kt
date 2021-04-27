@@ -16,8 +16,6 @@ interface StakingRepository {
 
     suspend fun electionFlow(networkType: Node.NetworkType): Flow<Election>
 
-    suspend fun getLockupPeriodInDays(networkType: Node.NetworkType): Int
-
     suspend fun getTotalIssuance(): BigInteger
 
     suspend fun getActiveEraIndex(): BigInteger

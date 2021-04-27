@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.constant
 import jp.co.soramitsu.common.utils.networkType
-import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.model.Node
@@ -81,15 +80,6 @@ class StakingRepositoryImpl(
                 }
             }
     }
-
-    override suspend fun getLockupPeriodInDays(networkType: Node.NetworkType): Int {
-        val runtime = runtimeProperty.get()
-
-        val inEras = runtime.metadata.staking().numberConstant("BondingDuration", runtime)
-
-        return inEras.toInt() / networkType.runtimeConfiguration.erasPerDay
-    }
-
     override suspend fun getTotalIssuance(): BigInteger = getFromStorageNonNull(
         keyBuilder = { it.metadata.balances().storage("TotalIssuance").storageKey() },
         binding = ::bindTotalInsurance
