@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 class StakingBalanceViewModel(
     private val router: StakingRouter,
@@ -42,6 +43,10 @@ class StakingBalanceViewModel(
         )
     }
         .inBackground()
+        .asLiveData()
+
+    val redeemEnabledLiveData = assetFlow
+        .map { it.redeemable > BigDecimal.ZERO }
         .asLiveData()
 
     val unbondingsLiveData = interactor.currentUnbondingsFlow()
