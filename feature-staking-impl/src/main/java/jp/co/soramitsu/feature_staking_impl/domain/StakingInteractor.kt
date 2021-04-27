@@ -257,9 +257,11 @@ class StakingInteractor(
             .flatMapLatest { stash ->
                 val networkType = stash.stashAddress.networkType()
 
-                stakingRepository.ledgerFlow(stash).map { ledger ->
+                combine(
+                    stakingRepository.ledgerFlow(stash),
+                    stakingRepository.observeActiveEraIndex(networkType)
+                ) { ledger, activeEraIndex ->
                     val erasPerDay = networkType.runtimeConfiguration.erasPerDay
-                    val activeEraIndex = stakingRepository.getActiveEraIndex()
                     val unbondingDuration = stakingConstantsRepository.lockupPeriodInEras()
 
                     ledger.unlocking
