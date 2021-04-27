@@ -79,5 +79,9 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
         }
 
         viewModel.unbondingsLiveData.observe(stakingBalanceUnbondings::submitList)
+
+        viewModel.redeemEnabledLiveData.observe {
+            stakingBalanceActions.redeem.isEnabled = it
+        }
     }
 }
