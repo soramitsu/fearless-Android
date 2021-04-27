@@ -380,7 +380,7 @@ class StakingInteractor(
         return stakeByNominator.values.minOrNull()!!.coerceAtLeast(existentialDeposit)
     }
 
-    private suspend fun getLockupPeriodInDays(networkType: Node.NetworkType) : Int {
+    private suspend fun getLockupPeriodInDays(networkType: Node.NetworkType): Int {
         return stakingConstantsRepository.lockupPeriodInEras().toInt() / networkType.runtimeConfiguration.erasPerDay
     }
 

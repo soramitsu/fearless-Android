@@ -21,7 +21,7 @@ fun unbondMoreValidationFailure(
                 resourceManager.getString(R.string.common_not_enough_funds_message)
         }
 
-        UnbondValidationFailure.ElectionIsOpen ->{
+        UnbondValidationFailure.ElectionIsOpen -> {
             resourceManager.getString(R.string.staking_nominator_status_election) to
                 resourceManager.getString(R.string.staking_nominator_status_alert_election_message)
         }
@@ -43,7 +43,7 @@ fun unbondMoreValidationFailure(
     }
 }
 
-fun unbondPayloadAutoFix(payload: UnbondValidationPayload, reason: UnbondValidationFailure) = when(reason) {
+fun unbondPayloadAutoFix(payload: UnbondValidationPayload, reason: UnbondValidationFailure) = when (reason) {
     is UnbondValidationFailure.BondedWillCrossExistential -> payload.copy(amount = reason.willBeUnbonded)
     else -> payload
 }

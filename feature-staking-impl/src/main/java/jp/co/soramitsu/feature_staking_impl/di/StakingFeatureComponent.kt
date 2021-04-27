@@ -64,7 +64,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun confirmBondMoreFactory(): ConfirmBondMoreComponent.Factory
 
-    fun selectUnbondFactory() : SelectUnbondComponent.Factory
+    fun selectUnbondFactory(): SelectUnbondComponent.Factory
 
     @Component.Factory
     interface Factory {
