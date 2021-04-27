@@ -11,31 +11,31 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMoreViewModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondViewModel
 
 @Module(includes = [ViewModelModule::class])
-class SelectBondMoreModule {
+class SelectUnbondModule {
 
     @Provides
     @IntoMap
-    @ViewModelKey(SelectBondMoreViewModel::class)
+    @ViewModelKey(SelectUnbondViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
         router: StakingRouter,
-        bondMoreInteractor: BondMoreInteractor,
+        unbondInteractor: UnbondInteractor,
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
-        validationSystem: BondMoreValidationSystem,
+        validationSystem: UnbondValidationSystem,
         feeLoaderMixin: FeeLoaderMixin.Presentation
     ): ViewModel {
-        return SelectBondMoreViewModel(
+        return SelectUnbondViewModel(
             router,
             interactor,
-            bondMoreInteractor,
+            unbondInteractor,
             resourceManager,
             validationExecutor,
             validationSystem,
@@ -47,7 +47,7 @@ class SelectBondMoreModule {
     fun provideViewModelCreator(
         fragment: Fragment,
         viewModelFactory: ViewModelProvider.Factory
-    ): SelectBondMoreViewModel {
-        return ViewModelProvider(fragment, viewModelFactory).get(SelectBondMoreViewModel::class.java)
+    ): SelectUnbondViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(SelectUnbondViewModel::class.java)
     }
 }

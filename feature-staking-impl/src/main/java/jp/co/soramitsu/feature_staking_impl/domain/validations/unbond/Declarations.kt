@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.validations.unbond
 
+import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.ElectionPeriodClosedValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.NotZeroAmountValidation
@@ -10,5 +11,7 @@ typealias UnbondFeeValidation = EnoughToPayFeesValidation<UnbondValidationPayloa
 typealias UnbondElectionClosedValidation = ElectionPeriodClosedValidation<UnbondValidationPayload, UnbondValidationFailure>
 typealias NotZeroUnbondValidation = NotZeroAmountValidation<UnbondValidationPayload, UnbondValidationFailure>
 typealias UnbondLimitValidation = UnbondingRequestsLimitValidation<UnbondValidationPayload, UnbondValidationFailure>
+
+typealias UnbondValidation = Validation<UnbondValidationPayload, UnbondValidationFailure>
 
 typealias UnbondValidationSystem = ValidationSystem<UnbondValidationPayload, UnbondValidationFailure>
