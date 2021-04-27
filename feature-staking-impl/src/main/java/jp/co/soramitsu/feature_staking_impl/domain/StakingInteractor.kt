@@ -169,6 +169,8 @@ class StakingInteractor(
         }
     }
 
+    suspend fun getLockupPeriodInDays() = stakingRepository.getLockupPeriodInDays(getSelectedNetworkType())
+
     fun stakingStoriesFlow(): Flow<List<StakingStory>> {
         return stakingRepository.stakingStoriesFlow()
     }
