@@ -201,6 +201,10 @@ class Navigator :
         navController?.navigate(R.id.action_selectUnbondFragment_to_confirmUnbondFragment, ConfirmUnbondFragment.getBundle(payload))
     }
 
+    override fun openRedeem() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_redeemFragment)
+    }
+
     override fun back() {
         val popped = navController!!.popBackStack()
 

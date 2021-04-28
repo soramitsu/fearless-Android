@@ -192,6 +192,7 @@ class StakingInteractor(
         return walletRepository.assetsFlow(accountAddress)
             .filter { it.isNotEmpty() }
             .map { it.first() }
+            .map { it.copy(redeemableInPlanks = BigInteger("100000000")) }
     }
 
     suspend fun getSelectedNetworkType(): Node.NetworkType {

@@ -2,7 +2,8 @@ package jp.co.soramitsu.feature_wallet_api.domain.model
 
 import java.math.BigInteger
 
-class Asset(
+// TODO undo data modifier
+data class Asset(
     val token: Token,
     val freeInPlanks: BigInteger,
     val reservedInPlanks: BigInteger,
