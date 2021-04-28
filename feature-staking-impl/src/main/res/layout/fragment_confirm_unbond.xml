@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/confirmUnbondContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/confirmUnbondToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:titleText="@string/common_confirmation" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/confirmUnbondOriginAccount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:actionIcon="@drawable/ic_more_vertical"
+        app:label="@string/profile_title" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
+        android:id="@+id/confirmUnbondAmount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:enabled="false" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/black4"
+        android:orientation="vertical">
+
+        <jp.co.soramitsu.feature_staking_impl.presentation.view.FeeView
+            android:id="@+id/confirmUnbondFee"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp" />
+
+        <jp.co.soramitsu.common.view.PrimaryButton
+            android:id="@+id/confirmUnbondConfirm"
+            style="@style/Widget.Fearless.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/common_confirm" />
+    </LinearLayout>
+</LinearLayout>

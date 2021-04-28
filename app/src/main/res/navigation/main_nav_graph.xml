@@ -544,7 +544,21 @@
         android:id="@+id/selectUnbondFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondFragment"
         android:label="SelectUnbondFragment"
-        tools:layout="@layout/fragment_select_unbond" />
+        tools:layout="@layout/fragment_select_unbond" >
+
+        <action
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_selectUnbondFragment_to_confirmUnbondFragment"
+            app:destination="@id/confirmUnbondFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/confirmUnbondFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment"
+        android:label="ConfirmUnbondFragment" />
 
 
 </navigation>

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.staking.unbond
 
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.unbond
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
@@ -20,9 +21,9 @@ class UnbondInteractor(
         }
     }
 
-    suspend fun unbond(accountAddress: String, amount: BigInteger): Result<String> {
+    suspend fun unbond(stashState: StakingState.Stash, amount: BigInteger): Result<String> {
         return withContext(Dispatchers.IO) {
-            extrinsicService.submitExtrinsic(accountAddress) {
+            extrinsicService.submitExtrinsic(stashState.controllerAddress) {
                 unbond(amount)
             }
         }

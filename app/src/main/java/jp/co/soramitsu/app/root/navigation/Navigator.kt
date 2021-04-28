@@ -37,6 +37,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPa
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
@@ -193,6 +195,10 @@ class Navigator :
 
     override fun openSelectUnbond() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_selectUnbondFragment)
+    }
+
+    override fun openConfirmUnbond(payload: ConfirmUnbondPayload) {
+        navController?.navigate(R.id.action_selectUnbondFragment_to_confirmUnbondFragment, ConfirmUnbondFragment.getBundle(payload))
     }
 
     override fun back() {

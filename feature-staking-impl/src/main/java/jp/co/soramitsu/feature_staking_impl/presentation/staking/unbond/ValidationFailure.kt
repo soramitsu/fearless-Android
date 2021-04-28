@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond
 
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -6,7 +6,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
 
-fun unbondMoreValidationFailure(
+fun unbondValidationFailure(
     reason: UnbondValidationFailure,
     resourceManager: ResourceManager
 ): TitleAndMessage {
