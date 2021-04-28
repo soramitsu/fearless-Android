@@ -51,10 +51,11 @@ class StakingBalanceViewModel(
 
     val unbondingsLiveData = interactor.currentUnbondingsFlow()
         .combine(assetFlow) { unbondings, asset ->
-            unbondings.map { unbonding ->
+            unbondings.mapIndexed { index, unbonding ->
                 val daysLeft = unbonding.daysLeft
 
                 UnbondingModel(
+                    index = index,
                     daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
                     amountModel = mapAmountToAmountModel(unbonding.amount, asset)
                 )
