@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
@@ -55,7 +56,7 @@ class RedeemViewModel(
     val amountLiveData = assetFlow.map { asset ->
         val redeemable = asset.redeemable
 
-        redeemable.toString() to asset.token.fiatAmount(redeemable)?.formatAsCurrency()
+        redeemable.format() to asset.token.fiatAmount(redeemable)?.formatAsCurrency()
     }
         .inBackground()
         .asLiveData()
