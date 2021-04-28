@@ -2,8 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
-import jp.co.soramitsu.common.data.network.runtime.binding.Binder
-import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinder
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.balances
@@ -23,11 +21,11 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
+import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.SlashingSpan
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionFromPhase
@@ -44,6 +42,8 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.activeEraStorageKey
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.observeActiveEraIndex
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
+import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -59,6 +59,8 @@ class StakingRepositoryImpl(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val accountStakingDao: AccountStakingDao,
     private val bulkRetriever: BulkRetriever,
+    private val remoteStorage: StorageDataSource,
+    private val localStorage: StorageDataSource,
     private val stakingStoriesDataSource: StakingStoriesDataSource,
 ) : StakingRepository {
 
@@ -80,22 +82,23 @@ class StakingRepositoryImpl(
                 }
             }
     }
-    override suspend fun getTotalIssuance(): BigInteger = getFromStorageNonNull(
+
+    override suspend fun getTotalIssuance(): BigInteger = localStorage.queryNonNull(
         keyBuilder = { it.metadata.balances().storage("TotalIssuance").storageKey() },
         binding = ::bindTotalInsurance
     )
 
-    override suspend fun getActiveEraIndex(): BigInteger = getFromStorageNonNull(
+    override suspend fun getActiveEraIndex(): BigInteger = localStorage.queryNonNull(
         keyBuilder = { it.metadata.activeEraStorageKey() },
         binding = ::bindActiveEra
     )
 
-    override suspend fun getCurrentEraIndex(): BigInteger = getFromStorageNonNull(
+    override suspend fun getCurrentEraIndex(): BigInteger = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("CurrentEra").storageKey() },
         binding = ::bindCurrentEra
     )
 
-    override suspend fun getHistoryDepth(): BigInteger = getFromStorageNonNull(
+    override suspend fun getHistoryDepth(): BigInteger = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("HistoryDepth").storageKey() },
         binding = ::bindHistoryDepth
     )
@@ -150,6 +153,13 @@ class StakingRepositoryImpl(
             }
     }
 
+    override suspend fun getSlashingSpan(accountId: AccountId): SlashingSpans? {
+        return remoteStorage.query(
+            keyBuilder = { it.metadata.staking().storage("SlashingSpans").storageKey(it, accountId) },
+            binding = { scale, runtimeSnapshot -> scale?.let { bindSlashingSpans(it, runtimeSnapshot) } }
+        )
+    }
+
     override fun stakingStateFlow(accountAddress: String): Flow<StakingState> {
         return accountStakingDao.observeDistinct(accountAddress)
             .flatMapLatest { accountStaking ->
@@ -173,7 +183,7 @@ class StakingRepositoryImpl(
     }
 
     override suspend fun getControllerAccountInfo(stakingState: StakingState.Stash): AccountInfo {
-        return getFromStorage(
+        return localStorage.query(
             keyBuilder = { it.metadata.system().storage("Account").storageKey(it, stakingState.stashId) },
             binding = { scale, runtime -> scale?.let { bindAccountInfo(it, runtime) } ?: AccountInfo.empty() }
         )
@@ -184,7 +194,7 @@ class StakingRepositoryImpl(
     }
 
     override suspend fun ledgerFlow(stakingState: StakingState.Stash): Flow<StakingLedger> {
-        return observeStorage(
+        return localStorage.observe(
             networkType = stakingState.controllerAddress.networkType(),
             keyBuilder = { it.metadata.staking().storage("Ledger").storageKey(it, stakingState.controllerId) },
             binder = { scale, runtime -> scale?.let { bindStakingLedger(it, runtime) } }
@@ -220,7 +230,7 @@ class StakingRepositoryImpl(
         stashId: AccountId,
         networkType: Node.NetworkType,
     ): Flow<ValidatorPrefs?> {
-        return observeStorage(
+        return localStorage.observe(
             networkType = networkType,
             keyBuilder = { it.metadata.staking().storage("Validators").storageKey(it, stashId) },
             binder = { scale, runtime ->
@@ -233,7 +243,7 @@ class StakingRepositoryImpl(
         stashId: AccountId,
         networkType: Node.NetworkType,
     ): Flow<Nominations?> {
-        return observeStorage(
+        return localStorage.observe(
             networkType = networkType,
             keyBuilder = { it.metadata.staking().storage("Nominators").storageKey(it, stashId) },
             binder = { scale, runtime -> scale?.let { bindNominations(it, runtime) } }
@@ -241,37 +251,10 @@ class StakingRepositoryImpl(
     }
 
     private fun isSlashed(
-        span: SlashingSpan?,
+        slashingSpans: SlashingSpans?,
         activeEraIndex: BigInteger,
         slashDeferDuration: BigInteger,
-    ) = span != null && activeEraIndex - span.lastNonZeroSlash < slashDeferDuration
+    ) = slashingSpans != null && activeEraIndex - slashingSpans.lastNonZeroSlash < slashDeferDuration
 
     private suspend fun getRuntime() = runtimeProperty.get()
-
-    private suspend fun <T> getFromStorage(
-        keyBuilder: (RuntimeSnapshot) -> String,
-        binding: Binder<T>,
-    ): T = withContext(Dispatchers.Default) {
-        val runtime = getRuntime()
-
-        val scale = storageCache.getEntry(keyBuilder(runtime)).content
-
-        binding(scale, runtime)
-    }
-
-    private suspend inline fun <T> getFromStorageNonNull(
-        noinline keyBuilder: (RuntimeSnapshot) -> String,
-        crossinline binding: NonNullBinder<T>,
-    ) = getFromStorage(keyBuilder) { scale, runtime -> binding(scale!!, runtime) }
-
-    private suspend fun <T> observeStorage(
-        networkType: Node.NetworkType,
-        keyBuilder: (RuntimeSnapshot) -> String,
-        binder: Binder<T>,
-    ): Flow<T> = withContext(Dispatchers.Default) {
-        val runtime = getRuntime()
-
-        storageCache.observeEntry(keyBuilder(runtime), networkType)
-            .map { binder(it.content, runtime) }
-    }
 }
