@@ -503,6 +503,13 @@
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
+        <action
+            android:id="@+id/action_stakingBalanceFragment_to_selectUnbondFragment"
+            app:destination="@id/selectUnbondFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <action
@@ -533,6 +540,11 @@
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment"
         android:label="ConfirmBondMoreFragment"
         tools:layout="@layout/fragment_confirm_bond_more" />
+    <fragment
+        android:id="@+id/selectUnbondFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondFragment"
+        android:label="SelectUnbondFragment"
+        tools:layout="@layout/fragment_select_unbond" />
 
 
 </navigation>

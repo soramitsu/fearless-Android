@@ -1,20 +1,22 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.common.utils.constant
+import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindMaximumRewardedNominators
+import java.math.BigInteger
 
 class StakingConstantsRepository(
-    val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
 ) {
 
-    suspend fun maxRewardedNominatorPerValidatorPrefs(): Int {
+    suspend fun maxRewardedNominatorPerValidatorPrefs(): Int = getNumberConstant("MaxNominatorRewardedPerValidator").toInt()
+
+    suspend fun lockupPeriodInEras(): BigInteger = getNumberConstant("BondingDuration")
+
+    private suspend fun getNumberConstant(constantName: String): BigInteger {
         val runtime = runtimeProperty.get()
 
-        val constant = runtime.metadata.staking().constant("MaxNominatorRewardedPerValidator")
-
-        return bindMaximumRewardedNominators(constant, runtime).toInt()
+        return runtime.metadata.staking().numberConstant(constantName, runtime)
     }
 }

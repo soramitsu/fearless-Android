@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <declare-styleable name="TableCellView">
+        <attr name="title" />
+    </declare-styleable>
+
     <declare-styleable name="StakingAmountView">
         <attr name="android:enabled" />
     </declare-styleable>
+
     <declare-styleable name="EstimateEarningView" />
     <declare-styleable name="StakingInfoView">
         <attr name="titleText" format="string" />

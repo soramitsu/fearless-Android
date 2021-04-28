@@ -9,6 +9,24 @@ interface Validation<T, S> {
     suspend fun validate(value: T): ValidationStatus<S>
 }
 
+fun <S> validOrWarning(
+    condition: Boolean,
+    lazyReason: () -> S,
+): ValidationStatus<S> = if (condition) {
+    ValidationStatus.Valid()
+} else {
+    ValidationStatus.NotValid(DefaultFailureLevel.WARNING, lazyReason())
+}
+
+fun <S> validOrError(
+    condition: Boolean,
+    lazyReason: () -> S,
+): ValidationStatus<S> = if (condition) {
+    ValidationStatus.Valid()
+} else {
+    ValidationStatus.NotValid(DefaultFailureLevel.ERROR, lazyReason())
+}
+
 sealed class ValidationStatus<S> {
 
     class Valid<S> : ValidationStatus<S>()

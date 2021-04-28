@@ -59,3 +59,12 @@ fun ExtrinsicBuilder.bondMore(amount: BigInteger): ExtrinsicBuilder {
         )
     )
 }
+
+fun ExtrinsicBuilder.unbond(amount: BigInteger): ExtrinsicBuilder {
+    return call(
+        "Staking", "unbond",
+        mapOf(
+            "value" to amount
+        )
+    )
+}

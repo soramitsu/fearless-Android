@@ -21,13 +21,14 @@ class ValidationExecutor(
         errorDisplayer: (Throwable) -> Unit,
         validationFailureTransformer: (S) -> TitleAndMessage,
         progressConsumer: ProgressConsumer? = null,
-        block: () -> Unit,
+        autoFixPayload: (original: P, failureStatus: S) -> P,
+        block: (P) -> Unit,
     ) {
         progressConsumer?.invoke(true)
 
         validationSystem.validate(payload)
             .unwrap(
-                onValid = block,
+                onValid = { block(payload) },
                 onFailure = {
                     progressConsumer?.invoke(false)
 
@@ -46,7 +47,9 @@ class ValidationExecutor(
                             confirmWarning = {
                                 progressConsumer?.invoke(true)
 
-                                block()
+                                val transformedPayload = autoFixPayload(payload, it.reason)
+
+                                block(transformedPayload)
                             }
                         )
                     )

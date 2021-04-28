@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_bonded_format">Bonded: %s</string>
+
+    <string name="common_warning">Warning</string>
+    <string name="staking_unbond_crossed_existential">After operation the resulting bonded balance will be less than existential deposit. It will cause the whole bonded balance to be unbonded.</string>
+    <string name="staking_unbond_too_big">Amount you want to unbond is greater than your bonded balance</string>
+    <string name="staking_unbond_explanation">Your tokens will be available to redeem after the unbonding period.</string>
+
     <string name="common_transaction_submitted">Transaction submitted</string>
 
     <string name="staking_zero_bond_error">Amount must be positive</string>

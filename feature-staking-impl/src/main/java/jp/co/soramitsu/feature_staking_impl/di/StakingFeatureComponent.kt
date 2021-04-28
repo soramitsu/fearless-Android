@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.di.Stak
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.di.ConfirmBondMoreComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.di.SelectBondMoreComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.di.SelectUnbondComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.story.di.StoryComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.di.ValidatorDetailsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.di.RecommendedValidatorsComponent
@@ -62,6 +63,8 @@ interface StakingFeatureComponent : StakingFeatureApi {
     fun selectBondMoreFactory(): SelectBondMoreComponent.Factory
 
     fun confirmBondMoreFactory(): ConfirmBondMoreComponent.Factory
+
+    fun selectUnbondFactory(): SelectUnbondComponent.Factory
 
     @Component.Factory
     interface Factory {

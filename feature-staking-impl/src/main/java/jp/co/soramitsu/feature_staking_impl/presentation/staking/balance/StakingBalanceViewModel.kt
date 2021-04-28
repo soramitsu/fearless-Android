@@ -68,7 +68,7 @@ class StakingBalanceViewModel(
     }
 
     fun unbondClicked() = requireValidManageAction(unbondValidationSystem) {
-        showMessage("Ready to open UNBOND")
+        router.openSelectUnbond()
     }
 
     fun redeemClicked() = requireValidManageAction(redeemValidationSystem) {
@@ -85,7 +85,7 @@ class StakingBalanceViewModel(
 
     private fun requireValidManageAction(
         validationSystem: ManageStakingValidationSystem,
-        block: () -> Unit,
+        block: (ManageStakingValidationPayload) -> Unit,
     ) {
         launch {
             val stakingState = interactor.selectedAccountStakingStateFlow().first()

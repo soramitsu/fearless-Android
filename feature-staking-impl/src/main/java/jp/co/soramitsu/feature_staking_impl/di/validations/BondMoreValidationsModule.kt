@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreElectionClosedValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.NotZeroBondValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
@@ -48,7 +49,10 @@ class BondMoreValidationsModule {
 
     @Provides
     @FeatureScope
-    fun provideNotZeroBondValidation() = NotZeroBondValidation()
+    fun provideNotZeroBondValidation() = NotZeroBondValidation(
+        amountExtractor = BondMoreValidationPayload::amount,
+        errorProvider = { BondMoreValidationFailure.ZERO_BOND }
+    )
 
     @Provides
     @FeatureScope
