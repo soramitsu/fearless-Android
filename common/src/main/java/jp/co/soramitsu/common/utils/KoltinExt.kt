@@ -45,21 +45,3 @@ fun List<Double>.median(): Double = sorted().let {
 
 fun generateLinearSequence(initial: Int, step: Int) = generateSequence(initial) { it + step }
 
-// carrying
-
-// typealias Function0<R> = () -> R
-// typealias Function1<T, R> = (T) -> R
-// typealias Function2<T1, T2, R> = (T1, T2) -> R
-// typealias Function4<T1, T2, T3, R> = (T1, T2, T3) -> R
-
-fun <T1, R> Function1<T1, R>.carry(arg1: T1): Function0<R> = {
-    invoke(arg1)
-}
-
-fun <T1, T2, R> Function2<T1, T2, R>.invoke(arg1: T1): Function1<T2, R> = { arg2 ->
-    invoke(arg1, arg2)
-}
-
-fun <T1, T2, T3, R> Function3<T1, T2, T3, R>.invoke(arg1: T1): Function2<T2, T3, R> = { arg2, arg3 ->
-    invoke(arg1, arg2, arg3)
-}
