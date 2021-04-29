@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
@@ -26,6 +27,13 @@ import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import jp.co.soramitsu.runtime.storage.NetworkAwareStorageCache
+import jp.co.soramitsu.runtime.storage.source.LocalStorageSource
+import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
+import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Named
+
+const val LOCAL_STORAGE_SOURCE = "LOCAL_STORAGE_SOURCE"
+const val REMOTE_STORAGE_SOURCE = "REMOTE_STORAGE_SOURCE"
 
 @Module
 class RuntimeModule {
@@ -127,4 +135,21 @@ class RuntimeModule {
         substrateCalls: SubstrateCalls,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
     ): ExtrinsicService = ExtrinsicService(substrateCalls, extrinsicBuilderFactory)
+
+    @Provides
+    @Named(LOCAL_STORAGE_SOURCE)
+    @ApplicationScope
+    fun provideLocalStorageSource(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        storageCache: StorageCache,
+    ): StorageDataSource = LocalStorageSource(runtimeProperty, storageCache)
+
+    @Provides
+    @Named(REMOTE_STORAGE_SOURCE)
+    @ApplicationScope
+    fun provideRemoteStorageSource(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        socketService: SocketService,
+        bulkRetriever: BulkRetriever
+    ): StorageDataSource = RemoteStorageSource(runtimeProperty, socketService, bulkRetriever)
 }

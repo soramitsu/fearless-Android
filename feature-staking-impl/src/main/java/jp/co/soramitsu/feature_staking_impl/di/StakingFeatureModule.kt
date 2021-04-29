@@ -34,15 +34,20 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.Reco
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
+import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
+import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Named
 
 @Module
 class StakingFeatureModule {
@@ -58,14 +63,24 @@ class StakingFeatureModule {
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         bulkRetriever: BulkRetriever,
         accountStakingDao: AccountStakingDao,
-        stakingStoriesDataSource: StakingStoriesDataSource
-    ): StakingRepository = StakingRepositoryImpl(storageCache, runtimeProperty, accountStakingDao, bulkRetriever, stakingStoriesDataSource)
+        @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
+        @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
+        stakingStoriesDataSource: StakingStoriesDataSource,
+    ): StakingRepository = StakingRepositoryImpl(
+        storageCache = storageCache,
+        runtimeProperty = runtimeProperty,
+        accountStakingDao = accountStakingDao,
+        bulkRetriever = bulkRetriever,
+        remoteStorage = remoteStorageSource,
+        localStorage = localStorageSource,
+        stakingStoriesDataSource = stakingStoriesDataSource
+    )
 
     @Provides
     @FeatureScope
     fun provideIdentityRepository(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        bulkRetriever: BulkRetriever
+        bulkRetriever: BulkRetriever,
     ): IdentityRepository = IdentityRepositoryImpl(runtimeProperty, bulkRetriever)
 
     @Provides
@@ -80,7 +95,7 @@ class StakingFeatureModule {
         walletConstants: WalletConstants,
         identityRepository: IdentityRepository,
         payoutRepository: PayoutRepository,
-        substrateCalls: SubstrateCalls
+        substrateCalls: SubstrateCalls,
     ) = StakingInteractor(
         walletRepository,
         accountRepository,
@@ -97,7 +112,7 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideRewardCalculatorFactory(
-        repository: StakingRepository
+        repository: StakingRepository,
     ) = RewardCalculatorFactory(repository)
 
     @Provides
@@ -105,26 +120,26 @@ class StakingFeatureModule {
     fun provideValidatorRecommendatorFactory(
         stakingRepository: StakingRepository,
         identityRepository: IdentityRepository,
-        rewardCalculatorFactory: RewardCalculatorFactory
+        rewardCalculatorFactory: RewardCalculatorFactory,
     ) = ValidatorRecommendatorFactory(stakingRepository, identityRepository, rewardCalculatorFactory)
 
     @Provides
     @FeatureScope
     fun provideStakingConstantsRepository(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     ) = StakingConstantsRepository(runtimeProperty)
 
     @Provides
     @FeatureScope
     fun provideRecommendationSettingsProviderFactory(
-        stakingConstantsRepository: StakingConstantsRepository
+        stakingConstantsRepository: StakingConstantsRepository,
     ) = RecommendationSettingsProviderFactory(stakingConstantsRepository)
 
     @Provides
     @FeatureScope
     fun provideMaxFeeEstimator(
         substrateCalls: SubstrateCalls,
-        extrinsicBuilderFactory: ExtrinsicBuilderFactory
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
     ) = MaxFeeEstimator(substrateCalls, extrinsicBuilderFactory)
 
     @Provides
@@ -134,7 +149,7 @@ class StakingFeatureModule {
     @Provides
     fun provideFeeLoaderMixin(
         stakingInteractor: StakingInteractor,
-        resourceManager: ResourceManager
+        resourceManager: ResourceManager,
     ): FeeLoaderMixin.Presentation = FeeLoaderProvider(stakingInteractor, resourceManager)
 
     @Provides
@@ -193,20 +208,28 @@ class StakingFeatureModule {
     @FeatureScope
     fun providePayoutInteractor(
         feeEstimator: FeeEstimator,
-        extrinsicService: ExtrinsicService
+        extrinsicService: ExtrinsicService,
     ) = PayoutInteractor(feeEstimator, extrinsicService)
 
     @Provides
     @FeatureScope
     fun provideBondMoreInteractor(
         feeEstimator: FeeEstimator,
-        extrinsicService: ExtrinsicService
+        extrinsicService: ExtrinsicService,
     ) = BondMoreInteractor(feeEstimator, extrinsicService)
 
     @Provides
     @FeatureScope
     fun provideUnbondInteractor(
         feeEstimator: FeeEstimator,
-        extrinsicService: ExtrinsicService
+        extrinsicService: ExtrinsicService,
     ) = UnbondInteractor(feeEstimator, extrinsicService)
+
+    @Provides
+    @FeatureScope
+    fun provideRedeemInteractor(
+        feeEstimator: FeeEstimator,
+        extrinsicService: ExtrinsicService,
+        stakingRepository: StakingRepository
+    ) = RedeemInteractor(feeEstimator, extrinsicService, stakingRepository)
 }

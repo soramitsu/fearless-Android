@@ -73,7 +73,7 @@ class StakingBalanceViewModel(
     }
 
     fun redeemClicked() = requireValidManageAction(redeemValidationSystem) {
-        showMessage("Ready to open REDEEM")
+        router.openRedeem()
     }
 
     fun backClicked() {

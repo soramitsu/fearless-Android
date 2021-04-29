@@ -23,9 +23,13 @@ import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
+import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
+import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Named
 
 interface StakingFeatureDependencies {
 
@@ -78,4 +82,10 @@ interface StakingFeatureDependencies {
     fun extrinsicService(): ExtrinsicService
 
     fun validationExecutor(): ValidationExecutor
+
+    @Named(REMOTE_STORAGE_SOURCE)
+    fun remoteStorageSource(): StorageDataSource
+
+    @Named(LOCAL_STORAGE_SOURCE)
+    fun localStorageSource(): StorageDataSource
 }

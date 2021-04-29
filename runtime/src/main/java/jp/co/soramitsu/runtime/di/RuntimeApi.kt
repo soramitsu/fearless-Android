@@ -7,6 +7,8 @@ import jp.co.soramitsu.runtime.RuntimeUpdater
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
+import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Named
 
 interface RuntimeApi {
 
@@ -21,4 +23,10 @@ interface RuntimeApi {
     fun feeEstimator(): FeeEstimator
 
     fun extrinsicService(): ExtrinsicService
+
+    @Named(REMOTE_STORAGE_SOURCE)
+    fun remoteStorageSource(): StorageDataSource
+
+    @Named(LOCAL_STORAGE_SOURCE)
+    fun localStorageSource(): StorageDataSource
 }

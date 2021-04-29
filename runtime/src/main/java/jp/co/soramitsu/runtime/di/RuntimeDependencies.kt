@@ -3,6 +3,7 @@ package jp.co.soramitsu.runtime.di
 import android.content.Context
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -35,4 +36,6 @@ interface RuntimeDependencies {
     fun keypairFactory(): KeypairFactory
 
     fun storageDao(): StorageDao
+
+    fun bulkRetriever(): BulkRetriever
 }

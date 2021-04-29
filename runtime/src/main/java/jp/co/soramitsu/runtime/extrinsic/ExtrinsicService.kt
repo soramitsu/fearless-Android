@@ -10,7 +10,7 @@ class ExtrinsicService(
 
     suspend fun submitExtrinsic(
         accountAddress: String,
-        formExtrinsic: ExtrinsicBuilder.() -> Unit
+        formExtrinsic: suspend ExtrinsicBuilder.() -> Unit
     ): Result<String> = runCatching {
         val extrinsicBuilder = extrinsicBuilderFactory.create(accountAddress)
 

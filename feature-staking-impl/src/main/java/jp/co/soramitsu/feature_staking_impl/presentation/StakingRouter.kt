@@ -43,5 +43,7 @@ interface StakingRouter {
 
     fun openConfirmUnbond(payload: ConfirmUnbondPayload)
 
+    fun openRedeem()
+
     fun back()
 }

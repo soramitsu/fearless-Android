@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="staking_bonded_format">Bonded: %s</string>
+    <string name="staking_redeemable_format">Redeemable: %s</string>
 
     <string name="common_warning">Warning</string>
     <string name="staking_unbond_crossed_existential">After operation the resulting bonded balance will be less than existential deposit. It will cause the whole bonded balance to be unbonded.</string>

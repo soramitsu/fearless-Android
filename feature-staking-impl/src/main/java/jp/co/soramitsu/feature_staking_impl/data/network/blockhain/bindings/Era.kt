@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.storageReturnType
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
 import java.math.BigInteger
 
 /*
@@ -51,4 +52,4 @@ fun bindCurrentEra(
 }
 
 @HelperBinding
-fun bindEraIndex(dynamicInstance: Any?) = bindNumber(dynamicInstance)
+fun bindEraIndex(dynamicInstance: Any?): EraIndex = bindNumber(dynamicInstance)
