@@ -5,6 +5,7 @@
     <string name="staking_rebond_custom">Rebond custom amount</string>
 
     <string name="staking_bonded_format">Bonded: %s</string>
+    <string name="staking_unbonding_format">Unbonding: %s</string>
     <string name="staking_redeemable_format">Redeemable: %s</string>
 
     <string name="common_warning">Warning</string>
