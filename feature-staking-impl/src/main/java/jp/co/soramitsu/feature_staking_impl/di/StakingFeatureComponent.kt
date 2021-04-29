@@ -70,7 +70,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun confirmUnbondFactory(): ConfirmUnbondComponent.Factory
 
-    fun redeemFactory() : RedeemComponent.Factory
+    fun redeemFactory(): RedeemComponent.Factory
 
     @Component.Factory
     interface Factory {

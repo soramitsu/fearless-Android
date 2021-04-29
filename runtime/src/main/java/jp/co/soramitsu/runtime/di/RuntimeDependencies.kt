@@ -37,5 +37,5 @@ interface RuntimeDependencies {
 
     fun storageDao(): StorageDao
 
-    fun bulkRetriever() : BulkRetriever
+    fun bulkRetriever(): BulkRetriever
 }

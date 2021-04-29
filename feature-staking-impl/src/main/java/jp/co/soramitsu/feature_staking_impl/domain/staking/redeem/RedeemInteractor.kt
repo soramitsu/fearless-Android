@@ -2,7 +2,9 @@ package jp.co.soramitsu.feature_staking_impl.domain.staking.redeem
 
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.withdrawUnbonded
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import kotlinx.coroutines.Dispatchers
@@ -23,15 +25,21 @@ class RedeemInteractor(
         }
     }
 
-    suspend fun redeem(accountAddress: String): Result<String> {
+    suspend fun redeem(stash: StakingState.Stash, asset: Asset): Result<RedeemConsequences> {
         return withContext(Dispatchers.IO) {
-            extrinsicService.submitExtrinsic(accountAddress) {
-                withdrawUnbonded(getSlashingSpansNumber(accountAddress))
+            val controllerAddress = stash.controllerAddress
+
+            extrinsicService.submitExtrinsic(controllerAddress) {
+                withdrawUnbonded(getSlashingSpansNumber(controllerAddress))
+            }.map {
+                RedeemConsequences(
+                    willKillStash = asset.redeemable == asset.locked
+                )
             }
         }
     }
 
-    private suspend fun getSlashingSpansNumber(accountAddress: String) : BigInteger {
+    private suspend fun getSlashingSpansNumber(accountAddress: String): BigInteger {
         val slashingSpans = stakingRepository.getSlashingSpan(accountAddress.toAccountId())
 
         return slashingSpans?.let {

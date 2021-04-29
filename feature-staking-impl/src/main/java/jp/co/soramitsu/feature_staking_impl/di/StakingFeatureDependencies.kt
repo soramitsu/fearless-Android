@@ -84,8 +84,8 @@ interface StakingFeatureDependencies {
     fun validationExecutor(): ValidationExecutor
 
     @Named(REMOTE_STORAGE_SOURCE)
-    fun remoteStorageSource() : StorageDataSource
+    fun remoteStorageSource(): StorageDataSource
 
     @Named(LOCAL_STORAGE_SOURCE)
-    fun localStorageSource() : StorageDataSource
+    fun localStorageSource(): StorageDataSource
 }

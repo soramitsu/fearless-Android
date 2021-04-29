@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemViewModel
@@ -30,6 +31,7 @@ class RedeemModule {
         redeemInteractor: RedeemInteractor,
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
+        validationSystem: RedeemValidationSystem,
         iconGenerator: AddressIconGenerator,
         externalAccountActions: ExternalAccountActions.Presentation,
         feeLoaderMixin: FeeLoaderMixin.Presentation
@@ -40,6 +42,7 @@ class RedeemModule {
             redeemInteractor,
             resourceManager,
             validationExecutor,
+            validationSystem,
             iconGenerator,
             feeLoaderMixin,
             externalAccountActions

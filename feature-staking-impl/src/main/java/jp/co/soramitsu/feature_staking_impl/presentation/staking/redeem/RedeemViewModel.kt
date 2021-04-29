@@ -11,11 +11,16 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
@@ -34,6 +39,7 @@ class RedeemViewModel(
     private val redeemInteractor: RedeemInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
+    private val validationSystem: RedeemValidationSystem,
     private val iconGenerator: AddressIconGenerator,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
@@ -113,24 +119,44 @@ class RedeemViewModel(
 
     private fun maybeGoToNext() = requireFee { fee ->
         launch {
-//            val payload = BondMoreValidationPayload(
-//                stashAddress = stashAddress(),
-//                fee = fee,
-//                amount = parsedAmountFlow.first(),
-//                tokenType = assetFlow.first().token.type
-//            )
-//
-//            validationExecutor.requireValid(
-//                validationSystem = validationSystem,
-//                payload = payload,
-//                validationFailureTransformer = { bondMoreValidationFailure(it, resourceManager) },
-//                progressConsumer = _showNextProgress.progressConsumer()
-//            ) {
-//                _showNextProgress.value = false
-//
-//                openConfirm(payload)
-//            }
+            val asset = assetFlow.first()
+
+            val payload = RedeemValidationPayload(
+                networkType = asset.token.type.networkType,
+                fee = fee,
+                asset = asset
+            )
+
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = payload,
+                validationFailureTransformer = { redeemValidationFailure(it, resourceManager) },
+                progressConsumer = _showNextProgress.progressConsumer()
+            ) {
+                _showNextProgress.value = false
+
+                sendTransaction(it)
+            }
         }
     }
+
+    private fun sendTransaction(redeemValidationPayload: RedeemValidationPayload) = launch {
+        val result = redeemInteractor.redeem(accountStakingFlow.first(), redeemValidationPayload.asset)
+
+        _showNextProgress.value = false
+
+        if (result.isSuccess) {
+            showMessage(resourceManager.getString(R.string.common_transaction_submitted))
+
+            if (result.requireValue().willKillStash) {
+                router.returnToMain()
+            } else {
+                router.returnToStakingBalance()
+            }
+        } else {
+            showError(result.requireException())
+        }
+    }
+
     private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress
 }

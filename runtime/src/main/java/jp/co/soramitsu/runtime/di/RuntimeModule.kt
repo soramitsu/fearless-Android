@@ -142,7 +142,7 @@ class RuntimeModule {
     fun provideLocalStorageSource(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         storageCache: StorageCache,
-    ) : StorageDataSource = LocalStorageSource(runtimeProperty, storageCache)
+    ): StorageDataSource = LocalStorageSource(runtimeProperty, storageCache)
 
     @Provides
     @Named(REMOTE_STORAGE_SOURCE)
@@ -151,5 +151,5 @@ class RuntimeModule {
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         socketService: SocketService,
         bulkRetriever: BulkRetriever
-    ) : StorageDataSource = RemoteStorageSource(runtimeProperty, socketService, bulkRetriever)
+    ): StorageDataSource = RemoteStorageSource(runtimeProperty, socketService, bulkRetriever)
 }

@@ -91,4 +91,4 @@ class BulkRetriever(
     private fun isLastPage(page: List<String>) = page.size < pageSize
 }
 
-suspend fun BulkRetriever.queryKey(key: String) : String? = queryKeys(listOf(key)).values.first()
+suspend fun BulkRetriever.queryKey(key: String): String? = queryKeys(listOf(key)).values.first()

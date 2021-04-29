@@ -34,7 +34,7 @@ interface StakingRepository {
 
     suspend fun getSlashes(accountIdsHex: List<String>): AccountIdMap<Boolean>
 
-    suspend fun getSlashingSpan(accountId: AccountId) : SlashingSpans?
+    suspend fun getSlashingSpan(accountId: AccountId): SlashingSpans?
 
     fun stakingStateFlow(accountAddress: String): Flow<StakingState>
 
