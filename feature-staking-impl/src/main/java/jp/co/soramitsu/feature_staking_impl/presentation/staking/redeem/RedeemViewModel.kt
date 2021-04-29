@@ -133,8 +133,6 @@ class RedeemViewModel(
                 validationFailureTransformer = { redeemValidationFailure(it, resourceManager) },
                 progressConsumer = _showNextProgress.progressConsumer()
             ) {
-                _showNextProgress.value = false
-
                 sendTransaction(it)
             }
         }
