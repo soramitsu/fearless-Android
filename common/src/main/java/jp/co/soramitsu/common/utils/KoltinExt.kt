@@ -44,4 +44,3 @@ fun List<Double>.median(): Double = sorted().let {
 }
 
 fun generateLinearSequence(initial: Int, step: Int) = generateSequence(initial) { it + step }
-
