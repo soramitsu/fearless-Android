@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_rebond_all">Rebond all</string>
+    <string name="staking_rebond_last">Rebond last</string>
+    <string name="staking_rebond_custom">Rebond custom amount</string>
+
     <string name="staking_bonded_format">Bonded: %s</string>
     <string name="staking_redeemable_format">Redeemable: %s</string>
 

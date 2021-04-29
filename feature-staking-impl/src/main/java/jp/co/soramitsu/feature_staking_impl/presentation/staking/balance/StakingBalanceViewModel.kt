@@ -1,10 +1,14 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
@@ -15,6 +19,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageSta
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.UnbondingModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -64,6 +69,9 @@ class StakingBalanceViewModel(
         .inBackground()
         .asLiveData()
 
+    private val _showRebondActionsEvent = MutableLiveData<Event<Unit>>()
+    val showRebondActionsEvent: LiveData<Event<Unit>> = _showRebondActionsEvent
+
     fun bondMoreClicked() = requireValidManageAction(bondMoreValidationSystem) {
         router.openBondMore()
     }
@@ -81,7 +89,11 @@ class StakingBalanceViewModel(
     }
 
     fun unbondingsMoreClicked() {
-        showMessage("Ready to show REBOND actions")
+        _showRebondActionsEvent.sendEvent()
+    }
+
+    fun rebondKindChosen(rebondKind: RebondKind) {
+        showMessage("Ready to open $rebondKind")
     }
 
     private fun requireValidManageAction(

@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.ChooseRebondKindBottomSheet
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceActions
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceInfo
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceScrollingArea
@@ -82,6 +83,11 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
 
         viewModel.redeemEnabledLiveData.observe {
             stakingBalanceActions.redeem.isEnabled = it
+        }
+
+        viewModel.showRebondActionsEvent.observeEvent {
+            ChooseRebondKindBottomSheet(requireContext(), viewModel::rebondKindChosen)
+                .show()
         }
     }
 }
