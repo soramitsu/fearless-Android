@@ -34,5 +34,5 @@ class UnbondInteractor(
     // unbondings are always going from the oldest to newest so last in the list will be the newest one
     fun newestUnbondingAmount(unbondings: List<Unbonding>) = unbondings.last().amount
 
-    fun allUnbondingsAmount(unbondings: List<Unbonding>) : BigInteger = unbondings.sumByBigInteger(Unbonding::amount)
+    fun allUnbondingsAmount(unbondings: List<Unbonding>): BigInteger = unbondings.sumByBigInteger(Unbonding::amount)
 }
