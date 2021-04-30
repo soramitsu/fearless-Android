@@ -1,8 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
-import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
-import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.system
@@ -17,6 +15,8 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
+import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
+import jp.co.soramitsu.feature_wallet_api.data.cache.updateAsset
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
@@ -45,32 +45,14 @@ class PaymentUpdater(
 
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
-                val newAccountInfo = readAccountInfo(change.value)
+                val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
 
-                updateAssetBalance(address, newAccountInfo)
+                assetCache.updateAsset(address, newAccountInfo)
 
                 fetchTransfers(address, change.block)
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()
-    }
-
-    private suspend fun readAccountInfo(hex: String?): AccountInfo {
-        return hex?.let { bindAccountInfo(it, runtimeProperty.get()) } ?: AccountInfo.empty()
-    }
-
-    private suspend fun updateAssetBalance(
-        address: String,
-        accountInfo: AccountInfo,
-    ) = assetCache.updateAsset(address) { cachedAsset ->
-        val data = accountInfo.data
-
-        cachedAsset.copy(
-            freeInPlanks = data.free,
-            reservedInPlanks = data.reserved,
-            miscFrozenInPlanks = data.miscFrozen,
-            feeFrozenInPlanks = data.feeFrozen
-        )
     }
 
     private suspend fun fetchTransfers(address: String, blockHash: String) {
