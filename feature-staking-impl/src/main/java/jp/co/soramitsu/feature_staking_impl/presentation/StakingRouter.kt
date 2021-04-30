@@ -45,5 +45,7 @@ interface StakingRouter {
 
     fun openRedeem()
 
+    fun openControllerAccount()
+
     fun back()
 }

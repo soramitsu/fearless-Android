@@ -19,12 +19,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.SubscanValidatorSetFetcher
-import jp.co.soramitsu.feature_staking_impl.data.repository.IdentityRepositoryImpl
-import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
-import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
-import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
-import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
-import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchronizer
+import jp.co.soramitsu.feature_staking_impl.data.repository.*
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -34,6 +29,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.Reco
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.ControllerInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -232,4 +228,11 @@ class StakingFeatureModule {
         extrinsicService: ExtrinsicService,
         stakingRepository: StakingRepository
     ) = RedeemInteractor(feeEstimator, extrinsicService, stakingRepository)
+
+    @Provides
+    @FeatureScope
+    fun provideControllerInteractor(
+        feeEstimator: FeeEstimator,
+        extrinsicService: ExtrinsicService
+    ) = ControllerInteractor(feeEstimator, extrinsicService)
 }
