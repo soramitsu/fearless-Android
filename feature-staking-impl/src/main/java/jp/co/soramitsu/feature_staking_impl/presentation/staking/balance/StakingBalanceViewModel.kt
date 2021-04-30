@@ -37,6 +37,7 @@ class StakingBalanceViewModel(
     private val redeemValidationSystem: ManageStakingValidationSystem,
     private val unbondValidationSystem: ManageStakingValidationSystem,
     private val bondMoreValidationSystem: ManageStakingValidationSystem,
+    private val rebondValidationSystem: ManageStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
     private val unbondingInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
@@ -98,7 +99,9 @@ class StakingBalanceViewModel(
     }
 
     fun unbondingsMoreClicked() {
-        _showRebondActionsEvent.sendEvent()
+        requireValidManageAction(rebondValidationSystem) {
+            _showRebondActionsEvent.sendEvent()
+        }
     }
 
     fun rebondKindChosen(rebondKind: RebondKind) {

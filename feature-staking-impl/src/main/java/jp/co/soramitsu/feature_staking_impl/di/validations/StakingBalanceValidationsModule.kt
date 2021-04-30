@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceEl
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceUnlockingLimitValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_BOND_MORE
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_REBOND
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_REDEEM
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_UNBOND
 import javax.inject.Named
@@ -110,6 +111,22 @@ class StakingBalanceValidationsModule {
                 controllerRequiredValidation,
                 balanceElectionPeriodValidation,
                 balanceUnlockingLimitValidation
+            )
+        )
+    )
+
+    @FeatureScope
+    @Named(SYSTEM_MANAGE_STAKING_REBOND)
+    @Provides
+    fun provideRebondValidationSystem(
+        balanceElectionPeriodValidation: BalanceElectionPeriodValidation,
+        @Named(BALANCE_REQUIRED_CONTROLLER)
+        controllerRequiredValidation: BalanceAccountRequiredValidation
+    ) = ValidationSystem(
+        CompositeValidation(
+            validations = listOf(
+                controllerRequiredValidation,
+                balanceElectionPeriodValidation,
             )
         )
     )
