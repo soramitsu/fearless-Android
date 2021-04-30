@@ -192,10 +192,10 @@ class StakingUpdatersModule {
     @Provides
     @FeatureScope
     fun provideAccountControllerBalanceUpdater(
-        storageCache: StorageCache,
+        assetCache: AssetCache,
         scope: AccountStakingScope,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>
-    ) = AccountControllerBalanceUpdater(scope, storageCache, runtimeProperty)
+    ) = AccountControllerBalanceUpdater(scope, runtimeProperty, assetCache)
 
     @Provides
     @FeatureScope

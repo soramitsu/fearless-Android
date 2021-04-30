@@ -9,6 +9,7 @@ import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
+import java.lang.IllegalArgumentException
 
 class AccountControllerBalanceUpdater(
     override val scope: AccountStakingScope,
@@ -29,22 +31,32 @@ class AccountControllerBalanceUpdater(
 
         val accountStaking = scope.getAccountStaking()
         val stakingAccessInfo = accountStaking.stakingAccessInfo ?: return emptyFlow()
+
         val controllerId = stakingAccessInfo.controllerId
 
-        if (controllerId.contentEquals(stakingAccessInfo.stashId)) {
+        val networkType = accountStaking.address.networkType()
+
+        val controllerAddress = controllerId.toAddress(networkType)
+        val stashAddress = stakingAccessInfo.stashId.toAddress(networkType)
+
+        if (controllerAddress == stashAddress) {
             // balance is already observed, no need to do it twice
             return emptyFlow()
         }
 
-        val networkType = accountStaking.address.networkType()
+        val companionAddress = when(accountStaking.address) {
+            controllerAddress -> stashAddress
+            stashAddress -> controllerAddress
+            else -> throw IllegalArgumentException()
+        }
 
-        val key = runtime.metadata.system().storage("Account").storageKey(runtime, controllerId)
+        val key = runtime.metadata.system().storage("Account").storageKey(runtime, companionAddress.toAccountId())
 
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
                 val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
 
-                assetCache.updateAsset(controllerId.toAddress(networkType), newAccountInfo)
+                assetCache.updateAsset(companionAddress, newAccountInfo)
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()
