@@ -11,11 +11,14 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.requireFee
@@ -35,6 +38,7 @@ class ConfirmRebondViewModel(
     private val rebondInteractor: RebondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
+    private val validationSystem: RebondValidationSystem,
     private val iconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
@@ -116,43 +120,35 @@ class ConfirmRebondViewModel(
 
     private fun maybeGoToNext() = feeLoaderMixin.requireFee(this) { fee ->
         launch {
-//            val asset = assetFlow.first()
-//
-//            val payload = UnbondValidationPayload(
-//                bonded = asset.bonded,
-//                available = asset.transferable,
-//                stash = accountStakingFlow.first(),
-//                fee = payload.fee,
-//                amount = payload.amount,
-//                tokenType = asset.token.type
-//            )
-//
-//            validationExecutor.requireValid(
-//                validationSystem = validationSystem,
-//                payload = payload,
-//                validationFailureTransformer = { unbondValidationFailure(it, resourceManager) },
-//                autoFixPayload = ::unbondPayloadAutoFix,
-//                progressConsumer = _showNextProgress.progressConsumer()
-//            ) { validPayload ->
-//                sendTransaction(validPayload)
-//            }
+            val payload = RebondValidationPayload(
+                fee = fee,
+                rebondAmount = payload.amount,
+                controllerAsset = assetFlow.first()
+            )
+
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = payload,
+                validationFailureTransformer = { rebondValidationFailure(it, resourceManager) },
+                progressConsumer = _showNextProgress.progressConsumer(),
+                block = ::sendTransaction
+            )
         }
     }
 
-    private fun sendTransaction() = launch {
-//        val amountInPlanks = validPayload.tokenType.planksFromAmount(payload.amount)
-//
-//        val result = rebondInteractor.rebond(validPayload.stash, amountInPlanks)
-//
-//        _showNextProgress.value = false
-//
-//        if (result.isSuccess) {
-//            showMessage(resourceManager.getString(R.string.common_transaction_submitted))
-//
-//            router.returnToStakingBalance()
-//        } else {
-//            showError(result.requireException())
-//        }
+    private fun sendTransaction(validPayload: RebondValidationPayload) = launch {
+        val amountInPlanks = validPayload.controllerAsset.token.planksFromAmount(payload.amount)
+        val stashState = accountStakingFlow.first()
+
+        rebondInteractor.rebond(stashState, amountInPlanks)
+            .onSuccess {
+                showMessage(resourceManager.getString(R.string.common_transaction_submitted))
+
+                router.returnToStakingBalance()
+            }
+            .onFailure(::showError)
+
+        _showNextProgress.value = false
     }
 
     private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress

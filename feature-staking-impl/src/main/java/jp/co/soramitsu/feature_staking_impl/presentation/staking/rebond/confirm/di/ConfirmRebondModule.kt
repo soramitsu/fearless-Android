@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
@@ -32,6 +33,7 @@ class ConfirmRebondModule {
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
+        validationSystem: RebondValidationSystem,
         iconGenerator: AddressIconGenerator,
         externalAccountActions: ExternalAccountActions.Presentation,
         payload: ConfirmRebondPayload,
@@ -42,6 +44,7 @@ class ConfirmRebondModule {
             rebondInteractor,
             resourceManager,
             validationExecutor,
+            validationSystem,
             iconGenerator,
             externalAccountActions,
             feeLoaderMixin,

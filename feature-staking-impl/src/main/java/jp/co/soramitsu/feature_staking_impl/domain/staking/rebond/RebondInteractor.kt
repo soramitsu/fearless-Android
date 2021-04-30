@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain.staking.rebond
 
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.unbond
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.rebond
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +16,7 @@ class RebondInteractor(
     suspend fun estimateFee(accountAddress: String, amount: BigInteger): BigInteger {
         return withContext(Dispatchers.IO) {
             feeEstimator.estimateFee(accountAddress) {
-                unbond(amount)
+                rebond(amount)
             }
         }
     }
@@ -24,7 +24,7 @@ class RebondInteractor(
     suspend fun rebond(stashState: StakingState.Stash, amount: BigInteger): Result<String> {
         return withContext(Dispatchers.IO) {
             extrinsicService.submitExtrinsic(stashState.controllerAddress) {
-                unbond(amount)
+                rebond(amount)
             }
         }
     }

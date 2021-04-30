@@ -106,7 +106,7 @@ class StakingBalanceViewModel(
 
     fun rebondKindChosen(rebondKind: RebondKind) {
         when (rebondKind) {
-            RebondKind.LAST -> openConfirmRebond(unbondingInteractor::oldestUnbondingAmount)
+            RebondKind.LAST -> openConfirmRebond(unbondingInteractor::newestUnbondingAmount)
             RebondKind.ALL -> openConfirmRebond(unbondingInteractor::allUnbondingsAmount)
             RebondKind.CUSTOM -> showMessage("Ready to open custom rebond")
         }
