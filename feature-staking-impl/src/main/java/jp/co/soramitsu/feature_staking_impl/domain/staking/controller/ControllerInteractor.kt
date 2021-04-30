@@ -14,7 +14,7 @@ class ControllerInteractor(
     private val extrinsicService: ExtrinsicService
 ) {
     suspend fun estimateFee(stashAccountAddress: String, controllerAccountAddress: String): BigInteger {
-        return withContext(Dispatchers.IO){
+        return withContext(Dispatchers.IO) {
             feeEstimator.estimateFee(stashAccountAddress) {
                 setController(MultiAddress.Id(controllerAccountAddress.toAccountId()))
             }
@@ -22,7 +22,7 @@ class ControllerInteractor(
     }
 
     suspend fun setController(stashAccountAddress: String, controllerAccountAddress: String): Result<String> {
-        return withContext(Dispatchers.IO){
+        return withContext(Dispatchers.IO) {
             extrinsicService.submitExtrinsic(stashAccountAddress) {
                 setController(MultiAddress.Id(controllerAccountAddress.toAccountId()))
             }

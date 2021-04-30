@@ -19,7 +19,12 @@ import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.SubscanValidatorSetFetcher
-import jp.co.soramitsu.feature_staking_impl.data.repository.*
+import jp.co.soramitsu.feature_staking_impl.data.repository.IdentityRepositoryImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
+import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
+import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
+import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchronizer
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor

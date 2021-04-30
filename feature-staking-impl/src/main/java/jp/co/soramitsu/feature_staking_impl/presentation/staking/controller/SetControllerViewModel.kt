@@ -5,6 +5,4 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.Controller
 
 class SetControllerViewModel(
     private val interactor: ControllerInteractor
-) : BaseViewModel() {
-
-}
+) : BaseViewModel()

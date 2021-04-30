@@ -19,9 +19,7 @@ class SetControllerFragment : BaseFragment<SetControllerViewModel>() {
         return inflater.inflate(R.layout.fragment_set_controller_account, container, false)
     }
 
-
     override fun initViews() {
-
     }
 
     override fun inject() {
@@ -35,6 +33,5 @@ class SetControllerFragment : BaseFragment<SetControllerViewModel>() {
     }
 
     override fun subscribe(viewModel: SetControllerViewModel) {
-
     }
 }

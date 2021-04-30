@@ -6,7 +6,6 @@ import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.SetControllerFragment
 
-
 @Subcomponent(
     modules = [
         SetControllerModule::class
