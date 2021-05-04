@@ -48,5 +48,7 @@ interface StakingRouter {
 
     fun openConfirmRebond(payload: ConfirmRebondPayload)
 
+    fun openControllerAccount()
+
     fun back()
 }

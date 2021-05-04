@@ -35,6 +35,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFacto
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.ControllerInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -240,4 +241,11 @@ class StakingFeatureModule {
         feeEstimator: FeeEstimator,
         extrinsicService: ExtrinsicService,
     ) = RebondInteractor(feeEstimator, extrinsicService)
+
+    @Provides
+    @FeatureScope
+    fun provideControllerInteractor(
+        feeEstimator: FeeEstimator,
+        extrinsicService: ExtrinsicService
+    ) = ControllerInteractor(feeEstimator, extrinsicService)
 }
