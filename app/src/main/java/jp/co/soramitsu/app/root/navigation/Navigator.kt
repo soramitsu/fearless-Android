@@ -37,6 +37,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPa
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
@@ -203,6 +205,10 @@ class Navigator :
 
     override fun openRedeem() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_redeemFragment)
+    }
+
+    override fun openConfirmRebond(payload: ConfirmRebondPayload) {
+        navController?.navigate(R.id.action_open_confirm_rebond, ConfirmRebondFragment.getBundle(payload))
     }
 
     override fun back() {

@@ -13,6 +13,8 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
+import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
@@ -20,19 +22,24 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.UnbondingModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class StakingBalanceViewModel(
     private val router: StakingRouter,
     private val redeemValidationSystem: ManageStakingValidationSystem,
     private val unbondValidationSystem: ManageStakingValidationSystem,
     private val bondMoreValidationSystem: ManageStakingValidationSystem,
+    private val rebondValidationSystem: ManageStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
+    private val unbondingInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
     private val interactor: StakingInteractor,
 ) : BaseViewModel(), Validatable by validationExecutor {
@@ -54,7 +61,10 @@ class StakingBalanceViewModel(
         .map { it.redeemable > BigDecimal.ZERO }
         .asLiveData()
 
-    val unbondingsLiveData = interactor.currentUnbondingsFlow()
+    private val unbondingsFlow = interactor.currentUnbondingsFlow()
+        .share()
+
+    val unbondingModelsLiveData = unbondingsFlow
         .combine(assetFlow) { unbondings, asset ->
             unbondings.mapIndexed { index, unbonding ->
                 val daysLeft = unbonding.daysLeft
@@ -89,11 +99,30 @@ class StakingBalanceViewModel(
     }
 
     fun unbondingsMoreClicked() {
-        _showRebondActionsEvent.sendEvent()
+        requireValidManageAction(rebondValidationSystem) {
+            _showRebondActionsEvent.sendEvent()
+        }
     }
 
     fun rebondKindChosen(rebondKind: RebondKind) {
-        showMessage("Ready to open $rebondKind")
+        when (rebondKind) {
+            RebondKind.LAST -> openConfirmRebond(unbondingInteractor::newestUnbondingAmount)
+            RebondKind.ALL -> openConfirmRebond(unbondingInteractor::allUnbondingsAmount)
+            RebondKind.CUSTOM -> showMessage("Ready to open custom rebond")
+        }
+    }
+
+    private fun openConfirmRebond(amountBuilder: (List<Unbonding>) -> BigInteger) {
+        launch {
+            val unbondings = unbondingsFlow.first()
+
+            val amountInPlanks = amountBuilder(unbondings)
+            val asset = assetFlow.first()
+
+            val amount = asset.token.amountFromPlanks(amountInPlanks)
+
+            router.openConfirmRebond(ConfirmRebondPayload(amount))
+        }
     }
 
     private fun requireValidManageAction(

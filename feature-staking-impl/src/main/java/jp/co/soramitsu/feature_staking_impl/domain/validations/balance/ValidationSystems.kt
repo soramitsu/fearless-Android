@@ -5,5 +5,6 @@ import jp.co.soramitsu.common.validation.ValidationSystem
 const val SYSTEM_MANAGE_STAKING_REDEEM = "ManageStakingRedeem"
 const val SYSTEM_MANAGE_STAKING_BOND_MORE = "ManageStakingBondMore"
 const val SYSTEM_MANAGE_STAKING_UNBOND = "ManageStakingUnbond"
+const val SYSTEM_MANAGE_STAKING_REBOND = "ManageStakingRebond"
 
 typealias ManageStakingValidationSystem = ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>

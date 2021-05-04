@@ -28,6 +28,7 @@ import jp.co.soramitsu.core_db.migrations.AddStakingRewardsTable_15_16
 import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
+import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
@@ -41,7 +42,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Database(
-    version = 17,
+    version = 18,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
@@ -83,6 +84,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AddTokenTable_9_10, AddPhishingAddressesTable_10_11, AddRuntimeCacheTable_11_12)
                     .addMigrations(AddStorageCacheTable_12_13, AddNetworkTypeToStorageCache_13_14)
                     .addMigrations(AddAccountStakingTable_14_15, AddStakingRewardsTable_15_16, ChangePrimaryKeyForRewards_16_17)
+                    .addMigrations(RemoveAccountForeignKeyFromAsset_17_18)
                     .build()
             }
             return instance!!

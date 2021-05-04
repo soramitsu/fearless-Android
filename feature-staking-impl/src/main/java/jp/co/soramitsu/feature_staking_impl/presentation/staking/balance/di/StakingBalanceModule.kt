@@ -11,8 +11,10 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_BOND_MORE
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_REBOND
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_REDEEM
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_UNBOND
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -30,6 +32,8 @@ class StakingBalanceModule {
         @Named(SYSTEM_MANAGE_STAKING_REDEEM) redeemValidationSystem: ManageStakingValidationSystem,
         @Named(SYSTEM_MANAGE_STAKING_UNBOND) unbondValidationSystem: ManageStakingValidationSystem,
         @Named(SYSTEM_MANAGE_STAKING_BOND_MORE) bondMoreValidationSystem: ManageStakingValidationSystem,
+        @Named(SYSTEM_MANAGE_STAKING_REBOND) rebondValidationSystem: ManageStakingValidationSystem,
+        unbondingInteractor: UnbondInteractor,
         validationExecutor: ValidationExecutor,
         resourceManager: ResourceManager,
         router: StakingRouter,
@@ -39,7 +43,9 @@ class StakingBalanceModule {
             redeemValidationSystem,
             unbondValidationSystem,
             bondMoreValidationSystem,
+            rebondValidationSystem,
             validationExecutor,
+            unbondingInteractor,
             resourceManager,
             stakingInteractor,
         )
