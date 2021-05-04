@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
-import java.lang.IllegalArgumentException
 
 class AccountControllerBalanceUpdater(
     override val scope: AccountStakingScope,
@@ -44,7 +43,7 @@ class AccountControllerBalanceUpdater(
             return emptyFlow()
         }
 
-        val companionAddress = when(accountStaking.address) {
+        val companionAddress = when (accountStaking.address) {
             controllerAddress -> stashAddress
             stashAddress -> controllerAddress
             else -> throw IllegalArgumentException()

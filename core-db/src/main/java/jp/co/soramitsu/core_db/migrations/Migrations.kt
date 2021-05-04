@@ -10,7 +10,8 @@ val RemoveAccountForeignKeyFromAsset_17_18 = object : Migration(17, 18) {
 
         database.execSQL("DROP INDEX IF EXISTS index_assets_accountAddress")
         database.execSQL("ALTER TABLE assets RENAME TO _assets")
-        database.execSQL("""
+        database.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `assets` (
                 `token` INTEGER NOT NULL,
                 `accountAddress` TEXT NOT NULL,
@@ -25,7 +26,8 @@ val RemoveAccountForeignKeyFromAsset_17_18 = object : Migration(17, 18) {
                 FOREIGN KEY(`token`)
                 REFERENCES `tokens`(`type`) ON UPDATE NO ACTION ON DELETE NO ACTION
             )
-        """.trimIndent())
+            """.trimIndent()
+        )
         database.execSQL("CREATE INDEX `index_assets_accountAddress` ON `assets` (`accountAddress`)")
         database.execSQL("INSERT INTO assets SELECT * FROM _assets")
         database.execSQL("DROP TABLE _assets")

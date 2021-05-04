@@ -80,7 +80,6 @@ class StakingLedgerUpdater(
                     if (controllerAddress != stashAddress) {
                         updateAssetStaking(controllerAddress, it.ledger, era)
                     }
-
                 } ?: updateAssetStakingForEmptyLedger(accountAddress)
             }
             .flowOn(Dispatchers.IO)
