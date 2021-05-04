@@ -23,9 +23,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-private const val DEFAULT_AMOUNT = 1
-private const val DEBOUNCE_DURATION_MILLIS = 500
-
 class SetControllerViewModel(
     private val interactor: ControllerInteractor,
     private val stackingInteractor: StakingInteractor,
@@ -43,7 +40,14 @@ class SetControllerViewModel(
         .filterIsInstance<StakingState.Stash>()
         .share()
 
-    val stashAccountModel = accountStakingFlow.map { addressIconGenerator.createAddressModel(it.stashAddress, AddressIconGenerator.SIZE_SMALL, stackingInteractor.getAccount(it.stashAddress).name) }.asLiveData()
+    val stashAccountModel = accountStakingFlow.map {
+        addressIconGenerator
+            .createAddressModel(
+                it.stashAddress,
+                AddressIconGenerator.SIZE_SMALL,
+                stackingInteractor.getAccount(it.stashAddress).name
+            )
+    }.asLiveData()
 
     private val _controllerAccountModel = MutableLiveData<AddressModel>()
     val controllerAccountModel: LiveData<AddressModel> = _controllerAccountModel

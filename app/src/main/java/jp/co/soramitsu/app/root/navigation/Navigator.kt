@@ -227,8 +227,7 @@ class Navigator :
         navController?.navigate(R.id.action_stakingBalanceFragment_to_controllerAccountFragment)
     }
 
-    override fun continueSetController(){
-
+    override fun continueSetController() {
     }
 
     override fun openRecommendedValidators() {
