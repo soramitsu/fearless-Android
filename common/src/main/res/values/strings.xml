@@ -6,7 +6,7 @@
 
     <string name="staking_rebond_all">Rebond all</string>
     <string name="staking_rebond_last">Rebond last</string>
-    <string name="staking_rebond_custom">Rebond custom amount</string>
+    <string name="staking_rebond">Rebond</string>
 
     <string name="staking_bonded_format">Bonded: %s</string>
     <string name="staking_unbonding_format">Unbonding: %s</string>

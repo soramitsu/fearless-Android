@@ -219,6 +219,10 @@ class Navigator :
         }
     }
 
+    override fun openCustomRebond() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_customRebondFragment)
+    }
+
     override fun openControllerAccount() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_controllerAccountFragment)
     }
