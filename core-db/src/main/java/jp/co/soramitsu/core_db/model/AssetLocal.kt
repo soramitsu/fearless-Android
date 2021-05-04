@@ -10,12 +10,6 @@ import java.math.BigInteger
     primaryKeys = ["token", "accountAddress"],
     foreignKeys = [
         ForeignKey(
-            entity = AccountLocal::class,
-            parentColumns = ["address"],
-            childColumns = ["accountAddress"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
             entity = TokenLocal::class,
             parentColumns = ["type"],
             childColumns = ["token"]
