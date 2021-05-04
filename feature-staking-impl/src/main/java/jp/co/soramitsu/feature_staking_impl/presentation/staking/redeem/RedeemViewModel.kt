@@ -104,7 +104,7 @@ class RedeemViewModel(
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
             feeConstructor = { asset ->
-                val feeInPlanks = redeemInteractor.estimateFee(controllerAddress())
+                val feeInPlanks = redeemInteractor.estimateFee(accountStakingFlow.first())
 
                 asset.token.amountFromPlanks(feeInPlanks)
             },
