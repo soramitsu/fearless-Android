@@ -51,4 +51,6 @@ interface StakingRouter {
     fun openControllerAccount()
 
     fun back()
+
+    fun openCustomRebond()
 }

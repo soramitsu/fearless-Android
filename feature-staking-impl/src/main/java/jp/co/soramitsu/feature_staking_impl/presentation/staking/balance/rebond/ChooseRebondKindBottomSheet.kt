@@ -24,7 +24,7 @@ class ChooseRebondKindBottomSheet(
             actionListener(RebondKind.LAST)
         }
 
-        item(R.drawable.ic_stacking_24, R.string.staking_rebond_custom) {
+        item(R.drawable.ic_stacking_24, R.string.staking_rebond) {
             actionListener(RebondKind.CUSTOM)
         }
     }

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond
 
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.resources.ResourceManager

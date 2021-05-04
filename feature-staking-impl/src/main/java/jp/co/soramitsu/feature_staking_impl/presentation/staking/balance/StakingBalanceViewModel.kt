@@ -108,7 +108,7 @@ class StakingBalanceViewModel(
         when (rebondKind) {
             RebondKind.LAST -> openConfirmRebond(unbondingInteractor::newestUnbondingAmount)
             RebondKind.ALL -> openConfirmRebond(unbondingInteractor::allUnbondingsAmount)
-            RebondKind.CUSTOM -> showMessage("Ready to open custom rebond")
+            RebondKind.CUSTOM -> router.openCustomRebond()
         }
     }
 
