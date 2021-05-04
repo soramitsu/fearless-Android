@@ -3,6 +3,40 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val RemoveAccountForeignKeyFromAsset_17_18 = object : Migration(17, 18) {
+
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.beginTransaction()
+
+        database.execSQL("DROP INDEX IF EXISTS index_assets_accountAddress")
+        database.execSQL("ALTER TABLE assets RENAME TO _assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `assets` (
+                `token` INTEGER NOT NULL,
+                `accountAddress` TEXT NOT NULL,
+                `freeInPlanks` TEXT NOT NULL,
+                `reservedInPlanks` TEXT NOT NULL,
+                `miscFrozenInPlanks` TEXT NOT NULL,
+                `feeFrozenInPlanks` TEXT NOT NULL,
+                `bondedInPlanks` TEXT NOT NULL,
+                `redeemableInPlanks` TEXT NOT NULL,
+                `unbondingInPlanks` TEXT NOT NULL,
+                PRIMARY KEY(`token`, `accountAddress`),
+                FOREIGN KEY(`token`)
+                REFERENCES `tokens`(`type`) ON UPDATE NO ACTION ON DELETE NO ACTION
+            )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX `index_assets_accountAddress` ON `assets` (`accountAddress`)")
+        database.execSQL("INSERT INTO assets SELECT * FROM _assets")
+        database.execSQL("DROP TABLE _assets")
+
+        database.setTransactionSuccessful()
+        database.endTransaction()
+    }
+}
+
 val ChangePrimaryKeyForRewards_16_17 = object : Migration(16, 17) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("DROP TABLE staking_rewards")

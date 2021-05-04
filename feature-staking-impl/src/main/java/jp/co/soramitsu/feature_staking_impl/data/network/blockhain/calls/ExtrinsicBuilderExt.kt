@@ -77,3 +77,12 @@ fun ExtrinsicBuilder.withdrawUnbonded(numberOfSlashingSpans: BigInteger): Extrin
         )
     )
 }
+
+fun ExtrinsicBuilder.rebond(amount: BigInteger): ExtrinsicBuilder {
+    return call(
+        "Staking", "rebond",
+        mapOf(
+            "value" to amount
+        )
+    )
+}

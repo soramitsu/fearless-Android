@@ -520,12 +520,20 @@
             app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
+            android:id="@+id/action_stakingBalanceFragment_to_redeemFragment"
+            app:destination="@id/redeemFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_stakingBalanceFragment_to_redeemFragment"
-            app:destination="@id/redeemFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
+        <action
+            android:id="@+id/action_stakingBalanceFragment_to_customRebondFragment"
+            app:destination="@id/customRebondFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
 
     </fragment>
 
@@ -534,7 +542,6 @@
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.SetControllerFragment"
         android:label="SelectBondMoreFragment"
         tools:layout="@layout/fragment_set_controller_account"/>
-
     <action
         android:id="@+id/action_return_to_staking_balance"
         app:enterAnim="@anim/fragment_close_enter"
@@ -567,15 +574,15 @@
         android:id="@+id/selectUnbondFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondFragment"
         android:label="SelectUnbondFragment"
-        tools:layout="@layout/fragment_select_unbond" >
+        tools:layout="@layout/fragment_select_unbond">
 
         <action
+            android:id="@+id/action_selectUnbondFragment_to_confirmUnbondFragment"
+            app:destination="@id/confirmUnbondFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_selectUnbondFragment_to_confirmUnbondFragment"
-            app:destination="@id/confirmUnbondFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <fragment
@@ -587,5 +594,26 @@
         android:id="@+id/redeemFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemFragment"
         android:label="RedeemFragment" />
+
+    <action
+        android:id="@+id/action_open_confirm_rebond"
+        app:destination="@id/confirmRebondFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <fragment
+        android:id="@+id/confirmRebondFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondFragment"
+        android:label="ConfirmRebondFragment"
+        tools:layout="@layout/fragment_confirm_rebond" />
+
+
+    <fragment
+        android:id="@+id/customRebondFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.custom.CustomRebondFragment"
+        android:label="CustomRebondFragment"
+        tools:layout="@layout/fragment_rebond_custom" />
 
 </navigation>

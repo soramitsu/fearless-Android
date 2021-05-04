@@ -1,7 +1,9 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.staking
+import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.StorageChange
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
@@ -53,6 +55,7 @@ class StakingLedgerUpdater(
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val accountAddress = scope.getAccount().address
         val currentAccountId = accountAddress.toAccountId()
+        val networkType = accountAddress.networkType()
         val runtime = runtimeProperty.get()
 
         val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
@@ -66,9 +69,17 @@ class StakingLedgerUpdater(
             }.onEach { ledgerWithController ->
                 updateAccountStaking(accountAddress, ledgerWithController)
 
-                ledgerWithController?.ledger?.let {
+                ledgerWithController?.let {
                     val era = stakingRepository.getActiveEraIndex()
-                    updateAssetStaking(accountAddress, it, era)
+
+                    val stashAddress = it.ledger.stashId.toAddress(networkType)
+                    val controllerAddress = it.controllerId.toAddress(networkType)
+
+                    updateAssetStaking(stashAddress, it.ledger, era)
+
+                    if (controllerAddress != stashAddress) {
+                        updateAssetStaking(controllerAddress, it.ledger, era)
+                    }
                 } ?: updateAssetStakingForEmptyLedger(accountAddress)
             }
             .flowOn(Dispatchers.IO)

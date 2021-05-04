@@ -13,7 +13,6 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountControllerBalanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountNominationsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountRewardDestinationUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountValidatorPrefsUpdater
@@ -25,6 +24,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Stak
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorExposureUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorPrefsUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.controller.AccountControllerBalanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalTotalValidatorRewardUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalUpdateMediator
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalValidatorRewardPointsUpdater
@@ -192,10 +192,10 @@ class StakingUpdatersModule {
     @Provides
     @FeatureScope
     fun provideAccountControllerBalanceUpdater(
-        storageCache: StorageCache,
+        assetCache: AssetCache,
         scope: AccountStakingScope,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>
-    ) = AccountControllerBalanceUpdater(scope, storageCache, runtimeProperty)
+    ) = AccountControllerBalanceUpdater(scope, runtimeProperty, assetCache)
 
     @Provides
     @FeatureScope

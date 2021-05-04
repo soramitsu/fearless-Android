@@ -1,9 +1,8 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -11,42 +10,44 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.requireException
-import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.requireFee
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.rebondValidationFailure
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
-class RedeemViewModel(
+class ConfirmRebondViewModel(
     private val router: StakingRouter,
-    private val interactor: StakingInteractor,
-    private val redeemInteractor: RedeemInteractor,
+    interactor: StakingInteractor,
+    private val rebondInteractor: RebondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
-    private val validationSystem: RedeemValidationSystem,
+    private val validationSystem: RebondValidationSystem,
     private val iconGenerator: AddressIconGenerator,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    private val payload: ConfirmRebondPayload,
 ) : BaseViewModel(),
-    Validatable by validationExecutor,
+    ExternalAccountActions by externalAccountActions,
     FeeLoaderMixin by feeLoaderMixin,
-    ExternalAccountActions by externalAccountActions {
+    Validatable by validationExecutor {
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -55,27 +56,31 @@ class RedeemViewModel(
         .filterIsInstance<StakingState.Stash>()
         .share()
 
-    private val assetFlow = accountStakingFlow
-        .flatMapLatest { interactor.assetFlow(it.stashAddress) }
+    private val assetFlow = accountStakingFlow.flatMapLatest {
+        interactor.assetFlow(it.controllerAddress)
+    }
         .share()
 
-    val amountLiveData = assetFlow.map { asset ->
-        val redeemable = asset.redeemable
+    val assetModelFlow = assetFlow
+        .map { mapAssetToAssetModel(it, resourceManager, Asset::unbonding, R.string.staking_unbonding_format) }
+        .inBackground()
+        .asLiveData()
 
-        redeemable.format() to asset.token.fiatAmount(redeemable)?.formatAsCurrency()
+    val amountFiatFLow = assetFlow.map { asset ->
+        asset.token.fiatAmount(payload.amount)?.formatAsCurrency()
     }
         .inBackground()
         .asLiveData()
 
-    val assetModelLiveData = assetFlow.map { asset ->
-        mapAssetToAssetModel(asset, resourceManager, Asset::redeemable, R.string.staking_redeemable_format)
-    }
+    val amount = payload.amount.format()
 
     val originAddressModelLiveData = accountStakingFlow.map {
         val address = it.controllerAddress
         val account = interactor.getAccount(address)
 
-        iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
+        val addressModel = iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
+
+        addressModel
     }
         .inBackground()
         .asLiveData()
@@ -93,9 +98,9 @@ class RedeemViewModel(
     }
 
     fun originAccountClicked() {
-        val address = originAddressModelLiveData.value?.address ?: return
+        val originAddressModel = originAddressModelLiveData.value ?: return
 
-        val externalActionsPayload = ExternalAccountActions.Payload.fromAddress(address)
+        val externalActionsPayload = ExternalAccountActions.Payload.fromAddress(originAddressModel.address)
 
         externalAccountActions.showExternalActions(externalActionsPayload)
     }
@@ -104,7 +109,9 @@ class RedeemViewModel(
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
             feeConstructor = { asset ->
-                val feeInPlanks = redeemInteractor.estimateFee(accountStakingFlow.first())
+                val amountInPlanks = asset.token.planksFromAmount(payload.amount)
+
+                val feeInPlanks = rebondInteractor.estimateFee(controllerAddress(), amountInPlanks)
 
                 asset.token.amountFromPlanks(feeInPlanks)
             },
@@ -112,48 +119,37 @@ class RedeemViewModel(
         )
     }
 
-    private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(
-        block,
-        onError = { title, message -> showError(title, message) }
-    )
-
-    private fun maybeGoToNext() = requireFee { fee ->
+    private fun maybeGoToNext() = feeLoaderMixin.requireFee(this) { fee ->
         launch {
-            val asset = assetFlow.first()
-
-            val payload = RedeemValidationPayload(
-                networkType = asset.token.type.networkType,
+            val payload = RebondValidationPayload(
                 fee = fee,
-                asset = asset
+                rebondAmount = payload.amount,
+                controllerAsset = assetFlow.first()
             )
 
             validationExecutor.requireValid(
                 validationSystem = validationSystem,
                 payload = payload,
-                validationFailureTransformer = { redeemValidationFailure(it, resourceManager) },
-                progressConsumer = _showNextProgress.progressConsumer()
-            ) {
-                sendTransaction(it)
-            }
+                validationFailureTransformer = { rebondValidationFailure(it, resourceManager) },
+                progressConsumer = _showNextProgress.progressConsumer(),
+                block = ::sendTransaction
+            )
         }
     }
 
-    private fun sendTransaction(redeemValidationPayload: RedeemValidationPayload) = launch {
-        val result = redeemInteractor.redeem(accountStakingFlow.first(), redeemValidationPayload.asset)
+    private fun sendTransaction(validPayload: RebondValidationPayload) = launch {
+        val amountInPlanks = validPayload.controllerAsset.token.planksFromAmount(payload.amount)
+        val stashState = accountStakingFlow.first()
 
-        _showNextProgress.value = false
+        rebondInteractor.rebond(stashState, amountInPlanks)
+            .onSuccess {
+                showMessage(resourceManager.getString(R.string.common_transaction_submitted))
 
-        if (result.isSuccess) {
-            showMessage(resourceManager.getString(R.string.common_transaction_submitted))
-
-            if (result.requireValue().willKillStash) {
-                router.returnToMain()
-            } else {
                 router.returnToStakingBalance()
             }
-        } else {
-            showError(result.requireException())
-        }
+            .onFailure(::showError)
+
+        _showNextProgress.value = false
     }
 
     private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress
