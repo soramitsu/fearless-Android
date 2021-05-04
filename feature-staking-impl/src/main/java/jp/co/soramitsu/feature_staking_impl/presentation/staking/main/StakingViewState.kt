@@ -66,7 +66,7 @@ typealias NominatorSummaryModel = StakeSummaryModel<NominatorStatus>
 typealias ValidatorSummaryModel = StakeSummaryModel<ValidatorStatus>
 
 enum class ManageStakeAction {
-    PAYOUTS, BALANCE, STUB
+    PAYOUTS, BALANCE, CONTROLLER, STUB
 }
 
 sealed class StakeViewState<S>(
@@ -188,6 +188,7 @@ class NominatorViewState(
         when (action) {
             ManageStakeAction.PAYOUTS -> router.openPayouts()
             ManageStakeAction.BALANCE -> router.openStakingBalance()
+            ManageStakeAction.CONTROLLER -> router.openControllerAccount()
         }
     }
 

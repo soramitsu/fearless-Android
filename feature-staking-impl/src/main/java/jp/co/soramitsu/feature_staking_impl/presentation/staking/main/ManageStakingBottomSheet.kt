@@ -5,12 +5,9 @@ import android.os.Bundle
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.item_sheet_staking_action.view.itemSheetStakingActionDivider
-import kotlinx.android.synthetic.main.item_sheet_staking_action.view.itemSheetStakingActionImage
-import kotlinx.android.synthetic.main.item_sheet_staking_action.view.itemSheetStakingActionText
+import kotlinx.android.synthetic.main.item_sheet_staking_action.view.*
 
 class ManageStakingBottomSheet(
     context: Context,
@@ -27,14 +24,10 @@ class ManageStakingBottomSheet(
 //        manageItem(R.drawable.ic_send, R.string.staking_unstake)
 //        manageItem(R.drawable.ic_dotted_list_24, R.string.staking_unstaking_requests)
 //        manageItem(R.drawable.ic_maps_compas_24, R.string.staking_validators)
-        manageItem(R.drawable.ic_basic_circle_star_24, R.string.staking_reward_payouts, ManageStakeAction.PAYOUTS) {
-            it.itemSheetStakingActionDivider.makeGone()
-        }
+        manageItem(R.drawable.ic_basic_circle_star_24, R.string.staking_reward_payouts, ManageStakeAction.PAYOUTS)
 //        manageItem(R.drawable.ic_finance_wallet_24, R.string.staking_confirm_reward_destination)
 
-//        manageItem(R.drawable.ic_profile_24, R.string.staking_controller_account) {
-//            it.itemSheetStakingActionDivider.makeGone()
-//        }
+        manageItem(R.drawable.ic_profile_24, R.string.staking_controller_account, ManageStakeAction.CONTROLLER)
     }
 
     private inline fun manageItem(

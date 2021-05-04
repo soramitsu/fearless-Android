@@ -213,6 +213,10 @@ class Navigator :
         }
     }
 
+    override fun openControllerAccount() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_controllerAccountFragment)
+    }
+
     override fun openRecommendedValidators() {
         navController?.navigate(R.id.openRecommendedValidatorsFragment)
     }

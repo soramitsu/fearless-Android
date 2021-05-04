@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="stacking_stash_account">Stash account</string>
+
     <string name="staking_rebond_all">Rebond all</string>
     <string name="staking_rebond_last">Rebond last</string>
     <string name="staking_rebond_custom">Rebond custom amount</string>
