@@ -89,7 +89,7 @@ class StakingInteractor(
             val activeEraIndex = stakingRepository.getActiveEraIndex()
             val historyDepth = stakingRepository.getHistoryDepth()
 
-            val payouts = payoutRepository.calculateUnpaidPayouts(currentStakingState.stashAddress)
+            val payouts = payoutRepository.calculateUnpaidPayouts(currentStakingState)
 
             val allValidatorAddresses = payouts.map(Payout::validatorAddress).distinct()
             val identityMapping = identityRepository.getIdentitiesFromAddresses(allValidatorAddresses)

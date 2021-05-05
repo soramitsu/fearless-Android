@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.EraRewardPoints
@@ -44,6 +45,13 @@ class ValidatorHistoricalStats(
     )
 }
 
+private class RewardCalculationContext(
+    val validatorEraStats: ValidatorHistoricalStats.ValidatorEraStats,
+    val eraValidatorPointsDistribution: EraRewardPoints,
+    val validatorAccountId: AccountId,
+    val totalEraReward: BigInteger
+)
+
 class PayoutRepository(
     private val stakingRepository: StakingRepository,
     private val bulkRetriever: BulkRetriever,
@@ -52,10 +60,31 @@ class PayoutRepository(
     private val storageCache: StorageCache,
 ) {
 
-    suspend fun calculateUnpaidPayouts(stashAddress: String): List<Payout> {
+    suspend fun calculateUnpaidPayouts(stakingState: StakingState.Stash): List<Payout> {
+        return when (stakingState) {
+            is StakingState.Stash.Nominator -> calculateUnpaidPayouts(
+                retrieveValidatorAddresses = {
+                    validatorSetFetcher.fetchAllValidators(stakingState.stashAddress)
+                },
+                calculatePayoutReward = {
+                    calculateNominatorReward(stakingState.stashId, it)
+                }
+            )
+            is StakingState.Stash.Validator -> calculateUnpaidPayouts(
+                retrieveValidatorAddresses = { listOf(stakingState.stashAddress) },
+                calculatePayoutReward = ::calculateValidatorReward
+            )
+            else -> throw IllegalStateException("Cannot calculate payouts for ${stakingState::class.simpleName} state")
+        }
+    }
+
+    private suspend fun calculateUnpaidPayouts(
+        retrieveValidatorAddresses: suspend () -> List<String>,
+        calculatePayoutReward: (RewardCalculationContext) -> BigInteger?
+    ): List<Payout> {
         val runtime = runtimeProperty.get()
 
-        val validatorAddresses = validatorSetFetcher.fetchAllValidators(stashAddress)
+        val validatorAddresses = retrieveValidatorAddresses()
 
         val historicalRange = stakingRepository.historicalEras()
         val validatorStats = getValidatorHistoricalStats(runtime, historicalRange, validatorAddresses)
@@ -66,17 +95,17 @@ class PayoutRepository(
 
         return validatorStats.map { stats ->
             val claimedRewardsHoles = historicalRangeSet - stats.ledger.claimedRewards.toSet()
+            val validatorAddress = stats.validatorAddress
 
             claimedRewardsHoles.mapNotNull { holeEra ->
-                val validatorAddress = stats.validatorAddress
-
-                val reward = calculateNominatorReward(
-                    nominatorAccountId = stashAddress.toAccountId(),
-                    validatorAccountId = validatorAddress.toAccountId(),
+                val rewardCalculationContext = RewardCalculationContext(
                     validatorEraStats = stats.infoHistory[holeEra] ?: return@mapNotNull null,
+                    validatorAccountId = validatorAddress.toAccountId(),
                     totalEraReward = historicalTotalEraRewards[holeEra]!!,
                     eraValidatorPointsDistribution = historicalRewardDistribution[holeEra]!!
                 )
+
+                val reward = calculatePayoutReward(rewardCalculationContext)
 
                 reward?.let { Payout(validatorAddress, holeEra, it) }
             }
@@ -85,17 +114,47 @@ class PayoutRepository(
 
     private fun calculateNominatorReward(
         nominatorAccountId: AccountId,
-        validatorAccountId: AccountId,
-        validatorEraStats: ValidatorHistoricalStats.ValidatorEraStats,
-        totalEraReward: BigInteger,
-        eraValidatorPointsDistribution: EraRewardPoints,
-    ): BigInteger? {
+        rewardCalculationContext: RewardCalculationContext
+    ): BigInteger? = with(rewardCalculationContext) {
         val nominatorIdHex = nominatorAccountId.toHexString()
-        val validatorIdHex = validatorAccountId.toHexString()
 
         val nominatorStakeInEra = validatorEraStats.exposure.others.firstOrNull {
             it.who.toHexString() == nominatorIdHex
         }?.value?.toDouble() ?: return null
+
+        val validatorTotalStake = validatorEraStats.exposure.total.toDouble()
+        val validatorCommission = validatorEraStats.prefs.commission.toDouble()
+
+        val validatorTotalReward = calculateValidatorTotalReward(totalEraReward, eraValidatorPointsDistribution, validatorAccountId) ?: return null
+
+        val nominatorReward = validatorTotalReward * (1 - validatorCommission) * (nominatorStakeInEra / validatorTotalStake)
+
+        return nominatorReward.toBigDecimal().toBigInteger()
+    }
+
+    private fun calculateValidatorReward(
+        rewardCalculationContext: RewardCalculationContext
+    ): BigInteger? = with(rewardCalculationContext) {
+        val validatorTotalStake = validatorEraStats.exposure.total.toDouble()
+        val validatorOwnStake = validatorEraStats.exposure.own.toDouble()
+        val validatorCommission = validatorEraStats.prefs.commission.toDouble()
+
+        val validatorTotalReward = calculateValidatorTotalReward(totalEraReward, eraValidatorPointsDistribution, validatorAccountId) ?: return null
+
+        val validatorRewardFromCommission = validatorTotalReward * validatorCommission
+        val validatorRewardFromStake = validatorTotalReward * (1 - validatorCommission) * (validatorOwnStake / validatorTotalStake)
+
+        val validatorOwnReward = validatorRewardFromStake + validatorRewardFromCommission
+
+        validatorOwnReward.toBigDecimal().toBigInteger()
+    }
+
+    private fun calculateValidatorTotalReward(
+        totalEraReward: BigInteger,
+        eraValidatorPointsDistribution: EraRewardPoints,
+        validatorAccountId: AccountId,
+    ): Double? {
+        val validatorIdHex = validatorAccountId.toHexString()
 
         val totalMinted = totalEraReward.toDouble()
 
@@ -104,14 +163,7 @@ class PayoutRepository(
             it.accountId.toHexString() == validatorIdHex
         }?.rewardPoints?.toDouble() ?: return null
 
-        val validatorTotalStake = validatorEraStats.exposure.total.toDouble()
-        val validatorCommission = validatorEraStats.prefs.commission.toDouble()
-
-        val validatorTotalReward = totalMinted * validatorPoints / totalPoints
-
-        val nominatorReward = validatorTotalReward * (1 - validatorCommission) * (nominatorStakeInEra / validatorTotalStake)
-
-        return nominatorReward.toBigDecimal().toBigInteger()
+        return totalMinted * validatorPoints / totalPoints
     }
 
     private suspend fun getValidatorHistoricalStats(

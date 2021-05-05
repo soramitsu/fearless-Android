@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
@@ -73,20 +72,10 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
             when (stakingState) {
                 is NominatorViewState -> {
-                    stakingState.showManageActionsEvent.observeEvent {
-                        ManageStakingBottomSheet(requireContext(), stakingState::manageActionChosen).show()
-                    }
-
-                    stakingNominatorSummary.moreActions.setOnClickListener {
-                        stakingState.moreActionsClicked()
-                    }
-
                     stakingNominatorSummary.bindStakeSummary(stakingState, ::mapNominatorStatus)
                 }
 
                 is ValidatorViewState -> {
-                    stakingValidatorSummary.moreActions.makeInvisible()
-
                     stakingValidatorSummary.bindStakeSummary(stakingState, ::mapValidatorStatus)
                 }
 
@@ -165,7 +154,17 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             showStatusAlert(title, message)
         }
 
-        stakingViewState.nominatorSummaryFlow.observe { summaryState ->
+        moreActions.setVisible(stakingViewState.manageStakingActionsButtonVisible)
+
+        stakingViewState.showManageActionsEvent.observeEvent {
+            ManageStakingBottomSheet(requireContext(), it, stakingViewState::manageActionChosen).show()
+        }
+
+        moreActions.setOnClickListener {
+            stakingViewState.moreActionsClicked()
+        }
+
+        stakingViewState.stakeSummaryFlow.observe { summaryState ->
             when (summaryState) {
                 is LoadingState.Loaded<StakeSummaryModel<S>> -> {
                     val summary = summaryState.data
