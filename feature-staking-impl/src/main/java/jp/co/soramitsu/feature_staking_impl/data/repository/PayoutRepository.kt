@@ -61,7 +61,7 @@ class PayoutRepository(
 ) {
 
     suspend fun calculateUnpaidPayouts(stakingState: StakingState.Stash): List<Payout> {
-        return when(stakingState) {
+        return when (stakingState) {
             is StakingState.Stash.Nominator -> calculateUnpaidPayouts(
                 retrieveValidatorAddresses = {
                     validatorSetFetcher.fetchAllValidators(stakingState.stashAddress)
@@ -71,7 +71,7 @@ class PayoutRepository(
                 }
             )
             is StakingState.Stash.Validator -> calculateUnpaidPayouts(
-                retrieveValidatorAddresses =  { listOf(stakingState.stashAddress) },
+                retrieveValidatorAddresses = { listOf(stakingState.stashAddress) },
                 calculatePayoutReward = ::calculateValidatorReward
             )
             else -> throw IllegalStateException("Cannot calculate payouts for ${stakingState::class.simpleName} state")
