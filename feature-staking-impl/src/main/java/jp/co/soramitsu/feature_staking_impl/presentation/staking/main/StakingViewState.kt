@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
@@ -78,14 +77,34 @@ sealed class StakeViewState<S>(
     protected val router: StakingRouter,
     protected val errorDisplayer: (Throwable) -> Unit,
     protected val summaryFlowProvider: suspend (StakingState.Stash) -> Flow<StakeSummary<S>>,
-    protected val statusMessageProvider: (S) -> TitleAndMessage
+    protected val statusMessageProvider: (S) -> TitleAndMessage,
+    private val availableManageActions: Set<ManageStakeAction>
 ) : StakingViewState() {
 
     init {
         syncStakingRewards()
     }
 
-    val nominatorSummaryFlow = flow { emitAll(summaryFlow()) }
+    val manageStakingActionsButtonVisible = availableManageActions.isNotEmpty()
+
+    private val _showManageActionsEvent = MutableLiveData<Event<ManageStakingBottomSheet.Payload>>()
+    val showManageActionsEvent: LiveData<Event<ManageStakingBottomSheet.Payload>> = _showManageActionsEvent
+
+    fun manageActionChosen(action: ManageStakeAction) {
+        if (action !in availableManageActions) return
+
+        when (action) {
+            ManageStakeAction.PAYOUTS -> router.openPayouts()
+            ManageStakeAction.BALANCE -> router.openStakingBalance()
+            ManageStakeAction.CONTROLLER -> router.openControllerAccount()
+        }
+    }
+
+    fun moreActionsClicked() {
+        _showManageActionsEvent.value = Event(ManageStakingBottomSheet.Payload(availableManageActions))
+    }
+
+    val stakeSummaryFlow = flow { emitAll(summaryFlow()) }
         .withLoading()
         .inBackground()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
@@ -129,7 +148,7 @@ sealed class StakeViewState<S>(
     }
 
     private fun loadedSummaryOrNull(): StakeSummaryModel<S>? {
-        return when (val state = nominatorSummaryFlow.replayCache.firstOrNull()) {
+        return when (val state = stakeSummaryFlow.replayCache.firstOrNull()) {
             is LoadingState.Loaded<StakeSummaryModel<S>> -> state.data
             else -> null
         }
@@ -148,7 +167,8 @@ class ValidatorViewState(
     validatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = { stakingInteractor.observeValidatorSummary(validatorState) },
-    statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) }
+    statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) },
+    availableManageActions = ManageStakeAction.values().toSet()
 )
 
 private fun getValidatorStatusTitleAndMessage(
@@ -178,24 +198,9 @@ class NominatorViewState(
     nominatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = { stakingInteractor.observeNominatorSummary(nominatorState) },
-    statusMessageProvider = { getNominatorStatusTitleAndMessage(resourceManager, it) }
-) {
-
-    private val _showManageActionsEvent = MutableLiveData<Event<Unit>>()
-    val showManageActionsEvent: LiveData<Event<Unit>> = _showManageActionsEvent
-
-    fun manageActionChosen(action: ManageStakeAction) {
-        when (action) {
-            ManageStakeAction.PAYOUTS -> router.openPayouts()
-            ManageStakeAction.BALANCE -> router.openStakingBalance()
-            ManageStakeAction.CONTROLLER -> router.openControllerAccount()
-        }
-    }
-
-    fun moreActionsClicked() {
-        _showManageActionsEvent.sendEvent()
-    }
-}
+    statusMessageProvider = { getNominatorStatusTitleAndMessage(resourceManager, it) },
+    availableManageActions = ManageStakeAction.values().toSet()
+)
 
 private fun getNominatorStatusTitleAndMessage(
     resourceManager: ResourceManager,
