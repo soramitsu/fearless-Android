@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalAc
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import kotlinx.android.synthetic.main.fragment_set_controller_account.continueBtn
+import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerContinueBtn
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerDestinationAccount
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerFee
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerLearnMore
@@ -30,7 +30,7 @@ class SetControllerFragment : BaseFragment<SetControllerViewModel>() {
 
     override fun initViews() {
         onBackPressed { viewModel.backClicked() }
-        continueBtn.setOnClickListener { viewModel.continueClicked() }
+        setControllerContinueBtn.setOnClickListener { viewModel.continueClicked() }
 
         setControllerStashAccount.setWholeClickListener { viewModel.openExternalActions() }
         setControllerDestinationAccount.setWholeClickListener { viewModel.openAccounts() }

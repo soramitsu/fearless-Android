@@ -65,7 +65,7 @@
         android:layout_weight="1" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/continueBtn"
+        android:id="@+id/setControllerContinueBtn"
         style="@style/Widget.Fearless.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
