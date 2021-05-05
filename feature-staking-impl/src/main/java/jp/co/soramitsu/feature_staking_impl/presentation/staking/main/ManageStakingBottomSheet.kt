@@ -7,12 +7,16 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.item_sheet_staking_action.view.*
+import kotlinx.android.synthetic.main.item_sheet_staking_action.view.itemSheetStakingActionImage
+import kotlinx.android.synthetic.main.item_sheet_staking_action.view.itemSheetStakingActionText
 
 class ManageStakingBottomSheet(
     context: Context,
+    private val payload: Payload,
     private val onItemChosen: (ManageStakeAction) -> Unit,
 ) : FixedListBottomSheet(context) {
+
+    class Payload(val availableActions: Set<ManageStakeAction>)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,14 +40,16 @@ class ManageStakingBottomSheet(
         action: ManageStakeAction = ManageStakeAction.STUB,
         crossinline extraBuilder: (View) -> Unit = {},
     ) {
-        item(R.layout.item_sheet_staking_action) {
-            it.itemSheetStakingActionImage.setImageResource(iconRes)
-            it.itemSheetStakingActionText.setText(titleRes)
+        if (action in payload.availableActions) {
+            item(R.layout.item_sheet_staking_action) {
+                it.itemSheetStakingActionImage.setImageResource(iconRes)
+                it.itemSheetStakingActionText.setText(titleRes)
 
-            extraBuilder(it)
+                extraBuilder(it)
 
-            it.setDismissingClickListener {
-                onItemChosen(action)
+                it.setDismissingClickListener {
+                    onItemChosen(action)
+                }
             }
         }
     }
