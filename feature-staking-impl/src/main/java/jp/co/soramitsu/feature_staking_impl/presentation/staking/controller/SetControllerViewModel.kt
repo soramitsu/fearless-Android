@@ -7,8 +7,9 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.mediatorLiveData
+import jp.co.soramitsu.common.utils.updateFrom
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
@@ -33,8 +34,7 @@ class SetControllerViewModel(
     private val appLinksProvider: AppLinksProvider
 ) : BaseViewModel(),
     FeeLoaderMixin by feeLoaderMixin,
-    ExternalAccountActions by externalActions,
-    Browserable {
+    ExternalAccountActions by externalActions {
 
     private val accountStakingFlow = stackingInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
@@ -49,17 +49,24 @@ class SetControllerViewModel(
             )
     }.asLiveData()
 
-    private val _controllerAccountModel = MutableLiveData<AddressModel>()
+    private val _controllerAccountModel = mediatorLiveData<AddressModel> {
+        updateFrom(accountStakingFlow.map {
+            addressIconGenerator
+                .createAddressModel(
+                    it.controllerAddress,
+                    AddressIconGenerator.SIZE_SMALL,
+                    stackingInteractor.getAccount(it.controllerAddress).name
+                )
+        }.asLiveData())
+    }
     val controllerAccountModel: LiveData<AddressModel> = _controllerAccountModel
 
-    override val openBrowserEvent = MutableLiveData<Event<String>>()
+    override val openBrowserEvent = mediatorLiveData<Event<String>> {
+        updateFrom(externalActions.openBrowserEvent)
+    }
 
     private val _showControllerChooserEvent = MutableLiveData<Event<Payload<AddressModel>>>()
     val showControllerChooserEvent: LiveData<Event<Payload<AddressModel>>> = _showControllerChooserEvent
-
-    init {
-        listenFee()
-    }
 
     fun onMoreClicked() {
         openBrowserEvent.value = Event(appLinksProvider.setControllerLearnMore)
@@ -79,8 +86,8 @@ class SetControllerViewModel(
         }
     }
 
-    private fun listenFee() {
-        viewModelScope.launch { loadFee() }
+    init {
+        loadFee()
     }
 
     private fun loadFee() {
@@ -119,4 +126,8 @@ class SetControllerViewModel(
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {
         return addressIconGenerator.createAddressModel(account.address, AddressIconGenerator.SIZE_SMALL, account.name)
     }
+
+//    private fun maybeContinue() = requireFee {
+//
+//    }
 }
