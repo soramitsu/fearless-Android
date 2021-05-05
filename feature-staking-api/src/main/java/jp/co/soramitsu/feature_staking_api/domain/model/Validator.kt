@@ -33,7 +33,7 @@ class ChildIdentity(
     parentIdentity: Identity
 ) : Identity by parentIdentity {
 
-    override val display: String = "${parentIdentity.display} / $childName"
+    override val display: String = "${parentIdentity.display} / ${childName.orEmpty()}"
 }
 
 class SuperOf(
