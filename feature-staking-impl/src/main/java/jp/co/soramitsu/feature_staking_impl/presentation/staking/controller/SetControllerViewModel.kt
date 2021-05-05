@@ -50,9 +50,7 @@ class SetControllerViewModel(
             )
     }.asLiveData()
 
-    private val _controllerAccountModel = MutableLiveData<AddressModel>(
-
-    )
+    private val _controllerAccountModel = MutableLiveData<AddressModel>()
     val controllerAccountModel: LiveData<AddressModel> = _controllerAccountModel
 
     override val openBrowserEvent = mediatorLiveData<Event<String>> {
