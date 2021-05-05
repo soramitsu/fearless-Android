@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.setup
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.StringRes
 import androidx.recyclerview.widget.DiffUtil
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.inflateChild
@@ -18,7 +19,8 @@ import kotlinx.android.synthetic.main.item_account_chooser.view.accountTitle
 class AccountChooserBottomSheetDialog(
     context: Context,
     payload: Payload<AddressModel>,
-    clickHandler: ClickHandler<AddressModel>
+    clickHandler: ClickHandler<AddressModel>,
+    @StringRes val title: Int
 ) : DynamicListBottomSheet<AddressModel>(
     context, payload, AddressModelDiffCallback, clickHandler
 ) {
@@ -26,7 +28,7 @@ class AccountChooserBottomSheetDialog(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(R.string.staking_setup_reward_payout_account)
+        setTitle(title)
     }
 
     override fun holderCreator(): HolderCreator<AddressModel> = { parent ->

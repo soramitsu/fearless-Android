@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 class SetControllerViewModel(
     private val interactor: ControllerInteractor,
@@ -49,16 +50,9 @@ class SetControllerViewModel(
             )
     }.asLiveData()
 
-    private val _controllerAccountModel = mediatorLiveData<AddressModel> {
-        updateFrom(accountStakingFlow.map {
-            addressIconGenerator
-                .createAddressModel(
-                    it.controllerAddress,
-                    AddressIconGenerator.SIZE_SMALL,
-                    stackingInteractor.getAccount(it.controllerAddress).name
-                )
-        }.asLiveData())
-    }
+    private val _controllerAccountModel = MutableLiveData<AddressModel>(
+
+    )
     val controllerAccountModel: LiveData<AddressModel> = _controllerAccountModel
 
     override val openBrowserEvent = mediatorLiveData<Event<String>> {
@@ -88,6 +82,17 @@ class SetControllerViewModel(
 
     init {
         loadFee()
+
+        viewModelScope.launch {
+            _controllerAccountModel.value = accountStakingFlow.map {
+                addressIconGenerator
+                    .createAddressModel(
+                        it.controllerAddress,
+                        AddressIconGenerator.SIZE_SMALL,
+                        stackingInteractor.getAccount(it.controllerAddress).name
+                    )
+            }.first()
+        }
     }
 
     private fun loadFee() {
@@ -127,7 +132,8 @@ class SetControllerViewModel(
         return addressIconGenerator.createAddressModel(account.address, AddressIconGenerator.SIZE_SMALL, account.name)
     }
 
-//    private fun maybeContinue() = requireFee {
-//
-//    }
+    private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(
+        block,
+        onError = { title, message -> showError(title, message) }
+    )
 }

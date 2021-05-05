@@ -128,7 +128,8 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         AccountChooserBottomSheetDialog(
             requireContext(),
             payload,
-            viewModel::payoutDestinationChanged
+            viewModel::payoutDestinationChanged,
+            R.string.staking_setup_reward_payout_account
         ).show()
     }
 }
