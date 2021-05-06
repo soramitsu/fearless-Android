@@ -30,12 +30,11 @@ suspend fun mapValidatorToValidatorModel(
     val addressModel = iconGenerator.createAddressModel(address, ICON_SIZE_DP, validator.identity?.display)
 
     return with(validator) {
-        val apyPercentage = (PERCENT_MULTIPLIER * apy).formatAsPercentage()
+        val apyPercentage = electedInfo?.apy?.let { (PERCENT_MULTIPLIER * it).formatAsPercentage() }
 
         ValidatorModel(
             accountIdHex = accountIdHex,
             slashed = slashed,
-            identity = identity,
             image = addressModel.image,
             address = addressModel.address,
             apy = apyPercentage,
@@ -46,9 +45,14 @@ suspend fun mapValidatorToValidatorModel(
 
 fun mapValidatorToValidatorDetailsParcelModel(validator: Validator): ValidatorDetailsParcelModel {
     return with(validator) {
-        val nominators = nominatorStakes.map(::mapNominatorToNominatorParcelModel)
         val identityModel = identity?.let(::mapIdentityToIdentityParcelModel)
-        val stakeModel = ValidatorStakeParcelModel(totalStake, ownStake, nominators, apy)
+
+        val stakeModel = electedInfo?.let {
+            val nominators = it.nominatorStakes.map(::mapNominatorToNominatorParcelModel)
+
+            ValidatorStakeParcelModel(it.totalStake, it.ownStake, nominators, it.apy)
+        }
+
         ValidatorDetailsParcelModel(accountIdHex, stakeModel, identityModel)
     }
 }

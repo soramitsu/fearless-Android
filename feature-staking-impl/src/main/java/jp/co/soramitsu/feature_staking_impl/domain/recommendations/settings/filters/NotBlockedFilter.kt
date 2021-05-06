@@ -5,5 +5,5 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.Reco
 
 object NotBlockedFilter : RecommendationFilter {
 
-    override fun shouldInclude(model: Validator) = !model.prefs.blocked
+    override fun shouldInclude(model: Validator) = model.prefs?.blocked?.not() ?: false
 }

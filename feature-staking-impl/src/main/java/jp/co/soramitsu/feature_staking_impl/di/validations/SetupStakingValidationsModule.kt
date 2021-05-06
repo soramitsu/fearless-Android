@@ -45,6 +45,6 @@ class SetupStakingValidationsModule {
         enoughToPayFeesValidation: SetupStakingFeeValidation,
         minimumAmountValidation: MinimumAmountValidation,
     ) = ValidationSystem(
-        CompositeValidation(listOf(enoughToPayFeesValidation, minimumAmountValidation))
+        CompositeValidation(listOf(/*enoughToPayFeesValidation, */minimumAmountValidation))
     )
 }
