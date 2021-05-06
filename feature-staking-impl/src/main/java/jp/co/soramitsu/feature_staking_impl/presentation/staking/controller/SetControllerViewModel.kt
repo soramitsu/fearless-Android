@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 class SetControllerViewModel(
     private val interactor: ControllerInteractor,
@@ -42,12 +41,7 @@ class SetControllerViewModel(
         .share()
 
     val stashAccountModel = accountStakingFlow.map {
-        addressIconGenerator
-            .createAddressModel(
-                it.stashAddress,
-                AddressIconGenerator.SIZE_SMALL,
-                stackingInteractor.getAccount(it.stashAddress).name
-            )
+        generateIcon(it.stashAddress)
     }.asLiveData()
 
     private val _controllerAccountModel = MutableLiveData<AddressModel>()
@@ -83,12 +77,7 @@ class SetControllerViewModel(
 
         viewModelScope.launch {
             _controllerAccountModel.value = accountStakingFlow.map {
-                addressIconGenerator
-                    .createAddressModel(
-                        it.controllerAddress,
-                        AddressIconGenerator.SIZE_SMALL,
-                        stackingInteractor.getAccount(it.controllerAddress).name
-                    )
+                generateIcon(it.controllerAddress)
             }.first()
         }
     }
@@ -130,8 +119,10 @@ class SetControllerViewModel(
         return addressIconGenerator.createAddressModel(account.address, AddressIconGenerator.SIZE_SMALL, account.name)
     }
 
-    private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(
-        block,
-        onError = { title, message -> showError(title, message) }
-    )
+    private suspend fun generateIcon(address: String) = addressIconGenerator
+        .createAddressModel(
+            address,
+            AddressIconGenerator.SIZE_SMALL,
+            stackingInteractor.getAccount(address).name
+        )
 }
