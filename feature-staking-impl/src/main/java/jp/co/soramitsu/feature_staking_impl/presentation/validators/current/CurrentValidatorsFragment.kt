@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -72,7 +71,5 @@ class CurrentValidatorsFragment : BaseFragment<CurrentValidatorsViewModel>() {
                 }
             }
         }
-
-        observeBrowserEvents(viewModel)
     }
 }

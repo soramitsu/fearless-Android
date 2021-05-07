@@ -1,14 +1,11 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.current
 
 import androidx.annotation.ColorRes
-import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.flatten
-import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.utils.withLoading
@@ -50,9 +47,7 @@ class CurrentValidatorsViewModel(
     private val stakingInteractor: StakingInteractor,
     private val iconGenerator: AddressIconGenerator,
     private val currentValidatorsInteractor: CurrentValidatorsInteractor,
-) : BaseViewModel(), Browserable {
-
-    override val openBrowserEvent = MutableLiveData<Event<String>>()
+) : BaseViewModel() {
 
     private val currentValidatorsFlow = stakingInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash.Nominator>()
