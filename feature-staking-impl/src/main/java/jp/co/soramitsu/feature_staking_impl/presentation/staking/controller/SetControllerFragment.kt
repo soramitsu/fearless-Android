@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
@@ -17,6 +18,7 @@ import kotlinx.android.synthetic.main.fragment_set_controller_account.setControl
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerDestinationAccount
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerFee
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerLearnMore
+import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerNotStashWarning
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerStashAccount
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerToolbar
 
@@ -51,6 +53,8 @@ class SetControllerFragment : BaseFragment<SetControllerViewModel>() {
     }
 
     override fun subscribe(viewModel: SetControllerViewModel) {
+        observeValidations(viewModel)
+
         viewModel.stashAccountModel.observe {
             setControllerStashAccount.setTextIcon(it.image)
             setControllerStashAccount.setMessage(it.nameOrAddress)
@@ -66,6 +70,11 @@ class SetControllerFragment : BaseFragment<SetControllerViewModel>() {
         setupExternalActions(viewModel)
 
         viewModel.showControllerChooserEvent.observeEvent(::showControllerChooser)
+
+        viewModel.isNotStashAccount.observe {
+            setControllerContinueBtn.isEnabled = it
+            setControllerNotStashWarning.visibility = if (it) View.GONE else View.VISIBLE
+        }
     }
 
     private fun showControllerChooser(payload: DynamicListBottomSheet.Payload<AddressModel>) {
