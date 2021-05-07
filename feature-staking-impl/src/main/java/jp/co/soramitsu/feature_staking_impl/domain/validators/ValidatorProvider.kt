@@ -59,7 +59,6 @@ class ValidatorProvider(
                 electedInfo = electedInfo,
                 prefs = prefs,
                 identity = identities[accountIdHex],
-
             )
         }
     }

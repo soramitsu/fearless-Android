@@ -169,7 +169,7 @@ class ValidatorViewState(
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = { stakingInteractor.observeValidatorSummary(validatorState) },
     statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) },
-    availableManageActions = ManageStakeAction.values().toSet()
+    availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.VALIDATORS
 )
 
 private fun getValidatorStatusTitleAndMessage(
