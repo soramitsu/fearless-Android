@@ -47,6 +47,8 @@ interface StakingRepository {
     suspend fun getControllerAccountInfo(stakingState: StakingState.Stash): AccountInfo
 }
 
+suspend fun StakingRepository.getActiveElectedValidatorsExposures() = getElectedValidatorsExposure(getActiveEraIndex())
+
 suspend fun StakingRepository.historicalEras(): List<BigInteger> {
     val activeEra = getActiveEraIndex().toInt()
     val currentEra = getCurrentEraIndex().toInt()

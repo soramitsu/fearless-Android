@@ -1,7 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.domain.validators
 
+import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
+import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 
@@ -20,10 +23,9 @@ class ValidatorProvider(
 
     suspend fun getValidators(
         source: ValidatorSource,
+        cachedExposures: AccountIdMap<Exposure>? = null,
     ): List<Validator> {
-        val activeEraIndex = stakingRepository.getActiveEraIndex()
-
-        val electedValidatorExposures = stakingRepository.getElectedValidatorsExposure(activeEraIndex)
+        val electedValidatorExposures = cachedExposures ?: stakingRepository.getActiveElectedValidatorsExposures()
 
         val requestedValidatorIds = when (source) {
             ValidatorSource.Elected -> electedValidatorExposures.keys.toList()
@@ -57,7 +59,8 @@ class ValidatorProvider(
                 electedInfo = electedInfo,
                 prefs = prefs,
                 identity = identities[accountIdHex],
-            )
+
+                )
         }
     }
 }

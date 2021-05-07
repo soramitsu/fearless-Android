@@ -39,6 +39,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteract
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
+import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
@@ -255,4 +256,14 @@ class StakingFeatureModule {
         feeEstimator: FeeEstimator,
         extrinsicService: ExtrinsicService
     ) = ControllerInteractor(feeEstimator, extrinsicService)
+
+    @Provides
+    @FeatureScope
+    fun provideCurrentValidatorsInteractor(
+        stakingRepository: StakingRepository,
+        stakingConstantsRepository: StakingConstantsRepository,
+        validatorProvider: ValidatorProvider
+    ) = CurrentValidatorsInteractor(
+        stakingRepository, stakingConstantsRepository, validatorProvider
+    )
 }

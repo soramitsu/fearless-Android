@@ -16,7 +16,6 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
-import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -29,6 +28,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominat
 import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
+import jp.co.soramitsu.feature_staking_impl.domain.common.isWaiting
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
@@ -142,7 +142,7 @@ class StakingInteractor(
         when {
             it.electionStatus == Election.OPEN -> NominatorStatus.Election
             isNominationActive(nominatorState.stashId, it.eraStakers.values) -> NominatorStatus.Active
-            isNominationWaiting(nominatorState.nominations, it.activeEraIndex) -> NominatorStatus.Waiting
+            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting
             else -> {
                 val inactiveReason = when {
                     it.asset.bondedInPlanks < minimumStake(eraStakers, existentialDeposit) -> NominatorStatus.Inactive.Reason.MIN_STAKE
@@ -324,10 +324,6 @@ class StakingInteractor(
 
     private fun totalRewards(rewards: List<StakingReward>) = rewards.sumByBigDecimal {
         it.amount * it.type.summingCoefficient.toBigDecimal()
-    }
-
-    private fun isNominationWaiting(nominations: Nominations, activeEraIndex: BigInteger): Boolean {
-        return nominations.submittedInEra == activeEraIndex
     }
 
     private fun isNominationActive(stashId: ByteArray, exposures: Collection<Exposure>): Boolean {
