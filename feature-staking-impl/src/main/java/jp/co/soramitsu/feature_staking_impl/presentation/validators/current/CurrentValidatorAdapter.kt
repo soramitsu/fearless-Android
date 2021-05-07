@@ -58,8 +58,8 @@ private class CurrentValidatorsChildHolder(view: View) : GroupedListHolder(view)
     }
 }
 
-private object CurrentValidatorsDiffCallback
-    : BaseGroupedDiffCallback<NominatedValidatorStatusModel, NominatedValidatorModel>(NominatedValidatorStatusModel::class.java) {
+private object CurrentValidatorsDiffCallback :
+    BaseGroupedDiffCallback<NominatedValidatorStatusModel, NominatedValidatorModel>(NominatedValidatorStatusModel::class.java) {
 
     override fun areGroupItemsTheSame(oldItem: NominatedValidatorStatusModel, newItem: NominatedValidatorStatusModel): Boolean {
         return oldItem == newItem

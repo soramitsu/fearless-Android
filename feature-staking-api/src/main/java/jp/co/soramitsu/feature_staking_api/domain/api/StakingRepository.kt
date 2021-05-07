@@ -30,7 +30,7 @@ interface StakingRepository {
 
     suspend fun getElectedValidatorsExposure(eraIndex: BigInteger): AccountIdMap<Exposure>
 
-    suspend fun getValidatorPrefs(accountIdsHex: List<String>) : AccountIdMap<ValidatorPrefs?>
+    suspend fun getValidatorPrefs(accountIdsHex: List<String>): AccountIdMap<ValidatorPrefs?>
 
     suspend fun getSlashes(accountIdsHex: List<String>): AccountIdMap<Boolean>
 

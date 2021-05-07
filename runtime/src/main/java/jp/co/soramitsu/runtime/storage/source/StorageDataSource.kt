@@ -15,11 +15,10 @@ interface StorageDataSource {
         binding: Binder<T>,
     ): T
 
-
     suspend fun <K, T> queryKeys(
         keysBuilder: (RuntimeSnapshot) -> Map<StorageKey, K>,
         binding: Binder<T>,
-    ) : Map<K, T>
+    ): Map<K, T>
 
     suspend fun <T> observe(
         networkType: Node.NetworkType,

@@ -82,7 +82,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun rebondCustomFactory(): CustomRebondComponent.Factory
 
-    fun currentValidatorsFactory() : CurrentValidatorsComponent.Factory
+    fun currentValidatorsFactory(): CurrentValidatorsComponent.Factory
 
     @Component.Factory
     interface Factory {

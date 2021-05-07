@@ -60,7 +60,7 @@ class ValidatorProvider(
                 prefs = prefs,
                 identity = identities[accountIdHex],
 
-                )
+            )
         }
     }
 }
