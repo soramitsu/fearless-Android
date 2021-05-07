@@ -26,8 +26,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 
 data class NominatedValidatorStatusModel(
     val titleConfig: TitleConfig?,
@@ -56,7 +56,7 @@ class CurrentValidatorsViewModel(
 
     private val currentValidatorsFlow = stakingInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash.Nominator>()
-        .mapLatest(currentValidatorsInteractor::getNominatedValidators)
+        .flatMapLatest(currentValidatorsInteractor::nominatedValidatorsFlow)
         .inBackground()
         .share()
 
