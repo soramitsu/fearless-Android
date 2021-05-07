@@ -7,10 +7,14 @@ class NominatedValidator(
     val nominationInPlanks: BigInteger?,
 )
 
-sealed class NominatedValidatorStatus {
-    object Active : NominatedValidatorStatus()
-    object Elected : NominatedValidatorStatus()
-    object Inactive : NominatedValidatorStatus()
+sealed class NominatedValidatorStatus(val groupPosition: Int) {
+    companion object {
+        val COMPARATOR = Comparator.comparingInt<NominatedValidatorStatus> { it.groupPosition }
+    }
 
-    class WaitingForNextEra(val maxValidatorsPerNominator: Int) : NominatedValidatorStatus()
+    object Active : NominatedValidatorStatus(0)
+    object Elected : NominatedValidatorStatus(1)
+    object Inactive : NominatedValidatorStatus(2)
+
+    class WaitingForNextEra(val maxValidatorsPerNominator: Int) : NominatedValidatorStatus(3)
 }

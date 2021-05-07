@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
 import jp.co.soramitsu.common.utils.inflateChild
-import jp.co.soramitsu.common.utils.setDrawableStart
+import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.feature_staking_impl.R
@@ -42,11 +42,7 @@ private class CurrentValidatorsGroupHolder(view: View) : GroupedListHolder(view)
         group.titleConfig?.let {
             itemCurrentValidatorGroupStatus.setTextColorRes(it.colorRes)
 
-            if (it.showIndicator) {
-                itemCurrentValidatorGroupStatus.setDrawableStart(R.drawable.ic_status_indicator, tint = it.colorRes)
-            } else {
-                itemCurrentValidatorGroupStatus.setDrawableStart(null)
-            }
+            itemCurrentValidatorGroupStatus.setCompoundDrawableTint(it.colorRes)
         }
 
         itemCurrentValidatorGroupDescription.text = group.description
@@ -66,7 +62,7 @@ private object CurrentValidatorsDiffCallback
     : BaseGroupedDiffCallback<NominatedValidatorStatusModel, NominatedValidatorModel>(NominatedValidatorStatusModel::class.java) {
 
     override fun areGroupItemsTheSame(oldItem: NominatedValidatorStatusModel, newItem: NominatedValidatorStatusModel): Boolean {
-        return oldItem.description == newItem.description
+        return oldItem == newItem
     }
 
     override fun areGroupContentsTheSame(oldItem: NominatedValidatorStatusModel, newItem: NominatedValidatorStatusModel): Boolean {

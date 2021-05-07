@@ -49,6 +49,6 @@ class CurrentValidatorsInteractor(
                 exposures[it.validator.accountIdHex] != null -> NominatedValidatorStatus.Elected
                 else -> NominatedValidatorStatus.Inactive
             }
-        }
+        }.toSortedMap(NominatedValidatorStatus.COMPARATOR)
     }
 }

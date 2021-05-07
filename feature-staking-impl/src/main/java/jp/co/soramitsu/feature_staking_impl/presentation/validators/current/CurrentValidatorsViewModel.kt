@@ -29,14 +29,13 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 
-class NominatedValidatorStatusModel(
+data class NominatedValidatorStatusModel(
     val titleConfig: TitleConfig?,
     val description: String,
 ) {
-    class TitleConfig(
+    data class TitleConfig(
         val text: String,
-        @ColorRes val colorRes: Int,
-        val showIndicator: Boolean = false,
+        @ColorRes val colorRes: Int
     )
 }
 
@@ -95,8 +94,7 @@ class CurrentValidatorsViewModel(
         NominatedValidatorStatus.Active -> NominatedValidatorStatusModel(
             TitleConfig(
                 resourceManager.getString(R.string.staking_active_validators_format, valuesSize),
-                R.color.green,
-                showIndicator = true
+                R.color.green
             ),
             resourceManager.getString(R.string.staking_active_validators_description)
         )
