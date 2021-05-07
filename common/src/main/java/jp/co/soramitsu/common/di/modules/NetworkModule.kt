@@ -53,7 +53,8 @@ class NetworkModule {
             devStatusUrl = BuildConfig.DEV_STATUS_URL,
             nominatorLearnMore = BuildConfig.NOMINATOR_LEARN_MORE,
             payoutsLearnMore = BuildConfig.PAYOUTS_LEARN_MORE,
-            twitterAccountTemplate = BuildConfig.TWITTER_ACCOUNT_TEMPLATE
+            twitterAccountTemplate = BuildConfig.TWITTER_ACCOUNT_TEMPLATE,
+            setControllerLearnMore = BuildConfig.SET_CONTROLLER_LEARN_MORE
         )
     }
 

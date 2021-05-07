@@ -9,7 +9,7 @@
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.Toolbar
-        android:id="@+id/bondMoreToolbar"
+        android:id="@+id/setControllerToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_close"
@@ -36,11 +36,12 @@
         app:label="@string/staking_controller_account" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.view.FeeView
+        android:id="@+id/setControllerFee"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"/>
+        android:layout_marginEnd="16dp" />
 
     <TextView
         android:id="@+id/setControllerLearnMore"
@@ -64,7 +65,7 @@
         android:layout_weight="1" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/continueBtn"
+        android:id="@+id/setControllerContinueBtn"
         style="@style/Widget.Fearless.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

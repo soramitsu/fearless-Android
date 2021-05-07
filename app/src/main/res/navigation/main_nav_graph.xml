@@ -145,12 +145,12 @@
             app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
-            android:id="@+id/action_stakingBalanceFragment_to_controllerAccountFragment"
-            app:destination="@id/setControllerAccountFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_stakingBalanceFragment_to_controllerAccountFragment"
+            app:destination="@id/setControllerAccountFragment" />
     </fragment>
 
     <fragment
@@ -541,8 +541,7 @@
         android:id="@+id/setControllerAccountFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.SetControllerFragment"
         android:label="SelectBondMoreFragment"
-        tools:layout="@layout/fragment_set_controller_account" />
-
+        tools:layout="@layout/fragment_set_controller_account"/>
     <action
         android:id="@+id/action_return_to_staking_balance"
         app:enterAnim="@anim/fragment_close_enter"

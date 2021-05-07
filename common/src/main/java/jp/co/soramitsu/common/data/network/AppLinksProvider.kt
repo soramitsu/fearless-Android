@@ -14,7 +14,8 @@ class AppLinksProvider(
 
     val nominatorLearnMore: String,
     val payoutsLearnMore: String,
-    val twitterAccountTemplate: String
+    val twitterAccountTemplate: String,
+    val setControllerLearnMore: String
 ) {
 
     fun getExternalTransactionUrl(
