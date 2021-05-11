@@ -149,7 +149,7 @@ class SetControllerViewModel(
         .createAddressModel(
             address,
             AddressIconGenerator.SIZE_SMALL,
-            stackingInteractor.getAccount(address).name
+            stackingInteractor.getAccountOrNull(address)?.name
         )
 
     private fun maybeGoToConfirm() = feeLoaderMixin.requireFee(this) { fee ->
