@@ -195,9 +195,6 @@ class StakingInteractor(
 
     suspend fun getAccount(address: String) = mapAccountToStakingAccount(accountRepository.getAccount(address))
 
-    suspend fun getAccountOrNull(address: String) = accountRepository.getAccountOrNull(address)?.let(::mapAccountToStakingAccount)
-
-
     suspend fun getSelectedAccount(): StakingAccount = withContext(Dispatchers.Default) {
         val account = accountRepository.getSelectedAccount()
 
