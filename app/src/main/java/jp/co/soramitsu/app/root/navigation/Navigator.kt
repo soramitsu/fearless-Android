@@ -234,11 +234,14 @@ class Navigator :
     }
 
     override fun openControllerAccount() {
-        navController?.navigate(R.id.action_stakingBalanceFragment_to_controllerAccountFragment)
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
     }
 
     override fun openConfirmSetController(payload: ConfirmSetControllerPayload) {
-        navController?.navigate(R.id.action_stakingSetControllerAccountFragment_to_confirmSetControllerAccountFragment, ConfirmSetControllerFragment.getBundle(payload))
+        navController?.navigate(
+            R.id.action_stakingSetControllerAccountFragment_to_confirmSetControllerAccountFragment,
+            ConfirmSetControllerFragment.getBundle(payload)
+        )
     }
 
     override fun openRecommendedValidators() {

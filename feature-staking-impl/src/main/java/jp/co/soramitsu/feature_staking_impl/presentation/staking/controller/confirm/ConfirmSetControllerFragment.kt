@@ -61,7 +61,7 @@ class ConfirmSetControllerFragment : BaseFragment<ConfirmSetControllerViewModel>
             confirmSetControllerStashAccount.setMessage(it.nameOrAddress)
         }
 
-        viewModel.controllerAddressLiveData.observe{
+        viewModel.controllerAddressLiveData.observe {
             confirmSetControllerDestinationAccount.setTextIcon(it.image)
             confirmSetControllerDestinationAccount.setMessage(it.nameOrAddress)
         }
