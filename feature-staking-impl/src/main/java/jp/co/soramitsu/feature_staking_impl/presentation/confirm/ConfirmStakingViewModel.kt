@@ -113,7 +113,7 @@ class ConfirmStakingViewModel(
         .transform { payload ->
             when (payload) {
                 is Payload.Full -> emit(payload.amount)
-                is Payload.ExistingStash -> emitAll(controllerAssetFlow.map { it.transferable })
+                is Payload.ExistingStash -> emitAll(controllerAssetFlow.map { it.bonded })
                 else -> emit(null)
             }
         }
