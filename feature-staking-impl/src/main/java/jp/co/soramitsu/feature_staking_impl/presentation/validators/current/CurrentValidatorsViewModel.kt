@@ -1,8 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.current
 
-import androidx.annotation.ColorRes
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.flatten
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -17,7 +15,9 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.NominatedValidatorStatusModel.TitleConfig
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel.TitleConfig
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
@@ -25,21 +25,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-
-data class NominatedValidatorStatusModel(
-    val titleConfig: TitleConfig?,
-    val description: String,
-) {
-    data class TitleConfig(
-        val text: String,
-        @ColorRes val colorRes: Int
-    )
-}
-
-class NominatedValidatorModel(
-    val addressModel: AddressModel,
-    val nominated: String?,
-)
 
 class CurrentValidatorsViewModel(
     private val router: StakingRouter,
