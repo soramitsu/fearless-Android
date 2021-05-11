@@ -5,10 +5,16 @@ import kotlinx.android.parcel.Parcelize
 import java.math.BigDecimal
 import java.math.BigInteger
 
-@Parcelize
-class ValidatorStakeParcelModel(
-    val totalStake: BigInteger,
-    val ownStake: BigInteger,
-    val nominators: List<NominatorParcelModel>,
-    val apy: BigDecimal
-) : Parcelable
+sealed class ValidatorStakeParcelModel : Parcelable {
+
+    @Parcelize
+    object Inactive : ValidatorStakeParcelModel()
+
+    @Parcelize
+    class Active(
+        val totalStake: BigInteger,
+        val ownStake: BigInteger,
+        val nominators: List<NominatorParcelModel>,
+        val apy: BigDecimal,
+    ) : ValidatorStakeParcelModel()
+}

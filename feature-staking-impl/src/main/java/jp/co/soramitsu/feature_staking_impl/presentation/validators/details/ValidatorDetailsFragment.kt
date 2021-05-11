@@ -18,7 +18,6 @@ import kotlinx.android.synthetic.main.fragment_validator_details.validatorAccoun
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorDetailsToolbar
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorIdentity
 import kotlinx.android.synthetic.main.fragment_validator_details.validatorInfo
-import kotlinx.android.synthetic.main.fragment_validator_details.validatorInfoEmptyState
 
 class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
 
@@ -35,7 +34,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         return inflater.inflate(R.layout.fragment_validator_details, container, false)
     }
@@ -78,19 +77,18 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
         setupExternalActions(viewModel)
 
         viewModel.validatorDetails.observe { validator ->
-            if (validator.stake == null) {
-                validatorInfo.makeGone()
-                validatorInfoEmptyState.makeVisible()
-            } else {
-                validatorInfo.makeVisible()
-                validatorInfoEmptyState.makeGone()
-                validatorInfo.setNominatorsCount(validator.stake.nominatorsCount)
-                validatorInfo.setEstimatedRewardApy(validator.stake.apy)
-                validatorInfo.setTotalStakeValue(validator.stake.totalStake)
-                if (validator.stake.totalStakeFiat == null) {
-                    validatorInfo.hideTotalStakeFiatView()
+            with(validator.stake) {
+                validatorInfo.setStatus(statusText, statusColorRes)
+
+                if (activeStakeModel != null) {
+                    validatorInfo.showActiveStakeFields()
+
+                    validatorInfo.setNominatorsCount(activeStakeModel.nominatorsCount)
+                    validatorInfo.setEstimatedRewardApy(activeStakeModel.apy)
+                    validatorInfo.setTotalStakeValue(activeStakeModel.totalStake)
+                    validatorInfo.setTotalStakeValueFiat(activeStakeModel.totalStakeFiat)
                 } else {
-                    validatorInfo.setTotalStakeValueFiat(validator.stake.totalStakeFiat)
+                    validatorInfo.hideActiveStakeFields()
                 }
             }
 
@@ -99,7 +97,6 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
             } else {
                 validatorIdentity.makeVisible()
                 validatorIdentity.populateIdentity(validator.identity)
-                validatorIdentity.setAddress(validator.address)
             }
 
             validatorAccountInfo.setAccountIcon(validator.addressImage)

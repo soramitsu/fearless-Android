@@ -152,6 +152,7 @@
             android:id="@+id/action_stakingBalanceFragment_to_controllerAccountFragment"
             app:destination="@id/setControllerAccountFragment" />
 
+
         <action
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"

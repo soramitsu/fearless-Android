@@ -46,7 +46,7 @@ class ValidatorDetailsViewModel(
         .share()
 
     val validatorDetails = validatorDetailsFlow.combine(assetFlow) { validator, asset ->
-        mapValidatorDetailsParcelToValidatorDetailsModel(validator, asset, iconGenerator)
+        mapValidatorDetailsParcelToValidatorDetailsModel(validator, asset, iconGenerator, resourceManager)
     }.flowOn(Dispatchers.IO).asLiveData()
 
     private val _openEmailEvent = MutableLiveData<Event<String>>()
@@ -60,7 +60,7 @@ class ValidatorDetailsViewModel(
     }
 
     fun totalStakeClicked() {
-        val validatorStake = validator.stake ?: return
+        val validatorStake = validator.stake
         viewModelScope.launch {
             val asset = assetFlow.first()
             val payload = calculatePayload(asset, validatorStake)
@@ -69,6 +69,8 @@ class ValidatorDetailsViewModel(
     }
 
     private suspend fun calculatePayload(asset: Asset, validatorStake: ValidatorStakeParcelModel) = withContext(Dispatchers.Default) {
+        require(validatorStake is ValidatorStakeParcelModel.Active)
+
         val ownStake = asset.token.amountFromPlanks(validatorStake.ownStake)
         val ownStakeFormatted = ownStake.formatWithDefaultPrecision(asset.token.type)
         val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency()

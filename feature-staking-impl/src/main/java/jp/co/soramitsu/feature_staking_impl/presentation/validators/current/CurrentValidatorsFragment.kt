@@ -13,12 +13,13 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
 import kotlinx.android.synthetic.main.fragment_current_validators.currentValidatorsContainer
 import kotlinx.android.synthetic.main.fragment_current_validators.currentValidatorsList
 import kotlinx.android.synthetic.main.fragment_current_validators.currentValidatorsProgress
 import kotlinx.android.synthetic.main.fragment_current_validators.currentValidatorsToolbar
 
-class CurrentValidatorsFragment : BaseFragment<CurrentValidatorsViewModel>() {
+class CurrentValidatorsFragment : BaseFragment<CurrentValidatorsViewModel>(), CurrentValidatorsAdapter.Handler {
 
     lateinit var adapter: CurrentValidatorsAdapter
 
@@ -37,7 +38,7 @@ class CurrentValidatorsFragment : BaseFragment<CurrentValidatorsViewModel>() {
             }
         }
 
-        adapter = CurrentValidatorsAdapter()
+        adapter = CurrentValidatorsAdapter(this)
         currentValidatorsList.adapter = adapter
 
         currentValidatorsList.setHasFixedSize(true)
@@ -71,5 +72,9 @@ class CurrentValidatorsFragment : BaseFragment<CurrentValidatorsViewModel>() {
                 }
             }
         }
+    }
+
+    override fun infoClicked(validatorModel: NominatedValidatorModel) {
+        viewModel.validatorInfoClicked(validatorModel.addressModel.address)
     }
 }

@@ -6,25 +6,30 @@ import jp.co.soramitsu.common.list.flatten
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toAddress
+import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator
-import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidatorStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel.TitleConfig
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CurrentValidatorsViewModel(
     private val router: StakingRouter,
@@ -34,9 +39,17 @@ class CurrentValidatorsViewModel(
     private val currentValidatorsInteractor: CurrentValidatorsInteractor,
 ) : BaseViewModel() {
 
-    private val currentValidatorsFlow = stakingInteractor.selectedAccountStakingStateFlow()
+    private val groupedCurrentValidatorsFlow = stakingInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash.Nominator>()
         .flatMapLatest(currentValidatorsInteractor::nominatedValidatorsFlow)
+        .inBackground()
+        .share()
+
+    private val flattenCurrentValidators = groupedCurrentValidatorsFlow
+        .map {
+            it.map { (_, validators) -> validators }
+                .flatten()
+        }
         .inBackground()
         .share()
 
@@ -44,7 +57,7 @@ class CurrentValidatorsViewModel(
         .map { it.token }
         .share()
 
-    val currentValidatorModelsLiveData = currentValidatorsFlow.combine(tokenFlow) { gropedList, token ->
+    val currentValidatorModelsLiveData = groupedCurrentValidatorsFlow.combine(tokenFlow) { gropedList, token ->
         gropedList.mapKeys { (status, validators) -> mapNominatedValidatorStatusToUiModel(status, validators.size) }
             .mapValues { (_, nominatedValidators) -> nominatedValidators.map { mapNominatedValidatorToUiModel(it, token) } }
             .flatten()
@@ -70,8 +83,8 @@ class CurrentValidatorsViewModel(
         )
     }
 
-    private fun mapNominatedValidatorStatusToUiModel(status: NominatedValidatorStatus, valuesSize: Int) = when (status) {
-        NominatedValidatorStatus.Active -> NominatedValidatorStatusModel(
+    private fun mapNominatedValidatorStatusToUiModel(status: NominatedValidator.Status, valuesSize: Int) = when (status) {
+        NominatedValidator.Status.Active -> NominatedValidatorStatusModel(
             TitleConfig(
                 resourceManager.getString(R.string.staking_active_validators_format, valuesSize),
                 R.color.green
@@ -79,7 +92,7 @@ class CurrentValidatorsViewModel(
             resourceManager.getString(R.string.staking_active_validators_description)
         )
 
-        NominatedValidatorStatus.Inactive -> NominatedValidatorStatusModel(
+        NominatedValidator.Status.Inactive -> NominatedValidatorStatusModel(
             TitleConfig(
                 resourceManager.getString(R.string.staking_inactive_validators_format, valuesSize),
                 R.color.black1
@@ -87,12 +100,12 @@ class CurrentValidatorsViewModel(
             resourceManager.getString(R.string.staking_inactive_validators_description)
         )
 
-        NominatedValidatorStatus.Elected -> NominatedValidatorStatusModel(
+        NominatedValidator.Status.Elected -> NominatedValidatorStatusModel(
             null,
             resourceManager.getString(R.string.staking_elected_validators_description)
         )
 
-        is NominatedValidatorStatus.WaitingForNextEra -> NominatedValidatorStatusModel(
+        is NominatedValidator.Status.WaitingForNextEra -> NominatedValidatorStatusModel(
             TitleConfig(
                 resourceManager.getString(R.string.staking_waiting_validators_format, valuesSize, status.maxValidatorsPerNominator),
                 R.color.black1
@@ -103,5 +116,18 @@ class CurrentValidatorsViewModel(
 
     fun backClicked() {
         router.back()
+    }
+
+    fun validatorInfoClicked(address: String) = launch {
+        val payload = withContext(Dispatchers.Default) {
+            val accountId = address.toHexAccountId()
+            val allValidators = flattenCurrentValidators.first()
+
+            val nominatedValidator = allValidators.first { it.validator.accountIdHex == accountId }
+
+            mapValidatorToValidatorDetailsParcelModel(nominatedValidator.validator)
+        }
+
+        router.openValidatorDetails(payload)
     }
 }
