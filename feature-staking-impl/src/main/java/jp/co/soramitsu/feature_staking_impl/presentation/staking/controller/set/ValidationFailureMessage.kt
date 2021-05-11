@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.controller
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.set
 
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.resources.ResourceManager

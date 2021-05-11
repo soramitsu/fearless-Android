@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.controller
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.set
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -25,6 +25,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetCon
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.requireFee
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -162,18 +163,26 @@ class SetControllerViewModel(
                 transferable = assetFlow.first().transferable
             )
 
-            validationExecutor.requireValid(
-                validationSystem = validationSystem,
-                payload = payload,
-                validationFailureTransformer = { bondSetControllerValidationFailure(it, resourceManager) }
-            ) {
-                openConfirm()
+                validationExecutor.requireValid(
+                    validationSystem = validationSystem,
+                    payload = payload,
+                    validationFailureTransformer = { bondSetControllerValidationFailure(it, resourceManager) }
+                ) {
+                    openConfirm(
+                        ConfirmSetControllerPayload(
+                            fee = fee,
+                            stashAddress = payload.stashAddress,
+                            controllerAddress = payload.controllerAddress,
+                            tokenType = payload.tokenType
+                        )
+                    )
+                }
             }
         }
     }
 
-    private fun openConfirm() {
-        router.openConfirmSetController()
+    private fun openConfirm(payload: ConfirmSetControllerPayload) {
+        router.openConfirmSetController(payload)
     }
 
     private fun checkButton() {
