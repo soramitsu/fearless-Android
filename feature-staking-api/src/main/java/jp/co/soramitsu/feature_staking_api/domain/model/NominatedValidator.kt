@@ -20,4 +20,3 @@ class NominatedValidator(
         class WaitingForNextEra(val maxValidatorsPerNominator: Int) : Status(3)
     }
 }
-
