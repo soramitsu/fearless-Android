@@ -18,6 +18,6 @@ class ValidatorRecommendator(
             postProcessor(acc)
         }
 
-        settings.limit?.let(postprocessed::take) ?: all
+        settings.limit?.let(postprocessed::take) ?: postprocessed
     }
 }
