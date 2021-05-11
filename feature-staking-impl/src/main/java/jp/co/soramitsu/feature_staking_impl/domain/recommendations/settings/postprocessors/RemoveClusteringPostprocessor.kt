@@ -5,7 +5,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Identity
 import jp.co.soramitsu.feature_staking_api.domain.model.RootIdentity
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationPostProcessor
-import java.lang.IllegalArgumentException
 
 private const val MAX_PER_CLUSTER = 3
 
@@ -15,20 +14,21 @@ object RemoveClusteringPostprocessor : RecommendationPostProcessor {
         val clusterCounter = mutableMapOf<Identity, Int>()
 
         return original.filter { validator ->
-            val clusterIdentity = validator.clusterIdentity()
-            val currentCounter = clusterCounter.getOrDefault(clusterIdentity, 0)
+            validator.clusterIdentity()?.let {
+                val currentCounter = clusterCounter.getOrDefault(it, 0)
 
-            clusterCounter[clusterIdentity] = currentCounter + 1
+                clusterCounter[it] = currentCounter + 1
 
-            currentCounter < MAX_PER_CLUSTER
+                currentCounter < MAX_PER_CLUSTER
+            } ?: true
         }
     }
 
-    private fun Validator.clusterIdentity(): Identity {
+    private fun Validator.clusterIdentity(): Identity? {
         return when (val validatorIdentity = identity) {
             is RootIdentity -> validatorIdentity
             is ChildIdentity -> validatorIdentity.parentIdentity
-            else -> throw IllegalArgumentException("Unknown type of identity: ${validatorIdentity?.javaClass?.simpleName}")
+            else -> null
         }
     }
 }
