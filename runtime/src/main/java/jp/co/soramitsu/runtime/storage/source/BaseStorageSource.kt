@@ -15,7 +15,23 @@ abstract class BaseStorageSource(
 
     protected abstract suspend fun query(key: String): String?
 
+    protected abstract suspend fun queryKeys(keys: List<String>): Map<String, String?>
+
     protected abstract suspend fun observe(key: String, networkType: Node.NetworkType): Flow<String?>
+
+    override suspend fun <K, T> queryKeys(
+        keysBuilder: (RuntimeSnapshot) -> Map<StorageKey, K>,
+        binding: Binder<T>,
+    ): Map<K, T> = withContext(Dispatchers.Default) {
+        val runtime = getRuntime()
+
+        val storageKeyToMapId = keysBuilder(runtime)
+
+        val queryResults = queryKeys(storageKeyToMapId.keys.toList())
+
+        queryResults.mapKeys { (fullKey, _) -> storageKeyToMapId[fullKey]!! }
+            .mapValues { (_, hexRaw) -> binding(hexRaw, runtime) }
+    }
 
     override suspend fun <T> query(
         keyBuilder: (RuntimeSnapshot) -> String,

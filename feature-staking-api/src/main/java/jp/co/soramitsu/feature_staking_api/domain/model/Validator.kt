@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 typealias Commission = BigDecimal
+
 class ValidatorPrefs(val commission: Commission, val blocked: Boolean)
 
 interface Identity {
@@ -25,12 +26,12 @@ class RootIdentity(
     override val email: String?,
     override val pgpFingerprint: String?,
     override val image: String?,
-    override val twitter: String?
+    override val twitter: String?,
 ) : Identity
 
 class ChildIdentity(
     childName: String?,
-    parentIdentity: Identity
+    parentIdentity: Identity,
 ) : Identity by parentIdentity {
 
     override val display: String = "${parentIdentity.display} / ${childName.orEmpty()}"
@@ -38,16 +39,21 @@ class ChildIdentity(
 
 class SuperOf(
     val parentIdHex: String,
-    val childName: String?
+    val childName: String?,
 )
 
 class Validator(
     val slashed: Boolean,
     val accountIdHex: String,
-    val totalStake: BigInteger,
-    val ownStake: BigInteger,
-    val nominatorStakes: List<IndividualExposure>,
-    val prefs: ValidatorPrefs,
+    val prefs: ValidatorPrefs?,
+    val electedInfo: ElectedInfo?,
     val identity: Identity?,
-    val apy: BigDecimal
-)
+) {
+
+    class ElectedInfo(
+        val totalStake: BigInteger,
+        val ownStake: BigInteger,
+        val nominatorStakes: List<IndividualExposure>,
+        val apy: BigDecimal,
+    )
+}

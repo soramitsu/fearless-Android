@@ -2,8 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings
 
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 
-private const val MAX_VALIDATORS_PER_NOMINATOR = 16
-
 class RecommendationSettingsProviderFactory(
     private val stakingConstantsRepository: StakingConstantsRepository,
 ) {
@@ -16,7 +14,7 @@ class RecommendationSettingsProviderFactory(
 
         instance = RecommendationSettingsProvider(
             maximumRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidatorPrefs(),
-            maximumValidatorsPerNominator = MAX_VALIDATORS_PER_NOMINATOR
+            maximumValidatorsPerNominator = stakingConstantsRepository.maxValidatorsPerNominator()
         )
 
         return instance!!

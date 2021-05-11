@@ -151,6 +151,14 @@
             app:popExitAnim="@anim/fragment_close_exit"
             android:id="@+id/action_stakingBalanceFragment_to_controllerAccountFragment"
             app:destination="@id/setControllerAccountFragment" />
+
+        <action
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_mainFragment_to_currentValidatorsFragment"
+            app:destination="@id/currentValidatorsFragment" />
     </fragment>
 
     <fragment
@@ -534,7 +542,6 @@
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
 
-
     </fragment>
 
     <fragment
@@ -615,5 +622,11 @@
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.custom.CustomRebondFragment"
         android:label="CustomRebondFragment"
         tools:layout="@layout/fragment_rebond_custom" />
+
+    <fragment
+        tools:layout="@layout/fragment_current_validators"
+        android:id="@+id/currentValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.current.CurrentValidatorsFragment"
+        android:label="CurrentValidatorsFragment" />
 
 </navigation>

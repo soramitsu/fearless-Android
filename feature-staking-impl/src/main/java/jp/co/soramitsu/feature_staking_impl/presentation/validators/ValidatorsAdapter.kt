@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorDiffCallback
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
@@ -38,7 +39,7 @@ class ValidatorsAdapter(
 class ValidatorViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
 
     fun bind(validator: ValidatorModel, itemHandler: ValidatorsAdapter.ItemAssetHandler) = with(containerView) {
-        itemValidatorApy.text = validator.apy
+        itemValidatorApy.setTextOrHide(validator.apy)
         itemValidatorName.text = validator.title
         itemValidatorIcon.setImageDrawable(validator.image)
 

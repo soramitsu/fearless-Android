@@ -25,6 +25,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.di.Redee
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.di.ConfirmUnbondComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.di.SelectUnbondComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.story.di.StoryComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.di.CurrentValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.di.ValidatorDetailsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.di.RecommendedValidatorsComponent
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -80,6 +81,8 @@ interface StakingFeatureComponent : StakingFeatureApi {
     fun setControllerFactory(): SetControllerComponent.Factory
 
     fun rebondCustomFactory(): CustomRebondComponent.Factory
+
+    fun currentValidatorsFactory(): CurrentValidatorsComponent.Factory
 
     @Component.Factory
     interface Factory {

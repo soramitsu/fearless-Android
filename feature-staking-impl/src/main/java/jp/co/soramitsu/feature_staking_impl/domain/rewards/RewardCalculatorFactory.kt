@@ -14,13 +14,13 @@ class RewardCalculatorFactory(
 
     suspend fun create(
         exposures: AccountIdMap<Exposure>,
-        validatorsPrefs: AccountIdMap<ValidatorPrefs>
+        validatorsPrefs: AccountIdMap<ValidatorPrefs?>
     ): RewardCalculator = withContext(Dispatchers.Default) {
         val totalIssuance = stakingRepository.getTotalIssuance()
 
-        val validators = exposures.keys.map { accountIdHex ->
+        val validators = exposures.keys.mapNotNull { accountIdHex ->
             val exposure = exposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
-            val validatorPrefs = validatorsPrefs[accountIdHex] ?: accountIdNotFound(accountIdHex)
+            val validatorPrefs = validatorsPrefs[accountIdHex] ?: return@mapNotNull null
 
             RewardCalculationTarget(
                 accountIdHex = accountIdHex,
@@ -41,7 +41,7 @@ class RewardCalculatorFactory(
         val activeEraIndex = stakingRepository.getActiveEraIndex()
 
         val exposures = stakingRepository.getElectedValidatorsExposure(activeEraIndex)
-        val validatorsPrefs = stakingRepository.getElectedValidatorsPrefs((activeEraIndex))
+        val validatorsPrefs = stakingRepository.getValidatorPrefs(exposures.keys.toList())
 
         create(exposures, validatorsPrefs)
     }

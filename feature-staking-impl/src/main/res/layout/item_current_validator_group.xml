@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="21dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="8dp"
+    tools:background="@color/black">
+
+    <TextView
+        android:id="@+id/itemCurrentValidatorGroupStatus"
+        style="@style/TextAppearance.Soramitsu.CapsTitle2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:drawablePadding="8dp"
+        android:includeFontPadding="false"
+        app:drawableStartCompat="@drawable/ic_status_indicator"
+        tools:drawableTint="@color/green"
+        tools:text="active (1)"
+        tools:textColor="@color/green" />
+
+    <TextView
+        style="@style/TextAppearance.AppCompat.Body2"
+        android:layout_width="wrap_content"
+        android:id="@+id/itemCurrentValidatorGroupDescription"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black1"
+        tools:text="Your stake is allocated to the following validator." />
+
+</LinearLayout>

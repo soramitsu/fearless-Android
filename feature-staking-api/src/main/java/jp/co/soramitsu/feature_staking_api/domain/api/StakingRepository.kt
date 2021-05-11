@@ -30,7 +30,7 @@ interface StakingRepository {
 
     suspend fun getElectedValidatorsExposure(eraIndex: BigInteger): AccountIdMap<Exposure>
 
-    suspend fun getElectedValidatorsPrefs(eraIndex: BigInteger): AccountIdMap<ValidatorPrefs>
+    suspend fun getValidatorPrefs(accountIdsHex: List<String>): AccountIdMap<ValidatorPrefs?>
 
     suspend fun getSlashes(accountIdsHex: List<String>): AccountIdMap<Boolean>
 
@@ -46,6 +46,8 @@ interface StakingRepository {
 
     suspend fun getControllerAccountInfo(stakingState: StakingState.Stash): AccountInfo
 }
+
+suspend fun StakingRepository.getActiveElectedValidatorsExposures() = getElectedValidatorsExposure(getActiveEraIndex())
 
 suspend fun StakingRepository.historicalEras(): List<BigInteger> {
     val activeEra = getActiveEraIndex().toInt()
