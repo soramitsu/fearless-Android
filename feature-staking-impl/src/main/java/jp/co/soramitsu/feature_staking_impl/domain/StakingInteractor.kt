@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.domain
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.utils.sumByBigInteger
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -30,7 +29,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
-import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -205,13 +203,6 @@ class StakingInteractor(
 
     suspend fun isAccountInApp(accountAddress: String): Boolean {
         return accountRepository.isAccountExists(accountAddress)
-    }
-
-    suspend fun getExistingStashSetup(accountStakingState: StakingState.Stash): StashSetup {
-        val networkType = accountStakingState.accountAddress.networkType()
-        val rewardDestination = stakingRepository.getRewardDestination(accountStakingState)
-
-        return StashSetup(rewardDestination, accountStakingState.controllerId.toAddress(networkType), alreadyHasStash = true)
     }
 
     suspend fun getRewardDestination(accountStakingState: StakingState.Stash): RewardDestination {
