@@ -6,7 +6,6 @@ import android.view.View
 import android.widget.LinearLayout
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.IdentityModel
-import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityAddressView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityDisplayNameView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityEmailView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityLegalNameView
@@ -17,7 +16,7 @@ import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIden
 class ValidatorIdentityView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyle: Int = 0
+    defStyle: Int = 0,
 ) : LinearLayout(context, attrs, defStyle) {
 
     init {
@@ -33,10 +32,6 @@ class ValidatorIdentityView @JvmOverloads constructor(
         validatorIdentityWebView.setBodyOrHide(identity.web)
         validatorIdentityTwitterView.setBodyOrHide(identity.twitter)
         validatorIdentityRiotNameView.setBodyOrHide(identity.riot)
-    }
-
-    fun setAddress(address: String?) {
-        validatorIdentityAddressView.setBodyOrHide(address)
     }
 
     fun setWebClickListener(clickListener: () -> Unit) {

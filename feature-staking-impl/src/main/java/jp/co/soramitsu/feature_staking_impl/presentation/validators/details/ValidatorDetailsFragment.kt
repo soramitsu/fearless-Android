@@ -97,7 +97,6 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
             } else {
                 validatorIdentity.makeVisible()
                 validatorIdentity.populateIdentity(validator.identity)
-                validatorIdentity.setAddress(validator.address)
             }
 
             validatorAccountInfo.setAccountIcon(validator.addressImage)
