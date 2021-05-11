@@ -41,6 +41,7 @@ class SetControllerViewModel(
     private val externalActions: ExternalAccountActions.Presentation,
     private val appLinksProvider: AppLinksProvider,
     private val resourceManager: ResourceManager,
+    private val addressDisplayUseCase: AddressDisplayUseCase,
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: SetControllerValidationSystem
 ) : BaseViewModel(),
@@ -145,12 +146,15 @@ class SetControllerViewModel(
         return addressIconGenerator.createAddressModel(account.address, AddressIconGenerator.SIZE_SMALL, account.name)
     }
 
-    private suspend fun generateIcon(address: String) = addressIconGenerator
-        .createAddressModel(
-            address,
-            AddressIconGenerator.SIZE_SMALL,
-            stackingInteractor.getAccountOrNull(address)?.name
-        )
+    private suspend fun generateIcon(address: String): AddressModel {
+        val name = addressDisplayUseCase(address)
+        return addressIconGenerator
+            .createAddressModel(
+                address,
+                AddressIconGenerator.SIZE_SMALL,
+                name
+            )
+    }
 
     private fun maybeGoToConfirm() = feeLoaderMixin.requireFee(this) { fee ->
         launch {
