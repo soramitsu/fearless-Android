@@ -15,6 +15,8 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel
@@ -37,7 +39,8 @@ class CurrentValidatorsViewModel(
     private val stakingInteractor: StakingInteractor,
     private val iconGenerator: AddressIconGenerator,
     private val currentValidatorsInteractor: CurrentValidatorsInteractor,
-) : BaseViewModel() {
+    private val setupStakingSharedState: SetupStakingSharedState,
+    ) : BaseViewModel() {
 
     private val groupedCurrentValidatorsFlow = stakingInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash.Nominator>()
@@ -112,6 +115,13 @@ class CurrentValidatorsViewModel(
             ),
             resourceManager.getString(R.string.staking_waiting_validators_description)
         )
+    }
+
+    fun changeClicked() {
+        val currentState = setupStakingSharedState.get<SetupStakingProcess.Initial>()
+        setupStakingSharedState.set(currentState.changeValidatorsFlow())
+
+        router.openRecommendedValidators()
     }
 
     fun backClicked() {
