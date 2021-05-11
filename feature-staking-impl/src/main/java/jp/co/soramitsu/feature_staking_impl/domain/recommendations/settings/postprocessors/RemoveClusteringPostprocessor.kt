@@ -24,8 +24,8 @@ object RemoveClusteringPostprocessor : RecommendationPostProcessor {
         }
     }
 
-    private fun Validator.clusterIdentity() : Identity {
-        return when(val validatorIdentity = identity) {
+    private fun Validator.clusterIdentity(): Identity {
+        return when (val validatorIdentity = identity) {
             is RootIdentity -> validatorIdentity
             is ChildIdentity -> validatorIdentity.parentIdentity
             else -> throw IllegalArgumentException("Unknown type of identity: ${validatorIdentity?.javaClass?.simpleName}")
