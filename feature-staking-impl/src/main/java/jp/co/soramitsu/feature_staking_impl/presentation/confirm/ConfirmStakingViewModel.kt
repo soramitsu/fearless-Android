@@ -242,7 +242,6 @@ class ConfirmStakingViewModel(
             } else {
                 router.returnToMain()
             }
-
         } else {
             showError(setupResult.requireException())
         }
