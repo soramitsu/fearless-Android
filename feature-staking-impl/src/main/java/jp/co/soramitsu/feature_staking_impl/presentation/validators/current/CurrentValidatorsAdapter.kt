@@ -13,12 +13,20 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel
 import kotlinx.android.synthetic.main.item_current_validator.view.itemCurrentValidatorIcon
+import kotlinx.android.synthetic.main.item_current_validator.view.itemCurrentValidatorInfo
 import kotlinx.android.synthetic.main.item_current_validator.view.itemCurrentValidatorName
 import kotlinx.android.synthetic.main.item_current_validator.view.itemCurrentValidatorNominated
 import kotlinx.android.synthetic.main.item_current_validator_group.view.itemCurrentValidatorGroupDescription
 import kotlinx.android.synthetic.main.item_current_validator_group.view.itemCurrentValidatorGroupStatus
 
-class CurrentValidatorsAdapter : GroupedListAdapter<NominatedValidatorStatusModel, NominatedValidatorModel>(CurrentValidatorsDiffCallback) {
+class CurrentValidatorsAdapter(
+    private val handler: Handler,
+) : GroupedListAdapter<NominatedValidatorStatusModel, NominatedValidatorModel>(CurrentValidatorsDiffCallback) {
+
+    interface Handler {
+
+        fun infoClicked(validatorModel: NominatedValidatorModel)
+    }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
         return CurrentValidatorsGroupHolder(parent.inflateChild(R.layout.item_current_validator_group))
@@ -33,7 +41,7 @@ class CurrentValidatorsAdapter : GroupedListAdapter<NominatedValidatorStatusMode
     }
 
     override fun bindChild(holder: GroupedListHolder, child: NominatedValidatorModel) {
-        (holder as CurrentValidatorsChildHolder).bind(child)
+        (holder as CurrentValidatorsChildHolder).bind(child, handler)
     }
 }
 
@@ -54,10 +62,12 @@ private class CurrentValidatorsGroupHolder(view: View) : GroupedListHolder(view)
 
 private class CurrentValidatorsChildHolder(view: View) : GroupedListHolder(view) {
 
-    fun bind(child: NominatedValidatorModel) = with(containerView) {
+    fun bind(child: NominatedValidatorModel, handler: CurrentValidatorsAdapter.Handler) = with(containerView) {
         itemCurrentValidatorIcon.setImageDrawable(child.addressModel.image)
         itemCurrentValidatorName.text = child.addressModel.nameOrAddress
         itemCurrentValidatorNominated.setTextOrHide(child.nominated)
+
+        itemCurrentValidatorInfo.setOnClickListener { handler.infoClicked(child) }
     }
 }
 

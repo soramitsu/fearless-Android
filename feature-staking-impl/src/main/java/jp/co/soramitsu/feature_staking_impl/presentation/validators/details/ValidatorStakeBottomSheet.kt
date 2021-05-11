@@ -51,7 +51,7 @@ class ValidatorStakeBottomSheet(
         if (text == null) {
             view.hideExtra()
         } else {
-            view.setExtra(text)
+            view.setExtraOrHide(text)
             view.showExtra()
         }
     }

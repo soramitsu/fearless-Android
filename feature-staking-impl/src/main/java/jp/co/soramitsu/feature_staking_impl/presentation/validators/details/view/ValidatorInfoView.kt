@@ -4,9 +4,13 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
+import androidx.annotation.ColorRes
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_validator_info.view.validatorEstimatedReward
 import kotlinx.android.synthetic.main.view_validator_info.view.validatorNominatorsView
+import kotlinx.android.synthetic.main.view_validator_info.view.validatorStatusView
 import kotlinx.android.synthetic.main.view_validator_info.view.validatorTotalStakeView
 
 class ValidatorInfoView @JvmOverloads constructor(
@@ -21,17 +25,14 @@ class ValidatorInfoView @JvmOverloads constructor(
         orientation = VERTICAL
     }
 
+    private val totalStakeFields = listOf(validatorTotalStakeView, validatorNominatorsView, validatorNominatorsView, validatorEstimatedReward)
+
     fun setTotalStakeValue(value: String) {
         validatorTotalStakeView.setBody(value)
     }
 
-    fun setTotalStakeValueFiat(fiat: String) {
-        validatorTotalStakeView.showExtra()
-        validatorTotalStakeView.setExtra(fiat)
-    }
-
-    fun hideTotalStakeFiatView() {
-        validatorTotalStakeView.hideExtra()
+    fun setTotalStakeValueFiat(fiat: String?) {
+        validatorTotalStakeView.setExtraOrHide(fiat)
     }
 
     fun setNominatorsCount(count: String) {
@@ -44,5 +45,18 @@ class ValidatorInfoView @JvmOverloads constructor(
 
     fun setTotalStakeClickListener(clickListener: () -> Unit) {
         validatorTotalStakeView.setOnClickListener { clickListener() }
+    }
+
+    fun hideActiveStakeFields() {
+        totalStakeFields.forEach(ValidatorInfoItemView::makeGone)
+    }
+
+    fun showActiveStakeFields() {
+        totalStakeFields.forEach(ValidatorInfoItemView::makeVisible)
+    }
+
+    fun setStatus(statusText: String, @ColorRes statusColorRes: Int) {
+        validatorStatusView.setBodyOrHide(statusText)
+        validatorStatusView.setBodyIconResource(R.drawable.ic_status_indicator, statusColorRes)
     }
 }

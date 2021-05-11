@@ -6,6 +6,6 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 class ValidatorDetailsParcelModel(
     val accountIdHex: String,
-    val stake: ValidatorStakeParcelModel?,
+    val stake: ValidatorStakeParcelModel,
     val identity: IdentityParcelModel?,
 ) : Parcelable

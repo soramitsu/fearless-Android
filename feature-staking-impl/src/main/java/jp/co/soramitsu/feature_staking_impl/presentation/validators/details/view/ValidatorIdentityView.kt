@@ -4,8 +4,6 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
-import jp.co.soramitsu.common.utils.makeGone
-import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.IdentityModel
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityAddressView
@@ -29,16 +27,16 @@ class ValidatorIdentityView @JvmOverloads constructor(
     }
 
     fun populateIdentity(identity: IdentityModel) {
-        setTextOrHideIdentityItem(validatorIdentityDisplayNameView, identity.display)
-        setTextOrHideIdentityItem(validatorIdentityLegalNameView, identity.legal)
-        setTextOrHideIdentityItem(validatorIdentityEmailView, identity.email)
-        setTextOrHideIdentityItem(validatorIdentityWebView, identity.web)
-        setTextOrHideIdentityItem(validatorIdentityTwitterView, identity.twitter)
-        setTextOrHideIdentityItem(validatorIdentityRiotNameView, identity.riot)
+        validatorIdentityDisplayNameView.setBodyOrHide(identity.display)
+        validatorIdentityLegalNameView.setBodyOrHide(identity.legal)
+        validatorIdentityEmailView.setBodyOrHide(identity.email)
+        validatorIdentityWebView.setBodyOrHide(identity.web)
+        validatorIdentityTwitterView.setBodyOrHide(identity.twitter)
+        validatorIdentityRiotNameView.setBodyOrHide(identity.riot)
     }
 
     fun setAddress(address: String?) {
-        setTextOrHideIdentityItem(validatorIdentityAddressView, address)
+        validatorIdentityAddressView.setBodyOrHide(address)
     }
 
     fun setWebClickListener(clickListener: () -> Unit) {
@@ -51,15 +49,5 @@ class ValidatorIdentityView @JvmOverloads constructor(
 
     fun setTwitterClickListener(clickListener: () -> Unit) {
         validatorIdentityTwitterView.setOnClickListener { clickListener() }
-    }
-
-    private fun setTextOrHideIdentityItem(item: ValidatorInfoItemView, text: String?) {
-        if (text == null) {
-            item.makeGone()
-            item.setBody("")
-        } else {
-            item.makeVisible()
-            item.setBody(text)
-        }
     }
 }
