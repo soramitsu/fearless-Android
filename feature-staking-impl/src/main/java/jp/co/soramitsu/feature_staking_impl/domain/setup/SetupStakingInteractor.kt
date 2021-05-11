@@ -77,7 +77,6 @@ class SetupStakingInteractor(
             bond(MultiAddress.Id(controllerAddress.toAccountId()), amountInPlanks, it.rewardDestination)
         }
 
-
         nominate(targets)
     }
 

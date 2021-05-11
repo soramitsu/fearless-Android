@@ -40,7 +40,7 @@ class CurrentValidatorsViewModel(
     private val iconGenerator: AddressIconGenerator,
     private val currentValidatorsInteractor: CurrentValidatorsInteractor,
     private val setupStakingSharedState: SetupStakingSharedState,
-    ) : BaseViewModel() {
+) : BaseViewModel() {
 
     private val groupedCurrentValidatorsFlow = stakingInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash.Nominator>()

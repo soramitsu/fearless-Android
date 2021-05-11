@@ -31,7 +31,7 @@ sealed class SetupStakingProcess {
     }
 
     class Validators(
-       val payload: Payload
+        val payload: Payload
     ) : SetupStakingProcess() {
 
         sealed class Payload {
@@ -42,19 +42,19 @@ sealed class SetupStakingProcess {
                 val controllerAddress: String
             ) : Payload()
 
-            object ExistingStash: Payload()
+            object ExistingStash : Payload()
 
             object Validators : Payload()
         }
 
-        fun previous() = when(payload) {
+        fun previous() = when (payload) {
             is Payload.Full -> Stash(payload.amount)
             else -> Initial
         }
 
         fun next(validators: List<Validator>): SetupStakingProcess {
             val payload = with(payload) {
-                when(this) {
+                when (this) {
                     is Payload.Full -> Confirm.Payload.Full(amount, rewardDestination, controllerAddress, validators)
                     is Payload.ExistingStash -> Confirm.Payload.ExistingStash(validators)
                     is Payload.Validators -> Confirm.Payload.Validators(validators)
@@ -80,17 +80,17 @@ sealed class SetupStakingProcess {
 
             class ExistingStash(
                 validators: List<Validator>
-            ): Payload(validators)
+            ) : Payload(validators)
 
             class Validators(
                 validators: List<Validator>
             ) : Payload(validators)
         }
 
-        fun previous() : SetupStakingProcess {
+        fun previous(): SetupStakingProcess {
             val payload = with(payload) {
-                when(this) {
-                    is Payload.Full -> Validators.Payload.Full(amount, rewardDestination, currentAccountAddress, )
+                when (this) {
+                    is Payload.Full -> Validators.Payload.Full(amount, rewardDestination, currentAccountAddress,)
                     is Payload.ExistingStash -> Validators.Payload.ExistingStash
                     is Payload.Validators -> Validators.Payload.Validators
                 }
