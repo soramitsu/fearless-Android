@@ -233,11 +233,16 @@ class ConfirmStakingViewModel(
         _showNextProgress.value = false
 
         if (setupResult.isSuccess) {
-            showMessage(resourceManager.getString(R.string.staking_setup_sent_message))
+            showMessage(resourceManager.getString(R.string.common_transaction_submitted))
 
             setupStakingSharedState.set(currentProcessState.finish())
 
-            router.returnToMain()
+            if (currentProcessState.payload is Payload.Validators) {
+                router.returnToCurrentValidators()
+            } else {
+                router.returnToMain()
+            }
+
         } else {
             showError(setupResult.requireException())
         }
