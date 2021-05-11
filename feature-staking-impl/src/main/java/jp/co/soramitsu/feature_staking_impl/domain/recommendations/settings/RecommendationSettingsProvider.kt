@@ -4,6 +4,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filt
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotBlockedFilter
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotOverSubscribedFilter
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotSlashedFilter
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.postprocessors.RemoveClusteringPostprocessor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.CommissionSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.StakeSorting
@@ -28,6 +29,10 @@ class RecommendationSettingsProvider(
         CommissionSorting
     )
 
+    private val allPostProcessors = listOf(
+        RemoveClusteringPostprocessor
+    )
+
     private val settingsFlow = MutableStateFlow(defaultSettings())
 
     suspend fun setRecommendationSettings(settings: RecommendationSettings) {
@@ -44,6 +49,7 @@ class RecommendationSettingsProvider(
         return RecommendationSettings(
             filters = allFilters,
             sorting = APYSorting,
+            postProcessors = allPostProcessors,
             limit = maximumValidatorsPerNominator
         )
     }
