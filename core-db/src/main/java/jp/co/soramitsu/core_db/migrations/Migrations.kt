@@ -3,6 +3,21 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+@Suppress("ClassName")
+class MoveActiveNodeTrackingToDb_18_19(private val migrator: PrefsToDbActiveNodeMigrator) : Migration(18, 19) {
+
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.beginTransaction()
+
+        database.execSQL("ALTER TABLE nodes ADD COLUMN `isActive` INTEGER NOT NULL DEFAULT 0")
+
+        migrator.migrate(database)
+
+        database.setTransactionSuccessful()
+        database.endTransaction()
+    }
+}
+
 val RemoveAccountForeignKeyFromAsset_17_18 = object : Migration(17, 18) {
 
     override fun migrate(database: SupportSQLiteDatabase) {

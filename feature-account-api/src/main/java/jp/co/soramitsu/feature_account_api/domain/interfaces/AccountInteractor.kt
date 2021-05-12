@@ -83,8 +83,6 @@ interface AccountInteractor {
 
     fun nodesFlow(): Flow<List<Node>>
 
-    fun selectedNodeFlow(): Flow<Node>
-
     suspend fun getNode(nodeId: Int): Node
 
     suspend fun processAccountJson(json: String): Result<ImportJsonData>

@@ -28,6 +28,8 @@ import jp.co.soramitsu.core_db.migrations.AddStakingRewardsTable_15_16
 import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
+import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
+import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
@@ -42,7 +44,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Database(
-    version = 18,
+    version = 19,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
@@ -69,7 +71,11 @@ abstract class AppDatabase : RoomDatabase() {
         private var instance: AppDatabase? = null
 
         @Synchronized
-        fun get(context: Context, defaultNodes: DefaultNodes): AppDatabase {
+        fun get(
+            context: Context,
+            defaultNodes: DefaultNodes,
+            prefsToDbActiveNodeMigrator: PrefsToDbActiveNodeMigrator
+        ): AppDatabase {
             if (instance == null) {
                 instance = Room.databaseBuilder(
                     context.applicationContext,
@@ -85,6 +91,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AddStorageCacheTable_12_13, AddNetworkTypeToStorageCache_13_14)
                     .addMigrations(AddAccountStakingTable_14_15, AddStakingRewardsTable_15_16, ChangePrimaryKeyForRewards_16_17)
                     .addMigrations(RemoveAccountForeignKeyFromAsset_17_18)
+                    .addMigrations(MoveActiveNodeTrackingToDb_18_19(prefsToDbActiveNodeMigrator))
                     .build()
             }
             return instance!!

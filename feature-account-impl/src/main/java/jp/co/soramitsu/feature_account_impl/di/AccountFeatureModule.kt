@@ -113,9 +113,10 @@ class AccountFeatureModule {
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
         jsonMapper: Gson,
+        nodeDao: NodeDao,
         accountDataMigration: AccountDataMigration
     ): AccountDataSource {
-        return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper, accountDataMigration)
+        return AccountDataSourceImpl(preferences, encryptedPreferences, nodeDao, jsonMapper, accountDataMigration)
     }
 
     @Provides
