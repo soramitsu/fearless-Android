@@ -86,7 +86,7 @@ fun mapNodeToNodeModel(node: Node): NodeModel {
     }
 }
 
-fun mapNodeLocalToNode(nodeLocal: NodeLocal) : Node {
+fun mapNodeLocalToNode(nodeLocal: NodeLocal): Node {
     return with(nodeLocal) {
         Node(
             id = id,

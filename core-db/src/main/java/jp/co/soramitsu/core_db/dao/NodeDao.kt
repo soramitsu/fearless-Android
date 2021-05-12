@@ -57,7 +57,7 @@ abstract class NodeDao {
     protected abstract suspend fun inactiveCurrentNode()
 
     @Query("SELECT * FROM nodes WHERE isActive = 1")
-    abstract fun activeNodeFlow() : Flow<NodeLocal?>
+    abstract fun activeNodeFlow(): Flow<NodeLocal?>
 
     @Transaction
     open suspend fun switchActiveNode(newNodeId: Int) {

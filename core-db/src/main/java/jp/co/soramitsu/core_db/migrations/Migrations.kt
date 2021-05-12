@@ -11,7 +11,7 @@ class UpdateDefaultNodesList(
 ) : Migration(fromVersion, fromVersion + 1) {
 
     init {
-        require(nodesList.all { it.isActive.not() }, ) {
+        require(nodesList.all { it.isActive.not() },) {
             "Nodes should not be active by default"
         }
     }
@@ -21,10 +21,10 @@ class UpdateDefaultNodesList(
 
         val activeNodeLinkCursor = database.query("SELECT networkType FROM nodes WHERE isActive = 1")
 
-        val activeNodeNetworkType  = if (activeNodeLinkCursor.moveToNext()) {
+        val activeNodeNetworkType = if (activeNodeLinkCursor.moveToNext()) {
             val networkType = activeNodeLinkCursor.getInt(activeNodeLinkCursor.getColumnIndex("networkType"))
 
-             networkType
+            networkType
         } else null
 
         activeNodeLinkCursor.close()
@@ -48,8 +48,6 @@ class UpdateDefaultNodesList(
         database.setTransactionSuccessful()
         database.endTransaction()
     }
-
-
 }
 
 @Suppress("ClassName")

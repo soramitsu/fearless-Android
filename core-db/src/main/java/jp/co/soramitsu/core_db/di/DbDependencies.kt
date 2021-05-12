@@ -6,9 +6,9 @@ import jp.co.soramitsu.common.data.storage.Preferences
 
 interface DbDependencies {
 
-    fun gson() : Gson
+    fun gson(): Gson
 
-    fun preferences() : Preferences
+    fun preferences(): Preferences
 
     fun context(): Context
 }

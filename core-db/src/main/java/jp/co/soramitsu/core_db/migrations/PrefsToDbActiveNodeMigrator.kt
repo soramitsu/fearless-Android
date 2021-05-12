@@ -14,7 +14,7 @@ class PrefsToDbActiveNodeMigrator(
 
     fun migrate(db: SupportSQLiteDatabase) {
         val selectedNodeRaw = preferences.getString(PREFS_SELECTED_NODE) ?: return
-        val selectedNode =  gson.fromJson(selectedNodeRaw, Node::class.java)
+        val selectedNode = gson.fromJson(selectedNodeRaw, Node::class.java)
 
         db.execSQL("UPDATE nodes SET isActive = 1 WHERE id = ${selectedNode.id}")
     }
