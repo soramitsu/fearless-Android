@@ -1,14 +1,17 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorStakeModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorStakeModel.ActiveStakeModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
@@ -30,12 +33,11 @@ suspend fun mapValidatorToValidatorModel(
     val addressModel = iconGenerator.createAddressModel(address, ICON_SIZE_DP, validator.identity?.display)
 
     return with(validator) {
-        val apyPercentage = (PERCENT_MULTIPLIER * apy).formatAsPercentage()
+        val apyPercentage = electedInfo?.apy?.let { (PERCENT_MULTIPLIER * it).formatAsPercentage() }
 
         ValidatorModel(
             accountIdHex = accountIdHex,
             slashed = slashed,
-            identity = identity,
             image = addressModel.image,
             address = addressModel.address,
             apy = apyPercentage,
@@ -44,11 +46,18 @@ suspend fun mapValidatorToValidatorModel(
     }
 }
 
-fun mapValidatorToValidatorDetailsParcelModel(validator: Validator): ValidatorDetailsParcelModel {
+fun mapValidatorToValidatorDetailsParcelModel(
+    validator: Validator
+): ValidatorDetailsParcelModel {
     return with(validator) {
-        val nominators = nominatorStakes.map(::mapNominatorToNominatorParcelModel)
         val identityModel = identity?.let(::mapIdentityToIdentityParcelModel)
-        val stakeModel = ValidatorStakeParcelModel(totalStake, ownStake, nominators, apy)
+
+        val stakeModel = electedInfo?.let {
+            val nominators = it.nominatorStakes.map(::mapNominatorToNominatorParcelModel)
+
+            ValidatorStakeParcelModel.Active(it.totalStake, it.ownStake, nominators, it.apy)
+        } ?: ValidatorStakeParcelModel.Inactive
+
         ValidatorDetailsParcelModel(accountIdHex, stakeModel, identityModel)
     }
 }
@@ -56,7 +65,8 @@ fun mapValidatorToValidatorDetailsParcelModel(validator: Validator): ValidatorDe
 suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
     validator: ValidatorDetailsParcelModel,
     asset: Asset,
-    iconGenerator: AddressIconGenerator
+    iconGenerator: AddressIconGenerator,
+    resourceManager: ResourceManager
 ): ValidatorDetailsModel {
     return with(validator) {
         val token = asset.token
@@ -67,14 +77,32 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
 
         val identity = identity?.let(::mapIdentityParcelModelToIdentityModel)
 
-        val stake = validator.stake?.let {
-            val totalStake = token.amountFromPlanks(it.totalStake)
-            val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
-            val totalStakeFiatFormatted = token.fiatAmount(totalStake)?.formatAsCurrency()
-            val nominatorsCountFormatted = it.nominators.size.toString()
-            val apyPercentageFormatted = (PERCENT_MULTIPLIER * it.apy).formatAsPercentage()
+        val stake = when (val stake = validator.stake) {
 
-            ValidatorStakeModel(totalStakeFormatted, totalStakeFiatFormatted, nominatorsCountFormatted, apyPercentageFormatted)
+            ValidatorStakeParcelModel.Inactive -> ValidatorStakeModel(
+                statusText = resourceManager.getString(R.string.staking_nominator_status_inactive),
+                statusColorRes = R.color.gray2,
+                activeStakeModel = null
+            )
+
+            is ValidatorStakeParcelModel.Active -> {
+                val totalStake = token.amountFromPlanks(stake.totalStake)
+                val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
+                val totalStakeFiatFormatted = token.fiatAmount(totalStake)?.formatAsCurrency()
+                val nominatorsCountFormatted = stake.nominators.size.toString()
+                val apyPercentageFormatted = (PERCENT_MULTIPLIER * stake.apy).formatAsPercentage()
+
+                ValidatorStakeModel(
+                    statusText = resourceManager.getString(R.string.staking_nominator_status_active),
+                    statusColorRes = R.color.green,
+                    activeStakeModel = ActiveStakeModel(
+                        totalStake = totalStakeFormatted,
+                        totalStakeFiat = totalStakeFiatFormatted,
+                        nominatorsCount = nominatorsCountFormatted,
+                        apy = apyPercentageFormatted
+                    )
+                )
+            }
         }
 
         ValidatorDetailsModel(

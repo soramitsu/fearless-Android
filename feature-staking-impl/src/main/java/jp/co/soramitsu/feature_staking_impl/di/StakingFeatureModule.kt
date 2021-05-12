@@ -34,10 +34,12 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.Reco
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.ControllerInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
+import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
@@ -120,10 +122,16 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideValidatorRecommendatorFactory(
+        validatorProvider: ValidatorProvider
+    ) = ValidatorRecommendatorFactory(validatorProvider)
+
+    @Provides
+    @FeatureScope
+    fun provideValidatorProvider(
         stakingRepository: StakingRepository,
         identityRepository: IdentityRepository,
         rewardCalculatorFactory: RewardCalculatorFactory,
-    ) = ValidatorRecommendatorFactory(stakingRepository, identityRepository, rewardCalculatorFactory)
+    ) = ValidatorProvider(stakingRepository, identityRepository, rewardCalculatorFactory)
 
     @Provides
     @FeatureScope
@@ -248,4 +256,14 @@ class StakingFeatureModule {
         feeEstimator: FeeEstimator,
         extrinsicService: ExtrinsicService
     ) = ControllerInteractor(feeEstimator, extrinsicService)
+
+    @Provides
+    @FeatureScope
+    fun provideCurrentValidatorsInteractor(
+        stakingRepository: StakingRepository,
+        stakingConstantsRepository: StakingConstantsRepository,
+        validatorProvider: ValidatorProvider
+    ) = CurrentValidatorsInteractor(
+        stakingRepository, stakingConstantsRepository, validatorProvider
+    )
 }

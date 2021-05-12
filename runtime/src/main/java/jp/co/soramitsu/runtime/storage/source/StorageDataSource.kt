@@ -6,16 +6,23 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.flow.Flow
 
+typealias StorageKey = String
+
 interface StorageDataSource {
 
     suspend fun <T> query(
-        keyBuilder: (RuntimeSnapshot) -> String,
+        keyBuilder: (RuntimeSnapshot) -> StorageKey,
         binding: Binder<T>,
     ): T
 
+    suspend fun <K, T> queryKeys(
+        keysBuilder: (RuntimeSnapshot) -> Map<StorageKey, K>,
+        binding: Binder<T>,
+    ): Map<K, T>
+
     suspend fun <T> observe(
         networkType: Node.NetworkType,
-        keyBuilder: (RuntimeSnapshot) -> String,
+        keyBuilder: (RuntimeSnapshot) -> StorageKey,
         binder: Binder<T>,
     ): Flow<T>
 }

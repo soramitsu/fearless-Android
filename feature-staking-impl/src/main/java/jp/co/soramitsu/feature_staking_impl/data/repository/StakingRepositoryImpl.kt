@@ -13,11 +13,13 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
@@ -120,16 +122,19 @@ class StakingRepositoryImpl(
         }
     }
 
-    override suspend fun getElectedValidatorsPrefs(eraIndex: BigInteger) = withContext(Dispatchers.Default) {
-        val runtime = getRuntime()
+    override suspend fun getValidatorPrefs(
+        accountIdsHex: List<String>,
+    ): AccountIdMap<ValidatorPrefs?> {
+        return remoteStorage.queryKeys(
+            keysBuilder = { runtime ->
+                val storage = runtime.metadata.staking().storage("Validators")
 
-        val prefixKey = runtime.metadata.staking().storage("ErasValidatorPrefs").storageKey(runtime, eraIndex)
-
-        storageCache.getEntries(prefixKey).associate {
-            val accountId = it.storageKey.accountIdFromMapKey()
-
-            accountId to bindValidatorPrefs(it.content!!, runtime)
-        }
+                accountIdsHex.associateBy { accountIdHex -> storage.storageKey(runtime, accountIdHex.fromHex()) }
+            },
+            binding = { scale, runtime ->
+                scale?.let { bindValidatorPrefs(scale, runtime) }
+            }
+        )
     }
 
     override suspend fun getSlashes(accountIdsHex: List<String>) = withContext(Dispatchers.Default) {

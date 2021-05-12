@@ -8,11 +8,18 @@
     tools:orientation="vertical"
     tools:parentTag="android.widget.LinearLayout">
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
-        android:id="@+id/validatorIdentityAddressView"
-        android:layout_width="match_parent"
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:validatorInfoItemTitle="@string/common_address" />
+        android:id="@+id/identityTitp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:includeFontPadding="false"
+        android:text="@string/identity_title"
+        android:textColor="@color/white" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/validatorIdentityDisplayNameView"

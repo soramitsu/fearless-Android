@@ -22,6 +22,10 @@ class RemoteStorageSource(
         return bulkRetriever.queryKey(key)
     }
 
+    override suspend fun queryKeys(keys: List<String>): Map<String, String?> {
+        return bulkRetriever.queryKeys(keys)
+    }
+
     override suspend fun observe(key: String, networkType: Node.NetworkType): Flow<String?> {
         return socketService.subscriptionFlow(SubscribeStorageRequest(key))
             .map { it.storageChange().getSingleChange() }

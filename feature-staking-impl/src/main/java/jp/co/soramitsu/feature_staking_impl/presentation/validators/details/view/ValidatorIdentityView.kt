@@ -4,11 +4,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
-import jp.co.soramitsu.common.utils.makeGone
-import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.IdentityModel
-import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityAddressView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityDisplayNameView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityEmailView
 import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityLegalNameView
@@ -19,7 +16,7 @@ import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIden
 class ValidatorIdentityView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyle: Int = 0
+    defStyle: Int = 0,
 ) : LinearLayout(context, attrs, defStyle) {
 
     init {
@@ -29,16 +26,12 @@ class ValidatorIdentityView @JvmOverloads constructor(
     }
 
     fun populateIdentity(identity: IdentityModel) {
-        setTextOrHideIdentityItem(validatorIdentityDisplayNameView, identity.display)
-        setTextOrHideIdentityItem(validatorIdentityLegalNameView, identity.legal)
-        setTextOrHideIdentityItem(validatorIdentityEmailView, identity.email)
-        setTextOrHideIdentityItem(validatorIdentityWebView, identity.web)
-        setTextOrHideIdentityItem(validatorIdentityTwitterView, identity.twitter)
-        setTextOrHideIdentityItem(validatorIdentityRiotNameView, identity.riot)
-    }
-
-    fun setAddress(address: String?) {
-        setTextOrHideIdentityItem(validatorIdentityAddressView, address)
+        validatorIdentityDisplayNameView.setBodyOrHide(identity.display)
+        validatorIdentityLegalNameView.setBodyOrHide(identity.legal)
+        validatorIdentityEmailView.setBodyOrHide(identity.email)
+        validatorIdentityWebView.setBodyOrHide(identity.web)
+        validatorIdentityTwitterView.setBodyOrHide(identity.twitter)
+        validatorIdentityRiotNameView.setBodyOrHide(identity.riot)
     }
 
     fun setWebClickListener(clickListener: () -> Unit) {
@@ -51,15 +44,5 @@ class ValidatorIdentityView @JvmOverloads constructor(
 
     fun setTwitterClickListener(clickListener: () -> Unit) {
         validatorIdentityTwitterView.setOnClickListener { clickListener() }
-    }
-
-    private fun setTextOrHideIdentityItem(item: ValidatorInfoItemView, text: String?) {
-        if (text == null) {
-            item.makeGone()
-            item.setBody("")
-        } else {
-            item.makeVisible()
-            item.setBody(text)
-        }
     }
 }

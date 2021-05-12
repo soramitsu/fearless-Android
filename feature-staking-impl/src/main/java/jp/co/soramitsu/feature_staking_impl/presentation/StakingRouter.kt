@@ -55,4 +55,6 @@ interface StakingRouter {
     fun openConfirmSetController()
 
     fun openCustomRebond()
+
+    fun openCurrentValidators()
 }

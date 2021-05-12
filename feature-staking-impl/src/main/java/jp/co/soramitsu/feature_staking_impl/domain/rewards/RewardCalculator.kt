@@ -71,7 +71,9 @@ class RewardCalculator(
     }
 
     fun getApyFor(targetIdHex: String): BigDecimal {
-        return apyByValidator[targetIdHex]?.toBigDecimal() ?: error("Validator $targetIdHex was not found")
+        val apy = apyByValidator[targetIdHex] ?: expectedAPY
+
+        return apy.toBigDecimal()
     }
 
     suspend fun calculateReturns(

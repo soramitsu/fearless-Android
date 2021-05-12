@@ -23,7 +23,6 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Hist
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorExposureUpdater
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorPrefsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.controller.AccountControllerBalanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalTotalValidatorRewardUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalUpdateMediator
@@ -59,20 +58,6 @@ class StakingUpdatersModule {
         storageCache: StorageCache,
         accountRepository: AccountRepository,
     ) = ValidatorExposureUpdater(
-        runtimeProperty,
-        bulkRetriever,
-        accountRepository,
-        storageCache
-    )
-
-    @Provides
-    @FeatureScope
-    fun provideValidatorPrefsUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        bulkRetriever: BulkRetriever,
-        accountRepository: AccountRepository,
-        storageCache: StorageCache
-    ) = ValidatorPrefsUpdater(
         runtimeProperty,
         bulkRetriever,
         accountRepository,
@@ -202,7 +187,6 @@ class StakingUpdatersModule {
     fun provideStakingUpdaters(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
-        validatorPrefsUpdater: ValidatorPrefsUpdater,
         totalIssuanceUpdater: TotalIssuanceUpdater,
         currentEraUpdater: CurrentEraUpdater,
         stakingLedgerUpdater: StakingLedgerUpdater,
@@ -217,7 +201,6 @@ class StakingUpdatersModule {
         updaters = arrayOf(
             activeEraUpdater,
             validatorExposureUpdater,
-            validatorPrefsUpdater,
             totalIssuanceUpdater,
             currentEraUpdater,
             stakingLedgerUpdater,

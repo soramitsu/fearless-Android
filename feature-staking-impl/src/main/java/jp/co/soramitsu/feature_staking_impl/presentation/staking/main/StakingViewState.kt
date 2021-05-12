@@ -65,7 +65,7 @@ typealias NominatorSummaryModel = StakeSummaryModel<NominatorStatus>
 typealias ValidatorSummaryModel = StakeSummaryModel<ValidatorStatus>
 
 enum class ManageStakeAction {
-    PAYOUTS, BALANCE, CONTROLLER, STUB
+    PAYOUTS, BALANCE, CONTROLLER, VALIDATORS, STUB
 }
 
 sealed class StakeViewState<S>(
@@ -97,6 +97,7 @@ sealed class StakeViewState<S>(
             ManageStakeAction.PAYOUTS -> router.openPayouts()
             ManageStakeAction.BALANCE -> router.openStakingBalance()
             ManageStakeAction.CONTROLLER -> router.openControllerAccount()
+            ManageStakeAction.VALIDATORS -> router.openCurrentValidators()
         }
     }
 
@@ -168,7 +169,7 @@ class ValidatorViewState(
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = { stakingInteractor.observeValidatorSummary(validatorState) },
     statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) },
-    availableManageActions = ManageStakeAction.values().toSet()
+    availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.VALIDATORS
 )
 
 private fun getValidatorStatusTitleAndMessage(

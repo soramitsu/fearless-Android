@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_nominated">Nominated: %s</string>
+
+    <string name="staking_active_validators_format">Active (%d)</string>
+    <string name="staking_active_validators_description">Your stake is allocated to the following validator.</string>
+
+    <string name="staking_inactive_validators_format">Inactive (%d)</string>
+    <string name="staking_inactive_validators_description">Validators who were not elected in this era.</string>
+
+    <string name="staking_elected_validators_description">Others, who are active without your stake allocation.</string>
+
+    <string name="staking_waiting_validators_format">Selected: %d (Max %d)</string>
+    <string name="staking_waiting_validators_description">Your validators will change in the next era.</string>
+
+    <string name="stacking_stash_account">Stash account</string>
     <string name="staking_not_stash_account_warning">Switch your account to stash to set the controller</string>
     <string name="staking_information_stash_controller_bond">Stash can bond more and set the controller</string>
     <string name="staking_information_controller_actions">Controller can unbond, redeem, rebond, change reward destination and validators</string>
@@ -72,7 +86,7 @@
     <string name="staking_pause_staking">Pause staking</string>
     <string name="staking_unstake">Unstake</string>
     <string name="staking_unstaking_requests">Unstaking requests</string>
-    <string name="staking_validators">Validators</string>
+    <string name="staking_your_validators">Your validators</string>
     <string name="staking_reward_payouts">Reward payouts</string>
     <string name="staking_controller_account">Controller account</string>
 

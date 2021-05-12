@@ -8,6 +8,12 @@ class NotOverSubscribedFilter(
 ) : RecommendationFilter {
 
     override fun shouldInclude(model: Validator): Boolean {
-        return model.nominatorStakes.size < maxSubscribers
+        val electedInfo = model.electedInfo
+
+        return if (electedInfo != null) {
+            electedInfo.nominatorStakes.size < maxSubscribers
+        } else {
+            throw IllegalStateException("Filtering validator ${model.accountIdHex} with no prefs")
+        }
     }
 }

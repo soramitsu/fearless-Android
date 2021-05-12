@@ -25,7 +25,6 @@ android {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
         jvmTarget = '1.8'
-
     }
 
     compileOptions {

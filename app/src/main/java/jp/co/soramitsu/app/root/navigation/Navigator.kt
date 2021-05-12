@@ -223,6 +223,10 @@ class Navigator :
         navController?.navigate(R.id.action_stakingBalanceFragment_to_customRebondFragment)
     }
 
+    override fun openCurrentValidators() {
+        navController?.navigate(R.id.action_mainFragment_to_currentValidatorsFragment)
+    }
+
     override fun openControllerAccount() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_controllerAccountFragment)
     }
