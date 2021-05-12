@@ -72,9 +72,7 @@ class SetControllerFragment : BaseFragment<SetControllerViewModel>() {
 
         viewModel.showControllerChooserEvent.observeEvent(::showControllerChooser)
 
-        viewModel.showNotStashAccountWarning.observe {
-            setControllerNotStashWarning.setVisible(it)
-        }
+        viewModel.showNotStashAccountWarning.observe (setControllerNotStashWarning::setVisible)
 
         viewModel.isContinueButtonAvailable.observe {
             setControllerContinueBtn.isEnabled = it

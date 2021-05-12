@@ -22,7 +22,7 @@ class SetControllerValidationsModule {
     fun provideFeeValidation(): SetControllerFeeValidation {
         return EnoughToPayFeesValidation(
             feeExtractor = { it.fee },
-            availableBalanceProducer = { it.asset },
+            availableBalanceProducer = { it.transferable },
             errorProducer = { SetControllerValidationFailure.NOT_ENOUGH_TO_PAY_FEES }
         )
     }

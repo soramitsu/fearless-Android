@@ -8,5 +8,5 @@ class SetControllerValidationPayload(
     val stash: StakingState.Stash,
     val controllerAddress: String,
     val fee: BigDecimal,
-    val asset: BigDecimal
+    val transferable: BigDecimal
 )

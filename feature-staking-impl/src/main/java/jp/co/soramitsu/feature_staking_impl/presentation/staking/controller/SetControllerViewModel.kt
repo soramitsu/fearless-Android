@@ -159,7 +159,7 @@ class SetControllerViewModel(
                     stash = accountStakingFlow.first(),
                     controllerAddress = controllerAddress,
                     fee = fee,
-                    asset = assetFlow.first().transferable
+                    transferable = assetFlow.first().transferable
                 )
 
                 validationExecutor.requireValid(
