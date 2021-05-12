@@ -19,16 +19,10 @@ class SetControllerValidationsModule {
 
     @FeatureScope
     @Provides
-    fun provideFeeValidation(
-        walletRepository: WalletRepository
-    ): SetControllerFeeValidation {
+    fun provideFeeValidation(): SetControllerFeeValidation {
         return EnoughToPayFeesValidation(
             feeExtractor = { it.fee },
-            availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
-                walletRepository,
-                originAddressExtractor = { it.stash.stashAddress },
-                tokenTypeExtractor = { it.tokenType }
-            ),
+            availableBalanceProducer = { it.asset },
             errorProducer = { SetControllerValidationFailure.NOT_ENOUGH_TO_PAY_FEES }
         )
     }

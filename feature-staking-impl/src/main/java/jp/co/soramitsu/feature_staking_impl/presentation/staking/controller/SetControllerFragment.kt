@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
@@ -71,9 +72,12 @@ class SetControllerFragment : BaseFragment<SetControllerViewModel>() {
 
         viewModel.showControllerChooserEvent.observeEvent(::showControllerChooser)
 
-        viewModel.isNotStashAccount.observe {
+        viewModel.showNotStashAccountWarning.observe {
+            setControllerNotStashWarning.setVisible(it)
+        }
+
+        viewModel.isContinueButtonAvailable.observe {
             setControllerContinueBtn.isEnabled = it
-            setControllerNotStashWarning.visibility = if (it) View.GONE else View.VISIBLE
         }
     }
 

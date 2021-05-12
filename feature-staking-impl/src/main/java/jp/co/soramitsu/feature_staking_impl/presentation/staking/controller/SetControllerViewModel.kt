@@ -52,8 +52,13 @@ class SetControllerViewModel(
         .filterIsInstance<StakingState.Stash>()
         .share()
 
-    val _isNotStashAccount = MutableLiveData<Boolean>()
-    val isNotStashAccount: LiveData<Boolean> = _isNotStashAccount
+    val showNotStashAccountWarning = accountStakingFlow.map { stakingState ->
+        stakingState.accountAddress != stakingState.stashAddress
+    }.asLiveData()
+
+    val isContinueButtonAvailable = accountStakingFlow.map { stakingState ->
+        showNotStashAccountWarning.value != null && showNotStashAccountWarning.value!!.not()
+    }.asLiveData()
 
     val stashAccountModel = accountStakingFlow.map {
         generateIcon(it.stashAddress)
@@ -97,8 +102,6 @@ class SetControllerViewModel(
             _controllerAccountModel.value = accountStakingFlow.map {
                 generateIcon(it.controllerAddress)
             }.first()
-
-            _isNotStashAccount.value = isStashAddress()
         }
     }
 
@@ -156,7 +159,7 @@ class SetControllerViewModel(
                     stash = accountStakingFlow.first(),
                     controllerAddress = controllerAddress,
                     fee = fee,
-                    tokenType = assetFlow.first().token.type
+                    asset = assetFlow.first().transferable
                 )
 
                 validationExecutor.requireValid(
@@ -172,11 +175,5 @@ class SetControllerViewModel(
 
     private fun openConfirm() {
         router.openConfirmSetController()
-    }
-
-    private suspend fun isStashAddress(): Boolean {
-        val stash = accountStakingFlow.first()
-        val accountId = stash.accountAddress.toAccountId()
-        return accountId.contentEquals(stash.stashId)
     }
 }
