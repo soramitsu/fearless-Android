@@ -18,20 +18,15 @@ import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
-import jp.co.soramitsu.core_db.prepopulate.nodes.DefaultNodes
 
 @Module
 class DbModule {
 
     @Provides
     @ApplicationScope
-    fun provideDefaultNodes() = DefaultNodes()
-
-    @Provides
-    @ApplicationScope
     fun providePrefsToDbActiveNodeMigrator(
         gson: Gson,
-        preferences: Preferences
+        preferences: Preferences,
     ) = PrefsToDbActiveNodeMigrator(gson, preferences)
 
     @Provides
@@ -39,9 +34,8 @@ class DbModule {
     fun provideAppDatabase(
         context: Context,
         prefsToDbActiveNodeMigrator: PrefsToDbActiveNodeMigrator,
-        defaultNodes: DefaultNodes
     ): AppDatabase {
-        return AppDatabase.get(context, defaultNodes, prefsToDbActiveNodeMigrator)
+        return AppDatabase.get(context, prefsToDbActiveNodeMigrator)
     }
 
     @Provides
