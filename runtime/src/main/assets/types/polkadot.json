@@ -1,9 +1,9 @@
 {
-  "runtime_id": 28,
+  "runtime_id": 30,
   "types": {
     "Address": "MultiAddress",
     "LookupSource": "MultiAddress",
-    "AccountInfo": "AccountInfoWithDualRefCount",
+    "AccountInfo": "AccountInfoWithTripleRefCount",
     "BlockNumber": "U32",
     "LeasePeriod": "BlockNumber",
     "Weight": "u64",
@@ -135,6 +135,18 @@
           ]
         },
         "ValidatorPrefs": "ValidatorPrefsWithBlocked"
+      }
+    },
+    {
+      "runtime_range": [28, 29],
+      "types": {
+        "AccountInfo": "AccountInfoWithDualRefCount"
+      }
+    },
+    {
+      "runtime_range": [30, null],
+      "types": {
+        "AccountInfo": "AccountInfoWithTripleRefCount"
       }
     }
   ]
