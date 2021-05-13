@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.utils.mediatorLiveData
 import jp.co.soramitsu.common.utils.updateFrom
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -161,29 +162,29 @@ class SetControllerViewModel(
             val controllerAddress = controllerAccountModel.value?.address ?: return@launch
 
             val payload = SetControllerValidationPayload(
-                stash = accountStakingFlow.first(),
+                stashAddress = stashAddress(),
                 controllerAddress = controllerAddress,
                 fee = fee,
                 transferable = assetFlow.first().transferable
             )
 
-                validationExecutor.requireValid(
-                    validationSystem = validationSystem,
-                    payload = payload,
-                    validationFailureTransformer = { bondSetControllerValidationFailure(it, resourceManager) }
-                ) {
-                    openConfirm(
-                        ConfirmSetControllerPayload(
-                            fee = fee,
-                            stashAddress = payload.stashAddress,
-                            controllerAddress = payload.controllerAddress,
-                            tokenType = payload.tokenType
-                        )
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = payload,
+                validationFailureTransformer = { bondSetControllerValidationFailure(it, resourceManager) }
+            ) {
+                openConfirm(
+                    ConfirmSetControllerPayload(
+                        fee = fee,
+                        stashAddress = payload.stashAddress,
+                        controllerAddress = payload.controllerAddress,
+                        transferable = payload.transferable
                     )
-                }
+                )
             }
         }
     }
+
 
     private fun openConfirm(payload: ConfirmSetControllerPayload) {
         router.openConfirmSetController(payload)
@@ -193,8 +194,8 @@ class SetControllerViewModel(
         viewModelScope.launch {
             _isContinueButtonAvailable.value =
                 controllerAccountModel.value != null &&
-                controllerAccountModel.value?.address != stashAddress() &&
-                (showNotStashAccountWarning.value ?: true).not()
+                    controllerAccountModel.value?.address != stashAddress() &&
+                    (showNotStashAccountWarning.value ?: true).not()
         }
     }
 }

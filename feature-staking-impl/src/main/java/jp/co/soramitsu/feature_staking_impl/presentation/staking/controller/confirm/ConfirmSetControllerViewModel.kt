@@ -25,7 +25,7 @@ class ConfirmSetControllerViewModel(
     private val router: StakingRouter,
     private val controllerInteractor: ControllerInteractor,
     private val addressIconGenerator: AddressIconGenerator,
-    private val _payload: ConfirmSetControllerPayload,
+    private val payload: ConfirmSetControllerPayload,
     private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
     private val externalActions: ExternalAccountActions.Presentation,
@@ -34,11 +34,11 @@ class ConfirmSetControllerViewModel(
 ) : BaseViewModel(),
     Validatable by validationExecutor {
 
-    private val assetFlow = interactor.assetFlow(_payload.stashAddress)
+    private val assetFlow = interactor.assetFlow(payload.stashAddress)
         .share()
 
     val feeStatusLiveData = assetFlow.map { asset ->
-        val feeModel = mapFeeToFeeModel(_payload.fee, asset.token)
+        val feeModel = mapFeeToFeeModel(payload.fee, asset.token)
 
         FeeStatus.Loaded(feeModel)
     }
@@ -46,10 +46,10 @@ class ConfirmSetControllerViewModel(
         .asLiveData()
 
     val stashAddressLiveData = liveData {
-        emit(generateIcon(_payload.stashAddress))
+        emit(generateIcon(payload.stashAddress))
     }
     val controllerAddressLiveData = liveData {
-        emit(generateIcon(_payload.controllerAddress))
+        emit(generateIcon(payload.controllerAddress))
     }
 
     fun confirmClicked() {
@@ -58,23 +58,23 @@ class ConfirmSetControllerViewModel(
 
     fun openStashExternalActions() {
         viewModelScope.launch {
-            externalActions.showExternalActions(ExternalAccountActions.Payload.fromAddress(_payload.stashAddress))
+            externalActions.showExternalActions(ExternalAccountActions.Payload.fromAddress(payload.stashAddress))
         }
     }
 
     fun openControllerExternalActions() {
         viewModelScope.launch {
-            externalActions.showExternalActions(ExternalAccountActions.Payload.fromAddress(_payload.controllerAddress))
+            externalActions.showExternalActions(ExternalAccountActions.Payload.fromAddress(payload.controllerAddress))
         }
     }
 
     private fun maybeConfirm() = launch {
 
         val payload = SetControllerValidationPayload(
-            stashAddress = _payload.stashAddress,
-            controllerAddress = _payload.controllerAddress,
-            fee = _payload.fee,
-            tokenType = _payload.tokenType
+            stashAddress = payload.stashAddress,
+            controllerAddress = payload.controllerAddress,
+            fee = payload.fee,
+            transferable = payload.transferable
         )
 
         validationExecutor.requireValid(
@@ -88,8 +88,8 @@ class ConfirmSetControllerViewModel(
 
     private fun sendTransaction() = launch {
         val result = controllerInteractor.setController(
-            stashAccountAddress = _payload.stashAddress,
-            controllerAccountAddress = _payload.controllerAddress
+            stashAccountAddress = payload.stashAddress,
+            controllerAccountAddress = payload.controllerAddress
         )
 
         if (result.isSuccess) {
