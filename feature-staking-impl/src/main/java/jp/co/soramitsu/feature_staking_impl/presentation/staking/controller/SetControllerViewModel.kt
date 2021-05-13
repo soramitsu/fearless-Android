@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.controller
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -181,8 +180,8 @@ class SetControllerViewModel(
         viewModelScope.launch {
             _isContinueButtonAvailable.value =
                 controllerAccountModel.value != null &&
-                    controllerAccountModel.value?.address != stashAddress() &&
-                    (showNotStashAccountWarning.value ?: true).not()
+                controllerAccountModel.value?.address != stashAddress() &&
+                (showNotStashAccountWarning.value ?: true).not()
         }
     }
 }
