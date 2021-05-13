@@ -6,7 +6,7 @@ import androidx.annotation.StringRes
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
-import kotlinx.android.synthetic.main.item_sheet_staking_estimate_percentage.view.*
+import kotlinx.android.synthetic.main.item_sheet_staking_reward_estimation.view.*
 
 class StakingRewardEstimationBottomSheet(
     context: Context,
