@@ -57,9 +57,8 @@ class RewardDestinationView @JvmOverloads constructor(
         payoutTargetAmountGain.text = gain
     }
 
-    fun setFiatAmount(amount: String?){
-        println("$amount")
-        if(amount == null) payoutTargetAmountFiat.makeGone() else payoutTargetAmountFiat.text = amount
+    fun setFiatAmount(amount: String?) {
+        if (amount == null) payoutTargetAmountFiat.makeGone() else payoutTargetAmountFiat.text = amount
     }
 
     override fun setChecked(checked: Boolean) {
