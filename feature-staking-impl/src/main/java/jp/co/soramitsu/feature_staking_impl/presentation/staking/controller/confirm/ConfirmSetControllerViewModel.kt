@@ -32,7 +32,8 @@ class ConfirmSetControllerViewModel(
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: SetControllerValidationSystem
 ) : BaseViewModel(),
-    Validatable by validationExecutor {
+    Validatable by validationExecutor,
+    ExternalAccountActions by externalActions {
 
     private val assetFlow = interactor.assetFlow(payload.stashAddress)
         .share()
