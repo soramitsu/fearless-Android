@@ -249,6 +249,9 @@ class WelcomeViewState(
 
     private val rewardCalculator = scope.async { rewardCalculatorFactory.create() }
 
+    private val _showRewardEstimationEvent = MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>>()
+    val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> = _showRewardEstimationEvent
+
     val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
         val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
         val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
@@ -258,6 +261,11 @@ class WelcomeViewState(
 
         ReturnsModel(monthlyEstimation, yearlyEstimation)
     }.asLiveData(scope)
+
+    fun infoActionClicked() {
+        val reward = returns.value
+        reward?.let { _showRewardEstimationEvent.value = Event(StakingRewardEstimationBottomSheet.Payload(reward.monthly, reward.yearly)) }
+    }
 
     fun nextClicked() {
         scope.launch {

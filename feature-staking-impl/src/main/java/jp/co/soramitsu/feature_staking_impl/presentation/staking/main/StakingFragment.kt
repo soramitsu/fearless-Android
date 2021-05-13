@@ -93,13 +93,19 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
                     stakingState.returns.observe { rewards ->
                         stakingEstimate.hideReturnsLoading()
-                        stakingEstimate.populateMonthEstimation(rewards.monthly) // TODO
-                        stakingEstimate.populateYearEstimation(rewards.yearly) // TODO
+                        stakingEstimate.populateMonthEstimation(rewards.monthly)
+                        stakingEstimate.populateYearEstimation(rewards.yearly)
                     }
 
                     stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
 
                     startStakingBtn.setOnClickListener { stakingState.nextClicked() }
+
+                    stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
+
+                    stakingState.showRewardEstimationEvent.observeEvent {
+                        StakingRewardEstimationBottomSheet(requireContext(), it).show()
+                    }
                 }
             }
         }
