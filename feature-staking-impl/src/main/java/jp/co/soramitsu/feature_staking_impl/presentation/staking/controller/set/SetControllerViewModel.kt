@@ -193,9 +193,9 @@ class SetControllerViewModel(
     private fun checkButton() {
         viewModelScope.launch {
             _isContinueButtonAvailable.value =
-                controllerAccountModel.value != null &&
-                    controllerAccountModel.value?.address != stashAddress() &&
-                    (showNotStashAccountWarning.value ?: true).not()
+                controllerAccountModel.value != null && // Controller is choose after all
+                    controllerAccountModel.value?.address != accountStakingFlow.first().controllerAddress && // The user selected account that was not the controller already
+                    (showNotStashAccountWarning.value ?: true).not() // The account is stash, so we don't have warning
         }
     }
 }
