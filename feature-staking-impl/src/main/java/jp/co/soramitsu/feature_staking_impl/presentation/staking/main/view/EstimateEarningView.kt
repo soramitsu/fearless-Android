@@ -77,10 +77,12 @@ class EstimateEarningView @JvmOverloads constructor(
         stakingYearGain.hideLoading()
     }
 
+    // TODO
     fun populateMonthEstimation(estimation: RewardEstimation) {
         populateEstimationView(stakingMonthGain, estimation)
     }
 
+    // TODO
     fun populateYearEstimation(estimation: RewardEstimation) {
         populateEstimationView(stakingYearGain, estimation)
     }

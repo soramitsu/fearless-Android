@@ -93,8 +93,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
                     stakingState.returns.observe { rewards ->
                         stakingEstimate.hideReturnsLoading()
-                        stakingEstimate.populateMonthEstimation(rewards.monthly)
-                        stakingEstimate.populateYearEstimation(rewards.yearly)
+                        stakingEstimate.populateMonthEstimation(rewards.monthly) // TODO
+                        stakingEstimate.populateYearEstimation(rewards.yearly) // TODO
                     }
 
                     stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)

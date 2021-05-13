@@ -13,6 +13,9 @@
         <attr name="titleText" format="string" />
         <attr name="includeExtraBlock" format="boolean" />
         <attr name="startWithLoading" format="boolean" />
+        <attr name="showTitle" format="boolean" />
+        <attr name="showExpectedPercentage" format="boolean" />
+        <attr name="titleDetail" format="string" />
     </declare-styleable>
 
     <declare-styleable name="RewardDestinationView">
