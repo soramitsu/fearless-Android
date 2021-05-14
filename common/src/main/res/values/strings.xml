@@ -442,7 +442,7 @@
     <string name="staking_story_validator_page_1">Validators are those who run a blockchain node for 24/7 and require to have enough stake locked (both owned and provided by nominators) to be elected by the network. Validators should maintain their nodes to achieve the best performance and reliability, which will be rewarded. Being a validator is almost a full time job, there are companies exist which are focused to be validators on the blockchain networks</string>
     <string name="staking_story_validator_page_2">Everyone can be a validator and run a blockchain node, but that requires a certain level of technical skills and responsibility. Polkadot &amp; Kusama network has a program, named Thousand Validators Programme, to provide support for beginners. The network itself always will reward more Validators who have less stake (but enough to be elected) to improve decentralization.</string>
 
-    <string name="staking_story_reward_title">What are Rewards?</string>
+    <string name="staking_story_reward_title">Claiming Rewards</string>
 
     <string name="staking_story_reward_page_1">Rewards for staking are available for claiming at the end of each Era (6 hours in Kusama and 24 hours in Polkadot). They are available for claiming for next 84 Eras, and in most cases Validators are paying out the rewards for everyone. However, Validators might forget or something might happen with them, so Nominators can claim the rewards by themselves.</string>
     <string name="staking_story_reward_page_2">Although usually Rewards are distributed by Validators, Fearless Wallet helps Nominators by alerting them if there are some Rewards available and they are close to expiration. You will receive Alert about this and other activities on your Staking screen.
