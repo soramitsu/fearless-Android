@@ -8,7 +8,6 @@ import android.view.View
 import android.widget.Checkable
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.getPrimaryColor
-import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawableFromColors
