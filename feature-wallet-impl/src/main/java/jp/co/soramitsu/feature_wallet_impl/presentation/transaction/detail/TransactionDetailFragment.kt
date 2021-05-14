@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccount
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithMaxPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
@@ -83,12 +83,12 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
             transactionDetailDate.text = date.formatDateTime(requireContext())
 
-            transactionDetailAmount.text = amount.formatWithMaxPrecision(type)
-            transactionDetailFee.text = fee?.formatWithMaxPrecision(type) ?: getString(R.string.common_unknown)
+            transactionDetailAmount.text = amount.formatTokenAmount(type)
+            transactionDetailFee.text = fee?.formatTokenAmount(type) ?: getString(R.string.common_unknown)
 
             transactionDetailHash.setMessage(hash)
 
-            transactionDetailTotal.text = total?.formatWithMaxPrecision(type) ?: getString(R.string.common_unknown)
+            transactionDetailTotal.text = total?.formatTokenAmount(type) ?: getString(R.string.common_unknown)
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->

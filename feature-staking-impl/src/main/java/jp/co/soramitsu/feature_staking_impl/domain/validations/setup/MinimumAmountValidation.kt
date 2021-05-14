@@ -15,7 +15,7 @@ class MinimumAmountValidation(
         val existentialDepositInPlanks = walletConstants.existentialDeposit()
         val existentialDeposit = value.tokenType.amountFromPlanks(existentialDepositInPlanks)
 
-        return if (value.amount >= existentialDeposit) {
+        return if (value.bondAmount == null || value.bondAmount >= existentialDeposit) {
             ValidationStatus.Valid()
         } else {
             ValidationStatus.NotValid(DefaultFailureLevel.ERROR, SetupStakingValidationFailure.TooSmallAmount(existentialDeposit))

@@ -200,10 +200,6 @@ class AccountInteractorImpl(
         return accountRepository.nodesFlow()
     }
 
-    override fun selectedNodeFlow(): Flow<Node> {
-        return accountRepository.selectedNodeFlow()
-    }
-
     override suspend fun getNode(nodeId: Int): Node {
         return accountRepository.getNode(nodeId)
     }

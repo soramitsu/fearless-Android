@@ -152,7 +152,6 @@
             android:id="@+id/action_stakingBalanceFragment_to_controllerAccountFragment"
             app:destination="@id/setControllerAccountFragment" />
 
-
         <action
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
@@ -436,6 +435,14 @@
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action android:id="@+id/action_confirmStakingFragment_back_to_currentValidatorsFragment"
+            app:enterAnim="@anim/fragment_close_enter"
+            app:exitAnim="@anim/fragment_close_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit"
+            app:popUpTo="@id/currentValidatorsFragment"  />
+
     </fragment>
 
     <fragment

@@ -58,8 +58,6 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     override fun subscribe(viewModel: NodesViewModel) {
         viewModel.groupedNodeModelsLiveData.observe(adapter::submitList)
 
-        viewModel.selectedNodeLiveData.observe(adapter::updateSelectedNode)
-
         viewModel.noAccountsEvent.observeEvent {
             showNoAccountsDialog(it)
         }
@@ -75,8 +73,8 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.deleteNodeEvent.observeEvent(::showDeleteNodeDialog)
     }
 
-    override fun infoClicked(nodeModel: NodeModel, isChecked: Boolean) {
-        viewModel.infoClicked(nodeModel, isChecked)
+    override fun infoClicked(nodeModel: NodeModel) {
+        viewModel.infoClicked(nodeModel)
     }
 
     override fun checkClicked(nodeModel: NodeModel) {

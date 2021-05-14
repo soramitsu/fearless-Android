@@ -21,7 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.Valid
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -72,16 +72,16 @@ class ValidatorDetailsViewModel(
         require(validatorStake is ValidatorStakeParcelModel.Active)
 
         val ownStake = asset.token.amountFromPlanks(validatorStake.ownStake)
-        val ownStakeFormatted = ownStake.formatWithDefaultPrecision(asset.token.type)
+        val ownStakeFormatted = ownStake.formatTokenAmount(asset.token.type)
         val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency()
 
         val nominatorsStakeValue = validatorStake.nominators.sumByBigInteger(NominatorParcelModel::value)
         val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
-        val nominatorsStakeFormatted = nominatorsStake.formatWithDefaultPrecision(asset.token.type)
+        val nominatorsStakeFormatted = nominatorsStake.formatTokenAmount(asset.token.type)
         val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatAsCurrency()
 
         val totalStake = asset.token.amountFromPlanks(validatorStake.totalStake)
-        val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
+        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.type)
         val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
 
         ValidatorStakeBottomSheet.Payload(

@@ -30,5 +30,5 @@ class StakingRewardRemote(
     @SerializedName("block_timestamp")
     val blockTimestamp: Long,
     @SerializedName("slash_kton")
-    val slashKton: String,
+    val slashKton: String?,
 )

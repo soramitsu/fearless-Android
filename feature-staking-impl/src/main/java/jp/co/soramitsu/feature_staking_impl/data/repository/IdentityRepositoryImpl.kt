@@ -52,12 +52,12 @@ class IdentityRepositoryImpl(
             parentIdentity?.let { ChildIdentity(superOf.childName, it) }
         }
 
-        val leftAccountIds = accountIdsHex.toSet() - childIdentities.keys
+        val leftAccountIds = accountIdsHex.toSet() - childIdentities.keys - parentIdentities.keys
         val leftIdentityKeys = identityOfStorage.accountMapStorageKeys(runtime, leftAccountIds.toList())
 
         val rootIdentities = fetchIdentities(leftIdentityKeys, runtime, identityOfReturnType)
 
-        rootIdentities + childIdentities
+        rootIdentities + childIdentities + parentIdentities
     }
 
     override suspend fun getIdentitiesFromAddresses(accountAddresses: List<String>): AccountAddressMap<Identity?> {

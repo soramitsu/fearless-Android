@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_wallet_api.presentation.model
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -29,7 +29,7 @@ fun mapAmountToAmountModel(
     val fiatAmount = token.fiatAmount(amount)
 
     return AmountModel(
-        token = amount.formatWithDefaultPrecision(token.type),
+        token = amount.formatTokenAmount(token.type),
         fiat = fiatAmount?.formatAsCurrency()
     )
 }

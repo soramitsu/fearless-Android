@@ -1,14 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
-import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.utils.sumByBigInteger
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
@@ -23,8 +19,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.model.Payout
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
 import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
@@ -35,15 +29,12 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
-import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -53,7 +44,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
@@ -72,11 +62,9 @@ class StakingInteractor(
     private val stakingRepository: StakingRepository,
     private val stakingRewardsRepository: StakingRewardsRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
-    private val substrateCalls: SubstrateCalls,
     private val identityRepository: IdentityRepository,
     private val walletConstants: WalletConstants,
     private val payoutRepository: PayoutRepository,
-    private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
 
     @OptIn(ExperimentalTime::class)
@@ -213,38 +201,8 @@ class StakingInteractor(
         mapAccountToStakingAccount(account)
     }
 
-    suspend fun setupStaking(
-        amount: BigDecimal,
-        tokenType: Token.Type,
-        nominations: List<MultiAddress>,
-        stashSetup: StashSetup,
-    ) = withContext(Dispatchers.Default) {
-        runCatching {
-            val extrinsic = extrinsicBuilderFactory.create(stashSetup.controllerAddress).apply {
-                if (stashSetup.alreadyHasStash.not()) {
-                    bond(
-                        controllerAddress = MultiAddress.Id(stashSetup.controllerAddress.toAccountId()),
-                        amount = tokenType.planksFromAmount(amount),
-                        payee = stashSetup.rewardDestination
-                    )
-                }
-
-                nominate(nominations)
-            }.build()
-
-            substrateCalls.submitExtrinsic(extrinsic)
-        }
-    }
-
     suspend fun isAccountInApp(accountAddress: String): Boolean {
         return accountRepository.isAccountExists(accountAddress)
-    }
-
-    suspend fun getExistingStashSetup(accountStakingState: StakingState.Stash): StashSetup {
-        val networkType = accountStakingState.accountAddress.networkType()
-        val rewardDestination = stakingRepository.getRewardDestination(accountStakingState)
-
-        return StashSetup(rewardDestination, accountStakingState.controllerId.toAddress(networkType), alreadyHasStash = true)
     }
 
     suspend fun getRewardDestination(accountStakingState: StakingState.Stash): RewardDestination {

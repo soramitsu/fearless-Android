@@ -23,30 +23,14 @@ class NodesAdapter(
 
     interface NodeItemHandler {
 
-        fun infoClicked(nodeModel: NodeModel, isChecked: Boolean)
+        fun infoClicked(nodeModel: NodeModel)
 
         fun checkClicked(nodeModel: NodeModel)
 
         fun deleteClicked(nodeModel: NodeModel)
     }
 
-    private var selectedItem: NodeModel? = null
     private var editMode = false
-
-    fun updateSelectedNode(newSelection: NodeModel) {
-        val positionToHide = selectedItem?.let { selected ->
-            findIndexOfElement<NodeModel> { selected.id == it.id }
-        }
-
-        val positionToShow = findIndexOfElement<NodeModel> {
-            newSelection.id == it.id
-        }
-
-        selectedItem = newSelection
-
-        positionToHide?.let { notifyItemChanged(it) }
-        notifyItemChanged(positionToShow)
-    }
 
     fun switchToEdit(editable: Boolean) {
         editMode = editable
@@ -72,9 +56,7 @@ class NodesAdapter(
     }
 
     override fun bindChild(holder: GroupedListHolder, child: NodeModel) {
-        val isChecked = child.id == selectedItem?.id
-
-        (holder as NodeHolder).bind(child, nodeItemHandler, isChecked, editMode)
+        (holder as NodeHolder).bind(child, nodeItemHandler, editMode)
     }
 }
 
@@ -89,12 +71,13 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
     fun bind(
         nodeModel: NodeModel,
         handler: NodesAdapter.NodeItemHandler,
-        isChecked: Boolean,
         editMode: Boolean
     ) {
         with(containerView) {
             nodeTitle.text = nodeModel.name
             nodeHost.text = nodeModel.link
+
+            val isChecked = nodeModel.isActive
 
             nodeCheck.visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
 
@@ -109,7 +92,7 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
                 nodeDelete.visibility = View.GONE
                 nodeDelete.setOnClickListener(null)
                 nodeInfo.visibility = View.VISIBLE
-                nodeInfo.setOnClickListener { handler.infoClicked(nodeModel, isChecked) }
+                nodeInfo.setOnClickListener { handler.infoClicked(nodeModel) }
                 isEnabled = true
                 setOnClickListener { handler.checkClicked(nodeModel) }
             }
