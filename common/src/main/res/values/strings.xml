@@ -111,9 +111,6 @@
     <string name="common_confirm">Confirm</string>
     <string name="staking_confirm_selected_validators">Selected validators</string>
 
-
-    <string name="staking_setup_sent_message">Staking setup transaction sent</string>
-
     <!--    will be removed later since mockups have been changed-->
     <string name="staking_selected_validators_mask">Validators (%d)</string>
 

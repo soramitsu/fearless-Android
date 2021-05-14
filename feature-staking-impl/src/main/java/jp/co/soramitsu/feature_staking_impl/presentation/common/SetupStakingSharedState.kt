@@ -1,58 +1,111 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.common
 
 import android.util.Log
+import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
-import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.math.BigDecimal
 
 sealed class SetupStakingProcess {
 
-    class Initial : SetupStakingProcess() {
+    object Initial : SetupStakingProcess() {
 
         val defaultAmount = 10.toBigDecimal()
 
-        fun next(amount: BigDecimal) = Stash(amount)
+        fun fullFlow(amount: BigDecimal) = Stash(amount)
 
-        fun next(amount: BigDecimal, setup: StashSetup) = Validators(amount, setup)
+        fun existingStashFlow() = Validators(Validators.Payload.ExistingStash)
+
+        fun changeValidatorsFlow() = Validators(Validators.Payload.Validators)
     }
 
     class Stash(val amount: BigDecimal) : SetupStakingProcess() {
 
-        fun previous() = Initial()
+        fun previous() = Initial
 
-        fun next(newAmount: BigDecimal, stashSetup: StashSetup) = Validators(newAmount, stashSetup)
+        fun next(
+            newAmount: BigDecimal,
+            rewardDestination: RewardDestination,
+            currentAccountAddress: String
+        ) = Validators(Validators.Payload.Full(newAmount, rewardDestination, currentAccountAddress))
     }
 
     class Validators(
-        val amount: BigDecimal,
-        val stashSetup: StashSetup,
+        val payload: Payload
     ) : SetupStakingProcess() {
 
-        fun previous() = if (stashSetup.alreadyHasStash) {
-            Initial()
-        } else {
-            Stash(amount)
+        sealed class Payload {
+
+            class Full(
+                val amount: BigDecimal,
+                val rewardDestination: RewardDestination,
+                val controllerAddress: String
+            ) : Payload()
+
+            object ExistingStash : Payload()
+
+            object Validators : Payload()
         }
 
-        fun next(validators: List<Validator>) = Confirm(amount, stashSetup, validators)
+        fun previous() = when (payload) {
+            is Payload.Full -> Stash(payload.amount)
+            else -> Initial
+        }
+
+        fun next(validators: List<Validator>): SetupStakingProcess {
+            val payload = with(payload) {
+                when (this) {
+                    is Payload.Full -> Confirm.Payload.Full(amount, rewardDestination, controllerAddress, validators)
+                    is Payload.ExistingStash -> Confirm.Payload.ExistingStash(validators)
+                    is Payload.Validators -> Confirm.Payload.Validators(validators)
+                }
+            }
+
+            return Confirm(payload)
+        }
     }
 
     class Confirm(
-        val amount: BigDecimal,
-        val stashSetup: StashSetup,
-        val validators: List<Validator>,
+        val payload: Payload
     ) : SetupStakingProcess() {
 
-        fun previous() = Validators(amount, stashSetup)
+        sealed class Payload(val validators: List<Validator>) {
 
-        fun finish() = Initial()
+            class Full(
+                val amount: BigDecimal,
+                val rewardDestination: RewardDestination,
+                val currentAccountAddress: String,
+                validators: List<Validator>
+            ) : Payload(validators)
+
+            class ExistingStash(
+                validators: List<Validator>
+            ) : Payload(validators)
+
+            class Validators(
+                validators: List<Validator>
+            ) : Payload(validators)
+        }
+
+        fun previous(): SetupStakingProcess {
+            val payload = with(payload) {
+                when (this) {
+                    is Payload.Full -> Validators.Payload.Full(amount, rewardDestination, currentAccountAddress,)
+                    is Payload.ExistingStash -> Validators.Payload.ExistingStash
+                    is Payload.Validators -> Validators.Payload.Validators
+                }
+            }
+
+            return Validators(payload)
+        }
+
+        fun finish() = Initial
     }
 }
 
 class SetupStakingSharedState {
 
-    val setupStakingProcess = MutableStateFlow<SetupStakingProcess>(SetupStakingProcess.Initial())
+    val setupStakingProcess = MutableStateFlow<SetupStakingProcess>(SetupStakingProcess.Initial)
 
     fun set(newState: SetupStakingProcess) {
         Log.d("RX", "${setupStakingProcess.value.javaClass.simpleName} -> ${newState.javaClass.simpleName}")

@@ -6,9 +6,11 @@ import java.util.Comparator
 
 typealias RecommendationFilter = Filter<Validator>
 typealias RecommendationSorting = Comparator<Validator>
+typealias RecommendationPostProcessor = (List<Validator>) -> List<Validator>
 
 class RecommendationSettings(
     val filters: List<RecommendationFilter>,
+    val postProcessors: List<RecommendationPostProcessor>,
     val sorting: RecommendationSorting,
     val limit: Int? = null
 )
