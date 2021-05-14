@@ -429,16 +429,22 @@
     <string name="staking_main_lockup_period_title">Lock-Up period</string>
     <string name="staking_main_network_title">%s network</string>
     <string name="staking_total_staked">Total staked</string>
-    <string name="staking_story_title">What is Staking?</string>
-    <string name="staking_story_element_title">💰 What is Staking?</string>
-    <string name="staking_story_element_pos_title">💸 What is Proof-of-Stake?</string>
-    <string name="staking_story_element_description">Staking refers to the process of a Proof-of-Stake (PoS) token-holder locking a tokens in order to participate in the
-        upkeep of the PoS network (e.g. validating transactions; composing new blocks). This increases the security and reliability of the network and is an alternative
-        to mining in Proof-of-Work systems (e.g. Bitcoin). Token-holders who participate in staking are compensated through block rewards and transaction fees.</string>
-    <string name="staking_story_element_pos_description">PoS is a method used in decentralized systems to enable the collaboration of unknowing or untrusting participants.
-        It requires validators (special nodes running the blockchain) to stake the blockchain\'s native token to propose and/or validate new blocks and ultimately
-        earn rewards. A stake can be seen as a form of security deposit that disincentives bad behavior and contributes to the networks\' security.</string>
-    <string name="staking_story_nominator_title">Who is Nominator?</string>
-    <string name="staking_story_validator_title">Who is Validator?</string>
-    <string name="staking_story_whats_new_title">What\'s new?</string>
+
+    <string name="staking_story_staking_title">What is Staking?</string>
+    <string name="staking_story_staking_page_1">Staking is an option to earn passive income by locking your tokens in the network. Rewards for staking are paid every 6 hours on Kusama and 24 hours on Polkadot. You can stake as long as you wish, and for unlocking your tokens you need to wait for the unlocking period to end, making your tokens available to be redeemed.</string>
+    <string name="staking_story_staking_page_2">Staking is an important part of the network security and reliability. Anyone can run Polkadot &amp; Kusama validator nodes, but only those who have enough tokens staked will be selected by the network to participate in composing new blocks and receive the rewards. Validators oftently do not have enough tokens by themselves, so Nominators are helping them by locking their tokens for them to achieve the required amount of stake.</string>
+
+    <string name="staking_story_nominator_title">Who is a Nominator?</string>
+    <string name="staking_story_nominator_page_1">Nominators are those who want to earn passive income by locking their tokens for securing the network. To achieve that, Nominators should select a number of Validators to support. Nominators should be careful - if selected Validators won’t behave properly, slashing penalties would be applied to both Validators and Nominators, based on severity of incident.</string>
+    <string name="staking_story_nominator_page_2">Fearless Wallet provides support for Nominators by helping to select Validators. Mobile app fetches data from the blockchain and composes a list of Validators which have most profits, identity with contact info available, not slashed before and available to receive nominations. Fearless Wallet also cares about decentralization, so if one person or a company runs several validator nodes, only up to 2 nodes will be chosen from that person or a company in the recommended list.</string>
+
+    <string name="staking_story_validator_title">Who is a Validator?</string>
+    <string name="staking_story_validator_page_1">Validators are those who run a blockchain node for 24/7 and require to have enough stake locked (both owned and provided by nominators) to be elected by the network. Validators should maintain their nodes to achieve the best performance and reliability, which will be rewarded. Being a validator is almost a full time job, there are companies exist which are focused to be validators on the blockchain networks</string>
+    <string name="staking_story_validator_page_2">Everyone can be a validator and run a blockchain node, but that requires a certain level of technical skills and responsibility. Polkadot &amp; Kusama network has a program, named Thousand Validators Programme, to provide support for beginners. The network itself always will reward more Validators who have less stake (but enough to be elected) to improve decentralization.</string>
+
+    <string name="staking_story_reward_title">Claiming Rewards</string>
+
+    <string name="staking_story_reward_page_1">Rewards for staking are available for claiming at the end of each Era (6 hours in Kusama and 24 hours in Polkadot). They are available for claiming for next 84 Eras, and in most cases Validators are paying out the rewards for everyone. However, Validators might forget or something might happen with them, so Nominators can claim the rewards by themselves.</string>
+    <string name="staking_story_reward_page_2">Although usually Rewards are distributed by Validators, Fearless Wallet helps Nominators by alerting them if there are some Rewards available and they are close to expiration. You will receive Alert about this and other activities on your Staking screen.
+</string>
 </resources>
