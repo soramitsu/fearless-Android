@@ -10,9 +10,11 @@ import androidx.constraintlayout.widget.Group
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextOrHide
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_table_cell.view.tableCellContent
 import kotlinx.android.synthetic.main.view_table_cell.view.tableCellTitle
+import kotlinx.android.synthetic.main.view_table_cell.view.tableCellValueDivider
 import kotlinx.android.synthetic.main.view_table_cell.view.tableCellValuePrimary
 import kotlinx.android.synthetic.main.view_table_cell.view.tableCellValueProgress
 import kotlinx.android.synthetic.main.view_table_cell.view.tableCellValueSecondary
@@ -64,6 +66,10 @@ open class TableCellView @JvmOverloads constructor(
     fun showProgress() {
         contentGroup.makeGone()
         valueProgress.makeVisible()
+    }
+
+    fun setDividerVisible(visible: Boolean) {
+        tableCellValueDivider.setVisible(visible)
     }
 
     fun showValue(primary: String, secondary: String? = null) {

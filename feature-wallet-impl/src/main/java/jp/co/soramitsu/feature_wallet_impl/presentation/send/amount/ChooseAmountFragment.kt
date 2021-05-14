@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithMaxPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
@@ -74,7 +74,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         observeTransferChecks(viewModel, viewModel::warningConfirmed)
 
         viewModel.feeLiveData.observe {
-            chooseAmountFee.text = it?.feeAmount?.formatWithMaxPrecision(it.type) ?: getString(R.string.common_error_general_title)
+            chooseAmountFee.text = it?.feeAmount?.formatTokenAmount(it.type) ?: getString(R.string.common_error_general_title)
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->
@@ -91,7 +91,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.assetLiveData.observe {
-            chooseAmountBalance.text = it.available.formatWithMaxPrecision(it.token.type)
+            chooseAmountBalance.text = it.available.formatTokenAmount(it.token.type)
 
             chooseAmountToken.setTextIcon(it.token.type.icon)
             chooseAmountToken.setMessage(it.token.type.displayName)

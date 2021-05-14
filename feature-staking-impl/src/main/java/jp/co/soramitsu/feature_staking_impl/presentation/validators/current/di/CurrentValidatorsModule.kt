@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.CurrentValidatorsViewModel
 
 @Module(includes = [ViewModelModule::class])
@@ -26,6 +27,7 @@ class CurrentValidatorsModule {
         resourceManager: ResourceManager,
         iconGenerator: AddressIconGenerator,
         currentValidatorsInteractor: CurrentValidatorsInteractor,
+        setupStakingSharedState: SetupStakingSharedState,
         router: StakingRouter,
     ): ViewModel {
         return CurrentValidatorsViewModel(
@@ -34,6 +36,7 @@ class CurrentValidatorsModule {
             stakingInteractor,
             iconGenerator,
             currentValidatorsInteractor,
+            setupStakingSharedState
         )
     }
 

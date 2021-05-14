@@ -44,7 +44,7 @@ interface AccountRouter : SecureRouter {
 
     fun backToMainScreen()
 
-    fun openNodeDetails(nodeId: Int, isSelected: Boolean)
+    fun openNodeDetails(nodeId: Int)
 
     fun openAddNode()
 

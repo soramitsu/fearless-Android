@@ -11,17 +11,24 @@ import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core.model.WithDerivationPath
 import jp.co.soramitsu.core.model.WithMnemonic
 import jp.co.soramitsu.core.model.WithSeed
+import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
 import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.fearless_utils.scale.string
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -33,6 +40,8 @@ private const val PREFS_SELECTED_ACCOUNT = "selected_address"
 private const val PREFS_SELECTED_NODE = "node"
 
 private const val PREFS_SECURITY_SOURCE_MASK = "security_source_%s"
+
+private const val MOVED_ACTIVE_NODE_TO_DB = "MOVED_ACTIVE_NODE_TO_DB"
 
 private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 
@@ -57,6 +66,7 @@ object SourceInternal : Schema<SourceInternal>() {
 class AccountDataSourceImpl(
     private val preferences: Preferences,
     private val encryptedPreferences: EncryptedPreferences,
+    private val nodeDao: NodeDao,
     private val jsonMapper: Gson,
     accountDataMigration: AccountDataMigration
 ) : AccountDataSource {
@@ -71,9 +81,11 @@ class AccountDataSourceImpl(
         }
     }
 
-    private var selectedAccountSubject = createAccountFlow()
+    private val selectedAccountFlow = createAccountFlow()
 
-    private var selectedNodeFlow = createNodeFlow()
+    private val selectedNodeFlow = nodeDao.activeNodeFlow()
+        .map { it?.let(::mapNodeLocalToNode) }
+        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
     override suspend fun saveAuthType(authType: AuthType) = withContext(Dispatchers.IO) {
         preferences.putString(PREFS_AUTH_TYPE, authType.toString())
@@ -100,17 +112,10 @@ class AccountDataSourceImpl(
     }
 
     override suspend fun saveSelectedNode(node: Node) = withContext(Dispatchers.Default) {
-        val raw = jsonMapper.toJson(node)
-        preferences.putString(PREFS_SELECTED_NODE, raw)
-
-        selectedNodeFlow.emit(node)
+        nodeDao.switchActiveNode(node.id)
     }
 
-    override suspend fun getSelectedNode(): Node? = withContext(Dispatchers.Default) {
-        val raw = preferences.getString(PREFS_SELECTED_NODE) ?: return@withContext null
-
-        jsonMapper.fromJson(raw, Node::class.java)
-    }
+    override suspend fun getSelectedNode(): Node? = selectedNodeFlow.first()
 
     override suspend fun saveSecuritySource(accountAddress: String, source: SecuritySource) = withContext(Dispatchers.Default) {
         val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
@@ -170,11 +175,11 @@ class AccountDataSourceImpl(
         val raw = jsonMapper.toJson(account)
         preferences.putString(PREFS_SELECTED_ACCOUNT, raw)
 
-        selectedAccountSubject.emit(account)
+        selectedAccountFlow.emit(account)
     }
 
     override fun selectedAccountFlow(): Flow<Account> {
-        return selectedAccountSubject
+        return selectedAccountFlow
     }
 
     override suspend fun getPreferredCryptoType(): CryptoType {
@@ -187,10 +192,11 @@ class AccountDataSourceImpl(
 
     override fun selectedNodeFlow(): Flow<Node> {
         return selectedNodeFlow
+            .filterNotNull()
     }
 
     override suspend fun getSelectedAccount(): Account {
-        return selectedAccountSubject.replayCache.firstOrNull() ?: retrieveAccountFromStorage()
+        return selectedAccountFlow.replayCache.firstOrNull() ?: retrieveAccountFromStorage()
     }
 
     override suspend fun getSelectedLanguage(): Language = withContext(Dispatchers.IO) {
@@ -218,19 +224,6 @@ class AccountDataSourceImpl(
             ?: throw IllegalArgumentException("No account selected")
 
         jsonMapper.fromJson(raw, Account::class.java)
-    }
-
-    private fun createNodeFlow(): MutableSharedFlow<Node> {
-        val flow = MutableSharedFlow<Node>(replay = 1)
-
-        async {
-            if (preferences.contains(PREFS_SELECTED_NODE)) {
-                val selectedNode = getSelectedNode() ?: throw IllegalArgumentException("No node selected")
-                flow.emit(selectedNode)
-            }
-        }
-
-        return flow
     }
 
     private fun getSourceType(securitySource: SecuritySource): SourceType {

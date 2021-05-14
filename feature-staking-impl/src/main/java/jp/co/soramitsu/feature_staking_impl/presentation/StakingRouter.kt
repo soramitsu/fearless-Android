@@ -57,4 +57,6 @@ interface StakingRouter {
     fun openCustomRebond()
 
     fun openCurrentValidators()
+
+    fun returnToCurrentValidators()
 }

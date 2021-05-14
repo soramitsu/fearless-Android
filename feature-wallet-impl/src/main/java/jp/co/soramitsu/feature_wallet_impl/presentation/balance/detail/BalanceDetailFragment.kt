@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithMaxPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
@@ -126,7 +126,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
             asset.dollarAmount?.let { balanceDetailDollarAmount.text = it.formatAsCurrency() }
 
-            balanceDetailTotal.text = asset.total.formatWithMaxPrecision(asset.token.type)
+            balanceDetailTotal.text = asset.total.formatTokenAmount(asset.token.type)
 
             balanceDetailFrozenAmount.text = asset.frozen.format()
             balanceDetailAvailableAmount.text = asset.available.format()

@@ -17,7 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.Valid
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 
 private val PERCENT_MULTIPLIER = 100.toBigDecimal()
 
@@ -87,7 +87,7 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
 
             is ValidatorStakeParcelModel.Active -> {
                 val totalStake = token.amountFromPlanks(stake.totalStake)
-                val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
+                val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.type)
                 val totalStakeFiatFormatted = token.fiatAmount(totalStake)?.formatAsCurrency()
                 val nominatorsCountFormatted = stake.nominators.size.toString()
                 val apyPercentageFormatted = (PERCENT_MULTIPLIER * stake.apy).formatAsPercentage()

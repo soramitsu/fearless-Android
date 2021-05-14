@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import jp.co.soramitsu.core_db.model.NodeLocal
 import kotlinx.coroutines.flow.Flow
 
@@ -48,4 +49,20 @@ abstract class NodeDao {
 
     @Query("delete from nodes where id = :nodeId")
     abstract suspend fun deleteNode(nodeId: Int)
+
+    @Query("UPDATE nodes SET isActive = 1 WHERE id = :newActiveNodeId")
+    protected abstract suspend fun makeActive(newActiveNodeId: Int)
+
+    @Query("UPDATE nodes SET isActive = 0 WHERE isActive = 1")
+    protected abstract suspend fun inactiveCurrentNode()
+
+    @Query("SELECT * FROM nodes WHERE isActive = 1")
+    abstract fun activeNodeFlow(): Flow<NodeLocal?>
+
+    @Transaction
+    open suspend fun switchActiveNode(newNodeId: Int) {
+        inactiveCurrentNode()
+
+        makeActive(newNodeId)
+    }
 }

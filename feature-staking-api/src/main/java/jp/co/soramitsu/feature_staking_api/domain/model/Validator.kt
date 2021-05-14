@@ -31,7 +31,7 @@ class RootIdentity(
 
 class ChildIdentity(
     childName: String?,
-    parentIdentity: Identity,
+    val parentIdentity: Identity,
 ) : Identity by parentIdentity {
 
     override val display: String = "${parentIdentity.display} / ${childName.orEmpty()}"
