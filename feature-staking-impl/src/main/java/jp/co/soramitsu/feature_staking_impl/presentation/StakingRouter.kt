@@ -52,7 +52,7 @@ interface StakingRouter {
 
     fun back()
 
-    fun continueSetController()
+    fun openConfirmSetController()
 
     fun openCustomRebond()
 

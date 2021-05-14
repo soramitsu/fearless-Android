@@ -235,7 +235,8 @@ class Navigator :
         navController?.navigate(R.id.action_stakingBalanceFragment_to_controllerAccountFragment)
     }
 
-    override fun continueSetController() {
+    override fun openConfirmSetController() {
+        // TODO navigate to confirm screen
     }
 
     override fun openRecommendedValidators() {

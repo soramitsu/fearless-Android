@@ -22,6 +22,16 @@
     <string name="staking_waiting_validators_description">Your validators will change in the next era.</string>
 
     <string name="stacking_stash_account">Stash account</string>
+    <string name="staking_not_stash_account_warning">Switch your account to stash to set the controller</string>
+    <string name="staking_information_stash_controller_bond">Stash can bond more and set the controller</string>
+    <string name="staking_information_controller_actions">Controller can unbond, redeem, rebond, change reward destination and validators</string>
+    <string name="staking_information_stash_set_controller">Set a separate account as a controller to increase staking management security</string>
+
+    <string name="staking_controller_address_error">Choose another controller address</string>
+    <string name="staking_already_controller_title">Already controller</string>
+    <string name="staking_already_controller_message">Selected account is already in use as controller</string>
+
+    <string name="staking_stash_account">Stash account</string>
 
     <string name="staking_rebond_too_big">Amount you want to rebond is greater than your unbonding balance</string>
 

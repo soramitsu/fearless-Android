@@ -20,6 +20,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
@@ -205,6 +206,11 @@ class StakingRepositoryImpl(
             binder = { scale, runtime -> scale?.let { bindStakingLedger(it, runtime) } }
         ).filterNotNull()
     }
+
+    override suspend fun ledger(address: String) = remoteStorage.query(
+        keyBuilder = { it.metadata.staking().storage("Ledger").storageKey(it, address.toAccountId()) },
+        binding = { scale, runtime -> scale?.let { bindStakingLedger(it, runtime) } }
+    )
 
     private suspend fun observeStashState(
         accessInfo: AccountStakingLocal.AccessInfo,

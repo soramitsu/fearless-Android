@@ -42,6 +42,8 @@ interface StakingRepository {
 
     suspend fun ledgerFlow(stakingState: StakingState.Stash): Flow<StakingLedger>
 
+    suspend fun ledger(address: String): StakingLedger?
+
     suspend fun getRewardDestination(stakingState: StakingState.Stash): RewardDestination
 
     suspend fun getControllerAccountInfo(stakingState: StakingState.Stash): AccountInfo
