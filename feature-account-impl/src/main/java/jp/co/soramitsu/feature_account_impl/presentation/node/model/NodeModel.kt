@@ -7,5 +7,6 @@ data class NodeModel(
     val name: String,
     val link: String,
     val networkModelType: NetworkModel.NetworkTypeUI,
-    val isDefault: Boolean
+    val isDefault: Boolean,
+    val isActive: Boolean
 )

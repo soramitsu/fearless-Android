@@ -7,6 +7,7 @@ data class Node(
     val name: String,
     val networkType: NetworkType,
     val link: String,
+    val isActive: Boolean,
     val isDefault: Boolean,
 ) {
     enum class NetworkType(

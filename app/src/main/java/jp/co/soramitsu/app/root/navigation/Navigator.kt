@@ -335,8 +335,8 @@ class Navigator :
         navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
     }
 
-    override fun openNodeDetails(nodeId: Int, isSelected: Boolean) {
-        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId, isSelected))
+    override fun openNodeDetails(nodeId: Int) {
+        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId))
     }
 
     override fun openAssetDetails(type: Token.Type) {
