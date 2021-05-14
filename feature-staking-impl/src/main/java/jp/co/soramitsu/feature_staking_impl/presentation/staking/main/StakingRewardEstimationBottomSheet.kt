@@ -12,15 +12,15 @@ class StakingRewardEstimationBottomSheet(
     context: Context,
     private val payload: Payload,
 ) : FixedListBottomSheet(context) {
-    class Payload(val apr: RewardEstimation, val apy: RewardEstimation)
+    class Payload(val apr: String, val apy: String)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setTitle(R.string.staking_reward_estimation_bottom_sheet_title)
 
-        addItem(payload.apr.gain, R.string.staking_maximum_apy) // TODO here is the wrong mocked value
-        addItem(payload.apy.gain, R.string.staking_average_apy)
+        addItem(payload.apr, R.string.staking_maximum_apy)
+        addItem(payload.apy, R.string.staking_average_apy)
     }
 
     private fun addItem(

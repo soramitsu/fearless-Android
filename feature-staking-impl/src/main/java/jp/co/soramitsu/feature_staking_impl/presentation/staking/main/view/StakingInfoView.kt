@@ -79,7 +79,7 @@ class StakingInfoView @JvmOverloads constructor(
     }
 
     fun setExtraBlockAdditionalText(text: String) {
-        stakingInfoExtraTitleDetailView.visibility = View.VISIBLE
+        stakingInfoExtraTitleDetailView.makeVisible()
 
         stakingInfoExtraBlockAdditional.text = text
     }
