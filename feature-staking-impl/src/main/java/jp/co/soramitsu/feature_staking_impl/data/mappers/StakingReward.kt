@@ -44,7 +44,7 @@ fun mapStakingRewardRemoteToLocal(
             extrinsicHash = extrinsicHash,
             amountInPlanks = amount,
             blockTimestamp = blockTimestamp,
-            slashKton = slashKton
+            slashKton = slashKton.orEmpty()
         )
     }
 }
