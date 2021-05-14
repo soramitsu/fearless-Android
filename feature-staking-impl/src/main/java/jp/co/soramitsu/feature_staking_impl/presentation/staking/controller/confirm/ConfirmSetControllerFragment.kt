@@ -16,7 +16,6 @@ import kotlinx.android.synthetic.main.fragment_confirm_set_controller.confirmSet
 import kotlinx.android.synthetic.main.fragment_confirm_set_controller.confirmSetControllerFee
 import kotlinx.android.synthetic.main.fragment_confirm_set_controller.confirmSetControllerStashAccount
 
-
 private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 class ConfirmSetControllerFragment : BaseFragment<ConfirmSetControllerViewModel>() {

@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.map
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.mediatorLiveData
 import jp.co.soramitsu.common.utils.updateFrom
 import jp.co.soramitsu.common.validation.ValidationExecutor
@@ -55,13 +55,8 @@ class SetControllerViewModel(
         .share()
 
     val showNotStashAccountWarning = accountStakingFlow.map { stakingState ->
-        checkButton()
-
         stakingState.accountAddress != stakingState.stashAddress
     }.asLiveData()
-
-    private val _isContinueButtonAvailable = MutableLiveData(false)
-    val isContinueButtonAvailable: LiveData<Boolean> = _isContinueButtonAvailable
 
     val stashAccountModel = accountStakingFlow.map {
         generateIcon(it.stashAddress)
@@ -79,6 +74,15 @@ class SetControllerViewModel(
 
     private val _showControllerChooserEvent = MutableLiveData<Event<Payload<AddressModel>>>()
     val showControllerChooserEvent: LiveData<Event<Payload<AddressModel>>> = _showControllerChooserEvent
+
+    val isContinueButtonAvailable = combine(
+        controllerAccountModel,
+        accountStakingFlow.asLiveData(),
+        showNotStashAccountWarning
+    ) { (selectedController: AddressModel, stakingState: StakingState.Stash, warningShown: Boolean) ->
+        selectedController.address != stakingState.controllerAddress && // The user selected account that was not the controller already
+            warningShown.not() // The account is stash, so we don't have warning
+    }
 
     fun onMoreClicked() {
         openBrowserEvent.value = Event(appLinksProvider.setControllerLearnMore)
@@ -106,7 +110,6 @@ class SetControllerViewModel(
                 generateIcon(it.controllerAddress)
             }.first()
         }
-        checkButton()
     }
 
     private fun loadFee() {
@@ -123,7 +126,6 @@ class SetControllerViewModel(
 
     fun payoutControllerChanged(newController: AddressModel) {
         _controllerAccountModel.value = newController
-        checkButton()
     }
 
     fun backClicked() {
@@ -185,17 +187,7 @@ class SetControllerViewModel(
         }
     }
 
-
     private fun openConfirm(payload: ConfirmSetControllerPayload) {
         router.openConfirmSetController(payload)
-    }
-
-    private fun checkButton() {
-        viewModelScope.launch {
-            _isContinueButtonAvailable.value =
-                controllerAccountModel.value != null && // Controller is choose after all
-                    controllerAccountModel.value?.address != accountStakingFlow.first().controllerAddress && // The user selected account that was not the controller already
-                    (showNotStashAccountWarning.value ?: true).not() // The account is stash, so we don't have warning
-        }
     }
 }
