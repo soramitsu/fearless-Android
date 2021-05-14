@@ -141,7 +141,7 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideMaxFeeEstimator(
+    fun provideSetupStakingInteractor(
         feeEstimator: FeeEstimator,
         extrinsicService: ExtrinsicService,
     ) = SetupStakingInteractor(feeEstimator, extrinsicService)

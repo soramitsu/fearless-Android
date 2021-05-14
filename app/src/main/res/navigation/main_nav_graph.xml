@@ -436,7 +436,7 @@
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
 
-        <action android:id="@+id/action_confirmStakingFragment_back_to_currentValidators"
+        <action android:id="@+id/action_confirmStakingFragment_back_to_currentValidatorsFragment"
             app:enterAnim="@anim/fragment_close_enter"
             app:exitAnim="@anim/fragment_close_exit"
             app:popEnterAnim="@anim/fragment_open_enter"
