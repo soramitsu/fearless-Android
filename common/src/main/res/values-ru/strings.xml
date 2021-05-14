@@ -252,7 +252,6 @@
     <string name="identity_email_title">Почта</string>
     <string name="identity_web_title">Сеть</string>
     <string name="identity_riot_name_title">Имя Riot</string>
-    <string name="staking_setup_sent_message">Транзакция на установку стекинга отправлена</string>
     <string name="network_fee">Комиссия сети</string>
     <string name="staking_reward_destination">Вознаграждение</string>
     <string name="common_confirm">Подтвердить</string>

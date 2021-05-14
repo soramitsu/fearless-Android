@@ -227,6 +227,10 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_currentValidatorsFragment)
     }
 
+    override fun returnToCurrentValidators() {
+        navController?.navigate(R.id.action_confirmStakingFragment_back_to_currentValidatorsFragment)
+    }
+
     override fun openControllerAccount() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_controllerAccountFragment)
     }

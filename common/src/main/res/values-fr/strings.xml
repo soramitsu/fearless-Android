@@ -252,7 +252,6 @@
     <string name="identity_email_title">E-mail</string>
     <string name="identity_web_title">Web</string>
     <string name="identity_riot_name_title">Nom de l\'émeute</string>
-    <string name="staking_setup_sent_message">Transaction de configuration de jalonnement envoyée</string>
     <string name="network_fee">Frais de réseau</string>
     <string name="staking_reward_destination">Destination de récompense</string>
     <string name="common_confirm">Confirmer</string>

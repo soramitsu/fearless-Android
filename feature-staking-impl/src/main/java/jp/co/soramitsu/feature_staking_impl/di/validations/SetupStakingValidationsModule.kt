@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
+import java.math.BigDecimal
 
 @Module
 class SetupStakingValidationsModule {
@@ -25,11 +26,11 @@ class SetupStakingValidationsModule {
             feeExtractor = { it.maxFee },
             availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
                 walletRepository,
-                originAddressExtractor = { it.stashSetup.controllerAddress },
+                originAddressExtractor = { it.controllerAddress },
                 tokenTypeExtractor = { it.tokenType }
             ),
             errorProducer = { SetupStakingValidationFailure.CannotPayFee },
-            extraAmountExtractor = { it.amount }
+            extraAmountExtractor = { it.bondAmount ?: BigDecimal.ZERO }
         )
     }
 

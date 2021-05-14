@@ -35,39 +35,14 @@
         android:layout_marginEnd="16dp"
         android:enabled="false" />
 
-    <LinearLayout
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.TableCellView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="horizontal"
-        android:paddingTop="16dp"
-        android:paddingBottom="15dp">
-
-        <TextView
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_weight="1"
-            android:text="@string/staking_reward_destination"
-            android:textColor="@color/gray1" />
-
-        <TextView
-            android:id="@+id/confirmStakeRewardDestination"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:text="@string/staking_payout"
-            android:textColor="@color/white" />
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
+        app:title="@string/staking_reward_destination"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:background="@color/gray3" />
+        android:id="@+id/confirmStakeRewardDestination"
+        android:layout_marginTop="16dp"
+        android:layout_height="wrap_content" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/confirmStakePayoutAccount"
@@ -90,18 +65,11 @@
         android:paddingTop="16dp"
         android:paddingBottom="15dp">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:src="@drawable/ic_profile_24"
-            app:tint="@color/white" />
-
         <TextView
             style="@style/TextAppearance.Soramitsu.Body1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="16dp"
             android:layout_weight="1"
             android:text="@string/staking_confirm_selected_validators"
             android:textColor="@color/gray1" />
