@@ -9,6 +9,7 @@
     <string name="staking_average_apy">Average APY</string>
 
     <string name="staking_controller_change_success">Controller is changed</string>
+    <string name="staking_controller_change_success">Controller is changed</string>
     <string name="staking_nominated">Nominated: %s</string>
 
     <string name="staking_active_validators_format">Active (%d)</string>
