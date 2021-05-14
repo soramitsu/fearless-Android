@@ -8,8 +8,9 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
-import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.withLoading
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -249,6 +250,9 @@ class WelcomeViewState(
 
     private val rewardCalculator = scope.async { rewardCalculatorFactory.create() }
 
+    private val _showRewardEstimationEvent = MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>>()
+    val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> = _showRewardEstimationEvent
+
     val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
         val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
         val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
@@ -258,6 +262,22 @@ class WelcomeViewState(
 
         ReturnsModel(monthlyEstimation, yearlyEstimation)
     }.asLiveData(scope)
+
+    fun infoActionClicked() {
+        scope.launch {
+            val rewardCalculator = rewardCalculator()
+
+            val maxAPY = rewardCalculator.calculateMaxAPY()
+            val avgAPY = rewardCalculator.calculateAvgAPY()
+
+            val payload = StakingRewardEstimationBottomSheet.Payload(
+                maxAPY.formatAsPercentage(),
+                avgAPY.formatAsPercentage()
+            )
+
+            _showRewardEstimationEvent.value = Event(payload)
+        }
+    }
 
     fun nextClicked() {
         scope.launch {

@@ -8,13 +8,11 @@ import android.view.View
 import android.widget.Checkable
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.getPrimaryColor
+import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawableFromColors
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountGain
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountToken
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetCheck
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetName
+import kotlinx.android.synthetic.main.view_payout_target.view.*
 import jp.co.soramitsu.common.R as RCommon
 
 private val CheckedStateSet = intArrayOf(android.R.attr.state_checked)
@@ -57,6 +55,10 @@ class RewardDestinationView @JvmOverloads constructor(
 
     fun setPercentageGain(gain: String) {
         payoutTargetAmountGain.text = gain
+    }
+
+    fun setFiatAmount(amount: String?) {
+        payoutTargetAmountFiat.setTextOrHide(amount)
     }
 
     override fun setChecked(checked: Boolean) {

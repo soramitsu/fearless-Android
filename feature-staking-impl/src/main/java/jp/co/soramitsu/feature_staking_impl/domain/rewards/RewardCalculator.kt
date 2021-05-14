@@ -70,6 +70,12 @@ class RewardCalculator(
         }
     }
 
+    private val maxAPY = apyByValidator.values.maxOrNull() ?: 0.0
+
+    suspend fun calculateMaxAPY() = calculateReturns(amount = BigDecimal.ONE, DAYS_IN_YEAR, isCompound = true).gainPercentage
+
+    fun calculateAvgAPY() = expectedAPY.toBigDecimal() * PERCENTAGE_MULTIPLIER
+
     fun getApyFor(targetIdHex: String): BigDecimal {
         val apy = apyByValidator[targetIdHex] ?: expectedAPY
 
@@ -81,7 +87,7 @@ class RewardCalculator(
         days: Int,
         isCompound: Boolean
     ) = withContext(Dispatchers.Default) {
-        val dailyPercentage = expectedAPY / DAYS_IN_YEAR
+        val dailyPercentage = maxAPY / DAYS_IN_YEAR
 
         calculateReward(amount.toDouble(), days, dailyPercentage, isCompound)
     }

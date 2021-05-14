@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_reward_estimation_bottom_sheet_title">Earnings in the network</string>
+
+    <string name="staking_only_apr">APR</string>
+    <string name="staking_only_apy">APY</string>
+
+    <string name="staking_maximum_apy">Maximum APY</string>
+    <string name="staking_average_apy">Average APY</string>
+
     <string name="staking_nominated">Nominated: %s</string>
 
     <string name="staking_active_validators_format">Active (%d)</string>
