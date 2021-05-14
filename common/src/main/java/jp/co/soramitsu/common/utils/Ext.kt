@@ -69,3 +69,5 @@ fun CoroutineScope.childScope(supervised: Boolean = true): CoroutineScope {
 
     return CoroutineScope(coroutineContext + job)
 }
+
+fun Int.asBoolean() = this != 0

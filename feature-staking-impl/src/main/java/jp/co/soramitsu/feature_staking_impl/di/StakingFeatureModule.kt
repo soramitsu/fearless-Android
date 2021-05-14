@@ -6,7 +6,6 @@ import dagger.Provides
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -32,7 +31,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
+import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.ControllerInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
@@ -47,7 +46,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
-import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
@@ -95,22 +93,18 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         stakingRewardsRepository: StakingRewardsRepository,
         stakingConstantsRepository: StakingConstantsRepository,
-        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         walletConstants: WalletConstants,
         identityRepository: IdentityRepository,
         payoutRepository: PayoutRepository,
-        substrateCalls: SubstrateCalls,
     ) = StakingInteractor(
         walletRepository,
         accountRepository,
         stakingRepository,
         stakingRewardsRepository,
         stakingConstantsRepository,
-        substrateCalls,
         identityRepository,
         walletConstants,
-        payoutRepository,
-        extrinsicBuilderFactory
+        payoutRepository
     )
 
     @Provides
@@ -147,10 +141,10 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideMaxFeeEstimator(
-        substrateCalls: SubstrateCalls,
-        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
-    ) = MaxFeeEstimator(substrateCalls, extrinsicBuilderFactory)
+    fun provideSetupStakingInteractor(
+        feeEstimator: FeeEstimator,
+        extrinsicService: ExtrinsicService,
+    ) = SetupStakingInteractor(feeEstimator, extrinsicService)
 
     @Provides
     @FeatureScope

@@ -2,6 +2,7 @@ package jp.co.soramitsu.core_db.migrations
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import jp.co.soramitsu.common.utils.asBoolean
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
@@ -16,20 +17,27 @@ class UpdateDefaultNodesList(
         }
     }
 
+    /**
+     * Replacing default set of nodes, taking care of active node:
+     *      If active node is default one, then it will be changed to first default node from new set with the same network type
+     *      If active node is not default, it will remain active, since it 100% wont be deleted
+     *      If there are no active node (clean start), nothing will happen
+     */
     override fun migrate(database: SupportSQLiteDatabase) {
         database.beginTransaction()
 
-        val activeNodeLinkCursor = database.query("SELECT networkType FROM nodes WHERE isActive = 1")
+        val activeNodeLinkCursor = database.query("SELECT networkType, isDefault FROM nodes WHERE isActive = 1")
 
-        val activeNodeNetworkType = if (activeNodeLinkCursor.moveToNext()) {
+        val (activeNodeNetworkType, isActiveNodeDefault) = if (activeNodeLinkCursor.moveToNext()) {
             val networkType = activeNodeLinkCursor.getInt(activeNodeLinkCursor.getColumnIndex("networkType"))
+            val isDefaultInt = activeNodeLinkCursor.getInt(activeNodeLinkCursor.getColumnIndex("isDefault"))
 
-            networkType
-        } else null
+            networkType to isDefaultInt.asBoolean()
+        } else null to null
 
         activeNodeLinkCursor.close()
 
-        val modifiedNodesList = if (activeNodeNetworkType != null) {
+        val modifiedNodesList = if (activeNodeNetworkType != null && isActiveNodeDefault == true) {
             val mutableNodesList = nodesList.toMutableList()
 
             val firstRelevantDefaultNode = nodesList.first { it.networkType == activeNodeNetworkType && it.isDefault }

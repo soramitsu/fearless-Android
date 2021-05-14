@@ -5,8 +5,8 @@ import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import java.math.BigInteger
 
 class FeeEstimator(
-    val substrateCalls: SubstrateCalls,
-    val extrinsicBuilderFactory: ExtrinsicBuilderFactory
+    private val substrateCalls: SubstrateCalls,
+    private val extrinsicBuilderFactory: ExtrinsicBuilderFactory
 ) {
 
     suspend fun estimateFee(

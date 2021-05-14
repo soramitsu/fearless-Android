@@ -17,12 +17,12 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.model.StashSetup
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
+import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -67,7 +67,7 @@ class SetupStakingViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val resourceManager: ResourceManager,
-    private val maxFeeEstimator: MaxFeeEstimator,
+    private val setupStakingInteractor: SetupStakingInteractor,
     private val validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
     private val appLinksProvider: AppLinksProvider,
     private val setupStakingSharedState: SetupStakingSharedState,
@@ -174,7 +174,7 @@ class SetupStakingViewModel(
             feeConstructor = { asset ->
                 val address = interactor.getSelectedAccount().address
 
-                maxFeeEstimator.estimateMaxSetupStakingFee(asset.token.type, address)
+                setupStakingInteractor.estimateMaxSetupStakingFee(asset.token.type, address)
             },
             onRetryCancelled = ::backClicked
         )
@@ -185,14 +185,12 @@ class SetupStakingViewModel(
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationLiveData.value!!)
             val amount = parsedAmountFlow.first()
             val tokenType = assetFlow.first().token.type
-            val controllerAddress = interactor.getSelectedAccount().address
-
-            val stashSetup = StashSetup(rewardDestination, controllerAddress, alreadyHasStash = false)
+            val currentAccountAddress = interactor.getSelectedAccount().address
 
             val payload = SetupStakingPayload(
                 tokenType = tokenType,
-                amount = amount,
-                stashSetup = stashSetup,
+                bondAmount = amount,
+                controllerAddress = currentAccountAddress,
                 maxFee = fee
             )
 
@@ -204,13 +202,17 @@ class SetupStakingViewModel(
             ) {
                 _showNextProgress.value = false
 
-                goToNextStep(amount, stashSetup)
+                goToNextStep(amount, rewardDestination, currentAccountAddress)
             }
         }
     }
 
-    private fun goToNextStep(newAmount: BigDecimal, stashSetup: StashSetup) {
-        setupStakingSharedState.set(currentProcessState.next(newAmount, stashSetup))
+    private fun goToNextStep(
+        newAmount: BigDecimal,
+        rewardDestination: RewardDestination,
+        currentAccountAddress: String
+    ) {
+        setupStakingSharedState.set(currentProcessState.next(newAmount, rewardDestination, currentAccountAddress))
 
         router.openRecommendedValidators()
     }

@@ -262,18 +262,15 @@ class WelcomeViewState(
     fun nextClicked() {
         scope.launch {
             if (accountStakingState is StakingState.Stash.None) {
-                val asset = currentAssetFlow.first()
-                val existingStashSetup = interactor.getExistingStashSetup(accountStakingState)
-
-                if (interactor.isAccountInApp(existingStashSetup.controllerAddress)) {
-                    setupStakingSharedState.set(currentSetupProgress.next(asset.bonded, existingStashSetup))
+                if (interactor.isAccountInApp(accountStakingState.controllerAddress)) {
+                    setupStakingSharedState.set(currentSetupProgress.existingStashFlow())
 
                     router.openRecommendedValidators()
                 } else {
-                    errorDisplayer(resourceManager.getString(R.string.staking_no_controller_account, existingStashSetup.controllerAddress))
+                    errorDisplayer(resourceManager.getString(R.string.staking_no_controller_account, accountStakingState.controllerAddress))
                 }
             } else {
-                setupStakingSharedState.set(currentSetupProgress.next(parsedAmountFlow.first()))
+                setupStakingSharedState.set(currentSetupProgress.fullFlow(parsedAmountFlow.first()))
 
                 router.openSetupStaking()
             }

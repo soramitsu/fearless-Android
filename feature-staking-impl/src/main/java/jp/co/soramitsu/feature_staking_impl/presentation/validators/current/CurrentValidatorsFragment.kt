@@ -44,6 +44,8 @@ class CurrentValidatorsFragment : BaseFragment<CurrentValidatorsViewModel>(), Cu
         currentValidatorsList.setHasFixedSize(true)
 
         currentValidatorsToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+        currentValidatorsToolbar.setRightActionClickListener { viewModel.changeClicked() }
     }
 
     override fun inject() {
