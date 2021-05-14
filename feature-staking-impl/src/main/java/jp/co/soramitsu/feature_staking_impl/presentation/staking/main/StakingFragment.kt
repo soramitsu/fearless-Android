@@ -100,6 +100,12 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                     stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
 
                     startStakingBtn.setOnClickListener { stakingState.nextClicked() }
+
+                    stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
+
+                    stakingState.showRewardEstimationEvent.observeEvent {
+                        StakingRewardEstimationBottomSheet(requireContext(), it).show()
+                    }
                 }
             }
         }

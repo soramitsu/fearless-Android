@@ -10,9 +10,7 @@ import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
-import kotlinx.android.synthetic.main.view_estimate_earning.view.estimateEarningAmount
-import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingMonthGain
-import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingYearGain
+import kotlinx.android.synthetic.main.view_estimate_earning.view.*
 
 class EstimateEarningView @JvmOverloads constructor(
     context: Context,
@@ -95,4 +93,7 @@ class EstimateEarningView @JvmOverloads constructor(
         }
         view.setExtraBlockAdditionalText(estimation.gain)
     }
+
+    val infoActions: View
+        get() = stakeMoreActions
 }
