@@ -6,7 +6,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.RootIdentity
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationPostProcessor
 
-private const val MAX_PER_CLUSTER = 3
+private const val MAX_PER_CLUSTER = 2
 
 object RemoveClusteringPostprocessor : RecommendationPostProcessor {
 
