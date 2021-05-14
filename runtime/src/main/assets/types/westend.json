@@ -1,22 +1,12 @@
 {
-  "runtime_id": 48,
+  "runtime_id": 900,
   "types": {
     "Address": "MultiAddress",
     "LookupSource": "MultiAddress",
-    "AccountInfo": "AccountInfoWithDualRefCount",
+    "AccountInfo": "AccountInfoWithTripleRefCount",
     "BlockNumber": "U32",
     "LeasePeriod": "BlockNumber",
-    "Keys": {
-      "type": "struct",
-      "type_mapping": [
-        ["grandpa", "AccountId"],
-        ["babe", "AccountId"],
-        ["im_online", "AccountId"],
-        ["para_validator", "AccountId"],
-        ["para_assignment", "AccountId"],
-        ["authority_discovery", "AccountId"]
-      ]
-    },
+    "Keys": "SessionKeys6",
     "ValidatorPrefs": "ValidatorPrefsWithBlocked",
     "ProxyType": {
       "type": "enum",
@@ -169,19 +159,25 @@
       "types": {
         "Address": "MultiAddress",
         "LookupSource": "MultiAddress",
-        "AccountInfo": "AccountInfoWithDualRefCount",
-        "Keys": {
-          "type": "struct",
-          "type_mapping": [
-            ["grandpa", "AccountId"],
-            ["babe", "AccountId"],
-            ["im_online", "AccountId"],
-            ["para_validator", "AccountId"],
-            ["para_assignment", "AccountId"],
-            ["authority_discovery", "AccountId"]
-          ]
-        },
         "ValidatorPrefs": "ValidatorPrefsWithBlocked"
+      }
+    },
+    {
+      "runtime_range": [48, 49],
+      "types": {
+        "AccountInfo": "AccountInfoWithDualRefCount"
+      }
+    },
+    {
+      "runtime_range": [50, null],
+      "types": {
+        "AccountInfo": "AccountInfoWithTripleRefCount"
+      }
+    },
+    {
+      "runtime_range": [48, null],
+      "types": {
+        "Keys": "SessionKeys6"
       }
     }
   ]
