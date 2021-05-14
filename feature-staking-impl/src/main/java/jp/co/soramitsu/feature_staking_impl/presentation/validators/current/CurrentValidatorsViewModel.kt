@@ -23,7 +23,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.mode
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel.TitleConfig
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
@@ -73,7 +73,7 @@ class CurrentValidatorsViewModel(
         val validator = nominatedValidator.validator
 
         val nominationFormatted = nominatedValidator.nominationInPlanks?.let {
-            val amountFormatted = token.type.amountFromPlanks(it).formatWithDefaultPrecision(token.type)
+            val amountFormatted = token.type.amountFromPlanks(it).formatTokenAmount(token.type)
 
             resourceManager.getString(R.string.staking_nominated, amountFormatted)
         }

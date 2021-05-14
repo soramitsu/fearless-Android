@@ -26,7 +26,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetM
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -139,9 +139,9 @@ sealed class StakeViewState<S>(
 
             StakeSummaryModel(
                 status = summary.status,
-                totalStaked = summary.totalStaked.formatWithDefaultPrecision(tokenType),
+                totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
-                totalRewards = summary.totalRewards.formatWithDefaultPrecision(tokenType),
+                totalRewards = summary.totalRewards.formatTokenAmount(tokenType),
                 totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency(),
                 currentEraDisplay = resourceManager.getString(R.string.staking_era_index, summary.currentEra)
             )

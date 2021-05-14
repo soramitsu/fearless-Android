@@ -5,7 +5,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithMaxPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
@@ -47,7 +47,7 @@ data class TransactionModel(
     }
 
     private fun createFormattedAmount(): String {
-        val withoutSign = amount.formatWithMaxPrecision(type)
+        val withoutSign = amount.formatTokenAmount(type)
         val sign = if (isIncome) '+' else '-'
 
         return sign + withoutSign
