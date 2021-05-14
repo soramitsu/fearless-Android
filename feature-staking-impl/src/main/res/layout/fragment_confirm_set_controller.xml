@@ -9,7 +9,7 @@
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.Toolbar
-        android:id="@+id/confirmRebondToolbar"
+        android:id="@+id/confirmSetControllerToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:titleText="@string/common_confirmation" />
