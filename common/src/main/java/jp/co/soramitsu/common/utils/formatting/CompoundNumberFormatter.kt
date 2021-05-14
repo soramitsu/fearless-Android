@@ -12,9 +12,11 @@ class CompoundNumberFormatter(
             "Cannot create compound formatter with empty abbreviations"
         }
 
-        require(abbreviations.zipWithNext().all { (current, next) ->
-            current.threshold <= next.threshold
-        }) {
+        require(
+            abbreviations.zipWithNext().all { (current, next) ->
+                current.threshold <= next.threshold
+            }
+        ) {
             "Abbreviations should go in non-descending order w.r.t. threshold"
         }
     }
