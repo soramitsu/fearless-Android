@@ -36,6 +36,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDe
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
@@ -232,11 +234,14 @@ class Navigator :
     }
 
     override fun openControllerAccount() {
-        navController?.navigate(R.id.action_stakingBalanceFragment_to_controllerAccountFragment)
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
     }
 
-    override fun openConfirmSetController() {
-        // TODO navigate to confirm screen
+    override fun openConfirmSetController(payload: ConfirmSetControllerPayload) {
+        navController?.navigate(
+            R.id.action_stakingSetControllerAccountFragment_to_confirmSetControllerAccountFragment,
+            ConfirmSetControllerFragment.getBundle(payload)
+        )
     }
 
     override fun openRecommendedValidators() {

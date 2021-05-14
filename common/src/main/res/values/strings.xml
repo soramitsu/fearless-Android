@@ -8,6 +8,7 @@
     <string name="staking_maximum_apy">Maximum APY</string>
     <string name="staking_average_apy">Average APY</string>
 
+    <string name="staking_controller_change_success">Controller is changed</string>
     <string name="staking_nominated">Nominated: %s</string>
 
     <string name="staking_active_validators_format">Active (%d)</string>
@@ -27,7 +28,7 @@
     <string name="staking_information_controller_actions">Controller can unbond, redeem, rebond, change reward destination and validators</string>
     <string name="staking_information_stash_set_controller">Set a separate account as a controller to increase staking management security</string>
 
-    <string name="staking_controller_address_error">Choose another controller address</string>
+    <string name="staking_controller_address_error">Choose another controller</string>
     <string name="staking_already_controller_title">Already controller</string>
     <string name="staking_already_controller_message">Selected account is already in use as controller</string>
 
