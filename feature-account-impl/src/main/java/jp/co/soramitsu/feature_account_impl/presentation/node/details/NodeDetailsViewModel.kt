@@ -21,7 +21,6 @@ class NodeDetailsViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val nodeId: Int,
-    private val isSelected: Boolean,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager
 ) : NodeDetailsRootViewModel(resourceManager) {
@@ -75,6 +74,6 @@ class NodeDetailsViewModel(
     }
 
     private fun mapNodeHostEditState(node: NodeModel): Boolean {
-        return !node.isDefault && !isSelected
+        return !node.isDefault && !node.isActive
     }
 }

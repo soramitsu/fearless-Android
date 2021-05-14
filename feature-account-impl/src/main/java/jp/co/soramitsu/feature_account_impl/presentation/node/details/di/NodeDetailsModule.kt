@@ -24,11 +24,10 @@ class NodeDetailsModule {
         interactor: AccountInteractor,
         router: AccountRouter,
         nodeId: Int,
-        isSelected: Boolean,
         clipboardManager: ClipboardManager,
         resourceManager: ResourceManager
     ): ViewModel {
-        return NodeDetailsViewModel(interactor, router, nodeId, isSelected, clipboardManager, resourceManager)
+        return NodeDetailsViewModel(interactor, router, nodeId, clipboardManager, resourceManager)
     }
 
     @Provides

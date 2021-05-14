@@ -2,6 +2,68 @@ package jp.co.soramitsu.core_db.migrations
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
+
+class UpdateDefaultNodesList(
+    private val nodesList: List<NodeLocal>,
+    fromVersion: Int,
+) : Migration(fromVersion, fromVersion + 1) {
+
+    init {
+        require(nodesList.all { it.isActive.not() },) {
+            "Nodes should not be active by default"
+        }
+    }
+
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.beginTransaction()
+
+        val activeNodeLinkCursor = database.query("SELECT networkType FROM nodes WHERE isActive = 1")
+
+        val activeNodeNetworkType = if (activeNodeLinkCursor.moveToNext()) {
+            val networkType = activeNodeLinkCursor.getInt(activeNodeLinkCursor.getColumnIndex("networkType"))
+
+            networkType
+        } else null
+
+        activeNodeLinkCursor.close()
+
+        val modifiedNodesList = if (activeNodeNetworkType != null) {
+            val mutableNodesList = nodesList.toMutableList()
+
+            val firstRelevantDefaultNode = nodesList.first { it.networkType == activeNodeNetworkType && it.isDefault }
+            val indexOfRelevantNode = nodesList.indexOf(firstRelevantDefaultNode)
+
+            mutableNodesList[indexOfRelevantNode] = firstRelevantDefaultNode.copy(isActive = true)
+
+            mutableNodesList
+        } else {
+            nodesList
+        }
+
+        database.execSQL("DELETE FROM nodes WHERE isDefault = 1")
+        database.execSQL(defaultNodesInsertQuery(modifiedNodesList))
+
+        database.setTransactionSuccessful()
+        database.endTransaction()
+    }
+}
+
+@Suppress("ClassName")
+class MoveActiveNodeTrackingToDb_18_19(private val migrator: PrefsToDbActiveNodeMigrator) : Migration(18, 19) {
+
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.beginTransaction()
+
+        database.execSQL("ALTER TABLE nodes ADD COLUMN `isActive` INTEGER NOT NULL DEFAULT 0")
+
+        migrator.migrate(database)
+
+        database.setTransactionSuccessful()
+        database.endTransaction()
+    }
+}
 
 val RemoveAccountForeignKeyFromAsset_17_18 = object : Migration(17, 18) {
 

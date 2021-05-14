@@ -20,7 +20,6 @@ interface NodeDetailsComponent {
         fun create(
             @BindsInstance fragment: Fragment,
             @BindsInstance nodeId: Int,
-            @BindsInstance isSelected: Boolean
         ): NodeDetailsComponent
     }
 

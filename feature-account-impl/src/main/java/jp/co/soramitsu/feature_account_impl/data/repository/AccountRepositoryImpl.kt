@@ -36,6 +36,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import kotlinx.coroutines.Dispatchers
@@ -525,11 +526,5 @@ class AccountRepositoryImpl(
 
     private fun getNetworkForType(networkType: Node.NetworkType): Network {
         return Network(networkType)
-    }
-
-    private fun mapNodeLocalToNode(it: NodeLocal): Node {
-        val networkType = Node.NetworkType.values()[it.networkType]
-
-        return Node(it.id, it.name, networkType, it.link, it.isDefault)
     }
 }

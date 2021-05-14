@@ -4,6 +4,8 @@ import android.graphics.drawable.PictureDrawable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core.model.Node.NetworkType
+import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
@@ -11,11 +13,11 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 
-fun mapNetworkTypeToNetworkModel(networkType: Node.NetworkType): NetworkModel {
+fun mapNetworkTypeToNetworkModel(networkType: NetworkType): NetworkModel {
     val type = when (networkType) {
-        Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
-        Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
-        Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
+        NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
+        NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
+        NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
     }
 
     return NetworkModel(networkType.readableName, type)
@@ -67,9 +69,9 @@ fun mapAccountToAccountModel(
 
 fun mapNodeToNodeModel(node: Node): NodeModel {
     val networkModelType = when (node.networkType) {
-        Node.NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
-        Node.NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
-        Node.NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
+        NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
+        NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
+        NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
     }
 
     return with(node) {
@@ -78,6 +80,20 @@ fun mapNodeToNodeModel(node: Node): NodeModel {
             name = name,
             link = link,
             networkModelType = networkModelType,
+            isDefault = isDefault,
+            isActive = isActive
+        )
+    }
+}
+
+fun mapNodeLocalToNode(nodeLocal: NodeLocal): Node {
+    return with(nodeLocal) {
+        Node(
+            id = id,
+            name = name,
+            networkType = NetworkType.values()[nodeLocal.networkType],
+            link = link,
+            isActive = isActive,
             isDefault = isDefault
         )
     }
