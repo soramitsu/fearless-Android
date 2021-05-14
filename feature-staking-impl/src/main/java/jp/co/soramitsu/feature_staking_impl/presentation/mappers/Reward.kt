@@ -8,7 +8,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.PeriodReturns
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 
 enum class RewardSuffix(@StringRes val suffixResourceId: Int?) {
     None(null),
@@ -27,7 +27,7 @@ fun mapPeriodReturnsToRewardEstimation(
     val gainWithSuffix = rewardSuffix.suffixResourceId?.let { resourceManager.getString(it, gainFormatted) } ?: gainFormatted
 
     return RewardEstimation(
-        amount = periodReturns.gainAmount.formatWithDefaultPrecision(token.type),
+        amount = periodReturns.gainAmount.formatTokenAmount(token.type),
         fiatAmount = token.fiatAmount(periodReturns.gainAmount)?.formatAsCurrency(),
         gain = gainWithSuffix
     )

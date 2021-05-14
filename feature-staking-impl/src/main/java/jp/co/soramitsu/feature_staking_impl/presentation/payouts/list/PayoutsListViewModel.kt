@@ -101,7 +101,7 @@ class PayoutsListViewModel(
         statistics: PendingPayoutsStatistics,
     ): PendingPayoutsStatisticsModel {
         val token = interactor.currentAssetFlow().first().token
-        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatTokenAmount(token.type, 6)
+        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatTokenAmount(token.type)
 
         val payouts = statistics.payouts.map { mapPayoutToPayoutModel(token, it) }
 
@@ -120,8 +120,7 @@ class PayoutsListViewModel(
                 validatorTitle = validatorInfo.identityName ?: validatorInfo.address,
                 daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
-                // TODO decide on precision
-                amount = amount.formatTokenChange(token.type, isIncome = true, precision = 7),
+                amount = amount.formatTokenChange(token.type, isIncome = true),
                 amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
             )
         }

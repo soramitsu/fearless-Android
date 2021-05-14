@@ -67,7 +67,7 @@ class ConfirmPayoutViewModel(
     val totalRewardDisplay = assetFlow.map {
         val token = it.token
         val totalReward = token.amountFromPlanks(payload.totalRewardInPlanks)
-        val inToken = totalReward.formatTokenAmount(token.type, precision = 7)
+        val inToken = totalReward.formatTokenAmount(token.type)
         val inFiat = token.fiatAmount(totalReward)?.formatAsCurrency()
 
         inToken to inFiat

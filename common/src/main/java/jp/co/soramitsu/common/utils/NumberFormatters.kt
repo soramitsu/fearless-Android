@@ -10,30 +10,56 @@ import jp.co.soramitsu.common.utils.formatting.NumberAbbreviation
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
-import java.text.NumberFormat
-import java.util.Currency
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-private const val DOLLAR_CODE = "USD"
-
 private const val DECIMAL_PATTERN_BASE = "###,###."
-
-const val DEFAULT_PRECISION = 5
 
 private const val GROUPING_SEPARATOR = ','
 private const val DECIMAL_SEPARATOR = '.'
 
-fun BigDecimal.formatAsCurrency(): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
-    formatter.currency = Currency.getInstance(DOLLAR_CODE)
-    formatter.minimumFractionDigits = 0
+private const val FULL_PRECISION = 5
+private const val ABBREVIATED_PRECISION = 2
 
-    return formatter.format(this)
+private val defaultAbbreviationFormatter = FixedPrecisionFormatter(ABBREVIATED_PRECISION)
+private val defaultFullFormatter = FixedPrecisionFormatter(FULL_PRECISION)
+
+private val thousandAbbreviation = NumberAbbreviation(
+    threshold = BigDecimal("1E+3"),
+    divisor = BigDecimal.ONE,
+    suffix = "",
+    formatter = defaultAbbreviationFormatter
+)
+
+private val millionAbbreviation = NumberAbbreviation(
+    threshold = BigDecimal("1E+6"),
+    divisor = BigDecimal("1E+6"),
+    suffix = "M",
+    formatter = defaultAbbreviationFormatter
+)
+
+private val billionAbbreviation = NumberAbbreviation(
+    threshold = BigDecimal("1E+9"),
+    divisor = BigDecimal("1E+9"),
+    suffix = "B",
+    formatter = defaultAbbreviationFormatter
+)
+
+private val trillionAbbreviation = NumberAbbreviation(
+    threshold = BigDecimal("1E+12"),
+    divisor = BigDecimal("1E+12"),
+    suffix = "T",
+    formatter = defaultAbbreviationFormatter
+)
+
+private val defaultNumberFormatter = defaultNumberFormatter()
+private val currencyFormatter = currencyFormatter()
+
+fun BigDecimal.formatAsCurrency(): String {
+    return "$" + currencyFormatter.format(this)
 }
 
-fun BigDecimal.format(precision: Int = DEFAULT_PRECISION): String {
-    return decimalFormatterFor(patternWith(precision)).format(this)
+fun BigDecimal.format(): String {
+    return defaultNumberFormatter.format(this)
 }
 
 fun BigDecimal.formatAsChange(): String {
@@ -43,9 +69,7 @@ fun BigDecimal.formatAsChange(): String {
 }
 
 fun BigDecimal.formatAsPercentage(): String {
-    val formatted = format(precision = 2)
-
-    return "$formatted%"
+    return defaultAbbreviationFormatter.format(this) + "%"
 }
 
 fun Long.formatDaysSinceEpoch(context: Context): String? {
@@ -84,20 +108,13 @@ fun decimalFormatterFor(pattern: String): DecimalFormat {
 
 fun patternWith(precision: Int) = "$DECIMAL_PATTERN_BASE${"#".repeat(precision)}"
 
-
-private const val FULL_PRECISION = 5
-private const val ABBREVIATED_PRECISION = 2
-
-private val defaultAbbreviationFormatter = FixedPrecisionFormatter(ABBREVIATED_PRECISION)
-private val defaultFullFormatter = FixedPrecisionFormatter(FULL_PRECISION)
-
 fun defaultNumberFormatter() = CompoundNumberFormatter(
     abbreviations = listOf(
         NumberAbbreviation(
             threshold = BigDecimal.ZERO,
             divisor = BigDecimal.ONE,
             suffix = "",
-            formatter = DynamicPrecisionFormatter(DEFAULT_PRECISION)
+            formatter = DynamicPrecisionFormatter(minPrecision = FULL_PRECISION)
         ),
         NumberAbbreviation(
             threshold = BigDecimal.ONE,
@@ -105,29 +122,30 @@ fun defaultNumberFormatter() = CompoundNumberFormatter(
             suffix = "",
             formatter = defaultFullFormatter
         ),
+        thousandAbbreviation,
+        millionAbbreviation,
+        billionAbbreviation,
+        trillionAbbreviation
+    )
+)
+
+fun currencyFormatter() = CompoundNumberFormatter(
+    abbreviations = listOf(
         NumberAbbreviation(
-            threshold = BigDecimal("1E+3"),
+            threshold = BigDecimal.ZERO,
+            divisor = BigDecimal.ONE,
+            suffix = "",
+            formatter = DynamicPrecisionFormatter(minPrecision = ABBREVIATED_PRECISION)
+        ),
+        NumberAbbreviation(
+            threshold = BigDecimal.ONE,
             divisor = BigDecimal.ONE,
             suffix = "",
             formatter = defaultAbbreviationFormatter
         ),
-        NumberAbbreviation(
-            threshold = BigDecimal("1E+6"),
-            divisor = BigDecimal("1E+6"),
-            suffix = "M",
-            formatter = defaultAbbreviationFormatter
-        ),
-        NumberAbbreviation(
-            threshold = BigDecimal("1E+9"),
-            divisor = BigDecimal("1E+9"),
-            suffix = "B",
-            formatter = defaultAbbreviationFormatter
-        ),
-        NumberAbbreviation(
-            threshold = BigDecimal("1E+12"),
-            divisor = BigDecimal("1E+12"),
-            suffix = "T",
-            formatter = defaultAbbreviationFormatter
-        )
+        thousandAbbreviation,
+        millionAbbreviation,
+        billionAbbreviation,
+        trillionAbbreviation
     )
 )

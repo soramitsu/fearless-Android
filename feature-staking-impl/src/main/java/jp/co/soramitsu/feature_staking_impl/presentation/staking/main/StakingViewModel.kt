@@ -21,7 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.Stak
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -106,12 +106,12 @@ class StakingViewModel(
 
     private fun transformNetworkInfo(asset: Asset, networkInfo: NetworkInfo): StakingNetworkInfoModel {
         val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
-        val totalStakeFormatted = totalStake.formatWithDefaultPrecision(asset.token.type)
+        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.type)
 
         val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
 
         val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-        val minimumStakeFormatted = minimumStake.formatWithDefaultPrecision(asset.token.type)
+        val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.type)
 
         val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency()
 

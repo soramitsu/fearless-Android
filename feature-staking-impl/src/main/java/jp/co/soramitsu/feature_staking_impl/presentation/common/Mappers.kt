@@ -9,7 +9,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.Asse
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.icon
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithDefaultPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import java.math.BigDecimal
 
 fun mapAssetToAssetModel(
@@ -18,7 +18,7 @@ fun mapAssetToAssetModel(
     retrieveAmount: (Asset) -> BigDecimal = Asset::transferable,
     @StringRes patternId: Int = R.string.common_available_format
 ): AssetModel {
-    val amount = retrieveAmount(asset).formatWithDefaultPrecision(asset.token.type)
+    val amount = retrieveAmount(asset).formatTokenAmount(asset.token.type)
 
     return with(asset) {
         AssetModel(
@@ -34,6 +34,6 @@ fun mapFeeToFeeModel(
     token: Token
 ) = FeeModel(
     fee = fee,
-    displayToken = fee.formatWithDefaultPrecision(token.type),
+    displayToken = fee.formatTokenAmount(token.type),
     displayFiat = token.fiatAmount(fee)?.formatAsCurrency()
 )
