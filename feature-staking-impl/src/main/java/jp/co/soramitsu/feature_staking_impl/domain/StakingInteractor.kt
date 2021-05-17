@@ -270,6 +270,8 @@ class StakingInteractor(
             val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, electionStatus, asset)
 
             val status = statusResolver(statusResolutionContext)
+            val result = stakingRewardsRepository.stakingRewardSubQuery(state.accountAddress)
+            println("----------  ${result}")
 
             StakeSummary(
                 status = status,
