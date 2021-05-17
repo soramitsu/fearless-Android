@@ -8,10 +8,12 @@ import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingRewardLocalTo
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingRewardRemoteToLocal
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingRewardRequest
+import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingSumRewardRequest
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 class StakingRewardsRepository(
     private val stakingApi: StakingApi,
@@ -43,5 +45,9 @@ class StakingRewardsRepository(
     fun stakingRewardsFlow(accountAddress: String): Flow<List<StakingReward>> {
         return stakingRewardDao.observeRewards(accountAddress)
             .mapList(::mapStakingRewardLocalToStakingReward)
+    }
+
+    suspend fun stakingRewardSubQuery(accountAddress: String): BigDecimal {
+        return stakingApi.getSumReward(StakingSumRewardRequest(query = "{sumReward(id: \"$accountAddress\"){accountTotal}}")).data.sumReward.accountTotal.toBigDecimal() // TODO Govno! Peredelivay normalno
     }
 }
