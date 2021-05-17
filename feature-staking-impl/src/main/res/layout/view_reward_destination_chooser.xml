@@ -8,7 +8,7 @@
     tools:background="@color/black"
     android:layout_height="match_parent">
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.setup.view.RewardDestinationView
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -18,7 +18,7 @@
         android:id="@+id/rewardDestinationChooserRestake"
         android:checked="true" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.setup.view.RewardDestinationView
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
