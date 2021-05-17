@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
@@ -15,6 +16,7 @@ import kotlinx.android.synthetic.main.fragment_confirm_set_controller.confirmSet
 import kotlinx.android.synthetic.main.fragment_confirm_set_controller.confirmSetControllerDestinationAccount
 import kotlinx.android.synthetic.main.fragment_confirm_set_controller.confirmSetControllerFee
 import kotlinx.android.synthetic.main.fragment_confirm_set_controller.confirmSetControllerStashAccount
+import kotlinx.android.synthetic.main.fragment_confirm_set_controller.confirmSetControllerToolbar
 
 private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
@@ -34,6 +36,14 @@ class ConfirmSetControllerFragment : BaseFragment<ConfirmSetControllerViewModel>
     }
 
     override fun initViews() {
+        confirmSetControllerToolbar.applyInsetter {
+            type(statusBars = true) {
+                padding()
+            }
+        }
+
+        confirmSetControllerToolbar.setHomeButtonListener { viewModel.back() }
+
         confirmSetControllerConfirm.setOnClickListener { viewModel.confirmClicked() }
 
         confirmSetControllerStashAccount.setWholeClickListener { viewModel.openStashExternalActions() }

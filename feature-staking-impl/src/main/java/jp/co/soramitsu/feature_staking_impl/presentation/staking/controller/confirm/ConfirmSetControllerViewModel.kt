@@ -106,4 +106,8 @@ class ConfirmSetControllerViewModel(
             AddressIconGenerator.SIZE_SMALL,
             interactor.getAccount(address).name
         )
+
+    fun back() {
+        router.back()
+    }
 }
