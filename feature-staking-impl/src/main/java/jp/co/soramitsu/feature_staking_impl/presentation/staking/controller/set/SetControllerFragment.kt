@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import jp.co.soramitsu.common.address.AddressChooserBottomSheetDialog
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -14,7 +15,6 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalAc
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.setup.AccountChooserBottomSheetDialog
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerContinueBtn
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerDestinationAccount
 import kotlinx.android.synthetic.main.fragment_set_controller_account.setControllerFee
@@ -80,7 +80,7 @@ class SetControllerFragment : BaseFragment<SetControllerViewModel>() {
     }
 
     private fun showControllerChooser(payload: DynamicListBottomSheet.Payload<AddressModel>) {
-        AccountChooserBottomSheetDialog(
+        AddressChooserBottomSheetDialog(
             requireContext(),
             payload,
             viewModel::payoutControllerChanged,

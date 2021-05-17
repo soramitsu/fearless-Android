@@ -1,22 +1,21 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.setup
+package jp.co.soramitsu.common.address
 
 import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.StringRes
 import androidx.recyclerview.widget.DiffUtil
-import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
-import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.item_account_chooser.view.accountChecked
-import kotlinx.android.synthetic.main.item_account_chooser.view.accountIcon
-import kotlinx.android.synthetic.main.item_account_chooser.view.accountTitle
+import kotlinx.android.synthetic.main.item_address_chooser.view.accountChecked
+import kotlinx.android.synthetic.main.item_address_chooser.view.accountIcon
+import kotlinx.android.synthetic.main.item_address_chooser.view.accountTitle
 
-class AccountChooserBottomSheetDialog(
+class AddressChooserBottomSheetDialog(
     context: Context,
     payload: Payload<AddressModel>,
     clickHandler: ClickHandler<AddressModel>,
@@ -32,7 +31,7 @@ class AccountChooserBottomSheetDialog(
     }
 
     override fun holderCreator(): HolderCreator<AddressModel> = { parent ->
-        AddressModelHolder(parent.inflateChild(R.layout.item_account_chooser))
+        AddressModelHolder(parent.inflateChild(R.layout.item_address_chooser))
     }
 }
 

@@ -30,7 +30,7 @@ class AccountChooserBottomSheetDialog(
     }
 
     override fun holderCreator(): HolderCreator<AddressModel> = { parent ->
-        AddressModelHolder(parent.inflateChild(R.layout.item_account_chooser))
+        AddressModelHolder(parent.inflateChild(R.layout.item_address_chooser))
     }
 }
 

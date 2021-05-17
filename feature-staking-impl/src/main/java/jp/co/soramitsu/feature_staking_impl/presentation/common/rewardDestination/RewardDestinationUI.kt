@@ -1,10 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination
 
+import jp.co.soramitsu.common.address.AddressChooserBottomSheetDialog
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.setup.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationChooserView
 import kotlinx.android.synthetic.main.view_reward_destination_chooser.view.rewardDestinationChooserPayout
 import kotlinx.android.synthetic.main.view_reward_destination_chooser.view.rewardDestinationChooserPayoutTarget
@@ -36,7 +36,7 @@ fun <V> BaseFragment<V>.observeRewardDestinationChooser(
     }
 
     viewModel.showDestinationChooserEvent.observeEvent {
-        AccountChooserBottomSheetDialog(
+        AddressChooserBottomSheetDialog(
             requireContext(),
             it,
             viewModel::payoutDestinationChanged,
