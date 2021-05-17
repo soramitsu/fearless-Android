@@ -52,7 +52,7 @@ class ExtrinsicBuilderFactory(
         accountAddress: String,
         keypair: Keypair,
         cryptoType: CryptoType
-    ) : ExtrinsicBuilder {
+    ): ExtrinsicBuilder {
         val nonce = substrateCalls.getNonce(accountAddress)
         val runtimeVersion = substrateCalls.getRuntimeVersion()
 

@@ -118,7 +118,7 @@ class SelectRewardDestinationViewModel(
         rewardDestination: RewardDestination,
         fee: BigDecimal
     ) {
-       showMessage("Ready to open confirm")
+        showMessage("Ready to open confirm")
     }
 
     private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(

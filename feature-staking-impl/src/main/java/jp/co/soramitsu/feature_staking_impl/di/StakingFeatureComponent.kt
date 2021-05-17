@@ -88,7 +88,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun currentValidatorsFactory(): CurrentValidatorsComponent.Factory
 
-    fun selectRewardDestinationFactory() : SelectRewardDestinationComponent.Factory
+    fun selectRewardDestinationFactory(): SelectRewardDestinationComponent.Factory
 
     @Component.Factory
     interface Factory {

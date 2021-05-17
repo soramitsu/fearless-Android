@@ -8,4 +8,3 @@ sealed class RewardDestinationModel {
 
     class Payout(val destination: AddressModel) : RewardDestinationModel()
 }
-

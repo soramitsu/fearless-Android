@@ -167,7 +167,7 @@ class StakingFeatureModule {
         appLinksProvider: AppLinksProvider,
         stakingInteractor: StakingInteractor,
         iconGenerator: AddressIconGenerator,
-    ) : RewardDestinationMixin.Presentation = RewardDestinationProvider(
+    ): RewardDestinationMixin.Presentation = RewardDestinationProvider(
         resourceManager, stakingInteractor, iconGenerator, appLinksProvider
     )
 

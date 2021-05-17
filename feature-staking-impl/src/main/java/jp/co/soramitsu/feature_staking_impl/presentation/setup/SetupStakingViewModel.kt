@@ -53,8 +53,7 @@ class SetupStakingViewModel(
     Retriable,
     Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin,
-    RewardDestinationMixin by rewardDestinationMixin
-{
+    RewardDestinationMixin by rewardDestinationMixin {
 
     private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.Stash>()
 
@@ -73,7 +72,6 @@ class SetupStakingViewModel(
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
-
 
         asset.token.fiatAmount(amount)?.formatAsCurrency()
     }

@@ -8,7 +8,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination
 fun rewardDestinationValidationFailure(
     resourceManager: ResourceManager,
     failure: RewardDestinationValidationFailure
-) : TitleAndMessage = when(failure) {
+): TitleAndMessage = when (failure) {
     is RewardDestinationValidationFailure.MissingController -> {
         resourceManager.getString(R.string.common_error_general_title) to
             resourceManager.getString(R.string.staking_no_controller_account, failure.controllerAddress)
