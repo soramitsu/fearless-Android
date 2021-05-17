@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.setup
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -26,7 +25,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMix
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,18 +37,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
-
-sealed class RewardDestinationModel {
-
-    object Restake : RewardDestinationModel()
-
-    class Payout(val destination: AddressModel) : RewardDestinationModel()
-}
-
-class PayoutEstimations(
-    val restake: RewardEstimation,
-    val payout: RewardEstimation,
-)
 
 class SetupStakingViewModel(
     private val router: StakingRouter,
