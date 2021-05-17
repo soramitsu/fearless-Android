@@ -8,7 +8,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatWithMaxPrecision
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
@@ -80,16 +80,16 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         observeTransferChecks(viewModel, viewModel::warningConfirmed, viewModel::errorAcknowledged)
 
         viewModel.assetLiveData.observe {
-            confirmTransferBalance.text = it.available.formatWithMaxPrecision(it.token.type)
+            confirmTransferBalance.text = it.available.formatTokenAmount(it.token.type)
         }
 
         with(viewModel.transferDraft) {
             confirmTransferToken.setTextIcon(type.icon)
             confirmTransferToken.setMessage(type.displayName)
 
-            confirmTransferFee.text = fee.formatWithMaxPrecision(type)
+            confirmTransferFee.text = fee.formatTokenAmount(type)
 
-            confirmTransferTotal.text = totalTransaction.formatWithMaxPrecision(type)
+            confirmTransferTotal.text = totalTransaction.formatTokenAmount(type)
 
             confirmTransferAmount.setMessage(amount.toPlainString())
         }

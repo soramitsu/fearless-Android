@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.di
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.set.di
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -10,12 +10,16 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.ControllerInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.SetControllerViewModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.set.SetControllerViewModel
 
 @Module(includes = [ViewModelModule::class])
 class SetControllerModule {
@@ -29,7 +33,11 @@ class SetControllerModule {
         router: StakingRouter,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         externalActions: ExternalAccountActions.Presentation,
-        appLinksProvider: AppLinksProvider
+        appLinksProvider: AppLinksProvider,
+        resourceManager: ResourceManager,
+        addressDisplayUseCase: AddressDisplayUseCase,
+        validationExecutor: ValidationExecutor,
+        validationSystem: SetControllerValidationSystem
     ): ViewModel {
         return SetControllerViewModel(
             interactor,
@@ -38,7 +46,11 @@ class SetControllerModule {
             router,
             feeLoaderMixin,
             externalActions,
-            appLinksProvider
+            appLinksProvider,
+            resourceManager,
+            addressDisplayUseCase,
+            validationExecutor,
+            validationSystem
         )
     }
 

@@ -36,7 +36,7 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         return inflater.inflate(R.layout.fragment_confirm_stake, container, false)
     }
@@ -80,20 +80,22 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
 
         viewModel.rewardDestinationLiveData.observe {
             confirmStakePayoutAccount.setVisible(it is RewardDestinationModel.Payout)
+            confirmStakeRewardDestination.setDividerVisible(it is RewardDestinationModel.Restake)
+            confirmStakeRewardDestination.setVisible(it != null)
 
             when (it) {
                 is RewardDestinationModel.Restake -> {
-                    confirmStakeRewardDestination.setText(R.string.staking_setup_restake)
+                    confirmStakeRewardDestination.showValue(getString(R.string.staking_setup_restake))
                 }
                 is RewardDestinationModel.Payout -> {
-                    confirmStakeRewardDestination.setText(R.string.staking_payout)
+                    confirmStakeRewardDestination.showValue(getString(R.string.staking_payout))
                     confirmStakePayoutAccount.setMessage(it.destination.nameOrAddress)
                     confirmStakePayoutAccount.setTextIcon(it.destination.image)
                 }
             }
         }
 
-        viewModel.assetLiveData.observe {
+        viewModel.assetModelLiveData.observe {
             confirmStakeAmount.setAssetBalance(it.assetBalance)
             confirmStakeAmount.setAssetName(it.tokenName)
             confirmStakeAmount.setAssetImageResource(it.tokenIconRes)
@@ -115,6 +117,10 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
             confirmStakeSelectedValidatorsCount.text = it
         }
 
-        confirmStakeAmount.amountInput.setText(viewModel.stakingAmount)
+        viewModel.displayAmountLiveData.observe { bondedAmount ->
+            confirmStakeAmount.setVisible(bondedAmount != null)
+
+            bondedAmount?.let { confirmStakeAmount.amountInput.setText(it.toString()) }
+        }
     }
 }

@@ -36,6 +36,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDe
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
@@ -227,11 +229,19 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_currentValidatorsFragment)
     }
 
-    override fun openControllerAccount() {
-        navController?.navigate(R.id.action_stakingBalanceFragment_to_controllerAccountFragment)
+    override fun returnToCurrentValidators() {
+        navController?.navigate(R.id.action_confirmStakingFragment_back_to_currentValidatorsFragment)
     }
 
-    override fun continueSetController() {
+    override fun openControllerAccount() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
+    }
+
+    override fun openConfirmSetController(payload: ConfirmSetControllerPayload) {
+        navController?.navigate(
+            R.id.action_stakingSetControllerAccountFragment_to_confirmSetControllerAccountFragment,
+            ConfirmSetControllerFragment.getBundle(payload)
+        )
     }
 
     override fun openRecommendedValidators() {
@@ -335,8 +345,8 @@ class Navigator :
         navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
     }
 
-    override fun openNodeDetails(nodeId: Int, isSelected: Boolean) {
-        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId, isSelected))
+    override fun openNodeDetails(nodeId: Int) {
+        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId))
     }
 
     override fun openAssetDetails(type: Token.Type) {

@@ -7,15 +7,9 @@ import android.widget.LinearLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoExtraBlockValue
-import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoBody
-import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoBodyShimmer
-import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoExtraBlock
-import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoExtraBlockAdditional
-import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoExtraBlockShimmer
-import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoExtraBlockValueView
-import kotlinx.android.synthetic.main.view_staking_info.view.stakingInfoTitle
+import kotlinx.android.synthetic.main.view_staking_info.view.*
 
 class StakingInfoView @JvmOverloads constructor(
     context: Context,
@@ -37,6 +31,12 @@ class StakingInfoView @JvmOverloads constructor(
         val title = typedArray.getString(R.styleable.StakingInfoView_titleText)
         title?.let { setTitle(title) }
 
+        val showTitle = typedArray.getBoolean(R.styleable.StakingInfoView_showTitle, true)
+        setTitleVisibility(showTitle)
+
+        val titleDetailText = typedArray.getString(R.styleable.StakingInfoView_titleDetail)
+        titleDetailText?.let { setTitleDetail(titleDetailText) }
+
         val includeExtraBlock = typedArray.getBoolean(R.styleable.StakingInfoView_includeExtraBlock, true)
         if (includeExtraBlock) {
             showWholeExtraBlock()
@@ -52,6 +52,14 @@ class StakingInfoView @JvmOverloads constructor(
 
     fun setTitle(title: String) {
         stakingInfoTitle.text = title
+    }
+
+    fun setTitleVisibility(isVisible: Boolean) {
+        stakingInfoTitle.setVisible(isVisible)
+    }
+
+    fun setTitleDetail(titleDetail: String) {
+        stakingInfoTitleDetail.text = titleDetail
     }
 
     fun setBody(body: String) {
@@ -71,6 +79,8 @@ class StakingInfoView @JvmOverloads constructor(
     }
 
     fun setExtraBlockAdditionalText(text: String) {
+        stakingInfoExtraTitleDetailView.makeVisible()
+
         stakingInfoExtraBlockAdditional.text = text
     }
 
@@ -89,14 +99,14 @@ class StakingInfoView @JvmOverloads constructor(
     fun showLoading() {
         stakingInfoBodyShimmer.makeVisible()
         stakingInfoBody.makeGone()
-        stakingInfoExtraBlockValueView.makeGone()
+        stakingInfoExtraBlockValue.makeGone()
         stakingInfoExtraBlockShimmer.makeVisible()
     }
 
     fun hideLoading() {
         stakingInfoBody.makeVisible()
         stakingInfoBodyShimmer.makeGone()
-        stakingInfoExtraBlockValueView.makeVisible()
+        stakingInfoExtraBlockValue.makeVisible()
         stakingInfoExtraBlockShimmer.makeGone()
     }
 }

@@ -15,7 +15,7 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.setup.MaxFeeEstimator
+import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -35,7 +35,7 @@ class SetupStakingModule {
         addressIconGenerator: AddressIconGenerator,
         rewardCalculatorFactory: RewardCalculatorFactory,
         resourceManager: ResourceManager,
-        maxFeeEstimator: MaxFeeEstimator,
+        setupStakingInteractor: SetupStakingInteractor,
         validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
         validationExecutor: ValidationExecutor,
         appLinksProvider: AppLinksProvider,
@@ -48,7 +48,7 @@ class SetupStakingModule {
             addressIconGenerator,
             rewardCalculatorFactory,
             resourceManager,
-            maxFeeEstimator,
+            setupStakingInteractor,
             validationSystem,
             appLinksProvider,
             setupStakingSharedState,

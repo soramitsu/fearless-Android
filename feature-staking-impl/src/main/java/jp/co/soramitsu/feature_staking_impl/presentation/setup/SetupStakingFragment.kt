@@ -105,9 +105,11 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         viewModel.returnsLiveData.observe {
             setupStakingTargetPayout.setPercentageGain(it.payout.gain)
             setupStakingTargetPayout.setTokenAmount(it.payout.amount)
+            setupStakingTargetPayout.setFiatAmount(it.payout.fiatAmount)
 
             setupStakingTargetRestake.setPercentageGain(it.restake.gain)
             setupStakingTargetRestake.setTokenAmount(it.restake.amount)
+            setupStakingTargetRestake.setFiatAmount(it.restake.fiatAmount)
         }
 
         viewModel.enteredFiatAmountFlow.observe {

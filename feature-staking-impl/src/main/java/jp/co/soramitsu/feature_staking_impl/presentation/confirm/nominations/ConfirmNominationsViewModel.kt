@@ -30,8 +30,10 @@ class ConfirmNominationsViewModel(
 
     private val currentSetupStakingProcess = sharedStateSetup.get<SetupStakingProcess.Confirm>()
 
+    private val validators = currentSetupStakingProcess.payload.validators
+
     val selectedValidatorsLiveData = liveData(Dispatchers.Default) {
-        val nominations = currentSetupStakingProcess.validators
+        val nominations = validators
         val networkType = interactor.getSelectedNetworkType()
 
         emit(convertToModels(nominations, networkType))
@@ -47,7 +49,7 @@ class ConfirmNominationsViewModel(
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
         viewModelScope.launch {
-            currentSetupStakingProcess.validators.findSelectedValidator(validatorModel.accountIdHex)?.let {
+            validators.findSelectedValidator(validatorModel.accountIdHex)?.let {
                 router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(it))
             }
         }
