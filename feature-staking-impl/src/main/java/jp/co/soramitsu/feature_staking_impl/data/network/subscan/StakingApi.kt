@@ -11,13 +11,13 @@ import retrofit2.http.Path
 
 interface StakingApi {
 
-    @POST("//{subDomain}.subscan.io/api/scan/extrinsics")
+    @POST("//{subDomain}.api.subscan.io/api/scan/extrinsics")
     suspend fun getExtrinsicHistory(
         @Path("subDomain") subDomain: String,
         @Body body: ExtrinsicHistoryRequest,
     ): SubscanResponse<ExtrinsicHistory>
 
-    @POST("//{subDomain}.subscan.io/api/scan/account/reward_slash")
+    @POST("//{subDomain}.api.subscan.io/api/scan/account/reward_slash")
     suspend fun getRewardsHistory(
         @Path("subDomain") subDomain: String,
         @Body body: StakingRewardRequest,
