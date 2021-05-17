@@ -15,6 +15,7 @@
         app:titleText="@string/staking_reward_destination" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationChooserView
+        android:id="@+id/selectRewardDestinationChooser"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
@@ -22,6 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:id="@+id/selectRewardDestinationFee"
         android:layout_marginEnd="16dp" />
 
     <Space
@@ -34,6 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:id="@+id/selectRewardDestinationContinue"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="22dp"
         android:text="@string/common_continue" />
