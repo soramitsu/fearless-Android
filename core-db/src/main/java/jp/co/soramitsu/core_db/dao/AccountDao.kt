@@ -5,8 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -19,7 +19,7 @@ abstract class AccountDao {
     abstract suspend fun getAccounts(): List<AccountLocal>
 
     @Query("select * from users where address = :address")
-    abstract suspend fun getAccount(address: String): AccountLocal
+    abstract suspend fun getAccount(address: String): AccountLocal?
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     abstract suspend fun insert(account: AccountLocal): Long
@@ -39,6 +39,9 @@ abstract class AccountDao {
     @Query("select * from users where networkType = :networkType")
     abstract suspend fun getAccountsByNetworkType(networkType: Int): List<AccountLocal>
 
-    @Query("select address from users where (address LIKE '%' || :query  || '%') AND networkType = :networkType")
-    abstract suspend fun getAddresses(query: String, networkType: Node.NetworkType): List<String>
+    @Query("select * from users where (address LIKE '%' || :query  || '%') AND networkType = :networkType")
+    abstract suspend fun getAccounts(query: String, networkType: Node.NetworkType): List<AccountLocal>
+
+    @Query("SELECT EXISTS(SELECT * FROM users WHERE address = :accountAddress)")
+    abstract suspend fun accountExists(accountAddress: String): Boolean
 }

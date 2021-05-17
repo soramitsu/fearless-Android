@@ -8,10 +8,15 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.Accou
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import kotlinx.coroutines.launch
 
+enum class AccountChosenNavDirection {
+    BACK, MAIN
+}
+
 class AccountListViewModel(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
-    accountListingMixin: AccountListingMixin
+    private val accountChosenNavDirection: AccountChosenNavDirection,
+    accountListingMixin: AccountListingMixin,
 ) : BaseViewModel() {
 
     val accountListingLiveData = accountListingMixin.accountListingFlow().asLiveData()
@@ -30,7 +35,14 @@ class AccountListViewModel(
         viewModelScope.launch {
             accountInteractor.selectAccount(accountModel.address)
 
-            accountRouter.returnToMain()
+            dispatchNavigation()
+        }
+    }
+
+    private fun dispatchNavigation() {
+        when (accountChosenNavDirection) {
+            AccountChosenNavDirection.BACK -> accountRouter.back()
+            AccountChosenNavDirection.MAIN -> accountRouter.returnToWallet()
         }
     }
 

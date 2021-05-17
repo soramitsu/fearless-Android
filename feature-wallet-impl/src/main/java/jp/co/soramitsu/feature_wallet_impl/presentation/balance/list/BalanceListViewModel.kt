@@ -3,21 +3,22 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.BuyMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -25,14 +26,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
-private const val CHOOSER_ICON_SIZE = 24
 
 class BalanceListViewModel(
     private val interactor: WalletInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
     private val buyMixin: BuyMixin.Presentation,
-    private val transactionHistoryMixin: TransactionHistoryMixin
+    private val transactionHistoryMixin: TransactionHistoryMixin,
 ) : BaseViewModel(),
     TransactionHistoryUi by transactionHistoryMixin,
     BuyMixin by buyMixin {
@@ -50,7 +50,7 @@ class BalanceListViewModel(
     private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token.type }
 
     val buyEnabledLiveData = primaryTokenLiveData.map(initial = false) {
-        buyMixin.buyEnabled(it)
+        buyMixin.isBuyEnabled(it)
     }
 
     init {
@@ -59,8 +59,8 @@ class BalanceListViewModel(
 
     fun sync() {
         viewModelScope.launch {
-            val deferredAssetSync = async { interactor.syncAssetsRates() }
-            val deferredTransactionsSync = async { transactionHistoryMixin.syncFirstTransactionsPage() }
+            val deferredAssetSync = async(Dispatchers.Default) { interactor.syncAssetsRates() }
+            val deferredTransactionsSync = async(Dispatchers.Default) { transactionHistoryMixin.syncFirstTransactionsPage() }
 
             val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
 
@@ -93,7 +93,7 @@ class BalanceListViewModel(
         val address = currentAddressModelLiveData.value?.address ?: return
         val token = primaryTokenLiveData.value ?: return
 
-        buyMixin.startBuyProcess(token, address)
+        buyMixin.buyClicked(token, address)
     }
 
     fun accountSelected(addressModel: AddressModel) {
@@ -107,17 +107,7 @@ class BalanceListViewModel(
     }
 
     fun avatarClicked() {
-        val currentAddressModel = currentAddressModelLiveData.value!!
-
-        viewModelScope.launch {
-            val accounts = interactor.getAccountsInCurrentNetwork()
-
-            val addressModels = accounts.map { generateAddressModel(it, CHOOSER_ICON_SIZE) }
-
-            val chooserPayload = Payload(addressModels, currentAddressModel)
-
-            _showAccountChooser.value = Event(chooserPayload)
-        }
+        router.openChangeAccountFromWallet()
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {
@@ -125,8 +115,8 @@ class BalanceListViewModel(
             .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
     }
 
-    private suspend fun generateAddressModel(account: Account, sizeInDp: Int): AddressModel {
-        return addressIconGenerator.createAddressModel(account.address, sizeInDp)
+    private suspend fun generateAddressModel(account: WalletAccount, sizeInDp: Int): AddressModel {
+        return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
     }
 
     private fun balanceFlow(): Flow<BalanceModel> {

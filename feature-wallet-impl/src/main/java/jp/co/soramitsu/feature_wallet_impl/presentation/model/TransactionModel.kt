@@ -5,8 +5,8 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
 import java.math.BigDecimal
@@ -17,6 +17,7 @@ data class TransactionModel(
     val type: Token.Type,
     val senderAddress: String,
     val recipientAddress: String,
+    val accountName: String?,
     val amount: BigDecimal,
     val date: Long,
     val status: Transaction.Status,
@@ -24,6 +25,7 @@ data class TransactionModel(
     val isIncome: Boolean,
     val total: BigDecimal?
 ) : Parcelable {
+
     @IgnoredOnParcel
     val displayAddress = if (isIncome) senderAddress else recipientAddress
 
@@ -45,7 +47,7 @@ data class TransactionModel(
     }
 
     private fun createFormattedAmount(): String {
-        val withoutSign = amount.formatAsToken(type)
+        val withoutSign = amount.formatTokenAmount(type)
         val sign = if (isIncome) '+' else '-'
 
         return sign + withoutSign

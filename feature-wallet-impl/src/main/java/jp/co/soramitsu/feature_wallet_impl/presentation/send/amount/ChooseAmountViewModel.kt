@@ -4,15 +4,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.AddressModel
-import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.view.ButtonState
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -24,8 +25,12 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -56,10 +61,14 @@ class ChooseAmountViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
-    private val recipientAddress: String
+    private val walletConstants: WalletConstants,
+    private val recipientAddress: String,
+    private val phishingAddress: PhishingWarningMixin
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
-    TransferValidityChecks by transferValidityChecks {
+    TransferValidityChecks by transferValidityChecks,
+    PhishingWarningMixin by phishingAddress,
+    PhishingWarningPresentation {
 
     val recipientModelLiveData = liveData {
         emit(generateAddressModel(recipientAddress))
@@ -78,8 +87,8 @@ class ChooseAmountViewModel(
 
     private val checkingEnoughFundsLiveData = MutableLiveData(false)
 
-    private val _showBalanceDetailsEvent = MutableLiveData<Event<TransferDraft>>()
-    val showBalanceDetailsEvent: LiveData<Event<TransferDraft>> = _showBalanceDetailsEvent
+    private val _showBalanceDetailsEvent = MutableLiveData<Event<BalanceDetailsBottomSheet.Payload>>()
+    val showBalanceDetailsEvent: LiveData<Event<BalanceDetailsBottomSheet.Payload>> = _showBalanceDetailsEvent
 
     val assetLiveData = liveData {
         val asset = interactor.getCurrentAsset()
@@ -136,12 +145,27 @@ class ChooseAmountViewModel(
 
     fun availableBalanceClicked() {
         val transferDraft = buildTransferDraft() ?: return
+        val assetModel = assetLiveData.value ?: return
 
-        _showBalanceDetailsEvent.value = Event(transferDraft)
+        launch {
+            val existentialDeposit = assetModel.token.type.amountFromPlanks(walletConstants.existentialDeposit())
+
+            _showBalanceDetailsEvent.value = Event(BalanceDetailsBottomSheet.Payload(assetModel, transferDraft, existentialDeposit))
+        }
     }
 
     fun warningConfirmed() {
         openConfirmationScreen()
+    }
+
+    override fun proceedAddress(address: String) {
+        val transferDraft = buildTransferDraft() ?: return
+
+        router.openConfirmTransfer(transferDraft)
+    }
+
+    override fun declinePhishingAddress() {
+        router.back()
     }
 
     @OptIn(ExperimentalTime::class)
@@ -159,8 +183,6 @@ class ChooseAmountViewModel(
         .retry(RETRY_TIMES)
         .catch {
             _feeErrorLiveData.postValue(Event(RetryReason.LOAD_FEE))
-
-            it.printStackTrace()
 
             emit(null)
         }.onEach {
@@ -201,9 +223,9 @@ class ChooseAmountViewModel(
     }
 
     private fun openConfirmationScreen() {
-        val transferDraft = buildTransferDraft() ?: return
-
-        router.openConfirmTransfer(transferDraft)
+        viewModelScope.launch {
+            proceedOrShowPhishingWarning(recipientAddress)
+        }
     }
 
     private fun buildTransferDraft(): TransferDraft? {

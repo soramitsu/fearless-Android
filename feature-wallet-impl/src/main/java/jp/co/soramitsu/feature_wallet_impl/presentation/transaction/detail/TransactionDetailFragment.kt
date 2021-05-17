@@ -4,18 +4,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.StringRes
-import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.showBrowser
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import jp.co.soramitsu.common.account.external.actions.ExternalActionsSheet
-import jp.co.soramitsu.common.account.external.actions.ExternalViewCallback
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
-import jp.co.soramitsu.feature_wallet_impl.util.formatDateTime
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailAmount
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailDate
 import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailFee
@@ -83,12 +83,12 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
             transactionDetailDate.text = date.formatDateTime(requireContext())
 
-            transactionDetailAmount.text = amount.formatAsToken(type)
-            transactionDetailFee.text = fee?.formatAsToken(type) ?: getString(R.string.common_unknown)
+            transactionDetailAmount.text = amount.formatTokenAmount(type)
+            transactionDetailFee.text = fee?.formatTokenAmount(type) ?: getString(R.string.common_unknown)
 
             transactionDetailHash.setMessage(hash)
 
-            transactionDetailTotal.text = total?.formatAsToken(type) ?: getString(R.string.common_unknown)
+            transactionDetailTotal.text = total?.formatTokenAmount(type) ?: getString(R.string.common_unknown)
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->
@@ -116,16 +116,14 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
-            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(R.string.transaction_details_from, transaction.senderAddress)
-            ExternalActionsSource.TO_ADDRESS -> showExternalAddressActions(R.string.choose_amount_to, transaction.recipientAddress)
+            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(transaction.senderAddress)
+            ExternalActionsSource.TO_ADDRESS -> showExternalAddressActions(transaction.recipientAddress)
         }
     }
 
     private fun showExternalAddressActions(
-        @StringRes titleRes: Int,
         address: String
     ) = showExternalActionsSheet(
-        titleRes = titleRes,
         copyLabelRes = R.string.common_copy_address,
         value = address,
         externalViewCallback = viewModel::viewAccountExternalClicked
@@ -133,7 +131,6 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     private fun showExternalTransactionActions() {
         showExternalActionsSheet(
-            R.string.transaction_details_hash_title,
             R.string.transaction_details_copy_hash,
             viewModel.transaction.hash,
             viewModel::viewTransactionExternalClicked
@@ -141,13 +138,11 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     }
 
     private fun showExternalActionsSheet(
-        @StringRes titleRes: Int,
         @StringRes copyLabelRes: Int,
         value: String,
         externalViewCallback: ExternalViewCallback
     ) {
         val payload = ExternalActionsSheet.Payload(
-            titleRes = titleRes,
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
@@ -156,10 +151,10 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         )
 
         ExternalActionsSheet(
-                context = requireContext(),
-                payload = payload,
-                onCopy = viewModel::copyStringClicked,
-                onViewExternal = externalViewCallback
+            context = requireContext(),
+            payload = payload,
+            onCopy = viewModel::copyStringClicked,
+            onViewExternal = externalViewCallback
         )
             .show()
     }

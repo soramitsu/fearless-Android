@@ -7,18 +7,19 @@ import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatAsChange
+import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.setupBuyIntegration
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
-import jp.co.soramitsu.feature_wallet_impl.util.format
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsChange
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsToken
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetaiActions
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailAvailableAmount
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailBack
@@ -50,12 +51,14 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         return inflater.inflate(R.layout.fragment_balance_detail, container, false)
     }
 
     override fun initViews() {
+        hideKeyboard()
+
         transfersContainer.initializeBehavior(anchorView = balanceDetailContent)
 
         transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
@@ -123,7 +126,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
             asset.dollarAmount?.let { balanceDetailDollarAmount.text = it.formatAsCurrency() }
 
-            balanceDetailTotal.text = asset.total.formatAsToken(asset.token.type)
+            balanceDetailTotal.text = asset.total.formatTokenAmount(asset.token.type)
 
             balanceDetailFrozenAmount.text = asset.frozen.format()
             balanceDetailAvailableAmount.text = asset.available.format()

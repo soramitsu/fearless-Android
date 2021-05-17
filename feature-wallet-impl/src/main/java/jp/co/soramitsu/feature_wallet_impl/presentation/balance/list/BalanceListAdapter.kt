@@ -7,6 +7,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.list.PayloadGenerator
 import jp.co.soramitsu.common.list.resolvePayload
+import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatAsChange
+import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.shape.addRipple
@@ -14,9 +17,6 @@ import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
-import jp.co.soramitsu.feature_wallet_impl.util.format
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsChange
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetBalance
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetContainer
@@ -31,7 +31,9 @@ import java.math.BigDecimal
 val dollarRateExtractor = { assetModel: AssetModel -> assetModel.token.dollarRate }
 val recentChangeExtractor = { assetModel: AssetModel -> assetModel.token.recentRateChange }
 
-class BalanceListAdapter(private val itemHandler: ItemAssetHandler) : ListAdapter<AssetModel, AssetViewHolder>(AssetDiffCallback) {
+class BalanceListAdapter(
+    private val itemHandler: ItemAssetHandler
+) : ListAdapter<AssetModel, AssetViewHolder>(AssetDiffCallback) {
 
     interface ItemAssetHandler {
         fun assetClicked(asset: AssetModel)

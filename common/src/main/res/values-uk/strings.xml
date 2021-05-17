@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_setup_too_big_error">Вибачте, у вас недостатньо коштів для розміщення вказаної суми</string>
+    <string name="staking_setup_reward_payout_account">Рахунок для виплат</string>
+    <string name="staking_setup_reward_destination">Виберіть пункт призначення</string>
+    <string name="staking_setup_restake">Переробити</string>
+    <string name="staking_payout">Виплата</string>
+    <string name="staking_setup_learn_more">Дізнайтеся більше про виплати</string>
+
+    <string name="fee_not_yet_loaded_title">Триває розрахунок комісії</string>
+    <string name="fee_not_yet_loaded_message">Будь ласка, зачекайте, поки плата не буде нарахована</string>
+
+    <string name="staking_recommended_validators_title">Рекомендовані валідатори</string>
+    <string name="staking_recommended_validators_description">Ці валідатори матимуть для вас максимальний прибуток і менше шансів на шахрайство або невдачу.</string>
+    <string name="common_learn_more">Вчи більше</string>
+    <string name="staking_custom_validators_title">Виберіть власні валідатори</string>
+    <string name="staking_recommended_validators_apy">Орієнтовна винагорода, APY</string>
+    <string name="staking_selected_accounts_mask">Рахунки ( %d )</string>
+
+    <string name="runtime_update_failure_description">Не вдалося оновити інформацію про час роботи блокчейну. Деякі функції можуть не працювати.</string>
+    <string name="runtime_update_failure_title">Помилка виконання під час виконання</string>
+
     <string name="export_seed_with_derivation" formatted="false">Мережа: %s\nНасіння: %s\nШлях виведення: %s</string>
     <string name="export_seed_without_derivation" formatted="false">Мережа: %s\nНасіння: %s</string>
     <string name="export_mnemonic_without_derivation" formatted="false">Мережа: %s\nМнемоніка: %s</string>
@@ -133,7 +153,7 @@
     <string name="transfers_empty">Вхідні й вихідні транзакції з\'являтимуться тут</string>
 
     <string name="wallet_balance_available">Доступні</string>
-    <string name="wallet_balance_bonded">Кабальний</string>
+    <string name="wallet_balance_bonded">Закреплено</string>
     <string name="language_title">Мова</string>
     <string name="common_add">Додати</string>
     <string name="connection_add_invalid_error">Не вдається встановити зв’язок з вузлом. Будь ласка, спробуйте інший.</string>
@@ -170,7 +190,7 @@
     <string name="transaction_details_title">Деталі транзакції</string>
     <string name="transaction_details_from">Від</string>
     <string name="transaction_detail_status">Статус</string>
-    <string name="transaction_detail_date">Дата</string>
+    <string name="common_date">Дата</string>
 
     <string name="transaction_details_view_subscan">Переглянути в Subscan</string>
     <string name="transaction_details_view_polkascan">Вид на Полькаскані</string>
@@ -195,7 +215,7 @@
     <string name="pincode_changed_message">Успіх зміни пін-коду</string>
     <string name="common_share">Поділіться</string>
     <string name="import_json_paste">Вставити json</string>
-    <string name="account_import_json_no_network">JSON не містить інформації про мережу. Будь ласка, вкажіть це в розширеному блоці.</string>
+    <string name="account_import_json_no_network">JSON не містить інформації про мережу. Будь ласка, вкажіть це нижче.</string>
     <string name="invoice_scan_upload">Завантажити з галереї</string>
     <string name="invoice_scan_camera">Камера</string>
     <string name="invoice_scan_gallery">Галерея</string>
@@ -209,8 +229,47 @@
     <string name="node_add">Додати вузол</string>
     <string name="connection_delete_description_v1_0_1">Підтвердьте %s , %s видалення.</string>
     <string name="network_info_address_v1_0_1">URL-адреса</string>
-    <string name="wallet_send_dead_recipient_title">Сума занизька</string>
+    <string name="common_amount_low">Сума занизька</string>
     <string name="wallet_send_dead_recipient_message">Ваш переказ не вдасться, оскільки остаточна сума на цільовому рахунку буде меншою за екзистенційний депозит. Спробуйте збільшити суму.</string>
     <string name="wallet_asset_buy">Купуйте</string>
     <string name="buy_completed">Покупку розпочато! Зачекайте до 60 хвилин. Ви можете відстежувати стан за електронною поштою.</string>
+    <string name="wallet_send_phishing_warning_title">Попередження про шахрайство</string>
+    <string name="wallet_send_phishing_warning_text">Наступна адреса: %s як відомо, використовується у фішинг-діях, тому ми не рекомендуємо надсилати токени на цю адресу. Ви хочете всеодно продовжити?</string>
+    <string name="common_balance_format">Баланс: %s</string>
+    <string name="staking_start_title">Почніть робити ставку</string>
+    <string name="staking_title">Стекiнг</string>
+    <string name="staking_estimate_earning_title">Оцініть свій заробіток</string>
+    <string name="staking_month_period_title">Щомісяця</string>
+    <string name="staking_year_period_title">Щорічно</string>
+    <string name="staking_setup_amount_too_low">Не можна робити ставку менше мінімального значення (%s)</string>
+    <string name="staking_validator_info_title">Інформація про валідатор</string>
+    <string name="staking_validator_total_stake">Загальна ставка</string>
+    <string name="staking_validator_nominators">Номінатори</string>
+    <string name="staking_validator_estimated_reward">Орієнтовна винагорода</string>
+    <string name="identity_title">Ідентичність</string>
+    <string name="identity_display_name_title">Відображуване ім’я</string>
+    <string name="identity_legal_name_title">Юридична назва</string>
+    <string name="identity_email_title">Електронна пошта</string>
+    <string name="identity_web_title">Веб</string>
+    <string name="identity_riot_name_title">Назва бунту</string>
+    <string name="network_fee">Плата за мережу</string>
+    <string name="staking_reward_destination">Нагорода призначення</string>
+    <string name="common_confirm">Підтвердити</string>
+    <string name="staking_confirm_selected_validators">Вибрані валідатори</string>
+    <string name="staking_confirm_nominations">%s з %s</string>
+    <string name="validator_not_elected_description">Цей рахунок не обраний мережею для участі в поточній ері</string>
+    <string name="staking_validator_own_stake">Власний</string>
+    <string name="staking_validator_total">Разом</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="one">%s день</item>
+        <item quantity="few">%s дні</item>
+        <item quantity="many">%s днів</item>
+        <item quantity="other">%s днів</item>
+    </plurals>
+    <string name="staking_main_active_nominators_title">Активні номінатори</string>
+    <string name="staking_main_minimum_stake_title">Мінімальна ставка</string>
+    <string name="staking_main_lockup_period_title">Період блокування</string>
+    <string name="staking_main_network_title">Мережа %s</string>
+    <string name="staking_total_staked">Загальна ставка</string>
+    <string name="wallet_balance_frozen">Заморожено</string>
 </resources>

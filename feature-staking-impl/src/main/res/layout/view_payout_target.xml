@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    tools:background="@color/black"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <RadioButton
+        android:id="@+id/payoutTargetCheck"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="16dp"
+        android:buttonTint="@color/tint_radio_button"
+        android:clickable="false"
+        android:duplicateParentState="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/payoutTargetCheck"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/payoutTargetName"
+            style="@style/TextAppearance.Soramitsu.Header5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@+id/payoutTargetCheck"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Restake" />
+
+        <TextView
+            android:id="@+id/payoutTargetAmountGain"
+            style="@style/TextAppearance.Soramitsu.CapsTitle1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/green"
+            app:layout_constraintStart_toStartOf="@+id/payoutTargetName"
+            app:layout_constraintTop_toBottomOf="@+id/payoutTargetName"
+            tools:text="+35.51%" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="end|center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/payoutTargetAmountToken"
+            style="@style/TextAppearance.Soramitsu.CapsTitle1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="4.12 KSM" />
+
+        <TextView
+            android:id="@+id/payoutTargetAmountFiat"
+            style="@style/TextAppearance.Soramitsu.CapsTitle1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/gray1"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/payoutTargetAmountToken"
+            tools:text="$432.9" />
+    </LinearLayout>
+</merge>

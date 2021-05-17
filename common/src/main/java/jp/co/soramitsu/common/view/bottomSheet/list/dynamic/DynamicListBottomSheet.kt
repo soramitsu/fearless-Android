@@ -11,6 +11,17 @@ import kotlinx.android.synthetic.main.bottom_sheet_dynamic_list.dynamicListSheet
 
 typealias ClickHandler<T> = (T) -> Unit
 
+class ReferentialEqualityDiffCallBack<T> : DiffUtil.ItemCallback<T>() {
+
+    override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
+        return oldItem === newItem
+    }
+
+    override fun areContentsTheSame(oldItem: T, newItem: T): Boolean {
+        return true
+    }
+}
+
 abstract class DynamicListBottomSheet<T>(
     context: Context,
     private val payload: Payload<T>,

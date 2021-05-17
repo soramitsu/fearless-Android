@@ -1,8 +1,9 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
 import androidx.lifecycle.MutableLiveData
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.utils.applyFilters
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
@@ -13,6 +14,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mode
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -47,6 +49,7 @@ class TransactionHistoryProvider(
 
         walletInteractor.transactionsFirstPageFlow(PAGE_SIZE)
             .map { transformNewPage(it, true) }
+            .flowOn(Dispatchers.Default)
             .onEach {
                 lastPageLoaded = false
                 isLoading = false
@@ -69,7 +72,7 @@ class TransactionHistoryProvider(
 
         scope.launch {
             val filtered = withContext(Dispatchers.Default) {
-                currentTransactions.filter(filters)
+                currentTransactions.applyFilters(filters)
             }
 
             transactionsLiveData.value = filtered
@@ -118,13 +121,13 @@ class TransactionHistoryProvider(
     }
 
     private suspend fun transformNewPage(page: List<Transaction>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
-        val models = page.map(::mapTransactionToTransactionModel)
+        val transactions = page.map(::mapTransactionToTransactionModel)
 
-        val filteredHistoryElements = models.map { model ->
-            val addressModel = createIcon(model.displayAddress)
+        val filteredHistoryElements = transactions.map { transaction ->
+            val addressModel = createIcon(transaction.displayAddress, transaction.accountName)
 
-            TransactionHistoryElement(addressModel, model)
-        }.filter(filters)
+            TransactionHistoryElement(addressModel, transaction)
+        }.applyFilters(filters)
 
         regroup(filteredHistoryElements, reset)
     }
@@ -142,11 +145,7 @@ class TransactionHistoryProvider(
             }.flatten()
     }
 
-    private suspend fun createIcon(address: String): AddressModel {
-        return iconGenerator.createAddressModel(address, ICON_SIZE_DP)
-    }
-
-    private fun List<TransactionHistoryElement>.filter(filters: List<TransactionFilter>): List<TransactionHistoryElement> {
-        return filter { item -> filters.all { filter -> filter.shouldInclude(item) } }
+    private suspend fun createIcon(address: String, accountName: String?): AddressModel {
+        return iconGenerator.createAddressModel(address, ICON_SIZE_DP, accountName)
     }
 }

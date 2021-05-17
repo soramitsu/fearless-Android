@@ -5,7 +5,7 @@
     android:id="@+id/balanceDetailContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/wallet_background">
+    android:background="@drawable/drawable_background_image">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -160,7 +160,7 @@
                     android:drawablePadding="4dp"
                     android:gravity="center"
                     android:includeFontPadding="false"
-                    android:text="@string/wallet_balance_bonded"
+                    android:text="@string/wallet_balance_frozen"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintHorizontal_chainStyle="packed"

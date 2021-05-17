@@ -4,5 +4,7 @@ import java.io.File
 
 interface FileProvider {
 
-    suspend fun createFileInTempStorage(fileName: String): File
+    suspend fun getFileInExternalCacheStorage(fileName: String): File
+
+    suspend fun getFileInInternalCacheStorage(fileName: String): File
 }

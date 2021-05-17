@@ -1,44 +1,50 @@
 package jp.co.soramitsu.feature_account_impl.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
+import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
+import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
+import jp.co.soramitsu.common.data.mappers.mapKeyPairToSigningData
+import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.resources.LanguagesHolder
-import jp.co.soramitsu.common.utils.encode
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.utils.toAddress
+import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.JsonFormer
+import jp.co.soramitsu.core.model.Language
+import jp.co.soramitsu.core.model.Network
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.core.model.WithJson
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
-import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
-import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
-import jp.co.soramitsu.feature_account_api.domain.model.CryptoType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
-import jp.co.soramitsu.feature_account_api.domain.model.JsonFormer
-import jp.co.soramitsu.feature_account_api.domain.model.Language
-import jp.co.soramitsu.feature_account_api.domain.model.Network
-import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.SecuritySource
-import jp.co.soramitsu.feature_account_api.domain.model.SigningData
-import jp.co.soramitsu.feature_account_api.domain.model.WithJson
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 
@@ -47,7 +53,6 @@ class AccountRepositoryImpl(
     private val accountDao: AccountDao,
     private val nodeDao: NodeDao,
     private val bip39: Bip39,
-    private val sS58Encoder: SS58Encoder,
     private val junctionDecoder: JunctionDecoder,
     private val keypairFactory: KeypairFactory,
     private val jsonSeedDecoder: JsonSeedDecoder,
@@ -87,7 +92,7 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun getDefaultNode(networkType: Node.NetworkType): Node {
-        return getNetworkForType(networkType).defaultNode
+        return mapNodeLocalToNode(nodeDao.getDefaultNodeFor(networkType.ordinal))
     }
 
     override suspend fun selectAccount(account: Account) {
@@ -135,14 +140,25 @@ class AccountRepositoryImpl(
             .flowOn(Dispatchers.Default)
     }
 
+    override suspend fun getAccounts(): List<Account> {
+        return accountDao.getAccounts()
+            .map { mapAccountLocalToAccount(it) }
+    }
+
     override suspend fun getAccount(address: String): Account {
-        val account = accountDao.getAccount(address)
+        val account = accountDao.getAccount(address) ?: throw NoSuchElementException("No account found for address $address")
         return mapAccountLocalToAccount(account)
     }
 
-    override suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<String> {
+    override suspend fun getAccountOrNull(address: String): Account? {
+        return accountDao.getAccount(address)?.let { mapAccountLocalToAccount(it) }
+    }
+
+    override suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<Account> {
         return withContext(Dispatchers.Default) {
-            accountDao.getAddresses(query, networkType).toSet()
+            accountDao.getAccounts(query, networkType)
+                .map { mapAccountLocalToAccount(it) }
+                .toSet()
         }
     }
 
@@ -183,7 +199,7 @@ class AccountRepositoryImpl(
 
             val signingData = mapKeyPairToSigningData(keys)
 
-            val address = sS58Encoder.encode(keys.publicKey, networkType)
+            val address = keys.publicKey.toAddress(networkType)
 
             val securitySource = SecuritySource.Specified.Seed(seedBytes, signingData, derivationPath)
 
@@ -217,7 +233,7 @@ class AccountRepositoryImpl(
 
                 val securitySource = SecuritySource.Specified.Json(seed, signingData)
 
-                val actualAddress = sS58Encoder.encode(keypair.publicKey, networkType)
+                val actualAddress = keypair.publicKey.toAddress(networkType)
 
                 val accountLocal = insertAccount(actualAddress, name, publicKeyEncoded, cryptoType, networkType)
 
@@ -254,10 +270,10 @@ class AccountRepositoryImpl(
         val currentAccount = getSelectedAccount()
 
         return try {
-            val otherAddressByte = sS58Encoder.extractAddressByte(address)
-            val currentAddressByte = sS58Encoder.extractAddressByte(currentAccount.address)
+            val otherAddressByte = address.addressByte()
+            val currentAddressByte = currentAccount.address.addressByte()
 
-            sS58Encoder.decode(address) // decoded without exception
+            address.toAccountId() // decoded without exception
 
             otherAddressByte == currentAddressByte
         } catch (_: Exception) {
@@ -337,6 +353,10 @@ class AccountRepositoryImpl(
         }
     }
 
+    override suspend fun isAccountExists(accountAddress: String): Boolean {
+        return accountDao.accountExists(accountAddress)
+    }
+
     override fun nodesFlow(): Flow<List<Node>> {
         return nodeDao.nodesFlow()
             .mapList { mapNodeLocalToNode(it) }
@@ -346,6 +366,11 @@ class AccountRepositoryImpl(
 
     override fun selectedNodeFlow(): Flow<Node> {
         return accountDataSource.selectedNodeFlow()
+    }
+
+    override fun selectedNetworkTypeFlow(): Flow<Node.NetworkType> {
+        return selectedAccountFlow().map { it.network.type }
+            .distinctUntilChanged()
     }
 
     override fun getLanguages(): List<Language> {
@@ -408,7 +433,7 @@ class AccountRepositoryImpl(
             val password = junctionDecoder.getPassword(derivationPath)
             val seed = bip39.generateSeed(entropy, password)
             val keys = keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
-            val address = sS58Encoder.encode(keys.publicKey, networkType)
+            val address = keys.publicKey.toAddress(networkType)
             val signingData = mapKeyPairToSigningData(keys)
 
             val securitySource: SecuritySource.Specified = if (isImport) {
@@ -426,47 +451,11 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapCryptoTypeToEncryption(cryptoType: CryptoType): EncryptionType {
-        return when (cryptoType) {
-            CryptoType.SR25519 -> EncryptionType.SR25519
-            CryptoType.ED25519 -> EncryptionType.ED25519
-            CryptoType.ECDSA -> EncryptionType.ECDSA
-        }
-    }
-
-    private fun mapEncryptionToCryptoType(cryptoType: EncryptionType): CryptoType {
-        return when (cryptoType) {
-            EncryptionType.SR25519 -> CryptoType.SR25519
-            EncryptionType.ED25519 -> CryptoType.ED25519
-            EncryptionType.ECDSA -> CryptoType.ECDSA
-        }
-    }
-
     private fun constructNetworkType(identifier: NetworkTypeIdentifier): Node.NetworkType? {
         return when (identifier) {
             is NetworkTypeIdentifier.Genesis -> Node.NetworkType.findByGenesis(identifier.genesis)
             is NetworkTypeIdentifier.AddressByte -> Node.NetworkType.findByAddressByte(identifier.addressByte)
             is NetworkTypeIdentifier.Undefined -> null
-        }
-    }
-
-    private fun mapKeyPairToSigningData(keyPair: Keypair): SigningData {
-        return with(keyPair) {
-            SigningData(
-                publicKey = publicKey,
-                privateKey = privateKey,
-                nonce = nonce
-            )
-        }
-    }
-
-    private fun mapSigningDataToKeypair(singingData: SigningData): Keypair {
-        return with(singingData) {
-            Keypair(
-                publicKey = publicKey,
-                privateKey = privateKey,
-                nonce = nonce
-            )
         }
     }
 
@@ -503,7 +492,9 @@ class AccountRepositoryImpl(
     private suspend fun switchToAccount(account: Account) {
         selectAccount(account)
 
-        selectNode(account.network.defaultNode)
+        val defaultNode = getDefaultNode(account.address.networkType())
+
+        selectNode(defaultNode)
     }
 
     private suspend fun insertAccount(
@@ -533,15 +524,7 @@ class AccountRepositoryImpl(
         throw AccountAlreadyExistsException()
     }
 
-    private suspend fun getNetworkForType(networkType: Node.NetworkType): Network {
-        val defaultNode = nodeDao.getDefaultNodeFor(networkType.ordinal)
-
-        return Network(networkType, mapNodeLocalToNode(defaultNode))
-    }
-
-    private fun mapNodeLocalToNode(it: NodeLocal): Node {
-        val networkType = Node.NetworkType.values()[it.networkType]
-
-        return Node(it.id, it.name, networkType, it.link, it.isDefault)
+    private fun getNetworkForType(networkType: Node.NetworkType): Network {
+        return Network(networkType)
     }
 }

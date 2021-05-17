@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_setup_too_big_error">Извините, у Вас недостаточно средств для стекинга выбранной суммы</string>
+    <string name="staking_setup_reward_payout_account">Аккаунт для выплат вознаграждения</string>
+    <string name="staking_setup_reward_destination">Что делать с вознаграждением</string>
+    <string name="staking_setup_restake">В стекинг</string>
+    <string name="staking_payout">Выплатить</string>
+    <string name="staking_setup_learn_more">Узнать больше про выплаты</string>
+
+    <string name="fee_not_yet_loaded_title">Расчет комиссии в процессе</string>
+    <string name="fee_not_yet_loaded_message">Подождите, пока будет рассчитана комиссия</string>
+
+    <string name="staking_recommended_validators_title">Рекомендуемые валидаторы</string>
+    <string name="staking_recommended_validators_description">Эти валидаторы принесут вам максимальную прибыль с наименьшим шансом мошенничества или провала.</string>
+    <string name="common_learn_more">Узнать больше</string>
+    <string name="staking_custom_validators_title">Выберите валидаторов сами</string>
+    <string name="staking_recommended_validators_apy">Примерное вознаграждение, APY</string>
+    <string name="staking_selected_accounts_mask">Аккаунттар(%d)</string>
+
+    <string name="runtime_update_failure_description">Не удалось обновить информацию о времени выполнения блокчейна. Некоторые функции могут не работать.</string>
+    <string name="runtime_update_failure_title">Ошибка обновления среды выполнения</string>
+
     <string name="export_seed_with_derivation" formatted="false">Сеть: %s\nСид: %s\nПуть деривации: %s</string>
     <string name="export_seed_without_derivation" formatted="false">Сеть: %s\nСид: %s</string>
     <string name="export_mnemonic_without_derivation" formatted="false">Сеть: %s\nМнемоника: %s</string>
@@ -133,7 +153,7 @@
     <string name="transfers_empty">Килгән һәм ебәрелгән транзакциялар бында күрһәтеләсәк</string>
 
     <string name="wallet_balance_available">Доступно</string>
-    <string name="wallet_balance_bonded">Заморожено</string>
+    <string name="wallet_balance_bonded">Тоташыу</string>
     <string name="language_title">Тел</string>
     <string name="common_add">Добавить</string>
     <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
@@ -171,7 +191,7 @@
     <string name="transaction_details_title">Детали транзакции</string>
     <string name="transaction_details_from">От</string>
     <string name="transaction_detail_status">Статус</string>
-    <string name="transaction_detail_date">Дата</string>
+    <string name="common_date">Дата</string>
 
     <string name="transaction_details_view_subscan">Просмотреть в Subscan</string>
     <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
@@ -193,7 +213,7 @@
     <string name="common_copy_address">Копировать адрес</string>
     <string name="common_choose_file">Загрузить файл</string>
     <string name="import_json_paste">Json профилендә</string>
-    <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных настроек.</string>
+    <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке ниже</string>
     <string name="pincode_enter_new_pin_code">Яңы индерелгән pin-код</string>
     <string name="pincode_changed_message">Яңыртыу Pin-код</string>
     <string name="common_share">Поделиться</string>
@@ -210,8 +230,45 @@
     <string name="node_add">Добавить узел</string>
     <string name="connection_delete_description_v1_0_1">Подтвердите удаление %s , %s .</string>
     <string name="network_info_address_v1_0_1">URL-адрес</string>
-    <string name="wallet_send_dead_recipient_title">Сумма слишком мала</string>
+    <string name="common_amount_low">Сумма слишком мала</string>
     <string name="wallet_send_dead_recipient_message">Ваш перевод не состоится, так как окончательная сумма на целевом счете будет меньше, чем существующий депозит. Пожалуйста, попробуйте увеличить сумму.</string>
     <string name="wallet_asset_buy">Купить</string>
     <string name="buy_completed">Покупка началась! Подождите до 60 минут. Вы можете отслеживать статус по электронной почте.</string>
+    <string name="wallet_send_phishing_warning_title">Мутлыҡ тураһында иҫкәртеү</string>
+    <string name="wallet_send_phishing_warning_text">Сираттағы адрес: %s фишинга ҡулланыла, шуға күрә беҙ ошо адресҡа ебәрергә кәңәш итмәйбеҙ. Һеҙ барыбер дауам итергә теләйһегеҙ?</string>
+    <string name="common_balance_format">Баланс: %s</string>
+    <string name="staking_start_title">Начать стекинг</string>
+    <string name="staking_title">Һалыу</string>
+    <string name="staking_estimate_earning_title">Оцените свой заработок</string>
+    <string name="staking_month_period_title">Ежемесячно</string>
+    <string name="staking_year_period_title">Ежегодно</string>
+    <string name="staking_setup_amount_too_low">Ставка не может быть меньше минимального значения (%s)</string>
+    <string name="staking_validator_info_title">Информация о валидаторе</string>
+    <string name="staking_validator_total_stake">Всего</string>
+    <string name="staking_validator_nominators">Номинаторы</string>
+    <string name="staking_validator_estimated_reward">Примерное вознаграждение</string>
+    <string name="identity_title">Идентификация</string>
+    <string name="identity_display_name_title">Отображаемое имя</string>
+    <string name="identity_legal_name_title">Юридическое название</string>
+    <string name="identity_email_title">Почта</string>
+    <string name="identity_web_title">Сеть</string>
+    <string name="identity_riot_name_title">Имя Riot</string>
+    <string name="network_fee">Комиссия сети</string>
+    <string name="staking_reward_destination">Награда</string>
+    <string name="common_confirm">Раҫларға</string>
+    <string name="staking_confirm_selected_validators">Выбранные валидаторы</string>
+    <string name="staking_confirm_nominations">%s из %s</string>
+    <string name="validator_not_elected_description">Эта учетная запись не выбрана сетью для участия в текущей эпохе</string>
+    <string name="staking_validator_own_stake">Собственный</string>
+    <string name="staking_validator_total">Всего</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="one">%s көн</item>
+        <item quantity="other">%s көн</item>
+    </plurals>
+    <string name="staking_main_active_nominators_title">Актив номинаторҙар</string>
+    <string name="staking_main_minimum_stake_title">Минималь стейк</string>
+    <string name="staking_main_lockup_period_title">Ҡамау ваҡыты</string>
+    <string name="staking_main_network_title">%s селтәр</string>
+    <string name="staking_total_staked">Дөйөм стейкта</string>
+    <string name="wallet_balance_frozen">Туңдырылған</string>
 </resources>

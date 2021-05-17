@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import com.google.zxing.integration.android.IntentIntegrator
-import jp.co.soramitsu.common.account.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onDoneClicked
@@ -17,18 +16,18 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.askPermissionsSafely
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientField
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientFlipper
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientList
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientToolbar
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private const val INDEX_WELCOME = 0
 private const val INDEX_CONTENT = 1
 private const val INDEX_EMPTY = 2
 
-class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), ChooseRecipientAdapter.NodeItemHandler {
+class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), ChooseRecipientAdapter.RecipientItemHandler {
 
     companion object {
         private const val PICK_IMAGE_REQUEST = 101
@@ -36,8 +35,6 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
     }
 
     private lateinit var adapter: ChooseRecipientAdapter
-
-    @Inject lateinit var qrBitmapDecoder: QrBitmapDecoder
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -96,6 +93,12 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
             searchRecipientField.setText(it)
         }
 
+        viewModel.declinePhishingAddress.observeEvent {
+            searchRecipientField.setText("")
+        }
+
+        observePhishingCheck(viewModel)
+
         searchRecipientField.onTextChanged(viewModel::queryChanged)
     }
 
@@ -127,8 +130,8 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
         integrator.initiateScan()
     }
 
-    override fun contactClicked(addressModel: AddressModel) {
-        viewModel.recipientSelected(addressModel.address)
+    override fun contactClicked(address: String) {
+        viewModel.recipientSelected(address)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

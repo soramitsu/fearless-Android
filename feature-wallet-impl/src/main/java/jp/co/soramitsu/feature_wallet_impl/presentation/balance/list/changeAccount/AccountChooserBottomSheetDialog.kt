@@ -4,7 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.DiffUtil
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -44,7 +44,7 @@ private class AddressModelHolder(parent: View) : DynamicListSheetAdapter.Holder<
         super.bind(item, isSelected, handler)
 
         with(itemView) {
-            accountTitle.text = item.address
+            accountTitle.text = item.name ?: item.address
             accountIcon.setImageDrawable(item.image)
             accountChecked.visibility = if (isSelected) View.VISIBLE else View.INVISIBLE
         }

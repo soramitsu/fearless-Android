@@ -3,16 +3,16 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
-import jp.co.soramitsu.common.account.mnemonicViewer.MnemonicWordModel
-import jp.co.soramitsu.common.account.mnemonicViewer.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload.CreateExtras
+import jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.MnemonicWordModel
+import jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.mapMnemonicToMnemonicWords
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -20,11 +20,10 @@ class BackupMnemonicViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val accountName: String,
-    private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
-    private val networkChooserMixin: NetworkChooserMixin
+    private val selectedNetworkType: Node.NetworkType,
+    private val cryptoTypeChooserMixin: CryptoTypeChooserMixin
 ) : BaseViewModel(),
-    CryptoTypeChooserMixin by cryptoTypeChooserMixin,
-    NetworkChooserMixin by networkChooserMixin {
+    CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
     val mnemonicLiveData = liveData {
         emit(generateMnemonic())
@@ -43,7 +42,7 @@ class BackupMnemonicViewModel(
 
     fun nextClicked(derivationPath: String) {
         val cryptoTypeModel = selectedEncryptionTypeLiveData.value ?: return
-        val selectedNetwork = selectedNetworkLiveData.value ?: return
+
         val mnemonicWords = mnemonicLiveData.value ?: return
 
         val mnemonic = mnemonicWords.map(MnemonicWordModel::word)
@@ -53,7 +52,7 @@ class BackupMnemonicViewModel(
             CreateExtras(
                 accountName,
                 cryptoTypeModel.cryptoType,
-                selectedNetwork.networkTypeUI.networkType,
+                selectedNetworkType,
                 derivationPath
             )
         )

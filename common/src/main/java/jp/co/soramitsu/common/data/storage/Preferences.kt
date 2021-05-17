@@ -1,6 +1,6 @@
 package jp.co.soramitsu.common.data.storage
 
-import jp.co.soramitsu.feature_account_api.domain.model.Language
+import jp.co.soramitsu.core.model.Language
 
 interface Preferences {
     fun contains(field: String): Boolean

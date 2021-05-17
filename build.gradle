@@ -1,8 +1,8 @@
 buildscript {
     ext {
         // App version
-        versionName = '1.2.2'
-        versionCode = 11
+        versionName = '1.7 RC1'
+        versionCode = 13
 
         // SDK and tools
         compileSdkVersion = 29
@@ -10,6 +10,8 @@ buildscript {
         targetSdkVersion = 29
 
         kotlinVersion = '1.4.21'
+
+        ktlintPinterestVersion = '0.40.0'
 
         supportVersion = '1.1.0'
         cardViewVersion = '1.0.0'
@@ -40,7 +42,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.48'
+        fearlessLibVersion = '1.0.61'
 
         gifVersion = '1.2.19'
 
@@ -56,7 +58,15 @@ buildscript {
 
         permissionsVersion = '1.1.2'
 
+        insetterVersion = "0.5.0"
+
+        shimmerVersion = '0.5.0'
+
+        storiesVersion = '3.0.0'
+
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+
+        insetterDep = "dev.chrisbanes.insetter:insetter-widgets:$insetterVersion"
 
         androidDep = "androidx.appcompat:appcompat:$supportVersion"
         cardViewDep = "androidx.cardview:cardview:$cardViewVersion"
@@ -96,6 +106,8 @@ buildscript {
         retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
         interceptorVersion = "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
         gsonConvertedDep = "com.squareup.retrofit2:converter-gson:$retrofitVersion"
+        scalarsConverterDep = "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
+
         gsonDep = "com.google.code.gson:gson:$gsonVersion"
 
         zXingCoreDep = "com.google.zxing:core:$zXingVersion"
@@ -106,6 +118,10 @@ buildscript {
         gifDep = "pl.droidsonroids.gif:android-gif-drawable:$gifVersion"
 
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
+
+        shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
+
+        storiesDep = "com.github.shts:StoriesProgressView:$storiesVersion"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"
@@ -137,6 +153,7 @@ allprojects {
         maven { url "https://jitpack.io" }
         maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
         mavenCentral()
+        mavenLocal()
     }
 }
 
@@ -149,16 +166,27 @@ task clean(type: Delete) {
 }
 
 dependencies {
-    ktlint 'com.github.shyiko:ktlint:0.31.0'
+    ktlint "com.pinterest:ktlint:$ktlintPinterestVersion"
 }
 
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."
     classpath = configurations.ktlint
-    main = "com.github.shyiko.ktlint.Main"
-    args "$project.rootDir/**/src/main/**/*.kt", "--reporter=plain", "--reporter=checkstyle,output=${buildDir}/reports/checkstyle/kotlin-checkstyle-report.xml"
+    main = "com.pinterest.ktlint.Main"
+    args "--reporter=plain"
+    args "--android"
+    args "--reporter=checkstyle,output=${project.buildDir}/reports/checkstyle/ktlint.xml"
+    args "$project.rootDir/**/src/main/**/*.kt"
+}
+
+task ktlintFormat(type: JavaExec, group: "formatting") {
+    description = "Fix Kotlin code style deviations."
+    classpath = configurations.ktlint
+    main = "com.pinterest.ktlint.Main"
+    args "-F", "$project.rootDir/**/src/main/**/*.kt"
+    args "--android"
 }
 
 task runTest(type: GradleBuild) {
-  tasks = ['clean', 'ktlint', 'runModuleTests']
+    tasks = ['clean', 'ktlint', 'runModuleTests']
 }

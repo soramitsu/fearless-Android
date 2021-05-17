@@ -19,6 +19,8 @@ android {
         buildConfigField "String", "TELEGRAM_URL", "\"https://t.me/fearlesswallet\""
         buildConfigField "String", "EMAIL", "\"fearless@soramitsu.co.jp\""
 
+        buildConfigField "String", "TWITTER_ACCOUNT_TEMPLATE", "\"https://twitter.com/%s\""
+
         buildConfigField "String", "ROADMAP_URL", "\"https://soramitsucoltd.aha.io/shared/97bc3006ee3c1baa0598863615cf8d14\""
         buildConfigField "String", "DEV_STATUS_URL", "\"https://soramitsucoltd.aha.io/shared/343e5db57d53398e3f26d0048158c4a2\""
 
@@ -27,6 +29,11 @@ android {
 
         buildConfigField "String", "POLKSASCAN_TRANSACTION_TEMPLATE", "\"https://polkascan.io/%1\$s/extrinsic/%2\$s\""
         buildConfigField "String", "POLKSASCAN_ACCOUNT_TEMPLATE", "\"https://polkascan.io/%1\$s/account/%2\$s\""
+
+        buildConfigField "String", "NOMINATOR_LEARN_MORE", "\"https://wiki.polkadot.network/docs/en/learn-nominator\""
+        buildConfigField "String", "PAYOUTS_LEARN_MORE", "\"https://wiki.polkadot.network/docs/en/learn-simple-payouts\""
+
+        buildConfigField "String", "SET_CONTROLLER_LEARN_MORE", "\"https://wiki.polkadot.network/docs/en/maintain-guides-how-to-nominate-polkadot#setting-up-stash-and-controller-keys\""
     }
 
     buildTypes {
@@ -47,7 +54,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation project(':feature-account-api')
+    api project(":core-api")
 
     implementation kotlinDep
 
@@ -63,6 +70,7 @@ dependencies {
 
     implementation coroutinesDep
     implementation liveDataKtxDep
+    implementation lifeCycleKtxDep
 
     implementation viewModelKtxDep
 
@@ -74,6 +82,7 @@ dependencies {
 
     implementation retrofitDep
     implementation gsonConvertedDep
+    implementation scalarsConverterDep
     implementation interceptorVersion
 
     implementation zXingCoreDep

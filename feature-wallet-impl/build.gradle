@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 apply from: '../tests.gradle'
+apply from: '../scripts/secrets.gradle'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -15,12 +16,20 @@ android {
 
         buildConfigField "String", "RAMP_TOKEN", "\"4bk3yhfrg99fer764bo7egrqmxbfene7gbrpwmp3\""
         buildConfigField "String", "RAMP_HOST", "\"ri-widget-staging.firebaseapp.com\""
+
+        buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecret("MOONPAY_TEST_SECRET")
+        buildConfigField "String", "MOONPAY_HOST", "\"buy-staging.moonpay.com\""
+        buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_test_DMRuyL6Nf1qc9OzjPBmCFBeCGkFwiZs0\""
     }
 
     buildTypes {
         release {
             buildConfigField "String", "RAMP_TOKEN", "\"3quzr4e6wdyccndec8jzjebzar5kxxzfy2f3us5k\""
             buildConfigField "String", "RAMP_HOST", "\"buy.ramp.network\""
+
+            buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecret("MOONPAY_PRODUCTION_SECRET")
+            buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_live_Boi6Rl107p7XuJWBL8GJRzGWlmUSoxbz\""
+            buildConfigField "String", "MOONPAY_HOST", "\"buy.moonpay.com\""
 
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -37,6 +46,7 @@ dependencies {
     implementation project(':common')
     implementation project(':feature-wallet-api')
     implementation project(':feature-account-api')
+    implementation project(':runtime')
 
     implementation kotlinDep
 
@@ -77,4 +87,6 @@ dependencies {
 
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
+
+    implementation insetterDep
 }

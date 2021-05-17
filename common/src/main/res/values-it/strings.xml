@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_setup_too_big_error">Spiacenti, non hai fondi sufficienti per puntare l\'importo specificato</string>
+    <string name="staking_setup_reward_payout_account">Conto di pagamento</string>
+    <string name="staking_setup_reward_destination">Scegli la destinazione premio</string>
+    <string name="staking_setup_restake">Restake</string>
+    <string name="staking_payout">Pagamento</string>
+    <string name="staking_setup_learn_more">Ulteriori informazioni sui pagamenti</string>
+
+    <string name="fee_not_yet_loaded_title">Il calcolo della commissione è in corso</string>
+    <string name="fee_not_yet_loaded_message">Attendi fino al calcolo della tariffa</string>
+
+    <string name="staking_recommended_validators_title">Validatori consigliati</string>
+    <string name="staking_recommended_validators_description">Questi validatori avranno il massimo profitto per te e meno possibilità di truffa o fallimento.</string>
+    <string name="common_learn_more">Per saperne di più</string>
+    <string name="staking_custom_validators_title">Seleziona validatori personalizzati</string>
+    <string name="staking_recommended_validators_apy">Ricompensa stimata, APY</string>
+    <string name="staking_selected_accounts_mask">Account ( %d )</string>
+
+    <string name="runtime_update_failure_description">Impossibile aggiornare le informazioni sul runtime blockchain. Alcune funzionalità potrebbero non funzionare.</string>
+    <string name="runtime_update_failure_title">Errore di aggiornamento del runtime</string>
+
     <string name="export_seed_with_derivation" formatted="false">Rete: %s\nSeme: %s\nPercorso di derivazione: %s</string>
     <string name="export_seed_without_derivation" formatted="false">Rete: %s\nSeme: %s</string>
     <string name="export_mnemonic_without_derivation" formatted="false">Rete: %s\nMnemonico: %s</string>
@@ -132,7 +152,7 @@
     <string name="transfers_empty">In entrata e in uscita trasferimenti appariranno qui</string>
 
     <string name="wallet_balance_available">A disposizione</string>
-    <string name="wallet_balance_bonded">Legato</string>
+    <string name="wallet_balance_bonded">In bonding</string>
     <string name="language_title">Lingua</string>
     <string name="common_add">Inserisci</string>
     <string name="connection_add_invalid_error">Impossibile stabilire la connessione con il nodo. Per favore, provane un altro.</string>
@@ -169,7 +189,7 @@
     <string name="transaction_details_title">Dettagli di Transazione</string>
     <string name="transaction_details_from">A partire dal</string>
     <string name="transaction_detail_status">Stato</string>
-    <string name="transaction_detail_date">Data</string>
+    <string name="common_date">Data</string>
 
     <string name="transaction_details_view_subscan">Visualizza in Subscan</string>
     <string name="transaction_details_view_polkascan">Visualizza in Polkascan</string>
@@ -191,7 +211,7 @@
     <string name="common_choose_file">Caricare un file</string>
     <string name="import_json_paste">Incolla json</string>
     <string name="account_export_password_change">Cambia la password</string>
-    <string name="account_import_json_no_network">JSON non contiene informazioni di rete. Si prega di specificarlo nel blocco avanzato.</string>
+    <string name="account_import_json_no_network">JSON non contiene informazioni di rete. Si prega di specificarlo di seguito.</string>
     <string name="pincode_enter_new_pin_code">Inserisci il nuovo codice PIN</string>
     <string name="pincode_changed_message">Il codice PIN è stato modificato con successo</string>
     <string name="common_share">Condividere</string>
@@ -208,8 +228,45 @@
     <string name="node_add">Aggiungi nodo</string>
     <string name="connection_delete_description_v1_0_1">Conferma l\'eliminazione di %s , %s .</string>
     <string name="network_info_address_v1_0_1">Indirizzo URL</string>
-    <string name="wallet_send_dead_recipient_title">L\'importo è troppo basso</string>
+    <string name="common_amount_low">L\'importo è troppo basso</string>
     <string name="wallet_send_dead_recipient_message">Il tuo trasferimento non andrà a buon fine poiché l\'importo finale sul conto di destinazione sarà inferiore al deposito esistenziale. Per favore, prova ad aumentare l\'importo.</string>
     <string name="wallet_asset_buy">Acquistare</string>
     <string name="buy_completed">Acquisto avviato! Attendi fino a 60 minuti. Puoi tenere traccia dello stato sull\'e-mail.</string>
+    <string name="wallet_send_phishing_warning_title">Avviso di truffa</string>
+    <string name="wallet_send_phishing_warning_text">Il seguente indirizzo: %s è noto per essere utilizzato in attività di phishing, quindi non consigliamo di inviare token a tale indirizzo. Vuoi continuare comunque?</string>
+    <string name="common_balance_format">Saldo: %s</string>
+    <string name="staking_start_title">Inizia a picchettare</string>
+    <string name="staking_title">Staking</string>
+    <string name="staking_estimate_earning_title">Inserisci il tuo mnemonico</string>
+    <string name="staking_month_period_title">Mensile</string>
+    <string name="staking_year_period_title">Annuale</string>
+    <string name="staking_setup_amount_too_low">Impossibile puntare meno del valore minimo (%s)</string>
+    <string name="staking_validator_info_title">Informazioni sul validatore</string>
+    <string name="staking_validator_total_stake">Puntata totale</string>
+    <string name="staking_validator_nominators">Nominatori</string>
+    <string name="staking_validator_estimated_reward">Ricompensa stimata</string>
+    <string name="identity_title">Identità</string>
+    <string name="identity_display_name_title">Nome da visualizzare</string>
+    <string name="identity_legal_name_title">Nome legale</string>
+    <string name="identity_email_title">E-mail</string>
+    <string name="identity_web_title">Web</string>
+    <string name="identity_riot_name_title">Nome antisommossa</string>
+    <string name="network_fee">Canone di rete</string>
+    <string name="staking_reward_destination">Destinazione premio</string>
+    <string name="common_confirm">Confermare</string>
+    <string name="staking_confirm_selected_validators">Validatori selezionati</string>
+    <string name="staking_confirm_nominations">%s di %s</string>
+    <string name="validator_not_elected_description">Questo account non è eletto dalla rete per partecipare all\'era attuale</string>
+    <string name="staking_validator_own_stake">Proprio</string>
+    <string name="staking_validator_total">Totale</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="one">%s giorni</item>
+        <item quantity="other">%s giorni</item>
+    </plurals>
+    <string name="staking_main_active_nominators_title">Nominatori attivi</string>
+    <string name="staking_main_minimum_stake_title">Puntata minima</string>
+    <string name="staking_main_lockup_period_title">Periodo di lock-up</string>
+    <string name="staking_main_network_title">%s rete</string>
+    <string name="staking_total_staked">Totale puntato</string>
+    <string name="wallet_balance_frozen">Congelato</string>
 </resources>

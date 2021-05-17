@@ -5,20 +5,23 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.setupBuyIntegration
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.util.formatAsCurrency
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListActions
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
+import kotlinx.android.synthetic.main.fragment_balance_list.container
 import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
 
@@ -29,12 +32,20 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         return inflater.inflate(R.layout.fragment_balance_list, container, false)
     }
 
     override fun initViews() {
+        container.applyInsetter {
+            type(statusBars = true) {
+                margin()
+            }
+        }
+
+        hideKeyboard()
+
         adapter = BalanceListAdapter(this)
         balanceListAssets.adapter = adapter
 

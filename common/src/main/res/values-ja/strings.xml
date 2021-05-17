@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_setup_too_big_error">申し訳ありませんが、指定された金額を賭けるのに十分な資金がありません</string>
+    <string name="staking_setup_reward_payout_account">支払い口座</string>
+    <string name="staking_setup_reward_destination">報酬の目的地を選択してください</string>
+    <string name="staking_setup_restake">再テイク</string>
+    <string name="staking_payout">配当性向</string>
+    <string name="staking_setup_learn_more">支払いの詳細</string>
+
+    <string name="fee_not_yet_loaded_title">料金計算中</string>
+    <string name="fee_not_yet_loaded_message">料金が計算されるまでお待ちください</string>
+
+    <string name="staking_recommended_validators_title">推奨されるバリデータ</string>
+    <string name="staking_recommended_validators_description">これらのバリデーターはあなたにとって最大の利益をもたらし、詐欺や失敗の可能性を減らします。</string>
+    <string name="common_learn_more">もっと詳しく知る</string>
+    <string name="staking_custom_validators_title">カスタムバリデーターを選択する</string>
+    <string name="staking_recommended_validators_apy">推定報酬、APY</string>
+    <string name="staking_selected_accounts_mask">アカウント（ %d ）</string>
+
+    <string name="runtime_update_failure_description">ブロックチェーンランタイムに関する情報の更新に失敗しました。一部の機能が動作しない場合があります。</string>
+    <string name="runtime_update_failure_title">ランタイム更新の失敗</string>
+
     <string name="export_seed_with_derivation" formatted="false">ネットワーク： %s\nシード： %s\n派生パス： %s</string>
     <string name="export_seed_without_derivation" formatted="false">ネットワーク： %s\nシード： %s</string>
     <string name="export_mnemonic_without_derivation" formatted="false">ネットワーク： %s\nニーモニック： %s</string>
@@ -169,7 +189,7 @@
     <string name="transaction_details_title">取引の詳細</string>
     <string name="transaction_details_from">から</string>
     <string name="transaction_detail_status">状態</string>
-    <string name="transaction_detail_date">日付</string>
+    <string name="common_date">日付</string>
 
     <string name="transaction_details_view_subscan">サブスキャンで表示</string>
     <string name="transaction_details_view_polkascan">ポルカスカンで見る</string>
@@ -191,7 +211,7 @@
     <string name="common_copy_address">コピーアドレス</string>
     <string name="common_choose_file">ファイルをアップロードする</string>
     <string name="import_json_paste">jsonを貼り付け</string>
-    <string name="account_import_json_no_network">JSONにはネットワーク情報は含まれていません。高度なブロックで指定してください。</string>
+    <string name="account_import_json_no_network">JSONにはネットワーク情報は含まれていません。 以下に指定してください。</string>
     <string name="pincode_enter_new_pin_code">新しいPINコードを入力してください</string>
     <string name="pincode_changed_message">PINコードは正常に変更されました</string>
     <string name="common_share">シェア</string>
@@ -208,8 +228,44 @@
     <string name="node_add">ノードを追加</string>
     <string name="connection_delete_description_v1_0_1">%s 、 %s削除を確認します。</string>
     <string name="network_info_address_v1_0_1">URLアドレス</string>
-    <string name="wallet_send_dead_recipient_title">金額が少なすぎる</string>
+    <string name="common_amount_low">金額が少なすぎる</string>
     <string name="wallet_send_dead_recipient_message">宛先アカウントの最終金額が既存の預金より少ないため、転送は失敗します。量を増やしてみてください。</string>
     <string name="wallet_asset_buy">購入</string>
     <string name="buy_completed">購入開始！ 60分ほどお待ちください。メールでステータスを追跡できます。</string>
+    <string name="wallet_send_phishing_warning_title">詐欺警告</string>
+    <string name="wallet_send_phishing_warning_text">次のアドレス： %sはフィッシング活動で使用されることがわかっているため、そのアドレスにトークンを送信することはお勧めしません。とにかく続行しますか？</string>
+    <string name="common_balance_format">残高： %s</string>
+    <string name="staking_start_title">ステーキングを開始します</string>
+    <string name="staking_title">抵押</string>
+    <string name="staking_estimate_earning_title">PINコードを入力してください</string>
+    <string name="staking_month_period_title">毎月</string>
+    <string name="staking_year_period_title">毎年</string>
+    <string name="staking_setup_amount_too_low">%s ）未満を賭けることはできません</string>
+    <string name="staking_validator_info_title">バリデーター情報</string>
+    <string name="staking_validator_total_stake">総賭け金</string>
+    <string name="staking_validator_nominators">推薦者</string>
+    <string name="staking_validator_estimated_reward">推定報酬</string>
+    <string name="identity_title">身元</string>
+    <string name="identity_display_name_title">表示名</string>
+    <string name="identity_legal_name_title">正式名称</string>
+    <string name="identity_email_title">Eメール</string>
+    <string name="identity_web_title">ウェブ</string>
+    <string name="identity_riot_name_title">暴動の名前</string>
+    <string name="network_fee">ネットワーク料金</string>
+    <string name="staking_reward_destination">報酬先</string>
+    <string name="common_confirm">確認</string>
+    <string name="staking_confirm_selected_validators">選択されたバリデーター</string>
+    <string name="staking_confirm_nominations">%sの%s</string>
+    <string name="validator_not_elected_description">このアカウントは、現在の時代に参加するためにネットワークによって選出されていません</string>
+    <string name="staking_validator_own_stake">自分の</string>
+    <string name="staking_validator_total">合計</string>
+    <plurals name="staking_main_lockup_period_value">
+        <item quantity="other">%s 日</item>
+    </plurals>
+    <string name="staking_main_active_nominators_title">アクティブな推薦者</string>
+    <string name="staking_main_minimum_stake_title">最小ステーク</string>
+    <string name="staking_main_lockup_period_title">ロックアップ期間</string>
+    <string name="staking_main_network_title">%sネットワーク</string>
+    <string name="staking_total_staked">合計賭け金</string>
+    <string name="wallet_balance_frozen">フローズン</string>
 </resources>

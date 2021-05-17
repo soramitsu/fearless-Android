@@ -7,11 +7,9 @@ import android.graphics.Color
 import android.os.Vibrator
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.external.actions.ExternalAccountActions
-import jp.co.soramitsu.common.account.external.actions.ExternalAccountActionsProvider
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.FileProviderImpl
-import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -25,13 +23,14 @@ import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.ResourceManagerImpl
 import jp.co.soramitsu.common.utils.QrCodeGenerator
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import java.security.SecureRandom
 import java.util.Random
 
@@ -87,12 +86,6 @@ class CommonModule {
 
     @Provides
     @ApplicationScope
-    fun provideSS58Encoder(): SS58Encoder {
-        return SS58Encoder()
-    }
-
-    @Provides
-    @ApplicationScope
     fun provideJunctionDecoder(): JunctionDecoder {
         return JunctionDecoder()
     }
@@ -100,7 +93,7 @@ class CommonModule {
     @Provides
     @ApplicationScope
     fun provideSigner(): Signer {
-        return Signer()
+        return Signer
     }
 
     @Provides
@@ -132,9 +125,8 @@ class CommonModule {
     @ApplicationScope
     fun provideAddressModelCreator(
         resourceManager: ResourceManager,
-        sS58Encoder: SS58Encoder,
         iconGenerator: IconGenerator
-    ): AddressIconGenerator = AddressIconGenerator(iconGenerator, sS58Encoder, resourceManager)
+    ): AddressIconGenerator = AddressIconGenerator(iconGenerator, resourceManager)
 
     @Provides
     @ApplicationScope
@@ -154,19 +146,25 @@ class CommonModule {
 
     @Provides
     @ApplicationScope
-    fun provideExternalAccountActions(
-        clipboardManager: ClipboardManager,
-        appLinksProvider: AppLinksProvider,
-        resourceManager: ResourceManager
-    ): ExternalAccountActions.Presentation {
-        return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager)
-    }
-
-    @Provides
-    @ApplicationScope
     fun provideContentResolver(
         context: Context
     ): ContentResolver {
         return context.contentResolver
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideDefaultPagedKeysRetriever(
+        socketService: SocketService
+    ): BulkRetriever {
+        return BulkRetriever(socketService)
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideValidationExecutor(
+        resourceManager: ResourceManager
+    ): ValidationExecutor {
+        return ValidationExecutor(resourceManager)
     }
 }

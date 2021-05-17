@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 
 class WelcomeViewModel(

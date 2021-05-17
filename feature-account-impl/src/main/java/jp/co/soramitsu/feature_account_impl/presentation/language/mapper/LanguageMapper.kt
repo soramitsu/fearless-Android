@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation.language.mapper
 
-import jp.co.soramitsu.feature_account_api.domain.model.Language
+import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.feature_account_impl.presentation.language.model.LanguageModel
 import java.util.Locale
 

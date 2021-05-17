@@ -1,0 +1,50 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/balanceListActions"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:orientation="horizontal"
+    tools:background="@color/blurColor"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <TextView
+        android:id="@+id/stakingBalanceActionsBondMore"
+        style="@style/Widget.Fearless.ActionButton"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/ic_plus_circle"
+        android:text="@string/staking_bond_more" />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/white_10" />
+
+    <TextView
+        android:id="@+id/stakingBalanceActionsUnbond"
+        style="@style/Widget.Fearless.ActionButton"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/ic_security_unlock_24"
+        android:text="@string/staking_unbond" />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/white_10" />
+
+    <TextView
+        android:id="@+id/stakingBalanceActionsRedeem"
+        style="@style/Widget.Fearless.ActionButton"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/ic_arrows_circle_arrow_right_24"
+        android:text="@string/staking_redeem" />
+</merge>

@@ -4,10 +4,9 @@ import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -15,8 +14,12 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.distinctUntilChanged
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -41,8 +44,11 @@ class ChooseRecipientViewModel(
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
-    private val qrBitmapDecoder: QrBitmapDecoder
-) : BaseViewModel() {
+    private val qrBitmapDecoder: QrBitmapDecoder,
+    private val phishingWarning: PhishingWarningMixin
+) : BaseViewModel(),
+    PhishingWarningMixin by phishingWarning,
+    PhishingWarningPresentation {
 
     private val searchEvents = MutableStateFlow(INITIAL_QUERY)
 
@@ -60,12 +66,25 @@ class ChooseRecipientViewModel(
     private val _decodeAddressResult = MutableLiveData<Event<String>>()
     val decodeAddressResult: LiveData<Event<String>> = _decodeAddressResult
 
+    private val _declinePhishingAddress = MutableLiveData<Event<Unit>>()
+    val declinePhishingAddress: LiveData<Event<Unit>> = _declinePhishingAddress
+
     fun backClicked() {
         router.back()
     }
 
     fun recipientSelected(address: String) {
+        viewModelScope.launch {
+            proceedOrShowPhishingWarning(address)
+        }
+    }
+
+    override fun proceedAddress(address: String) {
         router.openChooseAmount(address)
+    }
+
+    override fun declinePhishingAddress() {
+        _declinePhishingAddress.value = Event(Unit)
     }
 
     private fun determineState(queryEmpty: Boolean, searchResult: List<Any>): State {
@@ -130,8 +149,8 @@ class ChooseRecipientViewModel(
         val searchResult = interactor.getRecipients(address)
 
         val resultWithHeader = maybeAppendResultHeader(isValidAddress, address)
-        val myAccountsWithHeader = generateModelsWithHeader(R.string.search_header_my_accounts, searchResult.myAccounts)
-        val contactsWithHeader = generateModelsWithHeader(R.string.search_contacts, searchResult.contacts)
+        val myAccountsWithHeader = generateAccountModelsWithHeader(R.string.search_header_my_accounts, searchResult.myAccounts)
+        val contactsWithHeader = generateAddressModelsWithHeader(R.string.search_contacts, searchResult.contacts)
 
         val result = resultWithHeader + myAccountsWithHeader + contactsWithHeader
 
@@ -141,11 +160,17 @@ class ChooseRecipientViewModel(
     private suspend fun maybeAppendResultHeader(validAddress: Boolean, address: String): List<Any> {
         if (!validAddress) return emptyList()
 
-        return generateModelsWithHeader(R.string.search_result_header, listOf(address))
+        return generateAddressModelsWithHeader(R.string.search_result_header, listOf(address))
     }
 
-    private suspend fun generateModelsWithHeader(@StringRes headerRes: Int, addresses: List<String>): List<Any> {
-        val models = addresses.map { generateModel(it) }
+    private suspend fun generateAccountModelsWithHeader(@StringRes headerRes: Int, accounts: List<WalletAccount>): List<Any> {
+        val models = accounts.map { generateAddressModel(it.address, it.name) }
+
+        return maybeAppendHeader(headerRes, models)
+    }
+
+    private suspend fun generateAddressModelsWithHeader(@StringRes headerRes: Int, addresses: List<String>): List<Any> {
+        val models = addresses.map { generateAddressModel(it) }
 
         return maybeAppendHeader(headerRes, models)
     }
@@ -164,7 +189,7 @@ class ChooseRecipientViewModel(
 
     private fun getHeader(@StringRes resId: Int) = ContactsHeader(resourceManager.getString(resId))
 
-    private suspend fun generateModel(address: String): AddressModel {
-        return addressIconGenerator.createAddressModel(address, ICON_SIZE_IN_DP)
+    private suspend fun generateAddressModel(address: String, accountName: String? = null): AddressModel {
+        return addressIconGenerator.createAddressModel(address, ICON_SIZE_IN_DP, accountName)
     }
 }

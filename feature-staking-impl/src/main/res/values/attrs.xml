@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="TableCellView">
+        <attr name="title" />
+    </declare-styleable>
+
+    <declare-styleable name="StakingAmountView">
+        <attr name="android:enabled" />
+    </declare-styleable>
+
+    <declare-styleable name="EstimateEarningView" />
+    <declare-styleable name="StakingInfoView">
+        <attr name="titleText" format="string" />
+        <attr name="includeExtraBlock" format="boolean" />
+        <attr name="startWithLoading" format="boolean" />
+        <attr name="showTitle" format="boolean" />
+        <attr name="titleDetail" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="RewardDestinationView">
+        <attr name="android:checked" />
+        <attr name="targetName" format="string" />
+    </declare-styleable>
+    <declare-styleable name="ValidatorInfoBlockView">
+        <attr name="validatorInfoTitle" format="string" />
+        <attr name="showExtra" format="boolean" />
+        <attr name="showInfoIcon" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="ValidatorInfoItemView">
+        <attr name="validatorInfoItemTitle" format="string" />
+        <attr name="validatorInfoItemIcon" format="reference" />
+        <attr name="validatorInfoItemTitleIcon" format="reference" />
+    </declare-styleable>
+    <declare-styleable name="NetworkInfoView">
+        <attr name="expanded" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="StakingBalanceItemView">
+        <attr name="title" format="string" />
+    </declare-styleable>
+</resources>

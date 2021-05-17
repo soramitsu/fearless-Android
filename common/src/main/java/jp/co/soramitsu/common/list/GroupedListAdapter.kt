@@ -12,7 +12,9 @@ private const val TYPE_CHILD = 2
 
 abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGroupedDiffCallback<GROUP, CHILD>) :
     ListAdapter<Any, GroupedListHolder>(diffCallback) {
+
     abstract fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder
+
     abstract fun createChildViewHolder(parent: ViewGroup): GroupedListHolder
 
     abstract fun bindGroup(holder: GroupedListHolder, group: GROUP)

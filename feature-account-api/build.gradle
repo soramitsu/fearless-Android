@@ -1,7 +1,17 @@
-apply plugin: 'java-library'
-apply plugin: 'kotlin'
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
-compileKotlin {
+android {
+    compileSdkVersion rootProject.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
     }
@@ -9,6 +19,13 @@ compileKotlin {
 
 dependencies {
     implementation coroutinesDep
+    implementation project(":common")
 
-    implementation project(':core-api')
+    implementation liveDataKtxDep
+    implementation androidDep
+    implementation materialDep
+
+    api fearlessLibDep
+
+    api project(':core-api')
 }

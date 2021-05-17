@@ -3,16 +3,16 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.account.AddressIconGenerator
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
@@ -61,8 +61,8 @@ class NodesViewModel(
         router.back()
     }
 
-    fun infoClicked(nodeModel: NodeModel, isChecked: Boolean) {
-        router.openNodeDetails(nodeModel.id, isChecked)
+    fun infoClicked(nodeModel: NodeModel) {
+        router.openNodeDetails(nodeModel.id)
     }
 
     fun selectNodeClicked(nodeModel: NodeModel) {
@@ -132,7 +132,7 @@ class NodesViewModel(
         viewModelScope.launch {
             interactor.selectNodeAndAccount(nodeId, accountAddress)
 
-            router.returnToMain()
+            router.returnToWallet()
         }
     }
 
@@ -140,7 +140,7 @@ class NodesViewModel(
         viewModelScope.launch {
             interactor.selectNode(nodeId)
 
-            router.returnToMain()
+            router.returnToWallet()
         }
     }
 }

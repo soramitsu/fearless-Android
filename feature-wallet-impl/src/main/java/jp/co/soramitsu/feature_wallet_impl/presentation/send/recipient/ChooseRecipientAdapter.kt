@@ -2,24 +2,27 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 
 import android.view.View
 import android.view.ViewGroup
-import jp.co.soramitsu.common.account.AddressModel
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
-import kotlinx.android.synthetic.main.item_contact.view.itemContactAddress
+import kotlinx.android.synthetic.main.item_contact.view.itemContactBody
 import kotlinx.android.synthetic.main.item_contact.view.itemContactIcon
+import kotlinx.android.synthetic.main.item_contact.view.itemContactTitle
 import kotlinx.android.synthetic.main.item_contact_group.view.contactGroupTitle
 
 class ChooseRecipientAdapter(
-    private val nodeItemHandler: NodeItemHandler
-) : GroupedListAdapter<ContactsHeader, AddressModel>(NodesDiffCallback) {
+    private val itemHandler: RecipientItemHandler
+) : GroupedListAdapter<ContactsHeader, AddressModel>(RecipientsDiffCallback) {
 
-    interface NodeItemHandler {
+    interface RecipientItemHandler {
 
-        fun contactClicked(addressModel: AddressModel)
+        fun contactClicked(address: String)
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
@@ -35,7 +38,7 @@ class ChooseRecipientAdapter(
     }
 
     override fun bindChild(holder: GroupedListHolder, child: AddressModel) {
-        (holder as RecipientHolder).bind(child, nodeItemHandler)
+        (holder as RecipientHolder).bind(child, itemHandler)
     }
 }
 
@@ -46,21 +49,28 @@ class RecipientGroupHolder(view: View) : GroupedListHolder(view) {
 }
 
 class RecipientHolder(view: View) : GroupedListHolder(view) {
-
     fun bind(
         addressModel: AddressModel,
-        handler: ChooseRecipientAdapter.NodeItemHandler
+        handler: ChooseRecipientAdapter.RecipientItemHandler
     ) {
         with(containerView) {
-            itemContactAddress.text = addressModel.address
+            if (addressModel.name == null) {
+                itemContactTitle.text = addressModel.address
+                itemContactBody.text = ""
+                itemContactBody.makeGone()
+            } else {
+                itemContactTitle.text = addressModel.name
+                itemContactBody.text = addressModel.address
+                itemContactBody.makeVisible()
+            }
             itemContactIcon.setImageDrawable(addressModel.image)
 
-            setOnClickListener { handler.contactClicked(addressModel) }
+            setOnClickListener { handler.contactClicked(addressModel.address) }
         }
     }
 }
 
-private object NodesDiffCallback : BaseGroupedDiffCallback<ContactsHeader, AddressModel>(ContactsHeader::class.java) {
+private object RecipientsDiffCallback : BaseGroupedDiffCallback<ContactsHeader, AddressModel>(ContactsHeader::class.java) {
     override fun areGroupItemsTheSame(oldItem: ContactsHeader, newItem: ContactsHeader): Boolean {
         return oldItem.title == newItem.title
     }

@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extri
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
+import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.compactInt
 import jp.co.soramitsu.fearless_utils.scale.custom
@@ -17,18 +18,9 @@ import jp.co.soramitsu.fearless_utils.scale.uint8
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Era
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.EraType
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.SignatureType
-import java.math.BigInteger
 
 private val VERSION = "84".toUByte(radix = 16)
 private val TIP = 0.toBigInteger()
-
-sealed class MultiAddress(val enumIndex: Int) {
-    class Id(val value: ByteArray) : MultiAddress(0)
-    class Index(val value: BigInteger) : MultiAddress(1)
-    class Raw(val value: ByteArray) : MultiAddress(2)
-    class Address32(val value: ByteArray) : MultiAddress(3)
-    class Address20(val value: ByteArray) : MultiAddress(4)
-}
 
 object MultiAddressType : DataType<MultiAddress>() {
 

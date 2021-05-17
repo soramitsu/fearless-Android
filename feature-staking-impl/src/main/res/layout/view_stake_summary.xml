@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    tools:background="@color/black"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <LinearLayout
+        android:layout_marginTop="7dp"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/stakeSummaryTitle"
+            style="@style/TextAppearance.Soramitsu.Header5"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_gravity="center_vertical"
+            android:text="@string/staking_stake" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            app:tint="@color/actions_color"
+            android:layout_marginEnd="11dp"
+            android:padding="8dp"
+            android:id="@+id/stakeMoreActions"
+            android:src="@drawable/ic_dots_horizontal_24" />
+    </LinearLayout>
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
+            android:id="@+id/stakeTotalStakedView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="9dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            app:startWithLoading="true"
+            app:titleText="@string/staking_total_staked" />
+
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
+            android:id="@+id/stakeTotalRewardsView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="9dp"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            app:startWithLoading="true"
+            app:titleText="@string/staking_total_rewards" />
+    </LinearLayout>
+
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="17dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/white_24" />
+
+    <LinearLayout
+        android:id="@+id/statusTapZone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_primary_list_item"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/stakeSummaryStatus"
+            style="@style/TextAppearance.Soramitsu.CapsTitle2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:layout_weight="1"
+            android:drawablePadding="8dp"
+            android:includeFontPadding="false"
+            android:textColor="@color/white_64"
+            app:drawableStartCompat="@drawable/ic_status_indicator"
+            app:drawableTint="@color/white_64"
+            tools:text="Election period" />
+
+        <TextView
+            android:id="@+id/stakeSummaryStatusHelper"
+            style="@style/TextAppearance.Soramitsu.CapsTitle2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="16dp"
+            android:drawablePadding="8dp"
+            android:textColor="@color/white_64"
+            app:layout_constraintBaseline_toBaselineOf="@id/stakeSummaryStatus"
+            app:layout_constraintEnd_toStartOf="@+id/imageView2"
+            app:layout_constraintTop_toBottomOf="@+id/view"
+            tools:text="~00:08:29" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="9dp"
+            android:src="@drawable/ic_arrow_right_24"
+            app:layout_constraintBottom_toBottomOf="@+id/stakeSummaryStatusHelper"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/stakeSummaryStatusHelper"
+            app:tint="@color/white" />
+    </LinearLayout>
+</merge>

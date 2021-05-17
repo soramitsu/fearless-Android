@@ -2,8 +2,9 @@
 <resources>
 
     <style name="Theme.Soramitsu.Fearless" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
 
-<!--        <item name="android:windowTranslucentStatus">true</item>-->
+        <!--        <item name="android:windowTranslucentStatus">true</item>-->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowTranslucentNavigation">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
@@ -16,6 +17,8 @@
         <item name="textSizeH3">@dimen/text_size_h3</item>
         <item name="textSizeH4">@dimen/text_size_h4</item>
         <item name="textSizeH5">@dimen/text_size_h5</item>
+        <item name="textSizeCapsTitle1">@dimen/text_size_caps_title_1</item>
+        <item name="textSizeCapsTitle2">@dimen/text_size_caps_title_2</item>
 
         <item name="textSizeB0">@dimen/text_size_b0</item>
         <item name="textSizeB1">@dimen/text_size_b1</item>
@@ -29,7 +32,13 @@
         <item name="fontExtraBold">@font/soramitsu_extrabold</item>
         <item name="fontRegular">@font/soramitsu_regular</item>
         <!--fonts-->
-
     </style>
 
+    <style name="PinkOverlay" parent="ThemeOverlay.AppCompat">
+        <item name="colorPrimary">@color/colorAccent</item>
+    </style>
+
+    <style name="WhiteOverlay" parent="ThemeOverlay.AppCompat">
+        <item name="colorPrimary">@color/white</item>
+    </style>
 </resources>

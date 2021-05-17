@@ -1,9 +1,9 @@
 package jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model
 
-import jp.co.soramitsu.feature_account_api.domain.model.Node
-import jp.co.soramitsu.feature_account_api.domain.model.Node.NetworkType.KUSAMA
-import jp.co.soramitsu.feature_account_api.domain.model.Node.NetworkType.POLKADOT
-import jp.co.soramitsu.feature_account_api.domain.model.Node.NetworkType.WESTEND
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core.model.Node.NetworkType.KUSAMA
+import jp.co.soramitsu.core.model.Node.NetworkType.POLKADOT
+import jp.co.soramitsu.core.model.Node.NetworkType.WESTEND
 import jp.co.soramitsu.feature_account_impl.R
 
 data class NetworkModel(

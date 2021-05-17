@@ -82,10 +82,5 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
         viewModel.cryptoTypeLiveData.observe {
             exportMnemonicAdvanced.setEncryption(it.name)
         }
-
-        viewModel.networkTypeLiveData.observe {
-            exportMnemonicAdvanced.setNetworkName(it.name)
-            exportMnemonicAdvanced.setNetworkIconResource(it.networkTypeUI.icon)
-        }
     }
 }

@@ -12,6 +12,9 @@
     <dimen name="text_size_b2">12sp</dimen>
     <dimen name="text_size_b3">10sp</dimen>
 
+    <dimen name="text_size_caps_title_1">12dp</dimen>
+    <dimen name="text_size_caps_title_2">12dp</dimen>
+
     <dimen name="x1_2">4dp</dimen>
     <dimen name="x1">8dp</dimen>
     <dimen name="x1_5">12dp</dimen>
@@ -19,4 +22,6 @@
     <dimen name="x3">24dp</dimen>
 
     <dimen name="element_chooser_padding">16dp</dimen>
+
+    <dimen name="avatar_size">40dp</dimen>
 </resources>

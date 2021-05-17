@@ -27,6 +27,16 @@
         <item name="android:textSize">?attr/textSizeH5</item>
     </style>
 
+    <style name="TextAppearance.Soramitsu.CapsTitle1" parent="TextAppearance.Fearless.Header">
+        <item name="android:textSize">?attr/textSizeCapsTitle1</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="TextAppearance.Soramitsu.CapsTitle2" parent="TextAppearance.Fearless.Header">
+        <item name="android:textSize">?attr/textSizeCapsTitle2</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
     <style name="TextAppearance.Soramitsu.Body0" parent="TextAppearance.AppCompat.Body1">
         <item name="android:fontFamily">?attr/fontRegular</item>
         <item name="android:textSize">?attr/textSizeB0</item>
@@ -72,6 +82,15 @@
         <item name="android:layout_height">2dp</item>
         <item name="android:layout_width">35dp</item>
         <item name="android:background">@drawable/bg_puller</item>
+    </style>
+
+    <style name="Widget.Fearless.ActionButton" parent="TextAppearance.AppCompat.Body2">
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:drawableTint">@color/actions_color</item>
+        <item name="android:textColor">@color/actions_color</item>
+        <item name="android:drawablePadding">4dp</item>
     </style>
 
     <!-- Buttons -->

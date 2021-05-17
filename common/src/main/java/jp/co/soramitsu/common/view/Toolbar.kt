@@ -1,26 +1,31 @@
 package jp.co.soramitsu.common.view
 
 import android.content.Context
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
-import android.widget.LinearLayout
+import android.widget.FrameLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setVisible
 import kotlinx.android.synthetic.main.view_toolbar.view.backImg
 import kotlinx.android.synthetic.main.view_toolbar.view.rightImg
 import kotlinx.android.synthetic.main.view_toolbar.view.rightText
 import kotlinx.android.synthetic.main.view_toolbar.view.titleTv
+import kotlinx.android.synthetic.main.view_toolbar.view.toolbarContainer
+import kotlinx.android.synthetic.main.view_toolbar.view.toolbarDivider
 
 class Toolbar @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : LinearLayout(context, attrs, defStyleAttr) {
+) : FrameLayout(context, attrs, defStyleAttr) {
 
     init {
         View.inflate(context, R.layout.view_toolbar, this)
+
         applyAttributes(attrs)
     }
 
@@ -42,6 +47,12 @@ class Toolbar @JvmOverloads constructor(
 
             val homeButtonVisible = typedArray.getBoolean(R.styleable.Toolbar_homeButtonVisible, true)
             setHomeButtonVisibility(homeButtonVisible)
+
+            val dividerVisible = typedArray.getBoolean(R.styleable.Toolbar_dividerVisible, true)
+            toolbarDivider.setVisible(dividerVisible)
+
+            val backgroundAttrDrawable = typedArray.getDrawable(R.styleable.Toolbar_contentBackground) ?: ColorDrawable(context.getColor(R.color.black))
+            toolbarContainer.background = backgroundAttrDrawable
 
             typedArray.recycle()
         }

@@ -14,6 +14,8 @@
     <attr name="textSizeH3" format="reference" />
     <attr name="textSizeH4" format="reference" />
     <attr name="textSizeH5" format="reference" />
+    <attr name="textSizeCapsTitle1" format="reference" />
+    <attr name="textSizeCapsTitle2" format="reference" />
     <attr name="textSizeB0" format="reference" />
     <attr name="textSizeB1" format="reference" />
     <attr name="textSizeB2" format="reference" />
@@ -21,6 +23,8 @@
     <!--text sizes-->
 
     <declare-styleable name="Toolbar">
+        <attr name="contentBackground" format="reference|color" />
+        <attr name="dividerVisible" format="boolean" />
         <attr name="titleText" format="string" />
         <attr name="iconRight" format="reference|color" />
         <attr name="textRight" format="string" />

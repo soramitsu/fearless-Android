@@ -62,6 +62,10 @@ android {
             }
         }
     }
+
+    kotlinOptions {
+        freeCompilerArgs = ["-Xallow-result-return-type"]
+    }
 }
 
 play {
@@ -84,6 +88,11 @@ dependencies {
 
     implementation project(':feature-wallet-api')
     implementation project(':feature-wallet-impl')
+
+    implementation project(':runtime')
+
+    implementation project(':feature-staking-api')
+    implementation project(':feature-staking-impl')
 
     implementation kotlinDep
 
@@ -113,6 +122,10 @@ dependencies {
     compileOnly wsDep
 
     implementation coroutinesDep
+
+    testImplementation project(':test-shared')
+
+    implementation insetterDep
 }
 
 task printVersion {

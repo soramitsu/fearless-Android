@@ -3,7 +3,8 @@ package jp.co.soramitsu.feature_account_impl.presentation
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 
@@ -17,6 +18,8 @@ interface AccountRouter : SecureRouter {
 
     fun openCreatePincode()
 
+    fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType)
+
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
 
     fun openAboutScreen()
@@ -27,7 +30,7 @@ interface AccountRouter : SecureRouter {
 
     fun back()
 
-    fun openAccounts()
+    fun openAccounts(accountChosenNavDirection: AccountChosenNavDirection)
 
     fun openNodes()
 
@@ -41,7 +44,7 @@ interface AccountRouter : SecureRouter {
 
     fun backToMainScreen()
 
-    fun openNodeDetails(nodeId: Int, isSelected: Boolean)
+    fun openNodeDetails(nodeId: Int)
 
     fun openAddNode()
 
@@ -60,7 +63,7 @@ interface AccountRouter : SecureRouter {
 
     fun openExportJsonConfirm(payload: ExportJsonConfirmPayload)
 
-    fun returnToMain()
+    fun returnToWallet()
 
     fun finishExportFlow()
 

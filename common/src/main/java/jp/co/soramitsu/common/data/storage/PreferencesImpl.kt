@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data.storage
 
 import android.content.SharedPreferences
-import jp.co.soramitsu.feature_account_api.domain.model.Language
+import jp.co.soramitsu.core.model.Language
 
 class PreferencesImpl(
     private val sharedPreferences: SharedPreferences

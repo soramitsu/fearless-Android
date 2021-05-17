@@ -5,6 +5,7 @@
     android:layout_height="?attr/actionBarSize"
     android:background="@android:color/black"
     android:gravity="center_vertical"
+    android:id="@+id/toolbarContainer"
     android:orientation="horizontal"
     tools:layout_height="48dp">
 
@@ -54,5 +55,12 @@
         android:textColor="@color/white"
         android:visibility="gone"
         tools:text="Action" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="bottom"
+        android:id="@+id/toolbarDivider"
+        android:background="@color/dividerGray" />
 
 </FrameLayout>

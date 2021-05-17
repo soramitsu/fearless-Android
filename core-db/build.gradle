@@ -25,8 +25,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation project(":common")
-    implementation project(":feature-wallet-api")
-    implementation project(":feature-account-api")
+    implementation gsonDep
 
     implementation kotlinDep
 
@@ -38,4 +37,6 @@ dependencies {
     implementation roomDep
     implementation roomKtxDep
     kapt roomKapt
+
+    testImplementation project(':test-shared')
 }

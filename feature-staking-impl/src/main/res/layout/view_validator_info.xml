@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:background="@color/black"
+    tools:orientation="vertical"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+        android:id="@+id/validatorStatusView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:validatorInfoItemTitle="@string/transaction_detail_status" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+        android:id="@+id/validatorNominatorsView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:validatorInfoItemTitle="@string/staking_validator_nominators" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+        android:id="@+id/validatorTotalStakeView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:validatorInfoItemTitleIcon="@drawable/ic_info_16"
+        app:validatorInfoItemTitle="@string/staking_validator_total_stake" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+        android:id="@+id/validatorEstimatedReward"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:validatorInfoItemTitle="@string/staking_validator_estimated_reward" />
+
+</merge>

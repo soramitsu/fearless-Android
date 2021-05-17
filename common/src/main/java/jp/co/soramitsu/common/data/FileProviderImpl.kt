@@ -10,11 +10,23 @@ class FileProviderImpl(
     private val context: Context
 ) : FileProvider {
 
-    override suspend fun createFileInTempStorage(fileName: String): File {
+    override suspend fun getFileInExternalCacheStorage(fileName: String): File {
         return withContext(Dispatchers.IO) {
-            val cacheDir = context.externalCacheDir?.absolutePath ?: throw IllegalStateException("cache directory is unavailable")
+            val cacheDir = context.externalCacheDir?.absolutePath ?: directoryNotAvailable()
 
             File(cacheDir, fileName)
         }
+    }
+
+    override suspend fun getFileInInternalCacheStorage(fileName: String): File {
+        return withContext(Dispatchers.IO) {
+            val cacheDir = context.cacheDir?.absolutePath ?: directoryNotAvailable()
+
+            File(cacheDir, fileName)
+        }
+    }
+
+    private fun directoryNotAvailable(): Nothing {
+        throw IllegalStateException("Cache directory is unavailable")
     }
 }

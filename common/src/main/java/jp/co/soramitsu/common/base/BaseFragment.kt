@@ -1,17 +1,23 @@
 package jp.co.soramitsu.common.base
 
 import android.os.Bundle
+import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.dp
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 abstract class BaseFragment<T : BaseViewModel> : Fragment() {
@@ -34,6 +40,16 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         viewModel.messageLiveData.observeEvent(::showMessage)
     }
 
+    protected inline fun onBackPressed(crossinline action: () -> Unit) {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                action()
+            }
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
+    }
+
     protected fun showError(errorMessage: String) {
         buildErrorDialog(getString(R.string.common_error_general_title), errorMessage)
             .show()
@@ -44,7 +60,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     protected open fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
-        return AlertDialog.Builder(requireActivity())
+        return AlertDialog.Builder(ContextThemeWrapper(context, R.style.WhiteOverlay))
             .setTitle(title)
             .setMessage(errorMessage)
             .setPositiveButton(R.string.common_ok) { _, _ -> }
@@ -57,14 +73,26 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     }
 
     inline fun <V> LiveData<Event<V>>.observeEvent(crossinline observer: (V) -> Unit) {
-        observe(viewLifecycleOwner, EventObserver {
-            observer.invoke(it)
-        })
+        observe(
+            viewLifecycleOwner,
+            EventObserver {
+                observer.invoke(it)
+            }
+        )
+    }
+
+    inline fun <V> Flow<V>.observe(crossinline collector: suspend (V) -> Unit) {
+        lifecycleScope.launchWhenResumed {
+            collect(collector)
+        }
     }
 
     fun <V> LiveData<V>.observe(observer: (V) -> Unit) {
         observe(viewLifecycleOwner, observer)
     }
+
+    val Int.dp: Int
+        get() = dp(requireContext())
 
     protected fun EditText.bindTo(liveData: MutableLiveData<String>) = bindTo(liveData, viewLifecycleOwner)
 

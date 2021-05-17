@@ -3,10 +3,12 @@ package jp.co.soramitsu.feature_account_impl.di
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AccountDao
@@ -16,9 +18,12 @@ import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActionsProvider
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSourceImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImpl
@@ -40,10 +45,6 @@ class AccountFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideSs58Encoder() = SS58Encoder()
-
-    @Provides
-    @FeatureScope
     fun provideJunctionDecoder() = JunctionDecoder()
 
     @Provides
@@ -53,18 +54,16 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideJsonDecoder(
-        sS58Encoder: SS58Encoder,
         keypairFactory: KeypairFactory,
         jsonMapper: Gson
-    ) = JsonSeedDecoder(jsonMapper, sS58Encoder, keypairFactory)
+    ) = JsonSeedDecoder(jsonMapper, keypairFactory)
 
     @Provides
     @FeatureScope
     fun provideJsonEncoder(
-        sS58Encoder: SS58Encoder,
         random: Random,
         jsonMapper: Gson
-    ) = JsonSeedEncoder(jsonMapper, sS58Encoder, random)
+    ) = JsonSeedEncoder(jsonMapper, random)
 
     @Provides
     fun provideCryptoChooserMixin(
@@ -76,7 +75,6 @@ class AccountFeatureModule {
     @FeatureScope
     fun provideAccountRepository(
         bip39: Bip39,
-        sS58Encoder: SS58Encoder,
         junctionDecoder: JunctionDecoder,
         keypairFactory: KeypairFactory,
         accountDataSource: AccountDataSource,
@@ -92,7 +90,6 @@ class AccountFeatureModule {
             accountDao,
             nodeDao,
             bip39,
-            sS58Encoder,
             junctionDecoder,
             keypairFactory,
             jsonSeedDecoder,
@@ -116,9 +113,10 @@ class AccountFeatureModule {
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
         jsonMapper: Gson,
+        nodeDao: NodeDao,
         accountDataMigration: AccountDataMigration
     ): AccountDataSource {
-        return AccountDataSourceImpl(preferences, encryptedPreferences, jsonMapper, accountDataMigration)
+        return AccountDataSourceImpl(preferences, encryptedPreferences, nodeDao, jsonMapper, accountDataMigration)
     }
 
     @Provides
@@ -140,4 +138,26 @@ class AccountFeatureModule {
     ): AccountDataMigration {
         return AccountDataMigration(preferences, encryptedPreferences, bip39, accountDao)
     }
+
+    @Provides
+    @FeatureScope
+    fun provideExternalAccountActions(
+        clipboardManager: ClipboardManager,
+        appLinksProvider: AppLinksProvider,
+        resourceManager: ResourceManager
+    ): ExternalAccountActions.Presentation {
+        return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideAccountUpdateScope(
+        accountRepository: AccountRepository
+    ) = AccountUpdateScope(accountRepository)
+
+    @Provides
+    @FeatureScope
+    fun provideAddressDisplayUseCase(
+        accountRepository: AccountRepository
+    ) = AddressDisplayUseCase(accountRepository)
 }

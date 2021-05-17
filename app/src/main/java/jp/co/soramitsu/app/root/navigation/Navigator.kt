@@ -8,9 +8,12 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.utils.postToUiThread
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
+import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
@@ -25,8 +28,24 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfiguration
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
-import jp.co.soramitsu.feature_onboarding_impl.presentation.create.CreateAccountFragment
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.ConfirmPayoutFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDetailsFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
@@ -41,7 +60,13 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
 
-class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, RootRouter {
+class Navigator :
+    SplashRouter,
+    OnboardingRouter,
+    AccountRouter,
+    WalletRouter,
+    RootRouter,
+    StakingRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -119,7 +144,7 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.importAction, ImportAccountFragment.getBundle(selectedNetworkType))
     }
 
-    override fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType?) {
+    override fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType) {
         val bundle = BackupMnemonicFragment.getBundle(accountName, selectedNetworkType)
         navController?.navigate(R.id.action_createAccountFragment_to_backupMnemonicFragment, bundle)
     }
@@ -136,12 +161,107 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.popBackStack()
     }
 
+    override fun openSetupStaking() {
+        navController?.navigate(R.id.action_mainFragment_to_setupStakingFragment)
+    }
+
+    override fun openStory(story: StakingStoryModel) {
+        navController?.navigate(R.id.open_staking_story, StoryFragment.getBundle(story))
+    }
+
+    override fun openPayouts() {
+        navController?.navigate(R.id.action_mainFragment_to_payoutsListFragment)
+    }
+
+    override fun openPayoutDetails(payout: PendingPayoutParcelable) {
+        navController?.navigate(R.id.action_payoutsListFragment_to_payoutDetailsFragment, PayoutDetailsFragment.getBundle(payout))
+    }
+
+    override fun openConfirmPayout(payload: ConfirmPayoutPayload) {
+        navController?.navigate(R.id.action_open_confirm_payout, ConfirmPayoutFragment.getBundle(payload))
+    }
+
+    override fun openStakingBalance() {
+        navController?.navigate(R.id.action_mainFragment_to_stakingBalanceFragment)
+    }
+
+    override fun openBondMore() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_selectBondMoreFragment)
+    }
+
+    override fun openConfirmBondMore(payload: ConfirmBondMorePayload) {
+        navController?.navigate(R.id.action_selectBondMoreFragment_to_confirmBondMoreFragment, ConfirmBondMoreFragment.getBundle(payload))
+    }
+
+    override fun returnToStakingBalance() {
+        navController?.navigate(R.id.action_return_to_staking_balance)
+    }
+
+    override fun openSelectUnbond() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_selectUnbondFragment)
+    }
+
+    override fun openConfirmUnbond(payload: ConfirmUnbondPayload) {
+        navController?.navigate(R.id.action_selectUnbondFragment_to_confirmUnbondFragment, ConfirmUnbondFragment.getBundle(payload))
+    }
+
+    override fun openRedeem() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_redeemFragment)
+    }
+
+    override fun openConfirmRebond(payload: ConfirmRebondPayload) {
+        navController?.navigate(R.id.action_open_confirm_rebond, ConfirmRebondFragment.getBundle(payload))
+    }
+
     override fun back() {
         val popped = navController!!.popBackStack()
 
         if (!popped) {
             activity!!.finish()
         }
+    }
+
+    override fun openCustomRebond() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_customRebondFragment)
+    }
+
+    override fun openCurrentValidators() {
+        navController?.navigate(R.id.action_mainFragment_to_currentValidatorsFragment)
+    }
+
+    override fun returnToCurrentValidators() {
+        navController?.navigate(R.id.action_confirmStakingFragment_back_to_currentValidatorsFragment)
+    }
+
+    override fun openControllerAccount() {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
+    }
+
+    override fun openConfirmSetController(payload: ConfirmSetControllerPayload) {
+        navController?.navigate(
+            R.id.action_stakingSetControllerAccountFragment_to_confirmSetControllerAccountFragment,
+            ConfirmSetControllerFragment.getBundle(payload)
+        )
+    }
+
+    override fun openRecommendedValidators() {
+        navController?.navigate(R.id.openRecommendedValidatorsFragment)
+    }
+
+    override fun openConfirmStaking() {
+        navController?.navigate(R.id.action_recommendedValidatorsFragment_to_confirmStakingFragment)
+    }
+
+    override fun openConfirmNominations() {
+        navController?.navigate(R.id.action_confirmStakingFragment_to_confirmNominationsFragment)
+    }
+
+    override fun returnToMain() {
+        navController?.navigate(R.id.back_to_main)
+    }
+
+    override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
+        navController?.navigate(R.id.open_validator_details, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
 
     override fun openChooseRecipient() {
@@ -176,8 +296,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.open_transaction_detail, bundle)
     }
 
-    override fun openAccounts() {
-        navController?.navigate(R.id.action_mainFragment_to_accountsFragment)
+    override fun openAccounts(accountChosenNavDirection: AccountChosenNavDirection) {
+        navController?.navigate(R.id.action_open_accounts, AccountListFragment.getBundle(accountChosenNavDirection))
     }
 
     override fun openNodes() {
@@ -192,11 +312,19 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_open_onboarding, WelcomeFragment.getBundle(true))
     }
 
+    override fun openChangeAccountFromWallet() {
+        openAccounts(AccountChosenNavDirection.BACK)
+    }
+
+    override fun openChangeAccountFromStaking() {
+        openAccounts(AccountChosenNavDirection.BACK)
+    }
+
     override fun openReceive() {
         navController?.navigate(R.id.action_open_receive)
     }
 
-    override fun returnToMain() {
+    override fun returnToWallet() {
         // to achieve smooth animation
         postToUiThread {
             navController?.navigate(R.id.action_return_to_wallet)
@@ -217,8 +345,8 @@ class Navigator : SplashRouter, OnboardingRouter, AccountRouter, WalletRouter, R
         navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
     }
 
-    override fun openNodeDetails(nodeId: Int, isSelected: Boolean) {
-        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId, isSelected))
+    override fun openNodeDetails(nodeId: Int) {
+        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId))
     }
 
     override fun openAssetDetails(type: Token.Type) {

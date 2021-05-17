@@ -16,7 +16,7 @@ class ShareCompletedReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         FeatureUtils.getFeature<AccountFeatureComponent>(context, AccountFeatureApi::class.java)
-                .inject(this)
+            .inject(this)
 
         router.finishExportFlow()
     }

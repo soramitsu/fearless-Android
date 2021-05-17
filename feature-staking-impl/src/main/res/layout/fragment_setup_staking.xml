@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    android:id="@+id/setupStakingContainer"
+    android:background="@color/black"
+    android:theme="@style/PinkOverlay"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/setupStakingToolbar"
+        app:homeButtonIcon="@drawable/ic_close"
+        app:titleText="@string/staking_stake" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:id="@+id/setupStakingAmountField"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="27dp"
+                android:layout_marginEnd="16dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/network_fee"
+                    android:textColor="@color/gray1" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <ProgressBar
+                    android:layout_width="16dp"
+                    android:indeterminate="true"
+                    android:id="@+id/setupStakingFeeProgress"
+                    android:layout_gravity="center_vertical"
+                    android:indeterminateTint="@color/white"
+                    android:layout_height="16dp" />
+
+                <TextView
+                    android:id="@+id/setupStakingFeeToken"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:layout_marginEnd="8dp"
+                    tools:text="0.001 KSM"
+                    android:textColor="@color/white" />
+
+
+                <TextView
+                    android:id="@+id/setupStakingFeeFiat"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="wrap_content"
+                    android:visibility="gone"
+                    android:layout_height="wrap_content"
+                    tools:text="$0.2"
+                    android:textColor="@color/gray2" />
+
+            </LinearLayout>
+
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginEnd="16dp"
+                android:background="@color/gray3" />
+
+            <TextView
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="25dp"
+                android:text="@string/staking_setup_reward_destination"
+                android:textColor="@color/white" />
+
+            <jp.co.soramitsu.feature_staking_impl.presentation.setup.view.RewardDestinationView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                app:targetName="@string/staking_setup_restake"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="16dp"
+                android:id="@+id/setupStakingTargetRestake"
+                android:checked="true" />
+
+            <jp.co.soramitsu.feature_staking_impl.presentation.setup.view.RewardDestinationView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                app:targetName="@string/staking_payout"
+                android:id="@+id/setupStakingTargetPayout"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="16dp" />
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:textIcon="@color/colorAccent"
+                app:label="@string/staking_setup_reward_payout_account"
+                android:id="@+id/setupStakingTargetPayoutDestination"
+                app:actionIcon="@drawable/ic_more_vertical"
+                tools:message="Valentun"
+                android:layout_marginTop="12dp" />
+
+            <TextView
+                android:id="@+id/setupStakingLearnMore"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_primary_list_item"
+                android:drawablePadding="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="12dp"
+                android:text="@string/staking_setup_learn_more"
+                app:drawableStartCompat="@drawable/ic_fearless"
+                app:drawableEndCompat="@drawable/ic_arrow_top_right_white_16" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+    </ScrollView>
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:id="@+id/setupStakingNext"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="22dp"
+        android:text="@string/common_next"
+         />
+</LinearLayout>

@@ -15,7 +15,6 @@ import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
 import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeInput
-import kotlinx.android.synthetic.main.view_advanced_block.view.networkInput
 
 class AdvancedBlockView @JvmOverloads constructor(
     context: Context,
@@ -67,9 +66,6 @@ class AdvancedBlockView @JvmOverloads constructor(
     val encryptionTypeField: LabeledTextView
         get() = encryptionTypeInput
 
-    val networkTypeField: LabeledTextView
-        get() = networkInput
-
     fun toggle() {
         if (advancedView.visibility == View.VISIBLE) {
             collapse()
@@ -94,12 +90,6 @@ class AdvancedBlockView @JvmOverloads constructor(
         }
     }
 
-    fun setOnNetworkClickListener(clickListener: () -> Unit) {
-        networkInput.setWholeClickListener {
-            maybeCallSelectorListener(networkInput, clickListener)
-        }
-    }
-
     fun getDerivationPath(): String {
         return derivationPathEditText.text?.toString() ?: ""
     }
@@ -112,21 +102,12 @@ class AdvancedBlockView @JvmOverloads constructor(
         encryptionTypeInput.setMessage(encryption)
     }
 
-    fun setNetworkName(network: String) {
-        networkInput.setMessage(network)
-    }
-
-    fun setNetworkIconResource(iconRes: Int) {
-        networkInput.setTextIcon(iconRes)
-    }
-
     fun configure(field: View, fieldState: FieldState) {
         fieldState.applyTo(field)
     }
 
     fun configure(fieldState: FieldState) {
         configure(encryptionTypeField, fieldState)
-        configure(networkTypeField, fieldState)
         configure(derivationPathField, fieldState)
     }
 

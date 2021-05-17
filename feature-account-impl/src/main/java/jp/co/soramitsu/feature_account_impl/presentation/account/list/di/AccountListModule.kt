@@ -6,13 +6,14 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.common.account.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.impl.AccountListingProvider
@@ -34,9 +35,10 @@ class AccountListModule {
     fun provideViewModel(
         interactor: AccountInteractor,
         router: AccountRouter,
-        accountListingMixin: AccountListingMixin
+        accountListingMixin: AccountListingMixin,
+        accountChosenNavDirection: AccountChosenNavDirection,
     ): ViewModel {
-        return AccountListViewModel(interactor, router, accountListingMixin)
+        return AccountListViewModel(interactor, router, accountChosenNavDirection, accountListingMixin)
     }
 
     @Provides

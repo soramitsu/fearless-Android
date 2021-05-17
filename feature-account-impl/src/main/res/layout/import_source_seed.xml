@@ -7,16 +7,29 @@
     tools:background="@color/black"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/importSeedNetworkInput"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:actionIcon="@drawable/ic_pin_white_24"
+        app:label="@string/common_choose_network"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:message="Kusama"
+        tools:textIcon="@drawable/ic_ksm_24" />
+
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/importSeedUsernameInput"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:hint="@string/username_setup_choose_title"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/importSeedNetworkInput" />
 
     <TextView
         android:id="@+id/usernameHintTv"

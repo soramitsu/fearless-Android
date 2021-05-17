@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.utils
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -122,4 +123,19 @@ private fun RecyclerView.wasAtBeginningBeforeInsertion(insertedCount: Int) =
 
 fun RecyclerView.findFirstVisiblePosition(): Int {
     return (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+}
+
+fun TextView.setCompoundDrawableTint(@ColorRes tintRes: Int) {
+    val tintColor = context.getColor(tintRes)
+
+    compoundDrawableTintList = ColorStateList.valueOf(tintColor)
+}
+
+fun TextView.setTextOrHide(newText: String?) {
+    if (newText != null) {
+        text = newText
+        setVisible(true)
+    } else {
+        setVisible(false)
+    }
 }

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -11,6 +11,9 @@ class Token(
     val recentRateChange: BigDecimal?,
     val type: Type
 ) {
+
+    fun fiatAmount(tokenAmount: BigDecimal): BigDecimal? = dollarRate?.multiply(tokenAmount)
+
     enum class Type(
         val displayName: String,
         val networkType: Node.NetworkType,

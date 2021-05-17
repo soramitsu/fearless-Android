@@ -6,8 +6,8 @@ import android.view.ViewGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserBottomSheetDialog
@@ -58,8 +58,6 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     override fun subscribe(viewModel: NodesViewModel) {
         viewModel.groupedNodeModelsLiveData.observe(adapter::submitList)
 
-        viewModel.selectedNodeLiveData.observe(adapter::updateSelectedNode)
-
         viewModel.noAccountsEvent.observeEvent {
             showNoAccountsDialog(it)
         }
@@ -75,8 +73,8 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         viewModel.deleteNodeEvent.observeEvent(::showDeleteNodeDialog)
     }
 
-    override fun infoClicked(nodeModel: NodeModel, isChecked: Boolean) {
-        viewModel.infoClicked(nodeModel, isChecked)
+    override fun infoClicked(nodeModel: NodeModel) {
+        viewModel.infoClicked(nodeModel)
     }
 
     override fun checkClicked(nodeModel: NodeModel) {

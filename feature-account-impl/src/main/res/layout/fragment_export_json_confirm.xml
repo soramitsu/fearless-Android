@@ -47,6 +47,19 @@
                 app:label="@string/recovery_json"
                 tools:message="{“address”:”Gerfdad...DJWIdjawIdjWd”}" />
 
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/exportJsonConfirmNetworkInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:actionIcon="@drawable/ic_pin_white_24"
+                app:label="@string/common_choose_network"
+                app:enabled="false"
+                tools:message="Kusama"
+                tools:textIcon="@drawable/ic_ksm_24" />
+
             <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/exportJsonConfirmAdvanced"
                 android:layout_width="match_parent"

@@ -6,8 +6,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import jp.co.soramitsu.core_db.model.TransactionLocal
-import jp.co.soramitsu.core_db.model.TransactionSource
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction.Status
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -16,7 +14,7 @@ abstract class TransactionDao {
     @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY (case when status = :statusUp then 0 else 1 end), date DESC")
     abstract fun observeTransactions(
         accountAddress: String,
-        statusUp: Status = Status.PENDING
+        statusUp: TransactionLocal.Status = TransactionLocal.Status.PENDING
     ): Flow<List<TransactionLocal>>
 
     @Query("SELECT * FROM transactions WHERE accountAddress = :accountAddress ORDER BY date DESC")
@@ -42,7 +40,7 @@ abstract class TransactionDao {
 
     @Transaction
     open suspend fun insertFromSubScan(accountAddress: String, transactions: List<TransactionLocal>) {
-        clear(accountAddress, TransactionSource.SUBSCAN)
+        clear(accountAddress, TransactionLocal.Source.SUBSCAN)
 
         val oldest = transactions.minByOrNull(TransactionLocal::date)
 
@@ -54,7 +52,7 @@ abstract class TransactionDao {
     }
 
     @Query("DELETE FROM transactions WHERE accountAddress = :accountAddress AND source = :source")
-    protected abstract suspend fun clear(accountAddress: String, source: TransactionSource): Int
+    protected abstract suspend fun clear(accountAddress: String, source: TransactionLocal.Source): Int
 
     @Query("DELETE FROM transactions WHERE date < :minDate AND accountAddress = :accountAddress")
     protected abstract suspend fun clearOld(accountAddress: String, minDate: Long): Int

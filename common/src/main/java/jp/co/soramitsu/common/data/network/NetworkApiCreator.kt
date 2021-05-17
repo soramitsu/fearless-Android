@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.data.network
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 class NetworkApiCreator(
     private val okHttpClient: OkHttpClient,
@@ -13,6 +14,7 @@ class NetworkApiCreator(
         val retrofit = Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(baseUrl)
+            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 

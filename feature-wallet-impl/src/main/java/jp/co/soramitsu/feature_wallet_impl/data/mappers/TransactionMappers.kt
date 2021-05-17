@@ -1,14 +1,27 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
 import jp.co.soramitsu.core_db.model.TransactionLocal
-import jp.co.soramitsu.core_db.model.TransactionSource
-import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeLocalToTokenType
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
+import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionRemote
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+
+fun mapTransactionStatusToTransactionStatusLocal(status: Transaction.Status) = when (status) {
+    Transaction.Status.PENDING -> TransactionLocal.Status.PENDING
+    Transaction.Status.COMPLETED -> TransactionLocal.Status.COMPLETED
+    Transaction.Status.FAILED -> TransactionLocal.Status.FAILED
+}
+
+fun mapTransactionStatusLocalToTransactionStatus(status: TransactionLocal.Status) = when (status) {
+    TransactionLocal.Status.PENDING -> Transaction.Status.PENDING
+    TransactionLocal.Status.COMPLETED -> Transaction.Status.COMPLETED
+    TransactionLocal.Status.FAILED -> Transaction.Status.FAILED
+}
 
 fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel {
     return with(transaction) {
@@ -17,6 +30,7 @@ fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel
             type = tokenType,
             senderAddress = senderAddress,
             recipientAddress = recipientAddress,
+            accountName = accountName,
             isIncome = isIncome,
             date = date,
             amount = amount,
@@ -27,7 +41,9 @@ fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel
     }
 }
 
-fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal): Transaction {
+fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal, accountName: String?): Transaction {
+    val tokenType = mapTokenTypeLocalToTokenType(transactionLocal.token)
+
     return with(transactionLocal) {
         Transaction(
             hash = hash,
@@ -36,9 +52,10 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal): Transa
             senderAddress = senderAddress,
             amount = amount,
             date = date,
-            fee = feeInPlanks?.let(token::amountFromPlanks),
-            status = status,
-            tokenType = token
+            fee = feeInPlanks?.let(tokenType::amountFromPlanks),
+            status = mapTransactionStatusLocalToTransactionStatus(status),
+            tokenType = tokenType,
+            accountName = accountName
         )
     }
 }
@@ -46,7 +63,7 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal): Transa
 fun mapTransactionToTransactionLocal(
     transaction: Transaction,
     accountAddress: String,
-    source: TransactionSource
+    source: TransactionLocal.Source
 ): TransactionLocal {
     return with(transaction) {
         TransactionLocal(
@@ -54,17 +71,18 @@ fun mapTransactionToTransactionLocal(
             hash = hash,
             recipientAddress = recipientAddress,
             senderAddress = senderAddress,
-            status = status,
+            status = mapTransactionStatusToTransactionStatusLocal(status),
             amount = amount,
             date = date,
             source = source,
-            token = tokenType,
-            feeInPlanks = fee?.let(tokenType::planksFromAmount)
+            token = mapTokenTypeToTokenTypeLocal(tokenType),
+            feeInPlanks = fee?.let(tokenType::planksFromAmount),
+            networkType = tokenType.networkType
         )
     }
 }
 
-fun mapTransferToTransaction(transfer: TransactionRemote, account: Account): Transaction {
+fun mapTransferToTransaction(transfer: TransactionRemote, account: WalletAccount, accountName: String?): Transaction {
     val token = Token.Type.fromNetworkType(account.network.type)
 
     return with(transfer) {
@@ -77,7 +95,8 @@ fun mapTransferToTransaction(transfer: TransactionRemote, account: Account): Tra
             senderAddress = from,
             recipientAddress = to,
             fee = token.amountFromPlanks(feeInPlanks),
-            isIncome = account.address == to
+            isIncome = account.address == to,
+            accountName = accountName
         )
     }
 }

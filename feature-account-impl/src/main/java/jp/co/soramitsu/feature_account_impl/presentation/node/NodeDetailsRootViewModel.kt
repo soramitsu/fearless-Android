@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.node
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.FearlessException
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_account_api.domain.model.Node
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
 import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException

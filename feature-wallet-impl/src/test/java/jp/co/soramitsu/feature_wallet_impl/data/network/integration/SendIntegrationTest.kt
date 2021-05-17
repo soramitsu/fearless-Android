@@ -2,7 +2,11 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.integration
 
 import com.google.gson.Gson
 import com.neovisionaries.ws.client.WebSocketFactory
+import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
+import jp.co.soramitsu.common.data.network.runtime.calls.FeeCalculationRequest
+import jp.co.soramitsu.common.data.network.runtime.calls.NextAccountIndexRequest
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
@@ -10,24 +14,21 @@ import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.invoke
 import jp.co.soramitsu.fearless_utils.scale.toHexString
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.recovery.Reconnector
 import jp.co.soramitsu.fearless_utils.wsrpc.request.RequestExecutor
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.TransferRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.extrinsics.signExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.FeeCalculationRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.NextAccountIndexRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.RuntimeVersion
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.Signature
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.ExtrinsicPayloadValue
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.MultiAddress
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.SignedExtrinsicV28
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.SubmittableExtrinsicV28
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.struct.extrinsic.TransferArgsV28
@@ -54,8 +55,6 @@ private const val URL = "wss://westend-rpc.polkadot.io"
 @RunWith(MockitoJUnitRunner::class)
 @Ignore("Manual run only")
 class SendIntegrationTest {
-    private val sS58Encoder = SS58Encoder()
-    private val signer = Signer()
 
     private val mapper = Gson()
 
@@ -121,12 +120,12 @@ class SendIntegrationTest {
         val specVersion = runtimeInfo.specVersion
         val transactionVersion = runtimeInfo.transactionVersion
 
-        val address = sS58Encoder.encode(accountId, addressByte)
+        val address = accountId.toAddress(addressByte)
 
         val nonce = socketService.executeAsync(NextAccountIndexRequest(address), mapper = pojo<Double>().nonNull())
         val nonceBigInt = nonce.toInt().toBigInteger()
 
-        val receiverPublicKey = sS58Encoder.decode(TO_ADDRESS)
+        val receiverPublicKey = TO_ADDRESS.toAccountId()
 
         val callStruct = TransferCallV28 { call ->
             call[TransferCallV28.callIndex] = Pair(4.toUByte(), 0.toUByte())
@@ -151,7 +150,7 @@ class SendIntegrationTest {
 
         val signature = Signature(
             encryptionType = EncryptionType.ECDSA,
-            value = signer.signExtrinsic(payload, keypair, EncryptionType.ECDSA)
+            value = Signer.signExtrinsic(payload, keypair, EncryptionType.ECDSA)
         )
 
         val extrinsic = SignedExtrinsicV28 { extrinsic ->

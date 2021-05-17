@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.network.rpc.WsConnectionManager
+import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
@@ -49,7 +50,11 @@ class NetworkModule {
             privacyUrl = BuildConfig.PRIVACY_URL,
             externalAnalyzerTemplates = externalAnalyzerTemplates,
             roadMapUrl = BuildConfig.ROADMAP_URL,
-            devStatusUrl = BuildConfig.DEV_STATUS_URL
+            devStatusUrl = BuildConfig.DEV_STATUS_URL,
+            nominatorLearnMore = BuildConfig.NOMINATOR_LEARN_MORE,
+            payoutsLearnMore = BuildConfig.PAYOUTS_LEARN_MORE,
+            twitterAccountTemplate = BuildConfig.TWITTER_ACCOUNT_TEMPLATE,
+            setControllerLearnMore = BuildConfig.SET_CONTROLLER_LEARN_MORE
         )
     }
 
@@ -132,4 +137,8 @@ class NetworkModule {
     @Provides
     @ApplicationScope
     fun provideJsonMapper() = Gson()
+
+    @Provides
+    @ApplicationScope
+    fun provideSubstrateCalls(socketService: SocketService) = SubstrateCalls(socketService)
 }

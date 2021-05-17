@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.di.ChooseAmo
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.di.ConfirmTransferComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.di.ChooseRecipientComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.di.TransactionDetailComponent
+import jp.co.soramitsu.runtime.di.RuntimeApi
 
 @Component(
     dependencies = [
@@ -54,6 +55,7 @@ interface WalletFeatureComponent : WalletFeatureApi {
         dependencies = [
             CommonApi::class,
             DbApi::class,
+            RuntimeApi::class,
             AccountFeatureApi::class
         ]
     )

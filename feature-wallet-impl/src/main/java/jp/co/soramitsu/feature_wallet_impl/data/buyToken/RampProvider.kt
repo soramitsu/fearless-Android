@@ -6,26 +6,28 @@ import android.net.Uri
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_impl.R
 
 private const val RAMP_APP_NAME = "Fearless Wallet"
 private const val RAMP_APP_LOGO = "https://raw.githubusercontent.com/sora-xor/sora-branding/master/Fearless-Wallet-brand/fearless-wallet-logo-ramp.png"
-
-private const val RAMP_FINAL_URL = "fearless://buy-success"
 
 class RampProvider(
     private val host: String,
     private val apiToken: String
 ) : ExternalProvider {
-    override val redirectLink = RAMP_FINAL_URL
 
     override val supportedTokens = setOf(Token.Type.DOT, Token.Type.KSM)
 
-    override fun createIntegrator(type: Token.Type, address: String): BuyTokenRegistry.Integrator<Context> {
-        if (!isTokenSupported(type)) {
+    override val name: String = "Ramp"
+
+    override val icon: Int = R.drawable.ic_ramp
+
+    override fun createIntegrator(tokenType: Token.Type, address: String): BuyTokenRegistry.Integrator<Context> {
+        if (!isTokenSupported(tokenType)) {
             throw BuyTokenRegistry.Provider.UnsupportedTokenException()
         }
 
-        return RampIntegrator(host, apiToken, type, address)
+        return RampIntegrator(host, apiToken, tokenType, address)
     }
 
     class RampIntegrator(
@@ -50,7 +52,7 @@ class RampProvider(
                 .appendQueryParameter("hostApiKey", apiToken)
                 .appendQueryParameter("hostAppName", RAMP_APP_NAME)
                 .appendQueryParameter("hostLogoUrl", RAMP_APP_LOGO)
-                .appendQueryParameter("finalUrl", RAMP_FINAL_URL)
+                .appendQueryParameter("finalUrl", ExternalProvider.REDIRECT_URL_BASE)
                 .build()
                 .toString()
         }

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data.network
 
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.requirePrefix
-import jp.co.soramitsu.feature_account_api.domain.model.Node
 
 class AppLinksProvider(
     val termsUrl: String,
@@ -10,7 +10,12 @@ class AppLinksProvider(
     private val externalAnalyzerTemplates: Map<ExternalAnalyzer, ExternalAnalyzerLinks>,
 
     val roadMapUrl: String,
-    val devStatusUrl: String
+    val devStatusUrl: String,
+
+    val nominatorLearnMore: String,
+    val payoutsLearnMore: String,
+    val twitterAccountTemplate: String,
+    val setControllerLearnMore: String
 ) {
 
     fun getExternalTransactionUrl(
@@ -35,6 +40,10 @@ class AppLinksProvider(
 
         return extractor(template).format(networkPathSegment(networkType), value)
     }
+
+    fun getTwitterAccountUrl(
+        accountName: String
+    ): String = twitterAccountTemplate.format(accountName)
 }
 
 class ExternalAnalyzerLinks(val transaction: String, val account: String)

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/setControllerToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:homeButtonIcon="@drawable/ic_close"
+        app:titleText="@string/staking_controller_account" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:includeFontPadding="false"
+        android:text="@string/staking_information_stash_set_controller"
+        android:textColor="@android:color/white" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/setControllerStashAccount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:actionIcon="@drawable/ic_more_vertical"
+        app:label="@string/staking_stash_account" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_info_16"
+            app:tint="@color/black2" />
+
+        <TextView
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:includeFontPadding="false"
+            android:text="@string/staking_information_stash_controller_bond"
+            android:textColor="@color/black1" />
+    </LinearLayout>
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/setControllerDestinationAccount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:actionIcon="@drawable/ic_chevron_down_white"
+        app:label="@string/staking_controller_account" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_info_16"
+            app:tint="@color/black2" />
+
+        <TextView
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:includeFontPadding="false"
+            android:text="@string/staking_information_controller_actions"
+            android:textColor="@color/black1" />
+    </LinearLayout>
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.FeeView
+        android:id="@+id/setControllerFee"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp" />
+
+    <TextView
+        android:id="@+id/setControllerLearnMore"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_primary_list_item"
+        android:drawablePadding="16dp"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp"
+        android:text="@string/common_learn_more"
+        app:drawableEndCompat="@drawable/ic_arrow_top_right_white_16"
+        app:drawableStartCompat="@drawable/ic_fearless" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:orientation="horizontal"
+        android:gravity="center|start"
+        android:id="@+id/setControllerNotStashWarning">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_alert_triangle_yellow_24" />
+
+        <TextView
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:includeFontPadding="false"
+            android:text="@string/staking_not_stash_account_warning"
+            android:textColor="@color/black1" />
+    </LinearLayout>
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/setControllerContinueBtn"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:enabled="false"
+        android:text="@string/common_continue" />
+
+</LinearLayout>

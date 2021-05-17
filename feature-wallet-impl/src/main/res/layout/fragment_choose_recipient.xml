@@ -50,7 +50,7 @@
                 android:id="@+id/welcomePlaceholderIcon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_transactions_placeholder"
+                android:src="@drawable/ic_placeholder"
                 app:layout_constraintBottom_toTopOf="@+id/welcomePlaceholderText"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -82,7 +82,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_contact" />
+            tools:listitem="@layout/item_contact_address" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/searchRecipientEmpty"

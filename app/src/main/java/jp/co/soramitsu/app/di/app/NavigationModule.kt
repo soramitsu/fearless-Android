@@ -6,6 +6,7 @@ import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.splash.SplashRouter
 
@@ -31,4 +32,8 @@ class NavigationModule {
     @ApplicationScope
     @Provides
     fun provideWalletRouter(navigator: Navigator): WalletRouter = navigator
+
+    @ApplicationScope
+    @Provides
+    fun provideStakingRouter(navigator: Navigator): StakingRouter = navigator
 }
