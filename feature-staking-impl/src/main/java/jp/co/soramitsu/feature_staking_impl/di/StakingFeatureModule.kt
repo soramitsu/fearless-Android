@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_staking_impl.di
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
@@ -42,6 +44,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentVal
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
+import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
+import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationProvider
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
@@ -155,6 +159,16 @@ class StakingFeatureModule {
         stakingInteractor: StakingInteractor,
         resourceManager: ResourceManager,
     ): FeeLoaderMixin.Presentation = FeeLoaderProvider(stakingInteractor, resourceManager)
+
+    @Provides
+    fun provideRewardDestinationChooserMixin(
+        resourceManager: ResourceManager,
+        appLinksProvider: AppLinksProvider,
+        stakingInteractor: StakingInteractor,
+        iconGenerator: AddressIconGenerator,
+    ) : RewardDestinationMixin.Presentation = RewardDestinationProvider(
+        resourceManager, stakingInteractor, iconGenerator, appLinksProvider
+    )
 
     @Provides
     @FeatureScope
