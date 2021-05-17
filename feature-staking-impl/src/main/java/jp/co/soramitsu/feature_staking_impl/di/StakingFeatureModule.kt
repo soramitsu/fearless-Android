@@ -38,6 +38,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteract
 import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.ControllerInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.staking.rewardDestination.ChangeRewardDestinationInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
@@ -274,4 +275,11 @@ class StakingFeatureModule {
     ) = CurrentValidatorsInteractor(
         stakingRepository, stakingConstantsRepository, validatorProvider
     )
+
+    @Provides
+    @FeatureScope
+    fun provideChangeRewardDestinationInteractor(
+        feeEstimator: FeeEstimator,
+        extrinsicService: ExtrinsicService
+    ) = ChangeRewardDestinationInteractor(feeEstimator, extrinsicService)
 }

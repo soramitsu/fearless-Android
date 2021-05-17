@@ -4,8 +4,8 @@ import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 
 class ExtrinsicService(
-    val substrateCalls: SubstrateCalls,
-    val extrinsicBuilderFactory: ExtrinsicBuilderFactory
+    private val substrateCalls: SubstrateCalls,
+    private val extrinsicBuilderFactory: ExtrinsicBuilderFactory
 ) {
 
     suspend fun submitExtrinsic(

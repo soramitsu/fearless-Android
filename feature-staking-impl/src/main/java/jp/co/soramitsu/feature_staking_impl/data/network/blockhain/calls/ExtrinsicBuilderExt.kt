@@ -86,3 +86,13 @@ fun ExtrinsicBuilder.rebond(amount: BigInteger): ExtrinsicBuilder {
         )
     )
 }
+
+fun ExtrinsicBuilder.setPayee(rewardDestination: RewardDestination): ExtrinsicBuilder {
+
+    return call(
+        "Staking", "set_payee",
+        mapOf(
+            "payee" to bindRewardDestination(rewardDestination)
+        )
+    )
+}

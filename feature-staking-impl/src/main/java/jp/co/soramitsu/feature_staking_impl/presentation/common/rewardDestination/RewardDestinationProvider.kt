@@ -29,7 +29,7 @@ class RewardDestinationProvider(
     override val rewardReturnsLiveData = MutableLiveData<RewardDestinationEstimations>()
     override val showDestinationChooserEvent = MutableLiveData<Event<DynamicListBottomSheet.Payload<AddressModel>>>()
 
-    override val rewardDestinationFlow = MutableStateFlow<RewardDestinationModel>(RewardDestinationModel.Restake)
+    override val rewardDestinationModelsFlow = MutableStateFlow<RewardDestinationModel>(RewardDestinationModel.Restake)
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
@@ -37,12 +37,12 @@ class RewardDestinationProvider(
         scope.launch {
             val currentAccount = interactor.getSelectedAccount()
 
-            rewardDestinationFlow.value = RewardDestinationModel.Payout(generateDestinationModel(currentAccount))
+            rewardDestinationModelsFlow.value = RewardDestinationModel.Payout(generateDestinationModel(currentAccount))
         }
     }
 
     override fun payoutTargetClicked(scope: CoroutineScope) {
-        val selectedDestination = rewardDestinationFlow.value as? RewardDestinationModel.Payout ?: return
+        val selectedDestination = rewardDestinationModelsFlow.value as? RewardDestinationModel.Payout ?: return
 
         scope.launch {
             val accountsInNetwork = accountsInCurrentNetwork()
@@ -52,7 +52,7 @@ class RewardDestinationProvider(
     }
 
     override fun payoutDestinationChanged(newDestination: AddressModel) {
-        rewardDestinationFlow.value = RewardDestinationModel.Payout(newDestination)
+        rewardDestinationModelsFlow.value = RewardDestinationModel.Payout(newDestination)
     }
 
     override fun learnMoreClicked() {
@@ -60,7 +60,7 @@ class RewardDestinationProvider(
     }
 
     override fun restakeClicked() {
-        rewardDestinationFlow.value = RewardDestinationModel.Restake
+        rewardDestinationModelsFlow.value = RewardDestinationModel.Restake
     }
 
     override suspend fun updateReturns(rewardCalculator: RewardCalculator, asset: Asset, amount: BigDecimal) {

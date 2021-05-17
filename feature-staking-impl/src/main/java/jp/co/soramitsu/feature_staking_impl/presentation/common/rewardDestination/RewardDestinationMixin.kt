@@ -17,7 +17,7 @@ interface RewardDestinationMixin : Browserable {
 
     val showDestinationChooserEvent: LiveData<Event<DynamicListBottomSheet.Payload<AddressModel>>>
 
-    val rewardDestinationFlow: Flow<RewardDestinationModel>
+    val rewardDestinationModelsFlow: Flow<RewardDestinationModel>
 
     fun payoutClicked(scope: CoroutineScope)
 

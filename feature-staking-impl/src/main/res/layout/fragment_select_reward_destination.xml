@@ -4,12 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/selectRewardDestinationContainer"
     android:orientation="vertical"
     android:theme="@style/PinkOverlay"
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:layout_width="match_parent"
+        android:id="@+id/selectRewardDestinationToolbar"
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_close"
         app:titleText="@string/staking_reward_destination" />
