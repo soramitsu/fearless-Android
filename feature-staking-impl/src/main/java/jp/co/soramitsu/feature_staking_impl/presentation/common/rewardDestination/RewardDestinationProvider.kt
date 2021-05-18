@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
@@ -45,7 +46,7 @@ class RewardDestinationProvider(
 
     override val rewardDestinationChangedFlow = initialRewardDestination.combine(rewardDestinationModelFlow) { initial, current ->
         initial != current
-    }
+    }.onStart { emit(false) }
 
     override fun payoutClicked(scope: CoroutineScope) {
         scope.launch {
