@@ -91,7 +91,7 @@ class StakeSummaryView @JvmOverloads constructor(
     }
 
     fun setStakeInfoClickListener(listener: OnClickListener) {
-        setOnClickListener (listener)
+        setOnClickListener(listener)
     }
 
     val moreActions: View
