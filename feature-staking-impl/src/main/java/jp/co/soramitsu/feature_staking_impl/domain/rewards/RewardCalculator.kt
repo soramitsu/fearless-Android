@@ -19,7 +19,7 @@ private val INTEREST_IDEAL = INFLATION_IDEAL / STAKED_PORTION_IDEAL
 
 private const val DECAY_RATE = 0.05
 
-private const val DAYS_IN_YEAR = 365
+const val DAYS_IN_YEAR = 365
 
 private val PERCENTAGE_MULTIPLIER = 100.toBigDecimal()
 

@@ -233,6 +233,10 @@ class Navigator :
         navController?.navigate(R.id.action_confirmStakingFragment_back_to_currentValidatorsFragment)
     }
 
+    override fun openChangeRewardDestination() {
+        navController?.navigate(R.id.action_mainFragment_to_selectRewardDestinationFragment)
+    }
+
     override fun openControllerAccount() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
     }

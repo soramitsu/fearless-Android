@@ -9,8 +9,8 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -66,7 +66,7 @@ typealias NominatorSummaryModel = StakeSummaryModel<NominatorStatus>
 typealias ValidatorSummaryModel = StakeSummaryModel<ValidatorStatus>
 
 enum class ManageStakeAction {
-    PAYOUTS, BALANCE, CONTROLLER, VALIDATORS, STUB
+    PAYOUTS, BALANCE, CONTROLLER, VALIDATORS, REWARD_DESTINATION
 }
 
 sealed class StakeViewState<S>(
@@ -99,6 +99,7 @@ sealed class StakeViewState<S>(
             ManageStakeAction.BALANCE -> router.openStakingBalance()
             ManageStakeAction.CONTROLLER -> router.openControllerAccount()
             ManageStakeAction.VALIDATORS -> router.openCurrentValidators()
+            ManageStakeAction.REWARD_DESTINATION -> router.openChangeRewardDestination()
         }
     }
 

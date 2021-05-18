@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:parentTag="android.widget.LinearLayout"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    tools:background="@color/black"
+    android:layout_height="match_parent">
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        app:targetName="@string/staking_setup_restake"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:id="@+id/rewardDestinationChooserRestake"
+        android:checked="true" />
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        app:targetName="@string/staking_payout"
+        android:id="@+id/rewardDestinationChooserPayout"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:textIcon="@color/colorAccent"
+        app:label="@string/staking_setup_reward_payout_account"
+        android:id="@+id/rewardDestinationChooserPayoutTarget"
+        app:actionIcon="@drawable/ic_more_vertical"
+        tools:message="Valentun"
+        android:layout_marginTop="12dp" />
+
+    <TextView
+        android:id="@+id/rewardDestinationChooserLearnMore"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_primary_list_item"
+        android:drawablePadding="16dp"
+        android:layout_marginStart="16dp"
+        android:paddingTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:paddingBottom="12dp"
+        android:text="@string/staking_setup_learn_more"
+        app:drawableStartCompat="@drawable/ic_fearless"
+        app:drawableEndCompat="@drawable/ic_arrow_top_right_white_16" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_height="1dp"
+        android:background="@color/dividerGray" />
+
+</merge>

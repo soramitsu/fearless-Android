@@ -60,4 +60,6 @@ interface StakingRouter {
     fun openCurrentValidators()
 
     fun returnToCurrentValidators()
+
+    fun openChangeRewardDestination()
 }

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.setup.view
+package jp.co.soramitsu.feature_staking_impl.presentation.view
 
 import android.content.Context
 import android.graphics.drawable.StateListDrawable
@@ -12,7 +12,11 @@ import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawableFromColors
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_payout_target.view.*
+import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountFiat
+import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountGain
+import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountToken
+import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetCheck
+import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetName
 import jp.co.soramitsu.common.R as RCommon
 
 private val CheckedStateSet = intArrayOf(android.R.attr.state_checked)

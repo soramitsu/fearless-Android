@@ -17,7 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeViews
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.displayFeeStatus
-import jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationModel
+import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeAmount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeConfirm
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeOriginAccount

@@ -13,7 +13,7 @@ class FeeEstimator(
         accountAddress: String,
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit
     ): BigInteger {
-        val extrinsicBuilder = extrinsicBuilderFactory.create(accountAddress, keypairProvider = extrinsicBuilderFactory.fakeKeypairProvider())
+        val extrinsicBuilder = extrinsicBuilderFactory.createWithFakeKeyPair(accountAddress)
 
         extrinsicBuilder.formExtrinsic()
 

@@ -32,7 +32,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.bind
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetBlockRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
-import jp.co.soramitsu.runtime.extrinsic.KeypairProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -53,7 +52,7 @@ class WssSubstrateSource(
     }
 
     override suspend fun getTransferFee(accountAddress: String, transfer: Transfer): FeeResponse {
-        val extrinsic = buildTransferExtrinsic(accountAddress, extrinsicBuilderFactory.fakeKeypairProvider(), transfer)
+        val extrinsic = buildTransferExtrinsic(accountAddress, realKeyPair = false, transfer)
 
         val request = FeeCalculationRequest(extrinsic)
 
@@ -64,7 +63,7 @@ class WssSubstrateSource(
         accountAddress: String,
         transfer: Transfer,
     ): String {
-        val extrinsic = buildTransferExtrinsic(accountAddress, extrinsicBuilderFactory.accountKeypairProvider(), transfer)
+        val extrinsic = buildTransferExtrinsic(accountAddress, realKeyPair = true, transfer)
 
         return socketService.executeAsync(
             SubmitExtrinsicRequest(extrinsic),
@@ -94,10 +93,14 @@ class WssSubstrateSource(
 
     private suspend fun buildTransferExtrinsic(
         originAddress: String,
-        keypairProvider: KeypairProvider,
+        realKeyPair: Boolean,
         transfer: Transfer,
     ): String = withContext(Dispatchers.Default) {
-        extrinsicBuilderFactory.create(originAddress, keypairProvider)
+        val extrinsicBuilder = with(extrinsicBuilderFactory) {
+            if (realKeyPair) create(originAddress) else createWithFakeKeyPair(originAddress)
+        }
+
+        extrinsicBuilder
             .transfer(recipientAccountId = transfer.recipient.toAccountId(), amount = transfer.amountInPlanks)
             .build()
     }

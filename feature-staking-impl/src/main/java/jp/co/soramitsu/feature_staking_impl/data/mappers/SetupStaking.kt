@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.data.mappers
 
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
-import jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationModel
+import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 
 fun mapRewardDestinationModelToRewardDestination(
     rewardDestinationModel: RewardDestinationModel,
