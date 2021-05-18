@@ -20,6 +20,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
+import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.RewardDestinationParcelModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
@@ -60,7 +63,7 @@ class SelectRewardDestinationViewModel(
         .share()
 
     private val controllerAssetFlow = stashStateFlow
-        .flatMapLatest { interactor.assetFlow(it.accountAddress) }
+        .flatMapLatest { interactor.assetFlow(it.controllerAddress) }
         .share()
 
     init {
@@ -71,6 +74,9 @@ class SelectRewardDestinationViewModel(
         controllerAssetFlow.onEach {
             rewardDestinationMixin.updateReturns(rewardCalculator(), it, it.bonded)
         }.launchIn(viewModelScope)
+
+        stashStateFlow.onEach(rewardDestinationMixin::loadActiveRewardDestination)
+            .launchIn(viewModelScope)
     }
 
     fun nextClicked() {
@@ -99,7 +105,7 @@ class SelectRewardDestinationViewModel(
                 stashState = stashStateFlow.first()
             )
 
-            val rewardDestination = rewardDestinationFlow.first()
+            val rewardDestination = rewardDestinationModelsFlow.first()
 
             validationExecutor.requireValid(
                 validationSystem = validationSystem,
@@ -115,10 +121,22 @@ class SelectRewardDestinationViewModel(
     }
 
     private fun goToNextStep(
-        rewardDestination: RewardDestination,
+        rewardDestination: RewardDestinationModel,
         fee: BigDecimal
     ) {
-        showMessage("Ready to open confirm")
+        val payload = ConfirmRewardDestinationPayload(
+            fee = fee,
+            rewardDestination = mapRewardDestinationModelToRewardDestinationParcelModel(rewardDestination)
+        )
+
+        router.openConfirmRewardDestination(payload)
+    }
+
+    private fun mapRewardDestinationModelToRewardDestinationParcelModel(rewardDestination: RewardDestinationModel) : RewardDestinationParcelModel {
+        return when(rewardDestination) {
+            RewardDestinationModel.Restake -> RewardDestinationParcelModel.Restake
+            is RewardDestinationModel.Payout -> RewardDestinationParcelModel.Payout(rewardDestination.destination.address)
+        }
     }
 
     private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(

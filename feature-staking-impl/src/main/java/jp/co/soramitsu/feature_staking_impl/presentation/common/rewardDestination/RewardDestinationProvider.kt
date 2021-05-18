@@ -6,8 +6,12 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.DAYS_IN_YEAR
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
@@ -24,6 +28,7 @@ class RewardDestinationProvider(
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val appLinksProvider: AppLinksProvider,
+    private val accountDisplayUseCase: AddressDisplayUseCase
 ) : RewardDestinationMixin.Presentation {
 
     override val rewardReturnsLiveData = MutableLiveData<RewardDestinationEstimations>()
@@ -63,6 +68,12 @@ class RewardDestinationProvider(
         rewardDestinationModelsFlow.value = RewardDestinationModel.Restake
     }
 
+    override suspend fun loadActiveRewardDestination(stashState: StakingState.Stash) {
+        val rewardDestination = interactor.getRewardDestination(stashState)
+
+        rewardDestinationModelsFlow.value = mapRewardDestinationToRewardDestinationModel(rewardDestination)
+    }
+
     override suspend fun updateReturns(rewardCalculator: RewardCalculator, asset: Asset, amount: BigDecimal) {
         val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true)
         val payoutReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, false)
@@ -73,6 +84,18 @@ class RewardDestinationProvider(
         rewardReturnsLiveData.value = RewardDestinationEstimations(restakeEstimations, payoutEstimations)
     }
 
+    private suspend fun mapRewardDestinationToRewardDestinationModel(rewardDestination: RewardDestination) : RewardDestinationModel{
+        return when(rewardDestination) {
+            RewardDestination.Restake -> RewardDestinationModel.Restake
+            is RewardDestination.Payout -> {
+                val networkType = interactor.getSelectedNetworkType()
+                val addressModel = generateDestinationModel(rewardDestination.targetAccountId.toAddress(networkType))
+
+                RewardDestinationModel.Payout(addressModel)
+            }
+        }
+    }
+
     private suspend fun accountsInCurrentNetwork(): List<AddressModel> {
         return interactor.getAccountsInCurrentNetwork()
             .map { generateDestinationModel(it) }
@@ -80,5 +103,9 @@ class RewardDestinationProvider(
 
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {
         return addressIconGenerator.createAddressModel(account.address, AddressIconGenerator.SIZE_MEDIUM, account.name)
+    }
+
+    private suspend fun generateDestinationModel(address: String): AddressModel {
+        return addressIconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_MEDIUM, accountDisplayUseCase(address))
     }
 }

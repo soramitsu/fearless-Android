@@ -159,6 +159,14 @@ class ConfirmStakingViewModel(
         }
     }
 
+    fun payoutAccountClicked() {
+        val payoutDestination = rewardDestinationLiveData.value as? RewardDestinationModel.Payout ?: return
+
+        val payload = ExternalAccountActions.Payload.fromAddress(payoutDestination.destination.address)
+
+        externalAccountActions.showExternalActions(payload)
+    }
+
     fun nominationsClicked() {
         router.openConfirmNominations()
     }

@@ -6,6 +6,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.Co
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 
@@ -62,4 +63,6 @@ interface StakingRouter {
     fun returnToCurrentValidators()
 
     fun openChangeRewardDestination()
+
+    fun openConfirmRewardDestination(payload: ConfirmRewardDestinationPayload)
 }

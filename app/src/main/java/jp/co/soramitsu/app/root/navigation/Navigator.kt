@@ -41,6 +41,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.conf
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
@@ -237,6 +239,13 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_selectRewardDestinationFragment)
     }
 
+    override fun openConfirmRewardDestination(payload: ConfirmRewardDestinationPayload) {
+        navController?.navigate(
+            R.id.action_selectRewardDestinationFragment_to_confirmRewardDestinationFragment,
+            ConfirmRewardDestinationFragment.getBundle(payload)
+        )
+    }
+
     override fun openControllerAccount() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
     }
@@ -410,7 +419,7 @@ class Navigator :
     override fun withPinCodeCheckRequired(
         delayedNavigation: DelayedNavigation,
         createMode: Boolean,
-        pinCodeTitleRes: Int?
+        pinCodeTitleRes: Int?,
     ) {
         val action = if (createMode) {
             PinCodeAction.Create(delayedNavigation)
