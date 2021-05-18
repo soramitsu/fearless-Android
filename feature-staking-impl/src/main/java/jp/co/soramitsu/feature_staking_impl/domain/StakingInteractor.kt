@@ -35,6 +35,9 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -256,12 +259,19 @@ class StakingInteractor(
         val networkType = state.accountAddress.networkType()
         val tokenType = Token.Type.fromNetworkType(networkType)
 
+        stakingRewardsRepository.stakingRewardsFlow(state.accountAddress)
+
+        val totalRewardsResult =
+            when (networkType) {
+                Node.NetworkType.KUSAMA, Node.NetworkType.POLKADOT -> tokenType.amountFromPlanks(stakingRewardsRepository.stakingRewardSubQuery(state.accountAddress))
+                Node.NetworkType.WESTEND -> totalRewards(stakingRewardsRepository.stakingRewardsFlow(state.accountAddress).first())
+            }
+
         combine(
             stakingRepository.electionFlow(networkType),
             stakingRepository.observeActiveEraIndex(networkType),
-            stakingRewardsRepository.stakingRewardsFlow(state.accountAddress),
             walletRepository.assetFlow(state.accountAddress, tokenType)
-        ) { electionStatus, activeEraIndex, rewards, asset ->
+        ) { electionStatus, activeEraIndex, asset ->
 
             val totalStaked = asset.bonded
 
@@ -270,14 +280,11 @@ class StakingInteractor(
             val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, electionStatus, asset)
 
             val status = statusResolver(statusResolutionContext)
-//            println("------- ${state.accountAddress}")
-//            val result = stakingRewardsRepository.stakingRewardSubQuery(state.accountAddress)
-//            println("----------  ${result}")
 
             StakeSummary(
                 status = status,
                 totalStaked = totalStaked,
-                totalRewards = totalRewards(rewards),
+                totalRewards = totalRewardsResult,
                 currentEra = activeEraIndex.toInt()
             )
         }

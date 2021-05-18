@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class StakingRewardsRepository(
     private val stakingApi: StakingApi,
@@ -47,7 +48,7 @@ class StakingRewardsRepository(
             .mapList(::mapStakingRewardLocalToStakingReward)
     }
 
-    suspend fun stakingRewardSubQuery(accountAddress: String): BigDecimal {
-        return stakingApi.getSumReward(StakingSumRewardRequest(query = "{sumReward(id: \"$accountAddress\"){accountTotal}}")).data.sumReward.accountTotal.toBigDecimal() // TODO Govno! Peredelivay normalno
+    suspend fun stakingRewardSubQuery(accountAddress: String): BigInteger {
+        return stakingApi.getSumReward(StakingSumRewardRequest(query = "{sumReward(id: \"$accountAddress\"){accountTotal}}")).data.sumReward.accountTotal.toBigInteger() // TODO Govno! Peredelivay normalno
     }
 }
