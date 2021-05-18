@@ -48,7 +48,11 @@ class StakingRewardsRepository(
             .mapList(::mapStakingRewardLocalToStakingReward)
     }
 
-    suspend fun stakingRewardSubQuery(accountAddress: String): BigInteger {
-        return mapStakingSubquerySumRewardResponseToAmount(stakingApi.getSumReward(StakingSumRewardRequest(accountAddress = accountAddress)))
+    suspend fun stakingRewardSubQueryKusama(accountAddress: String): BigInteger {
+        return mapStakingSubquerySumRewardResponseToAmount(stakingApi.getSumRewardKusama(StakingSumRewardRequest(accountAddress = accountAddress)))
+    }
+
+    suspend fun stakingRewardSubQueryPolkadot(accountAddress: String): BigInteger {
+        return mapStakingSubquerySumRewardResponseToAmount(stakingApi.getSumRewardDot(StakingSumRewardRequest(accountAddress = accountAddress)))
     }
 }

@@ -36,8 +36,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -261,7 +259,8 @@ class StakingInteractor(
 
         val totalRewardsResult =
             when (networkType) {
-                Node.NetworkType.KUSAMA, Node.NetworkType.POLKADOT -> tokenType.amountFromPlanks(stakingRewardsRepository.stakingRewardSubQuery(state.accountAddress))
+                Node.NetworkType.KUSAMA -> tokenType.amountFromPlanks(stakingRewardsRepository.stakingRewardSubQueryKusama(state.accountAddress))
+                Node.NetworkType.POLKADOT -> tokenType.amountFromPlanks(stakingRewardsRepository.stakingRewardSubQueryPolkadot(state.accountAddress))
                 Node.NetworkType.WESTEND -> totalRewards(stakingRewardsRepository.stakingRewardsFlow(state.accountAddress).first())
             }
 
