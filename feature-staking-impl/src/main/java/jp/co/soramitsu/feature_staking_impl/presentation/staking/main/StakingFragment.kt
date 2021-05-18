@@ -156,7 +156,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             stakingViewState.statusClicked()
         }
 
-        setStakeInfoClickListener{
+        setStakeInfoClickListener {
             stakingViewState.moreActionsClicked()
         }
 
