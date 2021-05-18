@@ -91,7 +91,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun selectRewardDestinationFactory(): SelectRewardDestinationComponent.Factory
 
-    fun confirmRewardDestinationFactory() : ConfirmRewardDestinationComponent.Factory
+    fun confirmRewardDestinationFactory(): ConfirmRewardDestinationComponent.Factory
 
     @Component.Factory
     interface Factory {

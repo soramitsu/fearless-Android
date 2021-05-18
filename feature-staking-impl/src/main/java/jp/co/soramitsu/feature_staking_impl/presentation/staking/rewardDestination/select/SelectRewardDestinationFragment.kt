@@ -72,7 +72,5 @@ class SelectRewardDestinationFragment : BaseFragment<SelectRewardDestinationView
 
             selectRewardDestinationContinue.setState(state)
         }
-
-
     }
 }

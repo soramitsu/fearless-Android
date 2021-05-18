@@ -43,6 +43,5 @@ class RewardDestinationViewer @JvmOverloads constructor(
     }
 
     fun setDividerVisible(visible: Boolean) {
-
     }
 }

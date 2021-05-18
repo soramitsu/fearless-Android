@@ -95,8 +95,8 @@ class RewardDestinationProvider(
         rewardReturnsLiveData.value = RewardDestinationEstimations(restakeEstimations, payoutEstimations)
     }
 
-    private suspend fun mapRewardDestinationToRewardDestinationModel(rewardDestination: RewardDestination) : RewardDestinationModel{
-        return when(rewardDestination) {
+    private suspend fun mapRewardDestinationToRewardDestinationModel(rewardDestination: RewardDestination): RewardDestinationModel {
+        return when (rewardDestination) {
             RewardDestination.Restake -> RewardDestinationModel.Restake
             is RewardDestination.Payout -> {
                 val networkType = interactor.getSelectedNetworkType()

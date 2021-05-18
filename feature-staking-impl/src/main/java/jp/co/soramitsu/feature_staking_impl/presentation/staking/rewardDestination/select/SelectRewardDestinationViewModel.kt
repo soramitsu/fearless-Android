@@ -136,8 +136,8 @@ class SelectRewardDestinationViewModel(
         router.openConfirmRewardDestination(payload)
     }
 
-    private fun mapRewardDestinationModelToRewardDestinationParcelModel(rewardDestination: RewardDestinationModel) : RewardDestinationParcelModel {
-        return when(rewardDestination) {
+    private fun mapRewardDestinationModelToRewardDestinationParcelModel(rewardDestination: RewardDestinationModel): RewardDestinationParcelModel {
+        return when (rewardDestination) {
             RewardDestinationModel.Restake -> RewardDestinationParcelModel.Restake
             is RewardDestinationModel.Payout -> RewardDestinationParcelModel.Payout(rewardDestination.destination.address)
         }
