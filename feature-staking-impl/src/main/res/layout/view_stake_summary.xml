@@ -8,33 +8,33 @@
     tools:background="@color/black"
     tools:parentTag="android.widget.LinearLayout">
 
+
     <LinearLayout
-        android:layout_marginTop="7dp"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="7dp"
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/stakeSummaryTitle"
             style="@style/TextAppearance.Soramitsu.Header5"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
             android:layout_gravity="center_vertical"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1"
             android:text="@string/staking_stake" />
 
         <ImageView
+            android:id="@+id/stakeMoreActions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            app:tint="@color/actions_color"
             android:layout_marginEnd="11dp"
             android:padding="8dp"
-            android:id="@+id/stakeMoreActions"
-            android:src="@drawable/ic_dots_horizontal_24" />
+            android:src="@drawable/ic_dots_horizontal_24"
+            app:tint="@color/actions_color" />
     </LinearLayout>
-
 
 
     <LinearLayout
@@ -64,7 +64,6 @@
             app:startWithLoading="true"
             app:titleText="@string/staking_total_rewards" />
     </LinearLayout>
-
 
     <View
         android:id="@+id/view"
