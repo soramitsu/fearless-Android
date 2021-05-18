@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.subscan
 
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
+import jp.co.soramitsu.common.data.network.subquery.SumRewardResponse
 import jp.co.soramitsu.common.data.network.subscan.SubscanResponse
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.ExtrinsicHistoryRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingRewardRequest
@@ -28,5 +29,5 @@ interface StakingApi {
     @POST("//api.subquery.network/sq/OnFinality-io/sum-reward-kusama")
     suspend fun getSumReward(
         @Body body: StakingSumRewardRequest
-    ): SubQueryResponse
+    ): SubQueryResponse<SumRewardResponse>
 }

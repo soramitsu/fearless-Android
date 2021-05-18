@@ -1,3 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.subscan.request
 
-class StakingSumRewardRequest(val query: String)
+class StakingSumRewardRequest(accountAddress: String){
+    val query = "{sumReward(id: \"$accountAddress\"){accountTotal}}"
+}
