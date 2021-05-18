@@ -19,7 +19,10 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
@@ -34,20 +37,26 @@ class RewardDestinationProvider(
     override val rewardReturnsLiveData = MutableLiveData<RewardDestinationEstimations>()
     override val showDestinationChooserEvent = MutableLiveData<Event<DynamicListBottomSheet.Payload<AddressModel>>>()
 
-    override val rewardDestinationModelsFlow = MutableStateFlow<RewardDestinationModel>(RewardDestinationModel.Restake)
+    override val rewardDestinationModelFlow = MutableStateFlow<RewardDestinationModel>(RewardDestinationModel.Restake)
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
+
+    private val initialRewardDestination = MutableSharedFlow<RewardDestinationModel>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    override val rewardDestinationChangedFlow = initialRewardDestination.combine(rewardDestinationModelFlow) { initial, current ->
+        initial != current
+    }
 
     override fun payoutClicked(scope: CoroutineScope) {
         scope.launch {
             val currentAccount = interactor.getSelectedAccount()
 
-            rewardDestinationModelsFlow.value = RewardDestinationModel.Payout(generateDestinationModel(currentAccount))
+            rewardDestinationModelFlow.value = RewardDestinationModel.Payout(generateDestinationModel(currentAccount))
         }
     }
 
     override fun payoutTargetClicked(scope: CoroutineScope) {
-        val selectedDestination = rewardDestinationModelsFlow.value as? RewardDestinationModel.Payout ?: return
+        val selectedDestination = rewardDestinationModelFlow.value as? RewardDestinationModel.Payout ?: return
 
         scope.launch {
             val accountsInNetwork = accountsInCurrentNetwork()
@@ -57,7 +66,7 @@ class RewardDestinationProvider(
     }
 
     override fun payoutDestinationChanged(newDestination: AddressModel) {
-        rewardDestinationModelsFlow.value = RewardDestinationModel.Payout(newDestination)
+        rewardDestinationModelFlow.value = RewardDestinationModel.Payout(newDestination)
     }
 
     override fun learnMoreClicked() {
@@ -65,13 +74,15 @@ class RewardDestinationProvider(
     }
 
     override fun restakeClicked() {
-        rewardDestinationModelsFlow.value = RewardDestinationModel.Restake
+        rewardDestinationModelFlow.value = RewardDestinationModel.Restake
     }
 
     override suspend fun loadActiveRewardDestination(stashState: StakingState.Stash) {
         val rewardDestination = interactor.getRewardDestination(stashState)
+        val rewardDestinationModel = mapRewardDestinationToRewardDestinationModel(rewardDestination)
 
-        rewardDestinationModelsFlow.value = mapRewardDestinationToRewardDestinationModel(rewardDestination)
+        initialRewardDestination.emit(rewardDestinationModel)
+        rewardDestinationModelFlow.value = rewardDestinationModel
     }
 
     override suspend fun updateReturns(rewardCalculator: RewardCalculator, asset: Asset, amount: BigDecimal) {

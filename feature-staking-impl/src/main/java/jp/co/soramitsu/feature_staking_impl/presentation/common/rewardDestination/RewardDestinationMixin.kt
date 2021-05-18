@@ -18,7 +18,7 @@ interface RewardDestinationMixin : Browserable {
 
     val showDestinationChooserEvent: LiveData<Event<DynamicListBottomSheet.Payload<AddressModel>>>
 
-    val rewardDestinationModelsFlow: Flow<RewardDestinationModel>
+    val rewardDestinationModelFlow: Flow<RewardDestinationModel>
 
     fun payoutClicked(scope: CoroutineScope)
 
@@ -31,6 +31,8 @@ interface RewardDestinationMixin : Browserable {
     fun restakeClicked()
 
     interface Presentation : RewardDestinationMixin {
+
+        val rewardDestinationChangedFlow: Flow<Boolean>
 
         suspend fun loadActiveRewardDestination(stashState: StakingState.Stash)
 

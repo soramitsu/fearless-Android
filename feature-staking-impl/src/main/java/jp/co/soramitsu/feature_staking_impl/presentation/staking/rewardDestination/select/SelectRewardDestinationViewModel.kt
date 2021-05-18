@@ -49,12 +49,13 @@ class SelectRewardDestinationViewModel(
     Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin,
     RewardDestinationMixin by rewardDestinationMixin {
+
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
     private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
 
-    val rewardDestinationFlow = rewardDestinationMixin.rewardDestinationModelsFlow
+    val rewardDestinationFlow = rewardDestinationMixin.rewardDestinationModelFlow
         .map { mapRewardDestinationModelToRewardDestination(it) }
         .share()
 
@@ -65,6 +66,9 @@ class SelectRewardDestinationViewModel(
     private val controllerAssetFlow = stashStateFlow
         .flatMapLatest { interactor.assetFlow(it.controllerAddress) }
         .share()
+
+    val continueAvailable = rewardDestinationMixin.rewardDestinationChangedFlow
+        .asLiveData()
 
     init {
         rewardDestinationFlow.combine(stashStateFlow) { rewardDestination, stashState ->
@@ -105,7 +109,7 @@ class SelectRewardDestinationViewModel(
                 stashState = stashStateFlow.first()
             )
 
-            val rewardDestination = rewardDestinationModelsFlow.first()
+            val rewardDestination = rewardDestinationModelFlow.first()
 
             validationExecutor.requireValid(
                 validationSystem = validationSystem,
