@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingRewardLocalToStakingReward
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingRewardRemoteToLocal
+import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingSubquerySumRewardResponseToAmount
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingRewardRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingSumRewardRequest
@@ -13,7 +14,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
 import java.math.BigInteger
 
 class StakingRewardsRepository(
@@ -49,6 +49,6 @@ class StakingRewardsRepository(
     }
 
     suspend fun stakingRewardSubQuery(accountAddress: String): BigInteger {
-        return stakingApi.getSumReward(StakingSumRewardRequest(query = "{sumReward(id: \"$accountAddress\"){accountTotal}}")).data.sumReward.accountTotal.toBigInteger() // TODO Govno! Peredelivay normalno
+        return mapStakingSubquerySumRewardResponseToAmount(stakingApi.getSumReward(StakingSumRewardRequest(accountAddress = accountAddress)))
     }
 }

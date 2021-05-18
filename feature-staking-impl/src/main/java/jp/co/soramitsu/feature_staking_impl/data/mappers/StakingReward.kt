@@ -1,11 +1,14 @@
 package jp.co.soramitsu.feature_staking_impl.data.mappers
 
+import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
+import jp.co.soramitsu.common.data.network.subquery.SumRewardResponse
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core_db.model.StakingRewardLocal
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.response.StakingRewardRemote
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import java.math.BigInteger
 
 fun mapStakingRewardLocalToStakingReward(local: StakingRewardLocal): StakingReward {
     return with(local) {
@@ -24,6 +27,10 @@ fun mapStakingRewardLocalToStakingReward(local: StakingRewardLocal): StakingRewa
             blockTimestamp = blockTimestamp
         )
     }
+}
+
+fun mapStakingSubquerySumRewardResponseToAmount(response: SubQueryResponse<SumRewardResponse>): BigInteger {
+    return response.data.sumReward.accountTotal.toBigInteger()
 }
 
 fun mapStakingRewardRemoteToLocal(

@@ -259,8 +259,6 @@ class StakingInteractor(
         val networkType = state.accountAddress.networkType()
         val tokenType = Token.Type.fromNetworkType(networkType)
 
-        stakingRewardsRepository.stakingRewardsFlow(state.accountAddress)
-
         val totalRewardsResult =
             when (networkType) {
                 Node.NetworkType.KUSAMA, Node.NetworkType.POLKADOT -> tokenType.amountFromPlanks(stakingRewardsRepository.stakingRewardSubQuery(state.accountAddress))
