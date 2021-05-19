@@ -27,6 +27,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.isRedeemableIn
 import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_api.domain.model.sumStaking
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.StakingUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.insert
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +51,7 @@ class StakingLedgerUpdater(
     private val storageCache: StorageCache,
     private val assetCache: AssetCache,
     override val scope: AccountUpdateScope
-) : Updater {
+) : StakingUpdater {
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val accountAddress = scope.getAccount().address

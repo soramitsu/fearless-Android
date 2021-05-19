@@ -14,24 +14,29 @@ class GetCurrentRuntime {
 
     @Test
     fun getKusamaRuntime() {
-        printRuntime("kusama-rpc")
+        printRuntimeForParityNode("kusama-rpc")
     }
 
     @Test
     fun getPolkadotRuntime() = runBlocking {
-        printRuntime("rpc")
+        printRuntimeForParityNode("rpc")
     }
 
 
     @Test
     fun getWestendRuntime() {
-        printRuntime("westend-rpc")
+        printRuntimeForParityNode("westend-rpc")
+    }
+    @Test
+    fun getRococoWestedRuntime() {
+        printRuntime("wss://rococo-community-rpc.laminar.codes/ws")
     }
 
-    private fun printRuntime(subDomain: String) = runBlocking {
+    private fun printRuntimeForParityNode(subdomain: String) = printRuntime("wss://$subdomain.polkadot.io")
+
+    private fun printRuntime(url: String) = runBlocking {
         val socketService = createTestSocket()
 
-        val url = "wss://$subDomain.polkadot.io"
         socketService.start(url)
 
         val runtime = socketService.executeAsync(GetMetadataRequest, mapper = pojo<String>().nonNull())

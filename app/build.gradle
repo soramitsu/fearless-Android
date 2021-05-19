@@ -126,6 +126,8 @@ dependencies {
     testImplementation project(':test-shared')
 
     implementation insetterDep
+
+    implementation liveDataKtxDep
 }
 
 task printVersion {

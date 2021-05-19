@@ -83,6 +83,9 @@ class MainFragment : BaseFragment<MainViewModel>() {
     }
 
     override fun subscribe(viewModel: MainViewModel) {
+        viewModel.stakingAvailableLiveData.observe {
+            bottomNavigationView.menu.findItem(R.id.stakingFragment).isVisible = it
+        }
     }
 
     private fun isAtHomeTab(destination: NavDestination) =

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.controller
 
+import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.system
@@ -25,6 +26,9 @@ class AccountControllerBalanceUpdater(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val assetCache: AssetCache,
 ) : Updater {
+
+    override val requiredModules: List<String> = listOf(Modules.SYSTEM, Modules.STAKING)
+
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()
 
