@@ -13,7 +13,7 @@
         android:id="@+id/crowdloanFragment"
         android:enabled="true"
         android:icon="@drawable/ic_various_rocket"
-        android:title="@string/tabbar_crowdloan_title"
+        android:title="@string/crowdloan_crowdloan"
         app:showAsAction="ifRoom" />
 
     <item

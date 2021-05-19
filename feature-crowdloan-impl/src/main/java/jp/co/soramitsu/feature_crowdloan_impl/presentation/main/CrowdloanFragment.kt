@@ -4,19 +4,24 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
-import kotlinx.android.synthetic.main.fragment_crowdloans.test
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
+import javax.inject.Inject
 
 class CrowdloanFragment : BaseFragment<CrowdloanViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
+
+    private val adapter by lazy(LazyThreadSafetyMode.NONE) {
+        CrowdloanAdapter(imageLoader)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,6 +37,9 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>() {
                 padding()
             }
         }
+
+        crowdloanList.setHasFixedSize(true)
+        crowdloanList.adapter = adapter
     }
 
     override fun inject() {
@@ -45,17 +53,6 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>() {
     }
 
     override fun subscribe(viewModel: CrowdloanViewModel) {
-        viewModel.crowdloansLiveData.observe {
-            val token = Token.Type.ROC
-
-            val testData = it.joinToString(separator = "\n") { crowdloan ->
-                val raised = token.amountFromPlanks(crowdloan.raised).formatTokenAmount(token)
-                val cap = token.amountFromPlanks(crowdloan.cap).formatTokenAmount(token)
-
-                "${crowdloan.parachainMetadata?.name} ${crowdloan.parachainId}: $raised / $cap"
-            }
-
-            test.text = testData
-        }
+        viewModel.crowdloanModelsFlow.observe(adapter::submitList)
     }
 }

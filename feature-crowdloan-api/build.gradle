@@ -12,8 +12,15 @@ android {
 
     }
 
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
+
+        jvmTarget = '1.8'
     }
 }
 

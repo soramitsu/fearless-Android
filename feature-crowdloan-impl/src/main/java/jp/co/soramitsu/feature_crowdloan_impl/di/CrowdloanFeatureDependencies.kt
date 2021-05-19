@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.di
 
+import coil.ImageLoader
 import com.google.gson.Gson
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -20,6 +21,7 @@ import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
+import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -32,6 +34,10 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
 interface CrowdloanFeatureDependencies {
+
+    fun imageLoader() : ImageLoader
+
+    fun assetUseCase() : AssetUseCase
 
     fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
 

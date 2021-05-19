@@ -79,4 +79,6 @@ dependencies {
 
     implementation shimmerDep
     implementation storiesDep
+
+    implementation coilDep
 }
