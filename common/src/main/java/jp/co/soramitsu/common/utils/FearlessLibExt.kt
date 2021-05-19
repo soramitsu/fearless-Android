@@ -12,6 +12,7 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Generic
 import jp.co.soramitsu.fearless_utils.runtime.metadata.Module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
@@ -60,10 +61,18 @@ fun Module.numberConstant(name: String, runtimeSnapshot: RuntimeSnapshot) = bind
 
 fun Module.constantOrNull(name: String) = constants[name]
 
-fun RuntimeMetadata.staking() = module("Staking")
+fun RuntimeMetadata.staking() = module(Modules.STAKING)
 
-fun RuntimeMetadata.system() = module("System")
+fun RuntimeMetadata.system() = module(Modules.SYSTEM)
 
-fun RuntimeMetadata.balances() = module("Balances")
+fun RuntimeMetadata.balances() = module(Modules.BALANCES)
 
 fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())!!
+
+fun RuntimeMetadata.hasModule(name: String) = moduleOrNull(name) != null
+
+object Modules {
+    const val STAKING = "Staking"
+    const val BALANCES = "Balances"
+    const val SYSTEM = "System"
+}

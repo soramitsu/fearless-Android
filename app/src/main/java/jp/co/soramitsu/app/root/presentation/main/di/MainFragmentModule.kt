@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.app.root.presentation.main.MainViewModel
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
@@ -21,8 +22,11 @@ class MainFragmentModule {
     @Provides
     @IntoMap
     @ViewModelKey(MainViewModel::class)
-    fun provideViewModel(connectionManager: ConnectionManager): ViewModel {
-        return MainViewModel(connectionManager)
+    fun provideViewModel(
+        connectionManager: ConnectionManager,
+        interactor: RootInteractor
+    ): ViewModel {
+        return MainViewModel(connectionManager, interactor)
     }
 
     @Provides

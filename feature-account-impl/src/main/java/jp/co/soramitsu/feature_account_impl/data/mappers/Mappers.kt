@@ -18,6 +18,7 @@ fun mapNetworkTypeToNetworkModel(networkType: NetworkType): NetworkModel {
         NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
         NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
         NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
+        NetworkType.ROCOCO -> NetworkModel.NetworkTypeUI.Rococo
     }
 
     return NetworkModel(networkType.readableName, type)
@@ -68,18 +69,14 @@ fun mapAccountToAccountModel(
 }
 
 fun mapNodeToNodeModel(node: Node): NodeModel {
-    val networkModelType = when (node.networkType) {
-        NetworkType.KUSAMA -> NetworkModel.NetworkTypeUI.Kusama
-        NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
-        NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
-    }
+    val networkModelType = mapNetworkTypeToNetworkModel(node.networkType)
 
     return with(node) {
         NodeModel(
             id = id,
             name = name,
             link = link,
-            networkModelType = networkModelType,
+            networkModelType = networkModelType.networkTypeUI,
             isDefault = isDefault,
             isActive = isActive
         )
