@@ -30,7 +30,7 @@ fun mapStakingRewardLocalToStakingReward(local: StakingRewardLocal): StakingRewa
 }
 
 fun mapStakingSubquerySumRewardResponseToAmount(response: SubQueryResponse<SumRewardResponse>): BigInteger {
-    return response.data.sumReward.accountTotal.toBigInteger()
+    return response.data.sumReward.accountTotal
 }
 
 fun mapStakingRewardRemoteToLocal(
