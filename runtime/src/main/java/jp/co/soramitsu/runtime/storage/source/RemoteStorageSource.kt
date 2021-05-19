@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.storage.source
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.rpc.queryKey
+import jp.co.soramitsu.common.data.network.rpc.retrieveAllValues
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -29,5 +30,9 @@ class RemoteStorageSource(
     override suspend fun observe(key: String, networkType: Node.NetworkType): Flow<String?> {
         return socketService.subscriptionFlow(SubscribeStorageRequest(key))
             .map { it.storageChange().getSingleChange() }
+    }
+
+    override suspend fun queryByPrefix(prefix: String): Map<String, String?> {
+        return bulkRetriever.retrieveAllValues(prefix)
     }
 }
