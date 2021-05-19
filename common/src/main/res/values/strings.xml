@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="tabbar_crowdloan_title">Crowdloan</string>
+
     <string name="staking_reward_estimation_bottom_sheet_title">Earnings in the network</string>
 
     <string name="staking_only_apr">APR</string>
@@ -250,7 +252,6 @@
     <string name="tabbar_wallet_title">Wallet</string>
     <string name="tabbar_staking_title">Staking</string>
     <string name="tabbar_governance_title">Governance</string>
-    <string name="tabbar_polkaswap_title" translatable="false">Polkaswap</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_language_title">Language</string>
     <string name="about_contact_us">Contact Us</string>

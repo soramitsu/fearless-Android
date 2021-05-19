@@ -12,10 +12,10 @@
         android:label="ProfileFragment" />
 
     <fragment
-        android:id="@+id/polkaswapFragment"
+        android:id="@+id/crowdloanFragment"
         tools:layout="@layout/fragment_coming_soon"
         android:name="jp.co.soramitsu.app.root.presentation.main.coming_soon.ComingSoonFragment"
-        android:label="ExtrinsicsFragment" />
+        android:label="CrowdloanFragment" />
 
     <fragment
         android:id="@+id/stakingFragment"
