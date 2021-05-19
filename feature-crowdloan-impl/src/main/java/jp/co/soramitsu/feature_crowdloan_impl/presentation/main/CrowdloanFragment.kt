@@ -48,12 +48,12 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>() {
         viewModel.crowdloansLiveData.observe {
             val token = Token.Type.ROC
 
-            val testData = it.map { (paraId, fundInfo) ->
-                val raised = token.amountFromPlanks(fundInfo.raised).formatTokenAmount(token)
-                val cap = token.amountFromPlanks(fundInfo.cap).formatTokenAmount(token)
+            val testData = it.joinToString(separator = "\n") { crowdloan ->
+                val raised = token.amountFromPlanks(crowdloan.raised).formatTokenAmount(token)
+                val cap = token.amountFromPlanks(crowdloan.cap).formatTokenAmount(token)
 
-                "${paraId}: $raised / $cap"
-            }.joinToString(separator = "\n")
+                "${crowdloan.parachainMetadata?.name} ${crowdloan.parachainId}: $raised / $cap"
+            }
 
             test.text = testData
         }
