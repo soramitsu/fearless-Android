@@ -19,6 +19,23 @@ abstract class BaseStorageSource(
 
     protected abstract suspend fun observe(key: String, networkType: Node.NetworkType): Flow<String?>
 
+    protected abstract suspend fun queryByPrefix(prefix: String): Map<String, String?>
+
+    override suspend fun <K, T> queryByPrefix(
+        prefixKeyBuilder: (RuntimeSnapshot) -> StorageKey,
+        keyExtractor: (String) -> K,
+        binding: Binder<T>
+    ): Map<K, T> {
+        val runtime = getRuntime()
+
+        val prefix = prefixKeyBuilder(runtime)
+
+        val rawResults = queryByPrefix(prefix)
+
+        return rawResults.mapKeys { (fullKey, _) -> keyExtractor(fullKey) }
+            .mapValues { (_, hexRaw) -> binding(hexRaw, runtime) }
+    }
+
     override suspend fun <K, T> queryKeys(
         keysBuilder: (RuntimeSnapshot) -> Map<StorageKey, K>,
         binding: Binder<T>,

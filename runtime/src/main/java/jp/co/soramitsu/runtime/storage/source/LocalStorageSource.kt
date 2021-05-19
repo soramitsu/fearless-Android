@@ -28,4 +28,11 @@ class LocalStorageSource(
         return storageCache.observeEntry(key, networkType)
             .map { it.content }
     }
+
+    override suspend fun queryByPrefix(prefix: String): Map<String, String?> {
+        return storageCache.getEntries(prefix).associateBy(
+            keySelector = StorageEntry::storageKey,
+            valueTransform = StorageEntry::content
+        )
+    }
 }

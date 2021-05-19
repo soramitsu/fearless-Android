@@ -25,6 +25,12 @@ interface StorageDataSource {
         keyBuilder: (RuntimeSnapshot) -> StorageKey,
         binder: Binder<T>,
     ): Flow<T>
+
+    suspend fun <K, T> queryByPrefix(
+        prefixKeyBuilder: (RuntimeSnapshot) -> StorageKey,
+        keyExtractor: (String) -> K,
+        binding: Binder<T>,
+    ): Map<K, T>
 }
 
 suspend inline fun <T> StorageDataSource.queryNonNull(

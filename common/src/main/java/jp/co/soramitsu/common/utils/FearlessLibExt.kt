@@ -16,6 +16,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
+import jp.co.soramitsu.fearless_utils.scale.dataType.uint32
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
@@ -67,12 +68,20 @@ fun RuntimeMetadata.system() = module(Modules.SYSTEM)
 
 fun RuntimeMetadata.balances() = module(Modules.BALANCES)
 
+fun RuntimeMetadata.crowdloan() = module(Modules.CROWDLOAN)
+
 fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())!!
 
 fun RuntimeMetadata.hasModule(name: String) = moduleOrNull(name) != null
+
+private const val HEX_SYMBOLS_PER_BYTE = 2
+private const val UINT_32_BYTES = 4
+
+fun String.u32ArgumentFromStorageKey() = uint32.fromHex(takeLast(HEX_SYMBOLS_PER_BYTE * UINT_32_BYTES)).toLong().toBigInteger()
 
 object Modules {
     const val STAKING = "Staking"
     const val BALANCES = "Balances"
     const val SYSTEM = "System"
+    const val CROWDLOAN = "Crowdloan"
 }
