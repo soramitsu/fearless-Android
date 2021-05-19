@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
