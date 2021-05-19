@@ -23,7 +23,7 @@ import jp.co.soramitsu.runtime.di.RuntimeApi
 @FeatureScope
 interface CrowdloanFeatureComponent : CrowdloanFeatureApi {
 
-    fun crowdloansFactory() : CrowdloanComponent.Factory
+    fun crowdloansFactory(): CrowdloanComponent.Factory
 
     @Component.Factory
     interface Factory {

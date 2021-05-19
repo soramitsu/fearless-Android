@@ -34,7 +34,7 @@ import java.util.Random
 
 interface CommonApi {
 
-    fun imageLoader() : ImageLoader
+    fun imageLoader(): ImageLoader
 
     fun context(): Context
 

@@ -19,7 +19,7 @@ abstract class BaseStorageSource(
 
     protected abstract suspend fun observe(key: String, networkType: Node.NetworkType): Flow<String?>
 
-    protected abstract suspend fun queryByPrefix(prefix: String) : Map<String, String?>
+    protected abstract suspend fun queryByPrefix(prefix: String): Map<String, String?>
 
     override suspend fun <K, T> queryByPrefix(
         prefixKeyBuilder: (RuntimeSnapshot) -> StorageKey,

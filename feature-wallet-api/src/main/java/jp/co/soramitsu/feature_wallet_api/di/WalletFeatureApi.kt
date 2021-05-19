@@ -9,7 +9,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 
 interface WalletFeatureApi {
 
-    fun assetUseCase() : AssetUseCase
+    fun assetUseCase(): AssetUseCase
 
     fun provideUpdaters(): WalletUpdaters
 

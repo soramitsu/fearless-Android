@@ -4,5 +4,5 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 
 interface CrowdloanFeatureApi {
 
-    fun repository() : CrowdloanRepository
+    fun repository(): CrowdloanRepository
 }

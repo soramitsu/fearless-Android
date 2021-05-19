@@ -18,5 +18,3 @@ data class CrowdloanModel(
         class FromDrawable(val data: Drawable) : Icon()
     }
 }
-
-

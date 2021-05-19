@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
-import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.CrowdloanRepositoryImpl
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor

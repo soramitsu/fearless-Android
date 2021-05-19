@@ -36,7 +36,6 @@ private object CrowdloanDiffCallback : DiffUtil.ItemCallback<CrowdloanModel>() {
     override fun areContentsTheSame(oldItem: CrowdloanModel, newItem: CrowdloanModel): Boolean {
         return oldItem == newItem
     }
-
 }
 
 class CrowdloanViewHolder(

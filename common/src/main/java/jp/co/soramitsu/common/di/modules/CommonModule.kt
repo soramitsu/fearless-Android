@@ -49,7 +49,6 @@ class CommonModule {
         }
         .build()
 
-
     @Provides
     @ApplicationScope
     fun provideResourceManager(contextManager: ContextManager): ResourceManager {

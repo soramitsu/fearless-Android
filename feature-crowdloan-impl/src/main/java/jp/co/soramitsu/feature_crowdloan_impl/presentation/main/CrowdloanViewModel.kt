@@ -31,7 +31,7 @@ class CrowdloanViewModel(
         .inBackground()
         .share()
 
-    private suspend fun mapCrowdloanToCrowdloanModel(crowdloan: Crowdloan, asset: Asset) : CrowdloanModel {
+    private suspend fun mapCrowdloanToCrowdloanModel(crowdloan: Crowdloan, asset: Asset): CrowdloanModel {
         val token = asset.token
 
         val raisedDisplay = token.amountFromPlanks(crowdloan.raised).format()
