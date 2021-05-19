@@ -27,6 +27,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetail
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfiguration
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -66,7 +67,8 @@ class Navigator :
     AccountRouter,
     WalletRouter,
     RootRouter,
-    StakingRouter {
+    StakingRouter,
+    CrowdloanRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
