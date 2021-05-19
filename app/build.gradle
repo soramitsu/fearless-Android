@@ -94,6 +94,9 @@ dependencies {
     implementation project(':feature-staking-api')
     implementation project(':feature-staking-impl')
 
+    implementation project(':feature-crowdloan-api')
+    implementation project(':feature-crowdloan-impl')
+
     implementation kotlinDep
 
     implementation androidDep
