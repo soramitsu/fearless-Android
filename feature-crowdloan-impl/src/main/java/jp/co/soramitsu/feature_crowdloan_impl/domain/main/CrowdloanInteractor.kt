@@ -22,7 +22,9 @@ class CrowdloanInteractor(
     fun crowdloansFlow(): Flow<List<Crowdloan>> {
         return flow {
             val fundInfos = crowdloanRepository.allFundInfos()
-            val parachainMetadatas = crowdloanRepository.getParachainMetadata()
+            val parachainMetadatas = runCatching {
+                crowdloanRepository.getParachainMetadata()
+            }.getOrDefault(emptyMap())
 
             val data = fundInfos.entries.map { (parachainId, fundInfo) ->
                 Crowdloan(
