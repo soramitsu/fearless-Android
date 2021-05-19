@@ -16,4 +16,7 @@ class MainViewModel(
 
     val stakingAvailableLiveData = interactor.stakingAvailableFlow()
         .asLiveData()
+
+    val crowdloanAvailableLiveData = interactor.crowdloanAvailableFlow()
+        .asLiveData()
 }

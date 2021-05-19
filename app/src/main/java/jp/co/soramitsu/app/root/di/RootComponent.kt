@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.runtime.di.RuntimeApi
@@ -44,6 +45,7 @@ interface RootComponent {
             AccountFeatureApi::class,
             WalletFeatureApi::class,
             StakingFeatureApi::class,
+            CrowdloanFeatureApi::class,
             DbApi::class,
             CommonApi::class,
             RuntimeApi::class
