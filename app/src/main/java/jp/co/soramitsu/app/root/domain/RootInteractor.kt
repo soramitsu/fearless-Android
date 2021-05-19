@@ -2,6 +2,7 @@ package jp.co.soramitsu.app.root.domain
 
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.ExternalProvider
@@ -11,6 +12,7 @@ class RootInteractor(
     private val accountRepository: AccountRepository,
     private val updateSystem: UpdateSystem,
     private val stakingRepository: StakingRepository,
+    private val crowdloanRepository: CrowdloanRepository,
     private val walletRepository: WalletRepository,
 ) {
 
@@ -23,6 +25,8 @@ class RootInteractor(
     fun isBuyProviderRedirectLink(link: String) = ExternalProvider.REDIRECT_URL_BASE in link
 
     fun stakingAvailableFlow() = stakingRepository.stakingAvailableFlow()
+
+    fun crowdloanAvailableFlow() = crowdloanRepository.crowdloanAvailableFlow()
 
     suspend fun updatePhishingAddresses() {
         runCatching {

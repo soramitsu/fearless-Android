@@ -86,6 +86,10 @@ class MainFragment : BaseFragment<MainViewModel>() {
         viewModel.stakingAvailableLiveData.observe {
             bottomNavigationView.menu.findItem(R.id.stakingFragment).isVisible = it
         }
+
+        viewModel.crowdloanAvailableLiveData.observe {
+            bottomNavigationView.menu.findItem(R.id.crowdloanFragment).isVisible = it
+        }
     }
 
     private fun isAtHomeTab(destination: NavDestination) =

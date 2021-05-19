@@ -4,6 +4,8 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.ParachainMetadataApi
@@ -21,8 +23,14 @@ class CrowdloanFeatureModule {
     fun crowdloanRepository(
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         crowdloanMetadataApi: ParachainMetadataApi,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         accountRepository: AccountRepository,
-    ): CrowdloanRepository = CrowdloanRepositoryImpl(remoteStorageSource, accountRepository, crowdloanMetadataApi)
+    ): CrowdloanRepository = CrowdloanRepositoryImpl(
+        remoteStorageSource,
+        accountRepository,
+        runtimeProperty,
+        crowdloanMetadataApi
+    )
 
     @Provides
     @FeatureScope

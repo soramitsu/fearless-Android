@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
 import kotlinx.android.extensions.LayoutContainer
@@ -44,7 +45,7 @@ class CrowdloanViewHolder(
 ) : RecyclerView.ViewHolder(containerView), LayoutContainer {
 
     fun bind(item: CrowdloanModel) = with(containerView) {
-        itemCrowdloanParaDescription.text = item.description
+        itemCrowdloanParaDescription.setTextOrHide(item.description)
         itemCrowdloanParaName.text = item.title
         itemCrowdloanParaRaised.text = item.raised
 
