@@ -31,7 +31,7 @@ interface GlobalScopeUpdater : Updater {
 
 interface Updater : SideEffectScope {
 
-    val requiredModules : List<String>
+    val requiredModules: List<String>
 
     val scope: UpdateScope
 

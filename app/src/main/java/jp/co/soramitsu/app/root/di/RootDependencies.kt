@@ -35,9 +35,9 @@ interface RootDependencies {
 
     fun stakingUpdaters(): StakingUpdaters
 
-    fun runtimeProperty() : SuspendableProperty<RuntimeSnapshot>
+    fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
 
-    fun stakingRepository() : StakingRepository
+    fun stakingRepository(): StakingRepository
 
     fun runtimeUpdater(): RuntimeUpdater
 

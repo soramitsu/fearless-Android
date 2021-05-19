@@ -5,6 +5,6 @@ import jp.co.soramitsu.core.updater.Updater
 
 interface StakingUpdater : Updater {
 
-    override val requiredModules : List<String>
+    override val requiredModules: List<String>
         get() = listOf(Modules.STAKING)
 }
