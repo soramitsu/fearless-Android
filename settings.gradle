@@ -1,3 +1,4 @@
+include ':feature-crowdloan-api'
 include ':feature-staking-impl'
 include ':feature-staking-api'
 include ':feature-wallet-impl'
