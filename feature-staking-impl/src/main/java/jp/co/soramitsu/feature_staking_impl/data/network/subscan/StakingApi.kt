@@ -27,7 +27,7 @@ interface StakingApi {
     ): SubscanResponse<StakingRewardHistory>
 
     @POST("//api.subquery.network/sq/OnFinality-io/{path}")
-    suspend fun getSumRewardKusama(
+    suspend fun getSumReward(
         @Path("path") path: String,
         @Body body: StakingSumRewardRequest
     ): SubQueryResponse<SumRewardResponse>
