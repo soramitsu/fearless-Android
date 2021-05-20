@@ -23,11 +23,22 @@
         style="@style/TextAppearance.Soramitsu.Body1"
         android:text="@string/crowdloan_main_description" />
 
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:id="@+id/crowdloanProgress"
+        tools:visibility="gone"
+        android:indeterminateTint="@color/white"
+        android:indeterminate="true" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         android:layout_marginTop="12dp"
+        tools:visibility="visible"
+        android:visibility="gone"
         android:layout_weight="1"
         android:id="@+id/crowdloanList"
         tools:itemCount="10"

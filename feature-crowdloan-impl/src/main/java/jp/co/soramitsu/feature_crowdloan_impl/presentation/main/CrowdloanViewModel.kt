@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toAddress
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
@@ -30,6 +31,7 @@ class CrowdloanViewModel(
     val crowdloanModelsFlow = interactor.crowdloansFlow().combine(assetUseCase.currentAssetFlow()) { crowdloans, asset ->
         crowdloans.map { mapCrowdloanToCrowdloanModel(it, asset) }
     }
+        .withLoading()
         .inBackground()
         .share()
 
