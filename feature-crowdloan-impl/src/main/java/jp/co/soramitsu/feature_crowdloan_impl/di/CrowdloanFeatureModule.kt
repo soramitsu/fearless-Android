@@ -8,9 +8,11 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
-import jp.co.soramitsu.feature_crowdloan_impl.data.network.ParachainMetadataApi
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.ParachainMetadataApi
+import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateRepository
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.CrowdloanRepositoryImpl
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
+import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
@@ -34,11 +36,20 @@ class CrowdloanFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideCrowdloanInteractor(repository: CrowdloanRepository) = CrowdloanInteractor(repository)
+    fun provideCrowdloanInteractor(
+        crowdloanRepository: CrowdloanRepository,
+        chainStateRepository: ChainStateRepository
+    ) = CrowdloanInteractor(crowdloanRepository, chainStateRepository)
 
     @Provides
     @FeatureScope
     fun provideCrowdloanMetadataApi(networkApiCreator: NetworkApiCreator): ParachainMetadataApi {
         return networkApiCreator.create(ParachainMetadataApi::class.java)
     }
+
+    @Provides
+    @FeatureScope
+    fun provideChainStateRepository(
+        @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
+    ) = ChainStateRepository(localStorageSource)
 }

@@ -17,7 +17,8 @@ import jp.co.soramitsu.runtime.di.RuntimeApi
         CrowdloanFeatureDependencies::class
     ],
     modules = [
-        CrowdloanFeatureModule::class
+        CrowdloanFeatureModule::class,
+        CrowdloanUpdatersModule::class
     ]
 )
 @FeatureScope

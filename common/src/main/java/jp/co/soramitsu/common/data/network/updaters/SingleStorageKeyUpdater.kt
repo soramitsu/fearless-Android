@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base
+package jp.co.soramitsu.common.data.network.updaters
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.model.StorageChange

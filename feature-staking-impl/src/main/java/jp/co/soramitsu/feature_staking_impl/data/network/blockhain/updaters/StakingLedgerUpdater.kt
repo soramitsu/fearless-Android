@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
+import jp.co.soramitsu.common.data.network.updaters.insert
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.staking
@@ -28,7 +29,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_api.domain.model.sumStaking
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.StakingUpdater
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.insert
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

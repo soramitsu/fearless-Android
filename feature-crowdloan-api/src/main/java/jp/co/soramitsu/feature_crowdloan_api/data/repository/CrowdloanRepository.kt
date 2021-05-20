@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface CrowdloanRepository {
 
-    fun crowdloanAvailableFlow() : Flow<Boolean>
+    fun crowdloanAvailableFlow(): Flow<Boolean>
 
     suspend fun allFundInfos(): Map<ParaId, FundInfo>
 

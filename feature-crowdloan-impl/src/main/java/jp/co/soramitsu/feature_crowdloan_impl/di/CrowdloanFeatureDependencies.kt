@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
@@ -24,6 +25,8 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
 interface CrowdloanFeatureDependencies {
+
+    fun storageCache(): StorageCache
 
     fun imageLoader(): ImageLoader
 

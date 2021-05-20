@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_crowdloan_impl.data.network
+package jp.co.soramitsu.feature_crowdloan_impl.data.network.api
 
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 

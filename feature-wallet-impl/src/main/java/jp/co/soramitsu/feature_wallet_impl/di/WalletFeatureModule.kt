@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -73,8 +74,10 @@ class WalletFeatureModule {
         socketService: SocketService,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        substrateCalls: SubstrateCalls,
     ): SubstrateRemoteSource = WssSubstrateSource(
         socketService,
+        substrateCalls,
         runtimeProperty,
         extrinsicBuilderFactory,
     )
