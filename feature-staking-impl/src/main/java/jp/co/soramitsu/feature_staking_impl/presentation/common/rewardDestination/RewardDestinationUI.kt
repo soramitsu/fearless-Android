@@ -14,7 +14,7 @@ fun <V> BaseFragment<V>.observeRewardDestinationChooser(
     viewModel: V,
     chooser: RewardDestinationChooserView,
 ) where V : BaseViewModel, V : RewardDestinationMixin {
-    viewModel.rewardDestinationModelsFlow.observe {
+    viewModel.rewardDestinationModelFlow.observe {
         chooser.rewardDestinationChooserPayoutTarget.setVisible(it is RewardDestinationModel.Payout)
         chooser.rewardDestinationChooserRestake.isChecked = it is RewardDestinationModel.Restake
         chooser.rewardDestinationChooserPayout.isChecked = it is RewardDestinationModel.Payout
