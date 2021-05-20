@@ -267,9 +267,9 @@ class StakingInteractor(
         combine(
             stakingRepository.electionFlow(networkType),
             stakingRepository.observeActiveEraIndex(networkType),
-            walletRepository.assetFlow(state.accountAddress, tokenType)
-        ) { electionStatus, activeEraIndex, asset ->
-
+            walletRepository.assetFlow(state.accountAddress, tokenType),
+            stakingRewardsRepository.stakingTotalRewards(state.accountAddress)
+        ) { electionStatus, activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded
 
             val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex)

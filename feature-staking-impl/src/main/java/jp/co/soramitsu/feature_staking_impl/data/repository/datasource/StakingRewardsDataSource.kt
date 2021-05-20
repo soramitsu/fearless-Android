@@ -4,5 +4,5 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import java.math.BigInteger
 
 interface StakingRewardsDataSource {
-    suspend fun totalRewardsFlow() : MutableSharedFlow<BigInteger>
+    suspend fun totalRewardsFlow(accountAddress: String): MutableSharedFlow<BigInteger>
 }
