@@ -16,6 +16,7 @@ import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
@@ -167,8 +168,9 @@ class StakingFeatureModule {
         appLinksProvider: AppLinksProvider,
         stakingInteractor: StakingInteractor,
         iconGenerator: AddressIconGenerator,
+        accountDisplayUseCase: AddressDisplayUseCase
     ): RewardDestinationMixin.Presentation = RewardDestinationProvider(
-        resourceManager, stakingInteractor, iconGenerator, appLinksProvider
+        resourceManager, stakingInteractor, iconGenerator, appLinksProvider, accountDisplayUseCase
     )
 
     @Provides

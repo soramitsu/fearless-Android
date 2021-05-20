@@ -12,8 +12,8 @@ import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
 class ChangeRewardDestinationInteractor(
-    val feeEstimator: FeeEstimator,
-    val extrinsicService: ExtrinsicService,
+    private val feeEstimator: FeeEstimator,
+    private val extrinsicService: ExtrinsicService,
 ) {
 
     suspend fun estimateFee(
