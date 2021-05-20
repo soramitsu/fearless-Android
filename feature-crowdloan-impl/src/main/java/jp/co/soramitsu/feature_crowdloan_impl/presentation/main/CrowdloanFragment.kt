@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanPlaceholder
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanProgress
 import javax.inject.Inject
 
@@ -58,7 +59,8 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>() {
 
     override fun subscribe(viewModel: CrowdloanViewModel) {
         viewModel.crowdloanModelsFlow.observe { loadingState ->
-            crowdloanList.setVisible(loadingState is LoadingState.Loaded)
+            crowdloanList.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isNotEmpty())
+            crowdloanPlaceholder.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isEmpty())
             crowdloanProgress.setVisible(loadingState is LoadingState.Loading)
 
             if (loadingState is LoadingState.Loaded) {
