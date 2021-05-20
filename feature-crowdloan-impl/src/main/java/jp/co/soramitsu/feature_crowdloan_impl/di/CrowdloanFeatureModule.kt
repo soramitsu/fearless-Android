@@ -37,9 +37,10 @@ class CrowdloanFeatureModule {
     @Provides
     @FeatureScope
     fun provideCrowdloanInteractor(
+        accountRepository: AccountRepository,
         crowdloanRepository: CrowdloanRepository,
         chainStateRepository: ChainStateRepository
-    ) = CrowdloanInteractor(crowdloanRepository, chainStateRepository)
+    ) = CrowdloanInteractor(accountRepository, crowdloanRepository, chainStateRepository)
 
     @Provides
     @FeatureScope
@@ -51,5 +52,6 @@ class CrowdloanFeatureModule {
     @FeatureScope
     fun provideChainStateRepository(
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
-    ) = ChainStateRepository(localStorageSource)
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+    ) = ChainStateRepository(localStorageSource,  runtimeProperty)
 }

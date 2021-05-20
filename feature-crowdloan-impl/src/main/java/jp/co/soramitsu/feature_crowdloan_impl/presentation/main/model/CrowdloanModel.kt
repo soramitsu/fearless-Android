@@ -8,6 +8,7 @@ data class CrowdloanModel(
     val title: String,
     val description: String?,
     val icon: Icon,
+    val timeRemaining: String,
     val raised: String
 ) {
 

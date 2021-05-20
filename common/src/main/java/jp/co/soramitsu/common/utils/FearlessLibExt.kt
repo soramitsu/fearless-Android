@@ -70,6 +70,8 @@ fun RuntimeMetadata.balances() = module(Modules.BALANCES)
 
 fun RuntimeMetadata.crowdloan() = module(Modules.CROWDLOAN)
 
+fun RuntimeMetadata.babe() = module(Modules.BABE)
+
 fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())!!
 
 fun RuntimeMetadata.hasModule(name: String) = moduleOrNull(name) != null
@@ -84,4 +86,5 @@ object Modules {
     const val BALANCES = "Balances"
     const val SYSTEM = "System"
     const val CROWDLOAN = "Crowdloan"
+    const val BABE = "Babe"
 }

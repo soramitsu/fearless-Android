@@ -7,6 +7,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
 import coil.load
+import jp.co.soramitsu.common.list.PayloadGenerator
+import jp.co.soramitsu.common.list.resolvePayload
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.feature_crowdloan_impl.R
@@ -16,6 +18,7 @@ import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanIcon
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaDescription
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaName
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaRaised
+import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanTimeRemaining
 
 class CrowdloanAdapter(
     private val imageLoader: ImageLoader
@@ -27,6 +30,16 @@ class CrowdloanAdapter(
     override fun onBindViewHolder(holder: CrowdloanViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
+
+    override fun onBindViewHolder(holder: CrowdloanViewHolder, position: Int, payloads: MutableList<Any>) {
+        val item = getItem(position)
+
+        resolvePayload(holder, position, payloads) {
+            when (it) {
+                CrowdloanModel::timeRemaining -> holder.bindTimeRemaining(item)
+            }
+        }
+    }
 }
 
 private object CrowdloanDiffCallback : DiffUtil.ItemCallback<CrowdloanModel>() {
@@ -37,7 +50,15 @@ private object CrowdloanDiffCallback : DiffUtil.ItemCallback<CrowdloanModel>() {
     override fun areContentsTheSame(oldItem: CrowdloanModel, newItem: CrowdloanModel): Boolean {
         return oldItem == newItem
     }
+
+    override fun getChangePayload(oldItem: CrowdloanModel, newItem: CrowdloanModel): Any? {
+        return CrowdloanPayloadGenerator.diff(oldItem, newItem)
+    }
 }
+
+private object CrowdloanPayloadGenerator : PayloadGenerator<CrowdloanModel>(
+    CrowdloanModel::timeRemaining
+)
 
 class CrowdloanViewHolder(
     private val imageLoader: ImageLoader,
@@ -57,5 +78,11 @@ class CrowdloanViewHolder(
                 itemCrowdloanIcon.load(icon.data, imageLoader)
             }
         }
+
+        bindTimeRemaining(item)
+    }
+
+    fun bindTimeRemaining(item: CrowdloanModel) {
+        containerView.itemCrowdloanTimeRemaining.text = item.timeRemaining
     }
 }
