@@ -32,7 +32,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.Confirm.Payload
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure

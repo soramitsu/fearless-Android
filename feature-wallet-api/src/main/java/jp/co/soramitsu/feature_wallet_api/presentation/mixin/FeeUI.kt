@@ -1,9 +1,9 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.common.fee
+package jp.co.soramitsu.feature_wallet_api.presentation.mixin
 
 import android.widget.ProgressBar
 import android.widget.TextView
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_wallet_api.R
 
 class FeeViews(
     val progress: ProgressBar,

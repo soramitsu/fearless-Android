@@ -19,9 +19,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteract
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
-import jp.co.soramitsu.feature_staking_impl.presentation.common.mapFeeToFeeModel
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondPayloadAutoFix
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondValidationFailure
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset

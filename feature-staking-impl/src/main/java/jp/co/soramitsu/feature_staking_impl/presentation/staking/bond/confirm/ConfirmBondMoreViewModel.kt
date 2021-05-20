@@ -19,9 +19,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteract
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
-import jp.co.soramitsu.feature_staking_impl.presentation.common.mapFeeToFeeModel
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.bondMoreValidationFailure
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.first

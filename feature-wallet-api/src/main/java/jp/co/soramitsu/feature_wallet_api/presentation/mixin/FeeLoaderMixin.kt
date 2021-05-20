@@ -1,10 +1,10 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.common.fee
+package jp.co.soramitsu.feature_wallet_api.presentation.mixin
 
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
-import jp.co.soramitsu.feature_staking_impl.presentation.common.model.FeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.presentation.model.FeeModel
 import kotlinx.coroutines.CoroutineScope
 import java.math.BigDecimal
 

@@ -27,8 +27,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayoutPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.requireFee
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.requireFee
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount

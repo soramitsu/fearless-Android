@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="crowdloan_contribute_title">Contribute to crowdloan</string>
     <string name="crowdloan_placeholder">Active crowdloans\n will appear here</string>
 
     <string name="common_time_left">Time left: %s</string>

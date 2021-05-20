@@ -44,8 +44,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteract
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationProvider
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -155,12 +153,6 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideSetupStakingSharedState() = SetupStakingSharedState()
-
-    @Provides
-    fun provideFeeLoaderMixin(
-        stakingInteractor: StakingInteractor,
-        resourceManager: ResourceManager,
-    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(stakingInteractor, resourceManager)
 
     @Provides
     fun provideRewardDestinationChooserMixin(

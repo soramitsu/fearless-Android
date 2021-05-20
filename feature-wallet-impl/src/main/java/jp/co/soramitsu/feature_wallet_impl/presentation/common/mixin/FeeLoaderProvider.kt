@@ -1,13 +1,15 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.common.fee
+package jp.co.soramitsu.feature_wallet_impl.presentation.common.mixin
 
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.presentation.common.mapFeeToFeeModel
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
+import jp.co.soramitsu.feature_wallet_impl.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -15,7 +17,7 @@ import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
 class FeeLoaderProvider(
-    private val stakingInteractor: StakingInteractor,
+    private val interactor: WalletInteractor,
     private val resourceManager: ResourceManager
 ) : FeeLoaderMixin.Presentation {
 
@@ -31,7 +33,7 @@ class FeeLoaderProvider(
         feeLiveData.value = FeeStatus.Loading
 
         coroutineScope.launch(Dispatchers.Default) {
-            val asset = stakingInteractor.currentAssetFlow().first()
+            val asset = interactor.currentAssetFlow().first()
             val token = asset.token
 
             val feeResult = runCatching {

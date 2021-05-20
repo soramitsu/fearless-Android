@@ -6,6 +6,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 
 interface WalletFeatureApi {
 
@@ -22,4 +23,6 @@ interface WalletFeatureApi {
     fun provideAssetCache(): AssetCache
 
     fun provideWallConstants(): WalletConstants
+
+    fun feeLoaderMixin() : FeeLoaderMixin.Presentation
 }

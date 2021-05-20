@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondViewModel
 
 @Module(includes = [ViewModelModule::class])

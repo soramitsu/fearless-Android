@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.common.model
+package jp.co.soramitsu.feature_wallet_api.presentation.model
 
 import java.math.BigDecimal
 

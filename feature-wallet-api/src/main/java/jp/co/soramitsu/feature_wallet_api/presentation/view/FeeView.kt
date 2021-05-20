@@ -1,9 +1,10 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.view
+package jp.co.soramitsu.feature_wallet_api.presentation.view
 
 import android.content.Context
 import android.util.AttributeSet
-import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeStatus
+import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.view.TableCellView
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
 
 class FeeView @JvmOverloads constructor(
     context: Context,

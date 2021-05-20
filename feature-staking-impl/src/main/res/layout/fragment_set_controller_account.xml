@@ -94,7 +94,7 @@
             android:textColor="@color/black1" />
     </LinearLayout>
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.FeeView
+    <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
         android:id="@+id/setControllerFee"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

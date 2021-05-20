@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/crowdloanContributeToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:titleText="Karura (KAR)" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/crowdloan_contribute_title" />
+
+    <jp.co.soramitsu.common.view.AmountView
+        android:id="@+id/crowdloanContributeAmount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_info_16"
+            app:tint="@color/black2" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:layout_marginStart="10dp"
+            tools:text="Your KSM tokens will be returned after the leasing period." />
+    </LinearLayout>
+</LinearLayout>

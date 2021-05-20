@@ -64,4 +64,13 @@
         <attr name="android:inputType" />
         <attr name="android:text" />
     </declare-styleable>
+
+    <declare-styleable name="StakingAmountView">
+        <attr name="android:enabled" />
+    </declare-styleable>
+
+    <declare-styleable name="TableCellView">
+        <attr name="title" />
+        <attr name="dividerVisible" />
+    </declare-styleable>
 </resources>
