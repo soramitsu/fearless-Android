@@ -41,7 +41,4 @@ class RewardDestinationViewer @JvmOverloads constructor(
     fun setPayoutAccountClickListener(listener: (View) -> Unit) {
         viewRewardDestinationPayoutAccount.setWholeClickListener(listener)
     }
-
-    fun setDividerVisible(visible: Boolean) {
-    }
 }

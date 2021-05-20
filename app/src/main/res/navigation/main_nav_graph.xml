@@ -660,6 +660,7 @@
         android:id="@+id/currentValidatorsFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.current.CurrentValidatorsFragment"
         android:label="CurrentValidatorsFragment" />
+
     <fragment
         tools:layout="@layout/fragment_select_reward_destination"
         android:id="@+id/selectRewardDestinationFragment"
@@ -674,6 +675,7 @@
             android:id="@+id/action_selectRewardDestinationFragment_to_confirmRewardDestinationFragment"
             app:destination="@id/confirmRewardDestinationFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/confirmRewardDestinationFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment"

@@ -9,6 +9,8 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
@@ -79,11 +81,12 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         viewModel.showNextProgress.observe(confirmStakeConfirm::setProgress)
 
         viewModel.rewardDestinationLiveData.observe {
+
             if (it != null) {
-                confirmStakeRewardDestination.setVisible(true)
+                confirmStakeRewardDestination.makeVisible()
                 confirmStakeRewardDestination.showRewardDestination(it)
             } else {
-                confirmStakeRewardDestination.setVisible(false)
+                confirmStakeRewardDestination.makeGone()
             }
         }
 
