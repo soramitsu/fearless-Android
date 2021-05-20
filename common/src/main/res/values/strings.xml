@@ -3,7 +3,7 @@
     <string name="common_time_left">Time left: %s</string>
 
     <string name="crownloans_raised">Raised %s of %s</string>
-    <string name="crowdloan_main_description">Select parachains to contribute your KSM. You will receive rewards if the parachain acquires a slot by the end of the auction.</string>
+    <string name="crowdloan_main_description">Select parachains to contribute your %s. You will receive rewards if the parachain acquires a slot by the end of the auction.</string>
     <string name="crowdloan_crowdloan">Crowdloan</string>
 
     <string name="staking_reward_estimation_bottom_sheet_title">Earnings in the network</string>

@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanProgress
 import javax.inject.Inject
 
@@ -64,5 +65,7 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>() {
                 adapter.submitList(loadingState.data)
             }
         }
+
+        viewModel.mainDescription.observe(crowdloanMainDescription::setText)
     }
 }

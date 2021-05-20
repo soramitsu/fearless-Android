@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 
 private const val ICON_SIZE_DP = 40
 
@@ -28,7 +29,14 @@ class CrowdloanViewModel(
     private val resourceManager: ResourceManager,
 ) : BaseViewModel() {
 
-    val crowdloanModelsFlow = interactor.crowdloansFlow().combine(assetUseCase.currentAssetFlow()) { crowdloans, asset ->
+    private val assetFlow = assetUseCase.currentAssetFlow()
+        .share()
+
+    val mainDescription = assetFlow.map {
+        resourceManager.getString(R.string.crowdloan_main_description, it.token.type.displayName)
+    }
+
+    val crowdloanModelsFlow = interactor.crowdloansFlow().combine(assetFlow) { crowdloans, asset ->
         crowdloans.map { mapCrowdloanToCrowdloanModel(it, asset) }
     }
         .withLoading()
