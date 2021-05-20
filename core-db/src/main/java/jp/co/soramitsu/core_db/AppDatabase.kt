@@ -20,33 +20,13 @@ import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
-import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
-import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
-import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
-import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_11_12
-import jp.co.soramitsu.core_db.migrations.AddStakingRewardsTable_15_16
-import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
-import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
-import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
-import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
-import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
-import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
-import jp.co.soramitsu.core_db.migrations.UpdateDefaultNodesList
-import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.core_db.model.AccountStakingLocal
-import jp.co.soramitsu.core_db.model.AssetLocal
-import jp.co.soramitsu.core_db.model.NodeLocal
-import jp.co.soramitsu.core_db.model.PhishingAddressLocal
-import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
-import jp.co.soramitsu.core_db.model.StakingRewardLocal
-import jp.co.soramitsu.core_db.model.StorageEntryLocal
-import jp.co.soramitsu.core_db.model.TokenLocal
-import jp.co.soramitsu.core_db.model.TransactionLocal
+import jp.co.soramitsu.core_db.migrations.*
+import jp.co.soramitsu.core_db.model.*
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
 @Database(
-    version = 20,
+    version = 21,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
@@ -57,7 +37,8 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
         PhishingAddressLocal::class,
         StorageEntryLocal::class,
         AccountStakingLocal::class,
-        StakingRewardLocal::class
+        StakingRewardLocal::class,
+        TotalRewardLocal::class
     ]
 )
 @TypeConverters(
@@ -94,6 +75,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(RemoveAccountForeignKeyFromAsset_17_18)
                     .addMigrations(MoveActiveNodeTrackingToDb_18_19(prefsToDbActiveNodeMigrator))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 19))
+                    .addMigrations(AddTotalRewardsTableToDb_20_21)
                     .build()
             }
             return instance!!

@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingSubquerySumRe
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingRewardRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingSumRewardRequest
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +21,7 @@ class StakingRewardsRepository(
     private val stakingApi: StakingApi,
     private val stakingRewardDao: StakingRewardDao,
     private val subscanPagedSynchronizer: SubscanPagedSynchronizer,
+    private val stakingRewardsDataSource: StakingRewardsDataSource
 ) {
 
     suspend fun syncTotalRewards(accountAddress: String) = withContext(Dispatchers.IO) {
@@ -49,10 +51,13 @@ class StakingRewardsRepository(
     }
 
     suspend fun stakingRewardSubQueryKusama(accountAddress: String): BigInteger {
-        return mapStakingSubquerySumRewardResponseToAmount(stakingApi.getSumReward("sum-reward-kusama",StakingSumRewardRequest(accountAddress = accountAddress)))
+        return mapStakingSubquerySumRewardResponseToAmount(stakingApi.getSumReward("sum-reward-kusama", StakingSumRewardRequest(accountAddress = accountAddress)))
     }
 
     suspend fun stakingRewardSubQueryPolkadot(accountAddress: String): BigInteger {
         return mapStakingSubquerySumRewardResponseToAmount(stakingApi.getSumReward("sum-reward", StakingSumRewardRequest(accountAddress = accountAddress)))
     }
+
+    suspend fun stakingTotalRewards(accountAddress: String) = stakingRewardsDataSource.totalRewardsFlow(accountAddress = accountAddress)
+
 }
