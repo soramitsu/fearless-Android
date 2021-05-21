@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
@@ -108,7 +109,7 @@ class StakingInteractor(
 
     suspend fun syncStakingRewards(accountAddress: String) = withContext(Dispatchers.IO) {
         runCatching {
-            stakingRewardsRepository.syncTotalRewards(accountAddress)
+            stakingRewardsRepository.sync(accountAddress)
         }
     }
 
@@ -257,13 +258,6 @@ class StakingInteractor(
         val networkType = state.accountAddress.networkType()
         val tokenType = Token.Type.fromNetworkType(networkType)
 
-        val totalRewardsResult =
-            when (networkType) {
-                Node.NetworkType.KUSAMA -> tokenType.amountFromPlanks(stakingRewardsRepository.stakingRewardSubQueryKusama(state.accountAddress))
-                Node.NetworkType.POLKADOT -> tokenType.amountFromPlanks(stakingRewardsRepository.stakingRewardSubQueryPolkadot(state.accountAddress))
-                Node.NetworkType.WESTEND -> totalRewards(stakingRewardsRepository.stakingRewardsFlow(state.accountAddress).first())
-            }
-
         combine(
             stakingRepository.electionFlow(networkType),
             stakingRepository.observeActiveEraIndex(networkType),
@@ -281,14 +275,10 @@ class StakingInteractor(
             StakeSummary(
                 status = status,
                 totalStaked = totalStaked,
-                totalRewards = totalRewardsResult,
+                totalRewards = totalReward.totalReward,
                 currentEra = activeEraIndex.toInt()
             )
         }
-    }
-
-    private fun totalRewards(rewards: List<StakingReward>) = rewards.sumByBigDecimal {
-        it.amount * it.type.summingCoefficient.toBigDecimal()
     }
 
     private fun isNominationActive(stashId: ByteArray, exposures: Collection<Exposure>): Boolean {
