@@ -9,7 +9,9 @@ import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingSumRewardRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
@@ -25,10 +27,8 @@ class StakingRewardsDataSourceImpl(
         stakingRewardDao.insert(TotalRewardLocal(accountAddress, totalRewards))
     }
 
-    override suspend fun totalRewardsFlow(accountAddress: String): MutableSharedFlow<BigInteger> {
-        val totalRewardLocal = stakingRewardDao.getTotalReward(accountAddress)?.totalReward ?: BigInteger.ZERO
-        totalRewardsFlow.emit(totalRewardLocal)
-        return totalRewardsFlow
+    override suspend fun totalRewardsFlow(accountAddress: String): Flow<TotalRewardLocal> {
+        return stakingRewardDao.observeTotalRewards(accountAddress)
     }
 
     suspend fun sync(accountAddress: String) {

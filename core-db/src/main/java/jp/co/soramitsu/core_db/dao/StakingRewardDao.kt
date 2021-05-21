@@ -16,7 +16,7 @@ abstract class StakingRewardDao {
     abstract suspend fun rewardCount(accountAddress: String): Int
 
     @Query("SELECT * FROM total_reward WHERE accountAddress = :accountAddress")
-    abstract fun getTotalReward(accountAddress: String): TotalRewardLocal?
+    abstract fun observeTotalRewards(accountAddress: String): Flow<TotalRewardLocal>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insert(totalRewardLocal: TotalRewardLocal)
