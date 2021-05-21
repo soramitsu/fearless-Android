@@ -64,8 +64,8 @@ class CrowdloanViewModel(
             title = crowdloan.parachainMetadata?.name ?: depositorAddress,
             description = crowdloan.parachainMetadata?.description,
             icon = icon,
-            raised = resourceManager.getString(R.string.crownloans_raised, raisedDisplay, capDisplay),
-            timeRemaining = resourceManager.getString(R.string.common_time_left, timeLeft)
+            raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
+            timeRemaining = resourceManager.getString(R.string.common_time_left_format, timeLeft)
         )
     }
 

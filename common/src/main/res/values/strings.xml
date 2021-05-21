@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="crowdloan_leasing_period">Leasing period</string>
+    <string name="crowdloan_raised">Raised</string>
+    <string name="crowdloan_raised_amount">%s of %s</string>
+
+    <string name="crowdloan_info">Crowdloan info</string>
+
     <string name="crowdloan_contribute_title">Contribute to crowdloan</string>
     <string name="crowdloan_placeholder">Active crowdloans\n will appear here</string>
 
-    <string name="common_time_left">Time left: %s</string>
+    <string name="common_time_left_format">Time left: %s</string>
+    <string name="common_time_left">Time left</string>
 
-    <string name="crownloans_raised">Raised %s of %s</string>
+    <string name="crowdloan_learn">Learn %s\'s crowdloan</string>
+
+    <string name="crownloans_raised_format">Raised %s of %s</string>
     <string name="crowdloan_main_description">Select parachains to contribute your %s. You will receive rewards if the parachain acquires a slot by the end of the auction.</string>
     <string name="crowdloan_crowdloan">Crowdloan</string>
 
