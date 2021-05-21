@@ -4,7 +4,6 @@ import jp.co.soramitsu.common.data.network.subscan.subscanSubDomain
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
-import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingRewardLocalToStakingReward
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingRewardRemoteToLocal
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapSumReward
@@ -27,7 +26,7 @@ class StakingRewardsSubscanDataSourceImpl(
     override suspend fun totalRewardsFlow(accountAddress: String): Flow<TotalReward> {
         return stakingRewardDao.observeRewards(accountAddress)
             .mapList(::mapStakingRewardLocalToStakingReward)
-            .map (::mapSumReward)
+            .map(::mapSumReward)
     }
 
     override suspend fun sync(accountAddress: String) {

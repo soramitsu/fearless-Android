@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
 import jp.co.soramitsu.common.utils.networkType
-import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -28,14 +27,12 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
-import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -45,7 +42,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.time.ExperimentalTime
 import kotlin.time.days

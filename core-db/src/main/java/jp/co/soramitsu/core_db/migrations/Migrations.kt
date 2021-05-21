@@ -60,7 +60,8 @@ class UpdateDefaultNodesList(
 
 val AddTotalRewardsTableToDb_20_21 = object : Migration(20, 21) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("""
+        database.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `total_reward` (
                 `accountAddress` TEXT NOT NULL, 
                 `totalReward` TEXT, 
