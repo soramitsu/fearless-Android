@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_api.data.repository
 
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import kotlinx.coroutines.flow.Flow
@@ -11,10 +12,15 @@ interface CrowdloanRepository {
     suspend fun allFundInfos(): Map<ParaId, FundInfo>
 
     suspend fun getParachainMetadata(): Map<ParaId, ParachainMetadata>
+
+    fun fundInfoFlow(parachainId: ParaId, networkType: Node.NetworkType): Flow<FundInfo>
 }
 
 class ParachainMetadata(
     val iconLink: String,
     val name: String,
-    val description: String
+    val description: String,
+    val rewardRate: Double,
+    val website: String,
+    val token: String
 )

@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.crowdloan
 import jp.co.soramitsu.common.utils.hasModule
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
@@ -52,5 +53,13 @@ class CrowdloanRepositoryImpl(
                 .associateBy { it.paraid }
                 .mapValues { (_, remoteMetadata) -> mapParachainMetadataRemoteToParachainMetadata(remoteMetadata) }
         }
+    }
+
+    override fun fundInfoFlow(parachainId: ParaId, networkType: Node.NetworkType): Flow<FundInfo> {
+        return remoteStorage.observe(
+            keyBuilder = {  it.metadata.crowdloan().storage("Funds").storageKey(it, parachainId) },
+            binder = { scale, runtime -> bindFundInfo(scale!!, runtime) },
+            networkType = networkType
+        )
     }
 }

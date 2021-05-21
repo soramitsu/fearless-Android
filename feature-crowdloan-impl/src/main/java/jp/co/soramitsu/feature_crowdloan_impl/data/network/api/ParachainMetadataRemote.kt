@@ -7,5 +7,7 @@ class ParachainMetadataRemote(
     val icon: String,
     val name: String,
     val paraid: BigInteger,
+    val token: String,
+    val rewardRate: Double,
     val website: String
 )
