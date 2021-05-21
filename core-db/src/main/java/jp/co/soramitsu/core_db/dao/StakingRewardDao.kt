@@ -1,10 +1,12 @@
 package jp.co.soramitsu.core_db.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import jp.co.soramitsu.core_db.model.StakingRewardLocal
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import kotlinx.coroutines.flow.Flow
-import java.math.BigInteger
 
 @Dao
 abstract class StakingRewardDao {
