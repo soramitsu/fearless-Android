@@ -27,7 +27,7 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImp
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchronizer
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSource
-import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSourceImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsSubqueryDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -70,7 +70,7 @@ class StakingFeatureModule {
     fun provideStakingRewardsDataSource(
         stakingApi: StakingApi,
         stakingRewardDao: StakingRewardDao,
-    ): StakingRewardsDataSource = StakingRewardsDataSourceImpl(
+    ): StakingRewardsDataSource = StakingRewardsSubqueryDataSourceImpl(
         stakingApi = stakingApi,
         stakingRewardDao = stakingRewardDao
     )
@@ -198,16 +198,12 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideStakingRewardsRepository(
-        stakingApi: StakingApi,
-        stakingRewardDao: StakingRewardDao,
-        subscanPagedSynchronizer: SubscanPagedSynchronizer,
-        stakingRewardsDataSource: StakingRewardsDataSource
+        subscanStakingRewardsDataSource: StakingRewardsDataSource,
+        subqueryStakingRewardsDataSource: StakingRewardsDataSource,
     ): StakingRewardsRepository {
         return StakingRewardsRepository(
-            stakingApi,
-            stakingRewardDao,
-            subscanPagedSynchronizer,
-            stakingRewardsDataSource
+            subscanStakingRewardsDataSource,
+            subqueryStakingRewardsDataSource
         )
     }
 
