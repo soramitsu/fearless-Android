@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
@@ -21,13 +22,20 @@ class Crowdloan(
     val parachainMetadata: ParachainMetadata?,
     val parachainId: BigInteger,
     val raised: BigInteger,
+    val raisedFraction: BigDecimal,
     val remainingTimeInMillis: Long,
+    val leasePeriodInMillis: Long,
+    val leasedUntilInMillis: Long,
     val cap: BigInteger,
 )
 
 @OptIn(ExperimentalTime::class)
 val Crowdloan.remainingTimeInSeconds: Long
     get() = remainingTimeInMillis.milliseconds.inSeconds.toLong()
+
+@OptIn(ExperimentalTime::class)
+val Crowdloan.leasedPeriodInSeconds: Long
+    get() = leasePeriodInMillis.milliseconds.inSeconds.toLong()
 
 class CrowdloanInteractor(
     private val accountRepository: AccountRepository,
@@ -44,6 +52,7 @@ class CrowdloanInteractor(
             }.getOrDefault(emptyMap())
 
             val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis()
+            val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod()
             val networkType = accountRepository.currentNetworkType()
 
             val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(networkType).map { currentBlockNumber ->
@@ -55,7 +64,8 @@ class CrowdloanInteractor(
                             parachainMetadata = parachainMetadatas[parachainId],
                             parachainId = parachainId,
                             currentBlockNumber = currentBlockNumber,
-                            expectedBlockTimeInMillis = expectedBlockTime
+                            expectedBlockTimeInMillis = expectedBlockTime,
+                            blocksPerLeasePeriod = blocksPerLeasePeriod
                         )
                     }
             }

@@ -10,36 +10,36 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
-import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
-import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMoreViewModel
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.CrowdloanContributeViewModel
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 
 @Module(includes = [ViewModelModule::class])
-class SelectBondMoreModule {
+class CrowdloanContributeModule {
 
     @Provides
     @IntoMap
-    @ViewModelKey(SelectBondMoreViewModel::class)
+    @ViewModelKey(CrowdloanContributeViewModel::class)
     fun provideViewModel(
-        interactor: StakingInteractor,
-        router: StakingRouter,
-        bondMoreInteractor: BondMoreInteractor,
+        interactor: CrowdloanContributeInteractor,
+        router: CrowdloanRouter,
         resourceManager: ResourceManager,
+        assetUseCase: AssetUseCase,
         validationExecutor: ValidationExecutor,
-        validationSystem: BondMoreValidationSystem,
-        feeLoaderMixin: FeeLoaderMixin.Presentation
+        feeLoaderMixin: FeeLoaderMixin.Presentation,
+        payload: ContributePayload
     ): ViewModel {
-        return SelectBondMoreViewModel(
+        return CrowdloanContributeViewModel(
             router,
             interactor,
-            bondMoreInteractor,
             resourceManager,
+            assetUseCase,
             validationExecutor,
-            validationSystem,
-            feeLoaderMixin
+            feeLoaderMixin,
+            payload
         )
     }
 
@@ -47,7 +47,7 @@ class SelectBondMoreModule {
     fun provideViewModelCreator(
         fragment: Fragment,
         viewModelFactory: ViewModelProvider.Factory
-    ): SelectBondMoreViewModel {
-        return ViewModelProvider(fragment, viewModelFactory).get(SelectBondMoreViewModel::class.java)
+    ): CrowdloanContributeViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(CrowdloanContributeViewModel::class.java)
     }
 }

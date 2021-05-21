@@ -11,15 +11,39 @@ fun mapFundInfoToCrowdloan(
     parachainMetadata: ParachainMetadata?,
     parachainId: BigInteger,
     currentBlockNumber: BlockNumber,
+    expectedBlockTimeInMillis: BigInteger,
+    blocksPerLeasePeriod: BigInteger,
+): Crowdloan {
+    val leasePeriodInMillis = leasePeriodInMillis(blocksPerLeasePeriod, currentBlockNumber, fundInfo.lastSlot, expectedBlockTimeInMillis)
+
+    return Crowdloan(
+        parachainMetadata =parachainMetadata,
+        raised = fundInfo.raised,
+        raisedFraction = fundInfo.raised.toBigDecimal() / fundInfo.cap.toBigDecimal(),
+        parachainId = parachainId,
+        cap = fundInfo.cap,
+        leasePeriodInMillis = leasePeriodInMillis,
+        leasedUntilInMillis = System.currentTimeMillis() + leasePeriodInMillis,
+        remainingTimeInMillis = expectedRemainingTime(currentBlockNumber, fundInfo.end, expectedBlockTimeInMillis),
+        depositor = fundInfo.depositor
+    )
+}
+
+private fun leasePeriodInMillis(
+    blocksPerLeasePeriod: BigInteger,
+    currentBlockNumber: BigInteger,
+    endingLeasePeriod: BigInteger,
     expectedBlockTimeInMillis: BigInteger
-) = Crowdloan(
-    parachainMetadata =parachainMetadata,
-    raised = fundInfo.raised,
-    parachainId = parachainId,
-    cap = fundInfo.cap,
-    remainingTimeInMillis = expectedRemainingTime(currentBlockNumber, fundInfo.end, expectedBlockTimeInMillis),
-    depositor = fundInfo.depositor
-)
+) : Long {
+    val unlockedAtPeriod = endingLeasePeriod + BigInteger.ONE // next period after end one
+    val unlockedAtBlock = blocksPerLeasePeriod * unlockedAtPeriod
+
+    return expectedRemainingTime(
+        currentBlockNumber,
+        unlockedAtBlock,
+        expectedBlockTimeInMillis
+    )
+}
 
 private fun expectedRemainingTime(
     currentBlock: BlockNumber,

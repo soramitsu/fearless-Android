@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.resources
 
 import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.di.scope.ApplicationScope
+import jp.co.soramitsu.common.utils.formatDateTime
 
 @ApplicationScope
 class ResourceManagerImpl(
@@ -31,5 +32,9 @@ class ResourceManagerImpl(
         val px = contextManager.getContext().resources.displayMetrics.density * dp
 
         return px.toInt()
+    }
+
+    override fun formatDate(timestamp: Long): String {
+        return timestamp.formatDateTime(contextManager.getContext()).toString()
     }
 }

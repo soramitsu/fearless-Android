@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
@@ -20,12 +21,12 @@ import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanPlaceholder
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanProgress
 import javax.inject.Inject
 
-class CrowdloanFragment : BaseFragment<CrowdloanViewModel>() {
+class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.Handler {
 
     @Inject protected lateinit var imageLoader: ImageLoader
 
     private val adapter by lazy(LazyThreadSafetyMode.NONE) {
-        CrowdloanAdapter(imageLoader)
+        CrowdloanAdapter(imageLoader, this)
     }
 
     override fun onCreateView(
@@ -69,5 +70,9 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>() {
         }
 
         viewModel.mainDescription.observe(crowdloanMainDescription::setText)
+    }
+
+    override fun crowdloanClicked(index: Int) {
+        viewModel.crowdloanClicked(index)
     }
 }

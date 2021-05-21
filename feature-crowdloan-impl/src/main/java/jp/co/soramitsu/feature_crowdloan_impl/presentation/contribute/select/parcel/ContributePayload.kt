@@ -3,11 +3,12 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.pa
 import android.os.Parcelable
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import kotlinx.android.parcel.Parcelize
+import java.math.BigInteger
 
 @Parcelize
 class ContributePayload(
     val paraId: ParaId,
-    val parachainMetadata: ParachainMetadataParcelModel
+    val parachainMetadata: ParachainMetadataParcelModel?
 ) : Parcelable
 
 

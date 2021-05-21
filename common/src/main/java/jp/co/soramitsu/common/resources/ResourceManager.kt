@@ -12,4 +12,6 @@ interface ResourceManager {
     fun getQuantityString(id: Int, quantity: Int, vararg arguments: Any): String
 
     fun measureInPx(dp: Int): Int
+
+    fun formatDate(timestamp: Long) : String
 }

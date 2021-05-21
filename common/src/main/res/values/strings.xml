@@ -6,6 +6,8 @@
 
     <string name="crowdloan_info">Crowdloan info</string>
 
+    <string name="crowdloan_unlock_hint">Your %s tokens will be returned after the leasing period.</string>
+
     <string name="crowdloan_contribute_title">Contribute to crowdloan</string>
     <string name="crowdloan_placeholder">Active crowdloans\n will appear here</string>
 

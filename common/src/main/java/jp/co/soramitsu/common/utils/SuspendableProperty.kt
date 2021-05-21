@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.utils
 
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,3 +21,5 @@ class SuspendableProperty<T> {
 
     fun observe(): Flow<T> = value
 }
+
+suspend inline fun <T, R> SuspendableProperty<T>.useValue(action: (T) -> R) : R = action(get())

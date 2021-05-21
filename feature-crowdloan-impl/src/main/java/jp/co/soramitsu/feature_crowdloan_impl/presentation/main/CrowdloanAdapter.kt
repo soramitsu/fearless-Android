@@ -21,14 +21,21 @@ import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaRaise
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanTimeRemaining
 
 class CrowdloanAdapter(
-    private val imageLoader: ImageLoader
+    private val imageLoader: ImageLoader,
+    private val handler: Handler
 ) : ListAdapter<CrowdloanModel, CrowdloanViewHolder>(CrowdloanDiffCallback) {
+
+    interface Handler {
+
+        fun crowdloanClicked(index: Int)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrowdloanViewHolder {
         return CrowdloanViewHolder(imageLoader, parent.inflateChild(R.layout.item_crowdloan))
     }
 
     override fun onBindViewHolder(holder: CrowdloanViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), handler)
     }
 
     override fun onBindViewHolder(holder: CrowdloanViewHolder, position: Int, payloads: MutableList<Any>) {
@@ -65,7 +72,10 @@ class CrowdloanViewHolder(
     override val containerView: View
 ) : RecyclerView.ViewHolder(containerView), LayoutContainer {
 
-    fun bind(item: CrowdloanModel) = with(containerView) {
+    fun bind(
+        item: CrowdloanModel,
+        handler: CrowdloanAdapter.Handler
+    ) = with(containerView) {
         itemCrowdloanParaDescription.setTextOrHide(item.description)
         itemCrowdloanParaName.text = item.title
         itemCrowdloanParaRaised.text = item.raised
@@ -80,6 +90,8 @@ class CrowdloanViewHolder(
         }
 
         bindTimeRemaining(item)
+
+        setOnClickListener { handler.crowdloanClicked(adapterPosition) }
     }
 
     fun bindTimeRemaining(item: CrowdloanModel) {

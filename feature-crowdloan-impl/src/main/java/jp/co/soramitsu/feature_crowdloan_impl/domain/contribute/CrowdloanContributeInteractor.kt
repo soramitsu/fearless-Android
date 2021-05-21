@@ -32,6 +32,7 @@ class CrowdloanContributeInteractor(
         parachainMetadata: ParachainMetadata?
     ) : Flow<Crowdloan> = accountRepository.selectedNetworkTypeFlow().flatMapLatest {
         val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis()
+        val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod()
 
         combine(
             crowdloanRepository.fundInfoFlow(parachainId, it),
@@ -42,7 +43,8 @@ class CrowdloanContributeInteractor(
                 parachainMetadata = parachainMetadata,
                 parachainId = parachainId,
                 currentBlockNumber = blockNumber,
-                expectedBlockTimeInMillis = expectedBlockTime
+                expectedBlockTimeInMillis = expectedBlockTime,
+                blocksPerLeasePeriod = blocksPerLeasePeriod
             )
         }
     }

@@ -3,13 +3,14 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.pa
 import android.os.Parcelable
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import kotlinx.android.parcel.Parcelize
+import java.math.BigDecimal
 
 @Parcelize
 class ParachainMetadataParcelModel(
     val iconLink: String,
     val name: String,
     val description: String,
-    val rewardRate: Double,
+    val rewardRate: BigDecimal,
     val website: String,
     val token: String
 ) : Parcelable

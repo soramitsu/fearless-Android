@@ -167,6 +167,14 @@
             app:popExitAnim="@anim/fragment_close_exit"
             android:id="@+id/action_mainFragment_to_selectRewardDestinationFragment"
             app:destination="@id/selectRewardDestinationFragment" />
+
+        <action
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_mainFragment_to_crowdloanContributeFragment"
+            app:destination="@id/crowdloanContributeFragment" />
     </fragment>
 
     <fragment
@@ -680,5 +688,12 @@
         android:id="@+id/confirmRewardDestinationFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment"
         android:label="ConfirmRewardDestinationFragment" />
+
+    <fragment
+        tools:layout="@layout/fragment_contribute"
+        android:id="@+id/crowdloanContributeFragment"
+        android:name="jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.CrowdloanContributeFragment"
+        android:label="CrowdloanContributeFragment" />
+
 
 </navigation>

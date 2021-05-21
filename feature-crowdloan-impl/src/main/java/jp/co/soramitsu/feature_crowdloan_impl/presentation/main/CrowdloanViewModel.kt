@@ -12,13 +12,18 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.remainingTimeInSeconds
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataToParcel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 private const val ICON_SIZE_DP = 40
 
@@ -27,6 +32,7 @@ class CrowdloanViewModel(
     private val assetUseCase: AssetUseCase,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
+    private val router: CrowdloanRouter
 ) : BaseViewModel() {
 
     private val assetFlow = assetUseCase.currentAssetFlow()
@@ -36,7 +42,11 @@ class CrowdloanViewModel(
         resourceManager.getString(R.string.crowdloan_main_description, it.token.type.displayName)
     }
 
-    val crowdloanModelsFlow = interactor.crowdloansFlow().combine(assetFlow) { crowdloans, asset ->
+    private val crowdloansFlow = interactor.crowdloansFlow()
+        .inBackground()
+        .share()
+
+    val crowdloanModelsFlow = crowdloansFlow.combine(assetFlow) { crowdloans, asset ->
         crowdloans.map { mapCrowdloanToCrowdloanModel(it, asset) }
     }
         .withLoading()
@@ -73,5 +83,18 @@ class CrowdloanViewModel(
         val icon = iconGenerator.createAddressIcon(depositorAddress, ICON_SIZE_DP)
 
         return CrowdloanModel.Icon.FromDrawable(icon)
+    }
+
+    fun crowdloanClicked(index: Int) {
+        launch {
+            val crowdloan = crowdloansFlow.first().getOrNull(index) ?: return@launch
+
+            val payload = ContributePayload(
+                paraId = crowdloan.parachainId,
+                parachainMetadata = crowdloan.parachainMetadata?.let(::mapParachainMetadataToParcel)
+            )
+
+            router.openContribute(payload)
+        }
     }
 }
