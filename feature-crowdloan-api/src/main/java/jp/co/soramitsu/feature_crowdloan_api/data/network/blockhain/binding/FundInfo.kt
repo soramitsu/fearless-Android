@@ -16,6 +16,7 @@ class FundInfo(
     val deposit: BigInteger,
     val raised: BigInteger,
     val lastSlot: BigInteger,
+    val firstSlot: BigInteger,
     val end: BigInteger,
     val cap: BigInteger
 )
@@ -32,6 +33,7 @@ fun bindFundInfo(scale: String, runtime: RuntimeSnapshot): FundInfo {
         raised = bindNumber(dynamicInstance["raised"]),
         end = bindNumber(dynamicInstance["end"]),
         cap = bindNumber(dynamicInstance["cap"]),
+        firstSlot = bindNumber(dynamicInstance["firstSlot"]),
         lastSlot = bindNumber(dynamicInstance["lastSlot"])
     )
 }

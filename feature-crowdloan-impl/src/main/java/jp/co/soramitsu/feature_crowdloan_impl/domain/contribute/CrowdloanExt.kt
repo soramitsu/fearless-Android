@@ -17,7 +17,7 @@ fun mapFundInfoToCrowdloan(
 ): Crowdloan {
     val leasePeriodInMillis = leasePeriodInMillis(blocksPerLeasePeriod, currentBlockNumber, fundInfo.lastSlot, expectedBlockTimeInMillis)
 
-    val state = if (fundInfo.isActive(currentBlockNumber)) {
+    val state = if (isCrowdloanActive(fundInfo, currentBlockNumber, blocksPerLeasePeriod)) {
         val remainingTime = expectedRemainingTime(currentBlockNumber, fundInfo.end, expectedBlockTimeInMillis)
 
         Crowdloan.State.Active(remainingTime)
@@ -37,6 +37,21 @@ fun mapFundInfoToCrowdloan(
         depositor = fundInfo.depositor
     )
 }
+
+private fun isCrowdloanActive(
+    fundInfo: FundInfo,
+    currentBlockNumber: BigInteger,
+    blocksPerLeasePeriod: BigInteger,
+) : Boolean {
+    return currentBlockNumber < fundInfo.end  // crowdloan is not ended
+        // first slot is not yet passed
+        && leasePeriodFromBlock(currentBlockNumber, blocksPerLeasePeriod) <= fundInfo.firstSlot
+        // cap is not reached
+        && fundInfo.raised < fundInfo.cap
+}
+
+
+private fun leasePeriodFromBlock(block: BigInteger, blocksPerLeasePeriod: BigInteger) = block / blocksPerLeasePeriod
 
 private fun leasePeriodInMillis(
     blocksPerLeasePeriod: BigInteger,
@@ -64,5 +79,3 @@ private fun expectedRemainingTime(
 
     return expectedTimeDifference.toLong()
 }
-
-fun FundInfo.isActive(currentBlockNumber: BlockNumber) = end > currentBlockNumber

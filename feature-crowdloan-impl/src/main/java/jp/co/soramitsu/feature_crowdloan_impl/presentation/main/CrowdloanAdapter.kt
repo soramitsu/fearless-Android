@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
+import coil.clear
 import coil.load
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
@@ -57,6 +58,12 @@ class CrowdloanAdapter(
             when (it) {
                 CrowdloanModel::state -> (holder as CrowdloanChildHolder).bindState(child, handler)
             }
+        }
+    }
+
+    override fun onViewRecycled(holder: GroupedListHolder) {
+        if (holder is CrowdloanChildHolder) {
+            holder.unbind()
         }
     }
 }
@@ -142,6 +149,12 @@ private class CrowdloanChildHolder(
             itemCrowdloanParaRaised.setTextColorRes(R.color.black2)
 
             setOnClickListener(null)
+        }
+    }
+
+    fun unbind() {
+        with(containerView) {
+            itemCrowdloanIcon.clear()
         }
     }
 }
