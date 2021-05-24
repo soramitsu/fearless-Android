@@ -23,15 +23,23 @@ class Crowdloan(
     val parachainId: BigInteger,
     val raised: BigInteger,
     val raisedFraction: BigDecimal,
-    val remainingTimeInMillis: Long,
+    val state: State,
     val leasePeriodInMillis: Long,
     val leasedUntilInMillis: Long,
     val cap: BigInteger,
-)
+) {
+
+    sealed class State {
+        object Finished : State()
+
+        class Active(val remainingTimeInMillis: Long) : State()
+    }
+}
 
 @OptIn(ExperimentalTime::class)
-val Crowdloan.remainingTimeInSeconds: Long
+val Crowdloan.State.Active.remainingTimeInSeconds: Long
     get() = remainingTimeInMillis.milliseconds.inSeconds.toLong()
+
 
 @OptIn(ExperimentalTime::class)
 val Crowdloan.leasedPeriodInSeconds: Long

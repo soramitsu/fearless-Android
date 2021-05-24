@@ -43,7 +43,7 @@ class CrowdloanAdapter(
 
         resolvePayload(holder, position, payloads) {
             when (it) {
-                CrowdloanModel::timeRemaining -> holder.bindTimeRemaining(item)
+                CrowdloanModel::timeRemaining -> holder.bindState(item)
             }
         }
     }
@@ -64,7 +64,7 @@ private object CrowdloanDiffCallback : DiffUtil.ItemCallback<CrowdloanModel>() {
 }
 
 private object CrowdloanPayloadGenerator : PayloadGenerator<CrowdloanModel>(
-    CrowdloanModel::timeRemaining
+    CrowdloanModel::state
 )
 
 class CrowdloanViewHolder(
@@ -89,12 +89,12 @@ class CrowdloanViewHolder(
             }
         }
 
-        bindTimeRemaining(item)
+        bindState(item)
 
         setOnClickListener { handler.crowdloanClicked(adapterPosition) }
     }
 
-    fun bindTimeRemaining(item: CrowdloanModel) {
+    fun bindState(item: CrowdloanModel) {
         containerView.itemCrowdloanTimeRemaining.text = item.timeRemaining
     }
 }

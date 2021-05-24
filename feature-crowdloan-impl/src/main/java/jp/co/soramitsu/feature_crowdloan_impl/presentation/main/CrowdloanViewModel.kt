@@ -67,7 +67,17 @@ class CrowdloanViewModel(
             generateDepositorIcon(depositorAddress)
         }
 
-        val timeLeft = DateUtils.formatElapsedTime(crowdloan.remainingTimeInSeconds)
+        val stateFormatted = when (val state = crowdloan.state) {
+            Crowdloan.State.Finished -> CrowdloanModel.State.Finished
+
+            is Crowdloan.State.Active -> {
+                val timeLeft = DateUtils.formatElapsedTime(state.remainingTimeInSeconds)
+
+                CrowdloanModel.State.Active(
+                    timeRemaining = resourceManager.getString(R.string.common_time_left_format, timeLeft)
+                )
+            }
+        }
 
         return CrowdloanModel(
             parachainId = crowdloan.parachainId,
@@ -75,7 +85,7 @@ class CrowdloanViewModel(
             description = crowdloan.parachainMetadata?.description,
             icon = icon,
             raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
-            timeRemaining = resourceManager.getString(R.string.common_time_left_format, timeLeft)
+            state = stateFormatted,
         )
     }
 

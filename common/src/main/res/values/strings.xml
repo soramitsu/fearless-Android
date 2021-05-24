@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_finished">Finished</string>
+
     <string name="crowdloan_leasing_period">Leasing period</string>
     <string name="crowdloan_raised">Raised</string>
     <string name="crowdloan_raised_amount">%s of %s</string>
