@@ -13,7 +13,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
-import jp.co.soramitsu.core_db.dao.StakingRewardDao
+import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
@@ -27,7 +27,7 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImp
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchronizer
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSource
-import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsSubqueryDataSourceImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.SubqueryStakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -69,10 +69,10 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideStakingRewardsDataSource(
         stakingApi: StakingApi,
-        stakingRewardDao: StakingRewardDao,
-    ): StakingRewardsDataSource = StakingRewardsSubqueryDataSourceImpl(
+        stakingTotalRewardDao: StakingTotalRewardDao,
+    ): StakingRewardsDataSource = SubqueryStakingRewardsDataSource(
         stakingApi = stakingApi,
-        stakingRewardDao = stakingRewardDao
+        stakingTotalRewardDao = stakingTotalRewardDao
     )
 
     @Provides
