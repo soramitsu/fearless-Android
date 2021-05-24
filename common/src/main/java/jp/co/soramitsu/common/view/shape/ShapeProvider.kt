@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.R
 fun Int.toColorStateList() = ColorStateList.valueOf(this)
 
 fun Context.addRipple(drawable: Drawable? = null, mask: Drawable? = null): Drawable {
-    val rippleColor = getColor(R.color.colorPrimary)
+    val rippleColor = getColor(R.color.colorSelected)
 
     return RippleDrawable(rippleColor.toColorStateList(), drawable, mask)
 }
