@@ -19,8 +19,8 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
@@ -179,14 +179,10 @@ class StakingRepositoryImpl(
             }
     }
 
-    override suspend fun getRewardDestination(stakingState: StakingState.Stash) = withContext(Dispatchers.Default) {
-        val runtime = runtimeProperty.get()
-        val storageKey = runtime.metadata.staking().storage("Payee").storageKey(runtime, stakingState.stashId)
-
-        val rewardDestinationEncoded = storageCache.getEntry(storageKey).content!!
-
-        bindRewardDestination(rewardDestinationEncoded, runtime, stakingState.stashId, stakingState.controllerId)
-    }
+    override suspend fun getRewardDestination(stakingState: StakingState.Stash) = localStorage.queryNonNull(
+        keyBuilder = { it.metadata.staking().storage("Payee").storageKey(it, stakingState.stashId) },
+        binding = { scale, runtime -> bindRewardDestination(scale, runtime, stakingState.stashId, stakingState.controllerId) }
+    )
 
     override suspend fun getControllerAccountInfo(stakingState: StakingState.Stash): AccountInfo {
         return localStorage.query(

@@ -16,9 +16,9 @@ import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.validation.progressConsumer
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
@@ -53,6 +53,7 @@ class ConfirmStakingViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
+    private val addressDisplayUseCase: AddressDisplayUseCase,
     private val resourceManager: ResourceManager,
     private val validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
     private val setupStakingSharedState: SetupStakingSharedState,
@@ -99,7 +100,7 @@ class ConfirmStakingViewModel(
         .asLiveData()
 
     val currentAccountModelLiveData = controllerAddressFlow.map {
-        generateDestinationModel(interactor.getAccount(it))
+        generateDestinationModel(it, addressDisplayUseCase(it))
     }.asLiveData()
 
     val nominationsLiveData = liveData(Dispatchers.Default) {
@@ -159,6 +160,14 @@ class ConfirmStakingViewModel(
         }
     }
 
+    fun payoutAccountClicked() {
+        val payoutDestination = rewardDestinationLiveData.value as? RewardDestinationModel.Payout ?: return
+
+        val payload = ExternalAccountActions.Payload.fromAddress(payoutDestination.destination.address)
+
+        externalAccountActions.showExternalActions(payload)
+    }
+
     fun nominationsClicked() {
         router.openConfirmNominations()
     }
@@ -187,8 +196,10 @@ class ConfirmStakingViewModel(
             is RewardDestination.Restake -> RewardDestinationModel.Restake
             is RewardDestination.Payout -> {
                 val networkType = interactor.getSelectedNetworkType()
-                val account = interactor.getAccount(rewardDestination.targetAccountId.toAddress(networkType))
-                val addressModel = generateDestinationModel(account)
+                val address = rewardDestination.targetAccountId.toAddress(networkType)
+                val name = addressDisplayUseCase(address)
+
+                val addressModel = generateDestinationModel(address, name)
 
                 RewardDestinationModel.Payout(addressModel)
             }
@@ -252,7 +263,7 @@ class ConfirmStakingViewModel(
         onError = { title, message -> showError(title, message) }
     )
 
-    private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {
-        return addressIconGenerator.createAddressModel(account.address, AddressIconGenerator.SIZE_MEDIUM, account.name)
+    private suspend fun generateDestinationModel(address: String, name: String?): AddressModel {
+        return addressIconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_MEDIUM, name)
     }
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    tools:background="@color/black"
+    android:orientation="vertical"
+    tools:parentTag="android.widget.LinearLayout"
+    android:layout_height="match_parent">
+
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.TableCellView
+        android:id="@+id/viewRewardDestinationDestination"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:dividerVisible="false"
+        app:title="@string/staking_reward_destination" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/viewRewardDestinationPayoutAccount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:actionIcon="@drawable/ic_more_vertical"
+        app:enabled="false"
+        app:label="@string/staking_setup_reward_payout_account" />
+</merge>

@@ -116,7 +116,7 @@ class SetupStakingViewModel(
 
     private fun maybeGoToNext() = requireFee { fee ->
         launch {
-            val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelsFlow.first()
+            val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelFlow.first()
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationModel)
             val amount = parsedAmountFlow.first()
             val tokenType = assetFlow.first().token.type
