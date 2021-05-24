@@ -7,5 +7,5 @@ class StakingSumRewardRequest(accountAddress: String) {
            (id: "$accountAddress")
            {accountTotal}
         }
-        """.trimIndent()
+    """.trimIndent()
 }
