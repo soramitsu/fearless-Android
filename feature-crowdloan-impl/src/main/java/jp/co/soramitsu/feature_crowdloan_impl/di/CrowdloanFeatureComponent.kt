@@ -8,6 +8,7 @@ import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.di.CrowdloanContributeComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.di.CrowdloanComponent
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.runtime.di.RuntimeApi
@@ -25,6 +26,8 @@ import jp.co.soramitsu.runtime.di.RuntimeApi
 interface CrowdloanFeatureComponent : CrowdloanFeatureApi {
 
     fun crowdloansFactory(): CrowdloanComponent.Factory
+
+    fun selectContributeFactory(): CrowdloanContributeComponent.Factory
 
     @Component.Factory
     interface Factory {

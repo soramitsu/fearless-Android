@@ -6,6 +6,8 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -62,16 +64,17 @@ abstract class BaseStorageSource(
         binding(rawResult, runtime)
     }
 
-    override suspend fun <T> observe(
+    override fun <T> observe(
         networkType: Node.NetworkType,
         keyBuilder: (RuntimeSnapshot) -> String,
         binder: Binder<T>,
-    ) = withContext(Dispatchers.Default) {
+    ) = flow {
         val runtime = getRuntime()
         val key = keyBuilder(runtime)
 
-        observe(key, networkType)
-            .map { binder(it, runtime) }
+        emitAll(
+            observe(key, networkType).map { binder(it, runtime) }
+        )
     }
 
     private suspend fun getRuntime() = runtimeProperty.get()

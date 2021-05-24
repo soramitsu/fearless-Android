@@ -1,6 +1,6 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model
+package jp.co.soramitsu.feature_wallet_api.presentation.model
 
-import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 
 val Token.Type.icon: Int

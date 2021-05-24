@@ -20,3 +20,5 @@ class SuspendableProperty<T> {
 
     fun observe(): Flow<T> = value
 }
+
+suspend inline fun <T, R> SuspendableProperty<T>.useValue(action: (T) -> R): R = action(get())

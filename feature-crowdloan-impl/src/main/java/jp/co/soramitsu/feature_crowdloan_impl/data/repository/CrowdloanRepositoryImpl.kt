@@ -4,7 +4,11 @@ import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.crowdloan
 import jp.co.soramitsu.common.utils.hasModule
+import jp.co.soramitsu.common.utils.numberConstant
+import jp.co.soramitsu.common.utils.slots
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
+import jp.co.soramitsu.common.utils.useValue
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
@@ -22,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 
 class CrowdloanRepositoryImpl(
     private val remoteStorage: StorageDataSource,
@@ -52,5 +57,17 @@ class CrowdloanRepositoryImpl(
                 .associateBy { it.paraid }
                 .mapValues { (_, remoteMetadata) -> mapParachainMetadataRemoteToParachainMetadata(remoteMetadata) }
         }
+    }
+
+    override suspend fun blocksPerLeasePeriod(): BigInteger = runtimeProperty.useValue { runtime ->
+        runtime.metadata.slots().numberConstant("LeasePeriod", runtime)
+    }
+
+    override fun fundInfoFlow(parachainId: ParaId, networkType: Node.NetworkType): Flow<FundInfo> {
+        return remoteStorage.observe(
+            keyBuilder = { it.metadata.crowdloan().storage("Funds").storageKey(it, parachainId) },
+            binder = { scale, runtime -> bindFundInfo(scale!!, runtime) },
+            networkType = networkType
+        )
     }
 }

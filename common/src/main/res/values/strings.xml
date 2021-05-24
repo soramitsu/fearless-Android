@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_left">%s left</string>
+    <string name="common_finished_with_count">Finished (%d)</string>
+    <string name="common_completed">Completed</string>
+
     <string name="crowdloan_leasing_period">Leasing period</string>
     <string name="crowdloan_raised">Raised</string>
     <string name="crowdloan_raised_amount">%s of %s</string>
 
     <string name="crowdloan_info">Crowdloan info</string>
 
+    <string name="crowdloan_unlock_hint">Your %s tokens will be returned after the leasing period.</string>
+
     <string name="crowdloan_contribute_title">Contribute to crowdloan</string>
     <string name="crowdloan_placeholder">Active crowdloans\n will appear here</string>
 
-    <string name="common_time_left_format">Time left: %s</string>
     <string name="common_time_left">Time left</string>
 
     <string name="crowdloan_learn">Learn %s\'s crowdloan</string>
@@ -29,7 +34,7 @@
     <string name="staking_controller_change_success">Controller is changed</string>
     <string name="staking_nominated">Nominated: %s</string>
 
-    <string name="staking_active_validators_format">Active (%d)</string>
+    <string name="common_active_with_count">Active (%d)</string>
     <string name="staking_active_validators_description">Your stake is allocated to the following validator.</string>
 
     <string name="staking_inactive_validators_format">Inactive (%d)</string>

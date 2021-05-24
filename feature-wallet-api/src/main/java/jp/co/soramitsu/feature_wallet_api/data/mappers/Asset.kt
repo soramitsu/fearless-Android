@@ -1,12 +1,12 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.common
+package jp.co.soramitsu.feature_wallet_api.data.mappers
 
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.AssetModel
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.icon
+import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.model.AssetModel
+import jp.co.soramitsu.feature_wallet_api.presentation.model.icon
 import java.math.BigDecimal
 
 fun mapAssetToAssetModel(
@@ -25,4 +25,3 @@ fun mapAssetToAssetModel(
         )
     }
 }
-

@@ -1,7 +1,13 @@
 package jp.co.soramitsu.common.resources
 
+import android.text.format.DateUtils
 import androidx.core.content.ContextCompat
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.di.scope.ApplicationScope
+import jp.co.soramitsu.common.utils.daysFromMillis
+import jp.co.soramitsu.common.utils.formatDateTime
+import kotlin.time.ExperimentalTime
+import kotlin.time.milliseconds
 
 @ApplicationScope
 class ResourceManagerImpl(
@@ -31,5 +37,23 @@ class ResourceManagerImpl(
         val px = contextManager.getContext().resources.displayMetrics.density * dp
 
         return px.toInt()
+    }
+
+    override fun formatDate(timestamp: Long): String {
+        return timestamp.formatDateTime(contextManager.getContext()).toString()
+    }
+
+    @OptIn(ExperimentalTime::class)
+    override fun formatDuration(elapsedTime: Long): String {
+        val inDays = elapsedTime.daysFromMillis().toInt()
+
+        return when {
+            inDays > 0 -> getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+            else -> {
+                val inSeconds = elapsedTime.milliseconds.inSeconds.toLong()
+
+                DateUtils.formatElapsedTime(inSeconds)
+            }
+        }
     }
 }

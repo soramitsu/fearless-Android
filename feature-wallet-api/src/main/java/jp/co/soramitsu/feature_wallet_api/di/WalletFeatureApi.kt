@@ -24,5 +24,5 @@ interface WalletFeatureApi {
 
     fun provideWallConstants(): WalletConstants
 
-    fun feeLoaderMixin() : FeeLoaderMixin.Presentation
+    fun feeLoaderMixin(): FeeLoaderMixin.Presentation
 }

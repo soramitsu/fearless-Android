@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.CrowdloanViewModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 
@@ -24,11 +25,15 @@ class CrowdloanModule {
         interactor: CrowdloanInteractor,
         assetUseCase: AssetUseCase,
         resourceManager: ResourceManager,
-        iconGenerator: AddressIconGenerator
-
+        iconGenerator: AddressIconGenerator,
+        router: CrowdloanRouter
     ): ViewModel {
         return CrowdloanViewModel(
-            interactor, assetUseCase, iconGenerator, resourceManager
+            interactor,
+            assetUseCase,
+            iconGenerator,
+            resourceManager,
+            router
         )
     }
 

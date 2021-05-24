@@ -1,24 +1,33 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 
-import android.text.format.DateUtils
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.list.toListWithHeaders
+import jp.co.soramitsu.common.list.toValueList
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.resources.formatTimeLeft
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.utils.withLoading
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
-import jp.co.soramitsu.feature_crowdloan_impl.domain.main.remainingTimeInSeconds
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataToParcel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanStatusModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
 
 private const val ICON_SIZE_DP = 40
 
@@ -27,6 +36,7 @@ class CrowdloanViewModel(
     private val assetUseCase: AssetUseCase,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
+    private val router: CrowdloanRouter
 ) : BaseViewModel() {
 
     private val assetFlow = assetUseCase.currentAssetFlow()
@@ -36,12 +46,38 @@ class CrowdloanViewModel(
         resourceManager.getString(R.string.crowdloan_main_description, it.token.type.displayName)
     }
 
-    val crowdloanModelsFlow = interactor.crowdloansFlow().combine(assetFlow) { crowdloans, asset ->
-        crowdloans.map { mapCrowdloanToCrowdloanModel(it, asset) }
+    private val groupedCrowdloansFlow = interactor.crowdloansFlow()
+        .inBackground()
+        .share()
+
+    private val crowdloansFlow = groupedCrowdloansFlow
+        .map { it.toValueList() }
+        .inBackground()
+        .share()
+
+    val crowdloanModelsFlow = groupedCrowdloansFlow.combine(assetFlow) { groupedCrowdloans, asset ->
+        groupedCrowdloans
+            .mapKeys { (statusClass, values) -> mapCrowdloanStatusToUi(statusClass, values.size) }
+            .mapValues { (_, crowdloans) -> crowdloans.map { mapCrowdloanToCrowdloanModel(it, asset) } }
+            .toListWithHeaders()
     }
         .withLoading()
         .inBackground()
         .share()
+
+    private fun mapCrowdloanStatusToUi(statusClass: KClass<out Crowdloan.State>, statusCount: Int): CrowdloanStatusModel {
+        return when (statusClass) {
+            Crowdloan.State.Finished::class -> CrowdloanStatusModel(
+                text = resourceManager.getString(R.string.common_finished_with_count, statusCount),
+                textColorRes = R.color.black1
+            )
+            Crowdloan.State.Active::class -> CrowdloanStatusModel(
+                text = resourceManager.getString(R.string.common_active_with_count, statusCount),
+                textColorRes = R.color.green
+            )
+            else -> throw IllegalArgumentException("Unsupported crowdloan status type: ${statusClass.simpleName}")
+        }
+    }
 
     private suspend fun mapCrowdloanToCrowdloanModel(crowdloan: Crowdloan, asset: Asset): CrowdloanModel {
         val token = asset.token
@@ -57,7 +93,15 @@ class CrowdloanViewModel(
             generateDepositorIcon(depositorAddress)
         }
 
-        val timeLeft = DateUtils.formatElapsedTime(crowdloan.remainingTimeInSeconds)
+        val stateFormatted = when (val state = crowdloan.state) {
+            Crowdloan.State.Finished -> CrowdloanModel.State.Finished
+
+            is Crowdloan.State.Active -> {
+                CrowdloanModel.State.Active(
+                    timeRemaining = resourceManager.formatTimeLeft(state.remainingTimeInMillis)
+                )
+            }
+        }
 
         return CrowdloanModel(
             parachainId = crowdloan.parachainId,
@@ -65,7 +109,7 @@ class CrowdloanViewModel(
             description = crowdloan.parachainMetadata?.description,
             icon = icon,
             raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
-            timeRemaining = resourceManager.getString(R.string.common_time_left_format, timeLeft)
+            state = stateFormatted,
         )
     }
 
@@ -73,5 +117,18 @@ class CrowdloanViewModel(
         val icon = iconGenerator.createAddressIcon(depositorAddress, ICON_SIZE_DP)
 
         return CrowdloanModel.Icon.FromDrawable(icon)
+    }
+
+    fun crowdloanClicked(paraId: ParaId) {
+        launch {
+            val crowdloan = crowdloansFlow.first().firstOrNull { it.parachainId == paraId } ?: return@launch
+
+            val payload = ContributePayload(
+                paraId = crowdloan.parachainId,
+                parachainMetadata = crowdloan.parachainMetadata?.let(::mapParachainMetadataToParcel)
+            )
+
+            router.openContribute(payload)
+        }
     }
 }

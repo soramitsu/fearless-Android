@@ -11,9 +11,12 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateRepository
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.CrowdloanRepositoryImpl
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
+import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
@@ -53,5 +56,21 @@ class CrowdloanFeatureModule {
     fun provideChainStateRepository(
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>
-    ) = ChainStateRepository(localStorageSource,  runtimeProperty)
+    ) = ChainStateRepository(localStorageSource, runtimeProperty)
+
+    @Provides
+    @FeatureScope
+    fun provideCrowdloanContributeInteractor(
+        extrinsicService: ExtrinsicService,
+        feeEstimator: FeeEstimator,
+        accountRepository: AccountRepository,
+        chainStateRepository: ChainStateRepository,
+        crowdloanRepository: CrowdloanRepository
+    ) = CrowdloanContributeInteractor(
+        extrinsicService,
+        feeEstimator,
+        accountRepository,
+        chainStateRepository,
+        crowdloanRepository
+    )
 }

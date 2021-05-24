@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:id="@+id/crowdloanContributeContainer"
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.Toolbar
@@ -125,6 +126,7 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:id="@+id/crowdloanContributeLearnMoreIcon"
                     tools:src="@tools:sample/avatars" />
 
                 <TextView
@@ -132,6 +134,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginStart="12dp"
+                    android:id="@+id/crowdloanContributeLearnMoreTitle"
                     app:drawableEndCompat="@drawable/ic_arrow_top_right_white_16"
                     tools:text="Learn Karura's crowdloan" />
             </LinearLayout>

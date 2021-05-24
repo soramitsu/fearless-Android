@@ -2,70 +2,116 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
+import coil.clear
 import coil.load
+import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
+import jp.co.soramitsu.common.list.GroupedListAdapter
+import jp.co.soramitsu.common.list.GroupedListHolder
 import jp.co.soramitsu.common.list.PayloadGenerator
 import jp.co.soramitsu.common.list.resolvePayload
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setTextOrHide
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
-import kotlinx.android.extensions.LayoutContainer
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanStatusModel
+import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanArrow
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanIcon
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaDescription
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaName
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaRaised
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanTimeRemaining
+import kotlinx.android.synthetic.main.item_crowdloan_group.view.itemCrowdloanGroupStatus
 
 class CrowdloanAdapter(
-    private val imageLoader: ImageLoader
-) : ListAdapter<CrowdloanModel, CrowdloanViewHolder>(CrowdloanDiffCallback) {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrowdloanViewHolder {
-        return CrowdloanViewHolder(imageLoader, parent.inflateChild(R.layout.item_crowdloan))
+    private val imageLoader: ImageLoader,
+    private val handler: Handler,
+) : GroupedListAdapter<CrowdloanStatusModel, CrowdloanModel>(CrowdloanDiffCallback) {
+
+    interface Handler {
+
+        fun crowdloanClicked(paraId: ParaId)
     }
 
-    override fun onBindViewHolder(holder: CrowdloanViewHolder, position: Int) {
-        holder.bind(getItem(position))
+    override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
+        return CrowdloanGroupHolder(parent.inflateChild(R.layout.item_crowdloan_group))
     }
 
-    override fun onBindViewHolder(holder: CrowdloanViewHolder, position: Int, payloads: MutableList<Any>) {
-        val item = getItem(position)
+    override fun createChildViewHolder(parent: ViewGroup): GroupedListHolder {
+        return CrowdloanChildHolder(imageLoader, parent.inflateChild(R.layout.item_crowdloan))
+    }
 
+    override fun bindGroup(holder: GroupedListHolder, group: CrowdloanStatusModel) {
+        (holder as CrowdloanGroupHolder).bind(group)
+    }
+
+    override fun bindChild(holder: GroupedListHolder, child: CrowdloanModel) {
+        (holder as CrowdloanChildHolder).bind(child, handler)
+    }
+
+    override fun bindChild(holder: GroupedListHolder, position: Int, child: CrowdloanModel, payloads: List<Any>) {
         resolvePayload(holder, position, payloads) {
             when (it) {
-                CrowdloanModel::timeRemaining -> holder.bindTimeRemaining(item)
+                CrowdloanModel::state -> (holder as CrowdloanChildHolder).bindState(child, handler)
             }
+        }
+    }
+
+    override fun onViewRecycled(holder: GroupedListHolder) {
+        if (holder is CrowdloanChildHolder) {
+            holder.unbind()
         }
     }
 }
 
-private object CrowdloanDiffCallback : DiffUtil.ItemCallback<CrowdloanModel>() {
-    override fun areItemsTheSame(oldItem: CrowdloanModel, newItem: CrowdloanModel): Boolean {
-        return oldItem.parachainId == newItem.parachainId
+private object CrowdloanDiffCallback : BaseGroupedDiffCallback<CrowdloanStatusModel, CrowdloanModel>(CrowdloanStatusModel::class.java) {
+
+    override fun getChildChangePayload(oldItem: CrowdloanModel, newItem: CrowdloanModel): Any {
+        return CrowdloanPayloadGenerator.diff(oldItem, newItem)
     }
 
-    override fun areContentsTheSame(oldItem: CrowdloanModel, newItem: CrowdloanModel): Boolean {
+    override fun areGroupItemsTheSame(oldItem: CrowdloanStatusModel, newItem: CrowdloanStatusModel): Boolean {
         return oldItem == newItem
     }
 
-    override fun getChangePayload(oldItem: CrowdloanModel, newItem: CrowdloanModel): Any? {
-        return CrowdloanPayloadGenerator.diff(oldItem, newItem)
+    override fun areGroupContentsTheSame(oldItem: CrowdloanStatusModel, newItem: CrowdloanStatusModel): Boolean {
+        return true
+    }
+
+    override fun areChildItemsTheSame(oldItem: CrowdloanModel, newItem: CrowdloanModel): Boolean {
+        return oldItem.parachainId == newItem.parachainId
+    }
+
+    override fun areChildContentsTheSame(oldItem: CrowdloanModel, newItem: CrowdloanModel): Boolean {
+        return oldItem == newItem
     }
 }
 
 private object CrowdloanPayloadGenerator : PayloadGenerator<CrowdloanModel>(
-    CrowdloanModel::timeRemaining
+    CrowdloanModel::state
 )
 
-class CrowdloanViewHolder(
-    private val imageLoader: ImageLoader,
-    override val containerView: View
-) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+private class CrowdloanGroupHolder(containerView: View) : GroupedListHolder(containerView) {
 
-    fun bind(item: CrowdloanModel) = with(containerView) {
+    fun bind(item: CrowdloanStatusModel) = with(containerView) {
+        itemCrowdloanGroupStatus.text = item.text
+        itemCrowdloanGroupStatus.setTextColorRes(item.textColorRes)
+    }
+}
+
+private class CrowdloanChildHolder(
+    private val imageLoader: ImageLoader,
+    containerView: View,
+) : GroupedListHolder(containerView) {
+
+    fun bind(
+        item: CrowdloanModel,
+        handler: CrowdloanAdapter.Handler,
+    ) = with(containerView) {
         itemCrowdloanParaDescription.setTextOrHide(item.description)
         itemCrowdloanParaName.text = item.title
         itemCrowdloanParaRaised.text = item.raised
@@ -79,10 +125,36 @@ class CrowdloanViewHolder(
             }
         }
 
-        bindTimeRemaining(item)
+        bindState(item, handler)
     }
 
-    fun bindTimeRemaining(item: CrowdloanModel) {
-        containerView.itemCrowdloanTimeRemaining.text = item.timeRemaining
+    fun bindState(item: CrowdloanModel, handler: CrowdloanAdapter.Handler) = with(containerView) {
+        if (item.state is CrowdloanModel.State.Active) {
+            itemCrowdloanTimeRemaining.makeVisible()
+            itemCrowdloanTimeRemaining.text = item.state.timeRemaining
+
+            itemCrowdloanParaName.setTextColorRes(R.color.white)
+            itemCrowdloanParaDescription.setTextColorRes(R.color.black1)
+            itemCrowdloanParaRaised.setTextColorRes(R.color.white)
+
+            itemCrowdloanArrow.makeVisible()
+
+            setOnClickListener { handler.crowdloanClicked(item.parachainId) }
+        } else {
+            itemCrowdloanTimeRemaining.makeGone()
+            itemCrowdloanArrow.makeGone()
+
+            itemCrowdloanParaName.setTextColorRes(R.color.black2)
+            itemCrowdloanParaDescription.setTextColorRes(R.color.black2)
+            itemCrowdloanParaRaised.setTextColorRes(R.color.black2)
+
+            setOnClickListener(null)
+        }
+    }
+
+    fun unbind() {
+        with(containerView) {
+            itemCrowdloanIcon.clear()
+        }
     }
 }

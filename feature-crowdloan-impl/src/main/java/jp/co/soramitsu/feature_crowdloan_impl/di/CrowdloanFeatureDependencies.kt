@@ -27,7 +27,7 @@ import javax.inject.Named
 
 interface CrowdloanFeatureDependencies {
 
-    fun feeLoaderMixin() : FeeLoaderMixin.Presentation
+    fun feeLoaderMixin(): FeeLoaderMixin.Presentation
 
     fun storageCache(): StorageCache
 
