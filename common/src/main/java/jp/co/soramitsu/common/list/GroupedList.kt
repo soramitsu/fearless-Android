@@ -6,4 +6,4 @@ fun <K, V> GroupedList<K, V>.toListWithHeaders(): List<Any?> = map { (groupKey, 
     listOf(groupKey) + values
 }.flatten()
 
-fun <K, V> GroupedList<K, V>.toValueList() : List<V> = map { (_ , values) -> values }.flatten()
+fun <K, V> GroupedList<K, V>.toValueList(): List<V> = map { (_, values) -> values }.flatten()

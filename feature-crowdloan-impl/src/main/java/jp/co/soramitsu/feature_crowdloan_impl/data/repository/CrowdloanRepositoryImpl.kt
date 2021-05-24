@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.common.utils.useValue
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -66,7 +65,7 @@ class CrowdloanRepositoryImpl(
 
     override fun fundInfoFlow(parachainId: ParaId, networkType: Node.NetworkType): Flow<FundInfo> {
         return remoteStorage.observe(
-            keyBuilder = {  it.metadata.crowdloan().storage("Funds").storageKey(it, parachainId) },
+            keyBuilder = { it.metadata.crowdloan().storage("Funds").storageKey(it, parachainId) },
             binder = { scale, runtime -> bindFundInfo(scale!!, runtime) },
             networkType = networkType
         )

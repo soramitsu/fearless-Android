@@ -34,7 +34,7 @@ class Crowdloan(
             val STATE_CLASS_COMPARATOR = Comparator<KClass<out State>> { first, _ ->
                 when (first) {
                     Active::class -> -1
-                    Finished::class-> 1
+                    Finished::class -> 1
                     else -> 0
                 }
             }

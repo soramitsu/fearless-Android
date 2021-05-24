@@ -8,7 +8,7 @@ fun BigDecimal.formatTokenAmount(type: Token.Type): String {
     return formatTokenAmount(type.displayName)
 }
 
-fun BigDecimal.formatTokenAmount(tokenSymbol: String) : String {
+fun BigDecimal.formatTokenAmount(tokenSymbol: String): String {
     return "${format()} $tokenSymbol"
 }
 

@@ -110,7 +110,7 @@ class CrowdloanContributeViewModel(
             val raisedDisplay = token.amountFromPlanks(crowdloan.raised).format()
             val capDisplay = token.amountFromPlanks(crowdloan.cap).formatTokenAmount(token.type)
 
-            val timeLeft = when(val state = crowdloan.state) {
+            val timeLeft = when (val state = crowdloan.state) {
                 Crowdloan.State.Finished -> resourceManager.getString(R.string.common_completed)
                 is Crowdloan.State.Active -> resourceManager.formatDuration(state.remainingTimeInMillis)
             }

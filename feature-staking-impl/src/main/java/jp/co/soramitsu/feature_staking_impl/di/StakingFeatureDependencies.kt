@@ -34,7 +34,7 @@ import javax.inject.Named
 
 interface StakingFeatureDependencies {
 
-    fun feeLoaderMixin() : FeeLoaderMixin.Presentation
+    fun feeLoaderMixin(): FeeLoaderMixin.Presentation
 
     fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
 

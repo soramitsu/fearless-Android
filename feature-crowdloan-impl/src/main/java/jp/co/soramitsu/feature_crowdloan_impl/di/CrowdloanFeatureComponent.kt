@@ -27,7 +27,7 @@ interface CrowdloanFeatureComponent : CrowdloanFeatureApi {
 
     fun crowdloansFactory(): CrowdloanComponent.Factory
 
-    fun selectContributeFactory() : CrowdloanContributeComponent.Factory
+    fun selectContributeFactory(): CrowdloanContributeComponent.Factory
 
     @Component.Factory
     interface Factory {

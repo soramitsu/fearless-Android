@@ -26,7 +26,7 @@ fun mapFundInfoToCrowdloan(
     }
 
     return Crowdloan(
-        parachainMetadata =parachainMetadata,
+        parachainMetadata = parachainMetadata,
         raised = fundInfo.raised,
         raisedFraction = fundInfo.raised.toBigDecimal().divide(fundInfo.cap.toBigDecimal(), MathContext.DECIMAL32),
         parachainId = parachainId,
@@ -42,14 +42,13 @@ private fun isCrowdloanActive(
     fundInfo: FundInfo,
     currentBlockNumber: BigInteger,
     blocksPerLeasePeriod: BigInteger,
-) : Boolean {
-    return currentBlockNumber < fundInfo.end  // crowdloan is not ended
+): Boolean {
+    return currentBlockNumber < fundInfo.end && // crowdloan is not ended
         // first slot is not yet passed
-        && leasePeriodFromBlock(currentBlockNumber, blocksPerLeasePeriod) <= fundInfo.firstSlot
+        leasePeriodFromBlock(currentBlockNumber, blocksPerLeasePeriod) <= fundInfo.firstSlot &&
         // cap is not reached
-        && fundInfo.raised < fundInfo.cap
+        fundInfo.raised < fundInfo.cap
 }
-
 
 private fun leasePeriodFromBlock(block: BigInteger, blocksPerLeasePeriod: BigInteger) = block / blocksPerLeasePeriod
 
@@ -58,7 +57,7 @@ private fun leasePeriodInMillis(
     currentBlockNumber: BigInteger,
     endingLeasePeriod: BigInteger,
     expectedBlockTimeInMillis: BigInteger
-) : Long {
+): Long {
     val unlockedAtPeriod = endingLeasePeriod + BigInteger.ONE // next period after end one
     val unlockedAtBlock = blocksPerLeasePeriod * unlockedAtPeriod
 
