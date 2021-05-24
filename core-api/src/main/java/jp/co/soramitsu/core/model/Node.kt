@@ -50,10 +50,3 @@ data class Node(
         }
     }
 }
-
-fun Node.NetworkType.getSubqueryPath() =
-    when (this) {
-        Node.NetworkType.POLKADOT -> "sum-reward"
-        Node.NetworkType.KUSAMA -> "sum-reward-kusama"
-        else -> null
-    }
