@@ -1,12 +1,12 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.main
 
+import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateRepository
-import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.isActive
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -14,8 +14,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.math.BigInteger
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
+import kotlin.reflect.KClass
 
 class Crowdloan(
     val depositor: AccountId,
@@ -30,20 +29,24 @@ class Crowdloan(
 ) {
 
     sealed class State {
+
+        companion object {
+            val STATE_CLASS_COMPARATOR = Comparator<KClass<out State>> { first, _ ->
+                when (first) {
+                    Active::class -> -1
+                    Finished::class-> 1
+                    else -> 0
+                }
+            }
+        }
+
         object Finished : State()
 
         class Active(val remainingTimeInMillis: Long) : State()
     }
 }
 
-@OptIn(ExperimentalTime::class)
-val Crowdloan.State.Active.remainingTimeInSeconds: Long
-    get() = remainingTimeInMillis.milliseconds.inSeconds.toLong()
-
-
-@OptIn(ExperimentalTime::class)
-val Crowdloan.leasedPeriodInSeconds: Long
-    get() = leasePeriodInMillis.milliseconds.inSeconds.toLong()
+typealias GroupedCrowdloans = GroupedList<KClass<out Crowdloan.State>, Crowdloan>
 
 class CrowdloanInteractor(
     private val accountRepository: AccountRepository,
@@ -51,7 +54,7 @@ class CrowdloanInteractor(
     private val chainStateRepository: ChainStateRepository,
 ) {
 
-    fun crowdloansFlow(): Flow<List<Crowdloan>> {
+    fun crowdloansFlow(): Flow<GroupedCrowdloans> {
         return flow {
             val fundInfos = crowdloanRepository.allFundInfos()
 
@@ -65,7 +68,6 @@ class CrowdloanInteractor(
 
             val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(networkType).map { currentBlockNumber ->
                 fundInfos.entries.toList()
-                    .filter { (_, fundInfo) -> fundInfo.isActive(currentBlockNumber) }
                     .map { (parachainId, fundInfo) ->
                         mapFundInfoToCrowdloan(
                             fundInfo = fundInfo,
@@ -75,7 +77,8 @@ class CrowdloanInteractor(
                             expectedBlockTimeInMillis = expectedBlockTime,
                             blocksPerLeasePeriod = blocksPerLeasePeriod
                         )
-                    }
+                    }.groupBy { it.state::class }
+                    .toSortedMap(Crowdloan.State.STATE_CLASS_COMPARATOR)
             }
 
             emitAll(withBlockUpdates)

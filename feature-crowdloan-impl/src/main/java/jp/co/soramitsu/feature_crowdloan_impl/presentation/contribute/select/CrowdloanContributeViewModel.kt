@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select
 
-import android.text.format.DateUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -17,8 +16,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
-import jp.co.soramitsu.feature_crowdloan_impl.domain.main.leasedPeriodInSeconds
-import jp.co.soramitsu.feature_crowdloan_impl.domain.main.remainingTimeInSeconds
+import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnCrowdloanModel
@@ -112,11 +110,16 @@ class CrowdloanContributeViewModel(
             val raisedDisplay = token.amountFromPlanks(crowdloan.raised).format()
             val capDisplay = token.amountFromPlanks(crowdloan.cap).formatTokenAmount(token.type)
 
+            val timeLeft = when(val state = crowdloan.state) {
+                Crowdloan.State.Finished -> resourceManager.getString(R.string.common_completed)
+                is Crowdloan.State.Active -> resourceManager.formatDuration(state.remainingTimeInMillis)
+            }
+
             CrowdloanDetailsModel(
-                leasePeriod = DateUtils.formatElapsedTime(crowdloan.leasedPeriodInSeconds),
+                leasePeriod = resourceManager.formatDuration(crowdloan.leasePeriodInMillis),
                 leasedUntil = resourceManager.formatDate(crowdloan.leasedUntilInMillis),
                 raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
-                timeLeft = DateUtils.formatElapsedTime(crowdloan.remainingTimeInSeconds),
+                timeLeft = timeLeft,
                 raisedPercentage = crowdloan.raisedFraction.fractionToPercentage().formatAsPercentage()
             )
         }

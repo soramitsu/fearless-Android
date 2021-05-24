@@ -5,6 +5,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Fund
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import java.math.BigInteger
+import java.math.MathContext
 
 fun mapFundInfoToCrowdloan(
     fundInfo: FundInfo,
@@ -16,7 +17,7 @@ fun mapFundInfoToCrowdloan(
 ): Crowdloan {
     val leasePeriodInMillis = leasePeriodInMillis(blocksPerLeasePeriod, currentBlockNumber, fundInfo.lastSlot, expectedBlockTimeInMillis)
 
-    val state = if (currentBlockNumber < fundInfo.end) {
+    val state = if (fundInfo.isActive(currentBlockNumber)) {
         val remainingTime = expectedRemainingTime(currentBlockNumber, fundInfo.end, expectedBlockTimeInMillis)
 
         Crowdloan.State.Active(remainingTime)
@@ -27,7 +28,7 @@ fun mapFundInfoToCrowdloan(
     return Crowdloan(
         parachainMetadata =parachainMetadata,
         raised = fundInfo.raised,
-        raisedFraction = fundInfo.raised.toBigDecimal() / fundInfo.cap.toBigDecimal(),
+        raisedFraction = fundInfo.raised.toBigDecimal().divide(fundInfo.cap.toBigDecimal(), MathContext.DECIMAL32),
         parachainId = parachainId,
         cap = fundInfo.cap,
         leasePeriodInMillis = leasePeriodInMillis,

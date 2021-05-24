@@ -16,7 +16,7 @@ open class PayloadGenerator<T>(vararg val checks: DiffCheck<T, *>) {
 fun <T, VH : RecyclerView.ViewHolder> ListAdapter<T, VH>.resolvePayload(
     holder: VH,
     position: Int,
-    payloads: MutableList<Any>,
+    payloads: List<Any>,
     onDiffCheck: (DiffCheck<T, *>) -> Unit
 ) {
     if (payloads.isEmpty()) {

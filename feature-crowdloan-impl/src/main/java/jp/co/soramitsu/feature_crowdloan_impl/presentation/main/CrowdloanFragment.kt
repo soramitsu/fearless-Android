@@ -10,10 +10,10 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.setVisible
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
@@ -72,7 +72,7 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
         viewModel.mainDescription.observe(crowdloanMainDescription::setText)
     }
 
-    override fun crowdloanClicked(index: Int) {
-        viewModel.crowdloanClicked(index)
+    override fun crowdloanClicked(paraId: ParaId) {
+        viewModel.crowdloanClicked(paraId)
     }
 }
