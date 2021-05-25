@@ -54,7 +54,7 @@ class ContributeValidationsModule {
         feeProducer = { it.fee },
         extraAmountProducer = { it.contributionAmount },
         tokenProducer = { it.asset.token },
-        errorProducer = { ContributeValidationFailure.ExistentialDepositRCrossed },
+        errorProducer = { ContributeValidationFailure.ExistentialDepositCrossed },
     )
 
     @Provides

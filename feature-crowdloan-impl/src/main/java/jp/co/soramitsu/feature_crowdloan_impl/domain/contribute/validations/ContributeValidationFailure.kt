@@ -17,5 +17,5 @@ sealed class ContributeValidationFailure {
 
     object CannotPayFees : ContributeValidationFailure()
 
-    object ExistentialDepositRCrossed : ContributeValidationFailure()
+    object ExistentialDepositCrossed : ContributeValidationFailure()
 }
