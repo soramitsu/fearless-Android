@@ -14,12 +14,14 @@ import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnCrowdloanModel
@@ -73,7 +75,7 @@ class CrowdloanContributeViewModel(
     val assetModelFlow = assetFlow
         .map { mapAssetToAssetModel(it, resourceManager) }
         .inBackground()
-        .asLiveData()
+        .share()
 
     val enteredAmountFlow = MutableStateFlow("")
 
@@ -185,15 +187,27 @@ class CrowdloanContributeViewModel(
             validationExecutor.requireValid(
                 validationSystem = validationSystem,
                 payload = validationPayload,
-                validationFailureTransformer = { contributeValidationFailure(it, resourceManager) }
+                validationFailureTransformer = { contributeValidationFailure(it, resourceManager) },
+                progressConsumer = _showNextProgress.progressConsumer()
             ) {
-                openConfirmScreen()
+                _showNextProgress.value = false
+
+                openConfirmScreen(it)
             }
         }
     }
 
-    private fun openConfirmScreen() {
-        showMessage("Ready to open confirm")
+    private fun openConfirmScreen(
+        validationPayload: ContributeValidationPayload
+    ) = launch {
+        val confirmContributePayload = ConfirmContributePayload(
+            paraId = payload.paraId,
+            fee = validationPayload.fee,
+            amount = validationPayload.contributionAmount,
+            estimatedRewardDisplay = estimatedRewardFlow.first()
+        )
+
+        router.openConfirmContribute(confirmContributePayload)
     }
 
     fun learnMoreClicked() {

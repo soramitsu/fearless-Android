@@ -65,7 +65,7 @@
         <attr name="android:text" />
     </declare-styleable>
 
-    <declare-styleable name="StakingAmountView">
+    <declare-styleable name="AmountView">
         <attr name="android:enabled" />
     </declare-styleable>
 

@@ -56,6 +56,7 @@ class CrowdloanAdapter(
         resolvePayload(holder, position, payloads) {
             when (it) {
                 CrowdloanModel::state -> (holder as CrowdloanChildHolder).bindState(child, handler)
+                CrowdloanModel::raised -> (holder as CrowdloanChildHolder).bindRaised(child)
             }
         }
     }
@@ -91,7 +92,7 @@ private object CrowdloanDiffCallback : BaseGroupedDiffCallback<CrowdloanStatusMo
 }
 
 private object CrowdloanPayloadGenerator : PayloadGenerator<CrowdloanModel>(
-    CrowdloanModel::state
+    CrowdloanModel::state, CrowdloanModel::raised
 )
 
 private class CrowdloanGroupHolder(containerView: View) : GroupedListHolder(containerView) {
@@ -113,7 +114,8 @@ private class CrowdloanChildHolder(
     ) = with(containerView) {
         itemCrowdloanParaDescription.text = item.description
         itemCrowdloanParaName.text = item.title
-        itemCrowdloanParaRaised.text = item.raised
+
+        bindRaised(item)
 
         when (val icon = item.icon) {
             is CrowdloanModel.Icon.FromDrawable -> {
@@ -155,5 +157,9 @@ private class CrowdloanChildHolder(
         with(containerView) {
             itemCrowdloanIcon.clear()
         }
+    }
+
+    fun bindRaised(item: CrowdloanModel) {
+        containerView.itemCrowdloanParaRaised.text = item.raised
     }
 }

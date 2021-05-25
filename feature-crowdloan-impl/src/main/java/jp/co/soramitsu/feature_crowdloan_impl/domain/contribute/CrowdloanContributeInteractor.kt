@@ -29,7 +29,7 @@ class CrowdloanContributeInteractor(
 
     fun crowdloanStateFlow(
         parachainId: ParaId,
-        parachainMetadata: ParachainMetadata?
+        parachainMetadata: ParachainMetadata? = null
     ): Flow<Crowdloan> = accountRepository.selectedNetworkTypeFlow().flatMapLatest {
         val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis()
         val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod()
@@ -61,5 +61,18 @@ class CrowdloanContributeInteractor(
         }
 
         token.amountFromPlanks(feeInPlanks)
+    }
+
+    suspend fun contribute(
+        originAddress: String,
+        parachainId: ParaId,
+        contribution: BigDecimal,
+        token: Token
+    ) = withContext(Dispatchers.Default) {
+        val contributionInPlanks = token.planksFromAmount(contribution)
+
+        extrinsicService.submitExtrinsic(originAddress) {
+            contribute(parachainId, contributionInPlanks)
+        }
     }
 }

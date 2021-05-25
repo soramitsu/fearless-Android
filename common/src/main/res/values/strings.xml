@@ -14,7 +14,7 @@
     <string name="common_existential_warning_message">Operation will remove account from blockstore since it will make total balance lower than minimal balance.</string>
 
     <string name="common_left">%s left</string>
-    <string name="common_finished_with_count">Finished (%d)</string>
+    <string name="common_completed_with_count">Completed (%d)</string>
     <string name="common_completed">Completed</string>
 
     <string name="crowdloan_leasing_period">Leasing period</string>

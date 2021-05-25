@@ -54,8 +54,6 @@ class CrowdloanInteractor(
 
     fun crowdloansFlow(): Flow<GroupedCrowdloans> {
         return flow {
-            val fundInfos = crowdloanRepository.allFundInfos()
-
             val parachainMetadatas = runCatching {
                 crowdloanRepository.getParachainMetadata()
             }.getOrDefault(emptyMap())
@@ -65,6 +63,8 @@ class CrowdloanInteractor(
             val networkType = accountRepository.currentNetworkType()
 
             val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(networkType).map { currentBlockNumber ->
+                val fundInfos = crowdloanRepository.allFundInfos()
+
                 fundInfos.entries.toList()
                     .map { (parachainId, fundInfo) ->
                         mapFundInfoToCrowdloan(
