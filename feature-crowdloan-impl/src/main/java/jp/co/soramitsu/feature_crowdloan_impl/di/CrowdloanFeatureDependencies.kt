@@ -28,7 +28,7 @@ import javax.inject.Named
 
 interface CrowdloanFeatureDependencies {
 
-    fun walletConstants() : WalletConstants
+    fun walletConstants(): WalletConstants
 
     fun feeLoaderMixin(): FeeLoaderMixin.Presentation
 

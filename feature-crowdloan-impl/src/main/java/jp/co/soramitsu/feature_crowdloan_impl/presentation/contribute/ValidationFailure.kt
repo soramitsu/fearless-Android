@@ -23,7 +23,6 @@ fun contributeValidationFailure(
         ContributeValidationFailure.CrowdloanEnded -> {
             resourceManager.getString(R.string.crowdloan_ended_title) to
                 resourceManager.getString(R.string.crowdloan_ended_message)
-
         }
 
         ContributeValidationFailure.CapExceeded.FromRaised -> {

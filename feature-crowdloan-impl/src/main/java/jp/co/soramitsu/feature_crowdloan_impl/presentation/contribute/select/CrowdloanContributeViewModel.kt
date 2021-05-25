@@ -185,12 +185,11 @@ class CrowdloanContributeViewModel(
             validationExecutor.requireValid(
                 validationSystem = validationSystem,
                 payload = validationPayload,
-                validationFailureTransformer = {  contributeValidationFailure(it, resourceManager) }
+                validationFailureTransformer = { contributeValidationFailure(it, resourceManager) }
             ) {
                 openConfirmScreen()
             }
         }
-
     }
 
     private fun openConfirmScreen() {
