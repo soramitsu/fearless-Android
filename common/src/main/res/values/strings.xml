@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_alert_title">Alert</string>
+
     <string name="staking_reward_estimation_bottom_sheet_title">Earnings in the network</string>
 
     <string name="staking_only_apr">APR</string>
