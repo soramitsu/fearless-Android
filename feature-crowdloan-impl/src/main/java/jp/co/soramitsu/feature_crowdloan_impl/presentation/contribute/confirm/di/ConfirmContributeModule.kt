@@ -18,10 +18,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.Cont
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.ConfirmContributeViewModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.CrowdloanContributeViewModel
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 
 @Module(includes = [ViewModelModule::class])
 class ConfirmContributeModule {

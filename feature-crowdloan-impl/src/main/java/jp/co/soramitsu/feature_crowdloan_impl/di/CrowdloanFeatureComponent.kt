@@ -32,7 +32,7 @@ interface CrowdloanFeatureComponent : CrowdloanFeatureApi {
 
     fun selectContributeFactory(): CrowdloanContributeComponent.Factory
 
-    fun confirmContributeFactory() : ConfirmContributeComponent.Factory
+    fun confirmContributeFactory(): ConfirmContributeComponent.Factory
 
     @Component.Factory
     interface Factory {

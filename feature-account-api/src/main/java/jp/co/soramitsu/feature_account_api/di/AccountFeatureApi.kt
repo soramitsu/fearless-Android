@@ -16,5 +16,5 @@ interface AccountFeatureApi {
 
     fun addressDisplayUseCase(): AddressDisplayUseCase
 
-    fun accountUseCase() : SelectedAccountUseCase
+    fun accountUseCase(): SelectedAccountUseCase
 }

@@ -7,5 +7,5 @@ class SelectedAccountUseCase(
     private val accountRepository: AccountRepository
 ) {
 
-    fun selectedAccountFlow() : Flow<Account> = accountRepository.selectedAccountFlow()
+    fun selectedAccountFlow(): Flow<Account> = accountRepository.selectedAccountFlow()
 }
