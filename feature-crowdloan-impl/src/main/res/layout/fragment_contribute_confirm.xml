@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:id="@+id/confirmContributeContainer"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/confirmContributeToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:titleText="@string/common_confirmation" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:layout_width="match_parent"
+        android:id="@+id/confirmContributeOriginAcount"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        app:label="@string/account_address"
+        app:actionIcon="@drawable/ic_more_vertical"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp" />
+
+    <jp.co.soramitsu.common.view.AmountView
+        android:layout_width="match_parent"
+        android:id="@+id/confirmContributeAmount"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:enabled="false" />
+
+    <jp.co.soramitsu.common.view.TableCellView
+        android:id="@+id/confirmContributeReward"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:title="@string/staking_validator_estimated_reward" />
+
+    <jp.co.soramitsu.common.view.TableCellView
+        android:id="@+id/confirmContributeLeasingPeriod"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:title="@string/crowdloan_leasing_period" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/black4"
+        android:orientation="vertical">
+
+        <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
+            android:id="@+id/confirmContributeFee"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp" />
+
+        <jp.co.soramitsu.common.view.PrimaryButton
+            android:id="@+id/confirmContributeConfirm"
+            style="@style/Widget.Fearless.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/common_confirm" />
+    </LinearLayout>
+</LinearLayout>

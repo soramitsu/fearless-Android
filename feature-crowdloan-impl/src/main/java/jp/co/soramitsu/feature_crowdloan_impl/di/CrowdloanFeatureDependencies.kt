@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
@@ -27,6 +28,8 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
 interface CrowdloanFeatureDependencies {
+
+    fun selectedAccountUseCase(): SelectedAccountUseCase
 
     fun walletConstants(): WalletConstants
 

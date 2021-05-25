@@ -72,9 +72,9 @@ class AmountView @JvmOverloads constructor(
 
     private fun applyAttributes(attributeSet: AttributeSet?) {
         attributeSet?.let {
-            val typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.StakingAmountView)
+            val typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.AmountView)
 
-            val enabled = typedArray.getBoolean(R.styleable.StakingAmountView_android_enabled, true)
+            val enabled = typedArray.getBoolean(R.styleable.AmountView_android_enabled, true)
             isEnabled = enabled
 
             typedArray.recycle()

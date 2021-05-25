@@ -20,6 +20,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
@@ -160,4 +161,10 @@ class AccountFeatureModule {
     fun provideAddressDisplayUseCase(
         accountRepository: AccountRepository
     ) = AddressDisplayUseCase(accountRepository)
+
+    @Provides
+    @FeatureScope
+    fun provideAccountUseCase(
+        accountRepository: AccountRepository
+    ) = SelectedAccountUseCase(accountRepository)
 }
