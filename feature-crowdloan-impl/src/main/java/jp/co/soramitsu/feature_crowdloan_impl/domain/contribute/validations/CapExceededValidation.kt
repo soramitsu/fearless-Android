@@ -18,7 +18,9 @@ class CapExceededValidation : ContributeValidation {
                 raisedAmount + value.contributionAmount > capAmount -> {
                     val maxAllowedContribution = capAmount - raisedAmount
 
-                    ValidationStatus.NotValid(DefaultFailureLevel.ERROR, ContributeValidationFailure.CapExceeded.FromAmount(maxAllowedContribution))
+                    val reason = ContributeValidationFailure.CapExceeded.FromAmount(maxAllowedContribution, token)
+
+                    ValidationStatus.NotValid(DefaultFailureLevel.ERROR, reason)
                 }
                 else -> ValidationStatus.Valid()
             }

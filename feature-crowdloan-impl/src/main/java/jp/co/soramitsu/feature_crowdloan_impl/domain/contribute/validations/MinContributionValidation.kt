@@ -15,7 +15,7 @@ class MinContributionValidation(
         val minContribution = token.amountFromPlanks(crowdloanRepository.minContribution())
 
         return validOrError(value.contributionAmount >= minContribution) {
-            ContributeValidationFailure.LessThanMinContribution(minContribution)
+            ContributeValidationFailure.LessThanMinContribution(minContribution, token)
         }
     }
 }

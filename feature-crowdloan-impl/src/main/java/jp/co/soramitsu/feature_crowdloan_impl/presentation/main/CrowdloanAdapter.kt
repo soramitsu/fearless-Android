@@ -112,7 +112,7 @@ private class CrowdloanChildHolder(
         item: CrowdloanModel,
         handler: CrowdloanAdapter.Handler,
     ) = with(containerView) {
-        itemCrowdloanParaDescription.setTextOrHide(item.description)
+        itemCrowdloanParaDescription.text = item.description
         itemCrowdloanParaName.text = item.title
         itemCrowdloanParaRaised.text = item.raised
 

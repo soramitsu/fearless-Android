@@ -105,8 +105,8 @@ class CrowdloanViewModel(
 
         return CrowdloanModel(
             parachainId = crowdloan.parachainId,
-            title = crowdloan.parachainMetadata?.name ?: depositorAddress,
-            description = crowdloan.parachainMetadata?.description,
+            title = crowdloan.parachainMetadata?.name ?: crowdloan.parachainId.toString(),
+            description = crowdloan.parachainMetadata?.description ?: depositorAddress,
             icon = icon,
             raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
             state = stateFormatted,

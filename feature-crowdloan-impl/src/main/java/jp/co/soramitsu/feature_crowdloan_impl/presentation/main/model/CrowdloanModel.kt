@@ -12,7 +12,7 @@ data class CrowdloanStatusModel(
 data class CrowdloanModel(
     val parachainId: ParaId,
     val title: String,
-    val description: String?,
+    val description: String,
     val icon: Icon,
     val raised: String,
     val state: State

@@ -28,15 +28,12 @@ fun mapFundInfoToCrowdloan(
 
     return Crowdloan(
         parachainMetadata = parachainMetadata,
-        raised = fundInfo.raised,
         raisedFraction = fundInfo.raised.toBigDecimal().divide(fundInfo.cap.toBigDecimal(), MathContext.DECIMAL32),
         parachainId = parachainId,
-        cap = fundInfo.cap,
         leasePeriodInMillis = leasePeriodInMillis,
         leasedUntilInMillis = System.currentTimeMillis() + leasePeriodInMillis,
         state = state,
-        depositor = fundInfo.depositor,
-        endBlock = fundInfo.end
+        fundInfo = fundInfo
     )
 }
 
