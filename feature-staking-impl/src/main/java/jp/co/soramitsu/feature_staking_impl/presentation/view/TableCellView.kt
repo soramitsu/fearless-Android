@@ -52,6 +52,9 @@ open class TableCellView @JvmOverloads constructor(
         val title = typedArray.getString(R.styleable.TableCellView_title)
         setTitle(title)
 
+        val dividerVisible = typedArray.getBoolean(R.styleable.TableCellView_dividerVisible, true)
+        setDividerVisible(dividerVisible)
+
         typedArray.recycle()
     }
 

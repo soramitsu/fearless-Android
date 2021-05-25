@@ -2,6 +2,7 @@
 <resources>
     <declare-styleable name="TableCellView">
         <attr name="title" />
+        <attr name="dividerVisible" />
     </declare-styleable>
 
     <declare-styleable name="StakingAmountView">

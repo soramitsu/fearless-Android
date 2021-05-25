@@ -6,5 +6,10 @@ sealed class RewardDestinationModel {
 
     object Restake : RewardDestinationModel()
 
-    class Payout(val destination: AddressModel) : RewardDestinationModel()
+    class Payout(val destination: AddressModel) : RewardDestinationModel() {
+
+        override fun equals(other: Any?): Boolean {
+            return other is Payout && other.destination.address == destination.address
+        }
+    }
 }
