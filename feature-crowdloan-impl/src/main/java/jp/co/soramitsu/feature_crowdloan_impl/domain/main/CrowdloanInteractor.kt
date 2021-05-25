@@ -1,9 +1,9 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.main
 
 import jp.co.soramitsu.common.list.GroupedList
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateRepository
@@ -17,15 +17,13 @@ import java.math.BigInteger
 import kotlin.reflect.KClass
 
 class Crowdloan(
-    val depositor: AccountId,
     val parachainMetadata: ParachainMetadata?,
     val parachainId: BigInteger,
-    val raised: BigInteger,
     val raisedFraction: BigDecimal,
     val state: State,
     val leasePeriodInMillis: Long,
     val leasedUntilInMillis: Long,
-    val cap: BigInteger,
+    val fundInfo: FundInfo
 ) {
 
     sealed class State {

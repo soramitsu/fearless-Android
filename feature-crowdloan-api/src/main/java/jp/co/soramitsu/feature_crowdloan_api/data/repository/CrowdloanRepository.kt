@@ -18,6 +18,8 @@ interface CrowdloanRepository {
     suspend fun blocksPerLeasePeriod(): BigInteger
 
     fun fundInfoFlow(parachainId: ParaId, networkType: Node.NetworkType): Flow<FundInfo>
+
+    suspend fun minContribution(): BigInteger
 }
 
 class ParachainMetadata(

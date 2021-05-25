@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
+import jp.co.soramitsu.feature_crowdloan_impl.domain.common.leaseIndexFromBlock
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import java.math.BigInteger
 import java.math.MathContext
@@ -34,7 +35,8 @@ fun mapFundInfoToCrowdloan(
         leasePeriodInMillis = leasePeriodInMillis,
         leasedUntilInMillis = System.currentTimeMillis() + leasePeriodInMillis,
         state = state,
-        depositor = fundInfo.depositor
+        depositor = fundInfo.depositor,
+        endBlock = fundInfo.end
     )
 }
 
@@ -45,12 +47,10 @@ private fun isCrowdloanActive(
 ): Boolean {
     return currentBlockNumber < fundInfo.end && // crowdloan is not ended
         // first slot is not yet passed
-        leasePeriodFromBlock(currentBlockNumber, blocksPerLeasePeriod) <= fundInfo.firstSlot &&
+        leaseIndexFromBlock(currentBlockNumber, blocksPerLeasePeriod) <= fundInfo.firstSlot &&
         // cap is not reached
         fundInfo.raised < fundInfo.cap
 }
-
-private fun leasePeriodFromBlock(block: BigInteger, blocksPerLeasePeriod: BigInteger) = block / blocksPerLeasePeriod
 
 private fun leasePeriodInMillis(
     blocksPerLeasePeriod: BigInteger,

@@ -38,7 +38,7 @@ suspend inline fun <T> StorageDataSource.queryNonNull(
     crossinline binding: NonNullBinder<T>,
 ) = query(keyBuilder) { scale, runtime -> binding(scale!!, runtime) }
 
-suspend inline fun <T> StorageDataSource.observeNonNull(
+inline fun <T> StorageDataSource.observeNonNull(
     networkType: Node.NetworkType,
     noinline keyBuilder: (RuntimeSnapshot) -> String,
     crossinline binding: NonNullBinder<T>,

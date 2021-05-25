@@ -107,8 +107,8 @@ class CrowdloanContributeViewModel(
         .combine(assetFlow) { crowdloan, asset ->
             val token = asset.token
 
-            val raisedDisplay = token.amountFromPlanks(crowdloan.raised).format()
-            val capDisplay = token.amountFromPlanks(crowdloan.cap).formatTokenAmount(token.type)
+            val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
+            val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.type)
 
             val timeLeft = when (val state = crowdloan.state) {
                 Crowdloan.State.Finished -> resourceManager.getString(R.string.common_completed)

@@ -82,10 +82,10 @@ class CrowdloanViewModel(
     private suspend fun mapCrowdloanToCrowdloanModel(crowdloan: Crowdloan, asset: Asset): CrowdloanModel {
         val token = asset.token
 
-        val raisedDisplay = token.amountFromPlanks(crowdloan.raised).format()
-        val capDisplay = token.amountFromPlanks(crowdloan.cap).formatTokenAmount(token.type)
+        val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
+        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.type)
 
-        val depositorAddress = crowdloan.depositor.toAddress(token.type.networkType)
+        val depositorAddress = crowdloan.fundInfo.depositor.toAddress(token.type.networkType)
 
         val icon = if (crowdloan.parachainMetadata != null) {
             CrowdloanModel.Icon.FromLink(crowdloan.parachainMetadata.iconLink)

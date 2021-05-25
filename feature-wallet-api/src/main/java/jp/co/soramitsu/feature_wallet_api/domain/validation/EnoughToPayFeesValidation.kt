@@ -7,8 +7,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import java.math.BigDecimal
 
-typealias AmountProducer<P> = suspend (P) -> BigDecimal
-
 class EnoughToPayFeesValidation<P, E>(
     private val feeExtractor: AmountProducer<P>,
     private val availableBalanceProducer: AmountProducer<P>,

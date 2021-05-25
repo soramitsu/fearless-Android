@@ -70,4 +70,8 @@ class CrowdloanRepositoryImpl(
             networkType = networkType
         )
     }
+
+    override suspend fun minContribution(): BigInteger = runtimeProperty.useValue { runtime ->
+        runtime.metadata.crowdloan().numberConstant("MinContribution", runtime)
+    }
 }
