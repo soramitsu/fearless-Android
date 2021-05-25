@@ -16,8 +16,11 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnCrowdloanModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
@@ -30,10 +33,13 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
@@ -48,6 +54,7 @@ class CrowdloanContributeViewModel(
     private val validationExecutor: ValidationExecutor,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val payload: ContributePayload,
+    private val validationSystem: ContributeValidationSystem,
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     Browserable,
@@ -103,26 +110,29 @@ class CrowdloanContributeViewModel(
         }
     }.share()
 
-    val crowdloanDetailModelFlow = contributionInteractor.crowdloanStateFlow(payload.paraId, parachainMetadata)
-        .combine(assetFlow) { crowdloan, asset ->
-            val token = asset.token
+    private val crowdloanFlow = contributionInteractor.crowdloanStateFlow(payload.paraId, parachainMetadata)
+        .inBackground()
+        .share()
 
-            val raisedDisplay = token.amountFromPlanks(crowdloan.raised).format()
-            val capDisplay = token.amountFromPlanks(crowdloan.cap).formatTokenAmount(token.type)
+    val crowdloanDetailModelFlow = crowdloanFlow.combine(assetFlow) { crowdloan, asset ->
+        val token = asset.token
 
-            val timeLeft = when (val state = crowdloan.state) {
-                Crowdloan.State.Finished -> resourceManager.getString(R.string.common_completed)
-                is Crowdloan.State.Active -> resourceManager.formatDuration(state.remainingTimeInMillis)
-            }
+        val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
+        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.type)
 
-            CrowdloanDetailsModel(
-                leasePeriod = resourceManager.formatDuration(crowdloan.leasePeriodInMillis),
-                leasedUntil = resourceManager.formatDate(crowdloan.leasedUntilInMillis),
-                raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
-                timeLeft = timeLeft,
-                raisedPercentage = crowdloan.raisedFraction.fractionToPercentage().formatAsPercentage()
-            )
+        val timeLeft = when (val state = crowdloan.state) {
+            Crowdloan.State.Finished -> resourceManager.getString(R.string.common_completed)
+            is Crowdloan.State.Active -> resourceManager.formatDuration(state.remainingTimeInMillis)
         }
+
+        CrowdloanDetailsModel(
+            leasePeriod = resourceManager.formatDuration(crowdloan.leasePeriodInMillis),
+            leasedUntil = resourceManager.formatDate(crowdloan.leasedUntilInMillis),
+            raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
+            timeLeft = timeLeft,
+            raisedPercentage = crowdloan.raisedFraction.fractionToPercentage().formatAsPercentage()
+        )
+    }
         .inBackground()
         .share()
 
@@ -162,7 +172,28 @@ class CrowdloanContributeViewModel(
     )
 
     private fun maybeGoToNext() = requireFee { fee ->
-        showMessage("Ready to show confirm")
+        launch {
+            val contributionAmount = parsedAmountFlow.firstOrNull() ?: return@launch
+
+            val validationPayload = ContributeValidationPayload(
+                crowdloan = crowdloanFlow.first(),
+                fee = fee,
+                asset = assetFlow.first(),
+                contributionAmount = contributionAmount
+            )
+
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = validationPayload,
+                validationFailureTransformer = { contributeValidationFailure(it, resourceManager) }
+            ) {
+                openConfirmScreen()
+            }
+        }
+    }
+
+    private fun openConfirmScreen() {
+        showMessage("Ready to open confirm")
     }
 
     fun learnMoreClicked() {

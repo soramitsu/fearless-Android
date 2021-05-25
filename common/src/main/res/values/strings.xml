@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="crowdloan_too_small_contribution_title">Contribution amount is too small</string>
+    <string name="crowdloan_too_small_contribution_message">The minimum allowed amount to contribute is %s.</string>
+
+    <string name="crowdloan_cap_reached_title">Crowdloan cap exceeded</string>
+    <string name="crowdloan_cap_reached_raised_message">Cannot contribute to selected crowdloan  since its cap is already reached.</string>
+    <string name="crowdloan_cap_reached_amount_message">Cannot contribute chosen amount since resulting raised amount will exceed crowdloan cap. Maximum allowed contribution is %s.</string>
+
+    <string name="crowdloan_ended_title">Crowdloan is ended</string>
+    <string name="crowdloan_ended_message">Cannot contribute to selected crowdloan since it is already ended.</string>
+
+    <string name="common_existential_warning_title">Operation will remove account</string>
+    <string name="common_existential_warning_message">Operation will remove account from blockstore since it will make total balance lower than minimal balance.</string>
+
     <string name="common_left">%s left</string>
     <string name="common_finished_with_count">Finished (%d)</string>
     <string name="common_completed">Completed</string>

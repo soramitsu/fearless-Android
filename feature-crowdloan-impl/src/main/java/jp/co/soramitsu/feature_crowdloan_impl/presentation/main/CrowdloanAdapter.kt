@@ -14,7 +14,6 @@ import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextColorRes
-import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
@@ -112,7 +111,7 @@ private class CrowdloanChildHolder(
         item: CrowdloanModel,
         handler: CrowdloanAdapter.Handler,
     ) = with(containerView) {
-        itemCrowdloanParaDescription.setTextOrHide(item.description)
+        itemCrowdloanParaDescription.text = item.description
         itemCrowdloanParaName.text = item.title
         itemCrowdloanParaRaised.text = item.raised
 

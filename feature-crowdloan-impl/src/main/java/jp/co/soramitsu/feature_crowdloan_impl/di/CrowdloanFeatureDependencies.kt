@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayU
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
@@ -26,6 +27,8 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
 interface CrowdloanFeatureDependencies {
+
+    fun walletConstants(): WalletConstants
 
     fun feeLoaderMixin(): FeeLoaderMixin.Presentation
 
