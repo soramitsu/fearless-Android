@@ -20,8 +20,7 @@ class StakingRewardsRepository(
 
     suspend fun sync(accountAddress: String) {
         when (accountAddress.networkType()) {
-            Node.NetworkType.KUSAMA -> subqueryStakingRewardsDataSource.sync(accountAddress = accountAddress)
-            Node.NetworkType.POLKADOT -> subqueryStakingRewardsDataSource.sync(accountAddress = accountAddress)
+            Node.NetworkType.KUSAMA, Node.NetworkType.POLKADOT -> subqueryStakingRewardsDataSource.sync(accountAddress = accountAddress)
             Node.NetworkType.WESTEND -> subscanStakingRewardsDataSource.sync(accountAddress = accountAddress)
         }
     }
