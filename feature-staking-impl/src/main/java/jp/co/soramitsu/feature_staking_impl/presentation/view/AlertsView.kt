@@ -45,8 +45,8 @@ class AlertsView @JvmOverloads constructor(
         alertsRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
     }
 
-    fun setStatus(status: Status){
-        when(status){
+    fun setStatus(status: Status) {
+        when (status) {
             is Status.Alerts -> {
                 alertsRecycler.makeVisible()
                 alertNoAlertsInfoTextView.makeGone()
@@ -72,6 +72,5 @@ class AlertsView @JvmOverloads constructor(
     }
 
     override fun alertClicked(index: Int) {
-
     }
 }
