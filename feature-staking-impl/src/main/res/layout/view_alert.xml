@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -47,48 +46,9 @@
             android:id="@+id/alertsRecycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:visibility="gone"
             tools:itemCount="3"
-            tools:listitem="@layout/item_alert"
-            android:visibility="gone"/>
+            tools:listitem="@layout/item_alert" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/alertStakingUnavailableTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone">
-
-            <ImageView
-                android:id="@+id/alertImageViewStart"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_wait_16" />
-
-            <TextView
-                android:id="@+id/alertTitle"
-                style="@style/TextAppearance.Soramitsu.Body1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="16dp"
-                app:layout_constraintBottom_toBottomOf="@+id/alertImageViewStart"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/alertImageViewStart"
-                app:layout_constraintTop_toTopOf="@+id/alertImageViewStart"
-                tools:text="Staking actions are currently unavailable." />
-
-            <TextView
-                android:id="@+id/alertMessage"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                app:layout_constraintEnd_toEndOf="@+id/alertTitle"
-                app:layout_constraintStart_toStartOf="@+id/alertTitle"
-                app:layout_constraintTop_toBottomOf="@+id/alertTitle"
-                tools:text="The network is electing validators. Usually it takes less than 10 minutes." />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 </merge>
