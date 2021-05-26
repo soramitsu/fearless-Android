@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
-import androidx.recyclerview.widget.LinearLayoutManager
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
@@ -37,7 +36,7 @@ class AlertsView @JvmOverloads constructor(
         }
 
         alertsRecycler.adapter = alertsAdapter
-        alertsRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        alertsRecycler.setHasFixedSize(true)
     }
 
     fun setStatus(status: Status) {
@@ -45,15 +44,12 @@ class AlertsView @JvmOverloads constructor(
             is Status.Alerts -> {
                 alertsRecycler.makeVisible()
                 alertNoAlertsInfoTextView.makeGone()
-                alertStakingUnavailableTextView.makeGone()
 
                 alertsAdapter.submitList(status.alerts)
             }
             Status.NoAlerts -> {
                 alertsRecycler.makeGone()
                 alertNoAlertsInfoTextView.makeVisible()
-                alertStakingUnavailableTextView.makeGone()
-                alertMessage.setText(R.string.staking_alert_no_alerts_now)
             }
         }
     }
