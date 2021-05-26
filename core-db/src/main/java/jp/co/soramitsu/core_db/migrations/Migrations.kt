@@ -12,7 +12,7 @@ class UpdateDefaultNodesList(
 ) : Migration(fromVersion, fromVersion + 1) {
 
     init {
-        require(nodesList.all { it.isActive.not() },) {
+        require(nodesList.all { it.isActive.not() }) {
             "Nodes should not be active by default"
         }
     }
@@ -55,6 +55,19 @@ class UpdateDefaultNodesList(
 
         database.setTransactionSuccessful()
         database.endTransaction()
+    }
+}
+
+val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `total_reward` (
+                `accountAddress` TEXT NOT NULL, 
+                `totalReward` TEXT, 
+                 PRIMARY KEY(`accountAddress`))
+            """.trimIndent()
+        )
     }
 }
 
