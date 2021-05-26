@@ -1,7 +1,9 @@
 package jp.co.soramitsu.app.root.navigation
 
 import android.os.Bundle
+import android.os.Parcelable
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import jp.co.soramitsu.app.R
@@ -224,6 +226,9 @@ class Navigator :
     override fun openContribute(payload: ContributePayload) {
         navController?.navigate(R.id.action_mainFragment_to_crowdloanContributeFragment, CrowdloanContributeFragment.getBundle(payload))
     }
+
+    override val eligibleForExtraRewardLiveData: LiveData<Parcelable>
+        get() = navController!!.currentBackStackEntry!!.savedStateHandle.getLiveData(CrowdloanContributeFragment.KEY_ELIGIBLE_FOR_BONUS)
 
     override fun openConfirmContribute(payload: ConfirmContributePayload) {
         navController?.navigate(R.id.action_crowdloanContributeFragment_to_confirmContributeFragment, ConfirmContributeFragment.getBundle(payload))

@@ -43,6 +43,8 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
 
     companion object {
 
+        const val KEY_ELIGIBLE_FOR_BONUS = "KEY_ELIGIBLE_FOR_BONUS"
+
         fun getBundle(payload: ContributePayload) = Bundle().apply {
             putParcelable(KEY_PAYLOAD, payload)
         }
