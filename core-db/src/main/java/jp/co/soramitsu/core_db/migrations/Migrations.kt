@@ -58,7 +58,7 @@ class UpdateDefaultNodesList(
     }
 }
 
-val AddTotalRewardsTableToDb_20_21 = object : Migration(20, 21) {
+val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
             """

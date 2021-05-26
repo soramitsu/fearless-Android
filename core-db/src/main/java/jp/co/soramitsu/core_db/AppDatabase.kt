@@ -28,7 +28,7 @@ import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_11_12
 import jp.co.soramitsu.core_db.migrations.AddStakingRewardsTable_15_16
 import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
-import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_20_21
+import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_21_22
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
 import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
@@ -99,7 +99,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(MoveActiveNodeTrackingToDb_18_19(prefsToDbActiveNodeMigrator))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 19))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 20))
-                    .addMigrations(AddTotalRewardsTableToDb_20_21)
+                    .addMigrations(AddTotalRewardsTableToDb_21_22)
                     .build()
             }
             return instance!!

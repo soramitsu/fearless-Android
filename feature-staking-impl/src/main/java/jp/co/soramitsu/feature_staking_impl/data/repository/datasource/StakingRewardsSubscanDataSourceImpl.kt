@@ -14,6 +14,8 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.subscanCollectionFet
 import jp.co.soramitsu.feature_staking_impl.domain.model.TotalReward
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -26,6 +28,7 @@ class StakingRewardsSubscanDataSourceImpl(
     override suspend fun totalRewardsFlow(accountAddress: String): Flow<TotalReward> {
         return stakingRewardDao.observeRewards(accountAddress)
             .mapList(::mapStakingRewardLocalToStakingReward)
+            .filter { it.isNotEmpty() }
             .map(::mapSumReward)
     }
 
