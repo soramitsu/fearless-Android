@@ -8,8 +8,8 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.AlertsAdapter
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertStatus
 import kotlinx.android.synthetic.main.view_alert.view.*
 
 class AlertsView @JvmOverloads constructor(
@@ -17,12 +17,6 @@ class AlertsView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyle: Int = 0,
 ) : LinearLayout(context, attrs, defStyle), AlertsAdapter.ItemHandler {
-
-    sealed class Status {
-        class Alerts(val alerts: List<AlertModel>) : Status()
-
-        object NoAlerts : Status()
-    }
 
     private val alertsAdapter = AlertsAdapter(this)
 
@@ -39,15 +33,15 @@ class AlertsView @JvmOverloads constructor(
         alertsRecycler.setHasFixedSize(true)
     }
 
-    fun setStatus(status: Status) {
+    fun setStatus(status: AlertStatus) {
         when (status) {
-            is Status.Alerts -> {
+            is AlertStatus.Alerts -> {
                 alertsRecycler.makeVisible()
                 alertNoAlertsInfoTextView.makeGone()
 
                 alertsAdapter.submitList(status.alerts)
             }
-            Status.NoAlerts -> {
+            AlertStatus.NoAlerts -> {
                 alertsRecycler.makeGone()
                 alertNoAlertsInfoTextView.makeVisible()
             }
