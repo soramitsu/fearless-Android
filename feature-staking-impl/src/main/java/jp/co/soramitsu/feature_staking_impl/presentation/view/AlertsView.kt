@@ -20,14 +20,10 @@ class AlertsView @JvmOverloads constructor(
     defStyle: Int = 0,
 ) : LinearLayout(context, attrs, defStyle), AlertsAdapter.ItemHandler {
 
-    sealed class Status(@StringRes val textRes: Int?, @StringRes val extraTextRes: Int?) {
-        class Alerts(val alerts: List<AlertModel>) : Status(textRes = null, extraTextRes = null)
+    sealed class Status {
+        class Alerts(val alerts: List<AlertModel>) : Status()
 
-        object NoAlerts : Status(textRes = null, extraTextRes = R.string.staking_alert_no_alerts_now)
-
-        object NextEra : Status(textRes = R.string.staking_alert_start_next_era, extraTextRes = R.string.staking_alert_start_next_era_extra_message)
-
-        object Unavailable : Status(textRes = R.string.staking_alert_start_unavailable, extraTextRes = R.string.staking_alert_start_unavailable_extra_message)
+        object NoAlerts : Status()
     }
 
     private val alertsAdapter = AlertsAdapter(this)
@@ -58,15 +54,7 @@ class AlertsView @JvmOverloads constructor(
                 alertsRecycler.makeGone()
                 alertNoAlertsInfoTextView.makeVisible()
                 alertStakingUnavailableTextView.makeGone()
-            }
-            Status.NextEra, Status.Unavailable -> {
-                alertsRecycler.makeGone()
-                alertNoAlertsInfoTextView.makeGone()
-                alertStakingUnavailableTextView.makeVisible()
-
-                // Next era and Unavailable statuses always have these texts
-                alertTitle.setText(status.textRes!!)
-                alertMessage.setText(status.extraTextRes!!)
+                alertMessage.setText(R.string.staking_alert_no_alerts_now)
             }
         }
     }
