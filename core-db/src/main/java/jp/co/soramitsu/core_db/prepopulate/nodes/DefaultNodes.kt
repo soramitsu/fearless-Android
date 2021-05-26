@@ -7,7 +7,7 @@ val LATEST_DEFAULT_NODES = listOf(
     // --- kusama ----
     NodeLocal(
         "Kusama OnFinality Node",
-        "wss://kusama.api.onfinality.io/public-ws",
+        "wss://kusama.api.onfinality.io/ws?apikey=0b2faaa5-3ef1-48ea-bf75-8f3a0cedb1ef",
         Node.NetworkType.KUSAMA.ordinal,
         true
     ),
@@ -26,7 +26,7 @@ val LATEST_DEFAULT_NODES = listOf(
     // --- polkadot ----
     NodeLocal(
         "Polkadot OnFinality Node",
-        "wss://polkadot.api.onfinality.io/public-ws",
+        "wss://polkadot.api.onfinality.io/ws?apikey=0b2faaa5-3ef1-48ea-bf75-8f3a0cedb1ef",
         Node.NetworkType.POLKADOT.ordinal,
         true
     ),

@@ -49,7 +49,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
 @Database(
-    version = 21,
+    version = 22,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
@@ -98,6 +98,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(RemoveAccountForeignKeyFromAsset_17_18)
                     .addMigrations(MoveActiveNodeTrackingToDb_18_19(prefsToDbActiveNodeMigrator))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 19))
+                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 20))
                     .addMigrations(AddTotalRewardsTableToDb_20_21)
                     .build()
             }
