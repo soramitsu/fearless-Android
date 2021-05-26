@@ -48,6 +48,6 @@ private class AlertDiffCallback : DiffUtil.ItemCallback<AlertModel>() {
     }
 
     override fun areContentsTheSame(oldItem: AlertModel, newItem: AlertModel): Boolean {
-        return true
+        return oldItem.title == newItem.title && oldItem.extraMessage == newItem.extraMessage
     }
 }
