@@ -6,9 +6,9 @@
     android:layout_height="match_parent">
 
     <LinearLayout
+        android:id="@+id/stakingContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/stakingContainer"
         android:orientation="vertical">
 
         <FrameLayout
@@ -47,6 +47,14 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             app:expanded="true" />
+
+        <jp.co.soramitsu.feature_staking_impl.presentation.view.AlertsView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:id="@+id/stakingAlertsInfo"/>
 
         <jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
             android:id="@+id/stakingNominatorSummary"
@@ -87,8 +95,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/staking_start_title"
             android:theme="@style/PinkOverlay"
             android:visibility="gone"

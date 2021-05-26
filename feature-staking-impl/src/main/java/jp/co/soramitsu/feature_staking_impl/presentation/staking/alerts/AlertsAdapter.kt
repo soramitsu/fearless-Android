@@ -1,0 +1,53 @@
+package jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts
+
+import android.view.View
+import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
+import kotlinx.android.extensions.LayoutContainer
+import kotlinx.android.synthetic.main.item_alert.view.*
+
+class AlertsAdapter(
+    private val itemHandler: ItemHandler
+) : ListAdapter<AlertModel, AlertsAdapter.AlertViewHolder>(AlertDiffCallback()) {
+
+    interface ItemHandler {
+        fun alertClicked(index: Int)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlertViewHolder {
+        val view = parent.inflateChild(R.layout.item_alert)
+
+        return AlertViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: AlertViewHolder, position: Int) {
+        val item = getItem(position)
+
+        holder.bind(item, itemHandler)
+    }
+
+    inner class AlertViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+        fun bind(alert: AlertModel, itemHandler: ItemHandler) = with(containerView) {
+            alertItemTitle.text = alert.title
+            alertItemMessage.text = alert.extraMessage
+
+            setOnClickListener { itemHandler.alertClicked(adapterPosition) }
+        }
+    }
+}
+
+private class AlertDiffCallback : DiffUtil.ItemCallback<AlertModel>() {
+    override fun areItemsTheSame(oldItem: AlertModel, newItem: AlertModel): Boolean {
+        return oldItem == newItem
+
+    }
+
+    override fun areContentsTheSame(oldItem: AlertModel, newItem: AlertModel): Boolean {
+        return true
+    }
+}
