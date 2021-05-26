@@ -156,6 +156,10 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             stakingViewState.statusClicked()
         }
 
+        setStakeInfoClickListener {
+            stakingViewState.moreActionsClicked()
+        }
+
         stakingViewState.showStatusAlertEvent.observeEvent { (title, message) ->
             showStatusAlert(title, message)
         }
@@ -164,10 +168,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
         stakingViewState.showManageActionsEvent.observeEvent {
             ManageStakingBottomSheet(requireContext(), it, stakingViewState::manageActionChosen).show()
-        }
-
-        moreActions.setOnClickListener {
-            stakingViewState.moreActionsClicked()
         }
 
         stakingViewState.stakeSummaryFlow.observe { summaryState ->
