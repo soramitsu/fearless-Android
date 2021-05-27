@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toStartOf="@+id/imageView3"
+        app:layout_constraintEnd_toStartOf="@+id/alertItemGoToFlowIcon"
         app:layout_constraintStart_toEndOf="@+id/imageView"
         app:layout_constraintTop_toTopOf="@+id/imageView"
         tools:text="Change your validators." />
@@ -41,7 +41,7 @@
         android:layout_marginBottom="8dp"/>
 
     <ImageView
-        android:id="@+id/imageView3"
+        android:id="@+id/alertItemGoToFlowIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"

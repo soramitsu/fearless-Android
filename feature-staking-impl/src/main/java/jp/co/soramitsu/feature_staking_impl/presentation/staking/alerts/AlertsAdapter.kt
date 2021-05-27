@@ -6,18 +6,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_alert.view.*
 
-class AlertsAdapter(
-    private val itemHandler: ItemHandler
-) : ListAdapter<AlertModel, AlertsAdapter.AlertViewHolder>(AlertDiffCallback()) {
-
-    interface ItemHandler {
-        fun alertClicked(index: Int)
-    }
+class AlertsAdapter : ListAdapter<AlertModel, AlertsAdapter.AlertViewHolder>(AlertDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlertViewHolder {
         val view = parent.inflateChild(R.layout.item_alert)
@@ -28,15 +23,17 @@ class AlertsAdapter(
     override fun onBindViewHolder(holder: AlertViewHolder, position: Int) {
         val item = getItem(position)
 
-        holder.bind(item, itemHandler)
+        holder.bind(item)
     }
 
     inner class AlertViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
-        fun bind(alert: AlertModel, itemHandler: ItemHandler) = with(containerView) {
-            alertItemTitle.text = alert.title
-            alertItemMessage.text = alert.extraMessage
+        fun bind(alert: AlertModel) = with(containerView) {
+            imageView.setImageResource(alert.icon)
+            alertItemTitle.setText(alert.title)
+            alertItemMessage.setText(alert.extraMessage)
+            alertItemGoToFlowIcon.setVisible(!alert.isWarning)
 
-            setOnClickListener { itemHandler.alertClicked(adapterPosition) }
+            setOnClickListener(alert.startFlow)
         }
     }
 }

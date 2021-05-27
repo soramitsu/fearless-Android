@@ -17,15 +17,10 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
-import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
-import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
-import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
-import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
-import kotlinx.android.synthetic.main.fragment_staking.stakingNominatorSummary
-import kotlinx.android.synthetic.main.fragment_staking.stakingValidatorSummary
-import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
+import kotlinx.android.synthetic.main.fragment_staking.*
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -64,12 +59,15 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     }
 
     override fun subscribe(viewModel: StakingViewModel) {
+        viewModel.alertsFlow.observe {
+            stakingAlertsInfo.setStatus(AlertStatus.Alerts(it))
+        }
+
         viewModel.currentStakingState.observe { stakingState ->
             startStakingBtn.setVisible(stakingState is WelcomeViewState)
             stakingEstimate.setVisible(stakingState is WelcomeViewState)
             stakingNominatorSummary.setVisible(stakingState is NominatorViewState)
             stakingValidatorSummary.setVisible(stakingState is ValidatorViewState)
-
             when (stakingState) {
                 is NominatorViewState -> {
                     stakingNominatorSummary.bindStakeSummary(stakingState, ::mapNominatorStatus)

@@ -308,6 +308,7 @@ class StakingInteractor(
         return exposures.sumOf(Exposure::total)
     }
 
+    //TODO вынести на top level
     private fun minimumStake(
         exposures: Collection<Exposure>,
         existentialDeposit: BigInteger,

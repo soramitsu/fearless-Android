@@ -16,9 +16,9 @@ class AlertsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0,
-) : LinearLayout(context, attrs, defStyle), AlertsAdapter.ItemHandler {
+) : LinearLayout(context, attrs, defStyle) {
 
-    private val alertsAdapter = AlertsAdapter(this)
+    private val alertsAdapter = AlertsAdapter()
 
     init {
         View.inflate(context, R.layout.view_alert, this)
@@ -46,8 +46,5 @@ class AlertsView @JvmOverloads constructor(
                 alertNoAlertsInfoTextView.makeVisible()
             }
         }
-    }
-
-    override fun alertClicked(index: Int) {
     }
 }

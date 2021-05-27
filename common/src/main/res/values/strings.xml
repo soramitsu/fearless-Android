@@ -4,8 +4,10 @@
     <string name="staking_alert_no_alerts_now">Everything is fine now. Alerts will appear here.</string>
     <string name="staking_alert_start_next_era">Your staking will start in the next era.</string>
     <string name="staking_alert_start_next_era_extra_message">Please wait for the next era to start.</string>
-    <string name="staking_alert_start_unavailable">Staking actions are currently unavailable.</string>
-    <string name="staking_alert_start_unavailable_extra_message">The network is electing validators. Usually it takes less than 10 minutes.</string>
+    <string name="staking_alert_election">Staking actions are currently unavailable.</string>
+    <string name="staking_alert_start_election_extra_message">The network is electing validators. Usually it takes less than 10 minutes.</string>
+    <string name="staking_alert_change_validators">Change your validators.</string>
+    <string name="staking_alert_change_validators_extra_message">Staking was inactive. None of yourvalidators were elected by network.</string>
 
     <string name="staking_reward_estimation_bottom_sheet_title">Earnings in the network</string>
 

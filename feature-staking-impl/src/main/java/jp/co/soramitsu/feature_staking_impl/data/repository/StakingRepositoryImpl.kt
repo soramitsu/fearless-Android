@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.constant
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.system
@@ -20,6 +21,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
@@ -48,17 +50,22 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingSt
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 
 class StakingRepositoryImpl(
     private val storageCache: StorageCache,
+    private val accountRepository: AccountRepository,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val accountStakingDao: AccountStakingDao,
     private val bulkRetriever: BulkRetriever,
@@ -110,6 +117,13 @@ class StakingRepositoryImpl(
         return storageCache.observeActiveEraIndex(runtimeProperty.get(), networkType)
     }
 
+    override val electedExposuresInActiveEra = accountRepository.selectedNetworkTypeFlow()
+        .flatMapLatest(::observeActiveEraIndex)
+        .mapLatest(::getElectedValidatorsExposure)
+        .inBackground()
+        .shareIn(GlobalScope, replay = 1, started = SharingStarted.Lazily)
+
+    //TODO optimization
     override suspend fun getElectedValidatorsExposure(eraIndex: BigInteger) = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 
