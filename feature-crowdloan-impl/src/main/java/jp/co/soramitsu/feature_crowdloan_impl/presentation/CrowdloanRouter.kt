@@ -1,15 +1,17 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation
 
-import android.os.Parcelable
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 
 interface CrowdloanRouter {
 
     fun openContribute(payload: ContributePayload)
 
-    val eligibleForExtraRewardLiveData : LiveData<Parcelable?>
+    val customBonusLiveData: LiveData<CustomContributePayload?>
+
+    fun setCustomBonus(payload: CustomContributePayload)
 
     fun openConfirmContribute(payload: ConfirmContributePayload)
 

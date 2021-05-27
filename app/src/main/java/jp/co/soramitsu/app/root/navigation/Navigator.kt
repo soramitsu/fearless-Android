@@ -32,6 +32,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfigur
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.ConfirmContributeFragment
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
@@ -227,8 +228,12 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_crowdloanContributeFragment, CrowdloanContributeFragment.getBundle(payload))
     }
 
-    override val eligibleForExtraRewardLiveData: LiveData<Parcelable>
-        get() = navController!!.currentBackStackEntry!!.savedStateHandle.getLiveData(CrowdloanContributeFragment.KEY_ELIGIBLE_FOR_BONUS)
+    override val customBonusLiveData: LiveData<CustomContributePayload?>
+        get() = navController!!.currentBackStackEntry!!.savedStateHandle.getLiveData(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA)
+
+    override fun setCustomBonus(payload: CustomContributePayload) {
+        navController!!.currentBackStackEntry!!.savedStateHandle.set(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA, payload)
+    }
 
     override fun openConfirmContribute(payload: ConfirmContributePayload) {
         navController?.navigate(R.id.action_crowdloanContributeFragment_to_confirmContributeFragment, ConfirmContributeFragment.getBundle(payload))

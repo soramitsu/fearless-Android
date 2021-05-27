@@ -21,6 +21,8 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeAmount
+import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeBonus
+import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeBonusReward
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeContainer
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeContinue
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeFee
@@ -43,7 +45,7 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
 
     companion object {
 
-        const val KEY_ELIGIBLE_FOR_BONUS = "KEY_ELIGIBLE_FOR_BONUS"
+        const val KEY_BONUS_LIVE_DATA = "KEY_BONUS_LIVE_DATA"
 
         fun getBundle(payload: ContributePayload) = Bundle().apply {
             putParcelable(KEY_PAYLOAD, payload)
@@ -72,6 +74,8 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         crowdloanContributeContinue.setOnClickListener { viewModel.nextClicked() }
 
         crowdloanContributeLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
+
+        crowdloanContributeBonus.setOnClickListener { viewModel.bonusClicked() }
     }
 
     override fun inject() {
@@ -129,6 +133,12 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         viewModel.learnCrowdloanModel?.let {
             crowdloanContributeLearnMoreTitle.text = it.text
             crowdloanContributeLearnMoreIcon.load(it.iconLink, imageLoader)
+        }
+
+        viewModel.bonusDisplayFlow.observe {
+            crowdloanContributeBonus.setVisible(it != null)
+
+            crowdloanContributeBonusReward.text = it
         }
     }
 }
