@@ -272,7 +272,9 @@ class CrowdloanContributeViewModel(
             paraId = payload.paraId,
             fee = validationPayload.fee,
             amount = validationPayload.contributionAmount,
-            estimatedRewardDisplay = estimatedRewardFlow.first()
+            estimatedRewardDisplay = estimatedRewardFlow.first(),
+            bonusPayload = router.latestCustomBonus,
+            metadata = payload.parachainMetadata
         )
 
         router.openConfirmContribute(confirmContributePayload)

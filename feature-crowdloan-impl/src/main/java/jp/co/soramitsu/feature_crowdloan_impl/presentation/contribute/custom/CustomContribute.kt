@@ -32,7 +32,10 @@ abstract class CustomContributeView @JvmOverloads constructor(
 
 interface CustomContributeSubmitter {
 
-    suspend fun submit(payload: Parcelable): Result<Unit>
+    suspend fun submit(
+        payload: BonusPayload,
+        amount: BigDecimal
+    ): Result<Unit>
 }
 
 interface BonusPayload : Parcelable {

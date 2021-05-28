@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeAmount
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeBonus
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeConfirm
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeContainer
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeFee
@@ -113,6 +114,12 @@ ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         viewModel.selectedAddressModelFlow.observe {
             confirmContributeOriginAcount.setMessage(it.nameOrAddress)
             confirmContributeOriginAcount.setTextIcon(it.image)
+        }
+
+        viewModel.bonusFlow.observe {
+           confirmContributeBonus.setVisible(it != null)
+
+            it?.let(confirmContributeBonus::showValue)
         }
     }
 }

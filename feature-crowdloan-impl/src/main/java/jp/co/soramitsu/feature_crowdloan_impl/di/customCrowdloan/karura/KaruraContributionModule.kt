@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.karura.KaruraApi
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
@@ -27,7 +28,8 @@ class KaruraContributionModule {
     fun provideKaruraInteractor(
         karuraApi: KaruraApi,
         httpExceptionHandler: HttpExceptionHandler,
-    ) = KaruraContributeInteractor(karuraApi, httpExceptionHandler, BuildConfig.KARURA_FEALRESS_REFERRAL)
+        accountRepository: AccountRepository,
+    ) = KaruraContributeInteractor(karuraApi, httpExceptionHandler, accountRepository, BuildConfig.KARURA_FEALRESS_REFERRAL)
 
     @Provides
     @FeatureScope
