@@ -20,6 +20,8 @@ android {
         buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecret("MOONPAY_TEST_SECRET")
         buildConfigField "String", "MOONPAY_HOST", "\"buy-staging.moonpay.com\""
         buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_test_DMRuyL6Nf1qc9OzjPBmCFBeCGkFwiZs0\""
+
+        buildConfigField "String", "SUBSCAN_API_KEY", readSecret("SUBSCAN_API_KEY")
     }
 
     buildTypes {
@@ -30,6 +32,8 @@ android {
             buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecret("MOONPAY_PRODUCTION_SECRET")
             buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_live_Boi6Rl107p7XuJWBL8GJRzGWlmUSoxbz\""
             buildConfigField "String", "MOONPAY_HOST", "\"buy.moonpay.com\""
+
+            buildConfigField "String", "SUBSCAN_API_KEY", readSecret("SUBSCAN_API_KEY")
 
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
