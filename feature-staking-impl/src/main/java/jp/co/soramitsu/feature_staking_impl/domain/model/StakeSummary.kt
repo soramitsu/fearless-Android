@@ -22,6 +22,10 @@ sealed class NominatorStatus {
     }
 }
 
+enum class StashNoneStatus {
+    INACTIVE, ELECTION
+}
+
 sealed class ValidatorStatus {
     object Active : ValidatorStatus()
     object Election : ValidatorStatus()
