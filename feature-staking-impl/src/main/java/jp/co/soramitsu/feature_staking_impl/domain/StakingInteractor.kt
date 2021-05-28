@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
 import jp.co.soramitsu.common.utils.networkType
-import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -28,7 +27,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
-import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -107,7 +105,7 @@ class StakingInteractor(
 
     suspend fun syncStakingRewards(accountAddress: String) = withContext(Dispatchers.IO) {
         runCatching {
-            stakingRewardsRepository.syncTotalRewards(accountAddress)
+            stakingRewardsRepository.sync(accountAddress)
         }
     }
 
@@ -259,10 +257,9 @@ class StakingInteractor(
         combine(
             stakingRepository.electionFlow(networkType),
             stakingRepository.observeActiveEraIndex(networkType),
-            stakingRewardsRepository.stakingRewardsFlow(state.accountAddress),
-            walletRepository.assetFlow(state.accountAddress, tokenType)
-        ) { electionStatus, activeEraIndex, rewards, asset ->
-
+            walletRepository.assetFlow(state.accountAddress, tokenType),
+            stakingRewardsRepository.stakingTotalRewards(state.accountAddress)
+        ) { electionStatus, activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded
 
             val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex)
@@ -274,14 +271,10 @@ class StakingInteractor(
             StakeSummary(
                 status = status,
                 totalStaked = totalStaked,
-                totalRewards = totalRewards(rewards),
+                totalRewards = totalReward.totalReward,
                 currentEra = activeEraIndex.toInt()
             )
         }
-    }
-
-    private fun totalRewards(rewards: List<StakingReward>) = rewards.sumByBigDecimal {
-        it.amount * it.type.summingCoefficient.toBigDecimal()
     }
 
     private fun isNominationActive(stashId: ByteArray, exposures: Collection<Exposure>): Boolean {

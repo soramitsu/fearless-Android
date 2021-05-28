@@ -1,11 +1,17 @@
 package jp.co.soramitsu.feature_staking_impl.data.mappers
 
+import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
+import jp.co.soramitsu.common.data.network.subquery.SumRewardResponse
 import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core_db.model.StakingRewardLocal
+import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.response.StakingRewardRemote
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakingReward
+import jp.co.soramitsu.feature_staking_impl.domain.model.TotalReward
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import java.math.BigInteger
 
 fun mapStakingRewardLocalToStakingReward(local: StakingRewardLocal): StakingReward {
     return with(local) {
@@ -22,6 +28,30 @@ fun mapStakingRewardLocalToStakingReward(local: StakingRewardLocal): StakingRewa
             eventIndex = eventIndex,
             amount = token.amountFromPlanks(amountInPlanks),
             blockTimestamp = blockTimestamp
+        )
+    }
+}
+
+fun mapSumReward(rewards: List<StakingReward>): TotalReward {
+    return TotalReward(
+        rewards[0].accountAddress,
+        rewards.sumByBigDecimal {
+            it.amount * it.type.summingCoefficient.toBigDecimal()
+        }
+    )
+}
+
+fun mapStakingSubquerySumRewardResponseToAmount(response: SubQueryResponse<SumRewardResponse>): BigInteger? {
+    return response.data.sumReward?.accountTotal
+}
+
+fun mapStakingTotalRewardLocalToTotalReward(reward: TotalRewardLocal): TotalReward {
+    return with(reward) {
+        val token = Token.Type.fromNetworkType(accountAddress.networkType())
+
+        TotalReward(
+            accountAddress = reward.accountAddress,
+            totalReward = token.amountFromPlanks(reward.totalReward ?: BigInteger.ZERO)
         )
     }
 }
