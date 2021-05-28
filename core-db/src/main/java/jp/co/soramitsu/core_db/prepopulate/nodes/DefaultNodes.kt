@@ -48,6 +48,14 @@ val LATEST_DEFAULT_NODES = listOf(
         "wss://westend-rpc.polkadot.io",
         Node.NetworkType.WESTEND.ordinal,
         true
+    ),
+
+    // -- rococo community stand
+    NodeLocal(
+        "Laminar Node",
+        "wss://rococo-community-rpc.laminar.codes/ws",
+        Node.NetworkType.ROCOCO.ordinal,
+        true
     )
 )
 

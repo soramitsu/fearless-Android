@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.di
 
 import android.content.ContentResolver
 import android.content.Context
+import coil.ImageLoader
 import com.google.gson.Gson
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -32,6 +33,8 @@ import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import java.util.Random
 
 interface CommonApi {
+
+    fun imageLoader(): ImageLoader
 
     fun context(): Context
 

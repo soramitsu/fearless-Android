@@ -17,8 +17,8 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalAc
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeViews
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.displayFeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeViews
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.displayFeeStatus
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeAmount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeConfirm
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeOriginAccount

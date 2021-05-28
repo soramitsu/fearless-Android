@@ -14,6 +14,8 @@ import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.core_db.di.DbHolder
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureHolder
+import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
+import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureHolder
 import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureHolder
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
@@ -78,5 +80,11 @@ interface ComponentHolderModule {
     @Binds
     @ClassKey(RuntimeApi::class)
     @IntoMap
-    fun provideARuntimeFeature(runtimeHolder: RuntimeHolder): FeatureApiHolder
+    fun provideRuntimeFeature(runtimeHolder: RuntimeHolder): FeatureApiHolder
+
+    @ApplicationScope
+    @Binds
+    @ClassKey(CrowdloanFeatureApi::class)
+    @IntoMap
+    fun provideCrowdloanFeature(holder: CrowdloanFeatureHolder): FeatureApiHolder
 }

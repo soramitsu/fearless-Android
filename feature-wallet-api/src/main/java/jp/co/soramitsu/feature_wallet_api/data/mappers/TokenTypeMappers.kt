@@ -9,6 +9,7 @@ fun mapTokenTypeToTokenTypeLocal(type: Token.Type): TokenLocal.Type {
         Token.Type.DOT -> TokenLocal.Type.DOT
         Token.Type.KSM -> TokenLocal.Type.KSM
         Token.Type.WND -> TokenLocal.Type.WND
+        Token.Type.ROC -> TokenLocal.Type.ROC
     }
 }
 
@@ -17,6 +18,7 @@ fun mapTokenTypeLocalToTokenType(type: TokenLocal.Type): Token.Type {
         TokenLocal.Type.DOT -> Token.Type.DOT
         TokenLocal.Type.KSM -> Token.Type.KSM
         TokenLocal.Type.WND -> Token.Type.WND
+        TokenLocal.Type.ROC -> Token.Type.ROC
     }
 }
 

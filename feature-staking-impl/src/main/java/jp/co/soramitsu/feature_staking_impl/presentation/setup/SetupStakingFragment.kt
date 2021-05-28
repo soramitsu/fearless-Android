@@ -16,9 +16,9 @@ import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeViews
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.displayFeeStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.observeRewardDestinationChooser
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeViews
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.displayFeeStatus
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingAmountField
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingContainer
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeFiat

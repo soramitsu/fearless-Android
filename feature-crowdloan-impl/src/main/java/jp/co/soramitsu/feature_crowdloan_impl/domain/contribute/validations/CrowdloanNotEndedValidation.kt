@@ -1,0 +1,29 @@
+package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations
+
+import jp.co.soramitsu.common.validation.DefaultFailureLevel
+import jp.co.soramitsu.common.validation.ValidationStatus
+import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
+import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateRepository
+import jp.co.soramitsu.feature_crowdloan_impl.domain.common.leaseIndexFromBlock
+
+class CrowdloanNotEndedValidation(
+    private val chainStateRepository: ChainStateRepository,
+    private val crowdloanRepository: CrowdloanRepository
+) : ContributeValidation {
+
+    override suspend fun validate(value: ContributeValidationPayload): ValidationStatus<ContributeValidationFailure> {
+        val currentBlock = chainStateRepository.currentBlock()
+        val blocksPerLease = crowdloanRepository.blocksPerLeasePeriod()
+
+        val currentLeaseIndex = leaseIndexFromBlock(currentBlock, blocksPerLease)
+
+        return when {
+            currentBlock >= value.crowdloan.fundInfo.end -> crowdloanEndedFailure()
+            currentLeaseIndex > value.crowdloan.fundInfo.firstSlot -> crowdloanEndedFailure()
+            else -> ValidationStatus.Valid()
+        }
+    }
+
+    private fun crowdloanEndedFailure(): ValidationStatus.NotValid<ContributeValidationFailure> =
+        ValidationStatus.NotValid(DefaultFailureLevel.ERROR, ContributeValidationFailure.CrowdloanEnded)
+}

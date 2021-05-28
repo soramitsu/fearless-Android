@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.network.runtime.calls
 
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
+import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
@@ -47,5 +48,15 @@ class SubstrateCalls(
         val request = RuntimeVersionRequest()
 
         return socketService.executeAsync(request, mapper = pojo<RuntimeVersion>().nonNull())
+    }
+
+    /**
+     * Retrieves the block with given hash
+     * If hash is null, than the latest block is returned
+     */
+    suspend fun getBlock(hash: String? = null): SignedBlock {
+        val blockRequest = GetBlockRequest(hash)
+
+        return socketService.executeAsync(blockRequest, mapper = pojo<SignedBlock>().nonNull())
     }
 }

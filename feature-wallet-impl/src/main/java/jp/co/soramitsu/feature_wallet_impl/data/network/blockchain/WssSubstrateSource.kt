@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
 import jp.co.soramitsu.common.data.network.runtime.calls.FeeCalculationRequest
+import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.preBinder
@@ -29,14 +30,13 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.SubmitExtrins
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.bindTransferExtrinsic
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.requests.GetBlockRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.response.SignedBlock
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class WssSubstrateSource(
     private val socketService: SocketService,
+    private val substrateCalls: SubstrateCalls,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) : SubstrateRemoteSource {
@@ -73,9 +73,7 @@ class WssSubstrateSource(
     }
 
     override suspend fun fetchAccountTransfersInBlock(blockHash: String, accountAddress: String): Result<List<TransferExtrinsicWithStatus>> = runCatching {
-        val blockRequest = GetBlockRequest(blockHash)
-
-        val block = socketService.executeAsync(blockRequest, mapper = pojo<SignedBlock>().nonNull())
+        val block = substrateCalls.getBlock(blockHash)
 
         val runtime = runtimeProperty.get()
 

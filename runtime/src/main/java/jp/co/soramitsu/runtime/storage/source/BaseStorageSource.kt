@@ -6,6 +6,8 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -18,6 +20,23 @@ abstract class BaseStorageSource(
     protected abstract suspend fun queryKeys(keys: List<String>): Map<String, String?>
 
     protected abstract suspend fun observe(key: String, networkType: Node.NetworkType): Flow<String?>
+
+    protected abstract suspend fun queryByPrefix(prefix: String): Map<String, String?>
+
+    override suspend fun <K, T> queryByPrefix(
+        prefixKeyBuilder: (RuntimeSnapshot) -> StorageKey,
+        keyExtractor: (String) -> K,
+        binding: Binder<T>
+    ): Map<K, T> {
+        val runtime = getRuntime()
+
+        val prefix = prefixKeyBuilder(runtime)
+
+        val rawResults = queryByPrefix(prefix)
+
+        return rawResults.mapKeys { (fullKey, _) -> keyExtractor(fullKey) }
+            .mapValues { (_, hexRaw) -> binding(hexRaw, runtime) }
+    }
 
     override suspend fun <K, T> queryKeys(
         keysBuilder: (RuntimeSnapshot) -> Map<StorageKey, K>,
@@ -45,16 +64,17 @@ abstract class BaseStorageSource(
         binding(rawResult, runtime)
     }
 
-    override suspend fun <T> observe(
+    override fun <T> observe(
         networkType: Node.NetworkType,
         keyBuilder: (RuntimeSnapshot) -> String,
         binder: Binder<T>,
-    ) = withContext(Dispatchers.Default) {
+    ) = flow {
         val runtime = getRuntime()
         val key = keyBuilder(runtime)
 
-        observe(key, networkType)
-            .map { binder(it, runtime) }
+        emitAll(
+            observe(key, networkType).map { binder(it, runtime) }
+        )
     }
 
     private suspend fun getRuntime() = runtimeProperty.get()

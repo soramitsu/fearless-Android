@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_primary_list_item"
+    tools:background="@color/black">
+
+    <ImageView
+        android:id="@+id/itemCrowdloanIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@tools:sample/avatars" />
+
+    <TextView
+        android:id="@+id/itemCrowdloanParaName"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:includeFontPadding="false"
+        android:textColor="@color/white"
+        android:singleLine="true"
+        android:ellipsize="end"
+        app:layout_constraintEnd_toStartOf="@+id/itemCrowdloanTimeRemaining"
+        app:layout_constraintStart_toEndOf="@+id/itemCrowdloanIcon"
+        app:layout_constraintTop_toTopOf="@+id/itemCrowdloanIcon"
+        tools:text="Karura (KAR)" />
+
+    <TextView
+        android:id="@+id/itemCrowdloanTimeRemaining"
+        style="@style/TextAppearance.Soramitsu.Body3"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black1"
+        app:layout_constraintBottom_toBottomOf="@+id/itemCrowdloanParaName"
+        app:layout_constraintEnd_toStartOf="@+id/itemCrowdloanArrow"
+        app:layout_constraintTop_toTopOf="@+id/itemCrowdloanParaName"
+        tools:text="4 days left" />
+
+
+    <ImageView
+        android:id="@+id/itemCrowdloanArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="25dp"
+        android:src="@drawable/ic_arrow_right_24"
+        app:layout_constraintBottom_toBottomOf="@+id/itemCrowdloanTimeRemaining"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/itemCrowdloanTimeRemaining" />
+
+    <TextView
+        android:id="@+id/itemCrowdloanParaDescription"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:textColor="@color/black2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/itemCrowdloanParaName"
+        app:layout_constraintTop_toBottomOf="@+id/itemCrowdloanParaName"
+        tools:text="Ethereum-compatible smart contract parachain on Kusama" />
+
+    <TextView
+        android:id="@+id/itemCrowdloanParaRaised"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="@+id/itemCrowdloanParaDescription"
+        app:layout_constraintStart_toStartOf="@+id/itemCrowdloanParaName"
+        app:layout_constraintTop_toBottomOf="@+id/itemCrowdloanParaDescription"
+        tools:text="RAISED: 2,638 OF 100,000 KSM" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/dividerGray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/itemCrowdloanParaRaised" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/crowdloanContributeContainer"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/crowdloanContributeToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:titleText="Karura (KAR)" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/TextAppearance.Soramitsu.Header4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:text="@string/crowdloan_contribute_title" />
+
+            <jp.co.soramitsu.common.view.AmountView
+                android:id="@+id/crowdloanContributeAmount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_info_16"
+                    app:tint="@color/black2" />
+
+                <TextView
+                    android:id="@+id/crowdloanContributeUnlockHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:includeFontPadding="false"
+                    tools:text="Your KSM tokens will be returned after the leasing period." />
+            </LinearLayout>
+
+            <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
+                android:id="@+id/crowdloanContributeFee"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/network_fee" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/crowdloanContributeReward"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/staking_validator_estimated_reward" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/crowdloanContributeLeasingPeriod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/crowdloan_leasing_period" />
+
+            <TextView
+                style="@style/TextAppearance.Soramitsu.Header4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:text="@string/crowdloan_info" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/crowdloanContributeRaised"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/crowdloan_raised" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/crowdloanContributeTimeLeft"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/common_time_left" />
+
+            <LinearLayout
+                android:id="@+id/crowdloanContributeLearnMore"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_primary_list_item"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="12dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:id="@+id/crowdloanContributeLearnMoreIcon"
+                    tools:src="@tools:sample/avatars" />
+
+                <TextView
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="12dp"
+                    android:id="@+id/crowdloanContributeLearnMoreTitle"
+                    app:drawableEndCompat="@drawable/ic_arrow_top_right_white_16"
+                    tools:text="Learn Karura's crowdloan" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="wrap_content"
+                android:layout_height="1dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@color/dividerGray" />
+        </LinearLayout>
+    </ScrollView>
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/crowdloanContributeContinue"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/common_continue" />
+</LinearLayout>

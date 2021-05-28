@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Vibrator
+import coil.ImageLoader
+import coil.decode.SvgDecoder
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -38,6 +40,14 @@ const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
 @Module
 class CommonModule {
+
+    @Provides
+    @ApplicationScope
+    fun imageLoader(context: Context) = ImageLoader.Builder(context)
+        .componentRegistry {
+            add(SvgDecoder(context))
+        }
+        .build()
 
     @Provides
     @ApplicationScope
