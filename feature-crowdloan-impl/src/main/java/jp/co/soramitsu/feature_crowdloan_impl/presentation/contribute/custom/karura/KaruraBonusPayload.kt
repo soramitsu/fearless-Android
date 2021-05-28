@@ -8,10 +8,11 @@ val KARURA_BONUS_MULTIPLIER = 0.05.toBigDecimal() // 5%
 
 @Parcelize
 class KaruraBonusPayload(
-    val referralCode: String
+    val referralCode: String,
+    private val rewardRate: BigDecimal
 ) : BonusPayload {
 
     override fun calculateBonus(amount: BigDecimal): BigDecimal {
-        return amount * KARURA_BONUS_MULTIPLIER
+        return amount * rewardRate * KARURA_BONUS_MULTIPLIER
     }
 }

@@ -2,12 +2,10 @@ package jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.karura
 
 import android.content.Context
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.KaruraContributeInteractor
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.KaruraContributeSubmitter
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.karura.KaruraContributeInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.karura.KaruraContributeSubmitter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.karura.KaruraContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.karura.KaruraContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="referral_code_is_invalid">Referral code is invalid. Please try another one</string>
     <string name="crowdloan_learn_bonuses">Learn %s\'s bonuses</string>
 
     <string name="crowdloan_enter_referral">Enter your referral code</string>
