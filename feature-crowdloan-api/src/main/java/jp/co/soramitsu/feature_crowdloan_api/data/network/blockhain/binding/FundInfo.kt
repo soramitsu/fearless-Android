@@ -33,7 +33,7 @@ fun bindFundInfo(scale: String, runtime: RuntimeSnapshot): FundInfo {
         raised = bindNumber(dynamicInstance["raised"]),
         end = bindNumber(dynamicInstance["end"]),
         cap = bindNumber(dynamicInstance["cap"]),
-        firstSlot = bindNumber(dynamicInstance["firstSlot"]),
-        lastSlot = bindNumber(dynamicInstance["lastSlot"])
+        firstSlot = bindNumber(dynamicInstance["firstPeriod"] ?: dynamicInstance["firstSlot"]),
+        lastSlot = bindNumber(dynamicInstance["lastPeriod"] ?: dynamicInstance["lastSlot"])
     )
 }
