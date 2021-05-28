@@ -21,7 +21,7 @@ class KaruraContributionModule {
     @FeatureScope
     fun provideKaruraApi(
         networkApiCreator: NetworkApiCreator
-    ) = networkApiCreator.create(KaruraApi::class.java, KaruraApi.BASE_URL)
+    ) = networkApiCreator.create(KaruraApi::class.java)
 
     @Provides
     @FeatureScope
