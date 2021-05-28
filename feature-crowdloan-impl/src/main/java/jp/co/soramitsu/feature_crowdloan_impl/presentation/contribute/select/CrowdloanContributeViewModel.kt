@@ -100,8 +100,8 @@ class CrowdloanContributeViewModel(
         val customFlow = payload.parachainMetadata?.customFlow
 
         if (
-           customFlow != null
-           && customContributeManager.isCustomFlowSupported(customFlow)
+            customFlow != null &&
+            customContributeManager.isCustomFlowSupported(customFlow)
         ) {
             emit(CustomContributionState.Inactive)
 
@@ -134,7 +134,6 @@ class CrowdloanContributeViewModel(
     }
         .inBackground()
         .share()
-
 
     val unlockHintFlow = assetFlow.map {
         resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.type.displayName)

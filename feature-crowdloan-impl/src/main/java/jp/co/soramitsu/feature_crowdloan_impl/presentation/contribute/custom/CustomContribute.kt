@@ -42,7 +42,3 @@ interface BonusPayload : Parcelable {
 
     fun calculateBonus(amount: BigDecimal): BigDecimal
 }
-
-
-
-

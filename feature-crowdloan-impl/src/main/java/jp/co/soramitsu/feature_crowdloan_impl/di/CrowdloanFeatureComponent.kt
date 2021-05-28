@@ -36,7 +36,7 @@ interface CrowdloanFeatureComponent : CrowdloanFeatureApi {
 
     fun confirmContributeFactory(): ConfirmContributeComponent.Factory
 
-    fun customContributeFactory() : CustomContributeComponent.Factory
+    fun customContributeFactory(): CustomContributeComponent.Factory
 
     fun inject(view: KaruraContributeView)
 

@@ -68,7 +68,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.Trans
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onStart
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation

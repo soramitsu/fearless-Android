@@ -7,7 +7,6 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import java.lang.UnsupportedOperationException
 
-
 interface KaruraApi {
 
     companion object {
@@ -22,17 +21,18 @@ interface KaruraApi {
     @GET("//{baseUrl}/referral/{referral}")
     suspend fun isReferralValid(
         @Path("baseUrl") baseUrl: String,
-        @Path("referral") referral: String)
-    : ReferralCheck
+        @Path("referral") referral: String
+    ):
+        ReferralCheck
 
     @GET("//{baseUrl}/statement")
     suspend fun getStatement(
         @Path("baseUrl") baseUrl: String
-    ) : KaruraStatement
+    ): KaruraStatement
 
     @POST("//{baseUrl}/verify")
     suspend fun applyForBonus(
         @Path("baseUrl") baseUrl: String,
         @Body body: VerifyKaruraParticipationRequest
-    ) : Any?
+    ): Any?
 }

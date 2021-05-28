@@ -117,7 +117,7 @@ ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         }
 
         viewModel.bonusFlow.observe {
-           confirmContributeBonus.setVisible(it != null)
+            confirmContributeBonus.setVisible(it != null)
 
             it?.let(confirmContributeBonus::showValue)
         }
