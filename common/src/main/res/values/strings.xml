@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_stash_status_inactive">You are neither nominating nor validating.</string>
+
     <string name="crowdloan_too_small_contribution_title">Contribution amount is too small</string>
     <string name="crowdloan_too_small_contribution_message">The minimum allowed amount to contribute is %s.</string>
 
