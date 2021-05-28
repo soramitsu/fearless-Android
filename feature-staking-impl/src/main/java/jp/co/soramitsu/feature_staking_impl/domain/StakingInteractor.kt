@@ -112,7 +112,7 @@ class StakingInteractor(
 
     suspend fun observeStashSummary(
         stashState: StakingState.Stash.None
-    ) : Flow<StakeSummary<StashStatus>> = observeStakeSummary(stashState) {
+    ): Flow<StakeSummary<StashStatus>> = observeStakeSummary(stashState) {
         when {
             it.electionStatus == Election.OPEN -> StashStatus.ELECTION
             else -> StashStatus.INACTIVE

@@ -42,7 +42,7 @@ class StakingViewStateFactory(
         accountStakingState: StakingState.Stash.None,
         scope: CoroutineScope,
         errorDisplayer: (Throwable) -> Unit
-        ) = StashNoneViewState(
+    ) = StashNoneViewState(
         stashState = accountStakingState,
         currentAssetFlow = currentAssetFlow,
         stakingInteractor = stakingInteractor,
