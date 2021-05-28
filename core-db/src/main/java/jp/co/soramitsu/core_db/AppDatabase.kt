@@ -98,6 +98,8 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(RemoveAccountForeignKeyFromAsset_17_18)
                     .addMigrations(MoveActiveNodeTrackingToDb_18_19(prefsToDbActiveNodeMigrator))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 19))
+                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 20))
+                    .addMigrations(AddTotalRewardsTableToDb_21_22)
                     .build()
             }
             return instance!!
