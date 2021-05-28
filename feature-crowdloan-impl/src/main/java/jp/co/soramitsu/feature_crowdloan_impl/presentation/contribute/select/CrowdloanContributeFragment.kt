@@ -27,8 +27,6 @@ import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeCon
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeContinue
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeFee
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeLearnMore
-import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeLearnMoreIcon
-import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeLearnMoreTitle
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeLeasingPeriod
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeRaised
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeReward
@@ -79,7 +77,7 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
     }
 
     override fun inject() {
-        val payload = argument<ContributePayload>("KEY_PAYLOAD")
+        val payload = argument<ContributePayload>(KEY_PAYLOAD)
 
         FeatureUtils.getFeature<CrowdloanFeatureComponent>(
             requireContext(),
@@ -130,9 +128,10 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         crowdloanContributeToolbar.setTitle(viewModel.title)
 
         crowdloanContributeLearnMore.setVisible(viewModel.learnCrowdloanModel != null)
+
         viewModel.learnCrowdloanModel?.let {
-            crowdloanContributeLearnMoreTitle.text = it.text
-            crowdloanContributeLearnMoreIcon.load(it.iconLink, imageLoader)
+            crowdloanContributeLearnMore.title.text = it.text
+            crowdloanContributeLearnMore.icon.load(it.iconLink, imageLoader)
         }
 
         viewModel.bonusDisplayFlow.observe {

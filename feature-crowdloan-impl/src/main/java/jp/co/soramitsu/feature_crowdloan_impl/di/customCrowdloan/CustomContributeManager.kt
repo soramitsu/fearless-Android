@@ -1,43 +1,46 @@
 package jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan
 
 import android.content.Context
-import android.view.View
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeSubmitter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
+import kotlinx.coroutines.CoroutineScope
 
 class CustomContributeManager(
-    private val factories: Set<CustomContributeFactory>,
-    private val accountRepository: AccountRepository,
+    private val factories: Set<CustomContributeFactory>
 ) {
 
-    suspend fun isCustomFlowSupported(parachainId: ParaId): Boolean {
-        return relevantFactoryOrNull(parachainId) != null
+    fun isCustomFlowSupported(flowType: String): Boolean {
+        return relevantFactoryOrNull(flowType) != null
     }
 
-    suspend fun createNewState(parachainId: ParaId): CustomContributeViewState? {
-        return relevantFactoryOrNull(parachainId)?.viewStateProvider?.get()
+    fun createNewState(
+        flowType: String,
+        scope: CoroutineScope,
+        payload: CustomContributePayload
+    ): CustomContributeViewState {
+        return relevantFactory(flowType).createViewState(scope, payload)
     }
 
-    suspend fun getSubmitter(parachainId: ParaId): CustomContributeSubmitter {
-        return relevantFactory(parachainId).submitter
+    fun getSubmitter(flowType: String): CustomContributeSubmitter {
+        return relevantFactory(flowType).submitter
     }
 
-    suspend fun createView(parachainId: ParaId, context: Context): View {
-        return relevantFactory(parachainId).createView(context)
+    fun createView(flowType: String, context: Context): CustomContributeView {
+        return relevantFactory(flowType).createView(context)
     }
 
-    private suspend fun relevantFactory(parachainId: ParaId) = relevantFactoryOrNull(parachainId) ?: noFactoryFound(parachainId)
+    private fun relevantFactory(flowType: String) = relevantFactoryOrNull(flowType) ?: noFactoryFound(flowType)
 
-    private suspend fun relevantFactoryOrNull(
-        parachainId: ParaId
+    private fun relevantFactoryOrNull(
+        flowType: String,
     ): CustomContributeFactory? {
-        val networkType = accountRepository.currentNetworkType()
-
-        return factories.firstOrNull { it.supports(parachainId, networkType) }
+        return factories.firstOrNull { it.supports(flowType) }
     }
 
-    private fun noFactoryFound(parachainId: ParaId): Nothing = throw NoSuchElementException("Factory for $parachainId was not found")
+    private fun noFactoryFound(flowType: String): Nothing = throw NoSuchElementException("Factory for $flowType was not found")
 }

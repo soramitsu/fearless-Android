@@ -30,6 +30,7 @@
 
     <color name="black1">@color/gray1</color>
     <color name="black2">@color/gray2</color>
+    <color name="black3">@color/gray3</color>
     <color name="black4">@color/gray4</color>
 
     <color name="error_red">#FF3B30</color>

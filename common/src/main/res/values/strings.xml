@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="crowdloan_learn_bonuses">Learn %s\'s bonuses</string>
+
+    <string name="crowdloan_enter_referral">Enter your referral code</string>
+    <string name="crowdloan_agree_with_policy">Agree with Terms and Conditions</string>
+
+    <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
+    <string name="crowdloan_fearless_bonus">Fearless wallet bonus (%s)</string>
+
+    <string name="crowdloan_referral_code">Referral code</string>
+    <string name="crowdloan_apply">Apply</string>
+    <string name="crowdloan_applied">Applied</string>
+
     <string name="crowdloan_bonus">Bonus</string>
     <string name="crowdloan_bonus_action">Get a special bonus</string>
 

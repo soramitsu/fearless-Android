@@ -1,9 +1,8 @@
 package jp.co.soramitsu.app.root.navigation
 
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.LiveData
+import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import jp.co.soramitsu.app.R
@@ -32,7 +31,9 @@ import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfigur
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.ConfirmContributeFragment
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeFragment
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
@@ -66,6 +67,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTran
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.android.parcel.Parcelize
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onStart
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -228,11 +231,21 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_crowdloanContributeFragment, CrowdloanContributeFragment.getBundle(payload))
     }
 
-    override val customBonusLiveData: LiveData<CustomContributePayload?>
-        get() = navController!!.currentBackStackEntry!!.savedStateHandle.getLiveData(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA)
+    override val customBonusFlow: Flow<BonusPayload?>
+        get() = navController!!.currentBackStackEntry!!.savedStateHandle
+            .getLiveData<BonusPayload?>(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA)
+            .asFlow()
 
-    override fun setCustomBonus(payload: CustomContributePayload) {
-        navController!!.currentBackStackEntry!!.savedStateHandle.set(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA, payload)
+    override val latestCustomBonus: BonusPayload?
+        get() = navController!!.currentBackStackEntry!!.savedStateHandle
+            .get(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA)
+
+    override fun openCustomContribute(payload: CustomContributePayload) {
+        navController?.navigate(R.id.action_crowdloanContributeFragment_to_customContributeFragment, CustomContributeFragment.getBundle(payload))
+    }
+
+    override fun setCustomBonus(payload: BonusPayload) {
+        navController!!.previousBackStackEntry!!.savedStateHandle.set(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA, payload)
     }
 
     override fun openConfirmContribute(payload: ConfirmContributePayload) {

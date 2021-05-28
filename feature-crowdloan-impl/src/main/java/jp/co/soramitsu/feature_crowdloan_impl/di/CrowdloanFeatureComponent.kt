@@ -10,6 +10,8 @@ import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.di.validations.CrowdloansValidationsModule
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.di.ConfirmContributeComponent
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.di.CustomContributeComponent
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.karura.KaruraContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.di.CrowdloanContributeComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.di.CrowdloanComponent
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -33,6 +35,10 @@ interface CrowdloanFeatureComponent : CrowdloanFeatureApi {
     fun selectContributeFactory(): CrowdloanContributeComponent.Factory
 
     fun confirmContributeFactory(): ConfirmContributeComponent.Factory
+
+    fun customContributeFactory() : CustomContributeComponent.Factory
+
+    fun inject(view: KaruraContributeView)
 
     @Component.Factory
     interface Factory {

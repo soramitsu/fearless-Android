@@ -10,6 +10,7 @@ fun mapParachainMetadataRemoteToParachainMetadata(parachainMetadata: ParachainMe
             description = description,
             rewardRate = rewardRate.toBigDecimal(),
             website = website,
+            customFlow = customFlow,
             token = token
         )
     }

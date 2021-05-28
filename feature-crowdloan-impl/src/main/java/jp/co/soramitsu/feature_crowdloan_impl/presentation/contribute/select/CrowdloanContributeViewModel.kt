@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
@@ -25,10 +24,10 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributePayload
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.KaruraContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnCrowdloanModel
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
@@ -58,7 +57,7 @@ sealed class CustomContributionState {
 
     object NotSupported : CustomContributionState()
 
-    class Active(val payload: CustomContributePayload, val tokenName: String)
+    class Active(val payload: BonusPayload, val tokenName: String)
 
     object Inactive : CustomContributionState()
 }
@@ -98,14 +97,16 @@ class CrowdloanContributeViewModel(
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() ?: BigDecimal.ZERO }
 
     private val customContributionFlow = flow {
+        val customFlow = payload.parachainMetadata?.customFlow
+
         if (
-            customContributeManager.isCustomFlowSupported(payload.paraId)
-            && parachainMetadata != null
+           customFlow != null
+           && customContributeManager.isCustomFlowSupported(customFlow)
         ) {
             emit(CustomContributionState.Inactive)
 
-            val source = router.customBonusLiveData.asFlow().map {
-                if (it != null) CustomContributionState.Active(it, parachainMetadata.token) else CustomContributionState.Inactive
+            val source = router.customBonusFlow.map {
+                if (it != null) CustomContributionState.Active(it, parachainMetadata!!.token) else CustomContributionState.Inactive
             }
 
             emitAll(source)
@@ -152,7 +153,7 @@ class CrowdloanContributeViewModel(
     } ?: payload.paraId.toString()
 
     val learnCrowdloanModel = payload.parachainMetadata?.let {
-        LearnCrowdloanModel(
+        LearnMoreModel(
             text = resourceManager.getString(R.string.crowdloan_learn, it.name),
             iconLink = it.iconLink
         )
@@ -205,7 +206,16 @@ class CrowdloanContributeViewModel(
     }
 
     fun bonusClicked() {
-        router.setCustomBonus(KaruraContributePayload("123"))
+        launch {
+            val customContributePayload = CustomContributePayload(
+                paraId = payload.paraId,
+                parachainMetadata = payload.parachainMetadata!!,
+                amount = parsedAmountFlow.first(),
+                previousBonusPayload = router.latestCustomBonus
+            )
+
+            router.openCustomContribute(customContributePayload)
+        }
     }
 
     @OptIn(ExperimentalTime::class)

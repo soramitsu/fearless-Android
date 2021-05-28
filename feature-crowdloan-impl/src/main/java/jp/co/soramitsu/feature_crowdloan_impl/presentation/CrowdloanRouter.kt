@@ -1,17 +1,23 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation
 
-import androidx.lifecycle.LiveData
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeFragment
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
+import kotlinx.coroutines.flow.Flow
 
 interface CrowdloanRouter {
 
     fun openContribute(payload: ContributePayload)
 
-    val customBonusLiveData: LiveData<CustomContributePayload?>
+    val customBonusFlow: Flow<BonusPayload?>
 
-    fun setCustomBonus(payload: CustomContributePayload)
+    val latestCustomBonus: BonusPayload?
+
+    fun openCustomContribute(payload: CustomContributePayload)
+
+    fun setCustomBonus(payload: BonusPayload)
 
     fun openConfirmContribute(payload: ConfirmContributePayload)
 

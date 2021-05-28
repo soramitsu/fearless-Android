@@ -29,7 +29,8 @@ import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
-class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
+class
+ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
 
     @Inject protected lateinit var imageLoader: ImageLoader
 
