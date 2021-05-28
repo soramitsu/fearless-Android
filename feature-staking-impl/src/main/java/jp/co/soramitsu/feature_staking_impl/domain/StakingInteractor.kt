@@ -27,7 +27,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
-import jp.co.soramitsu.feature_staking_impl.domain.model.StashStatus
+import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -112,10 +112,10 @@ class StakingInteractor(
 
     suspend fun observeStashSummary(
         stashState: StakingState.Stash.None
-    ): Flow<StakeSummary<StashStatus>> = observeStakeSummary(stashState) {
+    ): Flow<StakeSummary<StashNoneStatus>> = observeStakeSummary(stashState) {
         when {
-            it.electionStatus == Election.OPEN -> StashStatus.ELECTION
-            else -> StashStatus.INACTIVE
+            it.electionStatus == Election.OPEN -> StashNoneStatus.ELECTION
+            else -> StashNoneStatus.INACTIVE
         }
     }
 

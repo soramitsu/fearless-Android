@@ -16,7 +16,7 @@ import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
-import jp.co.soramitsu.feature_staking_impl.domain.model.StashStatus
+import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
@@ -227,8 +227,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
     private fun mapStashNoneStatus(summary: StashNoneSummaryModel): StakeSummaryView.Status {
         return when (summary.status) {
-            StashStatus.INACTIVE -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
-            StashStatus.ELECTION -> StakeSummaryView.Status.Election
+            StashNoneStatus.INACTIVE -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
+            StashNoneStatus.ELECTION -> StakeSummaryView.Status.Election
         }
     }
 }

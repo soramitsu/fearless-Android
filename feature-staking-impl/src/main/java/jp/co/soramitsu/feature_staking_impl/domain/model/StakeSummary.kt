@@ -22,7 +22,7 @@ sealed class NominatorStatus {
     }
 }
 
-enum class StashStatus {
+enum class StashNoneStatus {
     INACTIVE, ELECTION
 }
 
