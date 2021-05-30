@@ -11,21 +11,21 @@ class AlertModel(
     @DrawableRes val icon: Int,
     @StringRes val title: Int,
     @StringRes val extraMessage: Int,
-    val isWarning: Boolean = false,
     val startFlow: ((View) -> Unit)? = null,
 ) {
+    val isWarning: Boolean = startFlow == null
+
     companion object {
         fun mapAlertToAlertModel(alert: Alert, router: StakingRouter): AlertModel {
             return when (alert) {
-                Alert.Warning.Election -> {
+                Alert.Election -> {
                     AlertModel(
-                        R.drawable.ic_wait_16,
+                        R.drawable.ic_time_24,
                         R.string.staking_alert_election,
-                        R.string.staking_alert_start_election_extra_message,
-                        isWarning = true
+                        R.string.staking_alert_start_election_extra_message
                     )
                 }
-                Alert.CallToAction.ChangeValidators -> {
+                Alert.ChangeValidators -> {
                     AlertModel(
                         R.drawable.ic_alert_triangle_yellow_24,
                         R.string.staking_alert_change_validators,
