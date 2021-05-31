@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.Alert
@@ -33,19 +34,21 @@ class AlertsAdapter : ListAdapter<AlertModel, AlertsAdapter.AlertViewHolder>(Ale
             imageView.setImageResource(alert.icon)
             alertItemTitle.setText(alert.title)
             alertItemMessage.setText(alert.extraMessage)
-            alertItemGoToFlowIcon.setVisible(!alert.isWarning)
 
-            setOnClickListener(alert.startFlow)
+            if (alert.type is AlertModel.Type.CallToAction) {
+                alertItemGoToFlowIcon.makeVisible()
+                setOnClickListener(alert.type.action)
+            }
         }
     }
 }
 
 private class AlertDiffCallback : DiffUtil.ItemCallback<AlertModel>() {
     override fun areItemsTheSame(oldItem: AlertModel, newItem: AlertModel): Boolean {
-        return oldItem == newItem
+        return oldItem.title == newItem.title && oldItem.extraMessage == newItem.extraMessage
     }
 
     override fun areContentsTheSame(oldItem: AlertModel, newItem: AlertModel): Boolean {
-        return oldItem.title == newItem.title && oldItem.extraMessage == newItem.extraMessage
+        return true
     }
 }

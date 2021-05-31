@@ -59,8 +59,20 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     }
 
     override fun subscribe(viewModel: StakingViewModel) {
-        viewModel.alertsFlow.observe {
-            stakingAlertsInfo.setStatus(AlertStatus.Alerts(it))
+        viewModel.alertsFlow.observe { loadingState ->
+            when(loadingState) {
+                is LoadingState.Loaded -> {
+                    stakingAlertsInfo.hideLoading()
+
+                    stakingAlertsInfo.setStatus(loadingState.data)
+
+                }
+
+                is LoadingState.Loading -> {
+                    println("Loading state")
+                    stakingAlertsInfo.showLoading()
+                }
+            }
         }
 
         viewModel.currentStakingState.observe { stakingState ->

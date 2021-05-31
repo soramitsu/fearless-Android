@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -29,10 +30,12 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -54,7 +57,10 @@ class StakingViewModel(
 
     private val stakingStateScope = viewModelScope.childScope(supervised = true)
 
-    val currentStakingState = interactor.selectedAccountStakingStateFlow()
+    private val stakingState = interactor.selectedAccountStakingStateFlow()
+        .share()
+
+    val currentStakingState = stakingState
         .onEach { stakingStateScope.coroutineContext.cancelChildren() }
         .map { transformStakingState(it) }
         .inBackground()
@@ -90,15 +96,31 @@ class StakingViewModel(
         }
     }
 
-    val alertsFlow = getAlertsFlow().mapList { AlertModel.mapAlertToAlertModel(it, router) }.asLiveData()
+    val alertsFlow = stakingState
+        .withLoading(alertsInteractor::getAlertsFlow)
+        .map { loadingState -> loadingState.map { alert -> alert.map(::mapAlertToAlertModel) } }
+        .asLiveData()
 
-    private fun getAlertsFlow(): Flow<List<Alert>> {
-        val stakingState = runBlocking {
-            interactor.selectedAccountStakingStateFlow().first()
+    private fun mapAlertToAlertModel(alert: Alert): AlertModel {
+        return when (alert) {
+            Alert.Election -> {
+                AlertModel(
+                    R.drawable.ic_time_24,
+                    R.string.staking_alert_election,
+                    R.string.staking_alert_start_election_extra_message,
+                    AlertModel.Type.Warning
+                )
+            }
+            Alert.ChangeValidators -> {
+                AlertModel(
+                    R.drawable.ic_alert_triangle_yellow_24,
+                    R.string.staking_alert_change_validators,
+                    R.string.staking_alert_change_validators_extra_message,
+                    AlertModel.Type.CallToAction { router.openCurrentValidators() }
+                )
+            }
         }
-        return alertsInteractor.getAlertsFlow(stakingState)
     }
-
 
     private fun transformStakingState(accountStakingState: StakingState) = when (accountStakingState) {
         is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(

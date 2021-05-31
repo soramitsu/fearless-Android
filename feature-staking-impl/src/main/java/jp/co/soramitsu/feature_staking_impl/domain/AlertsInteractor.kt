@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
+import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -16,16 +17,19 @@ class AlertsInteractor(
     private val stakingRepository: StakingRepository,
 ) {
     class AlertContext(
-        val isElection: Boolean,
-        val isAllValidatorsNotElected: Boolean
+        val election: Election,
+        val exposures: Map<String, Exposure>,
+        val stakingState: StakingState.Stash
     )
 
     private fun produceElectionAlert(context: AlertContext): Alert? {
-        return if (context.isElection) Alert.Election else null
+        return if (context.election == Election.OPEN) Alert.Election else null
     }
 
     private fun produceValidatorsAlert(context: AlertContext): Alert? {
-        return if (context.isAllValidatorsNotElected) Alert.ChangeValidators else null
+        val result = context.exposures.values.flatMap { it.others }.any { it.who.contentEquals(context.stakingState.stashId) }
+
+        return if (!result) Alert.ChangeValidators else null
     }
 
     private val alertProducers = listOf(
@@ -34,27 +38,15 @@ class AlertsInteractor(
     )
 
     fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = flow {
+        val networkType = stakingState.accountAddress.networkType()
         val alertsFlow = combine(
-            getElectionStatus(stakingState.accountAddress.networkType()),
-            getChangeValidators(stakingState as StakingState.Stash)
+            stakingRepository.electionFlow(networkType),
+            stakingRepository.electedExposuresInActiveEra
         ) { electionStatus, changeValidators ->
-            val context = AlertContext(electionStatus, changeValidators)
+            val context = AlertContext(electionStatus, changeValidators, stakingState as StakingState.Stash)
 
             alertProducers.mapNotNull { it.invoke(context) }
         }
         emitAll(alertsFlow)
-    }
-
-    private suspend fun getElectionStatus(networkType: Node.NetworkType): Flow<Boolean> {
-        return stakingRepository.electionFlow(networkType).map {
-            it != Election.OPEN
-        }
-    }
-
-    private suspend fun getChangeValidators(stakingState: StakingState.Stash) = flow {
-        val exposures = stakingRepository.electedExposuresInActiveEra.first().values
-        val allNominators = exposures.flatMap { it.others }.map { it.who }
-        val result = allNominators.find { it.contentEquals(stakingState.stashId) } != null
-        emit(!result)
     }
 }

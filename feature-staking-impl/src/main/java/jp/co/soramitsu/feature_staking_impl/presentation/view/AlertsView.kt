@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.AlertsAdapter
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertStatus
 import kotlinx.android.synthetic.main.view_alert.view.*
 
@@ -30,21 +31,29 @@ class AlertsView @JvmOverloads constructor(
         }
 
         alertsRecycler.adapter = alertsAdapter
-        alertsRecycler.setHasFixedSize(true)
     }
 
-    fun setStatus(status: AlertStatus) {
-        when (status) {
-            is AlertStatus.Alerts -> {
-                alertsRecycler.makeVisible()
-                alertNoAlertsInfoTextView.makeGone()
+    fun setStatus(alerts: List<AlertModel>) {
+        if (alerts.isEmpty()) {
+            alertsRecycler.makeGone()
+            alertNoAlertsInfoTextView.makeVisible()
+        } else {
+            alertsRecycler.makeVisible()
+            alertNoAlertsInfoTextView.makeGone()
 
-                alertsAdapter.submitList(status.alerts)
-            }
-            AlertStatus.NoAlerts -> {
-                alertsRecycler.makeGone()
-                alertNoAlertsInfoTextView.makeVisible()
-            }
+            alertsAdapter.submitList(alerts)
         }
+    }
+
+    fun showLoading() {
+        alertShimmer.makeVisible()
+        alertNoAlertsInfoTextView.makeGone()
+        alertsRecycler.makeGone()
+    }
+
+    fun hideLoading() {
+        alertShimmer.makeGone()
+        alertNoAlertsInfoTextView.makeVisible()
+        alertsRecycler.makeVisible()
     }
 }
