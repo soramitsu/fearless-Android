@@ -11,7 +11,8 @@ interface KaruraApi {
 
     companion object {
         private val URL_BY_NETWORK_TYPE = mapOf(
-            Node.NetworkType.ROCOCO to "crowdloan-api.laminar.codes"
+            Node.NetworkType.ROCOCO to "crowdloan-api.laminar.codes",
+            Node.NetworkType.KUSAMA to "api.aca-staging.network"
         )
 
         fun getBaseUrl(networkType: Node.NetworkType) = URL_BY_NETWORK_TYPE[networkType]
