@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
+import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
@@ -27,6 +28,9 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepo
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchronizer
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSource
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsSubscanDataSourceImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.SubqueryStakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -55,12 +59,39 @@ import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
+const val SUBSCAN_REWARD_SOURCE = "SUBSCAN_REWARD_SOURCE"
+const val SUBQUERY_REWARD_SOURCE = "SUBQUERY_REWARD_SOURCE"
+
 @Module
 class StakingFeatureModule {
 
     @Provides
     @FeatureScope
     fun provideStakingStoriesDataSource(): StakingStoriesDataSource = StakingStoriesDataSourceImpl()
+
+    @Provides
+    @Named(SUBQUERY_REWARD_SOURCE)
+    @FeatureScope
+    fun provideStakingRewardsSubqueryDataSource(
+        stakingApi: StakingApi,
+        stakingTotalRewardDao: StakingTotalRewardDao,
+    ): StakingRewardsDataSource = SubqueryStakingRewardsDataSource(
+        stakingApi = stakingApi,
+        stakingTotalRewardDao = stakingTotalRewardDao
+    )
+
+    @Provides
+    @Named(SUBSCAN_REWARD_SOURCE)
+    @FeatureScope
+    fun provideStakingRewardsSubscanDataSource(
+        stakingRewardDao: StakingRewardDao,
+        subscanPagedSynchronizer: SubscanPagedSynchronizer,
+        stakingApi: StakingApi,
+    ): StakingRewardsDataSource = StakingRewardsSubscanDataSourceImpl(
+        stakingRewardDao = stakingRewardDao,
+        subscanPagedSynchronizer = subscanPagedSynchronizer,
+        stakingApi = stakingApi,
+    )
 
     @Provides
     @FeatureScope
@@ -180,14 +211,12 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideStakingRewardsRepository(
-        stakingApi: StakingApi,
-        stakingRewardDao: StakingRewardDao,
-        subscanPagedSynchronizer: SubscanPagedSynchronizer,
+        @Named(SUBSCAN_REWARD_SOURCE) subscanStakingRewardsDataSource: StakingRewardsDataSource,
+        @Named(SUBQUERY_REWARD_SOURCE) subqueryStakingRewardsDataSource: StakingRewardsDataSource,
     ): StakingRewardsRepository {
         return StakingRewardsRepository(
-            stakingApi,
-            stakingRewardDao,
-            subscanPagedSynchronizer
+            subscanStakingRewardsDataSource,
+            subqueryStakingRewardsDataSource
         )
     }
 
