@@ -5,6 +5,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.domain.model.TotalReward
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 class StakingRewardsRepository(
     private val subscanStakingRewardsDataSource: StakingRewardsDataSource,
@@ -15,6 +16,7 @@ class StakingRewardsRepository(
         return when (accountAddress.networkType()) {
             Node.NetworkType.KUSAMA, Node.NetworkType.POLKADOT -> subqueryStakingRewardsDataSource.totalRewardsFlow(accountAddress = accountAddress)
             Node.NetworkType.WESTEND -> subscanStakingRewardsDataSource.totalRewardsFlow(accountAddress = accountAddress)
+            else -> emptyFlow()
         }
     }
 

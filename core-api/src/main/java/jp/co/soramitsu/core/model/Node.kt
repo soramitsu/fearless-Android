@@ -37,6 +37,15 @@ data class Node(
                 genesisHash = "e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
                 erasPerDay = 4
             )
+        ),
+
+        ROCOCO(
+            "Rococo",
+            RuntimeConfiguration(
+                addressByte = 43, // TODO wrong address type, actual is 42, but it will conflict with Westend
+                genesisHash = "0x1ab7fbd1d7c3532386268ec23fe4ff69f5bb6b3e3697947df3a2ec2786424de3",
+                erasPerDay = 4
+            )
         );
 
         companion object {

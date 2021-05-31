@@ -20,6 +20,24 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
     abstract fun bindGroup(holder: GroupedListHolder, group: GROUP)
     abstract fun bindChild(holder: GroupedListHolder, child: CHILD)
 
+    protected open fun bindGroup(
+        holder: GroupedListHolder,
+        position: Int,
+        group: GROUP,
+        payloads: List<Any>
+    ) {
+        bindGroup(holder, group)
+    }
+
+    protected open fun bindChild(
+        holder: GroupedListHolder,
+        position: Int,
+        child: CHILD,
+        payloads: List<Any>
+    ) {
+        bindChild(holder, child)
+    }
+
     override fun getItemViewType(position: Int): Int {
         val item = getItem(position)
 
@@ -28,7 +46,7 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
-        viewType: Int
+        viewType: Int,
     ): GroupedListHolder {
         return if (viewType == TYPE_GROUP) {
             createGroupViewHolder(parent)
@@ -48,6 +66,17 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
+    override fun onBindViewHolder(holder: GroupedListHolder, position: Int, payloads: List<Any>) {
+        val item = getItem(position)
+
+        if (getItemViewType(position) == TYPE_GROUP) {
+            bindGroup(holder, position, item as GROUP, payloads)
+        } else {
+            bindChild(holder, position, item as CHILD, payloads)
+        }
+    }
+
     protected inline fun <reified T> findIndexOfElement(crossinline condition: (T) -> Boolean): Int {
         return currentList.indexOfFirst { it is T && condition(it) }
     }
@@ -59,8 +88,12 @@ abstract class BaseGroupedDiffCallback<GROUP, CHILD>(private val groupClass: Cla
     abstract fun areGroupItemsTheSame(oldItem: GROUP, newItem: GROUP): Boolean
     abstract fun areGroupContentsTheSame(oldItem: GROUP, newItem: GROUP): Boolean
 
+    protected open fun getGroupChangePayload(oldItem: GROUP, newItem: GROUP): Any? = null
+
     abstract fun areChildItemsTheSame(oldItem: CHILD, newItem: CHILD): Boolean
     abstract fun areChildContentsTheSame(oldItem: CHILD, newItem: CHILD): Boolean
+
+    protected open fun getChildChangePayload(oldItem: CHILD, newItem: CHILD): Any? = null
 
     override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean {
         if (oldItem::class != newItem::class) return false
@@ -79,6 +112,14 @@ abstract class BaseGroupedDiffCallback<GROUP, CHILD>(private val groupClass: Cla
             areGroupContentsTheSame(oldItem as GROUP, newItem as GROUP)
         } else {
             areChildContentsTheSame(oldItem as CHILD, newItem as CHILD)
+        }
+    }
+
+    override fun getChangePayload(oldItem: Any, newItem: Any): Any? {
+        return if (isGroup(oldItem)) {
+            getGroupChangePayload(oldItem as GROUP, newItem as GROUP)
+        } else {
+            getChildChangePayload(oldItem as CHILD, newItem as CHILD)
         }
     }
 

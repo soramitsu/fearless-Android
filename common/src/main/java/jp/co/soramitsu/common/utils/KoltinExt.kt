@@ -5,6 +5,10 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 
+private val PERCENTAGE_MULTIPLIER = 100.toBigDecimal()
+
+fun BigDecimal.fractionToPercentage() = this * PERCENTAGE_MULTIPLIER
+
 val BigDecimal.isNonNegative: Boolean
     get() = signum() >= 0
 

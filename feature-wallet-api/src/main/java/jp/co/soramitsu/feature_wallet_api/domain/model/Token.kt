@@ -21,9 +21,8 @@ class Token(
     ) {
         KSM("KSM", Node.NetworkType.KUSAMA),
         DOT("DOT", Node.NetworkType.POLKADOT, 10),
-        WND("WND", Node.NetworkType.WESTEND);
-
-        val maximumPrecision = mantissa - 1
+        WND("WND", Node.NetworkType.WESTEND),
+        ROC("ROC", Node.NetworkType.ROCOCO);
 
         companion object {
             fun fromNetworkType(networkType: Node.NetworkType): Type {
@@ -31,6 +30,7 @@ class Token(
                     Node.NetworkType.KUSAMA -> KSM
                     Node.NetworkType.POLKADOT -> DOT
                     Node.NetworkType.WESTEND -> WND
+                    Node.NetworkType.ROCOCO -> ROC
                 }
             }
         }

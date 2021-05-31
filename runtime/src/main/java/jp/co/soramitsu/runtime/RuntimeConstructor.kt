@@ -34,8 +34,6 @@ class RuntimeConstructor(
     private val runtimeCache: RuntimeCache
 ) {
 
-    class Constructed(val runtime: RuntimeSnapshot)
-
     suspend fun constructRuntime(
         networkName: String
     ): RuntimeSnapshot {

@@ -8,7 +8,7 @@
     tools:parentTag="android.widget.LinearLayout"
     android:layout_height="match_parent">
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.TableCellView
+    <jp.co.soramitsu.common.view.TableCellView
         android:id="@+id/viewRewardDestinationDestination"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -17,6 +17,8 @@ import java.math.BigInteger
 
 interface StakingRepository {
 
+    fun stakingAvailableFlow(): Flow<Boolean>
+
     suspend fun electionFlow(networkType: Node.NetworkType): Flow<Election>
 
     suspend fun getTotalIssuance(): BigInteger

@@ -33,6 +33,8 @@ class RuntimeUpdater(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
 ) : GlobalScopeUpdater {
 
+    override val requiredModules: List<String> = emptyList()
+
     override suspend fun listenForUpdates(
         storageSubscriptionBuilder: SubscriptionBuilder
     ): Flow<RuntimePreparationStatus> {

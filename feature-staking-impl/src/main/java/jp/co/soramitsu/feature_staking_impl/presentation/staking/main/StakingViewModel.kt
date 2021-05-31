@@ -130,7 +130,7 @@ class StakingViewModel(
             ::showError
         )
 
-        is StakingState.Stash.None -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, stakingStateScope, ::showError)
+        is StakingState.Stash.None -> stakingViewStateFactory.createStashNoneState(currentAssetFlow, accountStakingState, stakingStateScope, ::showError)
 
         is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, stakingStateScope, ::showError)
 

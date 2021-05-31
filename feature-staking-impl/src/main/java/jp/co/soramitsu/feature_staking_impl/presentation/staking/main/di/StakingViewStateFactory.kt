@@ -7,6 +7,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFacto
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.NominatorViewState
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StashNoneViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.ValidatorViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.WelcomeViewState
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -34,6 +35,21 @@ class StakingViewStateFactory(
         router = router,
         errorDisplayer = errorDisplayer,
         resourceManager = resourceManager
+    )
+
+    fun createStashNoneState(
+        currentAssetFlow: Flow<Asset>,
+        accountStakingState: StakingState.Stash.None,
+        scope: CoroutineScope,
+        errorDisplayer: (Throwable) -> Unit
+    ) = StashNoneViewState(
+        stashState = accountStakingState,
+        currentAssetFlow = currentAssetFlow,
+        stakingInteractor = stakingInteractor,
+        resourceManager = resourceManager,
+        scope = scope,
+        router = router,
+        errorDisplayer = errorDisplayer
     )
 
     fun createWelcomeViewState(

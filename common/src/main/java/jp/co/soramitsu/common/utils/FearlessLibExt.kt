@@ -12,9 +12,11 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Generic
 import jp.co.soramitsu.fearless_utils.runtime.metadata.Module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
+import jp.co.soramitsu.fearless_utils.scale.dataType.uint32
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
@@ -60,10 +62,32 @@ fun Module.numberConstant(name: String, runtimeSnapshot: RuntimeSnapshot) = bind
 
 fun Module.constantOrNull(name: String) = constants[name]
 
-fun RuntimeMetadata.staking() = module("Staking")
+fun RuntimeMetadata.staking() = module(Modules.STAKING)
 
-fun RuntimeMetadata.system() = module("System")
+fun RuntimeMetadata.system() = module(Modules.SYSTEM)
 
-fun RuntimeMetadata.balances() = module("Balances")
+fun RuntimeMetadata.balances() = module(Modules.BALANCES)
+
+fun RuntimeMetadata.crowdloan() = module(Modules.CROWDLOAN)
+
+fun RuntimeMetadata.babe() = module(Modules.BABE)
+
+fun RuntimeMetadata.slots() = module(Modules.SLOTS)
 
 fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())!!
+
+fun RuntimeMetadata.hasModule(name: String) = moduleOrNull(name) != null
+
+private const val HEX_SYMBOLS_PER_BYTE = 2
+private const val UINT_32_BYTES = 4
+
+fun String.u32ArgumentFromStorageKey() = uint32.fromHex(takeLast(HEX_SYMBOLS_PER_BYTE * UINT_32_BYTES)).toLong().toBigInteger()
+
+object Modules {
+    const val STAKING = "Staking"
+    const val BALANCES = "Balances"
+    const val SYSTEM = "System"
+    const val CROWDLOAN = "Crowdloan"
+    const val BABE = "Babe"
+    const val SLOTS = "Slots"
+}
