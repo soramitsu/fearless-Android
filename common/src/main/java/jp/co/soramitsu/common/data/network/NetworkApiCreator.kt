@@ -10,13 +10,10 @@ class NetworkApiCreator(
     private val baseUrl: String
 ) {
 
-    fun <T> create(
-        service: Class<T>,
-        customBaseUrl: String = baseUrl
-    ): T {
+    fun <T> create(service: Class<T>): T {
         val retrofit = Retrofit.Builder()
             .client(okHttpClient)
-            .baseUrl(customBaseUrl)
+            .baseUrl(baseUrl)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
