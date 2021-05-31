@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
@@ -20,7 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakin
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.confirm.ConfirmStakingViewModel
 
 @Module(includes = [ViewModelModule::class])
@@ -34,6 +35,7 @@ class ConfirmStakingModule {
         router: StakingRouter,
         addressIconGenerator: AddressIconGenerator,
         resourceManager: ResourceManager,
+        addressDisplayUseCase: AddressDisplayUseCase,
         setupStakingInteractor: SetupStakingInteractor,
         validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
         validationExecutor: ValidationExecutor,
@@ -46,6 +48,7 @@ class ConfirmStakingModule {
             router,
             interactor,
             addressIconGenerator,
+            addressDisplayUseCase,
             resourceManager,
             validationSystem,
             setupStakingSharedState,

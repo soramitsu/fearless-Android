@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -13,11 +14,10 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.multiAd
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.Account
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-typealias KeypairProvider = suspend (account: Account) -> Keypair
+private val FAKE_CRYPTO_TYPE = CryptoType.SR25519
 
 class ExtrinsicBuilderFactory(
     private val accountRepository: AccountRepository,
@@ -26,21 +26,33 @@ class ExtrinsicBuilderFactory(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
 ) {
 
-    fun accountKeypairProvider(): KeypairProvider = { account: Account ->
-        val securitySource = accountRepository.getSecuritySource(account.address)
-        mapSigningDataToKeypair(securitySource.signingData)
-    }
+    /**
+     * Can be executed with arbitary address
+     * Should be primarily used for fee calculation
+     */
+    suspend fun createWithFakeKeyPair(
+        accountAddress: String
+    ) = create(accountAddress, generateFakeKeyPair(), FAKE_CRYPTO_TYPE)
 
-    fun fakeKeypairProvider(): KeypairProvider = {
-        generateFakeKeyPair(it)
-    }
-
+    /**
+     * Require account to be present in database and have keypair saved locally
+     */
     suspend fun create(
-        accountAddress: String,
-        keypairProvider: KeypairProvider = accountKeypairProvider()
+        accountAddress: String
     ): ExtrinsicBuilder {
         val account = accountRepository.getAccount(accountAddress)
 
+        val securitySource = accountRepository.getSecuritySource(account.address)
+        val keypair = mapSigningDataToKeypair(securitySource.signingData)
+
+        return create(accountAddress, keypair, account.cryptoType)
+    }
+
+    private suspend fun create(
+        accountAddress: String,
+        keypair: Keypair,
+        cryptoType: CryptoType
+    ): ExtrinsicBuilder {
         val nonce = substrateCalls.getNonce(accountAddress)
         val runtimeVersion = substrateCalls.getRuntimeVersion()
 
@@ -48,17 +60,17 @@ class ExtrinsicBuilderFactory(
 
         return ExtrinsicBuilder(
             runtime = runtimeProperty.get(),
-            keypair = keypairProvider(account),
+            keypair = keypair,
             nonce = nonce,
             runtimeVersion = runtimeVersion,
             genesisHash = runtimeConfiguration.genesisHash.fromHex(),
-            encryptionType = mapCryptoTypeToEncryption(account.cryptoType),
-            accountIdentifier = multiAddressFromId(account.address.toAccountId())
+            encryptionType = mapCryptoTypeToEncryption(cryptoType),
+            accountIdentifier = multiAddressFromId(accountAddress.toAccountId())
         )
     }
 
-    private suspend fun generateFakeKeyPair(account: Account) = withContext(Dispatchers.Default) {
-        val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
+    private suspend fun generateFakeKeyPair() = withContext(Dispatchers.Default) {
+        val cryptoType = mapCryptoTypeToEncryption(FAKE_CRYPTO_TYPE)
         val emptySeed = ByteArray(32) { 1 }
 
         keypairFactory.generate(cryptoType, emptySeed, "")

@@ -1,15 +1,15 @@
 buildscript {
     ext {
         // App version
-        versionName = '1.7 RC1'
-        versionCode = 13
+        versionName = '1.8 RC1'
+        versionCode = 14
 
         // SDK and tools
         compileSdkVersion = 29
         minSdkVersion = 24
         targetSdkVersion = 29
 
-        kotlinVersion = '1.4.21'
+        kotlinVersion = '1.4.31'
 
         ktlintPinterestVersion = '0.40.0'
 
@@ -63,6 +63,11 @@ buildscript {
         shimmerVersion = '0.5.0'
 
         storiesVersion = '3.0.0'
+
+        coilVersion = '1.2.1'
+
+        coilDep = "io.coil-kt:coil:$coilVersion"
+        coilSvg = "io.coil-kt:coil-svg:$coilVersion"
 
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 

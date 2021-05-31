@@ -4,8 +4,10 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
@@ -17,11 +19,13 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
+import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
@@ -33,9 +37,11 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkAp
 import jp.co.soramitsu.feature_wallet_impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
+import jp.co.soramitsu.feature_wallet_impl.domain.AssetUseCaseImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixinProvider
+import jp.co.soramitsu.feature_wallet_impl.presentation.common.mixin.FeeLoaderProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecksProvider
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -71,8 +77,10 @@ class WalletFeatureModule {
         socketService: SocketService,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        substrateCalls: SubstrateCalls,
     ): SubstrateRemoteSource = WssSubstrateSource(
         socketService,
+        substrateCalls,
         runtimeProperty,
         extrinsicBuilderFactory,
     )
@@ -166,4 +174,17 @@ class WalletFeatureModule {
     fun provideWalletConstants(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     ): WalletConstants = RuntimeWalletConstants(runtimeProperty)
+
+    @Provides
+    @FeatureScope
+    fun assetUseCase(
+        accountRepository: AccountRepository,
+        walletRepository: WalletRepository
+    ): AssetUseCase = AssetUseCaseImpl(walletRepository, accountRepository)
+
+    @Provides
+    fun provideFeeLoaderMixin(
+        stakingInteractor: WalletInteractor,
+        resourceManager: ResourceManager,
+    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(stakingInteractor, resourceManager)
 }

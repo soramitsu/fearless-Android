@@ -2,7 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.current
 
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.list.flatten
+import jp.co.soramitsu.common.list.toListWithHeaders
+import jp.co.soramitsu.common.list.toValueList
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toAddress
@@ -43,16 +44,13 @@ class CurrentValidatorsViewModel(
 ) : BaseViewModel() {
 
     private val groupedCurrentValidatorsFlow = stakingInteractor.selectedAccountStakingStateFlow()
-        .filterIsInstance<StakingState.Stash.Nominator>()
+        .filterIsInstance<StakingState.Stash>()
         .flatMapLatest(currentValidatorsInteractor::nominatedValidatorsFlow)
         .inBackground()
         .share()
 
     private val flattenCurrentValidators = groupedCurrentValidatorsFlow
-        .map {
-            it.map { (_, validators) -> validators }
-                .flatten()
-        }
+        .map { it.toValueList() }
         .inBackground()
         .share()
 
@@ -63,7 +61,7 @@ class CurrentValidatorsViewModel(
     val currentValidatorModelsLiveData = groupedCurrentValidatorsFlow.combine(tokenFlow) { gropedList, token ->
         gropedList.mapKeys { (status, validators) -> mapNominatedValidatorStatusToUiModel(status, validators.size) }
             .mapValues { (_, nominatedValidators) -> nominatedValidators.map { mapNominatedValidatorToUiModel(it, token) } }
-            .flatten()
+            .toListWithHeaders()
     }
         .withLoading()
         .inBackground()
@@ -89,7 +87,7 @@ class CurrentValidatorsViewModel(
     private fun mapNominatedValidatorStatusToUiModel(status: NominatedValidator.Status, valuesSize: Int) = when (status) {
         NominatedValidator.Status.Active -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_active_validators_format, valuesSize),
+                resourceManager.getString(R.string.common_active_with_count, valuesSize),
                 R.color.green
             ),
             resourceManager.getString(R.string.staking_active_validators_description)

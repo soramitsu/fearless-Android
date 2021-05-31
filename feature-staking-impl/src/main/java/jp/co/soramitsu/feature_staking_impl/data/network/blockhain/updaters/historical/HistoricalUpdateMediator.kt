@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.GlobalScopeUpdater
@@ -31,6 +32,8 @@ class HistoricalUpdateMediator(
     private val accountRepository: AccountRepository,
     private val storageCache: StorageCache,
 ) : GlobalScopeUpdater {
+
+    override val requiredModules: List<String> = listOf(Modules.STAKING)
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()

@@ -26,7 +26,7 @@
         app:enabled="false"
         app:label="@string/profile_title" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
+    <jp.co.soramitsu.common.view.AmountView
         android:id="@+id/confirmStakeAmount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -35,25 +35,13 @@
         android:layout_marginEnd="16dp"
         android:enabled="false" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.TableCellView
-        android:layout_width="match_parent"
-        app:title="@string/staking_reward_destination"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+    <jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationViewer
         android:id="@+id/confirmStakeRewardDestination"
-        android:layout_marginTop="16dp"
-        android:layout_height="wrap_content" />
-
-    <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/confirmStakePayoutAccount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
-        app:enabled="false"
-        app:label="@string/staking_setup_reward_payout_account" />
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp" />
 
     <LinearLayout
         android:id="@+id/confirmStakeSelectedValidators"
@@ -124,12 +112,12 @@
                 android:textColor="@color/gray1" />
 
             <ProgressBar
-                android:layout_width="16dp"
-                android:indeterminate="true"
                 android:id="@+id/confirmStakingFeeProgress"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:layout_gravity="center_vertical"
-                android:indeterminateTint="@color/white"
-                android:layout_height="16dp" />
+                android:indeterminate="true"
+                android:indeterminateTint="@color/white" />
 
             <TextView
                 android:id="@+id/confirmStakingFeeToken"
@@ -137,8 +125,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:visibility="gone"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:visibility="gone" />
 
 
             <TextView

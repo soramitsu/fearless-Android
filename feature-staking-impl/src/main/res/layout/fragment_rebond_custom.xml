@@ -15,7 +15,7 @@
         app:homeButtonIcon="@drawable/ic_close"
         app:titleText="@string/staking_rebond" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
+    <jp.co.soramitsu.common.view.AmountView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -23,7 +23,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.FeeView
+    <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"

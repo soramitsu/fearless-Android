@@ -50,21 +50,21 @@ android {
         }
     }
 
-    android {
-        compileOptions {
-            sourceCompatibility 1.8
-            targetCompatibility 1.8
+    bundle {
+        language {
+            enableSplit = false
         }
+    }
 
-        bundle {
-            language {
-                enableSplit = false
-            }
-        }
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
+
+        jvmTarget = '1.8'
     }
 }
 
@@ -93,6 +93,9 @@ dependencies {
 
     implementation project(':feature-staking-api')
     implementation project(':feature-staking-impl')
+
+    implementation project(':feature-crowdloan-api')
+    implementation project(':feature-crowdloan-impl')
 
     implementation kotlinDep
 
@@ -126,6 +129,8 @@ dependencies {
     testImplementation project(':test-shared')
 
     implementation insetterDep
+
+    implementation liveDataKtxDep
 }
 
 task printVersion {

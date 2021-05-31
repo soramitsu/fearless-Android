@@ -23,6 +23,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.Staking
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.di.ConfirmRebondComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.custom.di.CustomRebondComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.di.RedeemComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.di.ConfirmRewardDestinationComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.select.di.SelectRewardDestinationComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.di.ConfirmUnbondComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.di.SelectUnbondComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.story.di.StoryComponent
@@ -86,6 +88,10 @@ interface StakingFeatureComponent : StakingFeatureApi {
     fun rebondCustomFactory(): CustomRebondComponent.Factory
 
     fun currentValidatorsFactory(): CurrentValidatorsComponent.Factory
+
+    fun selectRewardDestinationFactory(): SelectRewardDestinationComponent.Factory
+
+    fun confirmRewardDestinationFactory(): ConfirmRewardDestinationComponent.Factory
 
     @Component.Factory
     interface Factory {

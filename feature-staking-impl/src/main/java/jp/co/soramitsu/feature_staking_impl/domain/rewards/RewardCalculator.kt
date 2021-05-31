@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.rewards
 
+import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import kotlinx.coroutines.Dispatchers
@@ -19,9 +20,7 @@ private val INTEREST_IDEAL = INFLATION_IDEAL / STAKED_PORTION_IDEAL
 
 private const val DECAY_RATE = 0.05
 
-private const val DAYS_IN_YEAR = 365
-
-private val PERCENTAGE_MULTIPLIER = 100.toBigDecimal()
+const val DAYS_IN_YEAR = 365
 
 class PeriodReturns(
     val gainAmount: BigDecimal,
@@ -74,7 +73,7 @@ class RewardCalculator(
 
     suspend fun calculateMaxAPY() = calculateReturns(amount = BigDecimal.ONE, DAYS_IN_YEAR, isCompound = true).gainPercentage
 
-    fun calculateAvgAPY() = expectedAPY.toBigDecimal() * PERCENTAGE_MULTIPLIER
+    fun calculateAvgAPY() = expectedAPY.toBigDecimal().fractionToPercentage()
 
     fun getApyFor(targetIdHex: String): BigDecimal {
         val apy = apyByValidator[targetIdHex] ?: expectedAPY
@@ -119,7 +118,7 @@ class RewardCalculator(
         val gainPercentage = if (amount == 0.0) {
             BigDecimal.ZERO
         } else {
-            gainAmount / amount.toBigDecimal() * PERCENTAGE_MULTIPLIER
+            (gainAmount / amount.toBigDecimal()).fractionToPercentage()
         }
 
         return PeriodReturns(

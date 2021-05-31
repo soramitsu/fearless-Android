@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <jp.co.soramitsu.feature_staking_impl.presentation.view.StakingAmountView
+            <jp.co.soramitsu.common.view.AmountView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -103,52 +103,10 @@
                 android:text="@string/staking_setup_reward_destination"
                 android:textColor="@color/white" />
 
-            <jp.co.soramitsu.feature_staking_impl.presentation.setup.view.RewardDestinationView
+            <jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationChooserView
+                android:id="@+id/setupStakingRewardDestinationChooser"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                app:targetName="@string/staking_setup_restake"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="16dp"
-                android:id="@+id/setupStakingTargetRestake"
-                android:checked="true" />
-
-            <jp.co.soramitsu.feature_staking_impl.presentation.setup.view.RewardDestinationView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                app:targetName="@string/staking_payout"
-                android:id="@+id/setupStakingTargetPayout"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="16dp" />
-
-            <jp.co.soramitsu.common.view.LabeledTextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                app:textIcon="@color/colorAccent"
-                app:label="@string/staking_setup_reward_payout_account"
-                android:id="@+id/setupStakingTargetPayoutDestination"
-                app:actionIcon="@drawable/ic_more_vertical"
-                tools:message="Valentun"
-                android:layout_marginTop="12dp" />
-
-            <TextView
-                android:id="@+id/setupStakingLearnMore"
-                style="@style/TextAppearance.Soramitsu.Body1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_primary_list_item"
-                android:drawablePadding="16dp"
-                android:paddingStart="16dp"
-                android:paddingTop="12dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="12dp"
-                android:text="@string/staking_setup_learn_more"
-                app:drawableStartCompat="@drawable/ic_fearless"
-                app:drawableEndCompat="@drawable/ic_arrow_top_right_white_16" />
+                android:layout_height="wrap_content" />
 
             <Space
                 android:layout_width="match_parent"

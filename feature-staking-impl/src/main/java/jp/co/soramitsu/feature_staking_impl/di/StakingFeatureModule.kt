@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_staking_impl.di
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
@@ -12,8 +14,10 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
+import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
@@ -24,6 +28,9 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepo
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchronizer
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSource
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsSubscanDataSourceImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.SubqueryStakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -36,12 +43,13 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteract
 import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.ControllerInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.staking.rewardDestination.ChangeRewardDestinationInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderMixin
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeLoaderProvider
+import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
+import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationProvider
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
@@ -51,12 +59,39 @@ import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
+const val SUBSCAN_REWARD_SOURCE = "SUBSCAN_REWARD_SOURCE"
+const val SUBQUERY_REWARD_SOURCE = "SUBQUERY_REWARD_SOURCE"
+
 @Module
 class StakingFeatureModule {
 
     @Provides
     @FeatureScope
     fun provideStakingStoriesDataSource(): StakingStoriesDataSource = StakingStoriesDataSourceImpl()
+
+    @Provides
+    @Named(SUBQUERY_REWARD_SOURCE)
+    @FeatureScope
+    fun provideStakingRewardsSubqueryDataSource(
+        stakingApi: StakingApi,
+        stakingTotalRewardDao: StakingTotalRewardDao,
+    ): StakingRewardsDataSource = SubqueryStakingRewardsDataSource(
+        stakingApi = stakingApi,
+        stakingTotalRewardDao = stakingTotalRewardDao
+    )
+
+    @Provides
+    @Named(SUBSCAN_REWARD_SOURCE)
+    @FeatureScope
+    fun provideStakingRewardsSubscanDataSource(
+        stakingRewardDao: StakingRewardDao,
+        subscanPagedSynchronizer: SubscanPagedSynchronizer,
+        stakingApi: StakingApi,
+    ): StakingRewardsDataSource = StakingRewardsSubscanDataSourceImpl(
+        stakingRewardDao = stakingRewardDao,
+        subscanPagedSynchronizer = subscanPagedSynchronizer,
+        stakingApi = stakingApi,
+    )
 
     @Provides
     @FeatureScope
@@ -151,10 +186,15 @@ class StakingFeatureModule {
     fun provideSetupStakingSharedState() = SetupStakingSharedState()
 
     @Provides
-    fun provideFeeLoaderMixin(
-        stakingInteractor: StakingInteractor,
+    fun provideRewardDestinationChooserMixin(
         resourceManager: ResourceManager,
-    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(stakingInteractor, resourceManager)
+        appLinksProvider: AppLinksProvider,
+        stakingInteractor: StakingInteractor,
+        iconGenerator: AddressIconGenerator,
+        accountDisplayUseCase: AddressDisplayUseCase
+    ): RewardDestinationMixin.Presentation = RewardDestinationProvider(
+        resourceManager, stakingInteractor, iconGenerator, appLinksProvider, accountDisplayUseCase
+    )
 
     @Provides
     @FeatureScope
@@ -171,14 +211,12 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideStakingRewardsRepository(
-        stakingApi: StakingApi,
-        stakingRewardDao: StakingRewardDao,
-        subscanPagedSynchronizer: SubscanPagedSynchronizer,
+        @Named(SUBSCAN_REWARD_SOURCE) subscanStakingRewardsDataSource: StakingRewardsDataSource,
+        @Named(SUBQUERY_REWARD_SOURCE) subqueryStakingRewardsDataSource: StakingRewardsDataSource,
     ): StakingRewardsRepository {
         return StakingRewardsRepository(
-            stakingApi,
-            stakingRewardDao,
-            subscanPagedSynchronizer
+            subscanStakingRewardsDataSource,
+            subqueryStakingRewardsDataSource
         )
     }
 
@@ -260,4 +298,11 @@ class StakingFeatureModule {
     ) = CurrentValidatorsInteractor(
         stakingRepository, stakingConstantsRepository, validatorProvider
     )
+
+    @Provides
+    @FeatureScope
+    fun provideChangeRewardDestinationInteractor(
+        feeEstimator: FeeEstimator,
+        extrinsicService: ExtrinsicService
+    ) = ChangeRewardDestinationInteractor(feeEstimator, extrinsicService)
 }

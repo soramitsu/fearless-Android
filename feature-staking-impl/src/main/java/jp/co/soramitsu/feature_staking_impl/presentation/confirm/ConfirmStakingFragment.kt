@@ -9,19 +9,19 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.FeeViews
-import jp.co.soramitsu.feature_staking_impl.presentation.common.fee.displayFeeStatus
-import jp.co.soramitsu.feature_staking_impl.presentation.setup.RewardDestinationModel
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeViews
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.displayFeeStatus
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeAmount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeConfirm
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeOriginAccount
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakePayoutAccount
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeRewardDestination
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidators
 import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidatorsCount
@@ -59,6 +59,8 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         confirmStakeConfirm.setOnClickListener { viewModel.confirmClicked() }
 
         confirmStakeSelectedValidators.setOnClickListener { viewModel.nominationsClicked() }
+
+        confirmStakeRewardDestination.setPayoutAccountClickListener { viewModel.payoutAccountClicked() }
     }
 
     override fun inject() {
@@ -79,19 +81,12 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         viewModel.showNextProgress.observe(confirmStakeConfirm::setProgress)
 
         viewModel.rewardDestinationLiveData.observe {
-            confirmStakePayoutAccount.setVisible(it is RewardDestinationModel.Payout)
-            confirmStakeRewardDestination.setDividerVisible(it is RewardDestinationModel.Restake)
-            confirmStakeRewardDestination.setVisible(it != null)
 
-            when (it) {
-                is RewardDestinationModel.Restake -> {
-                    confirmStakeRewardDestination.showValue(getString(R.string.staking_setup_restake))
-                }
-                is RewardDestinationModel.Payout -> {
-                    confirmStakeRewardDestination.showValue(getString(R.string.staking_payout))
-                    confirmStakePayoutAccount.setMessage(it.destination.nameOrAddress)
-                    confirmStakePayoutAccount.setTextIcon(it.destination.image)
-                }
+            if (it != null) {
+                confirmStakeRewardDestination.makeVisible()
+                confirmStakeRewardDestination.showRewardDestination(it)
+            } else {
+                confirmStakeRewardDestination.makeGone()
             }
         }
 

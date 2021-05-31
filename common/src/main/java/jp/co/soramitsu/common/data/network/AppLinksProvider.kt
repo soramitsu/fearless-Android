@@ -50,7 +50,7 @@ class ExternalAnalyzerLinks(val transaction: String, val account: String)
 
 enum class ExternalAnalyzer(val supportedNetworks: List<Node.NetworkType>) {
     SUBSCAN(
-        supportedNetworks = listOf(Node.NetworkType.KUSAMA, Node.NetworkType.WESTEND, Node.NetworkType.POLKADOT)
+        supportedNetworks = listOf(Node.NetworkType.KUSAMA, Node.NetworkType.WESTEND, Node.NetworkType.POLKADOT, Node.NetworkType.ROCOCO)
     ),
 
     POLKASCAN(

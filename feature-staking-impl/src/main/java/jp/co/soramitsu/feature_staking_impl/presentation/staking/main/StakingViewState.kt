@@ -9,23 +9,24 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus.Inactive.Reason
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
+import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.common.mapAssetToAssetModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.CoroutineScope
@@ -64,9 +65,10 @@ class StakeSummaryModel<S>(
 
 typealias NominatorSummaryModel = StakeSummaryModel<NominatorStatus>
 typealias ValidatorSummaryModel = StakeSummaryModel<ValidatorStatus>
+typealias StashNoneSummaryModel = StakeSummaryModel<StashNoneStatus>
 
 enum class ManageStakeAction {
-    PAYOUTS, BALANCE, CONTROLLER, VALIDATORS, STUB
+    PAYOUTS, BALANCE, CONTROLLER, VALIDATORS, REWARD_DESTINATION
 }
 
 sealed class StakeViewState<S>(
@@ -99,6 +101,7 @@ sealed class StakeViewState<S>(
             ManageStakeAction.BALANCE -> router.openStakingBalance()
             ManageStakeAction.CONTROLLER -> router.openControllerAccount()
             ManageStakeAction.VALIDATORS -> router.openCurrentValidators()
+            ManageStakeAction.REWARD_DESTINATION -> router.openChangeRewardDestination()
         }
     }
 
@@ -158,7 +161,7 @@ sealed class StakeViewState<S>(
 }
 
 class ValidatorViewState(
-    private val validatorState: StakingState.Stash.Validator,
+    validatorState: StakingState.Stash.Validator,
     currentAssetFlow: Flow<Asset>,
     stakingInteractor: StakingInteractor,
     resourceManager: ResourceManager,
@@ -188,8 +191,37 @@ private fun getValidatorStatusTitleAndMessage(
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
 }
 
+class StashNoneViewState(
+    stashState: StakingState.Stash.None,
+    currentAssetFlow: Flow<Asset>,
+    stakingInteractor: StakingInteractor,
+    resourceManager: ResourceManager,
+    scope: CoroutineScope,
+    router: StakingRouter,
+    errorDisplayer: (Throwable) -> Unit,
+) : StakeViewState<StashNoneStatus>(
+    stashState, currentAssetFlow, stakingInteractor,
+    resourceManager, scope, router, errorDisplayer,
+    summaryFlowProvider = { stakingInteractor.observeStashSummary(stashState) },
+    statusMessageProvider = { getStashStatusTitleAndMessage(resourceManager, it) },
+    availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.PAYOUTS
+)
+
+private fun getStashStatusTitleAndMessage(
+    resourceManager: ResourceManager,
+    status: StashNoneStatus
+): Pair<String, String> {
+    val (titleRes, messageRes) = when (status) {
+        StashNoneStatus.ELECTION -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
+
+        StashNoneStatus.INACTIVE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_stash_status_inactive
+    }
+
+    return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
+}
+
 class NominatorViewState(
-    private val nominatorState: StakingState.Stash.Nominator,
+    nominatorState: StakingState.Stash.Nominator,
     currentAssetFlow: Flow<Asset>,
     stakingInteractor: StakingInteractor,
     resourceManager: ResourceManager,

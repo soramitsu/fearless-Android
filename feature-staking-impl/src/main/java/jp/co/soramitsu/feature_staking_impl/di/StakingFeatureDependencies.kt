@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
+import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -23,6 +24,7 @@ import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -32,6 +34,8 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
 interface StakingFeatureDependencies {
+
+    fun feeLoaderMixin(): FeeLoaderMixin.Presentation
 
     fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
 
@@ -66,6 +70,8 @@ interface StakingFeatureDependencies {
     fun accountUpdateScope(): AccountUpdateScope
 
     fun stakingRewardsDao(): StakingRewardDao
+
+    fun stakingTotalRewardsDao(): StakingTotalRewardDao
 
     fun networkApiCreator(): NetworkApiCreator
 

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain.validators.current
 
 import jp.co.soramitsu.common.list.GroupedList
+import jp.co.soramitsu.common.list.emptyGroupedList
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -12,6 +13,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.common.isWaiting
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorSource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class CurrentValidatorsInteractor(
@@ -21,8 +23,12 @@ class CurrentValidatorsInteractor(
 ) {
 
     suspend fun nominatedValidatorsFlow(
-        nominatorState: StakingState.Stash.Nominator,
+        nominatorState: StakingState.Stash,
     ): Flow<GroupedList<NominatedValidator.Status, NominatedValidator>> {
+        if (nominatorState !is StakingState.Stash.Nominator) {
+            return flowOf(emptyGroupedList())
+        }
+
         val networkType = nominatorState.accountAddress.networkType()
 
         return stakingRepository.observeActiveEraIndex(networkType).map { activeEra ->

@@ -5,7 +5,11 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import java.math.BigDecimal
 
 fun BigDecimal.formatTokenAmount(type: Token.Type): String {
-    return "${format()} ${type.displayName}"
+    return formatTokenAmount(type.displayName)
+}
+
+fun BigDecimal.formatTokenAmount(tokenSymbol: String): String {
+    return "${format()} $tokenSymbol"
 }
 
 fun BigDecimal.formatTokenChange(type: Token.Type, isIncome: Boolean): String {
