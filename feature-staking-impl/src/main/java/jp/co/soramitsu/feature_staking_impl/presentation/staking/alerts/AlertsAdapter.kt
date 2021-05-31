@@ -2,15 +2,12 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts
 
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.Alert
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_alert.view.*

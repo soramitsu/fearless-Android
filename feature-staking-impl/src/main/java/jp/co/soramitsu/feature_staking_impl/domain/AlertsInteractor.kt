@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
 import jp.co.soramitsu.common.utils.networkType
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
@@ -9,9 +8,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 
 class AlertsInteractor(
     private val stakingRepository: StakingRepository,

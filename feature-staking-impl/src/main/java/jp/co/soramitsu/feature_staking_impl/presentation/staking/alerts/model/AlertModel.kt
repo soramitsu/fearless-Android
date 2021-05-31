@@ -3,9 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.Alert
-import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 
 class AlertModel(
     @DrawableRes val icon: Int,

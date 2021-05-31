@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.AlertsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertStatus
 import kotlinx.android.synthetic.main.view_alert.view.*
 
 class AlertsView @JvmOverloads constructor(

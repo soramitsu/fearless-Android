@@ -56,13 +56,11 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
@@ -129,7 +127,7 @@ class StakingRepositoryImpl(
         .inBackground()
         .shareIn(GlobalScope, replay = 1, started = SharingStarted.Lazily)
 
-    //TODO optimization
+    // TODO optimization
     override suspend fun getElectedValidatorsExposure(eraIndex: BigInteger) = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 

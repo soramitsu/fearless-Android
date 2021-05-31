@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -19,7 +18,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.Alert
 import jp.co.soramitsu.feature_staking_impl.domain.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
-import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
@@ -28,19 +26,12 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.Stak
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 private const val CURRENT_ICON_SIZE = 40
 
