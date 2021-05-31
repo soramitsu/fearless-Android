@@ -8,14 +8,10 @@ import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_stake_summary.view.stakeMoreActions
-import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryStatus
-import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryStatusHelper
-import kotlinx.android.synthetic.main.view_stake_summary.view.stakeTotalRewardsView
-import kotlinx.android.synthetic.main.view_stake_summary.view.stakeTotalStakedView
-import kotlinx.android.synthetic.main.view_stake_summary.view.statusTapZone
+import kotlinx.android.synthetic.main.view_stake_summary.view.*
 
 class StakeSummaryView @JvmOverloads constructor(
     context: Context,
@@ -40,7 +36,7 @@ class StakeSummaryView @JvmOverloads constructor(
         orientation = VERTICAL
 
         with(context) {
-            background = getCutCornerDrawable(R.color.blurColor)
+            background = addRipple(getCutCornerDrawable(R.color.blurColor))
         }
     }
 
@@ -93,6 +89,10 @@ class StakeSummaryView @JvmOverloads constructor(
 
     fun setStatusClickListener(listener: OnClickListener) {
         statusTapZone.setOnClickListener(listener)
+    }
+
+    fun setStakeInfoClickListener(listener: OnClickListener) {
+        setOnClickListener(listener)
     }
 
     val moreActions: View

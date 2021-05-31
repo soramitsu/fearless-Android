@@ -44,7 +44,7 @@ class CurrentValidatorsViewModel(
 ) : BaseViewModel() {
 
     private val groupedCurrentValidatorsFlow = stakingInteractor.selectedAccountStakingStateFlow()
-        .filterIsInstance<StakingState.Stash.Nominator>()
+        .filterIsInstance<StakingState.Stash>()
         .flatMapLatest(currentValidatorsInteractor::nominatedValidatorsFlow)
         .inBackground()
         .share()

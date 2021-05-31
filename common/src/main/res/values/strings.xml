@@ -16,6 +16,8 @@
     <string name="crowdloan_bonus">Bonus</string>
     <string name="crowdloan_bonus_action">Get a special bonus</string>
 
+    <string name="staking_stash_status_inactive">You are neither nominating nor validating.</string>
+
     <string name="crowdloan_too_small_contribution_title">Contribution amount is too small</string>
     <string name="crowdloan_too_small_contribution_message">The minimum allowed amount to contribute is %s.</string>
 
