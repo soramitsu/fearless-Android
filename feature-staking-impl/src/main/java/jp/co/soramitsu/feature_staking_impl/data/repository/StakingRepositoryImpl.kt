@@ -224,7 +224,7 @@ class StakingRepositoryImpl(
         binding = { scale, runtime -> scale?.let { bindStakingLedger(it, runtime) } }
     )
 
-    private fun createExposuresFlow() : Flow<Map<String, Exposure>> {
+    private fun createExposuresFlow(): Flow<Map<String, Exposure>> {
         val exposuresFlow = MutableSharedFlow<AccountIdMap<Exposure>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
         accountRepository.selectedNetworkTypeFlow()
