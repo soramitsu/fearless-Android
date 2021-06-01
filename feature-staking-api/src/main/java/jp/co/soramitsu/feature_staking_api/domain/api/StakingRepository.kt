@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.first
 import java.math.BigInteger
 
 interface StakingRepository {
@@ -51,10 +51,10 @@ interface StakingRepository {
 
     suspend fun getControllerAccountInfo(stakingState: StakingState.Stash): AccountInfo
 
-    val electedExposuresInActiveEra: SharedFlow<Map<String, Exposure>>
+    val electedExposuresInActiveEra: Flow<Map<String, Exposure>>
 }
 
-suspend fun StakingRepository.getActiveElectedValidatorsExposures() = getElectedValidatorsExposure(getActiveEraIndex())
+suspend fun StakingRepository.getActiveElectedValidatorsExposures() = electedExposuresInActiveEra.first()
 
 suspend fun StakingRepository.historicalEras(): List<BigInteger> {
     val activeEra = getActiveEraIndex().toInt()

@@ -27,6 +27,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
+import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
@@ -53,15 +54,17 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 
@@ -121,13 +124,8 @@ class StakingRepositoryImpl(
         return storageCache.observeActiveEraIndex(runtimeProperty.get(), networkType)
     }
 
-    override val electedExposuresInActiveEra = accountRepository.selectedNetworkTypeFlow()
-        .flatMapLatest(::observeActiveEraIndex)
-        .mapLatest(::getElectedValidatorsExposure)
-        .inBackground()
-        .shareIn(GlobalScope, replay = 1, started = SharingStarted.Lazily)
+    override val electedExposuresInActiveEra by lazy { createExposuresFlow() }
 
-    // TODO optimization
     override suspend fun getElectedValidatorsExposure(eraIndex: BigInteger) = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 
@@ -225,6 +223,21 @@ class StakingRepositoryImpl(
         keyBuilder = { it.metadata.staking().storage("Ledger").storageKey(it, address.toAccountId()) },
         binding = { scale, runtime -> scale?.let { bindStakingLedger(it, runtime) } }
     )
+
+    private fun createExposuresFlow(): Flow<Map<String, Exposure>> {
+        val exposuresFlow = MutableSharedFlow<AccountIdMap<Exposure>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+        accountRepository.selectedNetworkTypeFlow()
+            .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on network change
+            .flatMapLatest(::observeActiveEraIndex)
+            .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on era change
+            .mapLatest(::getElectedValidatorsExposure)
+            .onEach(exposuresFlow::emit)
+            .inBackground()
+            .launchIn(GlobalScope)
+
+        return exposuresFlow
+    }
 
     private suspend fun observeStashState(
         accessInfo: AccountStakingLocal.AccessInfo,
