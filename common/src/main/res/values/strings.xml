@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
+    <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
+
     <string name="staking_stash_status_inactive">You are neither nominating nor validating.</string>
 
     <string name="crowdloan_too_small_contribution_title">Contribution amount is too small</string>
