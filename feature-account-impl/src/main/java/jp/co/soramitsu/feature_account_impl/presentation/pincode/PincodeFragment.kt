@@ -6,9 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.view.dialog.dialog
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -101,17 +101,18 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
     }
 
     private fun showAuthWithBiometryDialog() {
-        MaterialAlertDialogBuilder(requireActivity(), R.style.AlertDialogTheme)
-            .setTitle(R.string.pincode_biometry_dialog_title)
-            .setMessage(R.string.pincode_fingerprint_switch_dialog_title)
-            .setCancelable(false)
-            .setPositiveButton(R.string.common_use) { _, _ ->
+        dialog(requireContext()) {
+            setTitle(R.string.pincode_biometry_dialog_title)
+            setMessage(R.string.pincode_fingerprint_switch_dialog_title)
+
+            setPositiveButton(R.string.common_use) { _, _ ->
                 viewModel.acceptAuthWithBiometry()
             }
-            .setNegativeButton(R.string.common_skip) { _, _ ->
+
+            setNegativeButton(R.string.common_skip) { _, _ ->
                 viewModel.declineAuthWithBiometry()
             }
-            .show()
+        }
     }
 
     override fun onPause() {

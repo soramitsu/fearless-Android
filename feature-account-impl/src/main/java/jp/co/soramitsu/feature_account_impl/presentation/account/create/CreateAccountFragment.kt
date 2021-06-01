@@ -4,13 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.dialog.dialog
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -95,13 +95,13 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
     }
 
     private fun showScreenshotWarningDialog() {
-        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
-            .setTitle(R.string.common_no_screenshot_title)
-            .setMessage(R.string.common_no_screenshot_message)
-            .setPositiveButton(R.string.common_ok) { dialog, _ ->
-                dialog?.dismiss()
+        dialog(requireContext()) {
+            setTitle(R.string.common_no_screenshot_title)
+            setMessage(R.string.common_no_screenshot_message)
+
+            setPositiveButton(R.string.common_ok) { _, _ ->
                 viewModel.screenshotWarningConfirmed(accountNameInput.content.text.toString())
             }
-            .show()
+        }
     }
 }

@@ -4,11 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.view.dialog.retryDialog
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -113,12 +113,13 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
     }
 
     private fun showRetry(reason: RetryReason) {
-        AlertDialog.Builder(requireActivity())
-            .setTitle(R.string.choose_amount_network_error)
-            .setMessage(reason.reasonRes)
-            .setCancelable(false)
-            .setPositiveButton(R.string.common_retry) { _, _ -> viewModel.retry(reason) }
-            .setNegativeButton(R.string.common_cancel) { _, _ -> viewModel.backClicked() }
-            .show()
+        retryDialog(
+            requireContext(),
+            onRetry = { viewModel.retry(reason) },
+            onCancel = {  viewModel.backClicked() }
+        ) {
+            setTitle(R.string.choose_amount_network_error)
+            setMessage(reason.reasonRes)
+        }
     }
 }

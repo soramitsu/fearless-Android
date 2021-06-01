@@ -3,9 +3,9 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.view.dialog.dialog
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -23,7 +23,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ) = layoutInflater.inflate(R.layout.fragment_nodes, container, false)
 
     override fun initViews() {
@@ -92,26 +92,30 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
             nodeModel.name
         )
 
-        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
-            .setTitle(R.string.connection_delete_title)
-            .setMessage(message)
-            .setPositiveButton(R.string.connection_delete_confirm) { dialog, _ ->
+        dialog(requireContext()) {
+            setTitle(R.string.connection_delete_title)
+            setMessage(message)
+
+            setPositiveButton(R.string.connection_delete_confirm) { dialog, _ ->
                 viewModel.confirmNodeDeletion(nodeModel)
                 dialog?.dismiss()
             }
-            .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
-            .show()
+
+            setNegativeButton(R.string.common_cancel, null)
+        }
     }
 
     private fun showNoAccountsDialog(networkType: Node.NetworkType) {
-        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
-            .setTitle(R.string.account_needed_title)
-            .setMessage(R.string.account_needed_message)
-            .setPositiveButton(R.string.common_proceed) { dialog, _ ->
+        dialog(requireContext()) {
+            setTitle(R.string.account_needed_title)
+            setMessage(R.string.account_needed_message)
+
+            setPositiveButton(R.string.common_proceed) { dialog, _ ->
                 viewModel.createAccountForNetworkType(networkType)
                 dialog?.dismiss()
             }
-            .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
-            .show()
+
+            setNegativeButton(R.string.common_cancel, null)
+        }
     }
 }

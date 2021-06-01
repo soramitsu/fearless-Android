@@ -4,10 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -93,10 +93,9 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
     }
 
     private fun showMnemonicInfoDialog() {
-        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
-            .setTitle(R.string.common_info)
-            .setMessage(R.string.account_creation_info)
-            .setPositiveButton(R.string.common_ok) { dialog, _ -> dialog?.dismiss() }
-            .show()
+        infoDialog(requireContext()) {
+            setTitle(R.string.common_info)
+            setMessage(R.string.account_creation_info)
+        }
     }
 }
