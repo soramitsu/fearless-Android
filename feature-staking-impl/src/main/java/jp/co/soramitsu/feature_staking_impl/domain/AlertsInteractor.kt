@@ -16,7 +16,7 @@ class AlertsInteractor(
     class AlertContext(
         val election: Election,
         val exposures: Map<String, Exposure>,
-        val stakingState: StakingState.Stash
+        val stakingState: StakingState
     )
 
     private fun produceElectionAlert(context: AlertContext): Alert? {
@@ -24,7 +24,9 @@ class AlertsInteractor(
     }
 
     private fun produceValidatorsAlert(context: AlertContext): Alert? {
-        val result = context.exposures.values.flatMap { it.others }.any { it.who.contentEquals(context.stakingState.stashId) }
+        val stash = context.stakingState as? StakingState.Stash ?: return null
+
+        val result = context.exposures.values.flatMap { it.others }.any { it.who.contentEquals(stash.stashId) }
 
         return if (!result) Alert.ChangeValidators else null
     }
