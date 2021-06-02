@@ -32,6 +32,8 @@
         <item name="fontExtraBold">@font/soramitsu_extrabold</item>
         <item name="fontRegular">@font/soramitsu_regular</item>
         <!--fonts-->
+
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
     <style name="PinkOverlay" parent="ThemeOverlay.AppCompat">

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_crowdloan_impl.data.network.api
+package jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain
 
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 
@@ -10,6 +10,7 @@ fun mapParachainMetadataRemoteToParachainMetadata(parachainMetadata: ParachainMe
             description = description,
             rewardRate = rewardRate.toBigDecimal(),
             website = website,
+            customFlow = customFlow,
             token = token
         )
     }
