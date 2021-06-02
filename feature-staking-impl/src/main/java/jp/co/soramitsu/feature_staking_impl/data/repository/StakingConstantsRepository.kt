@@ -12,7 +12,7 @@ class StakingConstantsRepository(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
 ) {
 
-    suspend fun maxRewardedNominatorPerValidatorPrefs(): Int = getNumberConstant("MaxNominatorRewardedPerValidator").toInt()
+    suspend fun maxRewardedNominatorPerValidator(): Int = getNumberConstant("MaxNominatorRewardedPerValidator").toInt()
 
     suspend fun lockupPeriodInEras(): BigInteger = getNumberConstant("BondingDuration")
 
