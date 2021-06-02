@@ -47,5 +47,10 @@ fun contributeValidationFailure(
             resourceManager.getString(R.string.crowdloan_too_small_contribution_title) to
                 resourceManager.getString(R.string.crowdloan_too_small_contribution_message, formattedAmount)
         }
+
+        ContributeValidationFailure.PrivateCrowdloanNotSupported -> {
+            resourceManager.getString(R.string.crodloan_private_crowdloan_title) to
+                resourceManager.getString(R.string.crodloan_private_crowdloan_message)
+        }
     }
 }

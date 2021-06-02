@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
+    <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
+
     <string name="referral_code_is_invalid">Referral code is invalid. Please try another one</string>
     <string name="crowdloan_learn_bonuses">Learn %s\'s bonuses</string>
 
