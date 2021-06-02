@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
@@ -23,8 +24,10 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnCrowdloanModel
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
@@ -35,8 +38,10 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -48,6 +53,15 @@ import kotlin.time.milliseconds
 
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
+sealed class CustomContributionState {
+
+    object NotSupported : CustomContributionState()
+
+    class Active(val payload: BonusPayload, val tokenName: String)
+
+    object Inactive : CustomContributionState()
+}
+
 class CrowdloanContributeViewModel(
     private val router: CrowdloanRouter,
     private val contributionInteractor: CrowdloanContributeInteractor,
@@ -57,6 +71,7 @@ class CrowdloanContributeViewModel(
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val payload: ContributePayload,
     private val validationSystem: ContributeValidationSystem,
+    private val customContributeManager: CustomContributeManager
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     Browserable,
@@ -81,6 +96,45 @@ class CrowdloanContributeViewModel(
 
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() ?: BigDecimal.ZERO }
 
+    private val customContributionFlow = flow {
+        val customFlow = payload.parachainMetadata?.customFlow
+
+        if (
+            customFlow != null &&
+            customContributeManager.isCustomFlowSupported(customFlow)
+        ) {
+            emit(CustomContributionState.Inactive)
+
+            val source = router.customBonusFlow.map {
+                if (it != null) CustomContributionState.Active(it, parachainMetadata!!.token) else CustomContributionState.Inactive
+            }
+
+            emitAll(source)
+        } else {
+            emit(CustomContributionState.NotSupported)
+        }
+    }
+        .share()
+
+    val bonusDisplayFlow = combine(
+        customContributionFlow,
+        parsedAmountFlow
+    ) { contributionState, amount ->
+        when (contributionState) {
+            is CustomContributionState.Active -> {
+                val bonus = contributionState.payload.calculateBonus(amount)
+
+                bonus.formatTokenAmount(contributionState.tokenName)
+            }
+
+            is CustomContributionState.Inactive -> resourceManager.getString(R.string.crowdloan_bonus_action)
+
+            else -> null
+        }
+    }
+        .inBackground()
+        .share()
+
     val unlockHintFlow = assetFlow.map {
         resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.type.displayName)
     }
@@ -98,7 +152,7 @@ class CrowdloanContributeViewModel(
     } ?: payload.paraId.toString()
 
     val learnCrowdloanModel = payload.parachainMetadata?.let {
-        LearnCrowdloanModel(
+        LearnMoreModel(
             text = resourceManager.getString(R.string.crowdloan_learn, it.name),
             iconLink = it.iconLink
         )
@@ -148,6 +202,19 @@ class CrowdloanContributeViewModel(
 
     fun backClicked() {
         router.back()
+    }
+
+    fun bonusClicked() {
+        launch {
+            val customContributePayload = CustomContributePayload(
+                paraId = payload.paraId,
+                parachainMetadata = payload.parachainMetadata!!,
+                amount = parsedAmountFlow.first(),
+                previousBonusPayload = router.latestCustomBonus
+            )
+
+            router.openCustomContribute(customContributePayload)
+        }
     }
 
     @OptIn(ExperimentalTime::class)
@@ -204,7 +271,9 @@ class CrowdloanContributeViewModel(
             paraId = payload.paraId,
             fee = validationPayload.fee,
             amount = validationPayload.contributionAmount,
-            estimatedRewardDisplay = estimatedRewardFlow.first()
+            estimatedRewardDisplay = estimatedRewardFlow.first(),
+            bonusPayload = router.latestCustomBonus,
+            metadata = payload.parachainMetadata
         )
 
         router.openConfirmContribute(confirmContributePayload)

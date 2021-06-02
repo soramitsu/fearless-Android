@@ -12,6 +12,7 @@ class ParachainMetadataParcelModel(
     val description: String,
     val rewardRate: BigDecimal,
     val website: String,
+    val customFlow: String?,
     val token: String
 ) : Parcelable
 
@@ -24,7 +25,8 @@ fun mapParachainMetadataToParcel(
         description = description,
         rewardRate = rewardRate,
         website = website,
-        token = token
+        token = token,
+        customFlow = customFlow
     )
 }
 
@@ -36,6 +38,7 @@ fun mapParachainMetadataFromParcel(
         name = name,
         description = description,
         rewardRate = rewardRate,
+        customFlow = customFlow,
         website = website,
         token = token
     )

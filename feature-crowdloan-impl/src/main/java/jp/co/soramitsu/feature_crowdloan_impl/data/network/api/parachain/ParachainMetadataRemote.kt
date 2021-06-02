@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_crowdloan_impl.data.network.api
+package jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain
 
 import java.math.BigInteger
 
@@ -9,5 +9,6 @@ class ParachainMetadataRemote(
     val paraid: BigInteger,
     val token: String,
     val rewardRate: Double,
+    val customFlow: String?,
     val website: String
 )

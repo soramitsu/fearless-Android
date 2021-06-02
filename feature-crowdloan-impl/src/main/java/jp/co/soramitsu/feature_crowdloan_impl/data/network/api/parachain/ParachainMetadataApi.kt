@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_crowdloan_impl.data.network.api
+package jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain
 
 import retrofit2.http.GET
 import retrofit2.http.Path
