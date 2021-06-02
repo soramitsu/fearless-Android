@@ -63,7 +63,7 @@ class KaruraContributeView @JvmOverloads constructor(
             karuraFearlessBonusApply.setText(applyBonusButtonText)
         }
 
-        viewState.bonusLiveData.observe(scope) {
+        viewState.bonusFlow.observe(scope) {
             karuraBonus.showValue(it)
         }
 

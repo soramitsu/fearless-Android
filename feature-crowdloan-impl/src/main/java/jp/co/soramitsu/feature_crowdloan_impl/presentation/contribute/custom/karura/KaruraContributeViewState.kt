@@ -48,7 +48,7 @@ class KaruraContributeViewState(
         KaruraBonusPayload(enteredReferralCodeFlow.value, customContributePayload.parachainMetadata.rewardRate)
     }
 
-    val bonusLiveData = bonusPayload.map {
+    val bonusFlow = bonusPayload.map {
         val tokenName = customContributePayload.parachainMetadata.token
 
         it.calculateBonus(customContributePayload.amount).formatTokenAmount(tokenName)
