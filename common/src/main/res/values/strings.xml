@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_alert_title">Alerts</string>
+    <string name="staking_alert_no_alerts_now">Everything is fine now. Alerts will appear here.</string>
+    <string name="staking_alert_start_next_era">Your staking will start in the next era.</string>
+    <string name="staking_alert_start_next_era_extra_message">Please wait for the next era to start.</string>
+    <string name="staking_alert_election">Staking actions are currently unavailable.</string>
+    <string name="staking_alert_start_election_extra_message">The network is electing validators. Usually it takes less than 10 minutes.</string>
+    <string name="staking_alert_change_validators">Change your validators.</string>
+    <string name="staking_alert_change_validators_extra_message">Staking was inactive. None of your validators were elected by network.</string>
+
     <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
     <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
 

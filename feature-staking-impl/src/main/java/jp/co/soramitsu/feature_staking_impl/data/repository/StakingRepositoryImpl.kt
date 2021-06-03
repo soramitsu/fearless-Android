@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.constant
 import jp.co.soramitsu.common.utils.hasModule
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.system
@@ -22,9 +23,11 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
+import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
@@ -50,17 +53,24 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingSt
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 
 class StakingRepositoryImpl(
     private val storageCache: StorageCache,
+    private val accountRepository: AccountRepository,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val accountStakingDao: AccountStakingDao,
     private val bulkRetriever: BulkRetriever,
@@ -113,6 +123,8 @@ class StakingRepositoryImpl(
     override suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<BigInteger> {
         return storageCache.observeActiveEraIndex(runtimeProperty.get(), networkType)
     }
+
+    override val electedExposuresInActiveEra by lazy { createExposuresFlow() }
 
     override suspend fun getElectedValidatorsExposure(eraIndex: BigInteger) = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
@@ -211,6 +223,21 @@ class StakingRepositoryImpl(
         keyBuilder = { it.metadata.staking().storage("Ledger").storageKey(it, address.toAccountId()) },
         binding = { scale, runtime -> scale?.let { bindStakingLedger(it, runtime) } }
     )
+
+    private fun createExposuresFlow(): Flow<Map<String, Exposure>> {
+        val exposuresFlow = MutableSharedFlow<AccountIdMap<Exposure>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+        accountRepository.selectedNetworkTypeFlow()
+            .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on network change
+            .flatMapLatest(::observeActiveEraIndex)
+            .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on era change
+            .mapLatest(::getElectedValidatorsExposure)
+            .onEach(exposuresFlow::emit)
+            .inBackground()
+            .launchIn(GlobalScope)
+
+        return exposuresFlow
+    }
 
     private suspend fun observeStashState(
         accessInfo: AccountStakingLocal.AccessInfo,

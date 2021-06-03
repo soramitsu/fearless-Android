@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_staking_impl.domain.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -41,6 +42,7 @@ class StakingModule {
     @ViewModelKey(StakingViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        alertsInteractor: AlertsInteractor,
         addressIconGenerator: AddressIconGenerator,
         stakingViewStateFactory: StakingViewStateFactory,
         router: StakingRouter,
@@ -48,6 +50,7 @@ class StakingModule {
     ): ViewModel {
         return StakingViewModel(
             interactor,
+            alertsInteractor,
             addressIconGenerator,
             stakingViewStateFactory,
             router,

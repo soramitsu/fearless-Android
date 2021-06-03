@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
@@ -34,7 +35,7 @@ class CurrentValidatorsInteractor(
         return stakingRepository.observeActiveEraIndex(networkType).map { activeEra ->
             val stashId = nominatorState.stashId
 
-            val exposures = stakingRepository.getElectedValidatorsExposure(activeEra)
+            val exposures = stakingRepository.getActiveElectedValidatorsExposures()
             val activeNominations = exposures.mapValuesNotNull { (_, exposure) ->
                 exposure.others.firstOrNull { it.who.contentEquals(stashId) }
             }

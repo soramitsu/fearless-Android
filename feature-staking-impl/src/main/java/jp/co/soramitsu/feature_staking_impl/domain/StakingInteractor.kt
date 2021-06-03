@@ -8,6 +8,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
@@ -153,8 +154,8 @@ class StakingInteractor(
     suspend fun observeNetworkInfoState(networkType: Node.NetworkType): Flow<NetworkInfo> {
         val lockupPeriod = getLockupPeriodInDays(networkType)
 
-        return stakingRepository.observeActiveEraIndex(networkType).map { eraIndex ->
-            val exposures = stakingRepository.getElectedValidatorsExposure(eraIndex).values
+        return stakingRepository.electedExposuresInActiveEra.map { exposuresMap ->
+            val exposures = exposuresMap.values
 
             NetworkInfo(
                 lockupPeriodInDays = lockupPeriod,
@@ -272,7 +273,7 @@ class StakingInteractor(
         ) { electionStatus, activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded
 
-            val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex)
+            val eraStakers = stakingRepository.getActiveElectedValidatorsExposures()
             val rewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
             val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, electionStatus, asset, rewardedNominatorsPerValidator)
@@ -309,25 +310,6 @@ class StakingInteractor(
 
     private fun totalStake(exposures: Collection<Exposure>): BigInteger {
         return exposures.sumOf(Exposure::total)
-    }
-
-    private fun minimumStake(
-        exposures: Collection<Exposure>,
-        existentialDeposit: BigInteger,
-    ): BigInteger {
-
-        val stakeByNominator = exposures
-            .map(Exposure::others)
-            .flatten()
-            .fold(mutableMapOf<String, BigInteger>()) { acc, individualExposure ->
-                val currentExposure = acc.getOrDefault(individualExposure.who.toHexString(), BigInteger.ZERO)
-
-                acc[individualExposure.who.toHexString()] = currentExposure + individualExposure.value
-
-                acc
-            }
-
-        return stakeByNominator.values.minOrNull()!!.coerceAtLeast(existentialDeposit)
     }
 
     private suspend fun getLockupPeriodInDays(networkType: Node.NetworkType): Int {

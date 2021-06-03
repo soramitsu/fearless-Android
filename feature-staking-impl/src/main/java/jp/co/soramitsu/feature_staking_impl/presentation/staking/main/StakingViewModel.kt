@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -13,9 +14,12 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.domain.Alert
+import jp.co.soramitsu.feature_staking_impl.domain.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
@@ -33,6 +37,7 @@ private const val CURRENT_ICON_SIZE = 40
 
 class StakingViewModel(
     private val interactor: StakingInteractor,
+    private val alertsInteractor: AlertsInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val stakingViewStateFactory: StakingViewStateFactory,
     private val router: StakingRouter,
@@ -43,7 +48,10 @@ class StakingViewModel(
 
     private val stakingStateScope = viewModelScope.childScope(supervised = true)
 
-    val currentStakingState = interactor.selectedAccountStakingStateFlow()
+    private val stakingState = interactor.selectedAccountStakingStateFlow()
+        .share()
+
+    val stakingViewStateFlow = stakingState
         .onEach { stakingStateScope.coroutineContext.cancelChildren() }
         .map { transformStakingState(it) }
         .inBackground()
@@ -76,6 +84,32 @@ class StakingViewModel(
     fun storyClicked(story: StakingStoryModel) {
         if (story.elements.isNotEmpty()) {
             router.openStory(story)
+        }
+    }
+
+    val alertsFlow = stakingState
+        .withLoading(alertsInteractor::getAlertsFlow)
+        .map { loadingState -> loadingState.map { alerts -> alerts.map(::mapAlertToAlertModel) } }
+        .asLiveData()
+
+    private fun mapAlertToAlertModel(alert: Alert): AlertModel {
+        return when (alert) {
+            Alert.Election -> {
+                AlertModel(
+                    R.drawable.ic_time_24,
+                    R.string.staking_alert_election,
+                    R.string.staking_alert_start_election_extra_message,
+                    AlertModel.Type.Warning
+                )
+            }
+            Alert.ChangeValidators -> {
+                AlertModel(
+                    R.drawable.ic_alert_triangle_yellow_24,
+                    R.string.staking_alert_change_validators,
+                    R.string.staking_alert_change_validators_extra_message,
+                    AlertModel.Type.CallToAction { router.openCurrentValidators() }
+                )
+            }
         }
     }
 

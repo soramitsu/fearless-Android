@@ -26,6 +26,7 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingStakeSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
+import kotlinx.android.synthetic.main.fragment_staking.*
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -64,7 +65,21 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     }
 
     override fun subscribe(viewModel: StakingViewModel) {
-        viewModel.currentStakingState.observe { stakingState ->
+        viewModel.alertsFlow.observe { loadingState ->
+            when (loadingState) {
+                is LoadingState.Loaded -> {
+                    stakingAlertsInfo.hideLoading()
+
+                    stakingAlertsInfo.setStatus(loadingState.data)
+                }
+
+                is LoadingState.Loading -> {
+                    stakingAlertsInfo.showLoading()
+                }
+            }
+        }
+
+        viewModel.stakingViewStateFlow.observe { stakingState ->
             startStakingBtn.setVisible(stakingState is WelcomeViewState)
             stakingEstimate.setVisible(stakingState is WelcomeViewState)
             stakingStakeSummary.setVisible(stakingState is StakeViewState<*>)
