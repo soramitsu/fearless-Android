@@ -26,7 +26,7 @@ class AlertsAdapter : ListAdapter<AlertModel, AlertsAdapter.AlertViewHolder>(Ale
         holder.bind(item)
     }
 
-    inner class AlertViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+    class AlertViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
         fun bind(alert: AlertModel) = with(containerView) {
             imageView.setImageResource(alert.icon)
             alertItemTitle.setText(alert.title)
