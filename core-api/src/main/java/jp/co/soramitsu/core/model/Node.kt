@@ -2,6 +2,8 @@
 
 package jp.co.soramitsu.core.model
 
+const val REAL_ROCOCO_ADDRESS_BYTE = 42.toByte()
+
 data class Node(
     val id: Int,
     val name: String,

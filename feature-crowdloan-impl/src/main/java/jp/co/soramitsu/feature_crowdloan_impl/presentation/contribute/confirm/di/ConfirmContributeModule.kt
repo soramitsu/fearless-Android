@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
@@ -36,7 +37,8 @@ class ConfirmContributeModule {
         accountUseCase: SelectedAccountUseCase,
         addressIconGenerator: AddressIconGenerator,
         validationSystem: ContributeValidationSystem,
-        externalAccountActions: ExternalAccountActions.Presentation
+        externalAccountActions: ExternalAccountActions.Presentation,
+        customContributeManager: CustomContributeManager
     ): ViewModel {
         return ConfirmContributeViewModel(
             router,
@@ -48,6 +50,7 @@ class ConfirmContributeModule {
             validationExecutor,
             payload,
             validationSystem,
+            customContributeManager,
             externalAccountActions
         )
     }

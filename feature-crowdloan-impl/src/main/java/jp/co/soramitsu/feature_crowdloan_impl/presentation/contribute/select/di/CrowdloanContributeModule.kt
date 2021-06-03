@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
@@ -32,7 +33,8 @@ class CrowdloanContributeModule {
         validationExecutor: ValidationExecutor,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         payload: ContributePayload,
-        validationSystem: ContributeValidationSystem
+        validationSystem: ContributeValidationSystem,
+        customContributeManager: CustomContributeManager,
     ): ViewModel {
         return CrowdloanContributeViewModel(
             router,
@@ -42,7 +44,8 @@ class CrowdloanContributeModule {
             validationExecutor,
             feeLoaderMixin,
             payload,
-            validationSystem
+            validationSystem,
+            customContributeManager
         )
     }
 

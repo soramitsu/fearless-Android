@@ -702,6 +702,14 @@
             app:popExitAnim="@anim/fragment_close_exit"
             android:id="@+id/action_crowdloanContributeFragment_to_confirmContributeFragment"
             app:destination="@id/confirmContributeFragment" />
+
+        <action
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_crowdloanContributeFragment_to_customContributeFragment"
+            app:destination="@id/customContributeFragment" />
     </fragment>
 
     <fragment
@@ -709,5 +717,11 @@
         android:id="@+id/confirmContributeFragment"
         android:name="jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.ConfirmContributeFragment"
         android:label="ConfirmContributeFragment" />
+
+    <fragment
+        tools:layout="@layout/fragment_custom_contribute"
+        android:id="@+id/customContributeFragment"
+        android:name="jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeFragment"
+        android:label="CustomContributeFragment" />
 
 </navigation>

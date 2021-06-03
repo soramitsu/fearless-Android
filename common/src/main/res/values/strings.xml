@@ -3,6 +3,22 @@
     <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
     <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
 
+    <string name="referral_code_is_invalid">Referral code is invalid. Please try another one</string>
+    <string name="crowdloan_learn_bonuses">Learn %s\'s bonuses</string>
+
+    <string name="crowdloan_enter_referral">Enter your referral code</string>
+    <string name="crowdloan_agree_with_policy">Agree with Terms and Conditions</string>
+
+    <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
+    <string name="crowdloan_fearless_bonus">Fearless wallet bonus (%s)</string>
+
+    <string name="crowdloan_referral_code">Referral code</string>
+    <string name="crowdloan_apply">Apply</string>
+    <string name="crowdloan_applied">Applied</string>
+
+    <string name="crowdloan_bonus">Bonus</string>
+    <string name="crowdloan_bonus_action">Get a special bonus</string>
+
     <string name="staking_stash_status_inactive">You are neither nominating nor validating.</string>
 
     <string name="crowdloan_too_small_contribution_title">Contribution amount is too small</string>

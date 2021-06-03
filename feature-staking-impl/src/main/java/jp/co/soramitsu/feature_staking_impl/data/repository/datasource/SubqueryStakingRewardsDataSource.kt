@@ -3,8 +3,8 @@ package jp.co.soramitsu.feature_staking_impl.data.repository.datasource
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
-import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingSubquerySumRewardResponseToAmount
-import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingTotalRewardLocalToTotalReward
+import jp.co.soramitsu.feature_staking_impl.data.mappers.mapSubquerySumRewardResponseToAmount
+import jp.co.soramitsu.feature_staking_impl.data.mappers.mapTotalRewardLocalToTotalReward
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingSumRewardRequest
 import jp.co.soramitsu.feature_staking_impl.data.repository.getSubqueryTotalRewardsPath
@@ -28,13 +28,13 @@ class SubqueryStakingRewardsDataSource(
     override suspend fun totalRewardsFlow(accountAddress: String): Flow<TotalReward> {
         return stakingTotalRewardDao.observeTotalRewards(accountAddress)
             .filterNotNull()
-            .map(::mapStakingTotalRewardLocalToTotalReward)
+            .map(::mapTotalRewardLocalToTotalReward)
     }
 
     override suspend fun sync(accountAddress: String) {
         val subqueryPath = accountAddress.networkType().getSubqueryTotalRewardsPath() // We will be here only from KUSAMA or POLKADOT networks "when" branch
 
-        val totalReward = mapStakingSubquerySumRewardResponseToAmount(
+        val totalReward = mapSubquerySumRewardResponseToAmount(
             stakingApi.getSumReward(
                 subqueryPath,
                 StakingSumRewardRequest(accountAddress = accountAddress)

@@ -1,6 +1,8 @@
 package jp.co.soramitsu.common.utils
 
+import android.widget.CompoundButton
 import android.widget.EditText
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -75,5 +77,30 @@ fun EditText.bindTo(flow: MutableStateFlow<String>, scope: CoroutineScope) {
         scope.launch {
             flow.emit(it)
         }
+    }
+}
+
+fun CompoundButton.bindTo(flow: MutableStateFlow<Boolean>, scope: CoroutineScope) {
+    scope.launch {
+        flow.collect { newValue ->
+            if (isChecked != newValue) {
+                isChecked = newValue
+            }
+        }
+    }
+
+    setOnCheckedChangeListener { _, newValue ->
+        scope.launch {
+            flow.emit(newValue)
+        }
+    }
+}
+
+inline fun <T> Flow<T>.observe(
+    scope: LifecycleCoroutineScope,
+    crossinline collector: suspend (T) -> Unit
+) {
+    scope.launchWhenResumed {
+        collect(collector)
     }
 }
