@@ -13,7 +13,7 @@ class AccountUpdateScope(
 ) : UpdateScope {
 
     override suspend fun invalidationFlow(): Flow<Any> {
-        val networkType = accountRepository.getSelectedNode().networkType
+        val networkType = accountRepository.getSelectedNodeOrDefault().networkType
 
         return accountRepository.selectedAccountFlow()
             .filter { it.network.type == networkType }

@@ -138,7 +138,7 @@ class AccountInteractorImpl(
         return accountRepository.getNetworks()
     }
 
-    override suspend fun getSelectedNode() = accountRepository.getSelectedNode()
+    override suspend fun getSelectedNode() = accountRepository.getSelectedNodeOrDefault()
 
     override fun groupedAccountsFlow(): Flow<List<Any>> {
         return accountRepository.accountsFlow()
@@ -258,7 +258,7 @@ class AccountInteractorImpl(
 
     override suspend fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Pair<List<Account>, Node> {
         val accounts = accountRepository.getAccountsByNetworkType(networkType)
-        val node = accountRepository.getSelectedNode()
+        val node = accountRepository.getSelectedNodeOrDefault()
         return Pair(accounts, node)
     }
 

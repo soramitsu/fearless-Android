@@ -192,7 +192,7 @@ class StakingInteractor(
     }
 
     suspend fun getSelectedNetworkType(): Node.NetworkType {
-        return accountRepository.getSelectedNode().networkType
+        return accountRepository.getSelectedNodeOrDefault().networkType
     }
 
     fun selectedAccountFlow(): Flow<StakingAccount> {

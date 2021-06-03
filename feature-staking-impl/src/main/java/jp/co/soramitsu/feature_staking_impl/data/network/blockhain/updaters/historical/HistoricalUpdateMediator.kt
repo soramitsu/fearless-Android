@@ -38,7 +38,7 @@ class HistoricalUpdateMediator(
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()
 
-        return storageCache.observeActiveEraIndex(runtime, accountRepository.getSelectedNode().networkType)
+        return storageCache.observeActiveEraIndex(runtime, accountRepository.getSelectedNodeOrDefault().networkType)
             .map {
                 val allKeysNeeded = constructHistoricalKeys(runtime)
                 val keysInDataBase = storageCache.filterKeysInCache(allKeysNeeded).toSet()

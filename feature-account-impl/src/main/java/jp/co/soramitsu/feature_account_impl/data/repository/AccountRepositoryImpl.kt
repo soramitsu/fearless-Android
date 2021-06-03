@@ -83,7 +83,7 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getSelectedNode(): Node {
+    override suspend fun getSelectedNodeOrDefault(): Node {
         return accountDataSource.getSelectedNode() ?: mapNodeLocalToNode(nodeDao.getFirstNode())
     }
 
@@ -107,7 +107,7 @@ class AccountRepositoryImpl(
                 selectNode(newNode)
             }
 
-            account.network.type != getSelectedNode().networkType -> {
+            account.network.type != accountDataSource.getSelectedNode()?.networkType -> {
                 val defaultNode = getDefaultNode(account.address.networkType())
 
                 selectNode(defaultNode)

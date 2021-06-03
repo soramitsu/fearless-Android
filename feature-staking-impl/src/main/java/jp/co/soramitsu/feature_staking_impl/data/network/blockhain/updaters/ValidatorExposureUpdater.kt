@@ -30,7 +30,7 @@ class ValidatorExposureUpdater(
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()
 
-        return storageCache.observeActiveEraIndex(runtime, accountRepository.getSelectedNode().networkType)
+        return storageCache.observeActiveEraIndex(runtime, accountRepository.getSelectedNodeOrDefault().networkType)
             .map { eraStakersPrefix(runtime, it) }
             .filterNot(storageCache::isPrefixInCache)
             .onEach(::updateNominatorsForEra)

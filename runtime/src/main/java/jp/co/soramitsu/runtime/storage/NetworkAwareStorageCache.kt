@@ -25,7 +25,7 @@ class NetworkAwareStorageCache(
     private val accountRepository: AccountRepository
 ) : StorageCache {
 
-    private suspend fun currentNetwork() = accountRepository.getSelectedNode().networkType
+    private suspend fun currentNetwork() = accountRepository.getSelectedNodeOrDefault().networkType
 
     override suspend fun isPrefixInCache(prefixKey: String): Boolean {
         return storageDao.isPrefixInCache(currentNetwork(), prefixKey)
