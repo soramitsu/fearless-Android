@@ -51,7 +51,7 @@ class CrowdloanRepositoryImpl(
 
     override suspend fun getParachainMetadata(): Map<ParaId, ParachainMetadata> {
         return withContext(Dispatchers.Default) {
-            val networkType = accountRepository.getSelectedNode().networkType
+            val networkType = accountRepository.getSelectedNodeOrDefault().networkType
 
             parachainMetadataApi.getParachainMetadata(networkType.runtimeCacheName())
                 .associateBy { it.paraid }

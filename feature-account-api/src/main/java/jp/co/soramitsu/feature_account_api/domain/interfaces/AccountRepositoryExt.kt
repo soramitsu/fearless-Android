@@ -7,7 +7,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.Account
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-suspend fun AccountRepository.currentNetworkType() = getSelectedNode().networkType
+suspend fun AccountRepository.currentNetworkType() = getSelectedNodeOrDefault().networkType
 
 suspend fun AccountRepository.signWithAccount(account: Account, message: ByteArray) = withContext(Dispatchers.Default) {
     val securitySource = getSecuritySource(account.address)

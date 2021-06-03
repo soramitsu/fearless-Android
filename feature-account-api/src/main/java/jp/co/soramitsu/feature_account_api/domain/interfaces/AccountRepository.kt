@@ -19,7 +19,7 @@ interface AccountRepository {
 
     suspend fun getNetworks(): List<Network>
 
-    suspend fun getSelectedNode(): Node
+    suspend fun getSelectedNodeOrDefault(): Node
 
     suspend fun selectNode(node: Node)
 

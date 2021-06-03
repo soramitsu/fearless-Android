@@ -96,7 +96,7 @@ class RuntimeUpdater(
     private fun errorStatus(): RuntimePreparationStatus.Error = RuntimePreparationStatus.Error(::performUpdate)
 
     private suspend fun getCurrentNetworkName(): String {
-        val networkType = accountRepository.getSelectedNode().networkType
+        val networkType = accountRepository.getSelectedNodeOrDefault().networkType
 
         return networkType.runtimeCacheName()
     }
