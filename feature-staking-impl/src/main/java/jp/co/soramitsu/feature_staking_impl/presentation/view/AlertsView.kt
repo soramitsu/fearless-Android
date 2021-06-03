@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.AlertsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
-import kotlinx.android.synthetic.main.view_alert.view.*
+import kotlinx.android.synthetic.main.view_alerts.view.*
 
 class AlertsView @JvmOverloads constructor(
     context: Context,
@@ -21,7 +21,7 @@ class AlertsView @JvmOverloads constructor(
     private val alertsAdapter = AlertsAdapter()
 
     init {
-        View.inflate(context, R.layout.view_alert, this)
+        View.inflate(context, R.layout.view_alerts, this)
 
         orientation = VERTICAL
 
