@@ -312,26 +312,6 @@ class StakingInteractor(
         return exposures.sumOf(Exposure::total)
     }
 
-    // TODO вынести на top level
-    private fun minimumStake(
-        exposures: Collection<Exposure>,
-        existentialDeposit: BigInteger,
-    ): BigInteger {
-
-        val stakeByNominator = exposures
-            .map(Exposure::others)
-            .flatten()
-            .fold(mutableMapOf<String, BigInteger>()) { acc, individualExposure ->
-                val currentExposure = acc.getOrDefault(individualExposure.who.toHexString(), BigInteger.ZERO)
-
-                acc[individualExposure.who.toHexString()] = currentExposure + individualExposure.value
-
-                acc
-            }
-
-        return stakeByNominator.values.minOrNull()!!.coerceAtLeast(existentialDeposit)
-    }
-
     private suspend fun getLockupPeriodInDays(networkType: Node.NetworkType): Int {
         return stakingConstantsRepository.lockupPeriodInEras().toInt() / networkType.runtimeConfiguration.erasPerDay
     }
