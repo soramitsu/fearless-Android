@@ -149,8 +149,9 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideAlertsInteractor(
         stakingRepository: StakingRepository,
+        stakingConstantsRepository: StakingConstantsRepository
     ) = AlertsInteractor(
-        stakingRepository
+        stakingRepository, stakingConstantsRepository
     )
 
     @Provides
