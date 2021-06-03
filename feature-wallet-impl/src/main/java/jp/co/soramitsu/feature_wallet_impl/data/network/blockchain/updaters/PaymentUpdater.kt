@@ -42,8 +42,6 @@ class PaymentUpdater(
     override val requiredModules: List<String> = listOf(Modules.SYSTEM)
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
-        Log.d("RX", "Payment updater started")
-
         val address = scope.getAccount().address
 
         val runtime = runtimeProperty.get()
