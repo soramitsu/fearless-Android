@@ -12,7 +12,7 @@ class StakingRewardsRepository(
     private val subqueryStakingRewardsDataSource: StakingRewardsDataSource,
 ) {
 
-    suspend fun stakingTotalRewards(accountAddress: String): Flow<TotalReward> {
+    suspend fun totalRewardFlow(accountAddress: String): Flow<TotalReward> {
         return when (accountAddress.networkType()) {
             Node.NetworkType.KUSAMA, Node.NetworkType.POLKADOT -> subqueryStakingRewardsDataSource.totalRewardsFlow(accountAddress = accountAddress)
             Node.NetworkType.WESTEND -> subscanStakingRewardsDataSource.totalRewardsFlow(accountAddress = accountAddress)

@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingRewardLocalToStakingReward
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapStakingRewardRemoteToLocal
-import jp.co.soramitsu.feature_staking_impl.data.mappers.mapSumReward
+import jp.co.soramitsu.feature_staking_impl.data.mappers.sumRewards
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingRewardRequest
 import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchronizer
@@ -14,7 +14,6 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.subscanCollectionFet
 import jp.co.soramitsu.feature_staking_impl.domain.model.TotalReward
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -27,8 +26,7 @@ class StakingRewardsSubscanDataSourceImpl(
     override suspend fun totalRewardsFlow(accountAddress: String): Flow<TotalReward> {
         return stakingRewardDao.observeRewards(accountAddress)
             .mapList(::mapStakingRewardLocalToStakingReward)
-            .filter { it.isNotEmpty() }
-            .map(::mapSumReward)
+            .map(::sumRewards)
     }
 
     override suspend fun sync(accountAddress: String) {

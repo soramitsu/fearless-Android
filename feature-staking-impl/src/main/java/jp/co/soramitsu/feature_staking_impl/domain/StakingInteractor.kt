@@ -138,7 +138,7 @@ class StakingInteractor(
 
         when {
             it.electionStatus == Election.OPEN -> NominatorStatus.Election
-            isNominationActive(nominatorState.stashId, it.eraStakers.values) -> NominatorStatus.Active
+            isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
             nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting
             else -> {
                 val inactiveReason = when {
@@ -269,30 +269,23 @@ class StakingInteractor(
             stakingRepository.electionFlow(networkType),
             stakingRepository.observeActiveEraIndex(networkType),
             walletRepository.assetFlow(state.accountAddress, tokenType),
-            stakingRewardsRepository.stakingTotalRewards(state.accountAddress)
+            stakingRewardsRepository.totalRewardFlow(state.accountAddress)
         ) { electionStatus, activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded
 
             val eraStakers = stakingRepository.getActiveElectedValidatorsExposures()
+            val rewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
-            val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, electionStatus, asset)
+            val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, electionStatus, asset, rewardedNominatorsPerValidator)
 
             val status = statusResolver(statusResolutionContext)
 
             StakeSummary(
                 status = status,
                 totalStaked = totalStaked,
-                totalRewards = totalReward.totalReward,
-                currentEra = activeEraIndex.toInt()
+                totalRewards = totalReward,
+                currentEra = activeEraIndex.toInt(),
             )
-        }
-    }
-
-    private fun isNominationActive(stashId: ByteArray, exposures: Collection<Exposure>): Boolean {
-        return exposures.any { exposure ->
-            exposure.others.any {
-                it.who.contentEquals(stashId)
-            }
         }
     }
 
@@ -304,7 +297,7 @@ class StakingInteractor(
 
     @OptIn(ExperimentalTime::class)
     private suspend fun activeNominators(exposures: Collection<Exposure>): Int {
-        val activeNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidatorPrefs()
+        val activeNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
         return exposures.fold(mutableSetOf<String>()) { acc, exposure ->
             acc += exposure.others.sortedByDescending(IndividualExposure::value)
@@ -348,5 +341,6 @@ class StakingInteractor(
         val activeEraIndex: BigInteger,
         val electionStatus: Election,
         val asset: Asset,
+        val rewardedNominatorsPerValidator: Int
     )
 }

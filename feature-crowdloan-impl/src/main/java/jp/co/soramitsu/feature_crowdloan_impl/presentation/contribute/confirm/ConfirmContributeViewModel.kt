@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
@@ -24,8 +25,10 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contribute
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -39,6 +42,7 @@ class ConfirmContributeViewModel(
     private val validationExecutor: ValidationExecutor,
     private val payload: ConfirmContributePayload,
     private val validationSystem: ContributeValidationSystem,
+    private val customContributeManager: CustomContributeManager,
     private val externalAccountActions: ExternalAccountActions.Presentation
 ) : BaseViewModel(),
     Validatable by validationExecutor,
@@ -93,6 +97,18 @@ class ConfirmContributeViewModel(
         .inBackground()
         .share()
 
+    val bonusFlow = flow {
+        val bonusDisplay = payload.bonusPayload?.let {
+            val bonus = it.calculateBonus(payload.amount)
+
+            bonus.formatTokenAmount(payload.metadata!!.token)
+        }
+
+        emit(bonusDisplay)
+    }
+        .inBackground()
+        .share()
+
     fun nextClicked() {
         maybeGoToNext()
     }
@@ -129,12 +145,23 @@ class ConfirmContributeViewModel(
 
     private fun sendTransaction() {
         launch {
-            contributionInteractor.contribute(
-                originAddress = selectedAddressModelFlow.first().address,
-                parachainId = payload.paraId,
-                contribution = payload.amount,
-                token = assetFlow.first().token
-            )
+            val customSubmissionResult = if (payload.bonusPayload != null) {
+                val metadata = payload.metadata!!
+
+                customContributeManager.getSubmitter(metadata.customFlow!!)
+                    .submit(payload.bonusPayload, payload.amount)
+            } else {
+                Result.success(Unit)
+            }
+
+            customSubmissionResult.mapCatching {
+                contributionInteractor.contribute(
+                    originAddress = selectedAddressModelFlow.first().address,
+                    parachainId = payload.paraId,
+                    contribution = payload.amount,
+                    token = assetFlow.first().token
+                )
+            }
                 .onFailure(::showError)
                 .onSuccess {
                     showMessage(resourceManager.getString(R.string.common_transaction_submitted))

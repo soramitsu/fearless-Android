@@ -25,4 +25,6 @@ sealed class ContributeValidationFailure {
     object CannotPayFees : ContributeValidationFailure()
 
     object ExistentialDepositCrossed : ContributeValidationFailure()
+
+    object PrivateCrowdloanNotSupported : ContributeValidationFailure()
 }

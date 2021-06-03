@@ -18,7 +18,8 @@ class FundInfo(
     val lastSlot: BigInteger,
     val firstSlot: BigInteger,
     val end: BigInteger,
-    val cap: BigInteger
+    val cap: BigInteger,
+    val verifier: Any?
 )
 
 fun bindFundInfo(scale: String, runtime: RuntimeSnapshot): FundInfo {
@@ -34,6 +35,7 @@ fun bindFundInfo(scale: String, runtime: RuntimeSnapshot): FundInfo {
         end = bindNumber(dynamicInstance["end"]),
         cap = bindNumber(dynamicInstance["cap"]),
         firstSlot = bindNumber(dynamicInstance["firstPeriod"] ?: dynamicInstance["firstSlot"]),
-        lastSlot = bindNumber(dynamicInstance["lastPeriod"] ?: dynamicInstance["lastSlot"])
+        lastSlot = bindNumber(dynamicInstance["lastPeriod"] ?: dynamicInstance["lastSlot"]),
+        verifier = dynamicInstance["verifier"]
     )
 }

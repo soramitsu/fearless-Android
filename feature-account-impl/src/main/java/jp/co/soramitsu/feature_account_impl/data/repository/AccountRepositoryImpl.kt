@@ -58,7 +58,7 @@ class AccountRepositoryImpl(
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
-    private val accountSubstrateSource: AccountSubstrateSource
+    private val accountSubstrateSource: AccountSubstrateSource,
 ) : AccountRepository {
 
     override fun getEncryptionTypes(): List<CryptoType> {
@@ -95,8 +95,24 @@ class AccountRepositoryImpl(
         return mapNodeLocalToNode(nodeDao.getDefaultNodeFor(networkType.ordinal))
     }
 
-    override suspend fun selectAccount(account: Account) {
+    override suspend fun selectAccount(account: Account, newNode: Node?) {
         accountDataSource.saveSelectedAccount(account)
+
+        when {
+            newNode != null -> {
+                require(account.network.type == newNode.networkType) {
+                    "Account network type is not the same as chosen node type"
+                }
+
+                selectNode(newNode)
+            }
+
+            account.network.type != getSelectedNode().networkType -> {
+                val defaultNode = getDefaultNode(account.address.networkType())
+
+                selectNode(defaultNode)
+            }
+        }
     }
 
     override fun selectedAccountFlow(): Flow<Account> {
@@ -120,7 +136,7 @@ class AccountRepositoryImpl(
         mnemonic: String,
         encryptionType: CryptoType,
         derivationPath: String,
-        networkType: Node.NetworkType
+        networkType: Node.NetworkType,
     ) {
         val account = saveFromMnemonic(
             accountName,
@@ -131,7 +147,7 @@ class AccountRepositoryImpl(
             isImport = false
         )
 
-        switchToAccount(account)
+        selectAccount(account)
     }
 
     override fun accountsFlow(): Flow<List<Account>> {
@@ -167,7 +183,7 @@ class AccountRepositoryImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        networkType: Node.NetworkType,
     ) {
         val account = saveFromMnemonic(
             username,
@@ -178,7 +194,7 @@ class AccountRepositoryImpl(
             isImport = true
         )
 
-        switchToAccount(account)
+        selectAccount(account)
     }
 
     override suspend fun importFromSeed(
@@ -186,7 +202,7 @@ class AccountRepositoryImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        networkType: Node.NetworkType,
     ) {
         return withContext(Dispatchers.Default) {
             val seedBytes = Hex.decode(seed.removePrefix("0x"))
@@ -211,7 +227,7 @@ class AccountRepositoryImpl(
 
             val account = mapAccountLocalToAccount(accountLocal)
 
-            switchToAccount(account)
+            selectAccount(account)
         }
     }
 
@@ -219,7 +235,7 @@ class AccountRepositoryImpl(
         json: String,
         password: String,
         networkType: Node.NetworkType,
-        name: String
+        name: String,
     ) {
         return withContext(Dispatchers.Default) {
             val importData = jsonSeedDecoder.decode(json, password)
@@ -242,7 +258,7 @@ class AccountRepositoryImpl(
                 mapAccountLocalToAccount(accountLocal)
             }
 
-            switchToAccount(newAccount)
+            selectAccount(newAccount)
         }
     }
 
@@ -426,7 +442,7 @@ class AccountRepositoryImpl(
         derivationPath: String,
         cryptoType: CryptoType,
         networkType: Node.NetworkType,
-        isImport: Boolean
+        isImport: Boolean,
     ): Account {
         return withContext(Dispatchers.Default) {
             val entropy = bip39.generateEntropy(mnemonic)
@@ -489,20 +505,12 @@ class AccountRepositoryImpl(
         }
     }
 
-    private suspend fun switchToAccount(account: Account) {
-        selectAccount(account)
-
-        val defaultNode = getDefaultNode(account.address.networkType())
-
-        selectNode(defaultNode)
-    }
-
     private suspend fun insertAccount(
         address: String,
         accountName: String,
         publicKeyEncoded: String,
         cryptoType: CryptoType,
-        networkType: Node.NetworkType
+        networkType: Node.NetworkType,
     ) = try {
         val cryptoTypeLocal = cryptoType.ordinal
 
