@@ -79,7 +79,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             }
         }
 
-        viewModel.currentStakingState.observe { stakingState ->
+        viewModel.stakingViewStateFlow.observe { stakingState ->
             startStakingBtn.setVisible(stakingState is WelcomeViewState)
             stakingEstimate.setVisible(stakingState is WelcomeViewState)
             stakingStakeSummary.setVisible(stakingState is StakeViewState<*>)

@@ -51,7 +51,7 @@ class StakingViewModel(
     private val stakingState = interactor.selectedAccountStakingStateFlow()
         .share()
 
-    val currentStakingState = stakingState
+    val stakingViewStateFlow = stakingState
         .onEach { stakingStateScope.coroutineContext.cancelChildren() }
         .map { transformStakingState(it) }
         .inBackground()
@@ -89,7 +89,7 @@ class StakingViewModel(
 
     val alertsFlow = stakingState
         .withLoading(alertsInteractor::getAlertsFlow)
-        .map { loadingState -> loadingState.map { alert -> alert.map(::mapAlertToAlertModel) } }
+        .map { loadingState -> loadingState.map { alerts -> alerts.map(::mapAlertToAlertModel) } }
         .asLiveData()
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {

@@ -32,7 +32,7 @@ class AlertsInteractor(
             Alert.ChangeValidators.takeUnless {
                 isNominationActive(stashState.stashId, exposures.values, maxRewardedNominatorsPerValidator)
             }
-         }
+        }
     }
 
     private val alertProducers = listOf(
