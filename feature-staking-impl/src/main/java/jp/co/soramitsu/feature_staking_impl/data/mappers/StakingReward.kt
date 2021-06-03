@@ -32,33 +32,27 @@ fun mapStakingRewardLocalToStakingReward(local: StakingRewardLocal): StakingRewa
     }
 }
 
-fun mapSumReward(rewards: List<StakingReward>): TotalReward {
-    return TotalReward(
-        rewards[0].accountAddress,
-        rewards.sumByBigDecimal {
-            it.amount * it.type.summingCoefficient.toBigDecimal()
-        }
-    )
+fun sumRewards(rewards: List<StakingReward>): TotalReward {
+    return rewards.sumByBigDecimal {
+        it.amount * it.type.summingCoefficient.toBigDecimal()
+    }
 }
 
-fun mapStakingSubquerySumRewardResponseToAmount(response: SubQueryResponse<SumRewardResponse>): BigInteger? {
+fun mapSubquerySumRewardResponseToAmount(response: SubQueryResponse<SumRewardResponse>): BigInteger? {
     return response.data.sumReward?.accountTotal
 }
 
-fun mapStakingTotalRewardLocalToTotalReward(reward: TotalRewardLocal): TotalReward {
+fun mapTotalRewardLocalToTotalReward(reward: TotalRewardLocal): TotalReward {
     return with(reward) {
         val token = Token.Type.fromNetworkType(accountAddress.networkType())
 
-        TotalReward(
-            accountAddress = reward.accountAddress,
-            totalReward = token.amountFromPlanks(reward.totalReward ?: BigInteger.ZERO)
-        )
+        token.amountFromPlanks(reward.totalReward ?: BigInteger.ZERO)
     }
 }
 
 fun mapStakingRewardRemoteToLocal(
     remote: StakingRewardRemote,
-    accountAddress: String
+    accountAddress: String,
 ): StakingRewardLocal {
     return with(remote) {
 
