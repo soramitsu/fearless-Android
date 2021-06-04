@@ -36,6 +36,8 @@ import kotlinx.coroutines.flow.onEach
 
 private const val CURRENT_ICON_SIZE = 40
 
+private val WARNING_ICON = R.drawable.ic_warning_filled
+
 class StakingViewModel(
     private val interactor: StakingInteractor,
     private val alertsInteractor: AlertsInteractor,
@@ -105,7 +107,7 @@ class StakingViewModel(
             }
             Alert.ChangeValidators -> {
                 AlertModel(
-                    R.drawable.ic_alert_triangle_yellow_24,
+                    WARNING_ICON,
                     resourceManager.getString(R.string.staking_alert_change_validators),
                     resourceManager.getString(R.string.staking_alert_change_validators_extra_message),
                     AlertModel.Type.CallToAction { router.openCurrentValidators() }
@@ -126,7 +128,7 @@ class StakingViewModel(
                 }
 
                 AlertModel(
-                    R.drawable.ic_alert_triangle_yellow_24,
+                    WARNING_ICON,
                     resourceManager.getString(R.string.staking_alert_redeem_title),
                     extraMessage,
                     AlertModel.Type.CallToAction { router.openRedeem(redeemPayload) }
