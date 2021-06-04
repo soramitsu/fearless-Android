@@ -41,7 +41,7 @@ class ContributeValidationsModule {
     @Provides
     @IntoSet
     @FeatureScope
-    fun provideCapExceededValidation() = CapExceededValidation()
+    fun provideCapExceededValidation(): ContributeValidation = CapExceededValidation()
 
     @Provides
     @IntoSet
