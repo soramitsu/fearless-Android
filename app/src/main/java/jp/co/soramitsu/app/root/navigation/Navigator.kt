@@ -50,6 +50,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.conf
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
@@ -218,8 +220,8 @@ class Navigator :
         navController?.navigate(R.id.action_selectUnbondFragment_to_confirmUnbondFragment, ConfirmUnbondFragment.getBundle(payload))
     }
 
-    override fun openRedeem() {
-        navController?.navigate(R.id.action_stakingBalanceFragment_to_redeemFragment)
+    override fun openRedeem(payload: RedeemPayload) {
+        navController?.navigate(R.id.action_open_redeemFragment, RedeemFragment.getBundle(payload))
     }
 
     override fun openConfirmRebond(payload: ConfirmRebondPayload) {

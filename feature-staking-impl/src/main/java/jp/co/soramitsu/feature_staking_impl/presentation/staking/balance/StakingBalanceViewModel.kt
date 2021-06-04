@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -15,7 +14,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -23,6 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.S
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.UnbondingModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import kotlinx.coroutines.flow.combine
@@ -91,7 +90,7 @@ class StakingBalanceViewModel(
     }
 
     fun redeemClicked() = requireValidManageAction(redeemValidationSystem) {
-        router.openRedeem()
+        router.openRedeem(RedeemPayload(overrideFinishAction = null))
     }
 
     fun backClicked() {
@@ -136,32 +135,9 @@ class StakingBalanceViewModel(
             validationExecutor.requireValid(
                 validationSystem,
                 ManageStakingValidationPayload(stakingState),
-                validationFailureTransformer = ::manageStakingActionValidationFailure,
+                validationFailureTransformer = { manageStakingActionValidationFailure(it, resourceManager) },
                 block = block
             )
-        }
-    }
-
-    private fun manageStakingActionValidationFailure(reason: ManageStakingValidationFailure): TitleAndMessage {
-        return when (reason) {
-            is ManageStakingValidationFailure.ControllerRequired -> {
-                resourceManager.getString(R.string.common_error_general_title) to
-                    resourceManager.getString(R.string.staking_no_controller_account, reason.controllerAddress)
-            }
-
-            ManageStakingValidationFailure.ElectionPeriodOpen -> {
-                resourceManager.getString(R.string.staking_nominator_status_election) to
-                    resourceManager.getString(R.string.staking_nominator_status_alert_election_message)
-            }
-
-            is ManageStakingValidationFailure.UnbondingRequestLimitReached -> {
-                resourceManager.getString(R.string.staking_unbonding_limit_reached_title) to
-                    resourceManager.getString(R.string.staking_unbonding_limit_reached_message, reason.limit)
-            }
-            is ManageStakingValidationFailure.StashRequired -> {
-                resourceManager.getString(R.string.common_error_general_title) to
-                    resourceManager.getString(R.string.staking_no_stash_account, reason.stashAddress)
-            }
         }
     }
 }

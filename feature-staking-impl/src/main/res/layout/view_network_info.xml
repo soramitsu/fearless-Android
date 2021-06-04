@@ -10,17 +10,17 @@
 
     <TextView
         android:id="@+id/stakingNetworkInfoTitle"
-        style="@style/TextAppearance.Soramitsu.Header5"
+        style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableEnd="@drawable/ic_chevron_up_white"
         android:includeFontPadding="false"
         android:padding="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Kusama network"
-        tools:textColor="@color/white" />
+        tools:textColor="@color/white"
+        app:drawableEndCompat="@drawable/ic_chevron_up_white" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/stakingNetworkCollapsibleView"

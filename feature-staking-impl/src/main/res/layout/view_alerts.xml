@@ -10,7 +10,7 @@
 
     <TextView
         android:id="@+id/alertStakeSummaryTitle"
-        style="@style/TextAppearance.Soramitsu.Header5"
+        style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
@@ -25,16 +25,15 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
         android:background="@color/white_24" />
 
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/alertShimmer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:visibility="gone"
-        tools:visibility="visible">
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp"
+        tools:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -61,8 +60,10 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:layout_weight="1"
+        android:visibility="gone"
         android:text="@string/staking_alert_no_alerts_now" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -72,9 +73,6 @@
         android:visibility="gone"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:itemCount="3"
+        tools:visibility="visible"
         tools:listitem="@layout/item_alert" />
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="16dp" />
 </merge>

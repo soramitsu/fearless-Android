@@ -43,6 +43,7 @@ class RedeemViewModel(
     private val iconGenerator: AddressIconGenerator,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val payload: RedeemPayload
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin,
@@ -121,7 +122,7 @@ class RedeemViewModel(
         launch {
             val asset = assetFlow.first()
 
-            val payload = RedeemValidationPayload(
+            val validationPayload = RedeemValidationPayload(
                 networkType = asset.token.type.networkType,
                 fee = fee,
                 asset = asset
@@ -129,7 +130,7 @@ class RedeemViewModel(
 
             validationExecutor.requireValid(
                 validationSystem = validationSystem,
-                payload = payload,
+                payload = validationPayload,
                 validationFailureTransformer = { redeemValidationFailure(it, resourceManager) },
                 progressConsumer = _showNextProgress.progressConsumer()
             ) {
@@ -146,15 +147,13 @@ class RedeemViewModel(
         if (result.isSuccess) {
             showMessage(resourceManager.getString(R.string.common_transaction_submitted))
 
-            if (result.requireValue().willKillStash) {
-                router.returnToMain()
-            } else {
-                router.returnToStakingBalance()
+            when {
+                payload.overrideFinishAction != null -> payload.overrideFinishAction.invoke(router)
+                result.requireValue().willKillStash -> router.returnToMain()
+                else -> router.returnToStakingBalance()
             }
         } else {
             showError(result.requireException())
         }
     }
-
-    private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress
 }
