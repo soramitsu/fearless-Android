@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.S
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.UnbondingModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import kotlinx.coroutines.flow.combine
@@ -91,7 +92,7 @@ class StakingBalanceViewModel(
     }
 
     fun redeemClicked() = requireValidManageAction(redeemValidationSystem) {
-        router.openRedeem()
+        router.openRedeem(RedeemPayload(overrideFinishAction = null))
     }
 
     fun backClicked() {

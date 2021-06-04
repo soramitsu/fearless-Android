@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.Al
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -97,17 +98,38 @@ class StakingViewModel(
             Alert.Election -> {
                 AlertModel(
                     R.drawable.ic_time_24,
-                    R.string.staking_alert_election,
-                    R.string.staking_alert_start_election_extra_message,
+                    resourceManager.getString(R.string.staking_alert_election),
+                    resourceManager.getString(R.string.staking_alert_start_election_extra_message),
                     AlertModel.Type.Warning
                 )
             }
             Alert.ChangeValidators -> {
                 AlertModel(
                     R.drawable.ic_alert_triangle_yellow_24,
-                    R.string.staking_alert_change_validators,
-                    R.string.staking_alert_change_validators_extra_message,
+                    resourceManager.getString(R.string.staking_alert_change_validators),
+                    resourceManager.getString(R.string.staking_alert_change_validators_extra_message),
                     AlertModel.Type.CallToAction { router.openCurrentValidators() }
+                )
+            }
+            is Alert.RedeemTokens -> {
+                val formattedFiat = alert.token.fiatAmount(alert.amount)?.formatAsCurrency()
+                val formattedAmount = alert.amount.formatTokenAmount(alert.token.type)
+
+                val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back)
+
+                val extraMessage = buildString {
+                    append(formattedAmount)
+
+                    formattedFiat?.let {
+                        append(" ($it)")
+                    }
+                }
+
+                AlertModel(
+                    R.drawable.ic_alert_triangle_yellow_24,
+                    resourceManager.getString(R.string.staking_alert_redeem_title),
+                    extraMessage,
+                    AlertModel.Type.CallToAction { router.openRedeem(redeemPayload) }
                 )
             }
         }

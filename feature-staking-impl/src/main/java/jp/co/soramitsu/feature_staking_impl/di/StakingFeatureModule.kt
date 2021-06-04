@@ -30,9 +30,9 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsReposi
 import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchronizer
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsSubscanDataSourceImpl
-import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.SubqueryStakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.SubqueryStakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.domain.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
@@ -149,9 +149,10 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideAlertsInteractor(
         stakingRepository: StakingRepository,
-        stakingConstantsRepository: StakingConstantsRepository
+        stakingConstantsRepository: StakingConstantsRepository,
+        walletRepository: WalletRepository
     ) = AlertsInteractor(
-        stakingRepository, stakingConstantsRepository
+        stakingRepository, stakingConstantsRepository, walletRepository
     )
 
     @Provides

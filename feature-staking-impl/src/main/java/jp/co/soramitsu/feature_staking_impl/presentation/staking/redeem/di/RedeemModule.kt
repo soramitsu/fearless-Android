@@ -16,8 +16,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemViewModel
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 
 @Module(includes = [ViewModelModule::class])
 class RedeemModule {
@@ -34,7 +35,8 @@ class RedeemModule {
         validationSystem: RedeemValidationSystem,
         iconGenerator: AddressIconGenerator,
         externalAccountActions: ExternalAccountActions.Presentation,
-        feeLoaderMixin: FeeLoaderMixin.Presentation
+        feeLoaderMixin: FeeLoaderMixin.Presentation,
+        payload: RedeemPayload
     ): ViewModel {
         return RedeemViewModel(
             router,
@@ -45,7 +47,8 @@ class RedeemModule {
             validationSystem,
             iconGenerator,
             feeLoaderMixin,
-            externalAccountActions
+            externalAccountActions,
+            payload
         )
     }
 

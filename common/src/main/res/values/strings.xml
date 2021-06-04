@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_alert_redeem_title">Redeem unbonded tokens.</string>
+
     <string name="staking_alert_title">Alerts</string>
     <string name="staking_alert_no_alerts_now">Everything is fine now. Alerts will appear here.</string>
     <string name="staking_alert_start_next_era">Your staking will start in the next era.</string>
