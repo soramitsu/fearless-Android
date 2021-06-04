@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import java.math.BigDecimal
 
 class AlertsInteractor(
     private val stakingRepository: StakingRepository,
@@ -32,16 +33,18 @@ class AlertsInteractor(
         return if (context.election == Election.OPEN) Alert.Election else null
     }
 
-    private fun produceChangeValidatorsAlert(context: AlertContext): Alert? = requireState(context.stakingState) { stashState: StakingState.Stash.Nominator ->
+    private fun produceChangeValidatorsAlert(context: AlertContext): Alert? = requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
         with(context) {
             Alert.ChangeValidators.takeUnless {
-                isNominationActive(stashState.stashId, exposures.values, maxRewardedNominatorsPerValidator)
+                isNominationActive(nominatorState.stashId, exposures.values, maxRewardedNominatorsPerValidator)
             }
         }
     }
 
-    private fun produceRedeemableAlert(context: AlertContext): Alert? = with(context.asset) {
-        if (true/*redeemable > BigDecimal.ZERO*/) Alert.RedeemTokens(redeemable, token) else null
+    private fun produceRedeemableAlert(context: AlertContext): Alert? = requireState(context.stakingState) { _: StakingState.Stash ->
+        with(context.asset) {
+            if (redeemable > BigDecimal.ZERO) Alert.RedeemTokens(redeemable, token) else null
+        }
     }
 
     private val alertProducers = listOf(

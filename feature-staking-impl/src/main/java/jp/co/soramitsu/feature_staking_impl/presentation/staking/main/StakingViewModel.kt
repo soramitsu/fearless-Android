@@ -4,12 +4,14 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
@@ -18,8 +20,11 @@ import jp.co.soramitsu.feature_staking_impl.domain.Alert
 import jp.co.soramitsu.feature_staking_impl.domain.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.manageStakingActionValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
@@ -31,8 +36,10 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -45,7 +52,11 @@ class StakingViewModel(
     private val stakingViewStateFactory: StakingViewStateFactory,
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
-) : BaseViewModel() {
+    private val redeemValidationSystem: ManageStakingValidationSystem,
+    private val validationExecutor: ValidationExecutor,
+) : BaseViewModel(),
+    Validatable by validationExecutor {
+
     private val currentAssetFlow = interactor.currentAssetFlow()
         .share()
 
@@ -117,8 +128,6 @@ class StakingViewModel(
                 val formattedFiat = alert.token.fiatAmount(alert.amount)?.formatAsCurrency()
                 val formattedAmount = alert.amount.formatTokenAmount(alert.token.type)
 
-                val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back)
-
                 val extraMessage = buildString {
                     append(formattedAmount)
 
@@ -131,9 +140,23 @@ class StakingViewModel(
                     WARNING_ICON,
                     resourceManager.getString(R.string.staking_alert_redeem_title),
                     extraMessage,
-                    AlertModel.Type.CallToAction { router.openRedeem(redeemPayload) }
+                    AlertModel.Type.CallToAction(::redeemAlertClicked)
                 )
             }
+        }
+    }
+
+    private fun redeemAlertClicked() = launch {
+        val stashState = stakingState.first() as? StakingState.Stash ?: return@launch
+
+        validationExecutor.requireValid(
+            redeemValidationSystem,
+            ManageStakingValidationPayload(stashState),
+            validationFailureTransformer = { manageStakingActionValidationFailure(it, resourceManager) }
+        ) {
+            val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back)
+
+            router.openRedeem(redeemPayload)
         }
     }
 

@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model
 
-import android.view.View
 import androidx.annotation.DrawableRes
 
 class AlertModel(
@@ -12,6 +11,6 @@ class AlertModel(
     sealed class Type {
         object Warning : Type()
 
-        class CallToAction(val action: (View) -> Unit) : Type()
+        class CallToAction(val action: () -> Unit) : Type()
     }
 }

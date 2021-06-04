@@ -42,7 +42,10 @@ class AlertsAdapter : ListAdapter<AlertModel, AlertsAdapter.AlertViewHolder>(Ale
 
             if (alert.type is AlertModel.Type.CallToAction) {
                 alertItemGoToFlowIcon.makeVisible()
-                setOnClickListener(alert.type.action)
+
+                setOnClickListener {
+                    alert.type.action()
+                }
             } else {
                 alertItemGoToFlowIcon.makeGone()
             }
