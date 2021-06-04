@@ -9,24 +9,24 @@ fun manageStakingActionValidationFailure(
     reason: ManageStakingValidationFailure,
     resourceManager: ResourceManager
 ): TitleAndMessage {
-        return when (reason) {
-            is ManageStakingValidationFailure.ControllerRequired -> {
-                resourceManager.getString(R.string.common_error_general_title) to
-                    resourceManager.getString(R.string.staking_no_controller_account, reason.controllerAddress)
-            }
+    return when (reason) {
+        is ManageStakingValidationFailure.ControllerRequired -> {
+            resourceManager.getString(R.string.common_error_general_title) to
+                resourceManager.getString(R.string.staking_no_controller_account, reason.controllerAddress)
+        }
 
-            ManageStakingValidationFailure.ElectionPeriodOpen -> {
-                resourceManager.getString(R.string.staking_nominator_status_election) to
-                    resourceManager.getString(R.string.staking_nominator_status_alert_election_message)
-            }
+        ManageStakingValidationFailure.ElectionPeriodOpen -> {
+            resourceManager.getString(R.string.staking_nominator_status_election) to
+                resourceManager.getString(R.string.staking_nominator_status_alert_election_message)
+        }
 
-            is ManageStakingValidationFailure.UnbondingRequestLimitReached -> {
-                resourceManager.getString(R.string.staking_unbonding_limit_reached_title) to
-                    resourceManager.getString(R.string.staking_unbonding_limit_reached_message, reason.limit)
-            }
-            is ManageStakingValidationFailure.StashRequired -> {
-                resourceManager.getString(R.string.common_error_general_title) to
-                    resourceManager.getString(R.string.staking_no_stash_account, reason.stashAddress)
-            }
+        is ManageStakingValidationFailure.UnbondingRequestLimitReached -> {
+            resourceManager.getString(R.string.staking_unbonding_limit_reached_title) to
+                resourceManager.getString(R.string.staking_unbonding_limit_reached_message, reason.limit)
+        }
+        is ManageStakingValidationFailure.StashRequired -> {
+            resourceManager.getString(R.string.common_error_general_title) to
+                resourceManager.getString(R.string.staking_no_stash_account, reason.stashAddress)
         }
     }
+}

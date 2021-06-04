@@ -33,10 +33,12 @@ class AlertsInteractor(
         return if (context.election == Election.OPEN) Alert.Election else null
     }
 
-    private fun produceChangeValidatorsAlert(context: AlertContext): Alert? = requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
-        with(context) {
-            Alert.ChangeValidators.takeUnless {
-                isNominationActive(nominatorState.stashId, exposures.values, maxRewardedNominatorsPerValidator)
+    private fun produceChangeValidatorsAlert(context: AlertContext): Alert? {
+        return requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
+            with(context) {
+                Alert.ChangeValidators.takeUnless {
+                    isNominationActive(nominatorState.stashId, exposures.values, maxRewardedNominatorsPerValidator)
+                }
             }
         }
     }

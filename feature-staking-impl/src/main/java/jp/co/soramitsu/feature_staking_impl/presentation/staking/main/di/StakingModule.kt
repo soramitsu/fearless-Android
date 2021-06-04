@@ -53,7 +53,7 @@ class StakingModule {
         resourceManager: ResourceManager,
         @Named(SYSTEM_MANAGE_STAKING_REDEEM) redeemValidationSystem: ManageStakingValidationSystem,
         validationExecutor: ValidationExecutor,
-        ): ViewModel {
+    ): ViewModel {
         return StakingViewModel(
             interactor,
             alertsInteractor,
