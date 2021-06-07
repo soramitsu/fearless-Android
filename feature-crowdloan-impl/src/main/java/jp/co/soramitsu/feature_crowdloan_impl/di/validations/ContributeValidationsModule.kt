@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.di.validations
 
 import dagger.Module
 import dagger.Provides
+import dagger.multibindings.IntoSet
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
@@ -9,18 +10,21 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateReposito
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.CapExceededValidation
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeEnoughToPayFeesValidation
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeExistentialDepositValidation
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidation
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationFailure
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.CrowdloanNotEndedValidation
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.MinContributionValidation
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.PublicCrowdloanValidation
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 
 @Module
 class ContributeValidationsModule {
 
     @Provides
+    @IntoSet
     @FeatureScope
-    fun provideFeesValidation() = ContributeEnoughToPayFeesValidation(
+    fun provideFeesValidation(): ContributeValidation = ContributeEnoughToPayFeesValidation(
         feeExtractor = { it.fee },
         availableBalanceProducer = { it.asset.transferable },
         extraAmountExtractor = { it.contributionAmount },
@@ -28,27 +32,31 @@ class ContributeValidationsModule {
     )
 
     @Provides
+    @IntoSet
     @FeatureScope
     fun provideMinContributionValidation(
         crowdloanRepository: CrowdloanRepository,
-    ) = MinContributionValidation(crowdloanRepository)
+    ): ContributeValidation = MinContributionValidation(crowdloanRepository)
 
     @Provides
+    @IntoSet
     @FeatureScope
-    fun provideCapExceededValidation() = CapExceededValidation()
+    fun provideCapExceededValidation(): ContributeValidation = CapExceededValidation()
 
     @Provides
+    @IntoSet
     @FeatureScope
     fun provideCrowdloanNotEndedValidation(
         chainStateRepository: ChainStateRepository,
         crowdloanRepository: CrowdloanRepository,
-    ) = CrowdloanNotEndedValidation(chainStateRepository, crowdloanRepository)
+    ): ContributeValidation = CrowdloanNotEndedValidation(chainStateRepository, crowdloanRepository)
 
     @Provides
+    @IntoSet
     @FeatureScope
     fun provideExistentialWarningValidation(
         walletConstants: WalletConstants,
-    ) = ContributeExistentialDepositValidation(
+    ): ContributeValidation = ContributeExistentialDepositValidation(
         walletConstants = walletConstants,
         totalBalanceProducer = { it.asset.total },
         feeProducer = { it.fee },
@@ -58,22 +66,15 @@ class ContributeValidationsModule {
     )
 
     @Provides
+    @IntoSet
+    @FeatureScope
+    fun providePublicCrowdloanValidation(): ContributeValidation = PublicCrowdloanValidation()
+
+    @Provides
     @FeatureScope
     fun provideValidationSystem(
-        contributeEnoughToPayFeesValidation: ContributeEnoughToPayFeesValidation,
-        minContributionValidation: MinContributionValidation,
-        capExceededValidation: CapExceededValidation,
-        crowdloanNotEndedValidation: CrowdloanNotEndedValidation,
-        contributeExistentialDepositValidation: ContributeExistentialDepositValidation,
+        contributeValidations: @JvmSuppressWildcards Set<ContributeValidation>
     ) = ContributeValidationSystem(
-        validation = CompositeValidation(
-            validations = listOf(
-                contributeEnoughToPayFeesValidation,
-                minContributionValidation,
-                capExceededValidation,
-                crowdloanNotEndedValidation,
-                contributeExistentialDepositValidation
-            )
-        )
+        validation = CompositeValidation(contributeValidations.toList())
     )
 }

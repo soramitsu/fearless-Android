@@ -8,6 +8,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
@@ -137,7 +138,7 @@ class StakingInteractor(
 
         when {
             it.electionStatus == Election.OPEN -> NominatorStatus.Election
-            isNominationActive(nominatorState.stashId, it.eraStakers.values) -> NominatorStatus.Active
+            isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
             nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting
             else -> {
                 val inactiveReason = when {
@@ -153,8 +154,8 @@ class StakingInteractor(
     suspend fun observeNetworkInfoState(networkType: Node.NetworkType): Flow<NetworkInfo> {
         val lockupPeriod = getLockupPeriodInDays(networkType)
 
-        return stakingRepository.observeActiveEraIndex(networkType).map { eraIndex ->
-            val exposures = stakingRepository.getElectedValidatorsExposure(eraIndex).values
+        return stakingRepository.electedExposuresInActiveEra.map { exposuresMap ->
+            val exposures = exposuresMap.values
 
             NetworkInfo(
                 lockupPeriodInDays = lockupPeriod,
@@ -191,7 +192,7 @@ class StakingInteractor(
     }
 
     suspend fun getSelectedNetworkType(): Node.NetworkType {
-        return accountRepository.getSelectedNode().networkType
+        return accountRepository.getSelectedNodeOrDefault().networkType
     }
 
     fun selectedAccountFlow(): Flow<StakingAccount> {
@@ -268,30 +269,23 @@ class StakingInteractor(
             stakingRepository.electionFlow(networkType),
             stakingRepository.observeActiveEraIndex(networkType),
             walletRepository.assetFlow(state.accountAddress, tokenType),
-            stakingRewardsRepository.stakingTotalRewards(state.accountAddress)
+            stakingRewardsRepository.totalRewardFlow(state.accountAddress)
         ) { electionStatus, activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded
 
-            val eraStakers = stakingRepository.getElectedValidatorsExposure(activeEraIndex)
+            val eraStakers = stakingRepository.getActiveElectedValidatorsExposures()
+            val rewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
-            val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, electionStatus, asset)
+            val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, electionStatus, asset, rewardedNominatorsPerValidator)
 
             val status = statusResolver(statusResolutionContext)
 
             StakeSummary(
                 status = status,
                 totalStaked = totalStaked,
-                totalRewards = totalReward.totalReward,
-                currentEra = activeEraIndex.toInt()
+                totalRewards = totalReward,
+                currentEra = activeEraIndex.toInt(),
             )
-        }
-    }
-
-    private fun isNominationActive(stashId: ByteArray, exposures: Collection<Exposure>): Boolean {
-        return exposures.any { exposure ->
-            exposure.others.any {
-                it.who.contentEquals(stashId)
-            }
         }
     }
 
@@ -303,7 +297,7 @@ class StakingInteractor(
 
     @OptIn(ExperimentalTime::class)
     private suspend fun activeNominators(exposures: Collection<Exposure>): Int {
-        val activeNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidatorPrefs()
+        val activeNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
         return exposures.fold(mutableSetOf<String>()) { acc, exposure ->
             acc += exposure.others.sortedByDescending(IndividualExposure::value)
@@ -318,25 +312,6 @@ class StakingInteractor(
         return exposures.sumOf(Exposure::total)
     }
 
-    private fun minimumStake(
-        exposures: Collection<Exposure>,
-        existentialDeposit: BigInteger,
-    ): BigInteger {
-
-        val stakeByNominator = exposures
-            .map(Exposure::others)
-            .flatten()
-            .fold(mutableMapOf<String, BigInteger>()) { acc, individualExposure ->
-                val currentExposure = acc.getOrDefault(individualExposure.who.toHexString(), BigInteger.ZERO)
-
-                acc[individualExposure.who.toHexString()] = currentExposure + individualExposure.value
-
-                acc
-            }
-
-        return stakeByNominator.values.minOrNull()!!.coerceAtLeast(existentialDeposit)
-    }
-
     private suspend fun getLockupPeriodInDays(networkType: Node.NetworkType): Int {
         return stakingConstantsRepository.lockupPeriodInEras().toInt() / networkType.runtimeConfiguration.erasPerDay
     }
@@ -346,5 +321,6 @@ class StakingInteractor(
         val activeEraIndex: BigInteger,
         val electionStatus: Election,
         val asset: Asset,
+        val rewardedNominatorsPerValidator: Int
     )
 }

@@ -19,13 +19,13 @@ interface AccountRepository {
 
     suspend fun getNetworks(): List<Network>
 
-    suspend fun getSelectedNode(): Node
+    suspend fun getSelectedNodeOrDefault(): Node
 
     suspend fun selectNode(node: Node)
 
     suspend fun getDefaultNode(networkType: Node.NetworkType): Node
 
-    suspend fun selectAccount(account: Account)
+    suspend fun selectAccount(account: Account, newNode: Node? = null)
 
     fun selectedAccountFlow(): Flow<Account>
 

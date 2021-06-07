@@ -30,9 +30,10 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsReposi
 import jp.co.soramitsu.feature_staking_impl.data.repository.SubscanPagedSynchronizer
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsSubscanDataSourceImpl
-import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.SubqueryStakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.SubqueryStakingRewardsDataSource
+import jp.co.soramitsu.feature_staking_impl.domain.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
@@ -97,6 +98,7 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideStakingRepository(
         storageCache: StorageCache,
+        accountRepository: AccountRepository,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         bulkRetriever: BulkRetriever,
         accountStakingDao: AccountStakingDao,
@@ -105,6 +107,7 @@ class StakingFeatureModule {
         stakingStoriesDataSource: StakingStoriesDataSource,
     ): StakingRepository = StakingRepositoryImpl(
         storageCache = storageCache,
+        accountRepository = accountRepository,
         runtimeProperty = runtimeProperty,
         accountStakingDao = accountStakingDao,
         bulkRetriever = bulkRetriever,
@@ -140,6 +143,16 @@ class StakingFeatureModule {
         identityRepository,
         walletConstants,
         payoutRepository
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideAlertsInteractor(
+        stakingRepository: StakingRepository,
+        stakingConstantsRepository: StakingConstantsRepository,
+        walletRepository: WalletRepository
+    ) = AlertsInteractor(
+        stakingRepository, stakingConstantsRepository, walletRepository
     )
 
     @Provides

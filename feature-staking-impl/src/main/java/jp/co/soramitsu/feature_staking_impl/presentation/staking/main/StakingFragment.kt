@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
@@ -20,6 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
+import kotlinx.android.synthetic.main.fragment_staking.stakingAlertsInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
@@ -64,7 +66,23 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     }
 
     override fun subscribe(viewModel: StakingViewModel) {
-        viewModel.currentStakingState.observe { stakingState ->
+        observeValidations(viewModel)
+
+        viewModel.alertsFlow.observe { loadingState ->
+            when (loadingState) {
+                is LoadingState.Loaded -> {
+                    stakingAlertsInfo.hideLoading()
+
+                    stakingAlertsInfo.setStatus(loadingState.data)
+                }
+
+                is LoadingState.Loading -> {
+                    stakingAlertsInfo.showLoading()
+                }
+            }
+        }
+
+        viewModel.stakingViewStateFlow.observe { stakingState ->
             startStakingBtn.setVisible(stakingState is WelcomeViewState)
             stakingEstimate.setVisible(stakingState is WelcomeViewState)
             stakingStakeSummary.setVisible(stakingState is StakeViewState<*>)

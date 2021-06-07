@@ -11,11 +11,16 @@ import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.feature_staking_impl.domain.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_REDEEM
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewModel
+import javax.inject.Named
 
 @Module(includes = [ViewModelModule::class])
 class StakingModule {
@@ -41,17 +46,23 @@ class StakingModule {
     @ViewModelKey(StakingViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        alertsInteractor: AlertsInteractor,
         addressIconGenerator: AddressIconGenerator,
         stakingViewStateFactory: StakingViewStateFactory,
         router: StakingRouter,
-        resourceManager: ResourceManager
+        resourceManager: ResourceManager,
+        @Named(SYSTEM_MANAGE_STAKING_REDEEM) redeemValidationSystem: ManageStakingValidationSystem,
+        validationExecutor: ValidationExecutor,
     ): ViewModel {
         return StakingViewModel(
             interactor,
+            alertsInteractor,
             addressIconGenerator,
             stakingViewStateFactory,
             router,
-            resourceManager
+            resourceManager,
+            redeemValidationSystem,
+            validationExecutor
         )
     }
 

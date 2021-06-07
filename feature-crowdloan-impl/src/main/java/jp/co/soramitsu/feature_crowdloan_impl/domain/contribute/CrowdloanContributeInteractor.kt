@@ -73,6 +73,6 @@ class CrowdloanContributeInteractor(
 
         extrinsicService.submitExtrinsic(originAddress) {
             contribute(parachainId, contributionInPlanks)
-        }
+        }.getOrThrow()
     }
 }

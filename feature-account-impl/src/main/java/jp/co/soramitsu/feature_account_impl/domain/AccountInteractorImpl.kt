@@ -138,7 +138,7 @@ class AccountInteractorImpl(
         return accountRepository.getNetworks()
     }
 
-    override suspend fun getSelectedNode() = accountRepository.getSelectedNode()
+    override suspend fun getSelectedNode() = accountRepository.getSelectedNodeOrDefault()
 
     override fun groupedAccountsFlow(): Flow<List<Any>> {
         return accountRepository.accountsFlow()
@@ -148,7 +148,7 @@ class AccountInteractorImpl(
     override suspend fun selectAccount(address: String) {
         val account = accountRepository.getAccount(address)
 
-        selectAccount(account)
+        accountRepository.selectAccount(account)
     }
 
     override suspend fun updateAccountName(account: Account, newName: String) {
@@ -179,13 +179,6 @@ class AccountInteractorImpl(
         if (account.address == newAccount.address) {
             accountRepository.selectAccount(newAccount)
         }
-    }
-
-    private suspend fun selectAccount(account: Account) {
-        val node = accountRepository.getDefaultNode(account.network.type)
-
-        accountRepository.selectNode(node)
-        accountRepository.selectAccount(account)
     }
 
     private suspend fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
@@ -265,7 +258,7 @@ class AccountInteractorImpl(
 
     override suspend fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Pair<List<Account>, Node> {
         val accounts = accountRepository.getAccountsByNetworkType(networkType)
-        val node = accountRepository.getSelectedNode()
+        val node = accountRepository.getSelectedNodeOrDefault()
         return Pair(accounts, node)
     }
 
@@ -273,8 +266,7 @@ class AccountInteractorImpl(
         val account = accountRepository.getAccount(accountAddress)
         val node = accountRepository.getNode(nodeId)
 
-        accountRepository.selectNode(node)
-        accountRepository.selectAccount(account)
+        accountRepository.selectAccount(account, newNode = node)
     }
 
     override suspend fun selectNode(nodeId: Int) {

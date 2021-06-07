@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.domain.rewards
 
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.domain.error.accountIdNotFound
@@ -38,9 +39,7 @@ class RewardCalculatorFactory(
     }
 
     suspend fun create(): RewardCalculator = withContext(Dispatchers.Default) {
-        val activeEraIndex = stakingRepository.getActiveEraIndex()
-
-        val exposures = stakingRepository.getElectedValidatorsExposure(activeEraIndex)
+        val exposures = stakingRepository.getActiveElectedValidatorsExposures()
         val validatorsPrefs = stakingRepository.getValidatorPrefs(exposures.keys.toList())
 
         create(exposures, validatorsPrefs)

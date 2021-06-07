@@ -18,8 +18,8 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.bindFundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
-import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.ParachainMetadataApi
-import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.mapParachainMetadataRemoteToParachainMetadata
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.mapParachainMetadataRemoteToParachainMetadata
 import jp.co.soramitsu.runtime.ext.runtimeCacheName
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +51,7 @@ class CrowdloanRepositoryImpl(
 
     override suspend fun getParachainMetadata(): Map<ParaId, ParachainMetadata> {
         return withContext(Dispatchers.Default) {
-            val networkType = accountRepository.getSelectedNode().networkType
+            val networkType = accountRepository.getSelectedNodeOrDefault().networkType
 
             parachainMetadataApi.getParachainMetadata(networkType.runtimeCacheName())
                 .associateBy { it.paraid }

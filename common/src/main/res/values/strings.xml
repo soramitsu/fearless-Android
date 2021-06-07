@@ -1,5 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_alert_redeem_title">Redeem unbonded tokens.</string>
+
+    <string name="staking_alert_title">Alerts</string>
+    <string name="staking_alert_no_alerts_now">Everything is fine now. Alerts will appear here.</string>
+    <string name="staking_alert_start_next_era">Your staking will start in the next era.</string>
+    <string name="staking_alert_start_next_era_extra_message">Please wait for the next era to start.</string>
+    <string name="staking_alert_election">Staking actions are currently unavailable.</string>
+    <string name="staking_alert_start_election_extra_message">The network is electing validators. Usually it takes less than 10 minutes.</string>
+    <string name="staking_alert_change_validators">Change your validators.</string>
+    <string name="staking_alert_change_validators_extra_message">Staking was inactive. None of your validators were elected by network.</string>
+
+    <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
+    <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
+
+    <string name="referral_code_is_invalid">Referral code is invalid. Please try another one</string>
+    <string name="crowdloan_learn_bonuses">Learn %s\'s bonuses</string>
+
+    <string name="crowdloan_enter_referral">Enter your referral code</string>
+    <string name="crowdloan_agree_with_policy">Agree with Terms and Conditions</string>
+
+    <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
+    <string name="crowdloan_fearless_bonus">Fearless wallet bonus (%s)</string>
+
+    <string name="crowdloan_referral_code">Referral code</string>
+    <string name="crowdloan_apply">Apply</string>
+    <string name="crowdloan_applied">Applied</string>
+
+    <string name="crowdloan_bonus">Bonus</string>
+    <string name="crowdloan_bonus_action">Get a special bonus</string>
+
     <string name="staking_stash_status_inactive">You are neither nominating nor validating.</string>
 
     <string name="crowdloan_too_small_contribution_title">Contribution amount is too small</string>

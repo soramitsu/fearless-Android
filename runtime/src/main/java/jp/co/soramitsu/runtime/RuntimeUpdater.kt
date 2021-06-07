@@ -11,11 +11,14 @@ import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.runtime.ext.runtimeCacheName
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 typealias RuntimeUpdateRetry = suspend () -> RuntimePreparationStatus
 
@@ -34,6 +37,12 @@ class RuntimeUpdater(
 ) : GlobalScopeUpdater {
 
     override val requiredModules: List<String> = emptyList()
+
+    init {
+        accountRepository.selectedNetworkTypeFlow()
+            .onEach { runtimeProperty.invalidate() }
+            .launchIn(GlobalScope)
+    }
 
     override suspend fun listenForUpdates(
         storageSubscriptionBuilder: SubscriptionBuilder
@@ -87,7 +96,7 @@ class RuntimeUpdater(
     private fun errorStatus(): RuntimePreparationStatus.Error = RuntimePreparationStatus.Error(::performUpdate)
 
     private suspend fun getCurrentNetworkName(): String {
-        val networkType = accountRepository.getSelectedNode().networkType
+        val networkType = accountRepository.getSelectedNodeOrDefault().networkType
 
         return networkType.runtimeCacheName()
     }

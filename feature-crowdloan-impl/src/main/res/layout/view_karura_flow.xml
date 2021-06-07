@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:background="@color/black"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <TextView
+        android:id="@+id/karuraFearlessBonusTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constrainedWidth="true"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        app:layout_constraintEnd_toStartOf="@+id/karuraFearlessBonusApply"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@string/crowdloan_fearless_bonus" />
+
+    <TextView
+        android:id="@+id/karuraFearlessBonusApply"
+        style="@style/TextAppearance.Soramitsu.CapsTitle2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/apply_button_background"
+        android:includeFontPadding="false"
+        android:paddingStart="12dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="6dp"
+        android:text="@string/crowdloan_apply"
+        android:textColor="@color/button_text_colors"
+        app:layout_constraintBottom_toBottomOf="@+id/karuraFearlessBonusTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/karuraFearlessBonusTitle" />
+
+    <View
+        android:id="@+id/divider1"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/dividerGray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/karuraFearlessBonusTitle" />
+
+    <jp.co.soramitsu.common.view.InputField
+        android:id="@+id/karuraReferralCodeInput"
+        style="@style/Widget.Fearless.Input.Primary.External"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:hint="@string/crowdloan_referral_code"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/divider1" />
+
+    <jp.co.soramitsu.common.view.TableCellView
+        android:id="@+id/karuraBonus"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        app:layout_constraintEnd_toEndOf="@+id/karuraReferralCodeInput"
+        app:layout_constraintStart_toStartOf="@+id/karuraReferralCodeInput"
+        app:layout_constraintTop_toBottomOf="@+id/karuraReferralCodeInput"
+        app:title="@string/crowdloan_bonus" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/karuraPrivacySwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:checked="true"
+        app:layout_constraintStart_toStartOf="@+id/karuraBonus"
+        app:layout_constraintTop_toBottomOf="@+id/karuraBonus" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:id="@+id/karuraPrivacyText"
+        android:text="@string/crowdloan_privacy_policy"
+        app:layout_constraintBottom_toBottomOf="@+id/karuraPrivacySwitch"
+        app:layout_constraintEnd_toEndOf="@+id/karuraBonus"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/karuraPrivacySwitch"
+        app:layout_constraintTop_toTopOf="@+id/karuraPrivacySwitch" />
+
+    <jp.co.soramitsu.common.view.LearnMoreView
+        android:id="@+id/karuraLearnMore"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/karuraPrivacySwitch" />
+</merge>

@@ -21,7 +21,16 @@ import kotlinx.android.synthetic.main.fragment_redeem.redeemFee
 import kotlinx.android.synthetic.main.fragment_redeem.redeemOriginAccount
 import kotlinx.android.synthetic.main.fragment_redeem.redeemToolbar
 
+private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+
 class RedeemFragment : BaseFragment<RedeemViewModel>() {
+
+    companion object {
+
+        fun getBundle(payload: RedeemPayload) = Bundle().apply {
+            putParcelable(PAYLOAD_KEY, payload)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,12 +56,14 @@ class RedeemFragment : BaseFragment<RedeemViewModel>() {
     }
 
     override fun inject() {
+        val payload = argument<RedeemPayload>(PAYLOAD_KEY)
+
         FeatureUtils.getFeature<StakingFeatureComponent>(
             requireContext(),
             StakingFeatureApi::class.java
         )
             .redeemFactory()
-            .create(this)
+            .create(this, payload)
             .inject(this)
     }
 

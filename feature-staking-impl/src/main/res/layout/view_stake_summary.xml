@@ -17,7 +17,7 @@
 
         <TextView
             android:id="@+id/stakeSummaryTitle"
-            style="@style/TextAppearance.Soramitsu.Header5"
+            style="@style/TextAppearance.Soramitsu.Body1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"

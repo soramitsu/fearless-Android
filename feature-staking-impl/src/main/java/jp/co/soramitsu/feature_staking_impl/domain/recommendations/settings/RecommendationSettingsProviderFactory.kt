@@ -13,7 +13,7 @@ class RecommendationSettingsProviderFactory(
         if (instance != null) return instance!!
 
         instance = RecommendationSettingsProvider(
-            maximumRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidatorPrefs(),
+            maximumRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(),
             maximumValidatorsPerNominator = stakingConstantsRepository.maxValidatorsPerNominator()
         )
 
