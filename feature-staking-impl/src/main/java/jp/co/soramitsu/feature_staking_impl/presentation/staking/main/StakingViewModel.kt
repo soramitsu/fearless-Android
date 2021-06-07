@@ -16,9 +16,9 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.Alert
-import jp.co.soramitsu.feature_staking_impl.domain.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.alerts.Alert
+import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
@@ -47,6 +47,7 @@ import java.math.BigDecimal
 private const val CURRENT_ICON_SIZE = 40
 
 private val WARNING_ICON = R.drawable.ic_warning_filled
+private val WAITING_ICON = R.drawable.ic_time_24
 
 class StakingViewModel(
     private val interactor: StakingInteractor,
@@ -115,10 +116,10 @@ class StakingViewModel(
         return when (alert) {
             Alert.Election -> {
                 AlertModel(
-                    R.drawable.ic_time_24,
+                    WAITING_ICON,
                     resourceManager.getString(R.string.staking_alert_election),
                     resourceManager.getString(R.string.staking_alert_election_message),
-                    AlertModel.Type.Warning
+                    AlertModel.Type.Info
                 )
             }
             Alert.ChangeValidators -> {
@@ -147,6 +148,12 @@ class StakingViewModel(
                     AlertModel.Type.CallToAction(::bondMoreAlertClicked)
                 )
             }
+            is Alert.WaitingForNextEra -> AlertModel(
+                WAITING_ICON,
+                resourceManager.getString(R.string.staking_nominator_status_alert_waiting_message),
+                resourceManager.getString(R.string.staking_alert_start_next_era_message),
+                AlertModel.Type.Info
+            )
         }
     }
 
