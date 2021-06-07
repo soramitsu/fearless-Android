@@ -51,7 +51,7 @@ class AlertsInteractor(
         }
     }
 
-    private fun AlertContext.isNominationActive(stashId: AccountId) = useMemo(NOMINATIONS_ACTIVE_MEMO) {
+    private fun AlertContext.isStakingActive(stashId: AccountId) = useMemo(NOMINATIONS_ACTIVE_MEMO) {
         isNominationActive(stashId, exposures.values, maxRewardedNominatorsPerValidator)
     }
 
@@ -63,7 +63,7 @@ class AlertsInteractor(
         return requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
             Alert.ChangeValidators.takeIf {
                 // staking is inactive and there is no pending change
-                context.isNominationActive(nominatorState.stashId).not() && nominatorState.nominations.isWaiting(context.activeEra).not()
+                context.isStakingActive(nominatorState.stashId).not() && nominatorState.nominations.isWaiting(context.activeEra).not()
             }
         }
     }
@@ -90,7 +90,7 @@ class AlertsInteractor(
 
     private fun produceWaitingNextEraAlert(context: AlertContext) = requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
         Alert.WaitingForNextEra.takeIf {
-            val isStakingActive = context.isNominationActive(nominatorState.stashId)
+            val isStakingActive = context.isStakingActive(nominatorState.stashId)
 
             // staking is inactive and there is pending change
             isStakingActive.not() && nominatorState.nominations.isWaiting(context.activeEra)
