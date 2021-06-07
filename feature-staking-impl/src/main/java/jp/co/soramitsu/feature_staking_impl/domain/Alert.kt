@@ -7,6 +7,8 @@ sealed class Alert {
 
     class RedeemTokens(val amount: BigDecimal, val token: Token) : Alert()
 
+    class BondMoreTokens(val minimalStake: BigDecimal, val token: Token) : Alert()
+
     object ChangeValidators : Alert()
 
     object Election : Alert()

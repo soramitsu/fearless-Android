@@ -25,11 +25,13 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageSta
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.manageStakingActionValidationFailure
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.cancelChildren
@@ -40,6 +42,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -53,6 +56,7 @@ class StakingViewModel(
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
     private val redeemValidationSystem: ManageStakingValidationSystem,
+    private val bondMoreValidationSystem: ManageStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
 ) : BaseViewModel(),
     Validatable by validationExecutor {
@@ -104,6 +108,7 @@ class StakingViewModel(
     val alertsFlow = stakingState
         .withLoading(alertsInteractor::getAlertsFlow)
         .map { loadingState -> loadingState.map { alerts -> alerts.map(::mapAlertToAlertModel) } }
+        .inBackground()
         .asLiveData()
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {
@@ -112,7 +117,7 @@ class StakingViewModel(
                 AlertModel(
                     R.drawable.ic_time_24,
                     resourceManager.getString(R.string.staking_alert_election),
-                    resourceManager.getString(R.string.staking_alert_start_election_extra_message),
+                    resourceManager.getString(R.string.staking_alert_election_message),
                     AlertModel.Type.Warning
                 )
             }
@@ -120,43 +125,68 @@ class StakingViewModel(
                 AlertModel(
                     WARNING_ICON,
                     resourceManager.getString(R.string.staking_alert_change_validators),
-                    resourceManager.getString(R.string.staking_alert_change_validators_extra_message),
+                    resourceManager.getString(R.string.staking_alert_change_validators_message),
                     AlertModel.Type.CallToAction { router.openCurrentValidators() }
                 )
             }
             is Alert.RedeemTokens -> {
-                val formattedFiat = alert.token.fiatAmount(alert.amount)?.formatAsCurrency()
-                val formattedAmount = alert.amount.formatTokenAmount(alert.token.type)
-
-                val extraMessage = buildString {
-                    append(formattedAmount)
-
-                    formattedFiat?.let {
-                        append(" ($it)")
-                    }
-                }
-
                 AlertModel(
                     WARNING_ICON,
                     resourceManager.getString(R.string.staking_alert_redeem_title),
-                    extraMessage,
+                    formatAlertTokenAmount(alert.amount, alert.token),
                     AlertModel.Type.CallToAction(::redeemAlertClicked)
+                )
+            }
+            is Alert.BondMoreTokens -> {
+                val existentialDepositDisplay = formatAlertTokenAmount(alert.minimalStake, alert.token)
+
+                AlertModel(
+                    WARNING_ICON,
+                    resourceManager.getString(R.string.staking_alert_bond_more_title),
+                    resourceManager.getString(R.string.staking_alert_bond_more_message, existentialDepositDisplay),
+                    AlertModel.Type.CallToAction(::bondMoreAlertClicked)
                 )
             }
         }
     }
 
-    private fun redeemAlertClicked() = launch {
+    private fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {
+        val formattedFiat = token.fiatAmount(amount)?.formatAsCurrency()
+        val formattedAmount = amount.formatTokenAmount(token.type)
+
+        return buildString {
+            append(formattedAmount)
+
+            formattedFiat?.let {
+                append(" ($it)")
+            }
+        }
+    }
+
+    private fun bondMoreAlertClicked() = requireValidManageStakingAction(bondMoreValidationSystem) {
+        val bondMorePayload = SelectBondMorePayload(overrideFinishAction = StakingRouter::returnToMain)
+
+        router.openBondMore(bondMorePayload)
+    }
+
+    private fun redeemAlertClicked() = requireValidManageStakingAction(redeemValidationSystem) {
+        val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back)
+
+        router.openRedeem(redeemPayload)
+    }
+
+    private fun requireValidManageStakingAction(
+        validationSystem: ManageStakingValidationSystem,
+        action: () -> Unit,
+    ) = launch {
         val stashState = stakingState.first() as? StakingState.Stash ?: return@launch
 
         validationExecutor.requireValid(
-            redeemValidationSystem,
+            validationSystem,
             ManageStakingValidationPayload(stashState),
             validationFailureTransformer = { manageStakingActionValidationFailure(it, resourceManager) }
         ) {
-            val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back)
-
-            router.openRedeem(redeemPayload)
+            action()
         }
     }
 

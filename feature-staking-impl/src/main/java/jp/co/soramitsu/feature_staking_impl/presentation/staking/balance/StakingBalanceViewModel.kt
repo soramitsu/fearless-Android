@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.UnbondingModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
@@ -82,7 +83,7 @@ class StakingBalanceViewModel(
     val showRebondActionsEvent: LiveData<Event<Unit>> = _showRebondActionsEvent
 
     fun bondMoreClicked() = requireValidManageAction(bondMoreValidationSystem) {
-        router.openBondMore()
+        router.openBondMore(SelectBondMorePayload(overrideFinishAction = null))
     }
 
     fun unbondClicked() = requireValidManageAction(unbondValidationSystem) {

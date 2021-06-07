@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
@@ -37,7 +38,7 @@ interface StakingRouter {
 
     fun openStakingBalance()
 
-    fun openBondMore()
+    fun openBondMore(payload: SelectBondMorePayload)
 
     fun openConfirmBondMore(payload: ConfirmBondMorePayload)
 

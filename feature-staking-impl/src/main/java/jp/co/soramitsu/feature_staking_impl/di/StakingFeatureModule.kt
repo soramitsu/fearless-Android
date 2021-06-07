@@ -150,9 +150,10 @@ class StakingFeatureModule {
     fun provideAlertsInteractor(
         stakingRepository: StakingRepository,
         stakingConstantsRepository: StakingConstantsRepository,
-        walletRepository: WalletRepository
+        walletRepository: WalletRepository,
+        walletConstants: WalletConstants
     ) = AlertsInteractor(
-        stakingRepository, stakingConstantsRepository, walletRepository
+        stakingRepository, stakingConstantsRepository, walletRepository, walletConstants
     )
 
     @Provides

@@ -45,6 +45,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDe
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMoreFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
@@ -200,8 +202,8 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_stakingBalanceFragment)
     }
 
-    override fun openBondMore() {
-        navController?.navigate(R.id.action_stakingBalanceFragment_to_selectBondMoreFragment)
+    override fun openBondMore(payload: SelectBondMorePayload) {
+        navController?.navigate(R.id.action_open_selectBondMoreFragment, SelectBondMoreFragment.getBundle(payload))
     }
 
     override fun openConfirmBondMore(payload: ConfirmBondMorePayload) {
