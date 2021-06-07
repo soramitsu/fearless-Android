@@ -48,6 +48,7 @@ class SelectBondMoreViewModel(
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: BondMoreValidationSystem,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    private val payload: SelectBondMorePayload,
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin {
@@ -143,7 +144,8 @@ class SelectBondMoreViewModel(
         val confirmPayload = ConfirmBondMorePayload(
             amount = validationPayload.amount,
             fee = validationPayload.fee,
-            stashAddress = validationPayload.stashAddress
+            stashAddress = validationPayload.stashAddress,
+            overrideFinishAction = payload.overrideFinishAction
         )
 
         router.openConfirmBondMore(confirmPayload)

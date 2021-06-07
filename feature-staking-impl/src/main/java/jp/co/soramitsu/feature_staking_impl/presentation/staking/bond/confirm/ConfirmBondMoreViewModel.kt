@@ -121,9 +121,14 @@ class ConfirmBondMoreViewModel(
         if (result.isSuccess) {
             showMessage(resourceManager.getString(R.string.common_transaction_submitted))
 
-            router.returnToStakingBalance()
+            finishFlow()
         } else {
             showError(result.requireException())
         }
+    }
+
+    private fun finishFlow() = when {
+        payload.overrideFinishAction != null -> payload.overrideFinishAction.invoke(router)
+        else -> router.returnToStakingBalance()
     }
 }
