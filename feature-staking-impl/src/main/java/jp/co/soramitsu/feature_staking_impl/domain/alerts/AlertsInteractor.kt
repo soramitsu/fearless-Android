@@ -61,8 +61,9 @@ class AlertsInteractor(
 
     private fun produceChangeValidatorsAlert(context: AlertContext): Alert? {
         return requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
-            Alert.ChangeValidators.takeUnless {
-                context.isNominationActive(nominatorState.stashId)
+            Alert.ChangeValidators.takeIf {
+                // if staking is inactive and there is no pending change
+                context.isNominationActive(nominatorState.stashId).not() && nominatorState.nominations.isWaiting(context.activeEra).not()
             }
         }
     }
