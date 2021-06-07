@@ -58,6 +58,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -229,7 +230,13 @@ class StakingRepositoryImpl(
 
         accountRepository.selectedNetworkTypeFlow()
             .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on network change
-            .flatMapLatest(::observeActiveEraIndex)
+            .flatMapLatest { networkType ->
+                runtimeProperty.observe()
+                    .filter { it.metadata.hasModule(Modules.STAKING) } // check that staking is supported
+                    .flatMapLatest { runtime ->
+                        storageCache.observeActiveEraIndex(runtime, networkType)
+                    }
+            }
             .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on era change
             .mapLatest(::getElectedValidatorsExposure)
             .onEach(exposuresFlow::emit)
