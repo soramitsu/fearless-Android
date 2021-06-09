@@ -10,7 +10,7 @@ fun additionalSubmission(
     customFlow: String,
     amount: BigDecimal,
     contributeManager: CustomContributeManager
-) : AdditionalOnChainSubmission {
+): AdditionalOnChainSubmission {
     val submitter = contributeManager.getSubmitter(customFlow)
 
     return {

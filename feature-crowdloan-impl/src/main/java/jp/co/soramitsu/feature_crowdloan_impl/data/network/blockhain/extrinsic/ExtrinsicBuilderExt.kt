@@ -16,7 +16,7 @@ fun ExtrinsicBuilder.contribute(parachainId: ParaId, contribution: BigInteger): 
     )
 }
 
-fun ExtrinsicBuilder.addMemo(parachainId: ParaId, memo: String) : ExtrinsicBuilder {
+fun ExtrinsicBuilder.addMemo(parachainId: ParaId, memo: String): ExtrinsicBuilder {
     return call(
         moduleName = "Crowdloan",
         callName = "add_memo",

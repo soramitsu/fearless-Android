@@ -8,7 +8,6 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.contribute
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateRepository
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeSubmitter
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
