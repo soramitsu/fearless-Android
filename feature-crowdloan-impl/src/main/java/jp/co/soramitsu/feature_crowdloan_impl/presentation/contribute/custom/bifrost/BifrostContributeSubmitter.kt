@@ -10,9 +10,9 @@ class BifrostContributeSubmitter(
     private val interactor: BifrostContributeInteractor
 ) : CustomContributeSubmitter {
 
-    override suspend fun addOnChainSubmission(payload: BonusPayload, amount: BigDecimal, extrinsicBuilder: ExtrinsicBuilder) {
+    override suspend fun submitOnChain(payload: BonusPayload, amount: BigDecimal, extrinsicBuilder: ExtrinsicBuilder) {
         require(payload is BifrostBonusPayload)
 
-        interactor.addOnChainSubmission(payload.parachainId, payload.referralCode, extrinsicBuilder)
+        interactor.submitOnChain(payload.parachainId, payload.referralCode, extrinsicBuilder)
     }
 }

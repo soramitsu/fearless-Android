@@ -10,7 +10,7 @@ class BifrostContributeInteractor(
     val fearlessReferralCode: String
 ) {
 
-    suspend fun addOnChainSubmission(
+    suspend fun submitOnChain(
         paraId: ParaId,
         referralCode: String,
         extrinsicBuilder: ExtrinsicBuilder

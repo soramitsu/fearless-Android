@@ -22,7 +22,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.Cont
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additionalSubmission
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additionalOnChainSubmission
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
@@ -240,7 +240,7 @@ class CrowdloanContributeViewModel(
             coroutineScope = viewModelScope,
             feeConstructor = { asset ->
                 val additionalSubmission = bonusActiveState?.let {
-                    additionalSubmission(it.payload, it.customFlow, amount, customContributeManager)
+                    additionalOnChainSubmission(it.payload, it.customFlow, amount, customContributeManager)
                 }
 
                 contributionInteractor.estimateFee(payload.paraId, amount, asset.token, additionalSubmission)

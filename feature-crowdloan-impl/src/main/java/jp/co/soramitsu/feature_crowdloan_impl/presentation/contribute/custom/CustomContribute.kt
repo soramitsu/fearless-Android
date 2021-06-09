@@ -33,7 +33,7 @@ abstract class CustomContributeView @JvmOverloads constructor(
 
 interface CustomContributeSubmitter {
 
-    suspend fun addOnChainSubmission(
+    suspend fun submitOnChain(
         payload: BonusPayload,
         amount: BigDecimal,
         extrinsicBuilder: ExtrinsicBuilder
@@ -41,7 +41,7 @@ interface CustomContributeSubmitter {
         // do nothing by default
     }
 
-    suspend fun submitExternal(
+    suspend fun submitOffChain(
         payload: BonusPayload,
         amount: BigDecimal
     ): Result<Unit> {

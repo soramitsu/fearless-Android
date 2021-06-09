@@ -5,7 +5,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.AdditionalOnChai
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
 import java.math.BigDecimal
 
-fun additionalSubmission(
+fun additionalOnChainSubmission(
     bonusPayload: BonusPayload,
     customFlow: String,
     amount: BigDecimal,
@@ -14,6 +14,6 @@ fun additionalSubmission(
     val submitter = contributeManager.getSubmitter(customFlow)
 
     return {
-        submitter.addOnChainSubmission(bonusPayload, amount, this)
+        submitter.submitOnChain(bonusPayload, amount, this)
     }
 }
