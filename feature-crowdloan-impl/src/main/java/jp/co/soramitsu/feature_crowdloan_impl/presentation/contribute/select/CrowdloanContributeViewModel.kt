@@ -189,7 +189,7 @@ class CrowdloanContributeViewModel(
         CrowdloanDetailsModel(
             leasePeriod = resourceManager.formatDuration(crowdloan.leasePeriodInMillis),
             leasedUntil = resourceManager.formatDate(crowdloan.leasedUntilInMillis),
-            raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
+            raised = resourceManager.getString(R.string.crowdloan_raised_amount, raisedDisplay, capDisplay),
             timeLeft = timeLeft,
             raisedPercentage = crowdloan.raisedFraction.fractionToPercentage().formatAsPercentage()
         )
