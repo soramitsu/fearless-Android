@@ -9,12 +9,14 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ref
 class BifrostContributeViewState(
     interactor: BifrostContributeInteractor,
     customContributePayload: CustomContributePayload,
-    resourceManager: ResourceManager
+    resourceManager: ResourceManager,
+    termsLink: String
 ) : ReferralContributeViewState(
     customContributePayload = customContributePayload,
     resourceManager = resourceManager,
     fearlessReferralCode = interactor.fearlessReferralCode,
-    bonusPercentage = BIFROST_BONUS_MULTIPLIER
+    bonusPercentage = BIFROST_BONUS_MULTIPLIER,
+    termsUrl = termsLink
 ) {
 
     override fun createBonusPayload(referralCode: String): BonusPayload {

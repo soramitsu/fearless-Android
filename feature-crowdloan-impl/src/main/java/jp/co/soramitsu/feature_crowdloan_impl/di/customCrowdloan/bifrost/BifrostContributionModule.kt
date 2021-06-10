@@ -30,5 +30,10 @@ class BifrostContributionModule {
         submitter: BifrostContributeSubmitter,
         karuraInteractor: BifrostContributeInteractor,
         resourceManager: ResourceManager
-    ): CustomContributeFactory = BifrostContributeFactory(submitter, karuraInteractor, resourceManager)
+    ): CustomContributeFactory = BifrostContributeFactory(
+        submitter,
+        karuraInteractor,
+        resourceManager,
+        BuildConfig.BIFROST_TERMS_LINKS
+    )
 }

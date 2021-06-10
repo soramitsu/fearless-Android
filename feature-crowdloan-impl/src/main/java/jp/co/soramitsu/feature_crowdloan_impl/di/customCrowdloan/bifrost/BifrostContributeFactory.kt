@@ -13,13 +13,14 @@ import kotlinx.coroutines.CoroutineScope
 class BifrostContributeFactory(
     override val submitter: BifrostContributeSubmitter,
     private val interactor: BifrostContributeInteractor,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val termsLink: String
 ) : CustomContributeFactory {
 
     override val flowType = "Bifrost"
 
     override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): BifrostContributeViewState {
-        return BifrostContributeViewState(interactor, payload, resourceManager)
+        return BifrostContributeViewState(interactor, payload, resourceManager, termsLink)
     }
 
     override fun createView(context: Context) = ReferralContributeView(context)
