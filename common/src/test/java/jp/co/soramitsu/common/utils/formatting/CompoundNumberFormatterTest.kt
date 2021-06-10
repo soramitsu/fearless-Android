@@ -14,6 +14,7 @@ class CompoundNumberFormatterTest {
         testFormatter(formatter, "0.315", "0.315000041811")
         testFormatter(formatter, "0.99999", "0.99999999999")
         testFormatter(formatter, "999.99999", "999.99999999")
+        testFormatter(formatter, "1M", "1000000")
         testFormatter(formatter, "888,888.12", "888888.1234")
         testFormatter(formatter, "1.24M", "1243000")
         testFormatter(formatter, "1.24M", "1243011")

@@ -8,7 +8,7 @@
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
     <TextView
-        android:id="@+id/karuraFearlessBonusTitle"
+        android:id="@+id/referralFearlessBonusTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -16,14 +16,14 @@
         android:layout_marginEnd="16dp"
         app:layout_constrainedWidth="true"
         style="@style/TextAppearance.Soramitsu.Body1"
-        app:layout_constraintEnd_toStartOf="@+id/karuraFearlessBonusApply"
+        app:layout_constraintEnd_toStartOf="@+id/referralFearlessBonusApply"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="@string/crowdloan_fearless_bonus" />
 
     <TextView
-        android:id="@+id/karuraFearlessBonusApply"
+        android:id="@+id/referralFearlessBonusApply"
         style="@style/TextAppearance.Soramitsu.CapsTitle2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -36,9 +36,9 @@
         android:paddingBottom="6dp"
         android:text="@string/crowdloan_apply"
         android:textColor="@color/button_text_colors"
-        app:layout_constraintBottom_toBottomOf="@+id/karuraFearlessBonusTitle"
+        app:layout_constraintBottom_toBottomOf="@+id/referralFearlessBonusTitle"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/karuraFearlessBonusTitle" />
+        app:layout_constraintTop_toTopOf="@+id/referralFearlessBonusTitle" />
 
     <View
         android:id="@+id/divider1"
@@ -50,10 +50,10 @@
         android:background="@color/dividerGray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/karuraFearlessBonusTitle" />
+        app:layout_constraintTop_toBottomOf="@id/referralFearlessBonusTitle" />
 
     <jp.co.soramitsu.common.view.InputField
-        android:id="@+id/karuraReferralCodeInput"
+        android:id="@+id/referralReferralCodeInput"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -66,43 +66,44 @@
         app:layout_constraintTop_toBottomOf="@+id/divider1" />
 
     <jp.co.soramitsu.common.view.TableCellView
-        android:id="@+id/karuraBonus"
+        android:id="@+id/referralBonus"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="18dp"
-        app:layout_constraintEnd_toEndOf="@+id/karuraReferralCodeInput"
-        app:layout_constraintStart_toStartOf="@+id/karuraReferralCodeInput"
-        app:layout_constraintTop_toBottomOf="@+id/karuraReferralCodeInput"
+        app:layout_constraintEnd_toEndOf="@+id/referralReferralCodeInput"
+        app:layout_constraintStart_toStartOf="@+id/referralReferralCodeInput"
+        app:layout_constraintTop_toBottomOf="@+id/referralReferralCodeInput"
         app:title="@string/crowdloan_bonus" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/karuraPrivacySwitch"
+        android:id="@+id/referralPrivacySwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:checked="true"
-        app:layout_constraintStart_toStartOf="@+id/karuraBonus"
-        app:layout_constraintTop_toBottomOf="@+id/karuraBonus" />
+        app:layout_constraintStart_toStartOf="@+id/referralBonus"
+        app:layout_constraintTop_toBottomOf="@+id/referralBonus" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:id="@+id/karuraPrivacyText"
+        android:id="@+id/referralPrivacyText"
+        app:layout_constrainedWidth="true"
         android:text="@string/crowdloan_privacy_policy"
-        app:layout_constraintBottom_toBottomOf="@+id/karuraPrivacySwitch"
-        app:layout_constraintEnd_toEndOf="@+id/karuraBonus"
+        app:layout_constraintBottom_toBottomOf="@+id/referralPrivacySwitch"
+        app:layout_constraintEnd_toEndOf="@+id/referralBonus"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/karuraPrivacySwitch"
-        app:layout_constraintTop_toTopOf="@+id/karuraPrivacySwitch" />
+        app:layout_constraintStart_toEndOf="@+id/referralPrivacySwitch"
+        app:layout_constraintTop_toTopOf="@+id/referralPrivacySwitch" />
 
     <jp.co.soramitsu.common.view.LearnMoreView
-        android:id="@+id/karuraLearnMore"
+        android:id="@+id/referralLearnMore"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/karuraPrivacySwitch" />
+        app:layout_constraintTop_toBottomOf="@+id/referralPrivacySwitch" />
 </merge>

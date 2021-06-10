@@ -14,6 +14,8 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         buildConfigField "String", "KARURA_FEALRESS_REFERRAL", "\"0x9642d0db9f3b301b44df74b63b0b930011e3f52154c5ca24b4dc67b3c7322f15\""
+        buildConfigField "String", "BIFROST_FEALRESS_REFERRAL", "\"FRLS69\""
+        buildConfigField "String", "BIFROST_TERMS_LINKS", "\"https://docs.google.com/document/d/1PDpgHnIcAmaa7dEFusmLYgjlvAbk2VKtMd755bdEsf4\""
     }
 
     buildTypes {

@@ -22,7 +22,7 @@ class CompoundNumberFormatter(
     }
 
     override fun format(number: BigDecimal): String {
-        val lastAbbreviationMatching = abbreviations.lastOrNull { number > it.threshold } ?: abbreviations.first()
+        val lastAbbreviationMatching = abbreviations.lastOrNull { number >= it.threshold } ?: abbreviations.first()
 
         val scaled = number.divide(lastAbbreviationMatching.divisor, MathContext.UNLIMITED)
 

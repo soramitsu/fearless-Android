@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
@@ -18,6 +19,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+
+typealias AdditionalOnChainSubmission = suspend ExtrinsicBuilder.() -> Unit
 
 class CrowdloanContributeInteractor(
     private val extrinsicService: ExtrinsicService,
@@ -52,12 +55,15 @@ class CrowdloanContributeInteractor(
     suspend fun estimateFee(
         parachainId: ParaId,
         contribution: BigDecimal,
-        token: Token
+        token: Token,
+        additional: AdditionalOnChainSubmission?
     ) = withContext(Dispatchers.Default) {
         val contributionInPlanks = token.planksFromAmount(contribution)
 
         val feeInPlanks = feeEstimator.estimateFee(accountRepository.getSelectedAccount().address) {
             contribute(parachainId, contributionInPlanks)
+
+            additional?.invoke(this)
         }
 
         token.amountFromPlanks(feeInPlanks)
@@ -67,12 +73,15 @@ class CrowdloanContributeInteractor(
         originAddress: String,
         parachainId: ParaId,
         contribution: BigDecimal,
-        token: Token
+        token: Token,
+        additional: AdditionalOnChainSubmission?
     ) = withContext(Dispatchers.Default) {
         val contributionInPlanks = token.planksFromAmount(contribution)
 
         extrinsicService.submitExtrinsic(originAddress) {
             contribute(parachainId, contributionInPlanks)
+
+            additional?.invoke(this)
         }.getOrThrow()
     }
 }

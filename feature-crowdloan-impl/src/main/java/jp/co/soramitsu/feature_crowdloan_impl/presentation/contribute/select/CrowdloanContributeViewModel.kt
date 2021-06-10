@@ -22,6 +22,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.Cont
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additionalOnChainSubmission
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
@@ -57,7 +58,7 @@ sealed class CustomContributionState {
 
     object NotSupported : CustomContributionState()
 
-    class Active(val payload: BonusPayload, val tokenName: String)
+    class Active(val customFlow: String, val payload: BonusPayload, val tokenName: String)
 
     object Inactive : CustomContributionState()
 }
@@ -106,7 +107,11 @@ class CrowdloanContributeViewModel(
             emit(CustomContributionState.Inactive)
 
             val source = router.customBonusFlow.map {
-                if (it != null) CustomContributionState.Active(it, parachainMetadata!!.token) else CustomContributionState.Inactive
+                if (it != null) {
+                    CustomContributionState.Active(customFlow, it, parachainMetadata!!.token)
+                } else {
+                    CustomContributionState.Inactive
+                }
             }
 
             emitAll(source)
@@ -184,7 +189,7 @@ class CrowdloanContributeViewModel(
         CrowdloanDetailsModel(
             leasePeriod = resourceManager.formatDuration(crowdloan.leasePeriodInMillis),
             leasedUntil = resourceManager.formatDate(crowdloan.leasedUntilInMillis),
-            raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
+            raised = resourceManager.getString(R.string.crowdloan_raised_amount, raisedDisplay, capDisplay),
             timeLeft = timeLeft,
             raisedPercentage = crowdloan.raisedFraction.fractionToPercentage().formatAsPercentage()
         )
@@ -219,17 +224,26 @@ class CrowdloanContributeViewModel(
 
     @OptIn(ExperimentalTime::class)
     private fun listenFee() {
-        parsedAmountFlow
-            .debounce(DEBOUNCE_DURATION_MILLIS.milliseconds)
-            .onEach { loadFee(it) }
+        combine(
+            parsedAmountFlow.debounce(DEBOUNCE_DURATION_MILLIS.milliseconds),
+            customContributionFlow,
+            ::Pair
+        )
+            .onEach { (amount, bonusState) ->
+                loadFee(amount, bonusState as? CustomContributionState.Active)
+            }
             .launchIn(viewModelScope)
     }
 
-    private fun loadFee(amount: BigDecimal) {
+    private fun loadFee(amount: BigDecimal, bonusActiveState: CustomContributionState.Active?) {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
             feeConstructor = { asset ->
-                contributionInteractor.estimateFee(payload.paraId, amount, asset.token)
+                val additionalSubmission = bonusActiveState?.let {
+                    additionalOnChainSubmission(it.payload, it.customFlow, amount, customContributeManager)
+                }
+
+                contributionInteractor.estimateFee(payload.paraId, amount, asset.token, additionalSubmission)
             },
             onRetryCancelled = ::backClicked
         )
