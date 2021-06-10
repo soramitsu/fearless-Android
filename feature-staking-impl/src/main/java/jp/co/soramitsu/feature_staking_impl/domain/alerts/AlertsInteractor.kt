@@ -64,7 +64,7 @@ class AlertsInteractor(
             Alert.ChangeValidators.takeIf {
                 // staking is inactive
                 context.isStakingActive(nominatorState.stashId).not() &&
-                    //there is no pending change
+                    // there is no pending change
                     nominatorState.nominations.isWaiting(context.activeEra).not() &&
                     // election is closed
                     context.election == Election.CLOSED
