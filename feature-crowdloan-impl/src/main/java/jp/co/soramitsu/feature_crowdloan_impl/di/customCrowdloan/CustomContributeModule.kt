@@ -3,11 +3,13 @@ package jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.bifrost.BifrostContributionModule
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.karura.KaruraContributionModule
 
 @Module(
     includes = [
-        KaruraContributionModule::class
+        KaruraContributionModule::class,
+        BifrostContributionModule::class
     ]
 )
 class CustomContributeModule {

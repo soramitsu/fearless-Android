@@ -9,7 +9,7 @@ class KaruraContributeSubmitter(
     private val interactor: KaruraContributeInteractor
 ) : CustomContributeSubmitter {
 
-    override suspend fun submit(
+    override suspend fun submitOffChain(
         payload: BonusPayload,
         amount: BigDecimal
     ): Result<Unit> {

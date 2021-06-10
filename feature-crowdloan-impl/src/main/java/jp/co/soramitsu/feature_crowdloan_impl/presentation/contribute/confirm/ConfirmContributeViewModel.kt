@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContrib
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additionalOnChainSubmission
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.model.LeasePeriodModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
@@ -149,17 +150,22 @@ class ConfirmContributeViewModel(
                 val metadata = payload.metadata!!
 
                 customContributeManager.getSubmitter(metadata.customFlow!!)
-                    .submit(payload.bonusPayload, payload.amount)
+                    .submitOffChain(payload.bonusPayload, payload.amount)
             } else {
                 Result.success(Unit)
             }
 
             customSubmissionResult.mapCatching {
+                val additionalSubmission = payload.bonusPayload?.let {
+                    additionalOnChainSubmission(it, payload.metadata!!.customFlow!!, payload.amount, customContributeManager)
+                }
+
                 contributionInteractor.contribute(
                     originAddress = selectedAddressModelFlow.first().address,
                     parachainId = payload.paraId,
                     contribution = payload.amount,
-                    token = assetFlow.first().token
+                    token = assetFlow.first().token,
+                    additionalSubmission
                 )
             }
                 .onFailure(::showError)
