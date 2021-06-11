@@ -3,8 +3,8 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ka
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.karura.KaruraContributeInteractor
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeViewState
 
 class KaruraContributeViewState(
@@ -18,13 +18,11 @@ class KaruraContributeViewState(
     bonusPercentage = KARURA_BONUS_MULTIPLIER
 ) {
 
-    override fun createBonusPayload(referralCode: String): BonusPayload {
+    override fun createBonusPayload(referralCode: String): ReferralCodePayload {
         return KaruraBonusPayload(referralCode, customContributePayload.parachainMetadata.rewardRate)
     }
 
-    override suspend fun validatePayload(payload: BonusPayload) {
-        require(payload is KaruraBonusPayload)
-
+    override suspend fun validatePayload(payload: ReferralCodePayload) {
         val isReferralValid = interactor.isReferralValid(payload.referralCode)
 
         if (!isReferralValid) throw IllegalArgumentException(resourceManager.getString(R.string.referral_code_is_invalid))
