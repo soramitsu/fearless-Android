@@ -50,8 +50,6 @@ class CrowdloanViewModel(
     }
 
     private val groupedCrowdloansFlow = interactor.crowdloansFlow()
-        .onStart { Log.d("RX", "started collecting crowdloans") }
-        .onEach { Log.d("RX", "received crowdloans") }
         .inBackground()
         .share()
 
