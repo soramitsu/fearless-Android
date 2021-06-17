@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
@@ -34,6 +35,8 @@ class CrowdloanContributeInteractor(
         parachainId: ParaId,
         parachainMetadata: ParachainMetadata? = null
     ): Flow<Crowdloan> = accountRepository.selectedNetworkTypeFlow().flatMapLatest {
+        val accountAddress = accountRepository.getSelectedAccount().address
+
         val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis()
         val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod()
 
@@ -41,13 +44,16 @@ class CrowdloanContributeInteractor(
             crowdloanRepository.fundInfoFlow(parachainId, it),
             chainStateRepository.currentBlockNumberFlow(it)
         ) { fundInfo, blockNumber ->
+            val contribution = crowdloanRepository.getContribution(accountAddress.toAccountId(), parachainId, fundInfo.trieIndex)
+
             mapFundInfoToCrowdloan(
                 fundInfo = fundInfo,
                 parachainMetadata = parachainMetadata,
                 parachainId = parachainId,
                 currentBlockNumber = blockNumber,
                 expectedBlockTimeInMillis = expectedBlockTime,
-                blocksPerLeasePeriod = blocksPerLeasePeriod
+                blocksPerLeasePeriod = blocksPerLeasePeriod,
+                contribution = contribution
             )
         }
     }

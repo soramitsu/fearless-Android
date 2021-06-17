@@ -5,8 +5,11 @@ import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinder
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.flow.Flow
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
 
 typealias StorageKey = String
+typealias ChildKeyBuilder = OutputStream.(RuntimeSnapshot) -> Unit
 
 interface StorageDataSource {
 
@@ -31,6 +34,12 @@ interface StorageDataSource {
         keyExtractor: (String) -> K,
         binding: Binder<T>,
     ): Map<K, T>
+
+    suspend fun <T> queryChildState(
+        storageKeyBuilder: (RuntimeSnapshot) -> StorageKey,
+        childKeyBuilder: ChildKeyBuilder,
+        binder: Binder<T>
+    ) : T
 }
 
 suspend inline fun <T> StorageDataSource.queryNonNull(

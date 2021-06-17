@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.storage.source
 
+import jp.co.soramitsu.common.data.network.runtime.binding.Binder
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.StorageEntry
@@ -34,5 +35,9 @@ class LocalStorageSource(
             keySelector = StorageEntry::storageKey,
             valueTransform = StorageEntry::content
         )
+    }
+
+    override suspend fun queryChildState(storageKey: String, childKey: String): String? {
+        throw NotImplementedError("Child state queries are not yet supported in local storage")
     }
 }

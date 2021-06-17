@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="crowdloan_my_contribution">You contributed: %s</string>
+
     <string name="staking_alert_bond_more_title">Bond more tokens.</string>
     <string name="staking_alert_bond_more_message">Staking is inactive. Current minimal stake is %s</string>
     <string name="staking_alert_redeem_title">Redeem unbonded tokens.</string>

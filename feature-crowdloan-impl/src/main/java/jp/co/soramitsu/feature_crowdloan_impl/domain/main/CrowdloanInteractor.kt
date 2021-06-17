@@ -1,8 +1,10 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.main
 
 import jp.co.soramitsu.common.list.GroupedList
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
@@ -23,7 +25,8 @@ class Crowdloan(
     val state: State,
     val leasePeriodInMillis: Long,
     val leasedUntilInMillis: Long,
-    val fundInfo: FundInfo
+    val fundInfo: FundInfo,
+    val myContribution: Contribution?
 ) {
 
     sealed class State {
@@ -61,6 +64,7 @@ class CrowdloanInteractor(
             val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis()
             val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod()
             val networkType = accountRepository.currentNetworkType()
+            val accountId = accountRepository.getSelectedAccount().address.toAccountId()
 
             val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(networkType).map { currentBlockNumber ->
                 val fundInfos = crowdloanRepository.allFundInfos()
@@ -73,7 +77,8 @@ class CrowdloanInteractor(
                             parachainId = parachainId,
                             currentBlockNumber = currentBlockNumber,
                             expectedBlockTimeInMillis = expectedBlockTime,
-                            blocksPerLeasePeriod = blocksPerLeasePeriod
+                            blocksPerLeasePeriod = blocksPerLeasePeriod,
+                            contribution = crowdloanRepository.getContribution(accountId, parachainId, fundInfo.trieIndex)
                         )
                     }.groupBy { it.state::class }
                     .toSortedMap(Crowdloan.State.STATE_CLASS_COMPARATOR)
