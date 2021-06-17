@@ -5,8 +5,8 @@ import java.io.ByteArrayOutputStream
 
 private const val CHILD_KEY_DEFAULT = ":child_storage:default:"
 
-fun childStateKey(
-    builder: ByteArrayOutputStream.() -> Unit
+suspend fun childStateKey(
+    builder: suspend ByteArrayOutputStream.() -> Unit
 ): String {
     val buffer = ByteArrayOutputStream().apply {
         write(CHILD_KEY_DEFAULT.encodeToByteArray())

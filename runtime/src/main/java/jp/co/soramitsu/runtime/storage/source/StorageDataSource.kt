@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import java.io.OutputStream
 
 typealias StorageKey = String
-typealias ChildKeyBuilder = OutputStream.(RuntimeSnapshot) -> Unit
+typealias ChildKeyBuilder = suspend OutputStream.(RuntimeSnapshot) -> Unit
 
 interface StorageDataSource {
 
