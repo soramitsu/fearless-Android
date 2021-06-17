@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 
+import android.util.Log
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.toListWithHeaders
@@ -26,6 +27,8 @@ import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmo
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
@@ -47,6 +50,8 @@ class CrowdloanViewModel(
     }
 
     private val groupedCrowdloansFlow = interactor.crowdloansFlow()
+        .onStart { Log.d("RX", "started collecting crowdloans") }
+        .onEach { Log.d("RX", "received crowdloans") }
         .inBackground()
         .share()
 

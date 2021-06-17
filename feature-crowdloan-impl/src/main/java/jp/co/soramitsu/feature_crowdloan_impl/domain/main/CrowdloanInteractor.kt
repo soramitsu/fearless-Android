@@ -8,6 +8,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Cont
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
+import jp.co.soramitsu.feature_crowdloan_api.data.repository.getContributions
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateRepository
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
 import kotlinx.coroutines.flow.Flow
@@ -69,6 +70,10 @@ class CrowdloanInteractor(
             val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(networkType).map { currentBlockNumber ->
                 val fundInfos = crowdloanRepository.allFundInfos()
 
+                val contributionKeys = fundInfos.mapValues { (_, fundInfo) -> fundInfo.trieIndex }
+
+                val contributions = crowdloanRepository.getContributions(accountId, contributionKeys)
+
                 fundInfos.entries.toList()
                     .map { (parachainId, fundInfo) ->
                         mapFundInfoToCrowdloan(
@@ -78,7 +83,7 @@ class CrowdloanInteractor(
                             currentBlockNumber = currentBlockNumber,
                             expectedBlockTimeInMillis = expectedBlockTime,
                             blocksPerLeasePeriod = blocksPerLeasePeriod,
-                            contribution = crowdloanRepository.getContribution(accountId, parachainId, fundInfo.trieIndex)
+                            contribution = contributions[parachainId]
                         )
                     }.groupBy { it.state::class }
                     .toSortedMap(Crowdloan.State.STATE_CLASS_COMPARATOR)
