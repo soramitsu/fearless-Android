@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_impl.domain.common.leaseIndexFromBlock
@@ -15,6 +16,7 @@ fun mapFundInfoToCrowdloan(
     currentBlockNumber: BlockNumber,
     expectedBlockTimeInMillis: BigInteger,
     blocksPerLeasePeriod: BigInteger,
+    contribution: Contribution?
 ): Crowdloan {
     val leasePeriodInMillis = leasePeriodInMillis(blocksPerLeasePeriod, currentBlockNumber, fundInfo.lastSlot, expectedBlockTimeInMillis)
 
@@ -33,7 +35,8 @@ fun mapFundInfoToCrowdloan(
         leasePeriodInMillis = leasePeriodInMillis,
         leasedUntilInMillis = System.currentTimeMillis() + leasePeriodInMillis,
         state = state,
-        fundInfo = fundInfo
+        fundInfo = fundInfo,
+        myContribution = contribution
     )
 }
 

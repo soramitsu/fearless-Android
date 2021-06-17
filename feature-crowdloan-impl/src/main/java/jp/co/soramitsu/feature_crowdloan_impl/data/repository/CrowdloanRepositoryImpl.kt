@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.data.repository
 
+import jp.co.soramitsu.common.utils.ConcurrentHasher.concurrentBlake2b256
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.crowdloan
@@ -9,12 +10,19 @@ import jp.co.soramitsu.common.utils.slots
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.common.utils.useValue
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.bytes
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.u32
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.toByteArray
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.bindContribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.bindFundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
@@ -27,6 +35,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
+
+private const val CONTRIBUTIONS_CHILD_SUFFIX = "crowdloan"
 
 class CrowdloanRepositoryImpl(
     private val remoteStorage: StorageDataSource,
@@ -73,5 +83,22 @@ class CrowdloanRepositoryImpl(
 
     override suspend fun minContribution(): BigInteger = runtimeProperty.useValue { runtime ->
         runtime.metadata.crowdloan().numberConstant("MinContribution", runtime)
+    }
+
+    override suspend fun getContribution(
+        accountId: AccountId,
+        paraId: ParaId,
+        trieIndex: BigInteger
+    ): Contribution? {
+        return remoteStorage.queryChildState(
+            storageKeyBuilder = { it.typeRegistry["AccountId"]!!.bytes(it, accountId).toHexString(withPrefix = true) },
+            childKeyBuilder = {
+                val suffix = (CONTRIBUTIONS_CHILD_SUFFIX.encodeToByteArray() + u32.toByteArray(it, trieIndex))
+                    .concurrentBlake2b256()
+
+                write(suffix)
+            },
+            binder = { scale, runtime -> scale?.let { bindContribution(it, runtime) } }
+        )
     }
 }

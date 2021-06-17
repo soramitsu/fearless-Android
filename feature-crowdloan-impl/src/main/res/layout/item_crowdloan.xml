@@ -80,6 +80,19 @@
         app:layout_constraintTop_toBottomOf="@+id/itemCrowdloanParaDescription"
         tools:text="RAISED: 2,638 OF 100,000 KSM" />
 
+    <TextView
+        android:id="@+id/itemCrowdloanMyContribution"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="@+id/itemCrowdloanParaDescription"
+        app:layout_constraintStart_toStartOf="@+id/itemCrowdloanParaName"
+        app:layout_constraintTop_toBottomOf="@+id/itemCrowdloanParaRaised"
+        tools:text="Contributed: 2,638 KSM" />
+
+
     <View
         android:layout_width="0dp"
         android:layout_height="1dp"
@@ -89,5 +102,5 @@
         android:background="@color/dividerGray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/itemCrowdloanParaRaised" />
+        app:layout_constraintTop_toBottomOf="@id/itemCrowdloanMyContribution" />
 </androidx.constraintlayout.widget.ConstraintLayout>

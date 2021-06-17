@@ -103,12 +103,19 @@ class CrowdloanViewModel(
             }
         }
 
+        val myContributionDisplay = crowdloan.myContribution?.let {
+            val myContributionFormatted = token.amountFromPlanks(it.amount).formatTokenAmount(token.type)
+
+            resourceManager.getString(R.string.crowdloan_my_contribution, myContributionFormatted)
+        }
+
         return CrowdloanModel(
             parachainId = crowdloan.parachainId,
             title = crowdloan.parachainMetadata?.name ?: crowdloan.parachainId.toString(),
             description = crowdloan.parachainMetadata?.description ?: depositorAddress,
             icon = icon,
             raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
+            myContribution = myContributionDisplay,
             state = stateFormatted,
         )
     }

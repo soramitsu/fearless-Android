@@ -35,4 +35,8 @@ class LocalStorageSource(
             valueTransform = StorageEntry::content
         )
     }
+
+    override suspend fun queryChildState(storageKey: String, childKey: String): String? {
+        throw NotImplementedError("Child state queries are not yet supported in local storage")
+    }
 }

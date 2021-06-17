@@ -14,12 +14,14 @@ import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanStatusModel
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanArrow
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanIcon
+import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanMyContribution
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaDescription
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaName
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaRaised
@@ -57,6 +59,7 @@ class CrowdloanAdapter(
             when (it) {
                 CrowdloanModel::state -> (holder as CrowdloanChildHolder).bindState(child, handler)
                 CrowdloanModel::raised -> (holder as CrowdloanChildHolder).bindRaised(child)
+                CrowdloanModel::myContribution -> (holder as CrowdloanChildHolder).bindMyContribution(child)
             }
         }
     }
@@ -92,7 +95,7 @@ private object CrowdloanDiffCallback : BaseGroupedDiffCallback<CrowdloanStatusMo
 }
 
 private object CrowdloanPayloadGenerator : PayloadGenerator<CrowdloanModel>(
-    CrowdloanModel::state, CrowdloanModel::raised
+    CrowdloanModel::state, CrowdloanModel::raised, CrowdloanModel::myContribution
 )
 
 private class CrowdloanGroupHolder(containerView: View) : GroupedListHolder(containerView) {
@@ -116,6 +119,7 @@ private class CrowdloanChildHolder(
         itemCrowdloanParaName.text = item.title
 
         bindRaised(item)
+        bindMyContribution(item)
 
         when (val icon = item.icon) {
             is CrowdloanModel.Icon.FromDrawable -> {
@@ -161,5 +165,10 @@ private class CrowdloanChildHolder(
 
     fun bindRaised(item: CrowdloanModel) {
         containerView.itemCrowdloanParaRaised.text = item.raised
+    }
+
+    fun bindMyContribution(item: CrowdloanModel) {
+        containerView.itemCrowdloanMyContribution.setVisible(item.myContribution != null)
+        containerView.itemCrowdloanMyContribution.text = item.myContribution
     }
 }
