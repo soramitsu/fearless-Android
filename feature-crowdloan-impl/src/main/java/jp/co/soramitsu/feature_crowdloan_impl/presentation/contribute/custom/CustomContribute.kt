@@ -5,6 +5,7 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.LifecycleCoroutineScope
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
@@ -32,10 +33,22 @@ abstract class CustomContributeView @JvmOverloads constructor(
 
 interface CustomContributeSubmitter {
 
-    suspend fun submit(
+    suspend fun submitOnChain(
+        payload: BonusPayload,
+        amount: BigDecimal,
+        extrinsicBuilder: ExtrinsicBuilder
+    ) {
+        // do nothing by default
+    }
+
+    suspend fun submitOffChain(
         payload: BonusPayload,
         amount: BigDecimal
-    ): Result<Unit>
+    ): Result<Unit> {
+        // do nothing by default
+
+        return Result.success(Unit)
+    }
 }
 
 interface BonusPayload : Parcelable {

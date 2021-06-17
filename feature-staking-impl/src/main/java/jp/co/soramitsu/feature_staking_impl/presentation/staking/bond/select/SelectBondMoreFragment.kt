@@ -21,7 +21,16 @@ import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreContinue
 import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreFee
 import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreToolbar
 
+private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+
 class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>() {
+
+    companion object {
+
+        fun getBundle(payload: SelectBondMorePayload) = Bundle().apply {
+            putParcelable(PAYLOAD_KEY, payload)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,12 +55,14 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>() {
     }
 
     override fun inject() {
+        val payload = argument<SelectBondMorePayload>(PAYLOAD_KEY)
+
         FeatureUtils.getFeature<StakingFeatureComponent>(
             requireContext(),
             StakingFeatureApi::class.java
         )
             .selectBondMoreFactory()
-            .create(this)
+            .create(this, payload)
             .inject(this)
     }
 

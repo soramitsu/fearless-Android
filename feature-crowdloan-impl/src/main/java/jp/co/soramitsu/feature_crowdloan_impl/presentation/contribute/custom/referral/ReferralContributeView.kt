@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.karura
+package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral
 
 import android.content.Context
 import android.text.method.LinkMovementMethod
@@ -17,16 +17,16 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
-import kotlinx.android.synthetic.main.view_karura_flow.view.karuraBonus
-import kotlinx.android.synthetic.main.view_karura_flow.view.karuraFearlessBonusApply
-import kotlinx.android.synthetic.main.view_karura_flow.view.karuraFearlessBonusTitle
-import kotlinx.android.synthetic.main.view_karura_flow.view.karuraLearnMore
-import kotlinx.android.synthetic.main.view_karura_flow.view.karuraPrivacySwitch
-import kotlinx.android.synthetic.main.view_karura_flow.view.karuraPrivacyText
-import kotlinx.android.synthetic.main.view_karura_flow.view.karuraReferralCodeInput
+import kotlinx.android.synthetic.main.view_referral_flow.view.referralBonus
+import kotlinx.android.synthetic.main.view_referral_flow.view.referralFearlessBonusApply
+import kotlinx.android.synthetic.main.view_referral_flow.view.referralFearlessBonusTitle
+import kotlinx.android.synthetic.main.view_referral_flow.view.referralLearnMore
+import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacySwitch
+import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacyText
+import kotlinx.android.synthetic.main.view_referral_flow.view.referralReferralCodeInput
 import javax.inject.Inject
 
-class KaruraContributeView @JvmOverloads constructor(
+class ReferralContributeView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
@@ -35,50 +35,50 @@ class KaruraContributeView @JvmOverloads constructor(
     @Inject lateinit var imageLoader: ImageLoader
 
     init {
-        View.inflate(context, R.layout.view_karura_flow, this)
+        View.inflate(context, R.layout.view_referral_flow, this)
 
         FeatureUtils.getFeature<CrowdloanFeatureComponent>(
             context,
             CrowdloanFeatureApi::class.java
         ).inject(this)
 
-        karuraPrivacyText.movementMethod = LinkMovementMethod.getInstance()
+        referralPrivacyText.movementMethod = LinkMovementMethod.getInstance()
     }
 
     override fun bind(
         viewState: CustomContributeViewState,
         scope: LifecycleCoroutineScope
     ) {
-        require(viewState is KaruraContributeViewState)
+        require(viewState is ReferralContributeViewState)
 
-        karuraReferralCodeInput.content.bindTo(viewState.enteredReferralCodeFlow, scope)
-        karuraPrivacySwitch.bindTo(viewState.privacyAcceptedFlow, scope)
+        referralReferralCodeInput.content.bindTo(viewState.enteredReferralCodeFlow, scope)
+        referralPrivacySwitch.bindTo(viewState.privacyAcceptedFlow, scope)
 
-        karuraFearlessBonusTitle.text = viewState.applyFearlessTitle
+        referralFearlessBonusTitle.text = viewState.applyFearlessTitle
 
         viewState.applyFearlessCodeEnabledFlow.observe(scope) { enabled ->
-            karuraFearlessBonusApply.isEnabled = enabled
+            referralFearlessBonusApply.isEnabled = enabled
 
             val applyBonusButtonText = if (enabled) R.string.crowdloan_apply else R.string.crowdloan_applied
-            karuraFearlessBonusApply.setText(applyBonusButtonText)
+            referralFearlessBonusApply.setText(applyBonusButtonText)
         }
 
         viewState.bonusFlow.observe(scope) {
-            karuraBonus.showValue(it)
+            referralBonus.showValue(it)
         }
 
         with(viewState.learnBonusesTitle) {
-            karuraLearnMore.icon.load(iconLink, imageLoader)
-            karuraLearnMore.title.text = text
+            referralLearnMore.icon.load(iconLink, imageLoader)
+            referralLearnMore.title.text = text
 
-            karuraLearnMore.setOnClickListener { viewState.learnMoreClicked() }
+            referralLearnMore.setOnClickListener { viewState.learnMoreClicked() }
         }
 
-        karuraFearlessBonusApply.setOnClickListener { viewState.applyFearlessCode() }
+        referralFearlessBonusApply.setOnClickListener { viewState.applyFearlessCode() }
 
-        karuraPrivacyText.text = createSpannable(context.getString(R.string.crowdloan_privacy_policy)) {
+        referralPrivacyText.text = createSpannable(context.getString(R.string.crowdloan_privacy_policy)) {
             clickable(context.getString(R.string.onboarding_terms_and_conditions_2)) {
-                viewState.privacyClicked()
+                viewState.termsClicked()
             }
         }
 

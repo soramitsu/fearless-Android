@@ -14,8 +14,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMoreViewModel
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 
 @Module(includes = [ViewModelModule::class])
 class SelectBondMoreModule {
@@ -30,7 +31,8 @@ class SelectBondMoreModule {
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
         validationSystem: BondMoreValidationSystem,
-        feeLoaderMixin: FeeLoaderMixin.Presentation
+        feeLoaderMixin: FeeLoaderMixin.Presentation,
+        payload: SelectBondMorePayload
     ): ViewModel {
         return SelectBondMoreViewModel(
             router,
@@ -39,7 +41,8 @@ class SelectBondMoreModule {
             resourceManager,
             validationExecutor,
             validationSystem,
-            feeLoaderMixin
+            feeLoaderMixin,
+            payload
         )
     }
 

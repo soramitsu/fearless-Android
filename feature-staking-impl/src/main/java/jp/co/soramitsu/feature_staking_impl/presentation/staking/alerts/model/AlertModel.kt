@@ -9,7 +9,7 @@ class AlertModel(
     val type: Type
 ) {
     sealed class Type {
-        object Warning : Type()
+        object Info : Type()
 
         class CallToAction(val action: () -> Unit) : Type()
     }

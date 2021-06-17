@@ -2,11 +2,10 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.karura
 
 import jp.co.soramitsu.common.base.BaseException
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
+import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.REAL_ROCOCO_ADDRESS_BYTE
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithAccount
@@ -20,7 +19,7 @@ class KaruraContributeInteractor(
     private val karuraApi: KaruraApi,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val accountRepository: AccountRepository,
-    private val referralCode: String,
+    val fearlessReferralCode: String,
 ) {
 
     suspend fun registerInBonusProgram(referralCode: String, amount: BigDecimal): Result<Unit> = runCatching {
@@ -30,8 +29,8 @@ class KaruraContributeInteractor(
             val networkType = selectedAccount.network.type
 
             val accountAddress = when (networkType) {
-                // we use fake address byte on rococo, so fix address with real one
-                Node.NetworkType.ROCOCO -> selectedAccount.address.toAccountId().toAddress(REAL_ROCOCO_ADDRESS_BYTE)
+                // karura backend requires kusama address even in rococo
+                Node.NetworkType.ROCOCO -> selectedAccount.address.toAccountId().toAddress(Node.NetworkType.KUSAMA)
                 else -> selectedAccount.address
             }
 
@@ -68,9 +67,5 @@ class KaruraContributeInteractor(
         } else {
             throw e
         }
-    }
-
-    fun fearlessReferralCode(): String {
-        return referralCode
     }
 }

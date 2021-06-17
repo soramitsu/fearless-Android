@@ -33,8 +33,8 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRe
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.SubqueryStakingRewardsDataSource
-import jp.co.soramitsu.feature_staking_impl.domain.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
@@ -150,9 +150,10 @@ class StakingFeatureModule {
     fun provideAlertsInteractor(
         stakingRepository: StakingRepository,
         stakingConstantsRepository: StakingConstantsRepository,
-        walletRepository: WalletRepository
+        walletRepository: WalletRepository,
+        walletConstants: WalletConstants,
     ) = AlertsInteractor(
-        stakingRepository, stakingConstantsRepository, walletRepository
+        stakingRepository, stakingConstantsRepository, walletRepository, walletConstants
     )
 
     @Provides
@@ -164,7 +165,7 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideValidatorRecommendatorFactory(
-        validatorProvider: ValidatorProvider
+        validatorProvider: ValidatorProvider,
     ) = ValidatorRecommendatorFactory(validatorProvider)
 
     @Provides
@@ -204,7 +205,7 @@ class StakingFeatureModule {
         appLinksProvider: AppLinksProvider,
         stakingInteractor: StakingInteractor,
         iconGenerator: AddressIconGenerator,
-        accountDisplayUseCase: AddressDisplayUseCase
+        accountDisplayUseCase: AddressDisplayUseCase,
     ): RewardDestinationMixin.Presentation = RewardDestinationProvider(
         resourceManager, stakingInteractor, iconGenerator, appLinksProvider, accountDisplayUseCase
     )
@@ -285,7 +286,7 @@ class StakingFeatureModule {
     fun provideRedeemInteractor(
         feeEstimator: FeeEstimator,
         extrinsicService: ExtrinsicService,
-        stakingRepository: StakingRepository
+        stakingRepository: StakingRepository,
     ) = RedeemInteractor(feeEstimator, extrinsicService, stakingRepository)
 
     @Provides
@@ -299,7 +300,7 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideControllerInteractor(
         feeEstimator: FeeEstimator,
-        extrinsicService: ExtrinsicService
+        extrinsicService: ExtrinsicService,
     ) = ControllerInteractor(feeEstimator, extrinsicService)
 
     @Provides
@@ -307,7 +308,7 @@ class StakingFeatureModule {
     fun provideCurrentValidatorsInteractor(
         stakingRepository: StakingRepository,
         stakingConstantsRepository: StakingConstantsRepository,
-        validatorProvider: ValidatorProvider
+        validatorProvider: ValidatorProvider,
     ) = CurrentValidatorsInteractor(
         stakingRepository, stakingConstantsRepository, validatorProvider
     )
@@ -316,6 +317,6 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideChangeRewardDestinationInteractor(
         feeEstimator: FeeEstimator,
-        extrinsicService: ExtrinsicService
+        extrinsicService: ExtrinsicService,
     ) = ChangeRewardDestinationInteractor(feeEstimator, extrinsicService)
 }
