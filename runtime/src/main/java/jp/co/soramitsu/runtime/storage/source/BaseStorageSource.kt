@@ -2,19 +2,15 @@ package jp.co.soramitsu.runtime.storage.source
 
 import jp.co.soramitsu.common.data.network.rpc.childStateKey
 import jp.co.soramitsu.common.data.network.runtime.binding.Binder
-import jp.co.soramitsu.common.data.network.runtime.calls.GetChildStateRequest
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
-import java.io.OutputStream
 
 abstract class BaseStorageSource(
     protected val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
@@ -28,7 +24,7 @@ abstract class BaseStorageSource(
 
     protected abstract suspend fun queryByPrefix(prefix: String): Map<String, String?>
 
-    protected abstract suspend fun queryChildState(storageKey: String, childKey: String) : String?
+    protected abstract suspend fun queryChildState(storageKey: String, childKey: String): String?
 
     override suspend fun <K, T> queryByPrefix(
         prefixKeyBuilder: (RuntimeSnapshot) -> StorageKey,

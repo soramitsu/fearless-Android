@@ -1,6 +1,5 @@
 package jp.co.soramitsu.runtime.storage.source
 
-import jp.co.soramitsu.common.data.network.runtime.binding.Binder
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.StorageEntry

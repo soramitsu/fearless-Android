@@ -18,7 +18,7 @@ interface CrowdloanRepository {
 
     suspend fun getParachainMetadata(): Map<ParaId, ParachainMetadata>
 
-    suspend fun getContribution(accountId: AccountId, paraId: ParaId, trieIndex: TrieIndex) : Contribution?
+    suspend fun getContribution(accountId: AccountId, paraId: ParaId, trieIndex: TrieIndex): Contribution?
 
     suspend fun blocksPerLeasePeriod(): BigInteger
 

@@ -7,7 +7,7 @@ private const val CHILD_KEY_DEFAULT = ":child_storage:default:"
 
 fun childStateKey(
     builder: ByteArrayOutputStream.() -> Unit
-) : String {
+): String {
     val buffer = ByteArrayOutputStream().apply {
         write(CHILD_KEY_DEFAULT.encodeToByteArray())
 

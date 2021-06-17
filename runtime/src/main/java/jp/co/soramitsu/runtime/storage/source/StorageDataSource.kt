@@ -5,7 +5,6 @@ import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinder
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.flow.Flow
-import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 
 typealias StorageKey = String
@@ -39,7 +38,7 @@ interface StorageDataSource {
         storageKeyBuilder: (RuntimeSnapshot) -> StorageKey,
         childKeyBuilder: ChildKeyBuilder,
         binder: Binder<T>
-    ) : T
+    ): T
 }
 
 suspend inline fun <T> StorageDataSource.queryNonNull(

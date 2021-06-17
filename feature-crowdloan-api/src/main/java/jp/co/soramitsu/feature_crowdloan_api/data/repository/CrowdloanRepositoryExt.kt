@@ -10,7 +10,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
 suspend fun CrowdloanRepository.getContributions(
-    accountId: AccountId, keys: Map<ParaId, TrieIndex>
+    accountId: AccountId,
+    keys: Map<ParaId, TrieIndex>
 ): Map<ParaId, Contribution?> = withContext(Dispatchers.Default) {
     keys.map { (paraId, trieIndex) ->
         async { paraId to getContribution(accountId, paraId, trieIndex) }
