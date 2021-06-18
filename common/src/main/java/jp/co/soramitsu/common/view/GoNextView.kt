@@ -52,6 +52,9 @@ class GoNextView @JvmOverloads constructor(
         val iconDrawable = typedArray.getDrawable(R.styleable.GoNextView_icon)
         icon.setImageDrawable(iconDrawable)
 
+        val actionIconDrawable = typedArray.getDrawable(R.styleable.GoNextView_actionIcon)
+        goNextActionImage.setImageDrawable(actionIconDrawable)
+
         typedArray.recycle()
     }
 }

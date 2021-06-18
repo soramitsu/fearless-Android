@@ -107,7 +107,7 @@
 
     <string name="staking_elected_validators_description">Others, who are active without your stake allocation.</string>
 
-    <string name="staking_waiting_validators_format">Selected: %d (Max %d)</string>
+    <string name="staking_selected_validators_format">Selected: %d (Max %d)</string>
     <string name="staking_waiting_validators_description">Your validators will change in the next era.</string>
 
     <string name="stacking_stash_account">Stash account</string>

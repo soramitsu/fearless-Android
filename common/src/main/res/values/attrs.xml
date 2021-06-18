@@ -64,5 +64,6 @@
         <attr name="inProgress" format="boolean" />
         <attr name="android:text" />
         <attr name="icon" />
+        <attr name="actionIcon" />
     </declare-styleable>
 </resources>
