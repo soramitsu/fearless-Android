@@ -119,7 +119,7 @@ class CurrentValidatorsViewModel(
         val currentState = setupStakingSharedState.get<SetupStakingProcess.Initial>()
         setupStakingSharedState.set(currentState.changeValidatorsFlow())
 
-        router.openRecommendedValidators()
+        router.openStartChangeValidators()
     }
 
     fun backClicked() {

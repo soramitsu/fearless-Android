@@ -42,7 +42,7 @@ class RecommendedValidatorsViewModel(
     private val currentProgressState = sharedStateSetup.get<SetupStakingProcess.Validators>()
 
     private val recommendedValidators = flow {
-        val validatorRecommendator = validatorRecommendatorFactory.create()
+        val validatorRecommendator = validatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
         val validators = validatorRecommendator.recommendations(recommendedSettings())
 
         emit(validators)
@@ -55,8 +55,6 @@ class RecommendedValidatorsViewModel(
     }.flowOn(Dispatchers.Default).asLiveData()
 
     fun backClicked() {
-        sharedStateSetup.set(currentProgressState.previous())
-
         router.back()
     }
 
@@ -74,10 +72,6 @@ class RecommendedValidatorsViewModel(
 
             router.openConfirmStaking()
         }
-    }
-
-    fun learnMoreClicked() {
-        openBrowserEvent.value = Event(appLinksProvider.nominatorLearnMore)
     }
 
     private suspend fun convertToModels(

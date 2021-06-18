@@ -13,7 +13,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
-import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorLearnMore
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsAccounts
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsList
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsNext
@@ -40,10 +39,6 @@ class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewMode
 
         recommendedValidatorsToolbar.setHomeButtonListener { viewModel.backClicked() }
         onBackPressed { viewModel.backClicked() }
-
-        recommendedValidatorLearnMore.setOnClickListener {
-            viewModel.learnMoreClicked()
-        }
 
         recommendedValidatorsNext.setOnClickListener {
             viewModel.nextClicked()

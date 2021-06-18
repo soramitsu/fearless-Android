@@ -317,7 +317,7 @@ class WelcomeViewState(
                 if (interactor.isAccountInApp(accountStakingState.controllerAddress)) {
                     setupStakingSharedState.set(currentSetupProgress.existingStashFlow())
 
-                    router.openRecommendedValidators()
+                    router.openStartChangeValidators()
                 } else {
                     errorDisplayer(resourceManager.getString(R.string.staking_no_controller_account, accountStakingState.controllerAddress))
                 }

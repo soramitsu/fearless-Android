@@ -149,7 +149,7 @@ class SetupStakingViewModel(
     ) {
         setupStakingSharedState.set(currentProcessState.next(newAmount, rewardDestination, currentAccountAddress))
 
-        router.openRecommendedValidators()
+        router.openStartChangeValidators()
     }
 
     private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(

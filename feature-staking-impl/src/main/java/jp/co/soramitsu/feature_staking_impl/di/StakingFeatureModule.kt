@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
@@ -166,7 +167,8 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideValidatorRecommendatorFactory(
         validatorProvider: ValidatorProvider,
-    ) = ValidatorRecommendatorFactory(validatorProvider)
+        computationalCache: ComputationalCache
+    ) = ValidatorRecommendatorFactory(validatorProvider, computationalCache)
 
     @Provides
     @FeatureScope

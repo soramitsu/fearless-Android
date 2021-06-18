@@ -11,6 +11,7 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.FileProviderImpl
+import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
@@ -40,6 +41,10 @@ const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
 @Module
 class CommonModule {
+
+    @Provides
+    @ApplicationScope
+    fun provideComputationalCache() = ComputationalCache()
 
     @Provides
     @ApplicationScope

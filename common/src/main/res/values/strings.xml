@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_rewards_apy">Rewards (APY)</string>
+
+    <string name="staking_recommended_feature_1">Most profitable</string>
+    <string name="staking_recommended_feature_2">Not oversubscribed</string>
+    <string name="staking_recommended_feature_3">Having onchain identity</string>
+    <string name="staking_recommended_feature_4">Not slashed</string>
+    <string name="staking_recommended_feature_5">Limit of 2 validators per identity</string>
+
+    <string name="staking_select_custom">Select by yourself</string>
+    <string name="staking_start_change_validators_custom_title">Stake with your validators</string>
+    <string name="staking_start_change_validators_custom_subtitle">You should trust your nominations to act competently and honest; basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.</string>
+
+    <string name="staking_select_recommended">Select recommended</string>
+    <string name="staking_start_change_validators_recommended_title">Stake with recommended validators</string>
+    <string name="staking_start_change_validators_recommended_subtitle">Fearless algorithm has select a list of recommended validators based on the criteria:</string>
+    <string name="staking_validators">Validators</string>
+
     <string name="crowdloan_my_contribution">You contributed: %s</string>
 
     <string name="staking_alert_bond_more_title">Bond more tokens.</string>

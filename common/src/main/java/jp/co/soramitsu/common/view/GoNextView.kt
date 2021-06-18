@@ -24,7 +24,7 @@ class GoNextView @JvmOverloads constructor(
 
         setBackgroundResource(R.drawable.bg_primary_list_item)
 
-        attrs?.let(::applyAttributes)
+        attrs?.let(this::applyAttributes)
     }
 
     val icon: ImageView
@@ -40,11 +40,17 @@ class GoNextView @JvmOverloads constructor(
         goNextProgress.setVisible(inProgress)
     }
 
-    private fun applyAttributes(attributeSet: AttributeSet) {
+    private fun applyAttributes(attributeSet: AttributeSet?) {
         val typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.GoNextView)
+
+        val titleDisplay = typedArray.getString(R.styleable.GoNextView_android_text)
+        title.text = titleDisplay
 
         val inProgress = typedArray.getBoolean(R.styleable.GoNextView_inProgress, false)
         setInProgress(inProgress)
+
+        val iconDrawable = typedArray.getDrawable(R.styleable.GoNextView_icon)
+        icon.setImageDrawable(iconDrawable)
 
         typedArray.recycle()
     }
