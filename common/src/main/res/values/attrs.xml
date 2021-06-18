@@ -73,4 +73,8 @@
         <attr name="title" />
         <attr name="dividerVisible" />
     </declare-styleable>
+
+    <declare-styleable name="GoNextView">
+        <attr name="inProgress" format="boolean" />
+    </declare-styleable>
 </resources>

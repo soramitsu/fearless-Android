@@ -97,7 +97,7 @@
         app:layout_constraintStart_toEndOf="@+id/referralPrivacySwitch"
         app:layout_constraintTop_toTopOf="@+id/referralPrivacySwitch" />
 
-    <jp.co.soramitsu.common.view.LearnMoreView
+    <jp.co.soramitsu.common.view.GoNextView
         android:id="@+id/referralLearnMore"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
