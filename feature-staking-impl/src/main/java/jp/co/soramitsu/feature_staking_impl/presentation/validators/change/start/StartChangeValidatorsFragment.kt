@@ -10,10 +10,6 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
-import kotlinx.android.synthetic.main.fragment_confirm_stake.stakingConfirmationContainer
-import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsList
-import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsToolbar
 import kotlinx.android.synthetic.main.fragment_start_change_validators.startChangeValidatorsContainer
 import kotlinx.android.synthetic.main.fragment_start_change_validators.startChangeValidatorsCustom
 import kotlinx.android.synthetic.main.fragment_start_change_validators.startChangeValidatorsRecommended
