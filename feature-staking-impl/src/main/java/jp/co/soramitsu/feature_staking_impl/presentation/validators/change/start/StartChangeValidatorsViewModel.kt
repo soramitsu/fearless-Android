@@ -40,7 +40,7 @@ class StartChangeValidatorsViewModel(
         val texts = RECOMMENDED_FEATURES_IDS.joinToString(separator = "\n") {
             val text = resourceManager.getString(it)
 
-            "✅ $text"
+            "✅  $text"
         }
 
         emit(texts)

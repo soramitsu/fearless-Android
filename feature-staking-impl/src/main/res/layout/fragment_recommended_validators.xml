@@ -72,18 +72,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="22dp"
-        android:text="@string/common_next"
+        android:text="@string/common_continue"
         android:theme="@style/PinkOverlay"
-        android:visibility="gone" />
-
-    <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/recommendedValidatorsSelectCustom"
-        style="@style/Widget.Fearless.Button.Outline"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/staking_custom_validators_title"
         android:visibility="gone" />
 </LinearLayout>
