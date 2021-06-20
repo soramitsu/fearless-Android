@@ -21,6 +21,7 @@ To build Fearless Wallet Android project, you need to provide several keys eithe
 ``` properties
 MOONPAY_TEST_SECRET=stub
 MOONPAY_PRODUCTION_SECRET=stub
+SUBSCAN_API_KEY=d5a1d1cffde69e7cbff6d9c0cf1cca6d
 ```
 
 Note, that with stub keys buy via moonpay will not work correctly. However, other parts of application will not be affected.
