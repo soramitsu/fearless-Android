@@ -56,17 +56,17 @@
         android:visibility="gone"
         tools:text="Action" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_gravity="bottom"
-        android:id="@+id/toolbarDivider"
-        android:background="@color/dividerGray" />
-
     <LinearLayout
         android:id="@+id/toolbarCustomActions"
         android:layout_gravity="center_vertical|end"
         android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="bottom"
+        android:id="@+id/toolbarDivider"
+        android:background="@color/dividerGray" />
 </FrameLayout>

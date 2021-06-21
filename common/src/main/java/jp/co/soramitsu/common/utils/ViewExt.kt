@@ -16,6 +16,7 @@ import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -104,10 +105,18 @@ fun View.hideSoftKeyboard() {
     inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
 }
 
-fun RecyclerView.enableShowingNewlyAddedTopElements(): RecyclerView.AdapterDataObserver {
+fun RecyclerView.enableShowingNewlyAddedTopElements(lifecycleOwner: LifecycleOwner, onlyWhenOnTop: Boolean) {
+    val dataObserver = enableShowingNewlyAddedTopElements(onlyWhenOnTop)
+
+    lifecycleOwner.lifecycle.onDestroy { adapter?.unregisterAdapterDataObserver(dataObserver) }
+}
+
+fun RecyclerView.enableShowingNewlyAddedTopElements(onlyWhenOnTop: Boolean): RecyclerView.AdapterDataObserver {
     val adapterDataObserver = object : RecyclerView.AdapterDataObserver() {
         override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-            if (positionStart == 0 && wasAtBeginningBeforeInsertion(itemCount)) {
+            val topFlag = if (onlyWhenOnTop) wasAtBeginningBeforeInsertion(itemCount) else true
+
+            if (positionStart == 0 && topFlag) {
                 scrollToPosition(0)
             }
         }

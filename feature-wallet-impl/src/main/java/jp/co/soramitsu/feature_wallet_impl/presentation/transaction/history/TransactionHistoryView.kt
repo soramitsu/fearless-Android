@@ -132,7 +132,7 @@ class TransferHistorySheet @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
 
-        adapterDataObserver = transactionHistoryList.enableShowingNewlyAddedTopElements()
+        adapterDataObserver = transactionHistoryList.enableShowingNewlyAddedTopElements(onlyWhenOnTop = true)
     }
 
     override fun onDetachedFromWindow() {

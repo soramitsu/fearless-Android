@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.cust
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.cycle
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 class SelectCustomValidatorsViewModel(
     private val router: StakingRouter,
@@ -43,7 +45,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     private val recommendationSettingsFlow = flow {
-        emitAll(recommendationSettingsProviderFactory.get().observeRecommendationSettings())
+        emitAll(recommendationSettingsProvider().observeRecommendationSettings())
     }.share()
 
     private val shownValidators = recommendationSettingsFlow.map {
@@ -53,6 +55,10 @@ class SelectCustomValidatorsViewModel(
     private val tokenFlow = tokenUseCase.currentTokenFlow()
         .inBackground()
         .share()
+
+    private val sortingsSequence by lazy {
+        async { recommendationSettingsProvider().allSortings.cycle().iterator() }
+    }
 
     private val selectedValidators = MutableStateFlow(emptySet<Validator>())
 
@@ -127,4 +133,15 @@ class SelectCustomValidatorsViewModel(
     private fun mutateSelected(mutation: (Set<Validator>) -> Set<Validator>) {
         selectedValidators.value = mutation(selectedValidators.value)
     }
+
+    fun settingsClicked() {
+        launch {
+            val currentSettings = recommendationSettingsFlow.first()
+            val newSettings = currentSettings.copy(sorting = sortingsSequence.await().next())
+
+            recommendationSettingsProvider().setRecommendationSettings(newSettings)
+        }
+    }
+
+    private suspend fun recommendationSettingsProvider() = recommendationSettingsProviderFactory.get()
 }

@@ -1,8 +1,7 @@
 package jp.co.soramitsu.common.data.memory
 
-import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
+import jp.co.soramitsu.common.utils.onDestroy
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -37,19 +36,15 @@ class ComputationalCache {
         }
 
         withContext(Dispatchers.Main) {
-            lifecycle.addObserver(object : DefaultLifecycleObserver {
-                override fun onDestroy(owner: LifecycleOwner) {
-                    memory[key]?.let { (lifecycles, _) ->
-                        lifecycles -= lifecycle
+            lifecycle.onDestroy {
+                memory[key]?.let { (lifecycles, _) ->
+                    lifecycles -= lifecycle
 
-                        if (lifecycles.isEmpty()) {
-                            memory.remove(key)
-                        }
+                    if (lifecycles.isEmpty()) {
+                        memory.remove(key)
                     }
-
-                    lifecycle.removeObserver(this)
                 }
-            })
+            }
         }
 
         deferred.await() as T

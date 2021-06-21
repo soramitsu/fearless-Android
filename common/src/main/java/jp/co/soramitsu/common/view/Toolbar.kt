@@ -5,13 +5,14 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
-import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.utils.dp
+import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
@@ -110,6 +111,12 @@ class Toolbar @JvmOverloads constructor(
     fun addCustomAction(@DrawableRes icon: Int, onClick: OnClickListener) {
         val actionView = ImageView(context).apply {
             setImageResource(icon)
+
+            val padding = 16.dp(context)
+
+            setPadding(padding, padding, padding, padding)
+
+            background = context.getDrawableCompat(R.drawable.bg_primary_list_item)
 
             layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
 

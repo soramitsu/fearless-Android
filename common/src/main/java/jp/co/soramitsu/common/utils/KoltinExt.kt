@@ -54,3 +54,9 @@ fun <T> Set<T>.toggle(item: T) : Set<T> = if (item in this) {
 } else {
     this + item
 }
+
+fun <T> List<T>.cycle(): Sequence<T> {
+    var i = 0
+
+    return generateSequence { this[i++ % this.size] }
+}

@@ -23,6 +23,12 @@ class RecommendationSettingsProvider(
         NotOverSubscribedFilter(maximumRewardedNominators)
     )
 
+    val allSortings = listOf(
+        APYSorting,
+        TotalStakeSorting,
+        OwnStakeSorting
+    )
+
     private val allPostProcessors = listOf(
         RemoveClusteringPostprocessor
     )

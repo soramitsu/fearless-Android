@@ -8,6 +8,7 @@ import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
+import jp.co.soramitsu.common.utils.enableShowingNewlyAddedTopElements
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
@@ -52,6 +53,12 @@ class SelectCustomValidatorsFragment : BaseFragment<SelectCustomValidatorsViewMo
 
         selectCustomValidatorsToolbar.setHomeButtonListener { viewModel.backClicked() }
         onBackPressed { viewModel.backClicked() }
+
+        selectCustomValidatorsToolbar.addCustomAction(R.drawable.ic_basic_filterlist_24) {
+            viewModel.settingsClicked()
+        }
+
+        selectCustomValidatorsList.enableShowingNewlyAddedTopElements(viewLifecycleOwner, onlyWhenOnTop=false)
     }
 
     override fun inject() {
