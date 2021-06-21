@@ -309,6 +309,10 @@ class Navigator :
         navController?.navigate(R.id.action_startChangeValidatorsFragment_to_recommendedValidatorsFragment)
     }
 
+    override fun openSelectCustomValidators() {
+        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_selectCustomValidatorsFragment)
+    }
+
     override fun openConfirmStaking() {
         navController?.navigate(R.id.action_recommendedValidatorsFragment_to_confirmStakingFragment)
     }

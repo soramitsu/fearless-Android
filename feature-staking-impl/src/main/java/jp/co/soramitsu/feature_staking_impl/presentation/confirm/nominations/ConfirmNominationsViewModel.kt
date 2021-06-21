@@ -17,15 +17,17 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.findSelectedValidator
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model.ValidatorModel
+import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ConfirmNominationsViewModel(
     private val router: StakingRouter,
     private val addressIconGenerator: AddressIconGenerator,
-    private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
+    private val tokenUseCase: TokenUseCase
 ) : BaseViewModel() {
 
     private val currentSetupStakingProcess = sharedStateSetup.get<SetupStakingProcess.Confirm>()
@@ -33,10 +35,7 @@ class ConfirmNominationsViewModel(
     private val validators = currentSetupStakingProcess.payload.validators
 
     val selectedValidatorsLiveData = liveData(Dispatchers.Default) {
-        val nominations = validators
-        val networkType = interactor.getSelectedNetworkType()
-
-        emit(convertToModels(nominations, networkType))
+        emit(convertToModels(validators, tokenUseCase.currentToken()))
     }
 
     val toolbarTitle = selectedValidatorsLiveData.map {
@@ -57,10 +56,10 @@ class ConfirmNominationsViewModel(
 
     private suspend fun convertToModels(
         validators: List<Validator>,
-        networkType: Node.NetworkType,
+        token: Token,
     ): List<ValidatorModel> {
         return validators.map {
-            mapValidatorToValidatorModel(it, addressIconGenerator, networkType)
+            mapValidatorToValidatorModel(it, addressIconGenerator, token)
         }
     }
 }

@@ -6,8 +6,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filt
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotSlashedFilter
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.postprocessors.RemoveClusteringPostprocessor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.CommissionSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.StakeSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.OwnStakeSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -23,27 +23,17 @@ class RecommendationSettingsProvider(
         NotOverSubscribedFilter(maximumRewardedNominators)
     )
 
-    private val allSortings = listOf(
-        APYSorting,
-        StakeSorting,
-        CommissionSorting
-    )
-
     private val allPostProcessors = listOf(
         RemoveClusteringPostprocessor
     )
 
-    private val settingsFlow = MutableStateFlow(defaultSettings())
+    private val customSettingsFlow = MutableStateFlow(defaultSelectCustomSettings())
 
     suspend fun setRecommendationSettings(settings: RecommendationSettings) {
-        settingsFlow.emit(settings)
+        customSettingsFlow.emit(settings)
     }
 
-    fun observeRecommendationSettings(): Flow<RecommendationSettings> = settingsFlow
-
-    fun getAllFilters(): List<RecommendationFilter> = allFilters
-
-    fun getAllSortings(): List<RecommendationSorting> = allSortings
+    fun observeRecommendationSettings(): Flow<RecommendationSettings> = customSettingsFlow
 
     fun defaultSettings(): RecommendationSettings {
         return RecommendationSettings(
@@ -53,4 +43,11 @@ class RecommendationSettingsProvider(
             limit = maximumValidatorsPerNominator
         )
     }
+
+    fun defaultSelectCustomSettings() = RecommendationSettings(
+        filters = allFilters,
+        sorting = APYSorting,
+        postProcessors = allPostProcessors,
+        limit = null
+    )
 }

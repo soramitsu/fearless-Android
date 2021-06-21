@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.di
+package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.di
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -15,15 +15,16 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorReco
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.SelectCustomValidatorsViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.RecommendedValidatorsViewModel
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 
 @Module(includes = [ViewModelModule::class])
-class RecommendedValidatorsModule {
+class SelectCustomValidatorsModule {
 
     @Provides
     @IntoMap
-    @ViewModelKey(RecommendedValidatorsViewModel::class)
+    @ViewModelKey(SelectCustomValidatorsViewModel::class)
     fun provideViewModel(
         validatorRecommendatorFactory: ValidatorRecommendatorFactory,
         recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
@@ -31,17 +32,15 @@ class RecommendedValidatorsModule {
         stakingInteractor: StakingInteractor,
         resourceManager: ResourceManager,
         router: StakingRouter,
-        setupStakingSharedState: SetupStakingSharedState,
         tokenUseCase: TokenUseCase
     ): ViewModel {
-        return RecommendedValidatorsViewModel(
+        return SelectCustomValidatorsViewModel(
             router,
             validatorRecommendatorFactory,
             recommendationSettingsProviderFactory,
             addressIconGenerator,
             stakingInteractor,
             resourceManager,
-            setupStakingSharedState,
             tokenUseCase
         )
     }
@@ -50,7 +49,7 @@ class RecommendedValidatorsModule {
     fun provideViewModelCreator(
         fragment: Fragment,
         viewModelFactory: ViewModelProvider.Factory
-    ): RecommendedValidatorsViewModel {
-        return ViewModelProvider(fragment, viewModelFactory).get(RecommendedValidatorsViewModel::class.java)
+    ): SelectCustomValidatorsViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(SelectCustomValidatorsViewModel::class.java)
     }
 }

@@ -2,23 +2,23 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.reco
 
 import android.graphics.drawable.PictureDrawable
 import androidx.recyclerview.widget.DiffUtil
+import jp.co.soramitsu.common.list.PayloadGenerator
+import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 
 data class ValidatorModel(
     val accountIdHex: String,
     val slashed: Boolean,
     val image: PictureDrawable,
     val address: String,
-    val apy: String?,
-    val title: String
-)
+    val scoring: Scoring?,
+    val title: String,
+    val isChecked: Boolean?,
+    val validator: Validator
+) {
 
-object ValidatorDiffCallback : DiffUtil.ItemCallback<ValidatorModel>() {
+    sealed class Scoring {
+        class OneField(val field: String) : Scoring()
 
-    override fun areItemsTheSame(oldItem: ValidatorModel, newItem: ValidatorModel): Boolean {
-        return oldItem.address == newItem.address
-    }
-
-    override fun areContentsTheSame(oldItem: ValidatorModel, newItem: ValidatorModel): Boolean {
-        return oldItem == newItem
+        class TwoFields(val primary: String, val secondary: String?) : Scoring()
     }
 }

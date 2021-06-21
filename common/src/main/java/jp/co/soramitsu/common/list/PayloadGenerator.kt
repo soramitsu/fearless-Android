@@ -5,7 +5,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 typealias DiffCheck<T, V> = (T) -> V
 
-open class PayloadGenerator<T>(vararg val checks: DiffCheck<T, *>) {
+open class PayloadGenerator<T>(private vararg val checks: DiffCheck<T, *>) {
 
     fun diff(first: T, second: T): List<DiffCheck<T, *>> {
         return checks.filter { check -> check(first) != check(second) }

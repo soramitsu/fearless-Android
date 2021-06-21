@@ -57,7 +57,7 @@ class StartChangeValidatorsViewModel(
     }
 
     fun goToCustomClicked() {
-        showMessage("Ready to go to custom validators")
+        router.openSelectCustomValidators()
     }
 
     fun goToRecommendedClicked() {

@@ -5,7 +5,12 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import androidx.annotation.DrawableRes
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -15,6 +20,7 @@ import kotlinx.android.synthetic.main.view_toolbar.view.rightImg
 import kotlinx.android.synthetic.main.view_toolbar.view.rightText
 import kotlinx.android.synthetic.main.view_toolbar.view.titleTv
 import kotlinx.android.synthetic.main.view_toolbar.view.toolbarContainer
+import kotlinx.android.synthetic.main.view_toolbar.view.toolbarCustomActions
 import kotlinx.android.synthetic.main.view_toolbar.view.toolbarDivider
 
 class Toolbar @JvmOverloads constructor(
@@ -99,5 +105,18 @@ class Toolbar @JvmOverloads constructor(
 
     fun setHomeButtonVisibility(visible: Boolean) {
         backImg.visibility = if (visible) View.VISIBLE else View.GONE
+    }
+
+    fun addCustomAction(@DrawableRes icon: Int, onClick: OnClickListener) {
+        val actionView = ImageView(context).apply {
+            setImageResource(icon)
+
+            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+
+            setOnClickListener(onClick)
+        }
+
+        toolbarCustomActions.makeVisible()
+        toolbarCustomActions.addView(actionView)
     }
 }

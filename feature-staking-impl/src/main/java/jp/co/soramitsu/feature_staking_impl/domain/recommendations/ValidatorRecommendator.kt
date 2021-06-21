@@ -6,12 +6,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.Reco
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class ValidatorRecommendator(
-    private val allRecommendedValidators: List<Validator>
-) {
+class ValidatorRecommendator(val availableValidators: List<Validator>) {
 
     suspend fun recommendations(settings: RecommendationSettings) = withContext(Dispatchers.Default) {
-        val all = allRecommendedValidators.applyFilters(settings.filters)
+        val all = availableValidators.applyFilters(settings.filters)
             .sortedWith(settings.sorting)
 
         val postprocessed = settings.postProcessors.fold(all) { acc, postProcessor ->
