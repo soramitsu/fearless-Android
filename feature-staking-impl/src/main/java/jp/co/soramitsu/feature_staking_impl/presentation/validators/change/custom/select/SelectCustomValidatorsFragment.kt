@@ -7,15 +7,18 @@ import android.view.ViewGroup
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.enableShowingNewlyAddedTopElements
+import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model.ValidatorModel
+import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsClearFilters
 import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsContainer
 import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsCount
+import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsDeselectAll
+import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsFillWithRecommended
 import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsList
 import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsNext
 import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsSorting
@@ -51,7 +54,11 @@ class SelectCustomValidatorsFragment : BaseFragment<SelectCustomValidatorsViewMo
             viewModel.settingsClicked()
         }
 
-        selectCustomValidatorsList.enableShowingNewlyAddedTopElements(viewLifecycleOwner, onlyWhenOnTop = false)
+        selectCustomValidatorsList.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
+
+        selectCustomValidatorsFillWithRecommended.setOnClickListener { viewModel.fillRestWithRecommended() }
+        selectCustomValidatorsClearFilters.setOnClickListener { viewModel.clearFilters() }
+        selectCustomValidatorsDeselectAll.setOnClickListener { viewModel.deselectAll() }
     }
 
     override fun inject() {
@@ -78,6 +85,10 @@ class SelectCustomValidatorsFragment : BaseFragment<SelectCustomValidatorsViewMo
         }
 
         viewModel.scoringHeader.observe(selectCustomValidatorsSorting::setText)
+
+        viewModel.fillWithRecommendedEnabled.observe(selectCustomValidatorsFillWithRecommended::setEnabled)
+        viewModel.clearFiltersEnabled.observe(selectCustomValidatorsClearFilters::setEnabled)
+        viewModel.deselectAllEnabled.observe(selectCustomValidatorsDeselectAll::setEnabled)
     }
 
     override fun validatorInfoClicked(validatorModel: ValidatorModel) {

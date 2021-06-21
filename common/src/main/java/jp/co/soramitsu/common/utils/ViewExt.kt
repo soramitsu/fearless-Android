@@ -105,18 +105,26 @@ fun View.hideSoftKeyboard() {
     inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
 }
 
-fun RecyclerView.enableShowingNewlyAddedTopElements(lifecycleOwner: LifecycleOwner, onlyWhenOnTop: Boolean) {
-    val dataObserver = enableShowingNewlyAddedTopElements(onlyWhenOnTop)
+fun RecyclerView.scrollToTopWhenItemsShuffled(lifecycleOwner: LifecycleOwner) {
+    val adapterDataObserver = object : RecyclerView.AdapterDataObserver() {
+        override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+            scrollToPosition(0)
+        }
 
-    lifecycleOwner.lifecycle.onDestroy { adapter?.unregisterAdapterDataObserver(dataObserver) }
+        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+            scrollToPosition(0)
+        }
+    }
+
+    adapter?.registerAdapterDataObserver(adapterDataObserver)
+
+    lifecycleOwner.lifecycle.onDestroy { adapter?.unregisterAdapterDataObserver(adapterDataObserver) }
 }
 
-fun RecyclerView.enableShowingNewlyAddedTopElements(onlyWhenOnTop: Boolean): RecyclerView.AdapterDataObserver {
+fun RecyclerView.enableShowingNewlyAddedTopElements(): RecyclerView.AdapterDataObserver {
     val adapterDataObserver = object : RecyclerView.AdapterDataObserver() {
         override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-            val topFlag = if (onlyWhenOnTop) wasAtBeginningBeforeInsertion(itemCount) else true
-
-            if (positionStart == 0 && topFlag) {
+            if (positionStart == 0 && wasAtBeginningBeforeInsertion(itemCount)) {
                 scrollToPosition(0)
             }
         }

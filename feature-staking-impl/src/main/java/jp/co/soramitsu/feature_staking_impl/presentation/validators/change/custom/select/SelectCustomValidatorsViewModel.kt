@@ -10,6 +10,8 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProvider
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.OwnStakeSorting
@@ -98,6 +100,15 @@ class SelectCustomValidatorsViewModel(
         }
     }.inBackground().share()
 
+    val fillWithRecommendedEnabled = selectedValidators.map { it.size < maxSelectedValidators }
+        .share()
+
+    val clearFiltersEnabled = recommendationSettingsFlow.map { it.filters.isNotEmpty() || it.postProcessors.isNotEmpty() }
+        .share()
+
+    val deselectAllEnabled = selectedValidators.map { it.isNotEmpty() }
+        .share()
+
     fun backClicked() {
         router.back()
     }
@@ -128,18 +139,49 @@ class SelectCustomValidatorsViewModel(
         }
     }
 
-    private suspend fun recommendator() = validatorRecommendator.await()
-
-    private fun mutateSelected(mutation: (Set<Validator>) -> Set<Validator>) {
-        selectedValidators.value = mutation(selectedValidators.value)
-    }
-
     fun settingsClicked() {
         launch {
             val currentSettings = recommendationSettingsFlow.first()
             val newSettings = currentSettings.copy(sorting = sortingsSequence.await().next())
 
             recommendationSettingsProvider().setRecommendationSettings(newSettings)
+        }
+    }
+
+    fun clearFilters() {
+       mutateSettings {
+           it.copy(filters = emptyList(), postProcessors = emptyList())
+       }
+    }
+
+    fun deselectAll() {
+        mutateSelected { emptySet() }
+    }
+
+    fun fillRestWithRecommended() {
+        mutateSelected { selected ->
+            val recommended = recommendator().recommendations(recommendationSettingsProvider().defaultSettings())
+
+            val new = recommended.toSet() - selected
+            val neededToFill = maxSelectedValidators - selected.size
+
+            new.take(neededToFill).toSet()
+        }
+    }
+
+    private suspend fun recommendator() = validatorRecommendator.await()
+
+    private fun mutateSelected(mutation: suspend (Set<Validator>) -> Set<Validator>) {
+        launch {
+            selectedValidators.value = mutation(selectedValidators.value)
+        }
+    }
+
+    private fun mutateSettings(mutation: (RecommendationSettings) -> RecommendationSettings) {
+        launch {
+            val current = recommendationSettingsFlow.first()
+
+            recommendationSettingsProvider().setRecommendationSettings(mutation(current))
         }
     }
 

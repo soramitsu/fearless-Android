@@ -28,7 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:background="@drawable/apply_button_background"
+        android:background="@drawable/primary_chip_background"
         android:includeFontPadding="false"
         android:paddingStart="12dp"
         android:paddingTop="6dp"
