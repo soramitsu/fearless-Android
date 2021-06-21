@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select
 
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.cycle
@@ -11,7 +12,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProvider
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.OwnStakeSorting
@@ -65,6 +65,8 @@ class SelectCustomValidatorsViewModel(
     private val selectedValidators = MutableStateFlow(emptySet<Validator>())
 
     private val maxSelectedValidators = interactor.maxValidatorsPerNominator()
+
+    private val iconsCache: MutableMap<String, AddressModel> = mutableMapOf()
 
     val validatorModelsFlow = combine(
         shownValidators,
@@ -128,12 +130,16 @@ class SelectCustomValidatorsViewModel(
         selectedValidators: Set<Validator>,
         token: Token
     ): List<ValidatorModel> {
-        return validators.map {
+        return validators.map { validator ->
             mapValidatorToValidatorModel(
-                validator = it,
-                iconGenerator = addressIconGenerator,
+                validator = validator,
+                createIcon = {
+                    iconsCache.getOrPut(it) {
+                        addressIconGenerator.createAddressModel(it, AddressIconGenerator.SIZE_MEDIUM, validator.identity?.display)
+                    }
+                },
                 token = token,
-                isChecked = it in selectedValidators,
+                isChecked = validator in selectedValidators,
                 sorting = recommendationSettingsFlow.first().sorting
             )
         }
@@ -149,9 +155,9 @@ class SelectCustomValidatorsViewModel(
     }
 
     fun clearFilters() {
-       mutateSettings {
-           it.copy(filters = emptyList(), postProcessors = emptyList())
-       }
+        mutateSettings {
+            it.copy(filters = emptyList(), postProcessors = emptyList())
+        }
     }
 
     fun deselectAll() {

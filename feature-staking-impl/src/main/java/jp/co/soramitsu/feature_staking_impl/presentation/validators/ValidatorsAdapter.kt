@@ -90,13 +90,13 @@ class ValidatorViewHolder(override val containerView: View) : RecyclerView.ViewH
             null -> itemValidatorScoring.makeGone()
 
             is ValidatorModel.Scoring.OneField -> {
-                itemValidatorScoring.makeVisible()
+                itemValidatorScoringPrimary.makeVisible()
                 itemValidatorScoringSecondary.makeGone()
                 itemValidatorScoringPrimary.text = scoring.field
             }
 
             is ValidatorModel.Scoring.TwoFields -> {
-                itemValidatorScoring.makeVisible()
+                itemValidatorScoringPrimary.makeVisible()
                 itemValidatorScoringSecondary.makeVisible()
                 itemValidatorScoringPrimary.text = scoring.primary
                 itemValidatorScoringSecondary.text = scoring.secondary

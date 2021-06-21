@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
@@ -36,10 +37,24 @@ suspend fun mapValidatorToValidatorModel(
     token: Token,
     isChecked: Boolean? = null,
     sorting: RecommendationSorting = APYSorting,
+) = mapValidatorToValidatorModel(
+    validator,
+    { iconGenerator.createAddressModel(it, ICON_SIZE_DP, validator.identity?.display) },
+    token,
+    isChecked,
+    sorting
+)
+
+suspend fun mapValidatorToValidatorModel(
+    validator: Validator,
+    createIcon: suspend (address: String) -> AddressModel,
+    token: Token,
+    isChecked: Boolean? = null,
+    sorting: RecommendationSorting = APYSorting,
 ): ValidatorModel {
     val networkType = token.type.networkType
     val address = validator.accountIdHex.fromHex().toAddress(networkType)
-    val addressModel = iconGenerator.createAddressModel(address, ICON_SIZE_DP, validator.identity?.display)
+    val addressModel = createIcon(address)
 
     return with(validator) {
         val scoring = when (sorting) {
