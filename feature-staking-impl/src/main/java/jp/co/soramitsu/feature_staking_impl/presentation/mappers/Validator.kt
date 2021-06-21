@@ -23,7 +23,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import java.lang.IllegalArgumentException
 import java.math.BigInteger
 
 private val PERCENT_MULTIPLIER = 100.toBigDecimal()

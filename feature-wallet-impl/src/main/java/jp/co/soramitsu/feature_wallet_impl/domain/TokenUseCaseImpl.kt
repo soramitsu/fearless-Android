@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 class TokenUseCaseImpl(
     private val tokenRepository: TokenRepository,
     private val accountRepository: AccountRepository
-    ) : TokenUseCase {
+) : TokenUseCase {
 
     override suspend fun currentToken(): Token {
         return tokenRepository.getToken(accountRepository.currentNetworkType())!!

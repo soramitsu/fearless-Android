@@ -37,7 +37,7 @@ import javax.inject.Named
 
 interface StakingFeatureDependencies {
 
-    fun tokenUseCase() : TokenUseCase
+    fun tokenUseCase(): TokenUseCase
 
     fun computationalCache(): ComputationalCache
 

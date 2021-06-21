@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface TokenUseCase {
 
-    suspend fun currentToken() : Token
+    suspend fun currentToken(): Token
 
     fun currentTokenFlow(): Flow<Token>
 }

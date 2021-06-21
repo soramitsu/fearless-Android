@@ -11,7 +11,7 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 
 interface WalletFeatureApi {
 
-    fun tokenUseCase() : TokenUseCase
+    fun tokenUseCase(): TokenUseCase
 
     fun assetUseCase(): AssetUseCase
 

@@ -14,9 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.SelectCustomValidatorsViewModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.RecommendedValidatorsViewModel
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 
 @Module(includes = [ViewModelModule::class])

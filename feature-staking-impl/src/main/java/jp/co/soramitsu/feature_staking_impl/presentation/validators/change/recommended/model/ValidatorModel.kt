@@ -1,8 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model
 
 import android.graphics.drawable.PictureDrawable
-import androidx.recyclerview.widget.DiffUtil
-import jp.co.soramitsu.common.list.PayloadGenerator
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 
 data class ValidatorModel(

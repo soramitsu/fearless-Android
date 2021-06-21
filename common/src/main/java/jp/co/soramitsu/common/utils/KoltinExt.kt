@@ -49,7 +49,7 @@ fun List<Double>.median(): Double = sorted().let {
 
 fun generateLinearSequence(initial: Int, step: Int) = generateSequence(initial) { it + step }
 
-fun <T> Set<T>.toggle(item: T) : Set<T> = if (item in this) {
+fun <T> Set<T>.toggle(item: T): Set<T> = if (item in this) {
     this - item
 } else {
     this + item
