@@ -168,10 +168,10 @@ class SelectCustomValidatorsViewModel(
         mutateSelected { selected ->
             val recommended = recommendator().recommendations(recommendationSettingsProvider().defaultSettings())
 
-            val new = recommended.toSet() - selected
+            val missingFromRecommended = recommended.toSet() - selected
             val neededToFill = maxSelectedValidators - selected.size
 
-            new.take(neededToFill).toSet()
+            selected + missingFromRecommended.take(neededToFill).toSet()
         }
     }
 
