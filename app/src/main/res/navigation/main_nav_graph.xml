@@ -433,7 +433,7 @@
 
     <fragment
         android:id="@+id/recommendedValidatorsFragment"
-        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.RecommendedValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.RecommendedValidatorsFragment"
         android:label="recommendedValidatorsFragment"
         tools:layout="@layout/fragment_recommended_validators">
 
