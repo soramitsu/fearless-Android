@@ -36,7 +36,7 @@ class AlertsInteractor(
         val exposures: Map<String, Exposure>,
         val stakingState: StakingState,
         val maxRewardedNominatorsPerValidator: Int,
-        val existentialDeposit: BigInteger,
+        val minimumNominatorBond: BigInteger,
         val activeEra: BigInteger,
         val asset: Asset,
     ) {
@@ -80,7 +80,7 @@ class AlertsInteractor(
 
     private fun produceMinStakeAlert(context: AlertContext) = requireState(context.stakingState) { _: StakingState.Stash ->
         with(context) {
-            val minimalStakeInPlanks = minimumStake(exposures.values, existentialDeposit)
+            val minimalStakeInPlanks = minimumStake(exposures.values, minimumNominatorBond)
 
             if (asset.bondedInPlanks < minimalStakeInPlanks) {
                 val minimalStake = asset.token.amountFromPlanks(minimalStakeInPlanks)
@@ -113,7 +113,7 @@ class AlertsInteractor(
         val networkType = stakingState.accountAddress.networkType()
         val token = Token.Type.fromNetworkType(networkType)
         val maxRewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator()
-        val existentialDeposit = walletConstants.existentialDeposit()
+        val minimumNominatorBond = stakingRepository.minimumNominatorBond()
 
         val alertsFlow = combine(
             stakingRepository.electionFlow(networkType),
@@ -127,7 +127,7 @@ class AlertsInteractor(
                 exposures = exposures,
                 stakingState = stakingState,
                 maxRewardedNominatorsPerValidator = maxRewardedNominatorsPerValidator,
-                existentialDeposit = existentialDeposit,
+                minimumNominatorBond = minimumNominatorBond,
                 asset = asset,
                 activeEra = activeEra
             )
