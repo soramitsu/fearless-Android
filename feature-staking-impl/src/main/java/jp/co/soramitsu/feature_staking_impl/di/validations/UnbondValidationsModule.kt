@@ -22,7 +22,7 @@ class UnbondValidationsModule {
     @Provides
     fun provideFeeValidation() = UnbondFeeValidation(
         feeExtractor = { it.fee },
-        availableBalanceProducer = { it.available },
+        availableBalanceProducer = { it.asset.transferable },
         errorProducer = { UnbondValidationFailure.CannotPayFees }
     )
 

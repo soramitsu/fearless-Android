@@ -281,7 +281,8 @@ class StakingFeatureModule {
     fun provideUnbondInteractor(
         feeEstimator: FeeEstimator,
         extrinsicService: ExtrinsicService,
-    ) = UnbondInteractor(feeEstimator, extrinsicService)
+        stakingRepository: StakingRepository
+    ) = UnbondInteractor(feeEstimator, extrinsicService, stakingRepository)
 
     @Provides
     @FeatureScope

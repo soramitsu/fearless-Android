@@ -51,7 +51,7 @@ interface StakingRepository {
 
     suspend fun getControllerAccountInfo(stakingState: StakingState.Stash): AccountInfo
 
-    suspend fun minimumBond(): BigInteger
+    suspend fun minimumNominatorBond(): BigInteger
 
     val electedExposuresInActiveEra: Flow<Map<String, Exposure>>
 }

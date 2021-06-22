@@ -215,7 +215,7 @@ class StakingRepositoryImpl(
         )
     }
 
-    override suspend fun minimumBond(): BigInteger {
+    override suspend fun minimumNominatorBond(): BigInteger {
         val runtime = getRuntime()
 
         val minBond = runtime.metadata.staking().storageOrNull("MinNominatorBond")?.let { storageEntry ->

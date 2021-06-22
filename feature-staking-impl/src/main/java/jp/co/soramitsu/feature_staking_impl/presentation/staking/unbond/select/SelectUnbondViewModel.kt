@@ -116,7 +116,7 @@ class SelectUnbondViewModel(
             feeConstructor = { asset ->
                 val amountInPlanks = asset.token.planksFromAmount(amount)
 
-                val feeInPlanks = unbondInteractor.estimateFee(controllerAddress(), amountInPlanks)
+                val feeInPlanks = unbondInteractor.estimateFee(accountStakingFlow.first(), asset.bondedInPlanks, amountInPlanks)
 
                 asset.token.amountFromPlanks(feeInPlanks)
             },
@@ -135,8 +135,7 @@ class SelectUnbondViewModel(
 
             val payload = UnbondValidationPayload(
                 stash = accountStakingFlow.first(),
-                available = asset.transferable,
-                bonded = asset.bonded,
+                asset = asset,
                 fee = fee,
                 amount = parsedAmountFlow.first(),
                 tokenType = asset.token.type
@@ -164,6 +163,4 @@ class SelectUnbondViewModel(
 
         router.openConfirmUnbond(confirmUnbondPayload)
     }
-
-    private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress
 }
