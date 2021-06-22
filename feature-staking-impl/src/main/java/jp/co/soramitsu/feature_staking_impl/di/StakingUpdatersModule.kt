@@ -17,9 +17,11 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Acco
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountRewardDestinationUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountValidatorPrefsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CounterForNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ElectionStatusUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.HistoryDepthUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MaxNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MinBondUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.TotalIssuanceUpdater
@@ -193,6 +195,20 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideMaxNominatorsUpdater(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        storageCache: StorageCache,
+    ) = MaxNominatorsUpdater(runtimeProperty, storageCache)
+
+    @Provides
+    @FeatureScope
+    fun provideCounterForNominatorsUpdater(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        storageCache: StorageCache,
+    ) = CounterForNominatorsUpdater(runtimeProperty, storageCache)
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaters(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
@@ -206,7 +222,9 @@ class StakingUpdatersModule {
         historyDepthUpdater: HistoryDepthUpdater,
         historicalUpdateMediator: HistoricalUpdateMediator,
         accountControllerBalanceUpdater: AccountControllerBalanceUpdater,
-        minBondUpdater: MinBondUpdater
+        minBondUpdater: MinBondUpdater,
+        maxNominatorsUpdater: MaxNominatorsUpdater,
+        counterForNominatorsUpdater: CounterForNominatorsUpdater
     ) = StakingUpdaters(
         updaters = arrayOf(
             activeEraUpdater,
@@ -221,7 +239,9 @@ class StakingUpdatersModule {
             historyDepthUpdater,
             historicalUpdateMediator,
             accountControllerBalanceUpdater,
-            minBondUpdater
+            minBondUpdater,
+            maxNominatorsUpdater,
+            counterForNominatorsUpdater
         )
     )
 }

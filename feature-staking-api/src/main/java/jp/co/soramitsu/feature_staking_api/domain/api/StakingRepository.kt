@@ -53,6 +53,10 @@ interface StakingRepository {
 
     suspend fun minimumNominatorBond(): BigInteger
 
+    suspend fun maxNominators(): BigInteger?
+
+    suspend fun nominatorsCount(): BigInteger?
+
     val electedExposuresInActiveEra: Flow<Map<String, Exposure>>
 }
 

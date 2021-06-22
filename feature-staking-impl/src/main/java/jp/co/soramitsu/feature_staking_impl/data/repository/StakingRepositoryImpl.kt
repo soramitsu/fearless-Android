@@ -2,6 +2,9 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.Binder
+import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithType
+import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
@@ -43,8 +46,10 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionFromStatus
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindHistoryDepth
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindMaxNominators
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindMinBond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindNominations
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindNominatorsCount
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashDeferDuration
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashingSpans
@@ -216,18 +221,38 @@ class StakingRepositoryImpl(
     }
 
     override suspend fun minimumNominatorBond(): BigInteger {
-        val runtime = getRuntime()
-
-        val minBond = runtime.metadata.staking().storageOrNull("MinNominatorBond")?.let { storageEntry ->
-            localStorage.query(
-                keyBuilder = { storageEntry.storageKey() },
-                binding = { scale, _ ->  scale?.let { bindMinBond(scale, runtime, storageEntry.returnType()) } }
-            )
-        } ?: BigInteger.ZERO
+        val minBond = queryStorageIfExists(
+            storageName = "MinNominatorBond",
+            binder = ::bindMinBond
+        ) ?: BigInteger.ZERO
 
         val existentialDeposit = walletConstants.existentialDeposit()
 
         return minBond.max(existentialDeposit)
+    }
+
+    override suspend fun maxNominators(): BigInteger? = queryStorageIfExists(
+        storageName = "MaxNominatorsCount",
+        binder = ::bindMaxNominators
+    )
+
+    override suspend fun nominatorsCount(): BigInteger? = queryStorageIfExists(
+        storageName = "CounterForNominators",
+        binder = ::bindNominatorsCount
+    )
+
+    private suspend fun <T> queryStorageIfExists(
+        storageName: String,
+        binder: NonNullBinderWithType<T>
+    ): T? {
+        val runtime = getRuntime()
+
+        return runtime.metadata.staking().storageOrNull(storageName)?.let { storageEntry ->
+            localStorage.query(
+                keyBuilder = { storageEntry.storageKey() },
+                binding = { scale, _ ->  scale?.let { binder(scale, runtime, storageEntry.returnType()) } }
+            )
+        }
     }
 
     override fun stakingStoriesFlow(): Flow<List<StakingStory>> {
