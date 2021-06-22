@@ -27,7 +27,7 @@ import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCu
 import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsSorting
 import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsToolbar
 
-class SelectCustomValidatorsFragment : BaseFragment<SelectCustomValidatorsViewModel>(), ValidatorsAdapter.ItemAssetHandler {
+class SelectCustomValidatorsFragment : BaseFragment<SelectCustomValidatorsViewModel>(), ValidatorsAdapter.ItemHandler {
 
     lateinit var adapter: ValidatorsAdapter
 

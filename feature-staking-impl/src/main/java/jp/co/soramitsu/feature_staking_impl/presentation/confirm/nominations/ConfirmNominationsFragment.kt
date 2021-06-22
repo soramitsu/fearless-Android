@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recom
 import kotlinx.android.synthetic.main.fragment_confirm_nominations.confirmNominationsList
 import kotlinx.android.synthetic.main.fragment_confirm_nominations.confirmNominationsToolbar
 
-class ConfirmNominationsFragment : BaseFragment<ConfirmNominationsViewModel>(), ValidatorsAdapter.ItemAssetHandler {
+class ConfirmNominationsFragment : BaseFragment<ConfirmNominationsViewModel>(), ValidatorsAdapter.ItemHandler {
 
     lateinit var adapter: ValidatorsAdapter
 

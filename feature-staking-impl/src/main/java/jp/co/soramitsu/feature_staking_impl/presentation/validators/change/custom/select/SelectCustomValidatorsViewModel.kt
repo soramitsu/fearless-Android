@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select
 
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -17,6 +18,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sort
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.OwnStakeSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
@@ -27,9 +30,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class SelectCustomValidatorsViewModel(
@@ -39,6 +45,7 @@ class SelectCustomValidatorsViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
+    private val setupStakingSharedState: SetupStakingSharedState,
     private val tokenUseCase: TokenUseCase,
 ) : BaseViewModel() {
 
@@ -111,8 +118,18 @@ class SelectCustomValidatorsViewModel(
     val deselectAllEnabled = selectedValidators.map { it.isNotEmpty() }
         .share()
 
+    init {
+        observeExternalSelectionChanges()
+    }
+
     fun backClicked() {
+        setPreviousStakingState()
+
         router.back()
+    }
+
+    fun nextClicked() {
+        updateSetupStakingState()
     }
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
@@ -122,26 +139,6 @@ class SelectCustomValidatorsViewModel(
     fun validatorClicked(validatorModel: ValidatorModel) {
         mutateSelected {
             it.toggle(validatorModel.validator)
-        }
-    }
-
-    private suspend fun convertToModels(
-        validators: List<Validator>,
-        selectedValidators: Set<Validator>,
-        token: Token
-    ): List<ValidatorModel> {
-        return validators.map { validator ->
-            mapValidatorToValidatorModel(
-                validator = validator,
-                createIcon = {
-                    iconsCache.getOrPut(it) {
-                        addressIconGenerator.createAddressModel(it, AddressIconGenerator.SIZE_MEDIUM, validator.identity?.display)
-                    }
-                },
-                token = token,
-                isChecked = validator in selectedValidators,
-                sorting = recommendationSettingsFlow.first().sorting
-            )
         }
     }
 
@@ -175,6 +172,33 @@ class SelectCustomValidatorsViewModel(
         }
     }
 
+    private fun observeExternalSelectionChanges() {
+        setupStakingSharedState.setupStakingProcess
+            .filterIsInstance<SetupStakingProcess.Confirm>()
+            .onEach { selectedValidators.value = it.payload.validators.toSet() }
+            .launchIn(viewModelScope)
+    }
+
+    private suspend fun convertToModels(
+        validators: List<Validator>,
+        selectedValidators: Set<Validator>,
+        token: Token
+    ): List<ValidatorModel> {
+        return validators.map { validator ->
+            mapValidatorToValidatorModel(
+                validator = validator,
+                createIcon = {
+                    iconsCache.getOrPut(it) {
+                        addressIconGenerator.createAddressModel(it, AddressIconGenerator.SIZE_MEDIUM, validator.identity?.display)
+                    }
+                },
+                token = token,
+                isChecked = validator in selectedValidators,
+                sorting = recommendationSettingsFlow.first().sorting
+            )
+        }
+    }
+
     private suspend fun recommendator() = validatorRecommendator.await()
 
     private fun mutateSelected(mutation: suspend (Set<Validator>) -> Set<Validator>) {
@@ -192,4 +216,28 @@ class SelectCustomValidatorsViewModel(
     }
 
     private suspend fun recommendationSettingsProvider() = recommendationSettingsProviderFactory.get()
+
+    private fun updateSetupStakingState() = mutateSetStakingSharedState {
+        val latestValidators = selectedValidators.value.toList()
+
+        if (it is SetupStakingProcess.Validators) {
+            it.next(latestValidators)
+        } else {
+            (it as SetupStakingProcess.Confirm).changeValidators(latestValidators)
+        }
+    }
+
+    private fun setPreviousStakingState() = mutateSetStakingSharedState {
+        if (it is SetupStakingProcess.Confirm) {
+            it.previous()
+        } else {
+            it
+        }
+    }
+
+    private fun mutateSetStakingSharedState(mutation: (SetupStakingProcess) -> SetupStakingProcess) {
+        val currentState = setupStakingSharedState.setupStakingProcess.value
+
+        setupStakingSharedState.set(mutation(currentState))
+    }
 }

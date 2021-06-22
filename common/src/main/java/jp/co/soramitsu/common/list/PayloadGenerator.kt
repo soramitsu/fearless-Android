@@ -12,18 +12,26 @@ open class PayloadGenerator<T>(private vararg val checks: DiffCheck<T, *>) {
     }
 }
 
+typealias UnknownPayloadHandler = (Any?) -> Unit
+
 @Suppress("UNCHECKED_CAST")
 fun <T, VH : RecyclerView.ViewHolder> ListAdapter<T, VH>.resolvePayload(
     holder: VH,
     position: Int,
     payloads: List<Any>,
-    onDiffCheck: (DiffCheck<T, *>) -> Unit
+    onUnknownPayload: UnknownPayloadHandler? = null,
+    onDiffCheck: (DiffCheck<T, *>) -> Unit,
 ) {
     if (payloads.isEmpty()) {
         onBindViewHolder(holder, position)
     } else {
-        val diffChecks = payloads.first() as List<DiffCheck<T, *>>
+        when(val payload = payloads.first()) {
+            is List<*> -> {
+                val diffChecks = payload as List<DiffCheck<T, *>>
 
-        diffChecks.forEach(onDiffCheck)
+                diffChecks.forEach(onDiffCheck)
+            }
+            else -> onUnknownPayload?.invoke(payload)
+        }
     }
 }
