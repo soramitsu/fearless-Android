@@ -105,6 +105,7 @@ class StakingFeatureModule {
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         stakingStoriesDataSource: StakingStoriesDataSource,
+        walletConstants: WalletConstants,
     ): StakingRepository = StakingRepositoryImpl(
         storageCache = storageCache,
         accountRepository = accountRepository,
@@ -113,7 +114,8 @@ class StakingFeatureModule {
         bulkRetriever = bulkRetriever,
         remoteStorage = remoteStorageSource,
         localStorage = localStorageSource,
-        stakingStoriesDataSource = stakingStoriesDataSource
+        stakingStoriesDataSource = stakingStoriesDataSource,
+        walletConstants = walletConstants
     )
 
     @Provides

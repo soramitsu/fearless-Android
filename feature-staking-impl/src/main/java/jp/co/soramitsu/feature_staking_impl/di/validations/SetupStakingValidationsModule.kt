@@ -5,6 +5,7 @@ import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
@@ -37,8 +38,8 @@ class SetupStakingValidationsModule {
     @Provides
     @FeatureScope
     fun provideMinimumAmountValidation(
-        walletConstants: WalletConstants,
-    ) = MinimumAmountValidation(walletConstants)
+        stakingRepository: StakingRepository
+    ) = MinimumAmountValidation(stakingRepository)
 
     @Provides
     @FeatureScope
