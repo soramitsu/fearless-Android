@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Acti
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ElectionStatusUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.HistoryDepthUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MinBondUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorExposureUpdater
@@ -29,6 +30,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.hist
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalValidatorRewardPointsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
+import kotlin.math.min
 
 @Module
 class StakingUpdatersModule {
@@ -184,6 +186,13 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideMinBondUpdater(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        storageCache: StorageCache,
+    ) = MinBondUpdater(runtimeProperty, storageCache)
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaters(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
@@ -197,6 +206,7 @@ class StakingUpdatersModule {
         historyDepthUpdater: HistoryDepthUpdater,
         historicalUpdateMediator: HistoricalUpdateMediator,
         accountControllerBalanceUpdater: AccountControllerBalanceUpdater,
+        minBondUpdater: MinBondUpdater
     ) = StakingUpdaters(
         updaters = arrayOf(
             activeEraUpdater,
@@ -210,7 +220,8 @@ class StakingUpdatersModule {
             rewardDestinationUpdater,
             historyDepthUpdater,
             historicalUpdateMediator,
-            accountControllerBalanceUpdater
+            accountControllerBalanceUpdater,
+            minBondUpdater
         )
     )
 }
