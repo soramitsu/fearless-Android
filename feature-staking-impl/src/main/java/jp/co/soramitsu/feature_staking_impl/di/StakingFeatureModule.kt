@@ -153,9 +153,8 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         stakingConstantsRepository: StakingConstantsRepository,
         walletRepository: WalletRepository,
-        walletConstants: WalletConstants,
     ) = AlertsInteractor(
-        stakingRepository, stakingConstantsRepository, walletRepository, walletConstants
+        stakingRepository, stakingConstantsRepository, walletRepository
     )
 
     @Provides

@@ -14,4 +14,6 @@ sealed class Alert {
     object Election : Alert()
 
     object WaitingForNextEra : Alert()
+
+    object SetValidators : Alert()
 }

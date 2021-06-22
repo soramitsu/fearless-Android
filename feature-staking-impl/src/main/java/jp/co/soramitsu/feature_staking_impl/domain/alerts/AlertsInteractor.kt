@@ -10,7 +10,6 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepo
 import jp.co.soramitsu.feature_staking_impl.domain.common.isWaiting
 import jp.co.soramitsu.feature_staking_impl.domain.isNominationActive
 import jp.co.soramitsu.feature_staking_impl.domain.minimumStake
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -27,8 +26,7 @@ private const val NOMINATIONS_ACTIVE_MEMO = "NOMINATIONS_ACTIVE_MEMO"
 class AlertsInteractor(
     private val stakingRepository: StakingRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
-    private val walletRepository: WalletRepository,
-    private val walletConstants: WalletConstants,
+    private val walletRepository: WalletRepository
 ) {
 
     class AlertContext(
@@ -57,6 +55,12 @@ class AlertsInteractor(
 
     private fun produceElectionAlert(context: AlertContext): Alert? {
         return if (context.election == Election.OPEN) Alert.Election else null
+    }
+
+    private fun produceSetValidatorsAlert(context: AlertContext) : Alert? {
+        return requireState(context.stakingState) { _: StakingState.Stash.None ->
+            Alert.SetValidators
+        }
     }
 
     private fun produceChangeValidatorsAlert(context: AlertContext): Alert? {
@@ -106,7 +110,8 @@ class AlertsInteractor(
         ::produceChangeValidatorsAlert,
         ::produceRedeemableAlert,
         ::produceMinStakeAlert,
-        ::produceWaitingNextEraAlert
+        ::produceWaitingNextEraAlert,
+        ::produceSetValidatorsAlert
     )
 
     fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = flow {
