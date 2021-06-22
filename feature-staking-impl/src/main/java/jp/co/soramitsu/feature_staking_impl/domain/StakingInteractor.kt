@@ -210,10 +210,6 @@ class StakingInteractor(
         mapAccountToStakingAccount(account)
     }
 
-    suspend fun isAccountInApp(accountAddress: String): Boolean {
-        return accountRepository.isAccountExists(accountAddress)
-    }
-
     suspend fun getRewardDestination(accountStakingState: StakingState.Stash): RewardDestination {
         return stakingRepository.getRewardDestination(accountStakingState)
     }

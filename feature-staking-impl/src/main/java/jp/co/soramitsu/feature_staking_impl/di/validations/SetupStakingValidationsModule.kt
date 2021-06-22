@@ -7,11 +7,11 @@ import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_impl.domain.validations.ElectionPeriodClosedValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MaxNominatorsReachedValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.MaxNominatorsReachedValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingElectionValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
@@ -60,14 +60,17 @@ class SetupStakingValidationsModule {
     @FeatureScope
     fun provideMaxNominatorsReachedValidation(
         stakingRepository: StakingRepository
-    ) = MaxNominatorsReachedValidation(stakingRepository)
+    ) = SetupStakingMaximumNominatorsValidation(
+        stakingRepository = stakingRepository,
+        errorProducer = { SetupStakingValidationFailure.MaxNominatorsReached }
+    )
 
     @Provides
     @FeatureScope
     fun provideSetupStakingValidationSystem(
         enoughToPayFeesValidation: SetupStakingFeeValidation,
         minimumAmountValidation: MinimumAmountValidation,
-        maxNominatorsReachedValidation: MaxNominatorsReachedValidation,
+        maxNominatorsReachedValidation: SetupStakingMaximumNominatorsValidation,
         electionPeriodClosedValidation: SetupStakingElectionValidation
     ) = ValidationSystem(
         CompositeValidation(listOf(

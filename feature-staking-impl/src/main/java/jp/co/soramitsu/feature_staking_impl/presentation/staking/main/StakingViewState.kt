@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.TitleAndMessage
+import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -10,7 +11,9 @@ import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.withLoading
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -21,6 +24,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -259,14 +264,15 @@ private fun getNominatorStatusTitleAndMessage(
 class WelcomeViewState(
     private val setupStakingSharedState: SetupStakingSharedState,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
-    private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
-    private val accountStakingState: StakingState,
+    private val accountStakingState: StakingState.NonStash,
     private val currentAssetFlow: Flow<Asset>,
     private val scope: CoroutineScope,
     private val errorDisplayer: (String) -> Unit,
-) : StakingViewState() {
+    private val validationSystem: WelcomeStakingValidationSystem,
+    private val validationExecutor: ValidationExecutor
+) : StakingViewState(), Validatable by validationExecutor {
 
     private val currentSetupProgress = setupStakingSharedState.get<SetupStakingProcess.Initial>()
 
@@ -313,16 +319,16 @@ class WelcomeViewState(
 
     fun nextClicked() {
         scope.launch {
-            if (accountStakingState is StakingState.Stash.None) {
-                if (interactor.isAccountInApp(accountStakingState.controllerAddress)) {
-                    setupStakingSharedState.set(currentSetupProgress.existingStashFlow())
+            val payload = WelcomeStakingValidationPayload(accountStakingState.accountAddress.networkType())
+            val amount = parsedAmountFlow.first()
 
-                    router.openRecommendedValidators()
-                } else {
-                    errorDisplayer(resourceManager.getString(R.string.staking_no_controller_account, accountStakingState.controllerAddress))
-                }
-            } else {
-                setupStakingSharedState.set(currentSetupProgress.fullFlow(parsedAmountFlow.first()))
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = payload,
+                errorDisplayer = { it.message?.let(errorDisplayer) },
+                validationFailureTransformer = { welcomeStakingValidationFailure(it, resourceManager) },
+            ) {
+                setupStakingSharedState.set(currentSetupProgress.fullFlow(amount))
 
                 router.openSetupStaking()
             }

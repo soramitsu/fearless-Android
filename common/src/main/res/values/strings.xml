@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="staking_max_nominators_reached_title">Cannot nominate</string>
-    <string name="staking_max_nominators_reached_message">Maximum amount of nominators has been reached</string>
+    <string name="staking_max_nominators_reached_message">Maximum number of nominators has been reached</string>
 
     <string name="crowdloan_my_contribution">You contributed: %s</string>
 

@@ -1,20 +1,23 @@
-package jp.co.soramitsu.feature_staking_impl.domain.validations.setup
+package jp.co.soramitsu.feature_staking_impl.domain.validations
 
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
 import jp.co.soramitsu.common.validation.validOrError
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 
-class MaxNominatorsReachedValidation(
+class MaxNominatorsReachedValidation<P, E>(
     private val stakingRepository: StakingRepository,
-) : Validation<SetupStakingPayload, SetupStakingValidationFailure> {
+    private val errorProducer: () -> E
+) : Validation<P, E> {
 
-    override suspend fun validate(value: SetupStakingPayload): ValidationStatus<SetupStakingValidationFailure> {
+    override suspend fun validate(value: P): ValidationStatus<E> {
         val nominatorCount = stakingRepository.nominatorsCount() ?: return ValidationStatus.Valid()
         val maxNominatorsAllowed = stakingRepository.maxNominators() ?: return ValidationStatus.Valid()
 
         return validOrError(nominatorCount < maxNominatorsAllowed) {
-            SetupStakingValidationFailure.MaxNominatorsReached
+            errorProducer()
         }
     }
 }

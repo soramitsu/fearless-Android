@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_staking_impl.di.validations.SetControllerValidati
 import jp.co.soramitsu.feature_staking_impl.di.validations.SetupStakingValidationsModule
 import jp.co.soramitsu.feature_staking_impl.di.validations.StakingBalanceValidationsModule
 import jp.co.soramitsu.feature_staking_impl.di.validations.UnbondValidationsModule
+import jp.co.soramitsu.feature_staking_impl.di.validations.WelcomeStakingValidationModule
 
 @Module(
     includes = [
@@ -21,7 +22,8 @@ import jp.co.soramitsu.feature_staking_impl.di.validations.UnbondValidationsModu
         RedeemValidationsModule::class,
         RebondValidationsModule::class,
         SetControllerValidationsModule::class,
-        RewardDestinationValidationsModule::class
+        RewardDestinationValidationsModule::class,
+        WelcomeStakingValidationModule::class
     ]
 )
 class StakingValidationModule
