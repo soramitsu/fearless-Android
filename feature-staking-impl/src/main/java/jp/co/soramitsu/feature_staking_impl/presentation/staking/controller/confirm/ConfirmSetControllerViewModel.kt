@@ -75,7 +75,8 @@ class ConfirmSetControllerViewModel(
             stashAddress = payload.stashAddress,
             controllerAddress = payload.controllerAddress,
             fee = payload.fee,
-            transferable = payload.transferable
+            transferable = payload.transferable,
+            controllerTransferable = payload.controllerTransferable
         )
 
         validationExecutor.requireValid(

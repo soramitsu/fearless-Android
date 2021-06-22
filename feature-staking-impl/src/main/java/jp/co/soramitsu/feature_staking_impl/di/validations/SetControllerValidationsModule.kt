@@ -5,6 +5,8 @@ import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.domain.validations.NotZeroBalanceValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.ControllerAccountIsNotZeroBalance
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.IsNotControllerAccountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationFailure
@@ -36,14 +38,25 @@ class SetControllerValidationsModule {
 
     @FeatureScope
     @Provides
+    fun provideZeroBalanceControllerValidation(): ControllerAccountIsNotZeroBalance {
+        return NotZeroBalanceValidation(
+            amountExtractor = { it.controllerTransferable },
+            errorProvider = { SetControllerValidationFailure.ZERO_CONTROLLER_BALANCE }
+        )
+    }
+
+    @FeatureScope
+    @Provides
     fun provideSetControllerValidationSystem(
         enoughToPayFeesValidation: SetControllerFeeValidation,
-        isNotControllerAccountValidation: IsNotControllerAccountValidation
+        isNotControllerAccountValidation: IsNotControllerAccountValidation,
+        controllerAccountIsNotZeroBalance: ControllerAccountIsNotZeroBalance
     ) = SetControllerValidationSystem(
         CompositeValidation(
             validations = listOf(
                 enoughToPayFeesValidation,
-                isNotControllerAccountValidation
+                isNotControllerAccountValidation,
+                controllerAccountIsNotZeroBalance
             )
         )
     )
