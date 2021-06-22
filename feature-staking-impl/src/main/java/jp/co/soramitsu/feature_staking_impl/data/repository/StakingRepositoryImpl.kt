@@ -2,11 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
-import jp.co.soramitsu.common.data.network.runtime.binding.Binder
-import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
-import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -250,7 +247,7 @@ class StakingRepositoryImpl(
         return runtime.metadata.staking().storageOrNull(storageName)?.let { storageEntry ->
             localStorage.query(
                 keyBuilder = { storageEntry.storageKey() },
-                binding = { scale, _ ->  scale?.let { binder(scale, runtime, storageEntry.returnType()) } }
+                binding = { scale, _ -> scale?.let { binder(scale, runtime, storageEntry.returnType()) } }
             )
         }
     }

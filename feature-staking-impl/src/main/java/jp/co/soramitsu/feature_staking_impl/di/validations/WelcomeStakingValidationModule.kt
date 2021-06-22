@@ -1,8 +1,8 @@
-package jp.co.soramitsu.feature_staking_impl.di.validations;
+package jp.co.soramitsu.feature_staking_impl.di.validations
 
-import dagger.Module;
-import dagger.Provides;
-import jp.co.soramitsu.common.di.scope.FeatureScope;
+import dagger.Module
+import dagger.Provides
+import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
@@ -40,9 +40,11 @@ class WelcomeStakingValidationModule {
         maxNominatorsReachedValidation: WelcomeStakingMaxNominatorsValidation,
         electionPeriodClosedValidation: WelcomeStakingElectionValidation
     ) = ValidationSystem(
-        CompositeValidation(listOf(
-            maxNominatorsReachedValidation,
-            electionPeriodClosedValidation
-        ))
+        CompositeValidation(
+            listOf(
+                maxNominatorsReachedValidation,
+                electionPeriodClosedValidation
+            )
+        )
     )
 }

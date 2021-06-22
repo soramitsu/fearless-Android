@@ -57,7 +57,7 @@ class AlertsInteractor(
         return if (context.election == Election.OPEN) Alert.Election else null
     }
 
-    private fun produceSetValidatorsAlert(context: AlertContext) : Alert? {
+    private fun produceSetValidatorsAlert(context: AlertContext): Alert? {
         return requireState(context.stakingState) { _: StakingState.Stash.None ->
             Alert.SetValidators
         }

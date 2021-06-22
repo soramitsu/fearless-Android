@@ -24,4 +24,3 @@ class MaxNominatorsUpdater(
         return runtime.metadata.staking().storageOrNull("MaxNominatorsCount")?.defaultInHex()
     }
 }
-

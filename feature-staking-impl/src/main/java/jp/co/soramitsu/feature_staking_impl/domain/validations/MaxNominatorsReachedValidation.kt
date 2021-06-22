@@ -4,8 +4,6 @@ import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
 import jp.co.soramitsu.common.validation.validOrError
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 
 class MaxNominatorsReachedValidation<P, E>(
     private val stakingRepository: StakingRepository,

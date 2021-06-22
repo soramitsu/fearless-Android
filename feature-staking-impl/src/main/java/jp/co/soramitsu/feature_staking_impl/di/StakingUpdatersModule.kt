@@ -32,7 +32,6 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.hist
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalValidatorRewardPointsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
-import kotlin.math.min
 
 @Module
 class StakingUpdatersModule {

@@ -60,7 +60,7 @@ fun ExtrinsicBuilder.bondMore(amount: BigInteger): ExtrinsicBuilder {
     )
 }
 
-fun ExtrinsicBuilder.chill() : ExtrinsicBuilder {
+fun ExtrinsicBuilder.chill(): ExtrinsicBuilder {
     return call("Staking", "chill", emptyMap())
 }
 
