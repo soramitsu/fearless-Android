@@ -3,11 +3,14 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.domain.validations.ElectionPeriodClosedValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MaxNominatorsReachedValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingElectionValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -37,6 +40,18 @@ class SetupStakingValidationsModule {
 
     @Provides
     @FeatureScope
+    fun provideElectionPeriodValidation(
+        stakingRepository: StakingRepository
+    ): SetupStakingElectionValidation {
+        return SetupStakingElectionValidation(
+            stakingRepository = stakingRepository,
+            networkTypeProvider = { it.controllerAddress.networkType() },
+            errorProducer = { SetupStakingValidationFailure.ElectionPeriod }
+        )
+    }
+
+    @Provides
+    @FeatureScope
     fun provideMinimumAmountValidation(
         stakingRepository: StakingRepository
     ) = MinimumAmountValidation(stakingRepository)
@@ -52,12 +67,14 @@ class SetupStakingValidationsModule {
     fun provideSetupStakingValidationSystem(
         enoughToPayFeesValidation: SetupStakingFeeValidation,
         minimumAmountValidation: MinimumAmountValidation,
-        maxNominatorsReachedValidation: MaxNominatorsReachedValidation
+        maxNominatorsReachedValidation: MaxNominatorsReachedValidation,
+        electionPeriodClosedValidation: SetupStakingElectionValidation
     ) = ValidationSystem(
         CompositeValidation(listOf(
             enoughToPayFeesValidation,
             minimumAmountValidation,
-            maxNominatorsReachedValidation
+            maxNominatorsReachedValidation,
+            electionPeriodClosedValidation
         ))
     )
 }

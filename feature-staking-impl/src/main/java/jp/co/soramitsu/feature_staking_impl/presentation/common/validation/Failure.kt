@@ -24,8 +24,13 @@ fun stakingValidationFailure(
                 getString(R.string.common_amount_low) to getString(R.string.staking_setup_amount_too_low, formattedThreshold)
             }
 
-            is SetupStakingValidationFailure.MaxNominatorsReached -> {
+            SetupStakingValidationFailure.MaxNominatorsReached -> {
                 getString(R.string.staking_max_nominators_reached_title) to getString(R.string.staking_max_nominators_reached_message)
+            }
+
+            SetupStakingValidationFailure.ElectionPeriod -> {
+                resourceManager.getString(R.string.staking_nominator_status_election) to
+                    resourceManager.getString(R.string.staking_nominator_status_alert_election_message)
             }
         }
     }
