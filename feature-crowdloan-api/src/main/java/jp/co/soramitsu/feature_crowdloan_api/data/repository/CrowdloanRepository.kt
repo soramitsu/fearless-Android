@@ -16,7 +16,7 @@ interface CrowdloanRepository {
 
     suspend fun allFundInfos(): Map<ParaId, FundInfo>
 
-    suspend fun getWinnerInfo(funds: Map<ParaId, FundInfo>) : Map<ParaId, Boolean>
+    suspend fun getWinnerInfo(funds: Map<ParaId, FundInfo>): Map<ParaId, Boolean>
 
     suspend fun getParachainMetadata(): Map<ParaId, ParachainMetadata>
 

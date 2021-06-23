@@ -92,7 +92,7 @@ class CrowdloanInteractor(
                         )
                     }
                     .sortedWith(
-                        compareByDescending<Crowdloan> {  it.fundInfo.raised }
+                        compareByDescending<Crowdloan> { it.fundInfo.raised }
                             .thenBy { it.fundInfo.end }
                     )
                     .groupBy { it.state::class }

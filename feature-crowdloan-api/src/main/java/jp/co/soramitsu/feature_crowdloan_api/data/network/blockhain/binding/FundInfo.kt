@@ -51,8 +51,8 @@ fun bindFundInfo(scale: String, runtime: RuntimeSnapshot, paraId: ParaId): FundI
 private val ADDRESS_PADDING = ByteArray(32)
 private val ADDRESS_PREFIX = "modlpy/cfund".encodeToByteArray()
 
-private fun createBidderAccountId(runtime: RuntimeSnapshot, paraId: ParaId) : AccountId {
-    val fullKey =  ADDRESS_PREFIX + u32.toByteArray(runtime, paraId) + ADDRESS_PADDING
+private fun createBidderAccountId(runtime: RuntimeSnapshot, paraId: ParaId): AccountId {
+    val fullKey = ADDRESS_PREFIX + u32.toByteArray(runtime, paraId) + ADDRESS_PADDING
 
     return fullKey.copyOfRange(0, 32)
 }
