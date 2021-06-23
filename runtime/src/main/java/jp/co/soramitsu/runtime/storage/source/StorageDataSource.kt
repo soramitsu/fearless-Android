@@ -1,6 +1,7 @@
 package jp.co.soramitsu.runtime.storage.source
 
 import jp.co.soramitsu.common.data.network.runtime.binding.Binder
+import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithKey
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinder
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -31,7 +32,7 @@ interface StorageDataSource {
     suspend fun <K, T> queryByPrefix(
         prefixKeyBuilder: (RuntimeSnapshot) -> StorageKey,
         keyExtractor: (String) -> K,
-        binding: Binder<T>,
+        binding: BinderWithKey<T, K>,
     ): Map<K, T>
 
     suspend fun <T> queryChildState(
