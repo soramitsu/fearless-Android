@@ -86,7 +86,11 @@ class AlertsInteractor(
         with(context) {
             val minimalStakeInPlanks = minimumStake(exposures.values, minimumNominatorBond)
 
-            if (asset.bondedInPlanks < minimalStakeInPlanks) {
+            if (
+                asset.bondedInPlanks < minimalStakeInPlanks &&
+                // prevent alert for situation where all tokens are being unbounded
+                asset.bondedInPlanks > BigInteger.ZERO
+            ) {
                 val minimalStake = asset.token.amountFromPlanks(minimalStakeInPlanks)
 
                 Alert.BondMoreTokens(minimalStake, asset.token)
