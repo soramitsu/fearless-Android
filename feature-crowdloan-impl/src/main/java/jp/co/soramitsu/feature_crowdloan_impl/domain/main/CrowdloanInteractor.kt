@@ -90,7 +90,12 @@ class CrowdloanInteractor(
                             contribution = contributions[paraId],
                             hasWonAuction = winnerInfo.getValue(paraId)
                         )
-                    }.groupBy { it.state::class }
+                    }
+                    .sortedWith(
+                        compareByDescending<Crowdloan> {  it.fundInfo.raised }
+                            .thenBy { it.fundInfo.end }
+                    )
+                    .groupBy { it.state::class }
                     .toSortedMap(Crowdloan.State.STATE_CLASS_COMPARATOR)
             }
 
