@@ -60,6 +60,10 @@ class RedeemViewModel(
         .flatMapLatest { interactor.assetFlow(it.stashAddress) }
         .share()
 
+    private val controllerAssetFlow = accountStakingFlow
+        .flatMapLatest { interactor.assetFlow(it.controllerAddress) }
+        .share()
+
     val amountLiveData = assetFlow.map { asset ->
         val redeemable = asset.redeemable
 
@@ -125,6 +129,7 @@ class RedeemViewModel(
             val validationPayload = RedeemValidationPayload(
                 networkType = asset.token.type.networkType,
                 fee = fee,
+                controllerTransferable = controllerAssetFlow.first().transferable,
                 asset = asset
             )
 

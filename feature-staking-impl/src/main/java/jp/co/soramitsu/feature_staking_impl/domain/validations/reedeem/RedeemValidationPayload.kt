@@ -7,5 +7,6 @@ import java.math.BigDecimal
 class RedeemValidationPayload(
     val fee: BigDecimal,
     val asset: Asset,
+    val controllerTransferable: BigDecimal,
     val networkType: Node.NetworkType
 )
