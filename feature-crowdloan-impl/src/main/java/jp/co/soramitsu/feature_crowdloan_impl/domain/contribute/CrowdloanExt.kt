@@ -16,11 +16,12 @@ fun mapFundInfoToCrowdloan(
     currentBlockNumber: BlockNumber,
     expectedBlockTimeInMillis: BigInteger,
     blocksPerLeasePeriod: BigInteger,
-    contribution: Contribution?
+    contribution: Contribution?,
+    hasWonAuction: Boolean
 ): Crowdloan {
     val leasePeriodInMillis = leasePeriodInMillis(blocksPerLeasePeriod, currentBlockNumber, fundInfo.lastSlot, expectedBlockTimeInMillis)
 
-    val state = if (isCrowdloanActive(fundInfo, currentBlockNumber, blocksPerLeasePeriod)) {
+    val state = if (isCrowdloanActive(fundInfo, currentBlockNumber, blocksPerLeasePeriod, hasWonAuction)) {
         val remainingTime = expectedRemainingTime(currentBlockNumber, fundInfo.end, expectedBlockTimeInMillis)
 
         Crowdloan.State.Active(remainingTime)
@@ -44,12 +45,15 @@ private fun isCrowdloanActive(
     fundInfo: FundInfo,
     currentBlockNumber: BigInteger,
     blocksPerLeasePeriod: BigInteger,
+    hasWonAuction: Boolean,
 ): Boolean {
     return currentBlockNumber < fundInfo.end && // crowdloan is not ended
         // first slot is not yet passed
         leaseIndexFromBlock(currentBlockNumber, blocksPerLeasePeriod) <= fundInfo.firstSlot &&
         // cap is not reached
-        fundInfo.raised < fundInfo.cap
+        fundInfo.raised < fundInfo.cap &&
+        // crowdloan considered closed if parachain already won auction
+        !hasWonAuction
 }
 
 private fun leasePeriodInMillis(

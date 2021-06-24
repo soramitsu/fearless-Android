@@ -33,6 +33,7 @@ class Crowdloan(
     sealed class State {
 
         companion object {
+
             val STATE_CLASS_COMPARATOR = Comparator<KClass<out State>> { first, _ ->
                 when (first) {
                     Active::class -> -1
@@ -73,19 +74,28 @@ class CrowdloanInteractor(
                 val contributionKeys = fundInfos.mapValues { (_, fundInfo) -> fundInfo.trieIndex }
 
                 val contributions = crowdloanRepository.getContributions(accountId, contributionKeys)
+                val winnerInfo = crowdloanRepository.getWinnerInfo(fundInfos)
 
-                fundInfos.entries.toList()
-                    .map { (parachainId, fundInfo) ->
+                fundInfos.values
+                    .map { fundInfo ->
+                        val paraId = fundInfo.paraId
+
                         mapFundInfoToCrowdloan(
                             fundInfo = fundInfo,
-                            parachainMetadata = parachainMetadatas[parachainId],
-                            parachainId = parachainId,
+                            parachainMetadata = parachainMetadatas[paraId],
+                            parachainId = paraId,
                             currentBlockNumber = currentBlockNumber,
                             expectedBlockTimeInMillis = expectedBlockTime,
                             blocksPerLeasePeriod = blocksPerLeasePeriod,
-                            contribution = contributions[parachainId]
+                            contribution = contributions[paraId],
+                            hasWonAuction = winnerInfo.getValue(paraId)
                         )
-                    }.groupBy { it.state::class }
+                    }
+                    .sortedWith(
+                        compareByDescending<Crowdloan> { it.fundInfo.raised }
+                            .thenBy { it.fundInfo.end }
+                    )
+                    .groupBy { it.state::class }
                     .toSortedMap(Crowdloan.State.STATE_CLASS_COMPARATOR)
             }
 
