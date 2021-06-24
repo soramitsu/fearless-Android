@@ -113,7 +113,7 @@ class ValidatorViewHolder(override val containerView: View) : RecyclerView.ViewH
                 itemValidatorActionIcon.setImageResource(R.drawable.ic_delete_symbol)
                 itemValidatorActionIcon.makeVisible()
 
-                itemValidatorActionIcon.setOnClickListener {  handler.removeClicked(validatorModel) }
+                itemValidatorActionIcon.setOnClickListener { handler.removeClicked(validatorModel) }
             }
             validatorModel.isChecked == null -> {
                 itemValidatorActionIcon.makeGone()

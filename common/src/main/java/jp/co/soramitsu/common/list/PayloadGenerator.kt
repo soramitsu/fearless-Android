@@ -25,7 +25,7 @@ fun <T, VH : RecyclerView.ViewHolder> ListAdapter<T, VH>.resolvePayload(
     if (payloads.isEmpty()) {
         onBindViewHolder(holder, position)
     } else {
-        when(val payload = payloads.first()) {
+        when (val payload = payloads.first()) {
             is List<*> -> {
                 val diffChecks = payload as List<DiffCheck<T, *>>
 

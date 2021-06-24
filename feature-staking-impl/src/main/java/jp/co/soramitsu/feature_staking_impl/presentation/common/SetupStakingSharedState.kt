@@ -101,7 +101,7 @@ sealed class SetupStakingProcess {
                 }
             }
 
-            abstract fun changeValidators(newValidators: List<Validator>) : Payload
+            abstract fun changeValidators(newValidators: List<Validator>): Payload
         }
 
         fun changeValidators(newValidators: List<Validator>) = Confirm(payload.changeValidators(newValidators))

@@ -314,7 +314,7 @@ class Navigator :
     }
 
     override fun openReviewCustomValidators() {
-       navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_reviewCustomValidatorsFragment)
+        navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_reviewCustomValidatorsFragment)
     }
 
     override fun openConfirmStaking() {

@@ -13,14 +13,15 @@ import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter.*
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter.Mode.EDIT
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter.Mode.VIEW
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import kotlinx.android.synthetic.main.fragment_review_custom_validators.reviewCustomValidatorsAccounts
 import kotlinx.android.synthetic.main.fragment_review_custom_validators.reviewCustomValidatorsList
 import kotlinx.android.synthetic.main.fragment_review_custom_validators.reviewCustomValidatorsNext
 import kotlinx.android.synthetic.main.fragment_review_custom_validators.reviewCustomValidatorsToolbar
 
-class ReviewCustomValidatorsFragment : BaseFragment<ReviewCustomValidatorsViewModel>(), ItemHandler {
+class ReviewCustomValidatorsFragment : BaseFragment<ReviewCustomValidatorsViewModel>(), ValidatorsAdapter.ItemHandler {
 
     private val adapter: ValidatorsAdapter by lazy(LazyThreadSafetyMode.NONE) {
         ValidatorsAdapter(this)
@@ -73,7 +74,7 @@ class ReviewCustomValidatorsFragment : BaseFragment<ReviewCustomValidatorsViewMo
         }
 
         viewModel.isInEditMode.observe {
-            adapter.modeChanged(if (it) Mode.EDIT else Mode.VIEW)
+            adapter.modeChanged(if (it) EDIT else VIEW)
 
             val rightActionRes = if (it) R.string.common_done else R.string.common_edit
 
