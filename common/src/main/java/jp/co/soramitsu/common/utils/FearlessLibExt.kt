@@ -26,6 +26,8 @@ import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import java.io.ByteArrayOutputStream
 
+fun StorageEntry.defaultInHex() = default.toHexString(withPrefix = true)
+
 fun ByteArray.toAddress(networkType: Node.NetworkType) = toAddress(networkType.runtimeConfiguration.addressByte)
 
 fun <T> DataType<T>.fromHex(hex: String): T {

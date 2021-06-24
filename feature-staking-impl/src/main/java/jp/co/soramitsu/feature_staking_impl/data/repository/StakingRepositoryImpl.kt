@@ -2,7 +2,9 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.balances
@@ -22,6 +24,7 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
@@ -40,7 +43,10 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionFromStatus
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindHistoryDepth
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindMaxNominators
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindMinBond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindNominations
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindNominatorsCount
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashDeferDuration
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashingSpans
@@ -50,6 +56,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.activeEraStorageKey
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.observeActiveEraIndex
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import kotlinx.coroutines.Dispatchers
@@ -68,6 +75,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
+import kotlin.math.max
 
 class StakingRepositoryImpl(
     private val storageCache: StorageCache,
@@ -77,6 +85,7 @@ class StakingRepositoryImpl(
     private val bulkRetriever: BulkRetriever,
     private val remoteStorage: StorageDataSource,
     private val localStorage: StorageDataSource,
+    private val walletConstants: WalletConstants,
     private val stakingStoriesDataSource: StakingStoriesDataSource,
 ) : StakingRepository {
 
@@ -206,6 +215,41 @@ class StakingRepositoryImpl(
             keyBuilder = { it.metadata.system().storage("Account").storageKey(it, stakingState.stashId) },
             binding = { scale, runtime -> scale?.let { bindAccountInfo(it, runtime) } ?: AccountInfo.empty() }
         )
+    }
+
+    override suspend fun minimumNominatorBond(): BigInteger {
+        val minBond = queryStorageIfExists(
+            storageName = "MinNominatorBond",
+            binder = ::bindMinBond
+        ) ?: BigInteger.ZERO
+
+        val existentialDeposit = walletConstants.existentialDeposit()
+
+        return minBond.max(existentialDeposit)
+    }
+
+    override suspend fun maxNominators(): BigInteger? = queryStorageIfExists(
+        storageName = "MaxNominatorsCount",
+        binder = ::bindMaxNominators
+    )
+
+    override suspend fun nominatorsCount(): BigInteger? = queryStorageIfExists(
+        storageName = "CounterForNominators",
+        binder = ::bindNominatorsCount
+    )
+
+    private suspend fun <T> queryStorageIfExists(
+        storageName: String,
+        binder: NonNullBinderWithType<T>
+    ): T? {
+        val runtime = getRuntime()
+
+        return runtime.metadata.staking().storageOrNull(storageName)?.let { storageEntry ->
+            localStorage.query(
+                keyBuilder = { storageEntry.storageKey() },
+                binding = { scale, _ -> scale?.let { binder(scale, runtime, storageEntry.returnType()) } }
+            )
+        }
     }
 
     override fun stakingStoriesFlow(): Flow<List<StakingStory>> {

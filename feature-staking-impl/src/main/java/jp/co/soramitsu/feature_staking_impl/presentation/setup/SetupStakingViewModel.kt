@@ -126,7 +126,8 @@ class SetupStakingViewModel(
                 tokenType = tokenType,
                 bondAmount = amount,
                 controllerAddress = currentAccountAddress,
-                maxFee = fee
+                maxFee = fee,
+                asset = assetFlow.first()
             )
 
             validationExecutor.requireValid(

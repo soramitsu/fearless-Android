@@ -10,7 +10,6 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepo
 import jp.co.soramitsu.feature_staking_impl.domain.common.isWaiting
 import jp.co.soramitsu.feature_staking_impl.domain.isNominationActive
 import jp.co.soramitsu.feature_staking_impl.domain.minimumStake
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -27,8 +26,7 @@ private const val NOMINATIONS_ACTIVE_MEMO = "NOMINATIONS_ACTIVE_MEMO"
 class AlertsInteractor(
     private val stakingRepository: StakingRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
-    private val walletRepository: WalletRepository,
-    private val walletConstants: WalletConstants,
+    private val walletRepository: WalletRepository
 ) {
 
     class AlertContext(
@@ -36,7 +34,7 @@ class AlertsInteractor(
         val exposures: Map<String, Exposure>,
         val stakingState: StakingState,
         val maxRewardedNominatorsPerValidator: Int,
-        val existentialDeposit: BigInteger,
+        val minimumNominatorBond: BigInteger,
         val activeEra: BigInteger,
         val asset: Asset,
     ) {
@@ -57,6 +55,12 @@ class AlertsInteractor(
 
     private fun produceElectionAlert(context: AlertContext): Alert? {
         return if (context.election == Election.OPEN) Alert.Election else null
+    }
+
+    private fun produceSetValidatorsAlert(context: AlertContext): Alert? {
+        return requireState(context.stakingState) { _: StakingState.Stash.None ->
+            Alert.SetValidators
+        }
     }
 
     private fun produceChangeValidatorsAlert(context: AlertContext): Alert? {
@@ -80,9 +84,13 @@ class AlertsInteractor(
 
     private fun produceMinStakeAlert(context: AlertContext) = requireState(context.stakingState) { _: StakingState.Stash ->
         with(context) {
-            val minimalStakeInPlanks = minimumStake(exposures.values, existentialDeposit)
+            val minimalStakeInPlanks = minimumStake(exposures.values, minimumNominatorBond)
 
-            if (asset.bondedInPlanks < minimalStakeInPlanks) {
+            if (
+                asset.bondedInPlanks < minimalStakeInPlanks &&
+                // prevent alert for situation where all tokens are being unbounded
+                asset.bondedInPlanks > BigInteger.ZERO
+            ) {
                 val minimalStake = asset.token.amountFromPlanks(minimalStakeInPlanks)
 
                 Alert.BondMoreTokens(minimalStake, asset.token)
@@ -106,14 +114,15 @@ class AlertsInteractor(
         ::produceChangeValidatorsAlert,
         ::produceRedeemableAlert,
         ::produceMinStakeAlert,
-        ::produceWaitingNextEraAlert
+        ::produceWaitingNextEraAlert,
+        ::produceSetValidatorsAlert
     )
 
     fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = flow {
         val networkType = stakingState.accountAddress.networkType()
         val token = Token.Type.fromNetworkType(networkType)
         val maxRewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator()
-        val existentialDeposit = walletConstants.existentialDeposit()
+        val minimumNominatorBond = stakingRepository.minimumNominatorBond()
 
         val alertsFlow = combine(
             stakingRepository.electionFlow(networkType),
@@ -127,7 +136,7 @@ class AlertsInteractor(
                 exposures = exposures,
                 stakingState = stakingState,
                 maxRewardedNominatorsPerValidator = maxRewardedNominatorsPerValidator,
-                existentialDeposit = existentialDeposit,
+                minimumNominatorBond = minimumNominatorBond,
                 asset = asset,
                 activeEra = activeEra
             )

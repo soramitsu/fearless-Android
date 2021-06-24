@@ -101,6 +101,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                 }
 
                 is WelcomeViewState -> {
+                    observeValidations(stakingState)
+
                     stakingState.assetLiveData.observe {
                         stakingEstimate.setAssetImageResource(it.tokenIconRes)
                         stakingEstimate.setAssetName(it.tokenName)
