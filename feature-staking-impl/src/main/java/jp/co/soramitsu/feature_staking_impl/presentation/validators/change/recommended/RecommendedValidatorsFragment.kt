@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsAccounts
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsList
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsNext
@@ -65,8 +65,6 @@ class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewMode
         }
 
         viewModel.selectedTitle.observe(recommendedValidatorsAccounts::setText)
-
-        observeBrowserEvents(viewModel)
     }
 
     override fun validatorInfoClicked(validatorModel: ValidatorModel) {

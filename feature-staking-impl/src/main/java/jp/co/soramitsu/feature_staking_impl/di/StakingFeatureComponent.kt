@@ -28,6 +28,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinati
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.di.ConfirmUnbondComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.di.SelectUnbondComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.story.di.StoryComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review.di.ReviewCustomValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.di.SelectCustomValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.di.StartChangeValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.di.CurrentValidatorsComponent
@@ -48,6 +49,8 @@ import jp.co.soramitsu.runtime.di.RuntimeApi
 )
 @FeatureScope
 interface StakingFeatureComponent : StakingFeatureApi {
+
+    fun reviewCustomValidatorsComponentFactory(): ReviewCustomValidatorsComponent.Factory
 
     fun selectCustomValidatorsComponentFactory(): SelectCustomValidatorsComponent.Factory
 

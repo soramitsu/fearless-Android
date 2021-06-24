@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorActionIcon
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorIcon
@@ -37,7 +37,9 @@ class ValidatorsAdapter(
             // default empty
         }
 
-        fun removeClicked(index: Int)
+        fun removeClicked(validatorModel: ValidatorModel) {
+            // default empty
+        }
     }
 
     enum class Mode {
@@ -111,7 +113,7 @@ class ValidatorViewHolder(override val containerView: View) : RecyclerView.ViewH
                 itemValidatorActionIcon.setImageResource(R.drawable.ic_delete_symbol)
                 itemValidatorActionIcon.makeVisible()
 
-                itemValidatorActionIcon.setOnClickListener {  handler.removeClicked(adapterPosition) }
+                itemValidatorActionIcon.setOnClickListener {  handler.removeClicked(validatorModel) }
             }
             validatorModel.isChecked == null -> {
                 itemValidatorActionIcon.makeGone()

@@ -16,7 +16,7 @@ import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsClearFilters
 import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsContainer
 import kotlinx.android.synthetic.main.fragment_select_custom_validators.selectCustomValidatorsCount
@@ -67,6 +67,8 @@ class SelectCustomValidatorsFragment : BaseFragment<SelectCustomValidatorsViewMo
         selectCustomValidatorsFillWithRecommended.setOnClickListener { viewModel.fillRestWithRecommended() }
         selectCustomValidatorsClearFilters.setOnClickListener { viewModel.clearFilters() }
         selectCustomValidatorsDeselectAll.setOnClickListener { viewModel.deselectAll() }
+
+        selectCustomValidatorsNext.setOnClickListener { viewModel.nextClicked() }
     }
 
     override fun inject() {

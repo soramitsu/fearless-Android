@@ -104,3 +104,7 @@ inline fun <T> Flow<T>.observe(
         collect(collector)
     }
 }
+
+fun MutableStateFlow<Boolean>.toggle() {
+    value = !value
+}
