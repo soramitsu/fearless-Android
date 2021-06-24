@@ -88,4 +88,8 @@ class ReviewCustomValidatorsFragment : BaseFragment<ReviewCustomValidatorsViewMo
     override fun removeClicked(validatorModel: ValidatorModel) {
         viewModel.deleteClicked(validatorModel)
     }
+
+    override fun validatorClicked(validatorModel: ValidatorModel) {
+        viewModel.validatorInfoClicked(validatorModel)
+    }
 }
