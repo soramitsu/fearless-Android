@@ -47,12 +47,11 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="center_vertical|end"
-        android:background="@drawable/bg_primary_list_item"
         android:fontFamily="@font/soramitsu_semibold"
         android:gravity="center_vertical"
         android:paddingStart="@dimen/x2"
         android:paddingEnd="@dimen/x2"
-        android:textColor="@color/white"
+        android:textColor="@color/actions_color"
         android:visibility="gone"
         tools:text="Action" />
 

@@ -34,7 +34,7 @@
         android:paddingTop="6dp"
         android:paddingEnd="12dp"
         android:paddingBottom="6dp"
-        android:text="@string/crowdloan_apply"
+        android:text="@string/common_apply"
         android:textColor="@color/button_text_colors"
         app:layout_constraintBottom_toBottomOf="@+id/referralFearlessBonusTitle"
         app:layout_constraintEnd_toEndOf="parent"

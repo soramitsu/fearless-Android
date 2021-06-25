@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.OwnStakeSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.ValidatorOwnStakeSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorDetailsModel
@@ -68,7 +68,7 @@ suspend fun mapValidatorToValidatorModel(
 
             TotalStakeSorting -> stakeToScoring(electedInfo?.totalStake, token)
 
-            OwnStakeSorting -> stakeToScoring(electedInfo?.ownStake, token)
+            ValidatorOwnStakeSorting -> stakeToScoring(electedInfo?.ownStake, token)
 
             else -> throw NotImplementedError("Unsupported sorting: $sorting")
         }

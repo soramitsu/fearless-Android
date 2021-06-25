@@ -6,8 +6,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filt
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotSlashedFilter
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.postprocessors.RemoveClusteringPostprocessor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.OwnStakeSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.ValidatorOwnStakeSorting
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -16,18 +16,17 @@ class RecommendationSettingsProvider(
     val maximumValidatorsPerNominator: Int
 ) {
 
-    private val allFilters = listOf(
+    private val alwaysEnabledFilters = listOf(
+        NotBlockedFilter
+    )
+
+    private val customizableFilters = listOf(
         NotSlashedFilter,
         HasIdentityFilter,
-        NotBlockedFilter,
         NotOverSubscribedFilter(maximumRewardedNominators)
     )
 
-    val allSortings = listOf(
-        APYSorting,
-        TotalStakeSorting,
-        OwnStakeSorting
-    )
+    private val allFilters = alwaysEnabledFilters + customizableFilters
 
     private val allPostProcessors = listOf(
         RemoveClusteringPostprocessor
@@ -35,11 +34,33 @@ class RecommendationSettingsProvider(
 
     private val customSettingsFlow = MutableStateFlow(defaultSelectCustomSettings())
 
-    suspend fun setRecommendationSettings(settings: RecommendationSettings) {
-        customSettingsFlow.emit(settings)
+    fun createModifiedCustomValidatorsSettings(
+        filterIncluder: ((RecommendationFilter) -> Boolean)? = null,
+        postProcessorIncluder: ((RecommendationPostProcessor) -> Boolean)? = null,
+        sorting: RecommendationSorting? = null
+    ) : RecommendationSettings {
+        val current = customSettingsFlow.value
+
+        val filters = filterIncluder?.let { alwaysEnabledFilters + customizableFilters.filter(it) }
+            ?: current.filters
+
+        val postProcessors = postProcessorIncluder?.let { allPostProcessors.filter(it) }
+            ?: current.postProcessors
+
+        return current.copy(
+            filters = filters,
+            postProcessors = postProcessors,
+            sorting = sorting ?: current.sorting
+        )
+    }
+
+    fun setCustomValidatorsSettings(recommendationSettings: RecommendationSettings) {
+        customSettingsFlow.value = recommendationSettings
     }
 
     fun observeRecommendationSettings(): Flow<RecommendationSettings> = customSettingsFlow
+
+    fun currentSettings() = customSettingsFlow.value
 
     fun defaultSettings(): RecommendationSettings {
         return RecommendationSettings(

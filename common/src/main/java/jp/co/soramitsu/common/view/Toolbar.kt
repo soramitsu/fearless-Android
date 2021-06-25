@@ -9,6 +9,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.annotation.DrawableRes
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.dp
@@ -29,6 +30,9 @@ class Toolbar @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
+
+    val rightActionText: TextView
+        get() = rightText
 
     init {
         View.inflate(context, R.layout.view_toolbar, this)

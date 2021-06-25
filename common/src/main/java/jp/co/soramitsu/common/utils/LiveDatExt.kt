@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.utils
 
 import android.widget.EditText
+import android.widget.RadioGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.LiveDataScope

@@ -23,6 +23,8 @@ interface StakingRouter {
 
     fun openSelectCustomValidators()
 
+    fun openCustomValidatorsSettings()
+
     fun openReviewCustomValidators()
 
     fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel)

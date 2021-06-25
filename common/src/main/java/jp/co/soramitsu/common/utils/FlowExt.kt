@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.utils
 
 import android.widget.CompoundButton
 import android.widget.EditText
+import android.widget.RadioGroup
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -90,8 +91,24 @@ fun CompoundButton.bindTo(flow: MutableStateFlow<Boolean>, scope: CoroutineScope
     }
 
     setOnCheckedChangeListener { _, newValue ->
-        scope.launch {
-            flow.emit(newValue)
+        if (flow.value != newValue) {
+            flow.value = newValue
+        }
+    }
+}
+
+fun RadioGroup.bindTo(flow: MutableStateFlow<Int>, scope: LifecycleCoroutineScope) {
+    setOnCheckedChangeListener { _, checkedId ->
+        if (flow.value != checkedId) {
+            flow.value = checkedId
+        }
+    }
+
+    scope.launchWhenResumed {
+        flow.collect {
+            if (it != checkedRadioButtonId) {
+                check(it)
+            }
         }
     }
 }

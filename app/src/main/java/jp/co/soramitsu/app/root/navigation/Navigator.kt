@@ -313,6 +313,10 @@ class Navigator :
         navController?.navigate(R.id.action_startChangeValidatorsFragment_to_selectCustomValidatorsFragment)
     }
 
+    override fun openCustomValidatorsSettings() {
+        navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_settingsCustomValidatorsFragment)
+    }
+
     override fun openReviewCustomValidators() {
         navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_reviewCustomValidatorsFragment)
     }
