@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
+import java.math.BigInteger
 
 interface WalletRepository {
 
@@ -40,5 +41,5 @@ interface WalletRepository {
 
     suspend fun isAddressFromPhishingList(address: String): Boolean
 
-    suspend fun getAccountFreeBalance(accountAddress: String): BigDecimal
+    suspend fun getAccountFreeBalance(accountAddress: String): BigInteger
 }

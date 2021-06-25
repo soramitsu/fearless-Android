@@ -174,7 +174,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun getAccountFreeBalance(accountAddress: String) =
-        substrateSource.getAccountInfo(accountAddress).data.free.toBigDecimal()
+        substrateSource.getAccountInfo(accountAddress).data.free
 
     private fun defineAccountNameForTransaction(
         accountsByAddress: Map<String, WalletAccount>,

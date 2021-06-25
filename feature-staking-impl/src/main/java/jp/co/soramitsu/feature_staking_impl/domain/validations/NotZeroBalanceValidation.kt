@@ -13,7 +13,7 @@ class NotZeroBalanceValidation(
 ) : Validation<SetControllerValidationPayload, SetControllerValidationFailure> {
 
     override suspend fun validate(value: SetControllerValidationPayload): ValidationStatus<SetControllerValidationFailure> {
-        val controllerBalance = walletRepository.getAccountFreeBalance(value.controllerAddress)
+        val controllerBalance = walletRepository.getAccountFreeBalance(value.controllerAddress).toBigDecimal()
 
         return if (controllerBalance > BigDecimal.ZERO) {
             ValidationStatus.Valid()
