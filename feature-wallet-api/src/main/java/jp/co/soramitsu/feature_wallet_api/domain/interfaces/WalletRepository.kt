@@ -39,4 +39,6 @@ interface WalletRepository {
     suspend fun updatePhishingAddresses()
 
     suspend fun isAddressFromPhishingList(address: String): Boolean
+
+    suspend fun getAccountFreeBalance(accountAddress: String) : BigDecimal
 }

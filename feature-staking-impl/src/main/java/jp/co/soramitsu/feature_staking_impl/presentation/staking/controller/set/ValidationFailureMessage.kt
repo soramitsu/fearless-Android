@@ -20,7 +20,7 @@ fun bondSetControllerValidationFailure(
         }
         SetControllerValidationFailure.ZERO_CONTROLLER_BALANCE -> {
             resourceManager.getString(R.string.common_are_you_sure) to
-                resourceManager.getString(R.string.controller_zero_balance_alert_text)
+                resourceManager.getString(R.string.staking_controller_account_zero_balance)
         }
     }
 }

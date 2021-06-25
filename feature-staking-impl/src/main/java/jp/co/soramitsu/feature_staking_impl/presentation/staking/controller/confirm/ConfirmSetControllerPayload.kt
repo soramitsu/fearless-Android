@@ -9,6 +9,5 @@ class ConfirmSetControllerPayload(
     val fee: BigDecimal,
     val stashAddress: String,
     val controllerAddress: String,
-    val transferable: BigDecimal,
-    val controllerTransferable: BigDecimal
+    val transferable: BigDecimal
 ) : Parcelable

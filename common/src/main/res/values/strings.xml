@@ -6,7 +6,7 @@
     <string name="staking_max_nominators_reached_title">Cannot nominate</string>
     <string name="staking_max_nominators_reached_message">Maximum number of nominators has been reached</string>
 
-    <string name="controller_zero_balance_alert_text">We found that controller account has no free tokens, are you sure that you want to change the controller?</string>
+    <string name="staking_controller_account_zero_balance">We found that controller account has no free tokens, are you sure that you want to change the controller?</string>
 
     <string name="crowdloan_my_contribution">You contributed: %s</string>
 

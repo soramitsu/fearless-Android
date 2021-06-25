@@ -6,11 +6,11 @@ import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.NotZeroBalanceValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.ControllerAccountIsNotZeroBalance
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.IsNotControllerAccountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationSystem
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 
 @Module
@@ -38,10 +38,11 @@ class SetControllerValidationsModule {
 
     @FeatureScope
     @Provides
-    fun provideZeroBalanceControllerValidation(): ControllerAccountIsNotZeroBalance {
+    fun provideZeroBalanceControllerValidation(
+        walletRepository: WalletRepository
+    ): NotZeroBalanceValidation {
         return NotZeroBalanceValidation(
-            amountExtractor = { it.controllerTransferable },
-            errorProvider = { SetControllerValidationFailure.ZERO_CONTROLLER_BALANCE }
+            walletRepository = walletRepository
         )
     }
 
@@ -50,7 +51,7 @@ class SetControllerValidationsModule {
     fun provideSetControllerValidationSystem(
         enoughToPayFeesValidation: SetControllerFeeValidation,
         isNotControllerAccountValidation: IsNotControllerAccountValidation,
-        controllerAccountIsNotZeroBalance: ControllerAccountIsNotZeroBalance
+        controllerAccountIsNotZeroBalance: NotZeroBalanceValidation
     ) = SetControllerValidationSystem(
         CompositeValidation(
             validations = listOf(

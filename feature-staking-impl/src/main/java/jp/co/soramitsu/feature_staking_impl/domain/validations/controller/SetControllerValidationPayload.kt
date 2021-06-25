@@ -6,6 +6,5 @@ class SetControllerValidationPayload(
     val stashAddress: String,
     val controllerAddress: String,
     val fee: BigDecimal,
-    val transferable: BigDecimal,
-    val controllerTransferable: BigDecimal
+    val transferable: BigDecimal
 )

@@ -173,6 +173,9 @@ class WalletRepositoryImpl(
         phishingAddresses.contains(addressPublicKey)
     }
 
+    override suspend fun getAccountFreeBalance(accountAddress: String) =
+        substrateSource.getAccountInfo(accountAddress).data.free.toBigDecimal()
+
     private fun defineAccountNameForTransaction(
         accountsByAddress: Map<String, WalletAccount>,
         transactionAccountAddress: String,

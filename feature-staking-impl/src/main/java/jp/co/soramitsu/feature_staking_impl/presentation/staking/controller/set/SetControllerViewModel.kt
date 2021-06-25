@@ -167,8 +167,7 @@ class SetControllerViewModel(
                 stashAddress = stashAddress(),
                 controllerAddress = controllerAddress,
                 fee = fee,
-                transferable = assetFlow.first().transferable,
-                controllerTransferable = stakingInteractor.assetFlow(controllerAddress).first().transferable
+                transferable = assetFlow.first().transferable
             )
 
             validationExecutor.requireValid(
@@ -181,8 +180,7 @@ class SetControllerViewModel(
                         fee = fee,
                         stashAddress = payload.stashAddress,
                         controllerAddress = payload.controllerAddress,
-                        transferable = payload.transferable,
-                        controllerTransferable = payload.controllerTransferable
+                        transferable = payload.transferable
                     )
                 )
             }
