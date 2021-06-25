@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.domain.alerts
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
@@ -30,7 +29,6 @@ class AlertsInteractor(
 ) {
 
     class AlertContext(
-        val election: Election,
         val exposures: Map<String, Exposure>,
         val stakingState: StakingState,
         val maxRewardedNominatorsPerValidator: Int,
@@ -53,10 +51,6 @@ class AlertsInteractor(
         isNominationActive(stashId, exposures.values, maxRewardedNominatorsPerValidator)
     }
 
-    private fun produceElectionAlert(context: AlertContext): Alert? {
-        return if (context.election == Election.OPEN) Alert.Election else null
-    }
-
     private fun produceSetValidatorsAlert(context: AlertContext): Alert? {
         return requireState(context.stakingState) { _: StakingState.Stash.None ->
             Alert.SetValidators
@@ -69,9 +63,7 @@ class AlertsInteractor(
                 // staking is inactive
                 context.isStakingActive(nominatorState.stashId).not() &&
                     // there is no pending change
-                    nominatorState.nominations.isWaiting(context.activeEra).not() &&
-                    // election is closed
-                    context.election == Election.CLOSED
+                    nominatorState.nominations.isWaiting(context.activeEra).not()
             }
         }
     }
@@ -110,7 +102,6 @@ class AlertsInteractor(
     }
 
     private val alertProducers = listOf(
-        ::produceElectionAlert,
         ::produceChangeValidatorsAlert,
         ::produceRedeemableAlert,
         ::produceMinStakeAlert,
@@ -125,14 +116,12 @@ class AlertsInteractor(
         val minimumNominatorBond = stakingRepository.minimumNominatorBond()
 
         val alertsFlow = combine(
-            stakingRepository.electionFlow(networkType),
             stakingRepository.electedExposuresInActiveEra,
             walletRepository.assetFlow(stakingState.accountAddress, token),
             stakingRepository.observeActiveEraIndex(networkType)
-        ) { electionStatus, exposures, asset, activeEra ->
+        ) { exposures, asset, activeEra ->
 
             val context = AlertContext(
-                election = electionStatus,
                 exposures = exposures,
                 stakingState = stakingState,
                 maxRewardedNominatorsPerValidator = maxRewardedNominatorsPerValidator,
