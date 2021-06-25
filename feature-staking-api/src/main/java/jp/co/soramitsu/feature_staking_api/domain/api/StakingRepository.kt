@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_api.domain.api
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
@@ -18,8 +17,6 @@ import java.math.BigInteger
 interface StakingRepository {
 
     fun stakingAvailableFlow(): Flow<Boolean>
-
-    suspend fun electionFlow(networkType: Node.NetworkType): Flow<Election>
 
     suspend fun getTotalIssuance(): BigInteger
 

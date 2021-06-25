@@ -233,22 +233,19 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
             NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
             NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting
-            NominatorStatus.Election -> StakeSummaryView.Status.Election
         }
     }
 
     private fun mapValidatorStatus(summary: ValidatorSummaryModel): StakeSummaryView.Status {
         return when (summary.status) {
-            is ValidatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
-            ValidatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
-            ValidatorStatus.Election -> StakeSummaryView.Status.Election
+            ValidatorStatus.INACTIVE -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
+            ValidatorStatus.ACTIVE -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
         }
     }
 
     private fun mapStashNoneStatus(summary: StashNoneSummaryModel): StakeSummaryView.Status {
         return when (summary.status) {
             StashNoneStatus.INACTIVE -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
-            StashNoneStatus.ELECTION -> StakeSummaryView.Status.Election
         }
     }
 }

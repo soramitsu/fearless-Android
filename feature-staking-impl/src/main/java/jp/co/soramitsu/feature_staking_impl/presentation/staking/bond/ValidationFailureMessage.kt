@@ -19,10 +19,5 @@ fun bondMoreValidationFailure(
             resourceManager.getString(R.string.common_error_general_title) to
                 resourceManager.getString(R.string.staking_zero_bond_error)
         }
-
-        BondMoreValidationFailure.ELECTION_IS_OPEN -> {
-            resourceManager.getString(R.string.staking_nominator_status_election) to
-                resourceManager.getString(R.string.staking_nominator_status_alert_election_message)
-        }
     }
 }
