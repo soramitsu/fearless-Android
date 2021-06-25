@@ -57,7 +57,7 @@ class RedeemViewModel(
         .share()
 
     private val assetFlow = accountStakingFlow
-        .flatMapLatest { interactor.assetFlow(it.stashAddress) }
+        .flatMapLatest { interactor.assetFlow(it.controllerAddress) }
         .share()
 
     val amountLiveData = assetFlow.map { asset ->
