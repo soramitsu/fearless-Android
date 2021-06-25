@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
