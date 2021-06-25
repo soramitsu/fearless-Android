@@ -8,7 +8,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetCon
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import java.math.BigDecimal
 
-class NotZeroBalanceValidation (
+class NotZeroBalanceValidation(
     val walletRepository: WalletRepository
 ) : Validation<SetControllerValidationPayload, SetControllerValidationFailure> {
 
