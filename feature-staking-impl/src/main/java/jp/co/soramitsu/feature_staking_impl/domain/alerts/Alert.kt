@@ -11,8 +11,6 @@ sealed class Alert {
 
     object ChangeValidators : Alert()
 
-    object Election : Alert()
-
     object WaitingForNextEra : Alert()
 
     object SetValidators : Alert()

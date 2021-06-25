@@ -21,7 +21,6 @@ import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
@@ -29,7 +28,6 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
@@ -39,8 +37,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionFromPhase
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindElectionFromStatus
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindHistoryDepth
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindMaxNominators
@@ -75,7 +71,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
-import kotlin.math.max
 
 class StakingRepositoryImpl(
     private val storageCache: StorageCache,
@@ -90,25 +85,6 @@ class StakingRepositoryImpl(
 ) : StakingRepository {
 
     override fun stakingAvailableFlow() = runtimeProperty.observe().map { it.metadata.hasModule(Modules.STAKING) }
-
-    override suspend fun electionFlow(networkType: Node.NetworkType): Flow<Election> {
-        val runtime = runtimeProperty.get()
-
-        val electionNewStorage = runtime.metadata.moduleOrNull("ElectionProviderMultiPhase")?.storage("CurrentPhase")
-
-        val electionStorage = electionNewStorage ?: runtime.metadata.staking().storage("CurrentPhase")
-
-        return storageCache.observeEntry(electionStorage.storageKey(), networkType)
-            .map {
-                val content = it.content!!
-
-                if (electionNewStorage != null) {
-                    bindElectionFromPhase(content, runtime)
-                } else {
-                    bindElectionFromStatus(content, runtime)
-                }
-            }
-    }
 
     override suspend fun getTotalIssuance(): BigInteger = localStorage.queryNonNull(
         keyBuilder = { it.metadata.balances().storage("TotalIssuance").storageKey() },

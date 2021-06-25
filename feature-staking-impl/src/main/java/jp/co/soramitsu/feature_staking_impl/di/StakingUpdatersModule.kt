@@ -19,7 +19,6 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Acco
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CounterForNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ElectionStatusUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.HistoryDepthUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MaxNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MinBondUpdater
@@ -141,15 +140,6 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
-    fun provideElectionStatusUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        storageCache: StorageCache,
-    ) = ElectionStatusUpdater(
-        runtimeProperty, storageCache
-    )
-
-    @Provides
-    @FeatureScope
     fun provideHistoryDepthUpdater(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         storageCache: StorageCache,
@@ -216,7 +206,6 @@ class StakingUpdatersModule {
         stakingLedgerUpdater: StakingLedgerUpdater,
         accountValidatorPrefsUpdater: AccountValidatorPrefsUpdater,
         accountNominationsUpdater: AccountNominationsUpdater,
-        electionStatusUpdater: ElectionStatusUpdater,
         rewardDestinationUpdater: AccountRewardDestinationUpdater,
         historyDepthUpdater: HistoryDepthUpdater,
         historicalUpdateMediator: HistoricalUpdateMediator,
@@ -233,7 +222,6 @@ class StakingUpdatersModule {
             stakingLedgerUpdater,
             accountValidatorPrefsUpdater,
             accountNominationsUpdater,
-            electionStatusUpdater,
             rewardDestinationUpdater,
             historyDepthUpdater,
             historicalUpdateMediator,

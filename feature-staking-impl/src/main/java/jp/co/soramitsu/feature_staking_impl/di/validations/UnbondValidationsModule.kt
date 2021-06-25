@@ -8,7 +8,6 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.CrossExistentialValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.EnoughToUnbondValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.NotZeroUnbondValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondElectionClosedValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondLimitValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationFailure
@@ -24,16 +23,6 @@ class UnbondValidationsModule {
         feeExtractor = { it.fee },
         availableBalanceProducer = { it.asset.transferable },
         errorProducer = { UnbondValidationFailure.CannotPayFees }
-    )
-
-    @FeatureScope
-    @Provides
-    fun provideElectionClosedValidation(
-        stakingRepository: StakingRepository
-    ) = UnbondElectionClosedValidation(
-        stakingRepository = stakingRepository,
-        networkTypeProvider = { it.tokenType.networkType },
-        errorProducer = { UnbondValidationFailure.ElectionIsOpen }
     )
 
     @FeatureScope
@@ -67,7 +56,6 @@ class UnbondValidationsModule {
     @Provides
     fun provideUnbondValidationSystem(
         unbondFeeValidation: UnbondFeeValidation,
-        electionClosedValidation: UnbondElectionClosedValidation,
         notZeroUnbondValidation: NotZeroUnbondValidation,
         unbondLimitValidation: UnbondLimitValidation,
         enoughToUnbondValidation: EnoughToUnbondValidation,
@@ -76,7 +64,6 @@ class UnbondValidationsModule {
         CompositeValidation(
             validations = listOf(
                 unbondFeeValidation,
-                electionClosedValidation,
                 notZeroUnbondValidation,
                 unbondLimitValidation,
                 enoughToUnbondValidation,
