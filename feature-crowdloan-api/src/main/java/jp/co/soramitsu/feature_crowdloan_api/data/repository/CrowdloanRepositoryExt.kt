@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_crowdloan_api.data.repository
 
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.TrieIndex
 import kotlinx.coroutines.Dispatchers
@@ -18,4 +19,10 @@ suspend fun CrowdloanRepository.getContributions(
     }
         .awaitAll()
         .toMap()
+}
+
+suspend fun CrowdloanRepository.hasWonAuction(fundInfo: FundInfo): Boolean {
+    val paraId = fundInfo.paraId
+
+    return getWinnerInfo(mapOf(paraId to fundInfo)).getValue(paraId)
 }

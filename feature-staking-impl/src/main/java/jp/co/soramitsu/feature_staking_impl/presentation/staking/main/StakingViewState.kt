@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.TitleAndMessage
+import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -11,6 +12,7 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -21,6 +23,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -127,7 +131,7 @@ sealed class StakeViewState<S>(
 
     private fun syncStakingRewards() {
         scope.launch {
-            val syncResult = stakingInteractor.syncStakingRewards(stakeState.accountAddress)
+            val syncResult = stakingInteractor.syncStakingRewards(stakeState.stashAddress)
 
             syncResult.exceptionOrNull()?.let { errorDisplayer(it) }
         }
@@ -181,11 +185,9 @@ private fun getValidatorStatusTitleAndMessage(
     status: ValidatorStatus
 ): Pair<String, String> {
     val (titleRes, messageRes) = when (status) {
-        is ValidatorStatus.Active -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
+        ValidatorStatus.ACTIVE -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
 
-        is ValidatorStatus.Election -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
-
-        is ValidatorStatus.Inactive -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
+        ValidatorStatus.INACTIVE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
     }
 
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
@@ -212,8 +214,6 @@ private fun getStashStatusTitleAndMessage(
     status: StashNoneStatus
 ): Pair<String, String> {
     val (titleRes, messageRes) = when (status) {
-        StashNoneStatus.ELECTION -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
-
         StashNoneStatus.INACTIVE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_stash_status_inactive
     }
 
@@ -243,8 +243,6 @@ private fun getNominatorStatusTitleAndMessage(
     val (titleRes, messageRes) = when (status) {
         is NominatorStatus.Active -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
 
-        is NominatorStatus.Election -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
-
         is NominatorStatus.Waiting -> R.string.staking_nominator_status_waiting to R.string.staking_nominator_status_alert_waiting_message
 
         is NominatorStatus.Inactive -> when (status.reason) {
@@ -259,14 +257,15 @@ private fun getNominatorStatusTitleAndMessage(
 class WelcomeViewState(
     private val setupStakingSharedState: SetupStakingSharedState,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
-    private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
-    private val accountStakingState: StakingState,
+    private val accountStakingState: StakingState.NonStash,
     private val currentAssetFlow: Flow<Asset>,
     private val scope: CoroutineScope,
     private val errorDisplayer: (String) -> Unit,
-) : StakingViewState() {
+    private val validationSystem: WelcomeStakingValidationSystem,
+    private val validationExecutor: ValidationExecutor
+) : StakingViewState(), Validatable by validationExecutor {
 
     private val currentSetupProgress = setupStakingSharedState.get<SetupStakingProcess.Initial>()
 
@@ -313,16 +312,16 @@ class WelcomeViewState(
 
     fun nextClicked() {
         scope.launch {
-            if (accountStakingState is StakingState.Stash.None) {
-                if (interactor.isAccountInApp(accountStakingState.controllerAddress)) {
-                    setupStakingSharedState.set(currentSetupProgress.existingStashFlow())
+            val payload = WelcomeStakingValidationPayload()
+            val amount = parsedAmountFlow.first()
 
-                    router.openRecommendedValidators()
-                } else {
-                    errorDisplayer(resourceManager.getString(R.string.staking_no_controller_account, accountStakingState.controllerAddress))
-                }
-            } else {
-                setupStakingSharedState.set(currentSetupProgress.fullFlow(parsedAmountFlow.first()))
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = payload,
+                errorDisplayer = { it.message?.let(errorDisplayer) },
+                validationFailureTransformer = { welcomeStakingValidationFailure(it, resourceManager) },
+            ) {
+                setupStakingSharedState.set(currentSetupProgress.fullFlow(amount))
 
                 router.openSetupStaking()
             }

@@ -9,7 +9,6 @@ import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
-import jp.co.soramitsu.feature_staking_api.domain.model.Election
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
@@ -114,19 +113,15 @@ class StakingInteractor(
     suspend fun observeStashSummary(
         stashState: StakingState.Stash.None
     ): Flow<StakeSummary<StashNoneStatus>> = observeStakeSummary(stashState) {
-        when {
-            it.electionStatus == Election.OPEN -> StashNoneStatus.ELECTION
-            else -> StashNoneStatus.INACTIVE
-        }
+        StashNoneStatus.INACTIVE
     }
 
     suspend fun observeValidatorSummary(
         validatorState: StakingState.Stash.Validator,
     ): Flow<StakeSummary<ValidatorStatus>> = observeStakeSummary(validatorState) {
         when {
-            it.electionStatus == Election.OPEN -> ValidatorStatus.Election
-            isValidatorActive(validatorState.stashId, it.eraStakers) -> ValidatorStatus.Active
-            else -> ValidatorStatus.Inactive
+            isValidatorActive(validatorState.stashId, it.eraStakers) -> ValidatorStatus.ACTIVE
+            else -> ValidatorStatus.INACTIVE
         }
     }
 
@@ -137,9 +132,9 @@ class StakingInteractor(
         val eraStakers = it.eraStakers.values
 
         when {
-            it.electionStatus == Election.OPEN -> NominatorStatus.Election
             isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
             nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting
+
             else -> {
                 val inactiveReason = when {
                     it.asset.bondedInPlanks < minimumStake(eraStakers, existentialDeposit) -> NominatorStatus.Inactive.Reason.MIN_STAKE
@@ -210,10 +205,6 @@ class StakingInteractor(
         mapAccountToStakingAccount(account)
     }
 
-    suspend fun isAccountInApp(accountAddress: String): Boolean {
-        return accountRepository.isAccountExists(accountAddress)
-    }
-
     suspend fun getRewardDestination(accountStakingState: StakingState.Stash): RewardDestination {
         return stakingRepository.getRewardDestination(accountStakingState)
     }
@@ -266,17 +257,16 @@ class StakingInteractor(
         val tokenType = Token.Type.fromNetworkType(networkType)
 
         combine(
-            stakingRepository.electionFlow(networkType),
             stakingRepository.observeActiveEraIndex(networkType),
             walletRepository.assetFlow(state.accountAddress, tokenType),
-            stakingRewardsRepository.totalRewardFlow(state.accountAddress)
-        ) { electionStatus, activeEraIndex, asset, totalReward ->
+            stakingRewardsRepository.totalRewardFlow(state.stashAddress)
+        ) { activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded
 
             val eraStakers = stakingRepository.getActiveElectedValidatorsExposures()
             val rewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
-            val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, electionStatus, asset, rewardedNominatorsPerValidator)
+            val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, asset, rewardedNominatorsPerValidator)
 
             val status = statusResolver(statusResolutionContext)
 
@@ -319,7 +309,6 @@ class StakingInteractor(
     private class StatusResolutionContext(
         val eraStakers: AccountIdMap<Exposure>,
         val activeEraIndex: BigInteger,
-        val electionStatus: Election,
         val asset: Asset,
         val rewardedNominatorsPerValidator: Int
     )
