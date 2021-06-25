@@ -114,14 +114,6 @@ class StakingViewModel(
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {
         return when (alert) {
-            Alert.Election -> {
-                AlertModel(
-                    WAITING_ICON,
-                    resourceManager.getString(R.string.staking_alert_election),
-                    resourceManager.getString(R.string.staking_alert_election_message),
-                    AlertModel.Type.Info
-                )
-            }
             Alert.ChangeValidators -> {
                 AlertModel(
                     WARNING_ICON,
