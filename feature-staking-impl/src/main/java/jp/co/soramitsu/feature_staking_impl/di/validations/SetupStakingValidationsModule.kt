@@ -3,12 +3,10 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingElectionValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
@@ -39,18 +37,6 @@ class SetupStakingValidationsModule {
 
     @Provides
     @FeatureScope
-    fun provideElectionPeriodValidation(
-        stakingRepository: StakingRepository
-    ): SetupStakingElectionValidation {
-        return SetupStakingElectionValidation(
-            stakingRepository = stakingRepository,
-            networkTypeProvider = { it.controllerAddress.networkType() },
-            errorProducer = { SetupStakingValidationFailure.ElectionPeriod }
-        )
-    }
-
-    @Provides
-    @FeatureScope
     fun provideMinimumAmountValidation(
         stakingRepository: StakingRepository
     ) = MinimumAmountValidation(stakingRepository)
@@ -69,15 +55,13 @@ class SetupStakingValidationsModule {
     fun provideSetupStakingValidationSystem(
         enoughToPayFeesValidation: SetupStakingFeeValidation,
         minimumAmountValidation: MinimumAmountValidation,
-        maxNominatorsReachedValidation: SetupStakingMaximumNominatorsValidation,
-        electionPeriodClosedValidation: SetupStakingElectionValidation
+        maxNominatorsReachedValidation: SetupStakingMaximumNominatorsValidation
     ) = ValidationSystem(
         CompositeValidation(
             listOf(
                 enoughToPayFeesValidation,
                 minimumAmountValidation,
-                maxNominatorsReachedValidation,
-                electionPeriodClosedValidation
+                maxNominatorsReachedValidation
             )
         )
     )

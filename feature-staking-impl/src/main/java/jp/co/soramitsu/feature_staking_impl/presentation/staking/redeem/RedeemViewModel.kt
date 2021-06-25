@@ -123,7 +123,6 @@ class RedeemViewModel(
             val asset = assetFlow.first()
 
             val validationPayload = RedeemValidationPayload(
-                networkType = asset.token.type.networkType,
                 fee = fee,
                 asset = asset
             )

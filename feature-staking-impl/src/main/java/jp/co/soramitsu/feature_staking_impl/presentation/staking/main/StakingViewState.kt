@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -186,11 +185,9 @@ private fun getValidatorStatusTitleAndMessage(
     status: ValidatorStatus
 ): Pair<String, String> {
     val (titleRes, messageRes) = when (status) {
-        is ValidatorStatus.Active -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
+        ValidatorStatus.ACTIVE -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
 
-        is ValidatorStatus.Election -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
-
-        is ValidatorStatus.Inactive -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
+        ValidatorStatus.INACTIVE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
     }
 
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
@@ -217,8 +214,6 @@ private fun getStashStatusTitleAndMessage(
     status: StashNoneStatus
 ): Pair<String, String> {
     val (titleRes, messageRes) = when (status) {
-        StashNoneStatus.ELECTION -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
-
         StashNoneStatus.INACTIVE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_stash_status_inactive
     }
 
@@ -247,8 +242,6 @@ private fun getNominatorStatusTitleAndMessage(
 ): Pair<String, String> {
     val (titleRes, messageRes) = when (status) {
         is NominatorStatus.Active -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
-
-        is NominatorStatus.Election -> R.string.staking_nominator_status_election to R.string.staking_nominator_status_alert_election_message
 
         is NominatorStatus.Waiting -> R.string.staking_nominator_status_waiting to R.string.staking_nominator_status_alert_waiting_message
 
@@ -319,7 +312,7 @@ class WelcomeViewState(
 
     fun nextClicked() {
         scope.launch {
-            val payload = WelcomeStakingValidationPayload(accountStakingState.accountAddress.networkType())
+            val payload = WelcomeStakingValidationPayload()
             val amount = parsedAmountFlow.first()
 
             validationExecutor.requireValid(

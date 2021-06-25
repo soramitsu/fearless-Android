@@ -3,10 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.validation.CompositeValidation
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreElectionClosedValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
@@ -19,16 +16,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
 
 @Module
 class BondMoreValidationsModule {
-
-    @FeatureScope
-    @Provides
-    fun provideElectionValidation(
-        stakingRepository: StakingRepository,
-    ) = BondMoreElectionClosedValidation(
-        stakingRepository,
-        networkTypeProvider = { it.stashAddress.networkType() },
-        errorProducer = { BondMoreValidationFailure.ELECTION_IS_OPEN }
-    )
 
     @Provides
     @FeatureScope
@@ -58,13 +45,11 @@ class BondMoreValidationsModule {
     @FeatureScope
     fun provideBondMoreValidationSystem(
         bondMoreFeeValidation: BondMoreFeeValidation,
-        bondMoreElectionClosedValidation: BondMoreElectionClosedValidation,
         notZeroBondValidation: NotZeroBondValidation,
     ) = BondMoreValidationSystem(
         validation = CompositeValidation(
             validations = listOf(
                 bondMoreFeeValidation,
-                bondMoreElectionClosedValidation,
                 notZeroBondValidation
             )
         )

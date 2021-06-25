@@ -10,13 +10,8 @@ fun welcomeStakingValidationFailure(
     resourceManager: ResourceManager
 ): TitleAndMessage = with(resourceManager) {
     when (reason) {
-        WelcomeStakingValidationFailure.MaxNominatorsReached -> {
+        WelcomeStakingValidationFailure.MAX_NOMINATORS_REACHED -> {
             getString(R.string.staking_max_nominators_reached_title) to getString(R.string.staking_max_nominators_reached_message)
-        }
-
-        WelcomeStakingValidationFailure.Election -> {
-            resourceManager.getString(R.string.staking_nominator_status_election) to
-                resourceManager.getString(R.string.staking_nominator_status_alert_election_message)
         }
     }
 }
