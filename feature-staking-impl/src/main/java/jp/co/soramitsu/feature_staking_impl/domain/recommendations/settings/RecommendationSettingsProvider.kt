@@ -6,8 +6,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filt
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotSlashedFilter
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.postprocessors.RemoveClusteringPostprocessor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.ValidatorOwnStakeSorting
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -38,7 +36,7 @@ class RecommendationSettingsProvider(
         filterIncluder: ((RecommendationFilter) -> Boolean)? = null,
         postProcessorIncluder: ((RecommendationPostProcessor) -> Boolean)? = null,
         sorting: RecommendationSorting? = null
-    ) : RecommendationSettings {
+    ): RecommendationSettings {
         val current = customSettingsFlow.value
 
         val filters = filterIncluder?.let { alwaysEnabledFilters + customizableFilters.filter(it) }
