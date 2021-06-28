@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_impl.domain.common.leaseIndexFromBlock
@@ -15,10 +16,12 @@ fun mapFundInfoToCrowdloan(
     currentBlockNumber: BlockNumber,
     expectedBlockTimeInMillis: BigInteger,
     blocksPerLeasePeriod: BigInteger,
+    contribution: Contribution?,
+    hasWonAuction: Boolean
 ): Crowdloan {
     val leasePeriodInMillis = leasePeriodInMillis(blocksPerLeasePeriod, currentBlockNumber, fundInfo.lastSlot, expectedBlockTimeInMillis)
 
-    val state = if (isCrowdloanActive(fundInfo, currentBlockNumber, blocksPerLeasePeriod)) {
+    val state = if (isCrowdloanActive(fundInfo, currentBlockNumber, blocksPerLeasePeriod, hasWonAuction)) {
         val remainingTime = expectedRemainingTime(currentBlockNumber, fundInfo.end, expectedBlockTimeInMillis)
 
         Crowdloan.State.Active(remainingTime)
@@ -33,7 +36,8 @@ fun mapFundInfoToCrowdloan(
         leasePeriodInMillis = leasePeriodInMillis,
         leasedUntilInMillis = System.currentTimeMillis() + leasePeriodInMillis,
         state = state,
-        fundInfo = fundInfo
+        fundInfo = fundInfo,
+        myContribution = contribution
     )
 }
 
@@ -41,12 +45,15 @@ private fun isCrowdloanActive(
     fundInfo: FundInfo,
     currentBlockNumber: BigInteger,
     blocksPerLeasePeriod: BigInteger,
+    hasWonAuction: Boolean,
 ): Boolean {
     return currentBlockNumber < fundInfo.end && // crowdloan is not ended
         // first slot is not yet passed
         leaseIndexFromBlock(currentBlockNumber, blocksPerLeasePeriod) <= fundInfo.firstSlot &&
         // cap is not reached
-        fundInfo.raised < fundInfo.cap
+        fundInfo.raised < fundInfo.cap &&
+        // crowdloan considered closed if parachain already won auction
+        !hasWonAuction
 }
 
 private fun leasePeriodInMillis(

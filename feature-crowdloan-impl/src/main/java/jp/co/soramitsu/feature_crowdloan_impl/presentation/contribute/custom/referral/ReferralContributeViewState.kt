@@ -27,9 +27,9 @@ abstract class ReferralContributeViewState(
     private val learnMoreUrl: String = customContributePayload.parachainMetadata.website,
 ) : CustomContributeViewState {
 
-    abstract fun createBonusPayload(referralCode: String): BonusPayload
+    abstract fun createBonusPayload(referralCode: String): ReferralCodePayload
 
-    abstract suspend fun validatePayload(payload: BonusPayload)
+    abstract suspend fun validatePayload(payload: ReferralCodePayload)
 
     private val _openBrowserFlow = MutableSharedFlow<String>(replay = 0, extraBufferCapacity = 1)
     val openBrowserFlow: Flow<String> = _openBrowserFlow

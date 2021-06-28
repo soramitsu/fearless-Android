@@ -1,11 +1,14 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.main
 
 import jp.co.soramitsu.common.list.GroupedList
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
+import jp.co.soramitsu.feature_crowdloan_api.data.repository.getContributions
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateRepository
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
 import kotlinx.coroutines.flow.Flow
@@ -23,12 +26,14 @@ class Crowdloan(
     val state: State,
     val leasePeriodInMillis: Long,
     val leasedUntilInMillis: Long,
-    val fundInfo: FundInfo
+    val fundInfo: FundInfo,
+    val myContribution: Contribution?
 ) {
 
     sealed class State {
 
         companion object {
+
             val STATE_CLASS_COMPARATOR = Comparator<KClass<out State>> { first, _ ->
                 when (first) {
                     Active::class -> -1
@@ -61,21 +66,36 @@ class CrowdloanInteractor(
             val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis()
             val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod()
             val networkType = accountRepository.currentNetworkType()
+            val accountId = accountRepository.getSelectedAccount().address.toAccountId()
 
             val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(networkType).map { currentBlockNumber ->
                 val fundInfos = crowdloanRepository.allFundInfos()
 
-                fundInfos.entries.toList()
-                    .map { (parachainId, fundInfo) ->
+                val contributionKeys = fundInfos.mapValues { (_, fundInfo) -> fundInfo.trieIndex }
+
+                val contributions = crowdloanRepository.getContributions(accountId, contributionKeys)
+                val winnerInfo = crowdloanRepository.getWinnerInfo(fundInfos)
+
+                fundInfos.values
+                    .map { fundInfo ->
+                        val paraId = fundInfo.paraId
+
                         mapFundInfoToCrowdloan(
                             fundInfo = fundInfo,
-                            parachainMetadata = parachainMetadatas[parachainId],
-                            parachainId = parachainId,
+                            parachainMetadata = parachainMetadatas[paraId],
+                            parachainId = paraId,
                             currentBlockNumber = currentBlockNumber,
                             expectedBlockTimeInMillis = expectedBlockTime,
-                            blocksPerLeasePeriod = blocksPerLeasePeriod
+                            blocksPerLeasePeriod = blocksPerLeasePeriod,
+                            contribution = contributions[paraId],
+                            hasWonAuction = winnerInfo.getValue(paraId)
                         )
-                    }.groupBy { it.state::class }
+                    }
+                    .sortedWith(
+                        compareByDescending<Crowdloan> { it.fundInfo.raised }
+                            .thenBy { it.fundInfo.end }
+                    )
+                    .groupBy { it.state::class }
                     .toSortedMap(Crowdloan.State.STATE_CLASS_COMPARATOR)
             }
 

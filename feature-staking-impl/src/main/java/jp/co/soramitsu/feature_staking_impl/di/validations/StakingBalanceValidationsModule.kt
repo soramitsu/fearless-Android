@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -11,7 +10,6 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_CONTROLLER
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_STASH
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceElectionPeriodValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceUnlockingLimitValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_BOND_MORE
@@ -47,16 +45,6 @@ class StakingBalanceValidationsModule {
 
     @FeatureScope
     @Provides
-    fun provideElectionValidation(
-        stakingRepository: StakingRepository,
-    ) = BalanceElectionPeriodValidation(
-        stakingRepository,
-        networkTypeProvider = { it.stashState.controllerAddress.networkType() },
-        errorProducer = { ManageStakingValidationFailure.ElectionPeriodOpen }
-    )
-
-    @FeatureScope
-    @Provides
     fun provideUnbondingLimitValidation(
         stakingRepository: StakingRepository,
     ) = BalanceUnlockingLimitValidation(
@@ -69,14 +57,12 @@ class StakingBalanceValidationsModule {
     @Named(SYSTEM_MANAGE_STAKING_REDEEM)
     @Provides
     fun provideRedeemValidationSystem(
-        balanceElectionPeriodValidation: BalanceElectionPeriodValidation,
         @Named(BALANCE_REQUIRED_CONTROLLER)
         controllerRequiredValidation: BalanceAccountRequiredValidation,
     ) = ValidationSystem(
         CompositeValidation(
             validations = listOf(
-                controllerRequiredValidation,
-                balanceElectionPeriodValidation
+                controllerRequiredValidation
             )
         )
     )
@@ -85,14 +71,12 @@ class StakingBalanceValidationsModule {
     @Named(SYSTEM_MANAGE_STAKING_BOND_MORE)
     @Provides
     fun provideBondMoreValidationSystem(
-        balanceElectionPeriodValidation: BalanceElectionPeriodValidation,
         @Named(BALANCE_REQUIRED_STASH)
         stashRequiredValidation: BalanceAccountRequiredValidation,
     ) = ValidationSystem(
         CompositeValidation(
             validations = listOf(
                 stashRequiredValidation,
-                balanceElectionPeriodValidation
             )
         )
     )
@@ -101,7 +85,6 @@ class StakingBalanceValidationsModule {
     @Named(SYSTEM_MANAGE_STAKING_UNBOND)
     @Provides
     fun provideUnbondValidationSystem(
-        balanceElectionPeriodValidation: BalanceElectionPeriodValidation,
         @Named(BALANCE_REQUIRED_CONTROLLER)
         controllerRequiredValidation: BalanceAccountRequiredValidation,
         balanceUnlockingLimitValidation: BalanceUnlockingLimitValidation
@@ -109,7 +92,6 @@ class StakingBalanceValidationsModule {
         CompositeValidation(
             validations = listOf(
                 controllerRequiredValidation,
-                balanceElectionPeriodValidation,
                 balanceUnlockingLimitValidation
             )
         )
@@ -119,14 +101,12 @@ class StakingBalanceValidationsModule {
     @Named(SYSTEM_MANAGE_STAKING_REBOND)
     @Provides
     fun provideRebondValidationSystem(
-        balanceElectionPeriodValidation: BalanceElectionPeriodValidation,
         @Named(BALANCE_REQUIRED_CONTROLLER)
         controllerRequiredValidation: BalanceAccountRequiredValidation
     ) = ValidationSystem(
         CompositeValidation(
             validations = listOf(
-                controllerRequiredValidation,
-                balanceElectionPeriodValidation,
+                controllerRequiredValidation
             )
         )
     )

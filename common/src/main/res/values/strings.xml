@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_set_validators_title">Select validators to start staking</string>
+    <string name="staking_set_validators_message">Validators are not selected</string>
+
+    <string name="staking_max_nominators_reached_title">Cannot nominate</string>
+    <string name="staking_max_nominators_reached_message">Maximum number of nominators has been reached</string>
+
+    <string name="crowdloan_my_contribution">You contributed: %s</string>
+
     <string name="staking_alert_bond_more_title">Bond more tokens.</string>
     <string name="staking_alert_bond_more_message">Staking is inactive. Current minimal stake is %s</string>
     <string name="staking_alert_redeem_title">Redeem unbonded tokens.</string>
@@ -7,8 +15,6 @@
     <string name="staking_alert_title">Alerts</string>
     <string name="staking_alert_no_alerts_now">Everything is fine now. Alerts will appear here.</string>
     <string name="staking_alert_start_next_era_message">Please wait for the next era to start.</string>
-    <string name="staking_alert_election">Staking actions are currently unavailable.</string>
-    <string name="staking_alert_election_message">The network is electing validators.\nUsually it takes less than 10 minutes.</string>
     <string name="staking_alert_change_validators">Change your validators.</string>
     <string name="staking_alert_change_validators_message">Staking is inactive. None of your validators were elected by network.</string>
 
@@ -175,7 +181,6 @@
 
     <string name="staking_nominator_status_alert_active_title">Active status</string>
     <string name="staking_nominator_status_alert_active_message">One of your validators have been elected by network.</string>
-    <string name="staking_nominator_status_alert_election_message">The network is electing validators. Please wait a few minutes.</string>
     <string name="staking_nominator_status_alert_waiting_message">Your staking will start in the next era.</string>
     <string name="staking_nominator_status_alert_inactive_title">Inactive status</string>
     <string name="staking_nominator_status_alert_no_validators">None of your validators have been elected by network.</string>
@@ -189,7 +194,6 @@
 
     <string name="staking_stake">Stake</string>
     <string name="staking_total_rewards">Total rewards</string>
-    <string name="staking_nominator_status_election">Election period</string>
     <string name="staking_nominator_status_active">Active</string>
     <string name="staking_nominator_status_inactive">Inactive</string>
     <string name="staking_nominator_status_waiting">Waiting for the next era</string>

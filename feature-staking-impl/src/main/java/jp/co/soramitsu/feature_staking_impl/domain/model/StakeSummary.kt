@@ -12,7 +12,6 @@ class StakeSummary<S>(
 sealed class NominatorStatus {
     object Active : NominatorStatus()
     object Waiting : NominatorStatus()
-    object Election : NominatorStatus()
 
     class Inactive(val reason: Reason) : NominatorStatus() {
 
@@ -23,11 +22,9 @@ sealed class NominatorStatus {
 }
 
 enum class StashNoneStatus {
-    INACTIVE, ELECTION
+    INACTIVE
 }
 
-sealed class ValidatorStatus {
-    object Active : ValidatorStatus()
-    object Election : ValidatorStatus()
-    object Inactive : ValidatorStatus()
+enum class ValidatorStatus {
+    ACTIVE, INACTIVE
 }
