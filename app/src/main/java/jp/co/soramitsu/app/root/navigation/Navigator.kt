@@ -2,6 +2,7 @@ package jp.co.soramitsu.app.root.navigation
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
@@ -182,6 +183,10 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_setupStakingFragment)
     }
 
+    override fun openStartChangeValidators() {
+        navController?.navigate(R.id.openStartChangeValidatorsFragment)
+    }
+
     override fun openStory(story: StakingStoryModel) {
         navController?.navigate(R.id.open_staking_story, StoryFragment.getBundle(story))
     }
@@ -286,6 +291,9 @@ class Navigator :
         )
     }
 
+    override val currentStackEntryLifecycle: Lifecycle
+        get() = navController!!.currentBackStackEntry!!.lifecycle
+
     override fun openControllerAccount() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
     }
@@ -298,7 +306,7 @@ class Navigator :
     }
 
     override fun openRecommendedValidators() {
-        navController?.navigate(R.id.openRecommendedValidatorsFragment)
+        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_recommendedValidatorsFragment)
     }
 
     override fun openConfirmStaking() {

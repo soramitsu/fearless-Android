@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.di
 
 import com.google.gson.Gson
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
@@ -34,6 +35,8 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
 interface StakingFeatureDependencies {
+
+    fun computationalCache(): ComputationalCache
 
     fun feeLoaderMixin(): FeeLoaderMixin.Presentation
 

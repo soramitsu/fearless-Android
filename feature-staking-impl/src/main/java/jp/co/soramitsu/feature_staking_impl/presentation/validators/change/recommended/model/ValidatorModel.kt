@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model
+package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model
 
 import android.graphics.drawable.PictureDrawable
 import androidx.recyclerview.widget.DiffUtil

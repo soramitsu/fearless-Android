@@ -10,7 +10,7 @@ import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model.ValidatorModel
 import kotlinx.android.synthetic.main.fragment_confirm_nominations.confirmNominationsList
 import kotlinx.android.synthetic.main.fragment_confirm_nominations.confirmNominationsToolbar
 

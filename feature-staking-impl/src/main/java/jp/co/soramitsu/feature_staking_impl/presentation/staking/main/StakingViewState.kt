@@ -323,7 +323,7 @@ class WelcomeViewState(
             ) {
                 setupStakingSharedState.set(currentSetupProgress.fullFlow(amount))
 
-                router.openSetupStaking()
+                router.openStartChangeValidators()
             }
         }
     }

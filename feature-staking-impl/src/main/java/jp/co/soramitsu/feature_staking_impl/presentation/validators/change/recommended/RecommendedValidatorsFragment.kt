@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended
+package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,8 +12,7 @@ import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.model.ValidatorModel
-import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorLearnMore
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model.ValidatorModel
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsAccounts
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsList
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsNext
@@ -41,10 +40,6 @@ class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewMode
         recommendedValidatorsToolbar.setHomeButtonListener { viewModel.backClicked() }
         onBackPressed { viewModel.backClicked() }
 
-        recommendedValidatorLearnMore.setOnClickListener {
-            viewModel.learnMoreClicked()
-        }
-
         recommendedValidatorsNext.setOnClickListener {
             viewModel.nextClicked()
         }
@@ -62,14 +57,14 @@ class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewMode
 
     override fun subscribe(viewModel: RecommendedValidatorsViewModel) {
         viewModel.recommendedValidatorModels.observe {
-            recommendedValidatorsAccounts.text = getString(R.string.staking_selected_accounts_mask, it.size)
-
             adapter.submitList(it)
 
             recommendedValidatorsProgress.setVisible(false)
             recommendedValidatorsNext.setVisible(true)
             recommendedValidatorsList.setVisible(true)
         }
+
+        viewModel.selectedTitle.observe(recommendedValidatorsAccounts::setText)
 
         observeBrowserEvents(viewModel)
     }
