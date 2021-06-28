@@ -13,11 +13,12 @@ class CrossExistentialValidation(
         val existentialDepositInPlanks = walletConstants.existentialDeposit()
         val existentialDeposit = value.tokenType.amountFromPlanks(existentialDepositInPlanks)
 
-        val resultGreaterThanExistential = value.bonded - value.amount >= existentialDeposit
-        val resultIsZero = value.bonded == value.amount
+        val bonded = value.asset.bonded
+        val resultGreaterThanExistential = bonded - value.amount >= existentialDeposit
+        val resultIsZero = bonded == value.amount
 
         return validOrWarning(resultGreaterThanExistential || resultIsZero) {
-            UnbondValidationFailure.BondedWillCrossExistential(willBeUnbonded = value.bonded)
+            UnbondValidationFailure.BondedWillCrossExistential(willBeUnbonded = bonded)
         }
     }
 }

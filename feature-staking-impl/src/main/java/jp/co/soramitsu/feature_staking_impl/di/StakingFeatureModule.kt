@@ -106,6 +106,7 @@ class StakingFeatureModule {
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         stakingStoriesDataSource: StakingStoriesDataSource,
+        walletConstants: WalletConstants,
     ): StakingRepository = StakingRepositoryImpl(
         storageCache = storageCache,
         accountRepository = accountRepository,
@@ -114,7 +115,8 @@ class StakingFeatureModule {
         bulkRetriever = bulkRetriever,
         remoteStorage = remoteStorageSource,
         localStorage = localStorageSource,
-        stakingStoriesDataSource = stakingStoriesDataSource
+        stakingStoriesDataSource = stakingStoriesDataSource,
+        walletConstants = walletConstants
     )
 
     @Provides
@@ -152,9 +154,8 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         stakingConstantsRepository: StakingConstantsRepository,
         walletRepository: WalletRepository,
-        walletConstants: WalletConstants,
     ) = AlertsInteractor(
-        stakingRepository, stakingConstantsRepository, walletRepository, walletConstants
+        stakingRepository, stakingConstantsRepository, walletRepository
     )
 
     @Provides
@@ -281,7 +282,8 @@ class StakingFeatureModule {
     fun provideUnbondInteractor(
         feeEstimator: FeeEstimator,
         extrinsicService: ExtrinsicService,
-    ) = UnbondInteractor(feeEstimator, extrinsicService)
+        stakingRepository: StakingRepository
+    ) = UnbondInteractor(feeEstimator, extrinsicService, stakingRepository)
 
     @Provides
     @FeatureScope
