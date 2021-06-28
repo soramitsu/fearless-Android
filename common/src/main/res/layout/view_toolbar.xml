@@ -58,7 +58,7 @@
     <LinearLayout
         android:id="@+id/toolbarCustomActions"
         android:layout_gravity="center_vertical|end"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

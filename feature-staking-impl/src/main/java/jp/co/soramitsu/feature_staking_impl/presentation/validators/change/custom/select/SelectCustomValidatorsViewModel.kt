@@ -142,6 +142,12 @@ class SelectCustomValidatorsViewModel(
         router.openCustomValidatorsSettings()
     }
 
+    fun searchClicked() {
+        updateSetupStakingState()
+
+        router.openSearchCustomValidators()
+    }
+
     fun clearFilters() {
         launch {
             val settings = recommendationSettingsProvider().createModifiedCustomValidatorsSettings(
