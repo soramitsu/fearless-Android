@@ -13,6 +13,4 @@ sealed class UnbondValidationFailure {
     class BondedWillCrossExistential(val willBeUnbonded: BigDecimal) : UnbondValidationFailure()
 
     class UnbondLimitReached(val limit: Int) : UnbondValidationFailure()
-
-    object ElectionIsOpen : UnbondValidationFailure()
 }

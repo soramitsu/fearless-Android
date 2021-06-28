@@ -63,10 +63,6 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideDualRefCountProperty() = SuspendableProperty<Boolean>()
-
-    @Provides
-    @FeatureScope
     fun providePhishingApi(networkApiCreator: NetworkApiCreator): PhishingApi {
         return networkApiCreator.create(PhishingApi::class.java)
     }

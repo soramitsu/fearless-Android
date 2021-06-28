@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.utils.crowdloan
 import jp.co.soramitsu.common.utils.hasModule
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.slots
+import jp.co.soramitsu.common.utils.storageKeys
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.common.utils.useValue
 import jp.co.soramitsu.core.model.Node
@@ -21,9 +22,11 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.LeaseEntry
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.bindContribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.bindFundInfo
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.bindLeases
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
@@ -54,9 +57,23 @@ class CrowdloanRepositoryImpl(
     override suspend fun allFundInfos(): Map<ParaId, FundInfo> {
         return remoteStorage.queryByPrefix(
             prefixKeyBuilder = { it.metadata.crowdloan().storage("Funds").storageKey() },
-            keyExtractor = { it.u32ArgumentFromStorageKey() },
-            binding = { scale, runtime -> bindFundInfo(scale!!, runtime) }
-        )
+            keyExtractor = { it.u32ArgumentFromStorageKey() }
+        ) { scale, runtime, paraId -> bindFundInfo(scale!!, runtime, paraId) }
+    }
+
+    override suspend fun getWinnerInfo(funds: Map<ParaId, FundInfo>): Map<ParaId, Boolean> {
+        return remoteStorage.queryKeys(
+            keysBuilder = { it.metadata.slots().storage("Leases").storageKeys(it, funds.keys) },
+            binding = { scale, runtimeSnapshot -> scale?.let { bindLeases(it, runtimeSnapshot) } }
+        ).mapValues { (paraId, leases) ->
+            val fund = funds.getValue(paraId)
+
+            leases?.let { isWinner(leases, fund.bidderAccountId) } ?: false
+        }
+    }
+
+    private fun isWinner(leases: List<LeaseEntry?>, bidderAccount: AccountId): Boolean {
+        return leases.any { it?.accountId.contentEquals(bidderAccount) }
     }
 
     override suspend fun getParachainMetadata(): Map<ParaId, ParachainMetadata> {
@@ -76,7 +93,7 @@ class CrowdloanRepositoryImpl(
     override fun fundInfoFlow(parachainId: ParaId, networkType: Node.NetworkType): Flow<FundInfo> {
         return remoteStorage.observe(
             keyBuilder = { it.metadata.crowdloan().storage("Funds").storageKey(it, parachainId) },
-            binder = { scale, runtime -> bindFundInfo(scale!!, runtime) },
+            binder = { scale, runtime -> bindFundInfo(scale!!, runtime, parachainId) },
             networkType = networkType
         )
     }

@@ -11,8 +11,10 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericEvent
 import jp.co.soramitsu.fearless_utils.runtime.metadata.Module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
+import jp.co.soramitsu.fearless_utils.runtime.metadata.StorageEntry
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
@@ -23,6 +25,8 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import java.io.ByteArrayOutputStream
+
+fun StorageEntry.defaultInHex() = default.toHexString(withPrefix = true)
 
 fun ByteArray.toAddress(networkType: Node.NetworkType) = toAddress(networkType.runtimeConfiguration.addressByte)
 
@@ -73,6 +77,10 @@ fun RuntimeMetadata.crowdloan() = module(Modules.CROWDLOAN)
 fun RuntimeMetadata.babe() = module(Modules.BABE)
 
 fun RuntimeMetadata.slots() = module(Modules.SLOTS)
+
+fun <T> StorageEntry.storageKeys(runtime: RuntimeSnapshot, singleMapKeys: Collection<T>): Map<String, T> {
+    return singleMapKeys.associateBy { storageKey(runtime, it) }
+}
 
 fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())!!
 

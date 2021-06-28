@@ -21,9 +21,12 @@ To build Fearless Wallet Android project, you need to provide several keys eithe
 ``` properties
 MOONPAY_TEST_SECRET=stub
 MOONPAY_PRODUCTION_SECRET=stub
+SUBSCAN_API_KEY=
 ```
 
 Note, that with stub keys buy via moonpay will not work correctly. However, other parts of application will not be affected.
+
+If you will leave SUBSCAN_API_KEY value empty, you will have very strict limits for the subscan api requests. If you want to increase the limits, check the [Subscan website](https://docs.api.subscan.io/#introduction) and then add the api key to the 'local.properties' -> SUBSCAN_API_KEY=YOUR_API_KEY
 
 ## License
 Fearless Wallet Android is available under the Apache 2.0 license. See the LICENSE file for more info.
