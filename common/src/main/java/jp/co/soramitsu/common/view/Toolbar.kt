@@ -123,7 +123,7 @@ class Toolbar @JvmOverloads constructor(
                 val endMargin = endMarginDp.dp(context)
 
                 val startMargin = 10.dp(context)
-                
+
                 setMargins(startMargin, verticalMargin, endMargin, verticalMargin)
             }
 

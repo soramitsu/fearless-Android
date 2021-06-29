@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.domain.validators
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
@@ -72,7 +71,7 @@ class ValidatorProvider(
         }
     }
 
-    suspend fun getValidatorWithoutElectedInfo(address: String) : Validator {
+    suspend fun getValidatorWithoutElectedInfo(address: String): Validator {
         val accountId = address.toHexAccountId()
 
         val accountIdBridged = listOf(accountId)

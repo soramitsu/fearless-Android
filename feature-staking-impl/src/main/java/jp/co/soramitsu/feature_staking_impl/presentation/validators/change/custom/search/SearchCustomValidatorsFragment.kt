@@ -9,9 +9,6 @@ import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.common.utils.makeGone
-import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.common.utils.setDrawableStart
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
@@ -78,7 +75,7 @@ class SearchCustomValidatorsFragment : BaseFragment<SearchCustomValidatorsViewMo
             searchCustomValidatorsPlaceholder.setVisible(it is SearchValidatorsState.NoResults || it is SearchValidatorsState.NoInput)
             searchCustomValidatorListHeader.setVisible(it is SearchValidatorsState.Success)
 
-            when(it) {
+            when (it) {
                 SearchValidatorsState.NoInput -> {
                     searchCustomValidatorsPlaceholder.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.ic_placeholder, 0, 0)
                     searchCustomValidatorsPlaceholder.text = getString(R.string.common_search_no_input)

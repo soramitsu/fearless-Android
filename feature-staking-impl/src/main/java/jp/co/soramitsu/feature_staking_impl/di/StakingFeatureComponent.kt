@@ -52,7 +52,7 @@ import jp.co.soramitsu.runtime.di.RuntimeApi
 @FeatureScope
 interface StakingFeatureComponent : StakingFeatureApi {
 
-    fun searchCustomValidatorsComponentFactory() : SearchCustomValidatorsComponent.Factory
+    fun searchCustomValidatorsComponentFactory(): SearchCustomValidatorsComponent.Factory
 
     fun customValidatorsSettingsComponentFactory(): CustomValidatorsSettingsComponent.Factory
 
