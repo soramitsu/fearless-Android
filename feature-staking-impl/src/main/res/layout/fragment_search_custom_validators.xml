@@ -105,6 +105,7 @@
         android:drawablePadding="26dp"
         tools:text="@string/common_search_no_input"
         android:textColor="@color/black1"
+        android:gravity="center"
         tools:drawableTopCompat="@drawable/ic_placeholder"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
