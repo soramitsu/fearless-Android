@@ -59,11 +59,18 @@
         android:layout_marginStart="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="16dp"
+        android:id="@+id/searchCustomValidatorRewards"
         app:layout_constraintTop_toTopOf="@id/searchCustomValidatorAccounts"
         app:layout_constraintBottom_toBottomOf="@id/searchCustomValidatorAccounts"
         android:text="@string/staking_rewards_apy"
         android:textAllCaps="true"
         android:textColor="@color/gray1" />
+
+    <androidx.constraintlayout.widget.Group
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/searchCustomValidatorListHeader"
+        app:constraint_referenced_ids="searchCustomValidatorAccounts,searchCustomValidatorRewards" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="0dp"

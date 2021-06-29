@@ -10,8 +10,8 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.toggle
-import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.utils.withLoadingSingle
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.SearchCustomValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -24,25 +24,20 @@ import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 
 sealed class SearchValidatorsState {
     object NoInput : SearchValidatorsState()
 
     object Loading : SearchValidatorsState()
 
-    object NoResults: SearchValidatorsState()
+    object NoResults : SearchValidatorsState()
 
-    class Success(val validators: List<ValidatorModel>) : SearchValidatorsState()
+    class Success(val validators: List<ValidatorModel>, val headerTitle: String) : SearchValidatorsState()
 }
 
 class SearchCustomValidatorsViewModel(
@@ -107,9 +102,16 @@ class SearchCustomValidatorsViewModel(
         when {
             validatorsState is LoadingState.Loading -> SearchValidatorsState.Loading
             validatorsState is LoadingState.Loaded && validatorsState.data == null -> SearchValidatorsState.NoInput
+
             validatorsState is LoadingState.Loaded && validatorsState.data.isNullOrEmpty().not() -> {
-                SearchValidatorsState.Success(validatorsState.data!!)
+                val validators = validatorsState.data!!
+
+                SearchValidatorsState.Success(
+                    validators = validators,
+                    headerTitle = resourceManager.getString(R.string.search_results_header, validators.size)
+                )
             }
+
             else -> SearchValidatorsState.NoResults
         }
     }.share()

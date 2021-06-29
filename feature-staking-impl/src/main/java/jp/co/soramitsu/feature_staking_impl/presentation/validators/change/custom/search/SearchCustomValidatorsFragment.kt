@@ -18,6 +18,8 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
+import kotlinx.android.synthetic.main.fragment_search_custom_validators.searchCustomValidatorAccounts
+import kotlinx.android.synthetic.main.fragment_search_custom_validators.searchCustomValidatorListHeader
 import kotlinx.android.synthetic.main.fragment_search_custom_validators.searchCustomValidatorProgress
 import kotlinx.android.synthetic.main.fragment_search_custom_validators.searchCustomValidatorsContainer
 import kotlinx.android.synthetic.main.fragment_search_custom_validators.searchCustomValidatorsField
@@ -74,6 +76,7 @@ class SearchCustomValidatorsFragment : BaseFragment<SearchCustomValidatorsViewMo
             searchCustomValidatorsList.setVisible(it is SearchValidatorsState.Success, falseState = View.INVISIBLE)
             searchCustomValidatorProgress.setVisible(it is SearchValidatorsState.Loading, falseState = View.INVISIBLE)
             searchCustomValidatorsPlaceholder.setVisible(it is SearchValidatorsState.NoResults || it is SearchValidatorsState.NoInput)
+            searchCustomValidatorListHeader.setVisible(it is SearchValidatorsState.Success)
 
             when(it) {
                 SearchValidatorsState.NoInput -> {
@@ -86,6 +89,8 @@ class SearchCustomValidatorsFragment : BaseFragment<SearchCustomValidatorsViewMo
                 }
                 SearchValidatorsState.Loading -> {}
                 is SearchValidatorsState.Success -> {
+                    searchCustomValidatorAccounts.text = it.headerTitle
+
                     adapter.submitList(it.validators)
                 }
             }
