@@ -21,7 +21,7 @@ class ValidationExecutor(
         errorDisplayer: (Throwable) -> Unit,
         validationFailureTransformer: (S) -> TitleAndMessage,
         progressConsumer: ProgressConsumer? = null,
-        autoFixPayload: (original: P, failureStatus: S) -> P,
+        autoFixPayload: (original: P, failureStatus: S) -> P = { original, _ -> original },
         block: (P) -> Unit,
     ) {
         progressConsumer?.invoke(true)

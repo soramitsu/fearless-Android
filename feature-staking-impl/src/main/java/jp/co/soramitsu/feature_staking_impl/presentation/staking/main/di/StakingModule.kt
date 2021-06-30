@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFacto
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_BOND_MORE
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_REDEEM
+import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewModel
@@ -33,13 +34,17 @@ class StakingModule {
         setupStakingSharedState: SetupStakingSharedState,
         resourceManager: ResourceManager,
         rewardCalculatorFactory: RewardCalculatorFactory,
-        router: StakingRouter
+        router: StakingRouter,
+        welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
+        validationExecutor: ValidationExecutor
     ) = StakingViewStateFactory(
         interactor,
         setupStakingSharedState,
         resourceManager,
         router,
-        rewardCalculatorFactory
+        rewardCalculatorFactory,
+        welcomeStakingValidationSystem,
+        validationExecutor
     )
 
     @Provides
