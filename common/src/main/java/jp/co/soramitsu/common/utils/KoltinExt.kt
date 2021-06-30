@@ -48,3 +48,15 @@ fun List<Double>.median(): Double = sorted().let {
 }
 
 fun generateLinearSequence(initial: Int, step: Int) = generateSequence(initial) { it + step }
+
+fun <T> Set<T>.toggle(item: T): Set<T> = if (item in this) {
+    this - item
+} else {
+    this + item
+}
+
+fun <T> List<T>.cycle(): Sequence<T> {
+    var i = 0
+
+    return generateSequence { this[i++ % this.size] }
+}

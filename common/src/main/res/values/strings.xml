@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_fill_with_recommended">Fill rest with recommended</string>
+    <string name="staking_clear_filters">Clear filters</string>
+    <string name="staking_deselect_all">Deselect all</string>
+
+    <string name="staking_sorting_header_total_stake">Total stake</string>
+    <string name="staking_sorting_header_own_stake">Validator’s own stake</string>
+
+    <string name="staking_show_selected">Show selected: %d (max %d)</string>
+    <string name="staking_select_validators_with_max">Select validators (max %d)</string>
+    <string name="staking_shown_validators_format">Validators: %d (Max %d)</string>
+    <string name="staking_select_validators">Select validators</string>
+
     <string name="staking_set_validators_title">Select validators to start staking</string>
     <string name="staking_set_validators_message">Validators are not selected</string>
 
