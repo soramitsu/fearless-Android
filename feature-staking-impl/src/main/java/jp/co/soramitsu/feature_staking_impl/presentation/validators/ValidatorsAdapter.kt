@@ -12,9 +12,9 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import kotlinx.android.extensions.LayoutContainer
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorCheck
+import kotlinx.android.synthetic.main.item_validator.view.itemValidatorActionIcon
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorIcon
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorInfo
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorName
@@ -23,16 +23,33 @@ import kotlinx.android.synthetic.main.item_validator.view.itemValidatorScoringPr
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorScoringSecondary
 
 class ValidatorsAdapter(
-    private val itemHandler: ItemAssetHandler
+    private val itemHandler: ItemHandler,
+    initialMode: Mode = Mode.VIEW
 ) : ListAdapter<ValidatorModel, ValidatorViewHolder>(ValidatorDiffCallback) {
 
-    interface ItemAssetHandler {
+    private var mode = initialMode
+
+    interface ItemHandler {
 
         fun validatorInfoClicked(validatorModel: ValidatorModel)
 
         fun validatorClicked(validatorModel: ValidatorModel) {
             // default empty
         }
+
+        fun removeClicked(validatorModel: ValidatorModel) {
+            // default empty
+        }
+    }
+
+    enum class Mode {
+        VIEW, EDIT
+    }
+
+    fun modeChanged(newMode: Mode) {
+        mode = newMode
+
+        notifyItemRangeChanged(0, itemCount, mode)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ValidatorViewHolder {
@@ -44,24 +61,32 @@ class ValidatorsAdapter(
     override fun onBindViewHolder(holder: ValidatorViewHolder, position: Int) {
         val item = getItem(position)
 
-        holder.bind(item, itemHandler)
+        holder.bind(item, itemHandler, mode)
     }
 
     override fun onBindViewHolder(holder: ValidatorViewHolder, position: Int, payloads: MutableList<Any>) {
         val item = getItem(position)
 
-        resolvePayload(holder, position, payloads) {
-            when (it) {
-                ValidatorModel::isChecked -> holder.bindIsChecked(item)
-                ValidatorModel::scoring -> holder.bindScoring(item)
+        resolvePayload(
+            holder, position, payloads,
+            onUnknownPayload = { holder.bindIcon(mode, item, itemHandler) },
+            onDiffCheck = {
+                when (it) {
+                    ValidatorModel::isChecked -> holder.bindIcon(mode, item, itemHandler)
+                    ValidatorModel::scoring -> holder.bindScoring(item)
+                }
             }
-        }
+        )
     }
 }
 
 class ValidatorViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
 
-    fun bind(validator: ValidatorModel, itemHandler: ValidatorsAdapter.ItemAssetHandler) = with(containerView) {
+    fun bind(
+        validator: ValidatorModel,
+        itemHandler: ValidatorsAdapter.ItemHandler,
+        mode: ValidatorsAdapter.Mode
+    ) = with(containerView) {
         itemValidatorName.text = validator.title
         itemValidatorIcon.setImageDrawable(validator.image)
 
@@ -73,15 +98,32 @@ class ValidatorViewHolder(override val containerView: View) : RecyclerView.ViewH
             itemHandler.validatorClicked(validator)
         }
 
-        bindIsChecked(validator)
+        bindIcon(mode, validator, itemHandler)
 
         bindScoring(validator)
     }
 
-    fun bindIsChecked(validatorModel: ValidatorModel) = with(containerView) {
-        when (val isChecked = validatorModel.isChecked) {
-            null -> itemValidatorCheck.makeGone()
-            else -> itemValidatorCheck.setVisible(isChecked, falseState = View.INVISIBLE)
+    fun bindIcon(
+        mode: ValidatorsAdapter.Mode,
+        validatorModel: ValidatorModel,
+        handler: ValidatorsAdapter.ItemHandler
+    ) = with(containerView) {
+        when {
+            mode == ValidatorsAdapter.Mode.EDIT -> {
+                itemValidatorActionIcon.setImageResource(R.drawable.ic_delete_symbol)
+                itemValidatorActionIcon.makeVisible()
+
+                itemValidatorActionIcon.setOnClickListener { handler.removeClicked(validatorModel) }
+            }
+            validatorModel.isChecked == null -> {
+                itemValidatorActionIcon.makeGone()
+            }
+            else -> {
+                itemValidatorActionIcon.setOnClickListener(null)
+
+                itemValidatorActionIcon.setImageResource(R.drawable.ic_checkmark_white_24)
+                itemValidatorActionIcon.setVisible(validatorModel.isChecked, falseState = View.INVISIBLE)
+            }
         }
     }
 

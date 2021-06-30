@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:animateLayoutChanges="true"
     android:background="@drawable/bg_primary_list_item"
     android:orientation="horizontal"
     tools:background="@color/black">
@@ -12,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="16dp"
-        android:id="@+id/itemValidatorCheck"
+        android:id="@+id/itemValidatorActionIcon"
         android:src="@drawable/ic_checkmark_white_24" />
 
     <ImageView

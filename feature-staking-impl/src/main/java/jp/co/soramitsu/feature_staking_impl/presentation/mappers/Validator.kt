@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.Reco
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.OwnStakeSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorStakeModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorStakeModel.ActiveStakeModel

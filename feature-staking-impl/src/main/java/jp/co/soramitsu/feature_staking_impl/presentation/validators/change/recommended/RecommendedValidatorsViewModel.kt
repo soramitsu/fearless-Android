@@ -1,12 +1,9 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
@@ -19,7 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProc
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.flow.first
@@ -36,9 +33,7 @@ class RecommendedValidatorsViewModel(
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
     private val tokenUseCase: TokenUseCase,
-) : BaseViewModel(), Browserable {
-
-    override val openBrowserEvent = MutableLiveData<Event<String>>()
+) : BaseViewModel() {
 
     private val currentProgressState = sharedStateSetup.get<SetupStakingProcess.Validators>()
 

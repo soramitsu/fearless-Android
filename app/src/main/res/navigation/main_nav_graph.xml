@@ -443,22 +443,36 @@
         android:id="@+id/selectCustomValidatorsFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.SelectCustomValidatorsFragment"
         android:label="selectCustomValidatorsFragment"
-        tools:layout="@layout/fragment_select_custom_validators" />
-
-    <fragment
-        android:id="@+id/recommendedValidatorsFragment"
-        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.RecommendedValidatorsFragment"
-        android:label="recommendedValidatorsFragment"
-        tools:layout="@layout/fragment_recommended_validators">
+        tools:layout="@layout/fragment_select_custom_validators">
 
         <action
-            android:id="@+id/action_recommendedValidatorsFragment_to_confirmStakingFragment"
-            app:destination="@id/confirmStakingFragment"
+            android:id="@+id/action_selectCustomValidatorsFragment_to_reviewCustomValidatorsFragment"
+            app:destination="@id/reviewCustomValidatorsFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
+
+    <fragment
+        android:id="@+id/reviewCustomValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review.ReviewCustomValidatorsFragment"
+        android:label="reviewCustomValidatorsFragment"
+        tools:layout="@layout/fragment_select_custom_validators" />
+
+    <action
+        android:id="@+id/openConfirmStakingFragment"
+        app:destination="@id/confirmStakingFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <fragment
+        android:id="@+id/recommendedValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.RecommendedValidatorsFragment"
+        android:label="recommendedValidatorsFragment"
+        tools:layout="@layout/fragment_recommended_validators" />
 
     <action
         android:id="@+id/back_to_main"

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.model
+package jp.co.soramitsu.feature_staking_impl.presentation.validators.change
 
 import android.graphics.drawable.PictureDrawable
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
