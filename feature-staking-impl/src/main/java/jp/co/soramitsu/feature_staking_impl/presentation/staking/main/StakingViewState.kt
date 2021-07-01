@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
+import android.os.CountDownTimer
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.TitleAndMessage
@@ -34,19 +35,27 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigInteger
+import java.text.SimpleDateFormat
 
 sealed class StakingViewState
 
@@ -65,6 +74,7 @@ class StakeSummaryModel<S>(
     val totalRewards: String,
     val totalRewardsFiat: String?,
     val currentEraDisplay: String,
+    val timeLeft: String?
 )
 
 typealias NominatorSummaryModel = StakeSummaryModel<NominatorStatus>
@@ -96,6 +106,8 @@ sealed class StakeViewState<S>(
 
     private val _showManageActionsEvent = MutableLiveData<Event<ManageStakingBottomSheet.Payload>>()
     val showManageActionsEvent: LiveData<Event<ManageStakingBottomSheet.Payload>> = _showManageActionsEvent
+
+//    val timeLeft = stakingInteractor.getTimeLeft()
 
     fun manageActionChosen(action: ManageStakeAction) {
         if (action !in availableManageActions) return
@@ -137,21 +149,30 @@ sealed class StakeViewState<S>(
         }
     }
 
+
+    fun timerFlow(totalSeconds: Long) = (totalSeconds downTo 0).asFlow()
+        .onEach { delay(1000) }
+        .conflate()
+    val simpleDateFormat = SimpleDateFormat("hh:mm:ss")
+
     private suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
         return combine(
             summaryFlowProvider(stakeState),
-            currentAssetFlow
-        ) { summary, asset ->
+            currentAssetFlow,
+            timerFlow(stakingInteractor.getTimeLeft().toLong())
+        ) { summary, asset, timer ->
             val token = asset.token
             val tokenType = token.type
 
+            val dateString = simpleDateFormat.format(timer)
             StakeSummaryModel(
                 status = summary.status,
                 totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
                 totalRewards = summary.totalRewards.formatTokenAmount(tokenType),
                 totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency(),
-                currentEraDisplay = resourceManager.getString(R.string.staking_era_index, summary.currentEra)
+                currentEraDisplay = dateString,
+                timeLeft = dateString
             )
         }
     }

@@ -66,6 +66,8 @@ class StakingInteractor(
     private val payoutRepository: PayoutRepository,
 ) {
 
+    suspend fun getTimeLeft() = stakingRepository.eraLeftTime()
+
     @OptIn(ExperimentalTime::class)
     suspend fun calculatePendingPayouts(): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
         runCatching {

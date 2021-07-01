@@ -25,7 +25,7 @@ class StakeSummaryView @JvmOverloads constructor(
 
         class Inactive(eraDisplay: String) : Status(R.string.staking_nominator_status_inactive, R.color.red, eraDisplay)
 
-        object Waiting : Status(R.string.staking_nominator_status_waiting, R.color.white_64, null)
+        class Waiting(timeLeft: String) : Status(R.string.staking_nominator_status_waiting, R.color.white_64, timeLeft)
     }
 
     init {
