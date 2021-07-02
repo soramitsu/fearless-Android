@@ -102,12 +102,12 @@ class StakingRepositoryImpl(
             binding = ::bindCurrentIndex
         )
 
-        val currentSlot = remoteStorage.queryNonNull(
+        val currentSlot = localStorage.queryNonNull(
             keyBuilder = { it.metadata.babe().storage("CurrentSlot").storageKey() },
             binding = ::bindCurrentSlot
         )
 
-        val genesisSlot = remoteStorage.queryNonNull(
+        val genesisSlot = localStorage.queryNonNull(
             keyBuilder = { it.metadata.babe().storage("GenesisSlot").storageKey() },
             binding = ::bindCurrentSlot
         )
