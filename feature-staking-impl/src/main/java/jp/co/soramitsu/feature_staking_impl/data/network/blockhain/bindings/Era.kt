@@ -62,6 +62,16 @@ fun bindCurrentIndex(
 }
 
 @UseCaseBinding
+fun bindCurrentSlot(
+    scale: String,
+    runtime: RuntimeSnapshot
+): BigInteger{
+    val returnType = runtime.metadata.storageReturnType("Babe", "CurrentSlot")
+
+    return bindSessionIndex(returnType.fromHexOrNull(runtime, scale))
+}
+
+@UseCaseBinding
 fun bindErasStartSessionIndex(
     scale: String,
     runtime: RuntimeSnapshot

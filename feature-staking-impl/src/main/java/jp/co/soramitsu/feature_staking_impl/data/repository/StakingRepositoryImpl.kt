@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.bindBlockNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -24,7 +25,6 @@ import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
@@ -42,6 +42,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentIndex
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentSlot
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindErasStartSessionIndex
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindHistoryDepth
@@ -87,38 +88,45 @@ class StakingRepositoryImpl(
     private val remoteStorage: StorageDataSource,
     private val localStorage: StorageDataSource,
     private val walletConstants: WalletConstants,
-    private val stakingStoriesDataSource: StakingStoriesDataSource,
+    private val stakingStoriesDataSource: StakingStoriesDataSource
 ) : StakingRepository {
 
-    // TODO algorithm is not finished, but kinda gives result
-    override suspend fun eraLeftTime() : BigInteger {
+    override suspend fun eraLeftTime(destinationEra: BigInteger): BigInteger {
         val runtime = runtimeProperty.get()
 
-        val epochDuration = runtime.metadata.babe().numberConstant("EpochDuration", runtime) // How many blocks per session
-        val sessionsPerEra = runtime.metadata.staking().numberConstant("SessionsPerEra", runtime) // How many sessions per era
-        val expectedBlockTime = runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime) // How many time each block takes
+        val sessionLength = runtime.metadata.babe().numberConstant("EpochDuration", runtime) // How many blocks per session
+        val eraLength = runtime.metadata.staking().numberConstant("SessionsPerEra", runtime) // How many sessions per era
 
         val currentSessionIndex = localStorage.queryNonNull( // Current session index
             keyBuilder = { it.metadata.session().storage("CurrentIndex").storageKey() },
             binding = ::bindCurrentIndex
         )
 
-        val era = getCurrentEraIndex()
-        val currentEraStartSessionIndex = remoteStorage.queryNonNull( // -> localStorage // Index of session from with the era started
-            keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, era)},
-            binding = ::bindErasStartSessionIndex
+        val currentSlot = remoteStorage.queryNonNull(
+            keyBuilder = { it.metadata.babe().storage("CurrentSlot").storageKey() },
+            binding = ::bindCurrentSlot
         )
 
-        println("-------- $epochDuration $sessionsPerEra $expectedBlockTime $currentEraStartSessionIndex $currentSessionIndex")
+        val genesisSlot = remoteStorage.queryNonNull(
+            keyBuilder = { it.metadata.babe().storage("GenesisSlot").storageKey() },
+            binding = ::bindCurrentSlot
+        )
 
-        val numberOfBlocksPerEra = epochDuration * sessionsPerEra
-        val numberOfPastSessionInCurrentEra = currentSessionIndex - currentEraStartSessionIndex
-        val numberOfLeftBlocks = numberOfBlocksPerEra - numberOfPastSessionInCurrentEra * epochDuration
-        val leftTime = numberOfLeftBlocks * expectedBlockTime
-        println("-------- numberOfLeftBlocks: $numberOfLeftBlocks")
-        println("-------- Left time: $leftTime")
+        val era = getCurrentEraIndex()
+        val eraStartSessionIndex = // Индекс сессии когда началась эра
+            remoteStorage.queryNonNull( // FIXME -> localStorage, I added Updater, but it doesn't work // Index of session from with the era started
+                keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, era) },
+                binding = ::bindErasStartSessionIndex
+            )
 
-        return leftTime
+        val sessionStartSlot = currentSessionIndex * sessionLength + genesisSlot
+        val sessionProgress = currentSlot - sessionStartSlot
+        val eraProgress = (currentSessionIndex - eraStartSessionIndex) * sessionLength + sessionProgress
+        val eraRemained = eraLength * sessionLength - eraProgress
+
+        val blockCreationTime = runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime) // How many time each block takes
+
+        return eraRemained * blockCreationTime
     }
 
     override fun stakingAvailableFlow() = runtimeProperty.observe().map { it.metadata.hasModule(Modules.STAKING) }

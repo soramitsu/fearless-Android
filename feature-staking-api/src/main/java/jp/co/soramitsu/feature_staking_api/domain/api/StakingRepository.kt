@@ -18,7 +18,7 @@ interface StakingRepository {
 
     fun stakingAvailableFlow(): Flow<Boolean>
 
-    suspend fun eraLeftTime() : BigInteger
+    suspend fun eraLeftTime(destinationEra: BigInteger) : BigInteger
 
     suspend fun getTotalIssuance(): BigInteger
 

@@ -107,8 +107,6 @@ sealed class StakeViewState<S>(
     private val _showManageActionsEvent = MutableLiveData<Event<ManageStakingBottomSheet.Payload>>()
     val showManageActionsEvent: LiveData<Event<ManageStakingBottomSheet.Payload>> = _showManageActionsEvent
 
-//    val timeLeft = stakingInteractor.getTimeLeft()
-
     fun manageActionChosen(action: ManageStakeAction) {
         if (action !in availableManageActions) return
 
