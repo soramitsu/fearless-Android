@@ -57,6 +57,10 @@ class SelectCustomValidatorsFragment : BaseFragment<SelectCustomValidatorsViewMo
             viewModel.settingsClicked()
         }
 
+        selectCustomValidatorsToolbar.addCustomAction(R.drawable.ic_basic_search_24) {
+            viewModel.searchClicked()
+        }
+
         selectCustomValidatorsList.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
 
         val dividerItemDecoration = DividerItemDecoration(context, LinearLayoutManager.VERTICAL).apply {

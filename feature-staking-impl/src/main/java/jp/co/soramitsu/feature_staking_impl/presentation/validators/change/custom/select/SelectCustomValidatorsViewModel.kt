@@ -22,6 +22,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setValidators
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.retractValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.async
@@ -117,7 +119,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     fun backClicked() {
-        setPreviousStakingState()
+        setupStakingSharedState.retractValidators()
 
         router.back()
     }
@@ -140,6 +142,16 @@ class SelectCustomValidatorsViewModel(
 
     fun settingsClicked() {
         router.openCustomValidatorsSettings()
+    }
+
+    fun searchClicked() {
+        updateSetupStakingState()
+
+        router.openSearchCustomValidators()
+    }
+
+    private fun updateSetupStakingState() {
+        setupStakingSharedState.setValidators(selectedValidators.value.toList())
     }
 
     fun clearFilters() {
@@ -204,28 +216,4 @@ class SelectCustomValidatorsViewModel(
     }
 
     private suspend fun recommendationSettingsProvider() = recommendationSettingsProviderFactory.get()
-
-    private fun updateSetupStakingState() = mutateSetStakingSharedState {
-        val latestValidators = selectedValidators.value.toList()
-
-        if (it is SetupStakingProcess.Validators) {
-            it.next(latestValidators)
-        } else {
-            (it as SetupStakingProcess.Confirm).changeValidators(latestValidators)
-        }
-    }
-
-    private fun setPreviousStakingState() = mutateSetStakingSharedState {
-        if (it is SetupStakingProcess.Confirm) {
-            it.previous()
-        } else {
-            it
-        }
-    }
-
-    private fun mutateSetStakingSharedState(mutation: (SetupStakingProcess) -> SetupStakingProcess) {
-        val currentState = setupStakingSharedState.setupStakingProcess.value
-
-        setupStakingSharedState.set(mutation(currentState))
-    }
 }

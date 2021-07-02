@@ -13,7 +13,6 @@ import android.widget.TextView
 import androidx.annotation.DrawableRes
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.dp
-import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
@@ -115,19 +114,23 @@ class Toolbar @JvmOverloads constructor(
     fun addCustomAction(@DrawableRes icon: Int, onClick: OnClickListener) {
         val actionView = ImageView(context).apply {
             setImageResource(icon)
+            imageTintList = context.getColorStateList(R.color.actions_color)
 
-            val padding = 16.dp(context)
+            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+                val verticalMargin = 16.dp(context)
 
-            setPadding(padding, padding, padding, padding)
+                val endMarginDp = if (this@Toolbar.toolbarCustomActions.childCount == 0) 16 else 10
+                val endMargin = endMarginDp.dp(context)
 
-            background = context.getDrawableCompat(R.drawable.bg_primary_list_item)
+                val startMargin = 10.dp(context)
 
-            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                setMargins(startMargin, verticalMargin, endMargin, verticalMargin)
+            }
 
             setOnClickListener(onClick)
         }
 
         toolbarCustomActions.makeVisible()
-        toolbarCustomActions.addView(actionView)
+        toolbarCustomActions.addView(actionView, 0)
     }
 }

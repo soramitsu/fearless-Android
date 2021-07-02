@@ -51,6 +51,21 @@ fun <T, R> Flow<T>.withLoading(sourceSupplier: suspend (T) -> Flow<R>): Flow<Loa
     }
 }
 
+/**
+ * Modifies flow so that it firstly emits [LoadingState.Loading] state for each element from upstream.
+ * Then, it constructs new source via [sourceSupplier] and emits all of its items wrapped into [LoadingState.Loaded] state
+ * Old suppliers are discarded as per [Flow.transformLatest] behavior
+ */
+fun <T, R> Flow<T>.withLoadingSingle(sourceSupplier: suspend (T) -> R): Flow<LoadingState<R>> {
+    return transformLatest { item ->
+        emit(LoadingState.Loading<R>())
+
+        val newSource = LoadingState.Loaded(sourceSupplier(item))
+
+        emit(newSource)
+    }
+}
+
 fun <T> Flow<T>.asLiveData(scope: CoroutineScope): LiveData<T> {
     val liveData = MutableLiveData<T>()
 

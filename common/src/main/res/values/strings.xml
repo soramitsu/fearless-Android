@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_search_no_input">Search results will appear here</string>
+    <string name="common_search_no_results">No search results.\nBe sure you type full account address</string>
+    <string name="search_results_header">Search results: %d</string>
+
+    <string name="common_search">Search</string>
     <string name="common_reset">Reset</string>
     <string name="staking_custom_validators_settings_filters">Show</string>
     <string name="staking_custom_validators_settings_filters_identity">Having onchain identity\nwith at least one identity contact</string>

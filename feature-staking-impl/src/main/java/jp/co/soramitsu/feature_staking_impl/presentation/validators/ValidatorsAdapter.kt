@@ -18,7 +18,6 @@ import kotlinx.android.synthetic.main.item_validator.view.itemValidatorActionIco
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorIcon
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorInfo
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorName
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorScoring
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorScoringPrimary
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorScoringSecondary
 
@@ -129,7 +128,10 @@ class ValidatorViewHolder(override val containerView: View) : RecyclerView.ViewH
 
     fun bindScoring(validatorModel: ValidatorModel) = with(containerView) {
         when (val scoring = validatorModel.scoring) {
-            null -> itemValidatorScoring.makeGone()
+            null -> {
+                itemValidatorScoringPrimary.makeGone()
+                itemValidatorScoringSecondary.makeGone()
+            }
 
             is ValidatorModel.Scoring.OneField -> {
                 itemValidatorScoringPrimary.makeVisible()
