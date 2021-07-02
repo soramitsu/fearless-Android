@@ -6,6 +6,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
+import jp.co.soramitsu.feature_crowdloan_api.data.repository.hasWonAuction
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.contribute
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateRepository
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
@@ -45,6 +46,7 @@ class CrowdloanContributeInteractor(
             chainStateRepository.currentBlockNumberFlow(it)
         ) { fundInfo, blockNumber ->
             val contribution = crowdloanRepository.getContribution(accountAddress.toAccountId(), parachainId, fundInfo.trieIndex)
+            val hasWonAuction = crowdloanRepository.hasWonAuction(fundInfo)
 
             mapFundInfoToCrowdloan(
                 fundInfo = fundInfo,
@@ -53,7 +55,8 @@ class CrowdloanContributeInteractor(
                 currentBlockNumber = blockNumber,
                 expectedBlockTimeInMillis = expectedBlockTime,
                 blocksPerLeasePeriod = blocksPerLeasePeriod,
-                contribution = contribution
+                contribution = contribution,
+                hasWonAuction = hasWonAuction
             )
         }
     }

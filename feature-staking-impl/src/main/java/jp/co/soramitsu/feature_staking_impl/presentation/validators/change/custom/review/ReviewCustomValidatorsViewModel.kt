@@ -56,9 +56,9 @@ class ReviewCustomValidatorsViewModel(
             selectedHeaderText = resourceManager.getString(R.string.staking_selected_validators_format, validators.size, maxValidatorsPerNominator),
             isOverflow = isOverflow,
             nextButtonText = if (isOverflow) {
-                resourceManager.getString(R.string.common_continue)
-            } else {
                 resourceManager.getString(R.string.staking_select_validators_with_max, maxValidatorsPerNominator)
+            } else {
+                resourceManager.getString(R.string.common_continue)
             }
         )
     }

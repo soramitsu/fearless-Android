@@ -21,11 +21,6 @@ fun unbondValidationFailure(
                 resourceManager.getString(R.string.common_not_enough_funds_message)
         }
 
-        UnbondValidationFailure.ElectionIsOpen -> {
-            resourceManager.getString(R.string.staking_nominator_status_election) to
-                resourceManager.getString(R.string.staking_nominator_status_alert_election_message)
-        }
-
         UnbondValidationFailure.NotEnoughBonded -> {
             resourceManager.getString(R.string.common_not_enough_funds_title) to
                 resourceManager.getString(R.string.staking_unbond_too_big)

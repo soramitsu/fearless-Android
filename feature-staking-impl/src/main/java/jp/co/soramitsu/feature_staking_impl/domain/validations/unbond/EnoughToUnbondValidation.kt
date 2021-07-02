@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.validation.validOrError
 class EnoughToUnbondValidation : UnbondValidation {
 
     override suspend fun validate(value: UnbondValidationPayload): ValidationStatus<UnbondValidationFailure> {
-        return validOrError(value.amount <= value.bonded) {
+        return validOrError(value.amount <= value.asset.bonded) {
             UnbondValidationFailure.NotEnoughBonded
         }
     }
