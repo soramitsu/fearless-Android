@@ -23,6 +23,10 @@ fun stakingValidationFailure(
 
                 getString(R.string.common_amount_low) to getString(R.string.staking_setup_amount_too_low, formattedThreshold)
             }
+
+            SetupStakingValidationFailure.MaxNominatorsReached -> {
+                getString(R.string.staking_max_nominators_reached_title) to getString(R.string.staking_max_nominators_reached_message)
+            }
         }
     }
 

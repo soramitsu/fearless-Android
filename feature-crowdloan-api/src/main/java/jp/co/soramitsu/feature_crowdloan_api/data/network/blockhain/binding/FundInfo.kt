@@ -9,6 +9,8 @@ import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.u32
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.toByteArray
 import java.math.BigInteger
 
 class FundInfo(
@@ -20,10 +22,12 @@ class FundInfo(
     val end: BigInteger,
     val cap: BigInteger,
     val verifier: Any?,
-    val trieIndex: TrieIndex
+    val trieIndex: TrieIndex,
+    val paraId: ParaId,
+    val bidderAccountId: AccountId
 )
 
-fun bindFundInfo(scale: String, runtime: RuntimeSnapshot): FundInfo {
+fun bindFundInfo(scale: String, runtime: RuntimeSnapshot, paraId: ParaId): FundInfo {
     val type = runtime.metadata.storageReturnType(Modules.CROWDLOAN, "Funds")
 
     val dynamicInstance = type.fromHexOrIncompatible(scale, runtime)
@@ -38,6 +42,17 @@ fun bindFundInfo(scale: String, runtime: RuntimeSnapshot): FundInfo {
         firstSlot = bindNumber(dynamicInstance["firstPeriod"] ?: dynamicInstance["firstSlot"]),
         lastSlot = bindNumber(dynamicInstance["lastPeriod"] ?: dynamicInstance["lastSlot"]),
         verifier = dynamicInstance["verifier"],
-        trieIndex = bindTrieIndex(dynamicInstance["trieIndex"])
+        trieIndex = bindTrieIndex(dynamicInstance["trieIndex"]),
+        bidderAccountId = createBidderAccountId(runtime, paraId),
+        paraId = paraId
     )
+}
+
+private val ADDRESS_PADDING = ByteArray(32)
+private val ADDRESS_PREFIX = "modlpy/cfund".encodeToByteArray()
+
+private fun createBidderAccountId(runtime: RuntimeSnapshot, paraId: ParaId): AccountId {
+    val fullKey = ADDRESS_PREFIX + u32.toByteArray(runtime, paraId) + ADDRESS_PADDING
+
+    return fullKey.copyOfRange(0, 32)
 }

@@ -18,7 +18,9 @@ annotation class HelperBinding
 fun incompatible(): Nothing = throw IllegalStateException("Binding is incompatible")
 
 typealias Binder<T> = (scale: String?, RuntimeSnapshot) -> T
+typealias BinderWithKey<T, K> = (scale: String?, RuntimeSnapshot, key: K) -> T
 typealias NonNullBinder<T> = (scale: String, RuntimeSnapshot) -> T
+typealias NonNullBinderWithType<T> = (scale: String, RuntimeSnapshot, Type<*>) -> T
 typealias BinderWithType<T> = (scale: String?, RuntimeSnapshot, Type<*>) -> T
 
 @OptIn(ExperimentalContracts::class)

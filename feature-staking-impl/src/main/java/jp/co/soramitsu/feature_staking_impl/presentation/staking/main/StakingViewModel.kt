@@ -114,14 +114,6 @@ class StakingViewModel(
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {
         return when (alert) {
-            Alert.Election -> {
-                AlertModel(
-                    WAITING_ICON,
-                    resourceManager.getString(R.string.staking_alert_election),
-                    resourceManager.getString(R.string.staking_alert_election_message),
-                    AlertModel.Type.Info
-                )
-            }
             Alert.ChangeValidators -> {
                 AlertModel(
                     WARNING_ICON,
@@ -153,6 +145,12 @@ class StakingViewModel(
                 resourceManager.getString(R.string.staking_nominator_status_alert_waiting_message),
                 resourceManager.getString(R.string.staking_alert_start_next_era_message),
                 AlertModel.Type.Info
+            )
+            Alert.SetValidators -> AlertModel(
+                WARNING_ICON,
+                resourceManager.getString(R.string.staking_set_validators_title),
+                resourceManager.getString(R.string.staking_set_validators_message),
+                AlertModel.Type.CallToAction { router.openCurrentValidators() }
             )
         }
     }

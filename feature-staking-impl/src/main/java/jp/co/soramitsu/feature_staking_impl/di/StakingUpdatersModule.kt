@@ -17,9 +17,11 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Acco
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountRewardDestinationUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountValidatorPrefsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CounterForNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ElectionStatusUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.HistoryDepthUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MaxNominatorsUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MinBondUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorExposureUpdater
@@ -138,15 +140,6 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
-    fun provideElectionStatusUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        storageCache: StorageCache,
-    ) = ElectionStatusUpdater(
-        runtimeProperty, storageCache
-    )
-
-    @Provides
-    @FeatureScope
     fun provideHistoryDepthUpdater(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         storageCache: StorageCache,
@@ -184,6 +177,27 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideMinBondUpdater(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        storageCache: StorageCache,
+    ) = MinBondUpdater(runtimeProperty, storageCache)
+
+    @Provides
+    @FeatureScope
+    fun provideMaxNominatorsUpdater(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        storageCache: StorageCache,
+    ) = MaxNominatorsUpdater(runtimeProperty, storageCache)
+
+    @Provides
+    @FeatureScope
+    fun provideCounterForNominatorsUpdater(
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        storageCache: StorageCache,
+    ) = CounterForNominatorsUpdater(runtimeProperty, storageCache)
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaters(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
@@ -192,11 +206,13 @@ class StakingUpdatersModule {
         stakingLedgerUpdater: StakingLedgerUpdater,
         accountValidatorPrefsUpdater: AccountValidatorPrefsUpdater,
         accountNominationsUpdater: AccountNominationsUpdater,
-        electionStatusUpdater: ElectionStatusUpdater,
         rewardDestinationUpdater: AccountRewardDestinationUpdater,
         historyDepthUpdater: HistoryDepthUpdater,
         historicalUpdateMediator: HistoricalUpdateMediator,
         accountControllerBalanceUpdater: AccountControllerBalanceUpdater,
+        minBondUpdater: MinBondUpdater,
+        maxNominatorsUpdater: MaxNominatorsUpdater,
+        counterForNominatorsUpdater: CounterForNominatorsUpdater
     ) = StakingUpdaters(
         updaters = arrayOf(
             activeEraUpdater,
@@ -206,11 +222,13 @@ class StakingUpdatersModule {
             stakingLedgerUpdater,
             accountValidatorPrefsUpdater,
             accountNominationsUpdater,
-            electionStatusUpdater,
             rewardDestinationUpdater,
             historyDepthUpdater,
             historicalUpdateMediator,
-            accountControllerBalanceUpdater
+            accountControllerBalanceUpdater,
+            minBondUpdater,
+            maxNominatorsUpdater,
+            counterForNominatorsUpdater
         )
     )
 }

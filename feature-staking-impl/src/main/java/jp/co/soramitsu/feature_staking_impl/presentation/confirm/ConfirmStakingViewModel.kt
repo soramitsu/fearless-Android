@@ -214,7 +214,8 @@ class ConfirmStakingViewModel(
                 tokenType = tokenType,
                 maxFee = fee,
                 controllerAddress = controllerAddressFlow.first(),
-                bondAmount = bondPayload?.amount
+                bondAmount = bondPayload?.amount,
+                asset = controllerAssetFlow.first()
             )
 
             validationExecutor.requireValid(

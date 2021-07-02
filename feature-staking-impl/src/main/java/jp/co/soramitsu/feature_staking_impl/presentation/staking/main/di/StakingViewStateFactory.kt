@@ -1,9 +1,11 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di
 
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.NominatorViewState
@@ -20,6 +22,8 @@ class StakingViewStateFactory(
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
+    private val welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
+    private val validationExecutor: ValidationExecutor
 ) {
 
     fun createValidatorViewState(
@@ -54,19 +58,20 @@ class StakingViewStateFactory(
 
     fun createWelcomeViewState(
         currentAssetFlow: Flow<Asset>,
-        accountStakingState: StakingState,
+        accountStakingState: StakingState.NonStash,
         scope: CoroutineScope,
         errorDisplayer: (String) -> Unit
     ) = WelcomeViewState(
         setupStakingSharedState,
         rewardCalculatorFactory,
-        stakingInteractor,
         resourceManager,
         router,
         accountStakingState,
         currentAssetFlow,
         scope,
-        errorDisplayer
+        errorDisplayer,
+        welcomeStakingValidationSystem,
+        validationExecutor
     )
 
     fun createNominatorViewState(

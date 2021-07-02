@@ -33,7 +33,6 @@
         android:text="@string/staking_start_change_validators_recommended_subtitle"
         android:textColor="@color/black1" />
 
-
     <TextView
         android:id="@+id/startChangeValidatorsRecommendedFeatures"
         style="@style/TextAppearance.Soramitsu.Body2"

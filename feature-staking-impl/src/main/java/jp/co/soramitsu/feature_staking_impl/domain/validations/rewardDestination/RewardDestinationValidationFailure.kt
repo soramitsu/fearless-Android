@@ -4,6 +4,4 @@ sealed class RewardDestinationValidationFailure {
     object CannotPayFees : RewardDestinationValidationFailure()
 
     class MissingController(val controllerAddress: String) : RewardDestinationValidationFailure()
-
-    object OpenElection : RewardDestinationValidationFailure()
 }
