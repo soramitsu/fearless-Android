@@ -35,6 +35,8 @@
     <string name="staking_max_nominators_reached_title">Cannot nominate</string>
     <string name="staking_max_nominators_reached_message">Maximum number of nominators has been reached</string>
 
+    <string name="staking_controller_account_zero_balance">We found that controller account has no free tokens, are you sure that you want to change the controller?</string>
+
     <string name="staking_rewards_apy">Rewards (APY)</string>
 
     <string name="staking_recommended_feature_1">Most profitable</string>

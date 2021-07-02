@@ -18,5 +18,9 @@ fun bondSetControllerValidationFailure(
             resourceManager.getString(R.string.common_not_enough_funds_title) to
                 resourceManager.getString(R.string.common_not_enough_funds_message)
         }
+        SetControllerValidationFailure.ZERO_CONTROLLER_BALANCE -> {
+            resourceManager.getString(R.string.common_are_you_sure) to
+                resourceManager.getString(R.string.staking_controller_account_zero_balance)
+        }
     }
 }

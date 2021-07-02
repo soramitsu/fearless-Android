@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 
 class SetControllerViewModel(
     private val interactor: ControllerInteractor,
-    private val stackingInteractor: StakingInteractor,
+    private val stakingInteractor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: StakingRouter,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
@@ -50,7 +50,7 @@ class SetControllerViewModel(
     ExternalAccountActions by externalActions,
     Validatable by validationExecutor {
 
-    private val accountStakingFlow = stackingInteractor.selectedAccountStakingStateFlow()
+    private val accountStakingFlow = stakingInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
         .share()
 
@@ -62,7 +62,7 @@ class SetControllerViewModel(
         generateIcon(it.stashAddress)
     }.asLiveData()
 
-    private val assetFlow = stackingInteractor.currentAssetFlow()
+    private val assetFlow = stakingInteractor.currentAssetFlow()
         .share()
 
     private val _controllerAccountModel = MutableLiveData<AddressModel>()
@@ -141,7 +141,7 @@ class SetControllerViewModel(
     private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress
 
     private suspend fun accountsInCurrentNetwork(): List<AddressModel> {
-        return stackingInteractor.getAccountsInCurrentNetwork()
+        return stakingInteractor.getAccountsInCurrentNetwork()
             .map { generateDestinationModel(it) }
     }
 
