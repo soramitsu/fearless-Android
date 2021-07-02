@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.utils
 
+import kotlinx.coroutines.Deferred
 import java.io.InputStream
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -18,8 +19,14 @@ inline fun <T> List<T>.sumByBigInteger(extractor: (T) -> BigInteger) = fold(BigI
     acc + extractor(element)
 }
 
+suspend operator fun <T> Deferred<T>.invoke() = await()
+
 inline fun <T> List<T>.sumByBigDecimal(extractor: (T) -> BigDecimal) = fold(BigDecimal.ZERO) { acc, element ->
     acc + extractor(element)
+}
+
+fun <K, V> Map<K, V>.reversed() = HashMap<V, K>().also { newMap ->
+    entries.forEach { newMap[it.value] = it.key }
 }
 
 fun <T> Result<T>.requireException() = exceptionOrNull()!!

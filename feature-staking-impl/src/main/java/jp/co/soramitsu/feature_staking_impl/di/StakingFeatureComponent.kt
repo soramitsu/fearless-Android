@@ -34,6 +34,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.di.CurrentValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.di.ValidatorDetailsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.di.RecommendedValidatorsComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.di.CustomValidatorsSettingsComponent
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.runtime.di.RuntimeApi
 
@@ -49,6 +50,8 @@ import jp.co.soramitsu.runtime.di.RuntimeApi
 )
 @FeatureScope
 interface StakingFeatureComponent : StakingFeatureApi {
+
+    fun customValidatorsSettingsComponentFactory(): CustomValidatorsSettingsComponent.Factory
 
     fun reviewCustomValidatorsComponentFactory(): ReviewCustomValidatorsComponent.Factory
 

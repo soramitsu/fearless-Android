@@ -5,25 +5,23 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.cycle
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.OwnStakeSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.ValidatorOwnStakeSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.async
@@ -65,10 +63,6 @@ class SelectCustomValidatorsViewModel(
         .inBackground()
         .share()
 
-    private val sortingsSequence by lazy {
-        async { recommendationSettingsProvider().allSortings.cycle().iterator() }
-    }
-
     private val selectedValidators = MutableStateFlow(emptySet<Validator>())
 
     private val maxSelectedValidators = interactor.maxValidatorsPerNominator()
@@ -104,7 +98,7 @@ class SelectCustomValidatorsViewModel(
         when (it.sorting) {
             APYSorting -> resourceManager.getString(R.string.staking_rewards_apy)
             TotalStakeSorting -> resourceManager.getString(R.string.staking_sorting_header_total_stake)
-            OwnStakeSorting -> resourceManager.getString(R.string.staking_sorting_header_own_stake)
+            ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_sorting_header_own_stake)
             else -> throw IllegalArgumentException("Unknown sorting: ${it.sorting}")
         }
     }.inBackground().share()
@@ -145,17 +139,17 @@ class SelectCustomValidatorsViewModel(
     }
 
     fun settingsClicked() {
-        launch {
-            val currentSettings = recommendationSettingsFlow.first()
-            val newSettings = currentSettings.copy(sorting = sortingsSequence.await().next())
-
-            recommendationSettingsProvider().setRecommendationSettings(newSettings)
-        }
+        router.openCustomValidatorsSettings()
     }
 
     fun clearFilters() {
-        mutateSettings {
-            it.copy(filters = emptyList(), postProcessors = emptyList())
+        launch {
+            val settings = recommendationSettingsProvider().createModifiedCustomValidatorsSettings(
+                filterIncluder = { false },
+                postProcessorIncluder = { false }
+            )
+
+            recommendationSettingsProvider().setCustomValidatorsSettings(settings)
         }
     }
 
@@ -206,14 +200,6 @@ class SelectCustomValidatorsViewModel(
     private fun mutateSelected(mutation: suspend (Set<Validator>) -> Set<Validator>) {
         launch {
             selectedValidators.value = mutation(selectedValidators.value)
-        }
-    }
-
-    private fun mutateSettings(mutation: (RecommendationSettings) -> RecommendationSettings) {
-        launch {
-            val current = recommendationSettingsFlow.first()
-
-            recommendationSettingsProvider().setRecommendationSettings(mutation(current))
         }
     }
 

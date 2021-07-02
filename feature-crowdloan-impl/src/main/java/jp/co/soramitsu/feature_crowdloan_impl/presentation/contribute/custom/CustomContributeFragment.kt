@@ -78,7 +78,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
                     }
                     state is ApplyActionState.Available -> {
                         customContributeApply.setState(ButtonState.NORMAL)
-                        customContributeApply.setText(R.string.crowdloan_apply)
+                        customContributeApply.setText(R.string.common_apply)
                     }
                 }
             }.collect()
