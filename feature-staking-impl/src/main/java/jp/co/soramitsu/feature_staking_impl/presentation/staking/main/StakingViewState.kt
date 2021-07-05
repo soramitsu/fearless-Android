@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import android.os.CountDownTimer
+import android.provider.Settings.Global.getString
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.TitleAndMessage
@@ -35,8 +36,10 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,6 +52,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
@@ -56,6 +60,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 
 sealed class StakingViewState
 
@@ -147,22 +152,37 @@ sealed class StakeViewState<S>(
         }
     }
 
+    @ExperimentalCoroutinesApi
+    fun countdownTimerFlow(millis: Long) = callbackFlow<Long> {
+        val timer = object : CountDownTimer(millis, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                offer(millisUntilFinished)
+            }
 
-    fun timerFlow(totalSeconds: Long) = (totalSeconds downTo 0).asFlow()
-        .onEach { delay(1000) }
-        .conflate()
-    val simpleDateFormat = SimpleDateFormat("hh:mm:ss")
+            override fun onFinish() {
+                offer(0)
 
+                close()
+            }
+        }
+
+        timer.start()
+
+        awaitClose { timer.cancel() }
+
+    }.flowOn(Dispatchers.Main)
+
+    @ExperimentalCoroutinesApi
     private suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
         return combine(
             summaryFlowProvider(stakeState),
             currentAssetFlow,
-            timerFlow(stakingInteractor.getTimeLeft().toLong())
+            countdownTimerFlow(stakingInteractor.getTimeLeft().toLong())
         ) { summary, asset, timer ->
             val token = asset.token
             val tokenType = token.type
 
-            val dateString = simpleDateFormat.format(timer)
+            val dateString = timer.formatTime()
             StakeSummaryModel(
                 status = summary.status,
                 totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
@@ -350,4 +370,12 @@ class WelcomeViewState(
     private suspend fun rewardCalculator(): RewardCalculator {
         return rewardCalculator.await()
     }
+}
+
+fun Long.formatTime(): String {
+    val totalSeconds = this / 1000
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
+    return "%02d:%02d:%02d".format(hours, minutes, seconds)
 }
