@@ -66,7 +66,18 @@ suspend fun StakingRepository.historicalEras(): List<BigInteger> {
     val currentEra = getCurrentEraIndex().toInt()
     val historyDepth = getHistoryDepth().toInt()
 
-    val historicalRange = (currentEra - historyDepth) until activeEra
+    val historicalRange = (currentEra - historyDepth) .. activeEra
 
     return historicalRange.map(Int::toBigInteger)
+}
+
+
+suspend fun StakingRepository.payoutCheckedEras() : List<BigInteger>{
+    val activeEra = getActiveEraIndex().toInt()
+    val currentEra = getCurrentEraIndex().toInt()
+    val historyDepth = getHistoryDepth().toInt()
+
+    val historicalRange = (currentEra - historyDepth) until activeEra
+
+    return historicalRange.map(kotlin.Int::toBigInteger)
 }
