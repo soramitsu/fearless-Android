@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -83,8 +82,6 @@ class StakingBalanceViewModel(
     private val _showRebondActionsEvent = MutableLiveData<Event<Unit>>()
     val showRebondActionsEvent: LiveData<Event<Unit>> = _showRebondActionsEvent
 
-    suspend fun getTimeLeft() = interactor.getTimeLeft()
-
     fun bondMoreClicked() = requireValidManageAction(bondMoreValidationSystem) {
         router.openBondMore(SelectBondMorePayload(overrideFinishAction = null))
     }
@@ -98,10 +95,6 @@ class StakingBalanceViewModel(
     }
 
     fun backClicked() {
-        println("-------- BACK CLICKED")
-        runBlocking {
-            getTimeLeft()
-        }
         router.back()
     }
 
