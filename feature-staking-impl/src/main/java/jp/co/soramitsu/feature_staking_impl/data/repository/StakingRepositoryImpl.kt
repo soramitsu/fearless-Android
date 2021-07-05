@@ -96,6 +96,7 @@ class StakingRepositoryImpl(
 
         val sessionLength = runtime.metadata.babe().numberConstant("EpochDuration", runtime) // How many blocks per session
         val eraLength = runtime.metadata.staking().numberConstant("SessionsPerEra", runtime) // How many sessions per era
+        val blockCreationTime = runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime)
 
         val currentSessionIndex = localStorage.queryNonNull( // Current session index
             keyBuilder = { it.metadata.session().storage("CurrentIndex").storageKey() },
@@ -114,7 +115,7 @@ class StakingRepositoryImpl(
 
         val era = getCurrentEraIndex()
         val eraStartSessionIndex = // Индекс сессии когда началась эра
-            remoteStorage.queryNonNull( // FIXME -> localStorage, I added Updater, but it doesn't work // Index of session from with the era started
+            localStorage.queryNonNull( // Index of session from with the era started
                 keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, era) },
                 binding = ::bindErasStartSessionIndex
             )
@@ -124,7 +125,7 @@ class StakingRepositoryImpl(
         val eraProgress = (currentSessionIndex - eraStartSessionIndex) * sessionLength + sessionProgress
         val eraRemained = eraLength * sessionLength - eraProgress
 
-        val blockCreationTime = runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime) // How many time each block takes
+        println("----- STAKING")
 
         return eraRemained * blockCreationTime
     }
