@@ -116,7 +116,7 @@ class StakingRepositoryImpl(
     - Fetch block creation time (constant Babe.ExpectedBlockTime)
     - Multiplying eraRemained to expected block time gives us an estimate of era completion in milliseconds;
      */
-    override suspend fun eraLeftTime(destinationEra: BigInteger): BigInteger {
+    override suspend fun eraLeftTime(destinationEra: BigInteger?): BigInteger {
         val runtime = runtimeProperty.get()
 
         val sessionLength = runtime.metadata.babe().numberConstant("EpochDuration", runtime) // How many blocks per session
@@ -138,10 +138,10 @@ class StakingRepositoryImpl(
             binding = ::bindCurrentSlot
         )
 
-        val era = getCurrentEraIndex()
+        val currentEra = getCurrentEraIndex()
         val eraStartSessionIndex = // Индекс сессии когда началась эра
             localStorage.queryNonNull( // Index of session from with the era started
-                keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, era) },
+                keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, currentEra) },
                 binding = ::bindErasStartSessionIndex
             )
 
@@ -150,7 +150,13 @@ class StakingRepositoryImpl(
         val eraProgress = (currentSessionIndex - eraStartSessionIndex) * sessionLength + sessionProgress
         val eraRemained = eraLength * sessionLength - eraProgress
 
-        return eraRemained * blockCreationTime
+        return if (destinationEra != null) {
+            val leftEras = destinationEra - currentEra - 1.toBigInteger()
+            val timeForLeftEras = leftEras * eraLength * sessionLength * blockCreationTime
+            eraRemained * blockCreationTime + timeForLeftEras
+        } else {
+            eraRemained * blockCreationTime
+        }
     }
 
     override fun stakingAvailableFlow() = runtimeProperty.observe().map { it.metadata.hasModule(Modules.STAKING) }
