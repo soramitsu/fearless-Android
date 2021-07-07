@@ -88,12 +88,14 @@ class StakingInteractor(
 
                 val closeToExpire = relativeInfo.erasLeft < historyDepth / 2.toBigInteger()
 
+                val leftTime = stakingRepository.eraLeftTime(destinationEra = it.era + historyDepth).toLong()
+
                 with(it) {
                     val validatorIdentity = identityMapping[validatorAddress]
 
                     val validatorInfo = PendingPayout.ValidatorInfo(validatorAddress, validatorIdentity?.display)
 
-                    PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), relativeInfo.daysLeft, closeToExpire)
+                    PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), leftTime, closeToExpire)
                 }
             }
 
@@ -225,9 +227,7 @@ class StakingInteractor(
                     ledger.unlocking
                         .filter { it.isUnbondingIn(activeEraIndex) }
                         .map {
-                            val createdAtEra = it.era - unbondingDuration
-
-                            val leftTime = stakingRepository.eraLeftTime(destinationEra = unbondingDuration + createdAtEra)
+                            val leftTime = stakingRepository.eraLeftTime(destinationEra = it.era)
                             Unbonding(it.amount, leftTime.toLong())
                         }
                 }
