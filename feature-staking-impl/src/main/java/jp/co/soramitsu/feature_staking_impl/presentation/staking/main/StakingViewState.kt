@@ -182,15 +182,15 @@ sealed class StakeViewState<S>(
             val token = asset.token
             val tokenType = token.type
 
-            val dateString = timer.formatTime()
+            val timeLeftString = if(summary.status is NominatorStatus.Waiting) timer.formatTime() else null
             StakeSummaryModel(
                 status = summary.status,
                 totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
                 totalRewards = summary.totalRewards.formatTokenAmount(tokenType),
                 totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency(),
-                currentEraDisplay = dateString,
-                timeLeft = dateString
+                currentEraDisplay = resourceManager.getString(R.string.staking_era_index, summary.currentEra),
+                timeLeft = timeLeftString
             )
         }
     }

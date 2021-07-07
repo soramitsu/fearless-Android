@@ -232,7 +232,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         return when (summary.status) {
             is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
             NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
-            NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting(summary.timeLeft!!)
+            NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting(summary.timeLeft!!) // For waiting status we always have left time
         }
     }
 
