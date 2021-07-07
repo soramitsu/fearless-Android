@@ -160,8 +160,8 @@
     <string name="payouts_placeholder">Your rewards\n will appear here</string>
 
     <plurals name="staking_payouts_days_left">
-        <item quantity="one">%d day left</item>
-        <item quantity="other">%d days left</item>
+        <item quantity="one">%s day left</item>
+        <item quantity="other">%s days left</item>
     </plurals>
 
     <string name="staking_no_controller_account">Controller account %s is unavailable to update staking setup.</string>

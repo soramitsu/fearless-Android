@@ -221,16 +221,15 @@ class StakingInteractor(
                     stakingRepository.ledgerFlow(stash),
                     stakingRepository.observeActiveEraIndex(networkType)
                 ) { ledger, activeEraIndex ->
-                    val erasPerDay = networkType.runtimeConfiguration.erasPerDay
                     val unbondingDuration = stakingConstantsRepository.lockupPeriodInEras()
 
                     ledger.unlocking
                         .filter { it.isUnbondingIn(activeEraIndex) }
                         .map {
                             val createdAtEra = it.era - unbondingDuration
-                            val relativeInfo = eraRelativeInfo(createdAtEra, activeEraIndex, unbondingDuration, erasPerDay)
 
-                            Unbonding(it.amount, relativeInfo.daysLeft)
+                            val leftTime = stakingRepository.eraLeftTime(destinationEra = unbondingDuration + createdAtEra)
+                            Unbonding(it.amount, leftTime.toLong())
                         }
                 }
             }
