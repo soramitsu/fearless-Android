@@ -18,7 +18,7 @@ interface StakingRepository {
 
     fun stakingAvailableFlow(): Flow<Boolean>
 
-    suspend fun eraLeftTime(destinationEra: BigInteger? = null) : BigInteger
+    suspend fun eraLeftTime(destinationEra: BigInteger? = null): BigInteger
 
     suspend fun getTotalIssuance(): BigInteger
 
@@ -66,13 +66,12 @@ suspend fun StakingRepository.historicalEras(): List<BigInteger> {
     val currentEra = getCurrentEraIndex().toInt()
     val historyDepth = getHistoryDepth().toInt()
 
-    val historicalRange = (currentEra - historyDepth) .. activeEra
+    val historicalRange = (currentEra - historyDepth)..activeEra
 
     return historicalRange.map(Int::toBigInteger)
 }
 
-
-suspend fun StakingRepository.payoutCheckedEras() : List<BigInteger>{
+suspend fun StakingRepository.payoutCheckedEras(): List<BigInteger> {
     val activeEra = getActiveEraIndex().toInt()
     val currentEra = getCurrentEraIndex().toInt()
     val historyDepth = getHistoryDepth().toInt()
