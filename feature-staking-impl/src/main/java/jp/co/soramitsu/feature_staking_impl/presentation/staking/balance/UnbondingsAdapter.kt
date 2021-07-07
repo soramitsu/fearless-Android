@@ -38,15 +38,17 @@ class UnbondingsAdapter : ListAdapter<UnbondingModel, UnbondingsHolder>(Unbondin
 }
 
 class UnbondingsHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+    var timer: CountDownTimer? = null
 
     fun bind(unbonding: UnbondingModel) = with(containerView) {
         with(unbonding) {
+            if (timer != null) timer?.cancel()
 
-            val timer = object : CountDownTimer(timeLeft, 1000) {
+            timer = object : CountDownTimer(timeLeft, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
                     val days = millisUntilFinished.getDays()
 
-                    itemListElementDescriptionLeft.text = if(days > 0)
+                    itemListElementDescriptionLeft.text = if (days > 0)
                         resources.getQuantityString(R.plurals.staking_payouts_days_left, days, days)
                     else
                         millisUntilFinished.formatTime()
@@ -59,7 +61,7 @@ class UnbondingsHolder(override val containerView: View) : RecyclerView.ViewHold
                 }
             }
 
-            timer.start()
+            timer?.start()
             itemListElementTitleLeft.text = context.getString(R.string.staking_unbond)
             itemListElementTitleRight.text = unbonding.amountModel.token
             itemListElementDescriptionRight.text = unbonding.amountModel.fiat
