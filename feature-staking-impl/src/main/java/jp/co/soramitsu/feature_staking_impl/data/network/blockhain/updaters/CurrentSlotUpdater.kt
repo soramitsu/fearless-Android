@@ -18,5 +18,4 @@ class CurrentSlotUpdater(
     override suspend fun storageKey(runtime: RuntimeSnapshot): String? {
         return runtime.metadata.babe().storage("CurrentSlot").storageKey()
     }
-
 }

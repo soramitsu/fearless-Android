@@ -40,7 +40,7 @@ class PayoutAdapter(
 }
 
 class PayoutViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
-    var timer : CountDownTimer? = null
+    var timer: CountDownTimer? = null
 
     fun bind(payout: PendingPayoutModel, itemHandler: PayoutAdapter.ItemHandler) = with(containerView) {
         with(payout) {
@@ -50,7 +50,7 @@ class PayoutViewHolder(override val containerView: View) : RecyclerView.ViewHold
                 override fun onTick(millisUntilFinished: Long) {
                     val days = millisUntilFinished.getDays()
 
-                    itemListElementDescriptionLeft.text = if(days > 0)
+                    itemListElementDescriptionLeft.text = if (days > 0)
                         resources.getQuantityString(R.plurals.staking_payouts_days_left, days, days)
                     else
                         millisUntilFinished.formatTime()

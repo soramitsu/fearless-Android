@@ -40,14 +40,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -55,12 +52,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import java.math.BigInteger
-import java.text.SimpleDateFormat
-import java.time.LocalDate
 
 sealed class StakingViewState
 
@@ -169,7 +162,6 @@ sealed class StakeViewState<S>(
         timer.start()
 
         awaitClose { timer.cancel() }
-
     }.flowOn(Dispatchers.Main)
 
     @ExperimentalCoroutinesApi
@@ -182,7 +174,7 @@ sealed class StakeViewState<S>(
             val token = asset.token
             val tokenType = token.type
 
-            val timeLeftString = if(summary.status is NominatorStatus.Waiting) timer.formatTime() else null
+            val timeLeftString = if (summary.status is NominatorStatus.Waiting) timer.formatTime() else null
             StakeSummaryModel(
                 status = summary.status,
                 totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
@@ -378,7 +370,6 @@ fun Long.formatTime(): String {
     val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
     return "%02d:%02d:%02d".format(hours, minutes, seconds)
-
 }
 
 fun Long.getDays(): Int {

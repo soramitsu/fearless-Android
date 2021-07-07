@@ -55,7 +55,7 @@ fun bindCurrentEra(
 fun bindCurrentIndex(
     scale: String,
     runtime: RuntimeSnapshot
-): BigInteger{
+): BigInteger {
     val returnType = runtime.metadata.storageReturnType("Session", "CurrentIndex")
 
     return bindSessionIndex(returnType.fromHexOrNull(runtime, scale))
@@ -65,7 +65,7 @@ fun bindCurrentIndex(
 fun bindCurrentSlot(
     scale: String,
     runtime: RuntimeSnapshot
-): BigInteger{
+): BigInteger {
     val returnType = runtime.metadata.storageReturnType("Babe", "CurrentSlot")
 
     return bindSessionIndex(returnType.fromHexOrNull(runtime, scale))
@@ -75,7 +75,7 @@ fun bindCurrentSlot(
 fun bindErasStartSessionIndex(
     scale: String,
     runtime: RuntimeSnapshot
-): BigInteger{
+): BigInteger {
     val returnType = runtime.metadata.storageReturnType("Staking", "ErasStartSessionIndex")
     val decoded = returnType.fromHexOrNull(runtime, scale)
 
