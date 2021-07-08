@@ -16,17 +16,17 @@ import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmo
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailAmount
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailDate
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailFee
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailFrom
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailHash
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailRepeat
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailStatus
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailStatusIcon
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailTo
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailToolbar
-import kotlinx.android.synthetic.main.fragment_transaction_details.transactionDetailTotal
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailAmount
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailDate
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailFee
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailFrom
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailHash
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailRepeat
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailStatus
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailStatusIcon
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailTo
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailToolbar
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailTotal
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
 
@@ -42,7 +42,7 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_transaction_details, container, false)
+    ) = layoutInflater.inflate(R.layout.fragment_transfer_details, container, false)
 
     override fun initViews() {
         transactionDetailToolbar.setHomeButtonListener { viewModel.backClicked() }

@@ -286,7 +286,7 @@
         android:id="@+id/transactionDetailFragment"
         android:name="jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment"
         android:label="TransactionDetailFragment"
-        tools:layout="@layout/fragment_transaction_details" />
+        tools:layout="@layout/fragment_transfer_details" />
 
     <action
         android:id="@+id/openSelectAmount"
