@@ -93,6 +93,12 @@
         <item name="android:drawablePadding">4dp</item>
     </style>
 
+    <style name="Widget.Fearless.Switch" parent="">
+        <item name="android:background">@drawable/divider_drawable</item>
+        <item name="android:textAppearance">@style/TextAppearance.Soramitsu.Body1</item>
+        <item name="android:textColor">@color/gray1</item>
+    </style>
+
     <!-- Buttons -->
 
     <!-- Input -->

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation
 
+import androidx.lifecycle.Lifecycle
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
@@ -16,7 +17,17 @@ interface StakingRouter {
 
     fun openSetupStaking()
 
+    fun openStartChangeValidators()
+
     fun openRecommendedValidators()
+
+    fun openSelectCustomValidators()
+
+    fun openCustomValidatorsSettings()
+
+    fun openSearchCustomValidators()
+
+    fun openReviewCustomValidators()
 
     fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel)
 
@@ -67,4 +78,6 @@ interface StakingRouter {
     fun openChangeRewardDestination()
 
     fun openConfirmRewardDestination(payload: ConfirmRewardDestinationPayload)
+
+    val currentStackEntryLifecycle: Lifecycle
 }

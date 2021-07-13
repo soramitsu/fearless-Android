@@ -8,7 +8,7 @@ typealias RecommendationFilter = Filter<Validator>
 typealias RecommendationSorting = Comparator<Validator>
 typealias RecommendationPostProcessor = (List<Validator>) -> List<Validator>
 
-class RecommendationSettings(
+data class RecommendationSettings(
     val filters: List<RecommendationFilter>,
     val postProcessors: List<RecommendationPostProcessor>,
     val sorting: RecommendationSorting,

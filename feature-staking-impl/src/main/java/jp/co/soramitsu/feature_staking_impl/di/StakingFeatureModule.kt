@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
@@ -48,6 +49,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.rewardDestination.Cha
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.SearchCustomValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationProvider
@@ -167,7 +169,8 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideValidatorRecommendatorFactory(
         validatorProvider: ValidatorProvider,
-    ) = ValidatorRecommendatorFactory(validatorProvider)
+        computationalCache: ComputationalCache
+    ) = ValidatorRecommendatorFactory(validatorProvider, computationalCache)
 
     @Provides
     @FeatureScope
@@ -175,7 +178,8 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         identityRepository: IdentityRepository,
         rewardCalculatorFactory: RewardCalculatorFactory,
-    ) = ValidatorProvider(stakingRepository, identityRepository, rewardCalculatorFactory)
+        accountRepository: AccountRepository
+    ) = ValidatorProvider(stakingRepository, identityRepository, accountRepository, rewardCalculatorFactory)
 
     @Provides
     @FeatureScope
@@ -321,4 +325,11 @@ class StakingFeatureModule {
         feeEstimator: FeeEstimator,
         extrinsicService: ExtrinsicService,
     ) = ChangeRewardDestinationInteractor(feeEstimator, extrinsicService)
+
+    @Provides
+    @FeatureScope
+    fun provideSearchCustomValidatorsInteractor(
+        validatorProvider: ValidatorProvider,
+        accountRepository: AccountRepository
+    ) = SearchCustomValidatorsInteractor(validatorProvider, accountRepository)
 }

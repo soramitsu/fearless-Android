@@ -28,13 +28,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:background="@drawable/apply_button_background"
+        android:background="@drawable/primary_chip_background"
         android:includeFontPadding="false"
         android:paddingStart="12dp"
         android:paddingTop="6dp"
         android:paddingEnd="12dp"
         android:paddingBottom="6dp"
-        android:text="@string/crowdloan_apply"
+        android:text="@string/common_apply"
         android:textColor="@color/button_text_colors"
         app:layout_constraintBottom_toBottomOf="@+id/referralFearlessBonusTitle"
         app:layout_constraintEnd_toEndOf="parent"
@@ -97,7 +97,7 @@
         app:layout_constraintStart_toEndOf="@+id/referralPrivacySwitch"
         app:layout_constraintTop_toTopOf="@+id/referralPrivacySwitch" />
 
-    <jp.co.soramitsu.common.view.LearnMoreView
+    <jp.co.soramitsu.common.view.GoNextView
         android:id="@+id/referralLearnMore"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

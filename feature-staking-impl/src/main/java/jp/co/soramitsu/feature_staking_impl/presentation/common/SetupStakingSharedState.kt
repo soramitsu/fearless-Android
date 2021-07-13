@@ -76,21 +76,40 @@ sealed class SetupStakingProcess {
                 val rewardDestination: RewardDestination,
                 val currentAccountAddress: String,
                 validators: List<Validator>
-            ) : Payload(validators)
+            ) : Payload(validators) {
+
+                override fun changeValidators(newValidators: List<Validator>): Payload {
+                    return Full(amount, rewardDestination, currentAccountAddress, newValidators)
+                }
+            }
 
             class ExistingStash(
                 validators: List<Validator>
-            ) : Payload(validators)
+            ) : Payload(validators) {
+
+                override fun changeValidators(newValidators: List<Validator>): Payload {
+                    return ExistingStash(newValidators)
+                }
+            }
 
             class Validators(
                 validators: List<Validator>
-            ) : Payload(validators)
+            ) : Payload(validators) {
+
+                override fun changeValidators(newValidators: List<Validator>): Payload {
+                    return Validators(newValidators)
+                }
+            }
+
+            abstract fun changeValidators(newValidators: List<Validator>): Payload
         }
+
+        fun changeValidators(newValidators: List<Validator>) = Confirm(payload.changeValidators(newValidators))
 
         fun previous(): SetupStakingProcess {
             val payload = with(payload) {
                 when (this) {
-                    is Payload.Full -> Validators.Payload.Full(amount, rewardDestination, currentAccountAddress,)
+                    is Payload.Full -> Validators.Payload.Full(amount, rewardDestination, currentAccountAddress)
                     is Payload.ExistingStash -> Validators.Payload.ExistingStash
                     is Payload.Validators -> Validators.Payload.Validators
                 }
@@ -114,4 +133,8 @@ class SetupStakingSharedState {
     }
 
     inline fun <reified T : SetupStakingProcess> get(): T = setupStakingProcess.value as T
+
+    fun mutate(mutation: (SetupStakingProcess) -> SetupStakingProcess) {
+        set(mutation(get()))
+    }
 }
