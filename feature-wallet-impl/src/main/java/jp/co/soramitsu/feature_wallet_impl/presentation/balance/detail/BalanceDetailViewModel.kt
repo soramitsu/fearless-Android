@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -14,6 +15,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.NewTransactionHistoryElement
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -22,8 +24,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 private class TokenFilter(private val type: Token.Type) : TransactionFilter {
-    override fun shouldInclude(model: TransactionHistoryElement): Boolean {
-        return type == model.transactionModel.type
+    override fun shouldInclude(model: NewTransactionHistoryElement): Boolean {
+        return type == model.transactionModel.tokenType
     }
 }
 

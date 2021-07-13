@@ -18,6 +18,8 @@ import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.dao.OperationsDao
+import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 
 @Module
@@ -61,6 +63,18 @@ class DbModule {
     @ApplicationScope
     fun provideTransactionDao(appDatabase: AppDatabase): TransactionDao {
         return appDatabase.transactionsDao()
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideOperationDao(appDatabase: AppDatabase): OperationsDao {
+        return appDatabase.operationDao()
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideSubqueryHistoryDao(appDatabase: AppDatabase): SubqueryHistoryDao{
+        return appDatabase.subqueryHistoryDao()
     }
 
     @Provides

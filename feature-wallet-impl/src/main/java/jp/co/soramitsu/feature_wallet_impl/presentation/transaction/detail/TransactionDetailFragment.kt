@@ -86,7 +86,7 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             transactionDetailAmount.text = amount.formatTokenAmount(type)
             transactionDetailFee.text = fee?.formatTokenAmount(type) ?: getString(R.string.common_unknown)
 
-            transactionDetailHash.setMessage(hash)
+//            transactionDetailHash.setMessage(hash)
 
             transactionDetailTotal.text = total?.formatTokenAmount(type) ?: getString(R.string.common_unknown)
         }

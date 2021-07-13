@@ -6,12 +6,12 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.applyFilters
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapHistoryElementToTransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.NewTransactionHistoryElement
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
@@ -35,7 +35,7 @@ class TransactionHistoryProvider(
 
     override val transactionsLiveData = MutableLiveData<List<Any>>()
 
-    private var currentTransactions: List<TransactionHistoryElement> = emptyList()
+    private var currentTransactions: List<NewTransactionHistoryElement> = emptyList()
 
     private var currentPage: Int = 0
     private var isLoading = false
@@ -47,13 +47,15 @@ class TransactionHistoryProvider(
         currentPage = 0
         isLoading = true
 
-        walletInteractor.transactionsFirstPageFlow(PAGE_SIZE)
-            .map { transformNewPage(it, true) }
+        walletInteractor.newTransactionsFirstPageFlow()
+            .map { newTransformNewPage(it, true) }
             .flowOn(Dispatchers.Default)
             .onEach {
                 lastPageLoaded = false
                 isLoading = false
                 currentPage = 0
+                println("------- ON EACH $it ${it.size}")
+                println("------- ON EACH ${it.size}")
 
                 transactionsLiveData.value = it
             }.launchIn(scope)
@@ -98,14 +100,19 @@ class TransactionHistoryProvider(
         isLoading = true
 
         scope.launch {
-            val result = walletInteractor.getTransactionPage(PAGE_SIZE, currentPage)
-
+            val result = walletInteractor.getNewTransactions(PAGE_SIZE, currentPage)
+            println("------- result: $result $PAGE_SIZE $currentPage")
+//            val newPage = result.map {mapHistoryElementToTransactionModel(it) }
+//
+//            lastPageLoaded = result.isEmpty()
+//            val combined = newTransformNewPage(result, false)
+//            transactionsLiveData.value = combined
             if (result.isSuccess) {
                 val newPage = result.getOrThrow()
 
                 lastPageLoaded = newPage.isEmpty()
 
-                val combined = transformNewPage(newPage, false)
+                val combined = newTransformNewPage(newPage, false)
 
                 transactionsLiveData.value = combined
             } else {
@@ -120,24 +127,48 @@ class TransactionHistoryProvider(
         currentPage--
     }
 
-    private suspend fun transformNewPage(page: List<Transaction>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
-        val transactions = page.map(::mapTransactionToTransactionModel)
+//    private suspend fun transformNewPage(page: List<Transaction>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
+//        val transactions = page.map(::mapTransactionToTransactionModel)
+//
+//        val filteredHistoryElements = transactions.map { transaction ->
+//            val addressModel = createIcon(transaction.displayAddress, transaction.accountName)
+//
+//            TransactionHistoryElement(addressModel, transaction)
+//        }.applyFilters(filters)
+//
+//        regroup(filteredHistoryElements, reset)
+//    }
 
-        val filteredHistoryElements = transactions.map { transaction ->
-            val addressModel = createIcon(transaction.displayAddress, transaction.accountName)
+    private suspend fun newTransformNewPage(page: List<SubqueryElement>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
+        println("-------- $page")
+        val filteredHistoryElements = page.map { transaction ->
+            val addressModel = createIcon(transaction.address, transaction.accountName)
 
-            TransactionHistoryElement(addressModel, transaction)
+            NewTransactionHistoryElement(addressModel, transaction)
         }.applyFilters(filters)
 
-        regroup(filteredHistoryElements, reset)
+        println("-------- $filteredHistoryElements")
+
+        newRegroup(filteredHistoryElements, reset)
     }
 
-    private fun regroup(newPage: List<TransactionHistoryElement>, reset: Boolean): List<Any> {
-        val all = if (reset) newPage else currentTransactions + newPage
+//    private fun regroup(newPage: List<TransactionHistoryElement>, reset: Boolean): List<Any> {
+//        val all = if (reset) newPage else currentTransactions + newPage
+//
+//        currentTransactions = all.distinctBy { it.transactionModel.hash }
+//
+//        return currentTransactions.groupBy { it.transactionModel.date.daysFromMillis() }
+//            .map { (daysSinceEpoch, transactions) ->
+//                val header = DayHeader(daysSinceEpoch)
+//
+//                listOf(header) + transactions
+//            }.flatten()
+//    }
 
-        currentTransactions = all.distinctBy { it.transactionModel.hash }
+    private fun newRegroup(newPage: List<NewTransactionHistoryElement>, reset: Boolean): List<Any> {
+        currentTransactions = newPage
 
-        return currentTransactions.groupBy { it.transactionModel.date.daysFromMillis() }
+        return currentTransactions.groupBy { it.transactionModel.time.daysFromMillis() }
             .map { (daysSinceEpoch, transactions) ->
                 val header = DayHeader(daysSinceEpoch)
 

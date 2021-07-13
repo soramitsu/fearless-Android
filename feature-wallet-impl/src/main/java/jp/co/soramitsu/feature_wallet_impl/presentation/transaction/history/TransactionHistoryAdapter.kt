@@ -5,27 +5,18 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
-import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.formatDaysSinceEpoch
 import jp.co.soramitsu.common.utils.inflateChild
-import jp.co.soramitsu.common.utils.makeGone
-import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.common.utils.setTextColorRes
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.NewTransactionHistoryElement
 import kotlinx.android.synthetic.main.item_day_header.view.itemDayHeader
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAddress
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAmount
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionIcon
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionStatus
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionTime
+import kotlinx.android.synthetic.main.item_transaction.view.*
 
 class TransactionHistoryAdapter(
     val handler: Handler
-) : GroupedListAdapter<DayHeader, TransactionHistoryElement>(TransactionHistoryDiffCallback) {
+) : GroupedListAdapter<DayHeader, NewTransactionHistoryElement>(TransactionHistoryDiffCallback) {
 
     interface Handler {
         fun transactionClicked(transactionModel: TransactionModel)
@@ -43,30 +34,32 @@ class TransactionHistoryAdapter(
         (holder as DayHolder).bind(group)
     }
 
-    override fun bindChild(holder: GroupedListHolder, child: TransactionHistoryElement) {
+    override fun bindChild(holder: GroupedListHolder, child: NewTransactionHistoryElement) {
         (holder as TransactionHolder).bind(child, handler)
     }
 }
 
 class TransactionHolder(view: View) : GroupedListHolder(view) {
-    fun bind(item: TransactionHistoryElement, handler: TransactionHistoryAdapter.Handler) {
+    fun bind(item: NewTransactionHistoryElement, handler: TransactionHistoryAdapter.Handler) {
         with(containerView) {
             with(item.transactionModel) {
-                itemTransactionAddress.text = item.displayAddressModel.name ?: displayAddress
+                itemTransactionAddress.text = address
 
-                itemTransactionAmount.setTextColorRes(amountColorRes)
-                itemTransactionAmount.text = formattedAmount
+//                itemTransactionAmount.setTextColorRes(amountColorRes)
+                itemTransactionAmount.text = amount.toString()
 
-                itemTransactionTime.text = date.formatDateTime(context)
+                itemTransactionTime.text = time.toString()
 
-                if (status != Transaction.Status.COMPLETED) {
-                    itemTransactionStatus.makeVisible()
-                    itemTransactionStatus.setImageResource(statusAppearance.icon)
-                } else {
-                    itemTransactionStatus.makeGone()
-                }
+                itemTransactionType.text = tokenType.toString()
 
-                setOnClickListener { handler.transactionClicked(this) }
+//                if (status != Transaction.Status.COMPLETED) {
+//                    itemTransactionStatus.makeVisible()
+//                    itemTransactionStatus.setImageResource(statusAppearance.icon)
+//                } else {
+//                    itemTransactionStatus.makeGone()
+//                }
+//
+//                setOnClickListener { handler.transactionClicked(this) }
             }
 
             itemTransactionIcon.setImageDrawable(item.displayAddressModel.image)
@@ -82,7 +75,7 @@ class DayHolder(view: View) : GroupedListHolder(view) {
     }
 }
 
-object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, TransactionHistoryElement>(DayHeader::class.java) {
+object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, NewTransactionHistoryElement>(DayHeader::class.java) {
     override fun areGroupItemsTheSame(oldItem: DayHeader, newItem: DayHeader): Boolean {
         return oldItem.daysSinceEpoch == oldItem.daysSinceEpoch
     }
@@ -91,11 +84,11 @@ object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, Trans
         return true
     }
 
-    override fun areChildItemsTheSame(oldItem: TransactionHistoryElement, newItem: TransactionHistoryElement): Boolean {
-        return oldItem.transactionModel.hash == newItem.transactionModel.hash
+    override fun areChildItemsTheSame(oldItem: NewTransactionHistoryElement, newItem: NewTransactionHistoryElement): Boolean {
+        return oldItem.transactionModel.address == newItem.transactionModel.address
     }
 
-    override fun areChildContentsTheSame(oldItem: TransactionHistoryElement, newItem: TransactionHistoryElement): Boolean {
-        return oldItem.transactionModel == newItem.transactionModel
+    override fun areChildContentsTheSame(oldItem: NewTransactionHistoryElement, newItem: NewTransactionHistoryElement): Boolean {
+        return oldItem.transactionModel.address == newItem.transactionModel.address
     }
 }

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.domain
 
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -9,7 +10,9 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
+import jp.co.soramitsu.feature_wallet_api.domain.model.HistoryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
+import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -72,6 +75,10 @@ class WalletInteractorImpl(
             .distinctUntilChanged { previous, new -> areTransactionPagesTheSame(previous, new) }
     }
 
+    override fun newTransactionsFirstPageFlow(): Flow<List<SubqueryElement>>{
+        return walletRepository.newTransactionsFirstPageFlow()
+    }
+
     private fun mapAccountToWalletAccount(account: Account) = with(account) {
         WalletAccount(address, name, cryptoType, network)
     }
@@ -86,6 +93,7 @@ class WalletInteractorImpl(
         return runCatching {
             val account = accountRepository.getSelectedAccount()
             val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
+            println("------- WalletInteractorImpl syncTransactionsFirstPage")
             walletRepository.syncTransactionsFirstPage(pageSize, mapAccountToWalletAccount(account), accounts)
         }
     }
@@ -95,6 +103,14 @@ class WalletInteractorImpl(
             val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
             val currentAccount = accountRepository.getSelectedAccount()
             walletRepository.getTransactionPage(pageSize, page, mapAccountToWalletAccount(currentAccount), accounts)
+        }
+    }
+
+    override suspend fun getNewTransactions(pageSize: Int, page: Int): Result<List<SubqueryElement>> {
+        return runCatching {
+            val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
+            val currentAccount = accountRepository.getSelectedAccount()
+            walletRepository.getNewTransactions(pageSize, page, mapAccountToWalletAccount(currentAccount), accounts)
         }
     }
 

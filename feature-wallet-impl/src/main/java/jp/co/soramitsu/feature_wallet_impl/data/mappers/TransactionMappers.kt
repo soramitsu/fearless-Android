@@ -1,13 +1,20 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
+import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeLocalToTokenType
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
+import jp.co.soramitsu.feature_wallet_api.domain.model.RewardSlash
+import jp.co.soramitsu.feature_wallet_api.domain.model.Extrinsic
+import jp.co.soramitsu.feature_wallet_api.domain.model.HistoryElement
+import jp.co.soramitsu.feature_wallet_api.domain.model.NewTransfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionRemote
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
@@ -41,6 +48,24 @@ fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel
     }
 }
 
+fun mapHistoryElementToTransactionModel(historyElement: HistoryElement): TransactionModel {
+    return with(historyElement as NewTransfer) {
+        TransactionModel(
+            hash = hash,
+            type = Token.Type.WND,
+            senderAddress = from,
+            recipientAddress = to,
+            accountName = null,
+            amount = amount.toBigDecimal(),
+            date = timestamp.toLong(),
+            status = Transaction.Status.COMPLETED,
+            fee = fee.toBigDecimal(),
+            isIncome = false,
+            total = null
+        )
+    }
+}
+
 fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal, accountName: String?): Transaction {
     val tokenType = mapTokenTypeLocalToTokenType(transactionLocal.token)
 
@@ -58,6 +83,29 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal, account
             accountName = accountName
         )
     }
+}
+
+fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement): SubqueryHistoryModel {
+    return SubqueryHistoryModel(
+        address = subqueryElement.address,
+        operation = subqueryElement.operation,
+        amount = subqueryElement.amount,
+        time = subqueryElement.time,
+        tokenType = 0,
+        hash = subqueryElement.hash
+    )
+}
+
+fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel): SubqueryElement {
+    return SubqueryElement(
+        hash = subqueryHistoryModel.hash,
+        address = subqueryHistoryModel.address,
+        operation = subqueryHistoryModel.operation,
+        amount = subqueryHistoryModel.amount,
+        time = subqueryHistoryModel.time,
+        tokenType = Token.Type.KSM,
+        accountName = null
+    )
 }
 
 fun mapTransactionToTransactionLocal(
@@ -79,6 +127,88 @@ fun mapTransactionToTransactionLocal(
             feeInPlanks = fee?.let(tokenType::planksFromAmount),
             networkType = tokenType.networkType
         )
+    }
+}
+
+fun mapNodesToSubqueryElements(node: SubqueryHistoryElementResponse.Query.HistoryElements.Node, accountName: String?): SubqueryElement {
+    val amount = when {
+        node.reward != null -> {
+            node.reward.amount
+        }
+        node.extrinsic != null -> {
+            node.extrinsic.fee
+        }
+        node.transfer != null -> {
+            node.transfer.amount // TODO maybe amount + fee
+        }
+        else -> {
+            println("------- EXCEPTION")
+            throw Exception()
+        }
+    }
+
+    val operation = when {
+        node.reward != null -> {
+            "Reward"
+        }
+        node.extrinsic != null -> {
+            "Extrinsic"
+        }
+        node.transfer != null -> {
+            "Transfer"
+        }
+        else -> {
+            println("------- EXCEPTION")
+
+            throw Exception()
+        }
+    }
+
+    return SubqueryElement(
+        hash = node.id,
+        address = node.address,
+        operation = operation,
+        amount = amount.toBigInteger(),
+        time = node.timestamp.toLong(),
+        tokenType = Token.Type.KSM,
+        accountName = accountName
+    )
+}
+
+fun mapNodesToTransaction(node: SubqueryHistoryElementResponse.Query.HistoryElements.Node): HistoryElement {
+    return when {
+        node.reward != null -> {
+            RewardSlash(
+                amount = node.reward.amount,
+                isReward = node.reward.isReward,
+                era = node.reward.era,
+                validator = node.reward.validator
+            )
+        }
+        node.extrinsic != null -> {
+            Extrinsic(
+                hash = node.extrinsic.hash,
+                module = node.extrinsic.module,
+                call = node.extrinsic.call,
+                fee = node.extrinsic.fee,
+                success = node.extrinsic.success
+            )
+        }
+        node.transfer != null -> {
+            NewTransfer(
+                amount = node.transfer.amount,
+                to = node.transfer.to,
+                from = node.transfer.from,
+                fee = node.transfer.fee,
+                block = node.transfer.block,
+                extrinsicId = node.transfer.extrinsicId,
+                timestamp = node.timestamp,
+                hash = node.id
+            )
+        }
+        else -> {
+            throw Exception()
+        }
     }
 }
 

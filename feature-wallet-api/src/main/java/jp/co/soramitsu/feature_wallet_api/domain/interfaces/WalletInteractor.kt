@@ -1,8 +1,11 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
+import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
+import jp.co.soramitsu.feature_wallet_api.domain.model.HistoryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
+import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -32,9 +35,13 @@ interface WalletInteractor {
 
     fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>>
 
+    fun newTransactionsFirstPageFlow(): Flow<List<SubqueryElement>>
+
     suspend fun syncTransactionsFirstPage(pageSize: Int): Result<Unit>
 
     suspend fun getTransactionPage(pageSize: Int, page: Int): Result<List<Transaction>>
+
+    suspend fun getNewTransactions(pageSize: Int, page: Int) : Result<List<SubqueryElement>>
 
     fun selectedAccountFlow(): Flow<WalletAccount>
 
