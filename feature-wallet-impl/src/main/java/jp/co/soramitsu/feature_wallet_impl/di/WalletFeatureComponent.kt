@@ -43,7 +43,7 @@ interface WalletFeatureComponent : WalletFeatureApi {
 
     fun receiveComponentFactory(): ReceiveComponent.Factory
 
-    fun beaconComponentFactory() : BeaconComponent.Factory
+    fun beaconComponentFactory(): BeaconComponent.Factory
 
     @Component.Factory
     interface Factory {

@@ -104,4 +104,3 @@ class BeaconFragment : BaseFragment<BeaconViewModel>() {
         beaconStatus.valuePrimary.setCompoundDrawableTint(statusIconTintRes)
     }
 }
-

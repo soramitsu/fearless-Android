@@ -5,7 +5,6 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.BeaconFragment
-import jp.co.soramitsu.feature_wallet_impl.presentation.receive.ReceiveFragment
 
 @Subcomponent(
     modules = [

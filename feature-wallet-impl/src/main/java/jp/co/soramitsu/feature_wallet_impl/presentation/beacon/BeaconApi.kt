@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.beacon
 
 import android.net.Uri
-import android.util.Log
 import com.google.gson.Gson
 import it.airgap.beaconsdk.client.BeaconClient
 import it.airgap.beaconsdk.data.beacon.P2pPeer
@@ -59,4 +58,3 @@ class BeaconApi(
         beaconClient().removeAllPeers()
     }
 }
-
