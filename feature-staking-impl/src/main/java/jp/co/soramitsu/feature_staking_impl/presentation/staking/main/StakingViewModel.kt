@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
@@ -241,7 +242,7 @@ class StakingViewModel(
                 minimumStakeFiat,
                 totalStakeFormatted,
                 totalStakeFiat,
-                nominatorsCount.toString()
+                nominatorsCount.format()
             )
         }
     }
