@@ -108,7 +108,7 @@ class SelectCustomValidatorsViewModel(
     val fillWithRecommendedEnabled = selectedValidators.map { it.size < maxSelectedValidators }
         .share()
 
-    val clearFiltersEnabled = recommendationSettingsFlow.map { it.filters.isNotEmpty() || it.postProcessors.isNotEmpty() }
+    val clearFiltersEnabled = recommendationSettingsFlow.map { it.customEnabledFilters.isNotEmpty() || it.postProcessors.isNotEmpty() }
         .share()
 
     val deselectAllEnabled = selectedValidators.map { it.isNotEmpty() }

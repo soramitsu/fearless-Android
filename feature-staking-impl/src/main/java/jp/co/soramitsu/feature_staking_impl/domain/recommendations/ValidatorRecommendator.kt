@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 class ValidatorRecommendator(val availableValidators: List<Validator>) {
 
     suspend fun recommendations(settings: RecommendationSettings) = withContext(Dispatchers.Default) {
-        val all = availableValidators.applyFilters(settings.filters)
+        val all = availableValidators.applyFilters(settings.allFilters)
             .sortedWith(settings.sorting)
 
         val postprocessed = settings.postProcessors.fold(all) { acc, postProcessor ->
