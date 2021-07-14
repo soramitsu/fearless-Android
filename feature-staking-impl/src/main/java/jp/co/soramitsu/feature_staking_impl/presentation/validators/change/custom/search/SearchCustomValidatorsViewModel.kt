@@ -117,6 +117,11 @@ class SearchCustomValidatorsViewModel(
     }.share()
 
     fun validatorClicked(validatorModel: ValidatorModel) {
+        if (validatorModel.validator.prefs!!.blocked) {
+            showError(resourceManager.getString(R.string.staking_custom_blocked_warning))
+            return
+        }
+
         launch {
             val newSelected = selectedValidators.first().toggle(validatorModel.validator)
 
