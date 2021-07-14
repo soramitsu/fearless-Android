@@ -65,9 +65,7 @@ abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(contex
 fun FixedListBottomSheet.item(@DrawableRes icon: Int? = null, @StringRes titleRes: Int, onClick: (View) -> Unit) {
     item(R.layout.item_sheet_iconic_label) { view ->
         view.itemExternalActionContent.setText(titleRes)
-        icon?.let {
-            view.itemExternalActionContent.setDrawableStart(icon, widthInDp = 24, tint = R.color.white)
-        }
+        view.itemExternalActionContent.setDrawableStart(icon, widthInDp = 24, tint = R.color.white)
 
         view.setDismissingClickListener(onClick)
     }
