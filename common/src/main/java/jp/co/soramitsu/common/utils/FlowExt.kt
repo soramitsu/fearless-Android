@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.utils
 
 import android.widget.CompoundButton
 import android.widget.EditText
+import android.widget.RadioGroup
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -50,6 +51,21 @@ fun <T, R> Flow<T>.withLoading(sourceSupplier: suspend (T) -> Flow<R>): Flow<Loa
     }
 }
 
+/**
+ * Modifies flow so that it firstly emits [LoadingState.Loading] state for each element from upstream.
+ * Then, it constructs new source via [sourceSupplier] and emits all of its items wrapped into [LoadingState.Loaded] state
+ * Old suppliers are discarded as per [Flow.transformLatest] behavior
+ */
+fun <T, R> Flow<T>.withLoadingSingle(sourceSupplier: suspend (T) -> R): Flow<LoadingState<R>> {
+    return transformLatest { item ->
+        emit(LoadingState.Loading<R>())
+
+        val newSource = LoadingState.Loaded(sourceSupplier(item))
+
+        emit(newSource)
+    }
+}
+
 fun <T> Flow<T>.asLiveData(scope: CoroutineScope): LiveData<T> {
     val liveData = MutableLiveData<T>()
 
@@ -90,8 +106,24 @@ fun CompoundButton.bindTo(flow: MutableStateFlow<Boolean>, scope: CoroutineScope
     }
 
     setOnCheckedChangeListener { _, newValue ->
-        scope.launch {
-            flow.emit(newValue)
+        if (flow.value != newValue) {
+            flow.value = newValue
+        }
+    }
+}
+
+fun RadioGroup.bindTo(flow: MutableStateFlow<Int>, scope: LifecycleCoroutineScope) {
+    setOnCheckedChangeListener { _, checkedId ->
+        if (flow.value != checkedId) {
+            flow.value = checkedId
+        }
+    }
+
+    scope.launchWhenResumed {
+        flow.collect {
+            if (it != checkedRadioButtonId) {
+                check(it)
+            }
         }
     }
 }
@@ -103,4 +135,8 @@ inline fun <T> Flow<T>.observe(
     scope.launchWhenResumed {
         collect(collector)
     }
+}
+
+fun MutableStateFlow<Boolean>.toggle() {
+    value = !value
 }

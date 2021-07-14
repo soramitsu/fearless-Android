@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.data.repository
 
-import jp.co.soramitsu.common.utils.ConcurrentHasher.concurrentBlake2b256
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.crowdloan
@@ -12,6 +11,7 @@ import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.common.utils.useValue
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.bytes
@@ -111,7 +111,7 @@ class CrowdloanRepositoryImpl(
             storageKeyBuilder = { it.typeRegistry["AccountId"]!!.bytes(it, accountId).toHexString(withPrefix = true) },
             childKeyBuilder = {
                 val suffix = (CONTRIBUTIONS_CHILD_SUFFIX.encodeToByteArray() + u32.toByteArray(it, trieIndex))
-                    .concurrentBlake2b256()
+                    .blake2b256()
 
                 write(suffix)
             },

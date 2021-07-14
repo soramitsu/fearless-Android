@@ -3,12 +3,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:animateLayoutChanges="true"
+    android:background="@drawable/bg_primary_list_item"
     android:orientation="horizontal"
     tools:background="@color/black">
+    
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="16dp"
+        android:id="@+id/itemValidatorActionIcon"
+        android:src="@drawable/ic_checkmark_white_24" />
 
     <ImageView
         android:id="@+id/itemValidatorIcon"
         android:layout_width="24dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
         android:layout_height="24dp"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="16dp"
@@ -27,21 +39,37 @@
         android:ellipsize="middle"
         tools:text="SUPERSYMMETRY" />
 
-    <TextView
-        android:id="@+id/itemValidatorApy"
-        style="@style/TextAppearance.Soramitsu.Body1"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        tools:text="17.81%" />
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/itemValidatorScoringPrimary"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            tools:text="17.81%" />
+
+        <TextView
+            android:id="@+id/itemValidatorScoringSecondary"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:textColor="@color/black2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|end"
+            tools:text="17.81%" />
+    </LinearLayout>
+
 
     <ImageView
         android:id="@+id/itemValidatorInfo"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="12dp"
+        android:layout_height="match_parent"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="12dp"
-        android:src="@drawable/ic_info_grey_24" />
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/ic_info_white_24" />
 </LinearLayout>
