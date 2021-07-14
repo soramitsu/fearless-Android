@@ -24,8 +24,6 @@ class RecommendationSettingsProvider(
         NotOverSubscribedFilter(maximumRewardedNominators)
     )
 
-    private val allFilters = alwaysEnabledFilters + customizableFilters
-
     private val allPostProcessors = listOf(
         RemoveClusteringPostprocessor
     )
@@ -33,21 +31,16 @@ class RecommendationSettingsProvider(
     private val customSettingsFlow = MutableStateFlow(defaultSelectCustomSettings())
 
     fun createModifiedCustomValidatorsSettings(
-        filterIncluder: ((RecommendationFilter) -> Boolean)? = null,
-        postProcessorIncluder: ((RecommendationPostProcessor) -> Boolean)? = null,
+        filterIncluder: (RecommendationFilter) -> Boolean,
+        postProcessorIncluder: (RecommendationPostProcessor) -> Boolean,
         sorting: RecommendationSorting? = null
     ): RecommendationSettings {
         val current = customSettingsFlow.value
 
-        val filters = filterIncluder?.let { alwaysEnabledFilters + customizableFilters.filter(it) }
-            ?: current.filters
-
-        val postProcessors = postProcessorIncluder?.let { allPostProcessors.filter(it) }
-            ?: current.postProcessors
-
         return current.copy(
-            filters = filters,
-            postProcessors = postProcessors,
+            alwaysEnabledFilters = alwaysEnabledFilters,
+            customEnabledFilters = customizableFilters.filter(filterIncluder),
+            postProcessors = allPostProcessors.filter(postProcessorIncluder),
             sorting = sorting ?: current.sorting
         )
     }
@@ -62,7 +55,8 @@ class RecommendationSettingsProvider(
 
     fun defaultSettings(): RecommendationSettings {
         return RecommendationSettings(
-            filters = allFilters,
+            alwaysEnabledFilters = alwaysEnabledFilters,
+            customEnabledFilters = customizableFilters,
             sorting = APYSorting,
             postProcessors = allPostProcessors,
             limit = maximumValidatorsPerNominator
@@ -70,7 +64,8 @@ class RecommendationSettingsProvider(
     }
 
     fun defaultSelectCustomSettings() = RecommendationSettings(
-        filters = allFilters,
+        alwaysEnabledFilters = alwaysEnabledFilters,
+        customEnabledFilters = customizableFilters,
         sorting = APYSorting,
         postProcessors = allPostProcessors,
         limit = null

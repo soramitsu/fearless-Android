@@ -89,7 +89,7 @@ class CustomValidatorsSettingsViewModel(
     }
 
     private fun initFromSettings(currentSettings: RecommendationSettings) {
-        currentSettings.filters.forEach {
+        currentSettings.customEnabledFilters.forEach {
             filtersEnabledMap[it::class.java]?.value = true
         }
 
