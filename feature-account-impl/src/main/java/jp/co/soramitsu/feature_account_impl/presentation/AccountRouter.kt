@@ -68,4 +68,6 @@ interface AccountRouter : SecureRouter {
     fun finishExportFlow()
 
     fun openChangePinCode()
+
+    fun openBeacon(qrContent: String)
 }

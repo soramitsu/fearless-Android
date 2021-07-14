@@ -726,4 +726,18 @@
         android:name="jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeFragment"
         android:label="CustomContributeFragment" />
 
+    <action
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit"
+        android:id="@+id/actionOpenBeaconFragment"
+        app:destination="@id/beaconFragment" />
+
+    <fragment
+        tools:layout="@layout/fragment_beacon"
+        android:id="@+id/beaconFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.BeaconFragment"
+        android:label="BeaconFragment" />
+
 </navigation>

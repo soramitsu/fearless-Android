@@ -64,6 +64,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.Valid
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.BeaconFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
@@ -454,6 +455,10 @@ class Navigator :
         val action = PinCodeAction.Change
         val bundle = PincodeFragment.getPinCodeBundle(action)
         navController?.navigate(R.id.action_mainFragment_to_pinCodeFragment, bundle)
+    }
+
+    override fun openBeacon(qrContent: String) {
+        navController?.navigate(R.id.actionOpenBeaconFragment, BeaconFragment.getBundle(qrContent))
     }
 
     override fun withPinCodeCheckRequired(

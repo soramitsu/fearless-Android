@@ -9,7 +9,7 @@ buildscript {
         minSdkVersion = 24
         targetSdkVersion = 29
 
-        kotlinVersion = '1.4.31'
+        kotlinVersion = '1.4.32'
 
         ktlintPinterestVersion = '0.40.0'
 
@@ -29,7 +29,7 @@ buildscript {
         architectureComponentVersion = '2.2.0'
 
         retrofitVersion = '2.9.0'
-        okhttpVersion = '3.8.0'
+        okhttpVersion = '4.9.0'
         gsonVersion = '2.8.2'
 
         zXingVersion = '3.5.0'
@@ -65,6 +65,8 @@ buildscript {
         storiesVersion = '3.0.0'
 
         coilVersion = '1.2.1'
+
+        beaconVersion = "1.0.2"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -135,6 +137,8 @@ buildscript {
         archCoreTestDep = "androidx.arch.core:core-testing:$architectureComponentVersion"
 
         progressButtonDep = "com.github.razir.progressbutton:progressbutton:$progressButtonsVersion"
+
+        beaconDep = "com.github.airgap-it:beacon-android-sdk:$beaconVersion"
     }
 
     repositories {

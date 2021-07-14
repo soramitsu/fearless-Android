@@ -1,10 +1,13 @@
 package jp.co.soramitsu.feature_account_impl.presentation.profile
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -23,6 +26,9 @@ class ProfileViewModel(
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     val selectedAccountLiveData: LiveData<Account> = interactor.selectedAccountFlow().asLiveData()
+
+    private val _scanBeaconQrEvent = MutableLiveData<Event<Unit>>()
+    val scanBeaconQrEvent: LiveData<Event<Unit>> = _scanBeaconQrEvent
 
     val accountIconLiveData: LiveData<AddressModel> = selectedAccountLiveData.switchMap {
         liveData {
@@ -64,5 +70,13 @@ class ProfileViewModel(
 
     private suspend fun createIcon(accountAddress: String): AddressModel {
         return addressIconGenerator.createAddressModel(accountAddress, AVATAR_SIZE_DP)
+    }
+
+    fun beaconClicked() {
+        _scanBeaconQrEvent.sendEvent()
+    }
+
+    fun beaconQrScanned(qrContent: String) {
+        router.openBeacon(qrContent)
     }
 }

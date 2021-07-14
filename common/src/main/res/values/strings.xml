@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_connect">Connect</string>
+    <string name="beacon_connected_to">Connected to</string>
+    <string name="beacon_exit_message">Do you want to disconnect this session?</string>
+    <string name="beacon_title">Beacon Connect</string>
+
     <string name="staking_set_validators_title">Select validators to start staking</string>
     <string name="staking_set_validators_message">Validators are not selected</string>
 

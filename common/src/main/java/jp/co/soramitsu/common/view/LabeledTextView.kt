@@ -4,10 +4,12 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
+import android.widget.ImageView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
@@ -23,6 +25,7 @@ class LabeledTextView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+
     init {
         View.inflate(context, R.layout.view_labeled_text, this)
 
@@ -99,4 +102,9 @@ class LabeledTextView @JvmOverloads constructor(
 
         setActionClickListener(listener)
     }
+}
+
+fun LabeledTextView.setFromAddressModel(addressModel: AddressModel) {
+    setMessage(addressModel.nameOrAddress)
+    setTextIcon(addressModel.image)
 }
