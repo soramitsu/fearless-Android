@@ -7,7 +7,6 @@ import jp.co.soramitsu.common.utils.applyFilters
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapHistoryElementToTransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
@@ -54,8 +53,6 @@ class TransactionHistoryProvider(
                 lastPageLoaded = false
                 isLoading = false
                 currentPage = 0
-                println("------- ON EACH $it ${it.size}")
-                println("------- ON EACH ${it.size}")
 
                 transactionsLiveData.value = it
             }.launchIn(scope)
@@ -100,13 +97,8 @@ class TransactionHistoryProvider(
         isLoading = true
 
         scope.launch {
-            val result = walletInteractor.getNewTransactions(PAGE_SIZE, currentPage)
-            println("------- result: $result $PAGE_SIZE $currentPage")
-//            val newPage = result.map {mapHistoryElementToTransactionModel(it) }
-//
-//            lastPageLoaded = result.isEmpty()
-//            val combined = newTransformNewPage(result, false)
-//            transactionsLiveData.value = combined
+            val result = walletInteractor.getNewTransactions(PAGE_SIZE, currentTransactions.last().transactionModel.nextPageCursor) // FIXME looks like shit
+
             if (result.isSuccess) {
                 val newPage = result.getOrThrow()
 

@@ -7,7 +7,14 @@ import java.math.BigInteger
 
 class SubqueryHistoryElementResponse(val query: Query) {
     class Query(val historyElements: HistoryElements) {
-        class HistoryElements(val nodes: Array<Node>) {
+
+        class HistoryElements(val nodes: Array<Node>, val pageInfo: PageInfo) {
+            class PageInfo(
+                val startCursor: String,
+                val endCursor: String,
+                val hasNextPage: Boolean
+            )
+
             class Node(
                 val id: String,
                 val timestamp: String,

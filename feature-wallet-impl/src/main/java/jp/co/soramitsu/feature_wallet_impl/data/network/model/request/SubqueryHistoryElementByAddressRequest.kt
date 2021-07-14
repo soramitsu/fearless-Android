@@ -1,16 +1,20 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.model.request
 
-class SubqueryHistoryElementByAddressRequest (accountAddress: String, pageSize: Int = 1, pageCount: Int = 0) {
+class SubqueryHistoryElementByAddressRequest (accountAddress: String, pageSize: Int = 1, cursor: String? = null) {
     val query = """
     {
         query {
             historyElements(
+                after: $cursor,
                 first: $pageSize, 
-                offset: ${pageSize * pageCount},
                 filter: { 
                     address:{ equalTo: "$accountAddress"}
                 },
             ) {
+                pageInfo {
+                    startCursor,
+                    endCursor
+                },
                 nodes {
                     id
                     timestamp

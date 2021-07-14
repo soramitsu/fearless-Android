@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
+import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.formatDaysSinceEpoch
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -46,11 +47,11 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
                 itemTransactionAddress.text = address
 
 //                itemTransactionAmount.setTextColorRes(amountColorRes)
-                itemTransactionAmount.text = amount.toString()
+                itemTransactionAmount.text = formattedAmount
 
-                itemTransactionTime.text = time.toString()
+                itemTransactionTime.text = (time * 1000).formatDateTime(context)
 
-                itemTransactionType.text = tokenType.toString()
+                itemTransactionType.text = operation
 
 //                if (status != Transaction.Status.COMPLETED) {
 //                    itemTransactionStatus.makeVisible()

@@ -25,8 +25,7 @@ data class TransactionModel(
     val status: Transaction.Status,
     val fee: BigDecimal?,
     val isIncome: Boolean,
-    val total: BigDecimal?,
-    val transactionType: String? = "TempDefault"
+    val total: BigDecimal?
 ) : Parcelable {
 
     @IgnoredOnParcel

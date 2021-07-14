@@ -30,42 +30,6 @@ fun mapTransactionStatusLocalToTransactionStatus(status: TransactionLocal.Status
     TransactionLocal.Status.FAILED -> Transaction.Status.FAILED
 }
 
-fun mapTransactionToTransactionModel(transaction: Transaction): TransactionModel {
-    return with(transaction) {
-        TransactionModel(
-            hash = hash,
-            type = tokenType,
-            senderAddress = senderAddress,
-            recipientAddress = recipientAddress,
-            accountName = accountName,
-            isIncome = isIncome,
-            date = date,
-            amount = amount,
-            status = status,
-            fee = fee,
-            total = total
-        )
-    }
-}
-
-fun mapHistoryElementToTransactionModel(historyElement: HistoryElement): TransactionModel {
-    return with(historyElement as NewTransfer) {
-        TransactionModel(
-            hash = hash,
-            type = Token.Type.WND,
-            senderAddress = from,
-            recipientAddress = to,
-            accountName = null,
-            amount = amount.toBigDecimal(),
-            date = timestamp.toLong(),
-            status = Transaction.Status.COMPLETED,
-            fee = fee.toBigDecimal(),
-            isIncome = false,
-            total = null
-        )
-    }
-}
-
 fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal, accountName: String?): Transaction {
     val tokenType = mapTokenTypeLocalToTokenType(transactionLocal.token)
 
@@ -89,7 +53,7 @@ fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement): Sub
     return SubqueryHistoryModel(
         address = subqueryElement.address,
         operation = subqueryElement.operation,
-        amount = subqueryElement.amount,
+        amount = subqueryElement.amount.toBigInteger(),
         time = subqueryElement.time,
         tokenType = 0,
         hash = subqueryElement.hash
@@ -101,10 +65,10 @@ fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel): 
         hash = subqueryHistoryModel.hash,
         address = subqueryHistoryModel.address,
         operation = subqueryHistoryModel.operation,
-        amount = subqueryHistoryModel.amount,
+        amount = subqueryHistoryModel.amount.toBigDecimal(),
         time = subqueryHistoryModel.time,
         tokenType = Token.Type.KSM,
-        accountName = null
+        accountName = null //FIXME
     )
 }
 
@@ -130,7 +94,7 @@ fun mapTransactionToTransactionLocal(
     }
 }
 
-fun mapNodesToSubqueryElements(node: SubqueryHistoryElementResponse.Query.HistoryElements.Node, accountName: String?): SubqueryElement {
+fun mapNodesToSubqueryElements(node: SubqueryHistoryElementResponse.Query.HistoryElements.Node, cursor: String, accountName: String?): SubqueryElement {
     val amount = when {
         node.reward != null -> {
             node.reward.amount
@@ -168,10 +132,11 @@ fun mapNodesToSubqueryElements(node: SubqueryHistoryElementResponse.Query.Histor
         hash = node.id,
         address = node.address,
         operation = operation,
-        amount = amount.toBigInteger(),
+        amount = amount.toBigDecimal(),
         time = node.timestamp.toLong(),
         tokenType = Token.Type.KSM,
-        accountName = accountName
+        accountName = accountName,
+        nextPageCursor = cursor
     )
 }
 

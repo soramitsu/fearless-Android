@@ -8,13 +8,10 @@ import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
-import jp.co.soramitsu.core_db.dao.OperationsDao
 import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
-import jp.co.soramitsu.core_db.model.Reward
 import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
 import jp.co.soramitsu.core_db.model.TransactionLocal
-import jp.co.soramitsu.core_db.model.relations.OperationsRelation
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
@@ -23,7 +20,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
-import jp.co.soramitsu.feature_wallet_api.domain.model.HistoryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
@@ -34,7 +30,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodesToSubqueryElements
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodesToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryDbToSubqueryElement
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryElementToSubqueryHistoryDb
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTransaction
@@ -51,9 +46,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMap
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
@@ -105,7 +98,7 @@ class WalletRepositoryImpl(
 
     // Ready
     override suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>) {
-        val page = getNewTransactions(pageSize, 0, account, accounts)
+        val page = getNewTransactions(pageSize, cursor = null, account, accounts)
         val accountAddress = account.address
 //
 //        val toInsertLocally = page.map {
@@ -135,19 +128,24 @@ class WalletRepositoryImpl(
         }
     }
 
-    override suspend fun getNewTransactions(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<SubqueryElement> {
+    override suspend fun getNewTransactions(pageSize: Int, cursor: String?, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<SubqueryElement> {
         val accountsByAddress = accounts.associateBy { it.address }
 
-        val result = subscanApi.getSumReward(
+        val response = subscanApi.getSumReward(
             SubqueryHistoryElementByAddressRequest(
                 "12xtAYsRUrmbniiWQqJtECiBQrMn8AypQcXhnQAc6RB6XkLW",
                 pageSize,
-                page
+                cursor
             )
-        ).data.query.historyElements.nodes.map {
+        ).data.query
+
+        val pageInfo = response.historyElements.pageInfo
+
+        val result = response.historyElements.nodes.map {
             val accountName = defineAccountNameForTransaction(accountsByAddress, currentAccount.address, it.transfer?.from, it.transfer?.to)
-            mapNodesToSubqueryElements(it, accountName)
+            mapNodesToSubqueryElements(it, pageInfo.endCursor, accountName)
         }
+
         return result
     }
 
