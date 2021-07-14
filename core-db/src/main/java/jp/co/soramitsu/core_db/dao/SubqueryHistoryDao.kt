@@ -20,11 +20,19 @@ abstract class SubqueryHistoryDao {
     abstract fun observe(): Flow<List<SubqueryHistoryModel>>
 
     suspend fun insertFromSubquery(accountAddress: String, transactions: List<SubqueryHistoryModel>){
-        clear(accountAddress)
+        clear("12xtAYsRUrmbniiWQqJtECiBQrMn8AypQcXhnQAc6RB6XkLW")//TODO for debug purposes, change -> accountAddress when done!
+
+        val oldest = transactions.minByOrNull(SubqueryHistoryModel::time)
+        oldest?.let{
+            clearOld(accountAddress, oldest.time)
+        }
 
         insertAll(transactions)
     }
 
     @Query("DELETE FROM subqueryentity WHERE address = :accountAddress")
     protected abstract suspend fun clear(accountAddress: String): Int
+
+    @Query("DELETE FROM subqueryentity WHERE time < :minTime AND address = :accountAddress")
+    protected abstract suspend fun clearOld(accountAddress: String, minTime: Long): Int
 }

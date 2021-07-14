@@ -140,7 +140,7 @@ class WalletRepositoryImpl(
 
         val result = subscanApi.getSumReward(
             SubqueryHistoryElementByAddressRequest(
-                "14KFzXmVz3rDW5ExVAgEH3ASaysti9Qjayu9nf9eKaHrNZ1L",
+                "12xtAYsRUrmbniiWQqJtECiBQrMn8AypQcXhnQAc6RB6XkLW",
                 pageSize,
                 page
             )

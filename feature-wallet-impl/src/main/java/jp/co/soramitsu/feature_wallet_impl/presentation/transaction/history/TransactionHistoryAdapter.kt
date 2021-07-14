@@ -85,10 +85,10 @@ object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, NewTr
     }
 
     override fun areChildItemsTheSame(oldItem: NewTransactionHistoryElement, newItem: NewTransactionHistoryElement): Boolean {
-        return oldItem.transactionModel.address == newItem.transactionModel.address
+        return oldItem.transactionModel.hash == newItem.transactionModel.hash
     }
 
     override fun areChildContentsTheSame(oldItem: NewTransactionHistoryElement, newItem: NewTransactionHistoryElement): Boolean {
-        return oldItem.transactionModel.address == newItem.transactionModel.address
+        return oldItem.transactionModel == newItem.transactionModel
     }
 }

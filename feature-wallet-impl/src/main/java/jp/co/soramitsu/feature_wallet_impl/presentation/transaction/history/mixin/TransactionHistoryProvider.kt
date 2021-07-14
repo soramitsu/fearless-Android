@@ -127,46 +127,18 @@ class TransactionHistoryProvider(
         currentPage--
     }
 
-//    private suspend fun transformNewPage(page: List<Transaction>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
-//        val transactions = page.map(::mapTransactionToTransactionModel)
-//
-//        val filteredHistoryElements = transactions.map { transaction ->
-//            val addressModel = createIcon(transaction.displayAddress, transaction.accountName)
-//
-//            TransactionHistoryElement(addressModel, transaction)
-//        }.applyFilters(filters)
-//
-//        regroup(filteredHistoryElements, reset)
-//    }
-
     private suspend fun newTransformNewPage(page: List<SubqueryElement>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
-        println("-------- $page")
         val filteredHistoryElements = page.map { transaction ->
             val addressModel = createIcon(transaction.address, transaction.accountName)
 
             NewTransactionHistoryElement(addressModel, transaction)
         }.applyFilters(filters)
 
-        println("-------- $filteredHistoryElements")
-
         newRegroup(filteredHistoryElements, reset)
     }
 
-//    private fun regroup(newPage: List<TransactionHistoryElement>, reset: Boolean): List<Any> {
-//        val all = if (reset) newPage else currentTransactions + newPage
-//
-//        currentTransactions = all.distinctBy { it.transactionModel.hash }
-//
-//        return currentTransactions.groupBy { it.transactionModel.date.daysFromMillis() }
-//            .map { (daysSinceEpoch, transactions) ->
-//                val header = DayHeader(daysSinceEpoch)
-//
-//                listOf(header) + transactions
-//            }.flatten()
-//    }
-
     private fun newRegroup(newPage: List<NewTransactionHistoryElement>, reset: Boolean): List<Any> {
-        currentTransactions = newPage
+        currentTransactions = if (reset) newPage else currentTransactions + newPage
 
         return currentTransactions.groupBy { it.transactionModel.time.daysFromMillis() }
             .map { (daysSinceEpoch, transactions) ->
