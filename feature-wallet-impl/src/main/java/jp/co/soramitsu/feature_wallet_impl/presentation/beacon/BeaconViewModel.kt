@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import it.airgap.beaconsdk.data.beacon.P2pPeer
 import it.airgap.beaconsdk.message.BeaconRequest
 import it.airgap.beaconsdk.message.PermissionBeaconRequest
+import it.airgap.beaconsdk.message.SignPayloadBeaconRequest
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
@@ -67,7 +68,7 @@ class BeaconViewModel(
 
     fun permissionGranted(request: PermissionBeaconRequest) {
         launch {
-            beaconApi.allowPermissions(request, currentAccount.first().address)
+            beaconApi.allowPermissions(request)
         }
     }
 
@@ -94,6 +95,13 @@ class BeaconViewModel(
                 Log.d("RX", it.toString())
                 when (it) {
                     is PermissionBeaconRequest -> _showPermissionRequestSheet.value = Event(it)
+                    is SignPayloadBeaconRequest -> {
+                        val result = beaconApi.decodePayload(it)
+
+                        result.onSuccess { call ->
+                            showMessage("Received request for ${call.module.name}.${call.function.name}")
+                        }
+                    }
                 }
             }.launchIn(viewModelScope)
     }

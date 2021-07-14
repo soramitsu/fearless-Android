@@ -17,3 +17,7 @@ suspend fun AccountRepository.signWithAccount(account: Account, message: ByteArr
 
     Signer.sign(encryptionType, message, keypair).signature
 }
+
+suspend fun AccountRepository.signWithCurrentAccount(message: ByteArray) = withContext(Dispatchers.Default) {
+    signWithAccount(getSelectedAccount(), message)
+}

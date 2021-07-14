@@ -7,9 +7,19 @@ import it.airgap.beaconsdk.data.beacon.P2pPeer
 import it.airgap.beaconsdk.message.BeaconRequest
 import it.airgap.beaconsdk.message.PermissionBeaconRequest
 import it.airgap.beaconsdk.message.PermissionBeaconResponse
+import it.airgap.beaconsdk.message.SignPayloadBeaconRequest
+import it.airgap.beaconsdk.message.SignPayloadBeaconResponse
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
+import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.common.utils.useValue
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithCurrentAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -19,6 +29,8 @@ import kotlinx.coroutines.withContext
 
 class BeaconApi(
     private val gson: Gson,
+    private val accountRepository: AccountRepository,
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
 ) {
 
     private val beaconClient by lazy {
@@ -45,11 +57,27 @@ class BeaconApi(
         }
     }
 
-    suspend fun allowPermissions(
-        forRequest: PermissionBeaconRequest,
-        withAccountAddress: String
+    suspend fun decodePayload(request: SignPayloadBeaconRequest): Result<GenericCall.Instance> = runCatching {
+        runtimeProperty.useValue { runtime ->
+            GenericCall.fromHex(runtime, request.payload)
+        }
+    }
+
+    suspend fun signPayload(
+        request: SignPayloadBeaconRequest
     ) {
-        val response = PermissionBeaconResponse.from(forRequest, withAccountAddress.toAccountId().toHexString())
+        val signature = accountRepository.signWithCurrentAccount(request.payload.fromHex())
+        val signatureHex = signature.toHexString(withPrefix = true)
+
+        beaconClient().respond(SignPayloadBeaconResponse.from(request, request.signingType, signatureHex))
+    }
+
+    suspend fun allowPermissions(
+        forRequest: PermissionBeaconRequest
+    ) {
+        val address = accountRepository.getSelectedAccount().address
+        val publicKey = address.toAccountId().toHexString()
+        val response = PermissionBeaconResponse.from(forRequest, publicKey)
 
         beaconClient().respond(response)
     }
@@ -58,3 +86,4 @@ class BeaconApi(
         beaconClient().removeAllPeers()
     }
 }
+

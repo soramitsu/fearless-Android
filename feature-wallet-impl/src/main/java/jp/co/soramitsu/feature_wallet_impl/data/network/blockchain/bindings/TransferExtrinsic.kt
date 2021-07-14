@@ -17,14 +17,10 @@ class TransferExtrinsic(
     val senderId: ByteArray,
     val recipientId: ByteArray,
     val amountInPlanks: BigInteger,
-    val index: Pair<Int, Int>,
     val hash: String,
 )
 
-val GenericCall.Instance.index: Pair<Int, Int>
-    get() = moduleIndex to callIndex
-
-private val TRANSFER_CALL_NAMES = listOf("transfer", "transfer_keep_alive")
+private val TRANSFER_CALL_NAMES = setOf("transfer", "transfer_keep_alive")
 
 fun notTransfer(): Nothing = throw IllegalArgumentException("Extrinsic is not a transfer extrinsic")
 
@@ -32,10 +28,7 @@ fun bindTransferExtrinsic(scale: String, runtime: RuntimeSnapshot): TransferExtr
     val extrinsicInstance = Extrinsic.fromHexOrIncompatible(scale, runtime)
     val call = extrinsicInstance.call
 
-    val transferModule = runtime.metadata.balances()
-    val transferCalls = TRANSFER_CALL_NAMES.map(transferModule::call)
-
-    val isTransferCall = transferCalls.any { it.index == call.index }
+    val isTransferCall = call.function.name in TRANSFER_CALL_NAMES
 
     if (!isTransferCall) throw notTransfer()
 
@@ -46,7 +39,6 @@ fun bindTransferExtrinsic(scale: String, runtime: RuntimeSnapshot): TransferExtr
         senderId = senderId,
         recipientId = recipientId,
         amountInPlanks = bindNumber(call.arguments["value"]),
-        index = call.index,
         hash = scale.extrinsicHash()
     )
 }
