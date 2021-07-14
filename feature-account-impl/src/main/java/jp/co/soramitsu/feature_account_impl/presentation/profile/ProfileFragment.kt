@@ -9,6 +9,7 @@ import com.google.zxing.integration.android.IntentIntegrator
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
+import jp.co.soramitsu.common.qrScanner.QrScannerActivity
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presenatation.actions.copyAddressClicked
@@ -82,6 +83,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
                 setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES)
                 setPrompt("")
                 setBeepEnabled(false)
+                captureActivity = QrScannerActivity::class.java
             }
 
             integrator.initiateScan()
