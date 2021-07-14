@@ -62,7 +62,7 @@ fun BigDecimal.format(): String {
     return defaultNumberFormatter.format(this)
 }
 
-fun Int.format() : String {
+fun Int.format(): String {
     return defaultNumberFormatter.format(BigDecimal(this))
 }
 
