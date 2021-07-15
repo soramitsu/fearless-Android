@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history
 
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
@@ -63,7 +64,8 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
 //                setOnClickListener { handler.transactionClicked(this) }
             }
 
-            itemTransactionIcon.setImageDrawable(item.displayAddressModel.image)
+            val operationIcon = item.transactionModel.getOperationIcon()?.let { ContextCompat.getDrawable(context, it) }
+            itemTransactionIcon.setImageDrawable(operationIcon ?: item.displayAddressModel.image)
         }
     }
 }

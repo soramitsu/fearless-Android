@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import java.math.BigDecimal
 
@@ -14,14 +15,19 @@ data class SubqueryElement(
     val extra: String? = null,
     val nextPageCursor: String? = null,
     val displayAddress: String? = null,
-    val isIncome: Boolean = true // FIXME
+    val isIncome: Boolean = true
 ) {
 
     val formattedAmount = createFormattedAmount()
 
-    fun getOperationHeader() = if (operation is Operation.Extrinsic) operation.callName else null
+    fun getOperationHeader() = operation.call
 
-    fun getElementDescription() = operation.action
+    fun getElementDescription() = operation.module
+
+    fun getOperationIcon(): Int? = when (operation) {
+        is Operation.Reward -> R.drawable.ic_staking
+        else -> null
+    }
 
     private fun createFormattedAmount(): String {
         val withoutSign = amount.formatTokenAmount(tokenType)
@@ -30,9 +36,9 @@ data class SubqueryElement(
         return sign + withoutSign
     }
 
-    sealed class Operation(val action: String) {
-        class Extrinsic(val callName: String, val module: String) : Operation(module)
-        class Reward : Operation("Reward")
-        class Transfer : Operation("Transfer")
+    sealed class Operation(val call: String?, val module: String?) {
+        class Extrinsic(val callName: String, val moduleName: String) : Operation(callName, moduleName)
+        class Reward : Operation("Reward", "Staking")
+        class Transfer : Operation(null, "Transfer")
     }
 }

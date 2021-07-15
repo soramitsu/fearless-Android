@@ -49,14 +49,14 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal, account
     }
 }
 
-fun mapFromSubqueryOperationToString(operation: SubqueryElement.Operation): Pair<String, String?> =
+fun mapFromSubqueryOperationToString(operation: SubqueryElement.Operation): Pair<String?, String?> =
     when (operation) {
-        is SubqueryElement.Operation.Extrinsic -> Pair(operation.module, operation.callName)
-        else -> Pair(operation.action, null)
+        is SubqueryElement.Operation.Extrinsic -> Pair(operation.moduleName, operation.callName)
+        else -> Pair(operation.module, null)
     }
 
-fun mapFromStringToSubqueryOperation(operation: String, call: String?) = when {
-    call != null -> SubqueryElement.Operation.Extrinsic(operation, call)
+fun mapFromStringToSubqueryOperation(operation: String?, call: String?) = when {
+    operation != null && call != null -> SubqueryElement.Operation.Extrinsic(operation, call)
     operation == "Transfer" -> SubqueryElement.Operation.Transfer()
     else -> SubqueryElement.Operation.Reward()
 }

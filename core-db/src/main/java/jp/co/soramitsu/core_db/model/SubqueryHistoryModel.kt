@@ -8,7 +8,7 @@ import java.math.BigInteger
 class SubqueryHistoryModel(
     val hash: String,
     val address: String,
-    val operation: String,
+    val operation: String?,
     val amount: BigInteger,
     val time: Long,
     val tokenType: TokenLocal.Type,
