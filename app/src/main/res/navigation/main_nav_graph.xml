@@ -809,7 +809,22 @@
     <fragment
         tools:layout="@layout/fragment_beacon"
         android:id="@+id/beaconFragment"
-        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.BeaconFragment"
-        android:label="BeaconFragment" />
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconFragment"
+        android:label="BeaconFragment">
+
+        <action
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            android:id="@+id/action_beaconFragment_to_signBeaconTransactionFragment"
+            app:destination="@id/signBeaconTransactionFragment" />
+    </fragment>
+
+    <fragment
+        tools:layout="@layout/fragment_beacon"
+        android:id="@+id/signBeaconTransactionFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.SignBeaconTransactionFragment"
+        android:label="SignBeaconTransactionFragment" />
 
 </navigation>

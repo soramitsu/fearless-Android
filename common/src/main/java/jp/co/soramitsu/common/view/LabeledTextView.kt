@@ -54,7 +54,7 @@ class LabeledTextView @JvmOverloads constructor(
             isEnabled = enabled
 
             val actionIcon = typedArray.getDrawable(R.styleable.LabeledTextView_actionIcon)
-            actionIcon?.let(::setActionIcon)
+            setActionIcon(actionIcon)
 
             singleLine = typedArray.getBoolean(R.styleable.LabeledTextView_android_singleLine, true)
             labeledTextText.isSingleLine = singleLine
@@ -73,7 +73,7 @@ class LabeledTextView @JvmOverloads constructor(
         labeledTextLabel.text = label
     }
 
-    fun setActionIcon(icon: Drawable) {
+    fun setActionIcon(icon: Drawable?) {
         labeledTextAction.setImageDrawable(icon)
 
         labeledTextAction.setVisible(true)

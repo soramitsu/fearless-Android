@@ -63,9 +63,11 @@ import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
-import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.BeaconFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
@@ -400,6 +402,19 @@ class Navigator :
 
     override fun openReceive() {
         navController?.navigate(R.id.action_open_receive)
+    }
+
+    override fun openSignBeaconTransaction(payload: String) {
+        navController?.navigate(R.id.action_beaconFragment_to_signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload))
+    }
+
+    override val beaconSignStatus: Flow<SignStatus>
+        get() = navController!!.currentBackStackEntry!!.savedStateHandle
+            .getLiveData<SignStatus>(SignBeaconTransactionFragment.SIGN_RESULT_KEY)
+            .asFlow()
+
+    override fun setBeaconSignStatus(status: SignStatus) {
+        navController!!.previousBackStackEntry!!.savedStateHandle.set(SignBeaconTransactionFragment.SIGN_RESULT_KEY, status)
     }
 
     override fun returnToWallet() {

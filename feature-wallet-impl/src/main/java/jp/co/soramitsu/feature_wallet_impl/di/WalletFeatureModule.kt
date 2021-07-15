@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.di
 
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
@@ -43,10 +44,12 @@ import jp.co.soramitsu.feature_wallet_impl.domain.TokenUseCaseImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixinProvider
+import jp.co.soramitsu.feature_wallet_impl.domain.beacon.BeaconInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.mixin.FeeLoaderProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecksProvider
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 
 @Module
 class WalletFeatureModule {
@@ -192,4 +195,13 @@ class WalletFeatureModule {
         stakingInteractor: WalletInteractor,
         resourceManager: ResourceManager,
     ): FeeLoaderMixin.Presentation = FeeLoaderProvider(stakingInteractor, resourceManager)
+
+    @Provides
+    @FeatureScope
+    fun provideBeaconApi(
+        gson: Gson,
+        accountRepository: AccountRepository,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        feeEstimator: FeeEstimator
+    ) = BeaconInteractor(gson, accountRepository, runtimeProperty, feeEstimator)
 }

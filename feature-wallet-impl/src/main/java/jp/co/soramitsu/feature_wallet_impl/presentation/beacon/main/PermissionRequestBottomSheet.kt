@@ -1,26 +1,25 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.beacon
+package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main
 
 import android.content.Context
 import android.os.Bundle
-import it.airgap.beaconsdk.message.PermissionBeaconRequest
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
 import jp.co.soramitsu.feature_wallet_impl.R
 
 class PermissionRequestBottomSheet(
     context: Context,
-    private val request: PermissionBeaconRequest,
-    private val onApprove: (PermissionBeaconRequest) -> Unit,
+    private val dAppName: String,
+    private val onApprove: () -> Unit,
     private val onDeny: () -> Unit
 ) : FixedListBottomSheet(context) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(request.appMetadata.name)
+        setTitle(dAppName)
 
         item(titleRes = R.string.common_connect) {
-            onApprove(request)
+            onApprove()
         }
 
         item(titleRes = R.string.common_cancel) {

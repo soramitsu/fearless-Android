@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.beacon
+package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -75,14 +75,20 @@ class BeaconFragment : BaseFragment<BeaconViewModel>() {
     }
 
     override fun subscribe(viewModel: BeaconViewModel) {
-        viewModel.dAppMetadata.observe {
-            setStatus(active = true)
+        viewModel.state.observe {
+            when(it) {
+                is BeaconStateMachine.State.Connected -> {
+                    val metadata = it.dAppMetadata
 
-            beaconAppName.text = it.name
-            it.icon?.let(beaconAppIcon::load)
+                    setStatus(active = true)
 
-            beaconAppUrl.showValueOrHide(it.url)
-            beaconAppAddress.showValue(it.address)
+                    beaconAppName.text = metadata.name
+                    metadata.icon?.let(beaconAppIcon::load)
+
+                    beaconAppUrl.showValueOrHide(metadata.url)
+                    beaconAppAddress.showValue(metadata.address)
+                }
+            }
         }
 
         viewModel.currentAccountAddressModel.observe(beaconSelectedAccount::setFromAddressModel)
