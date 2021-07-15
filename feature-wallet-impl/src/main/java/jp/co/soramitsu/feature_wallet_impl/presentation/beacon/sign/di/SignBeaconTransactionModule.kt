@@ -15,7 +15,6 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.BeaconInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.SignBeaconTransactionViewModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.common.mixin.FeeLoaderProvider
 
 @Module(includes = [ViewModelModule::class])
 class SignBeaconTransactionModule {

@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation
 
-import it.airgap.beaconsdk.message.SignPayloadBeaconRequest
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel

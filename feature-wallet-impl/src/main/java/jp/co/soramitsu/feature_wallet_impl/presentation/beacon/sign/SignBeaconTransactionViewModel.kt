@@ -18,10 +18,7 @@ import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignableOperation
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.WithAmount
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.common.mixin.FeeLoaderProvider
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMap
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -96,7 +93,7 @@ class SignBeaconTransactionViewModel(
         }.launchIn(viewModelScope)
     }
 
-    private fun mapOperationToOperationModel(operation: SignableOperation, asset: Asset) : SignableOperationModel {
+    private fun mapOperationToOperationModel(operation: SignableOperation, asset: Asset): SignableOperationModel {
         val amountModel = (operation as? WithAmount)?.let {
             mapAmountToAmountModel(it.amount, asset)
         }

@@ -27,7 +27,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
-import jp.co.soramitsu.feature_wallet_impl.presentation.common.mixin.FeeLoaderProvider
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 
@@ -87,5 +86,5 @@ interface WalletFeatureDependencies {
 
     fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
 
-    fun feeEstimator() : FeeEstimator
+    fun feeEstimator(): FeeEstimator
 }

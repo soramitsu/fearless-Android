@@ -105,7 +105,7 @@ class BeaconViewModel(
 
     private fun listenForApprovals() {
         router.beaconSignStatus.onEach {
-            when(it) {
+            when (it) {
                 SignStatus.APPROVED -> stateMachine.transition(BeaconStateMachine.Event.ApprovedSigning)
                 SignStatus.DECLINED -> stateMachine.transition(BeaconStateMachine.Event.DeclinedSigning)
             }

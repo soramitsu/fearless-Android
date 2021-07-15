@@ -42,7 +42,7 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
 
         object DeclinedSigning : Event()
 
-        object ExistRequested: Event()
+        object ExistRequested : Event()
     }
 
     sealed class SideEffect {
@@ -132,5 +132,3 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
         }
     }
 }
-
-

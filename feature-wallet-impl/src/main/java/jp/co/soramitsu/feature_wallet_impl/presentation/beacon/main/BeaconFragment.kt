@@ -76,7 +76,7 @@ class BeaconFragment : BaseFragment<BeaconViewModel>() {
 
     override fun subscribe(viewModel: BeaconViewModel) {
         viewModel.state.observe {
-            when(it) {
+            when (it) {
                 is BeaconStateMachine.State.Connected -> {
                     val metadata = it.dAppMetadata
 
