@@ -11,7 +11,9 @@ class SubqueryHistoryModel(
     val operation: String,
     val amount: BigInteger,
     val time: Long,
-    val tokenType: TokenLocal.Type
+    val tokenType: TokenLocal.Type,
+    val displayAddress: String? = null, //Only to display. For instance for transfer we need to display another address
+    val call: String? = null
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0

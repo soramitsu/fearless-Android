@@ -97,6 +97,16 @@ class WalletRepositoryImpl(
         return observeTransactions(currentAccount, accounts)
     }
 
+    override fun newTransactionsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<SubqueryElement>> {
+        val accountsByAddress = accounts.associateBy { it.address }
+
+        return subqueryDao.observe(currentAccount.address).mapList {
+            val accountName = defineAccountNameForTransaction(accountsByAddress, displayAddress = it.displayAddress)
+
+            mapSubqueryDbToSubqueryElement(it, accountName)
+        }
+    }
+
     // Ready
     override suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String? {
         val page = getNewTransactions(pageSize, cursor = null, account, accounts)
@@ -110,7 +120,7 @@ class WalletRepositoryImpl(
         val elements = page.map { mapSubqueryElementToSubqueryHistoryDb(it) }
         subqueryDao.insertFromSubquery(accountAddress, elements)
 
-        return if(page.isNotEmpty()) page.last().nextPageCursor else null // TODO hz
+        return if (page.isNotEmpty()) page.last().nextPageCursor else null // TODO hz
     }
 
     override suspend fun getTransactionPage(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
@@ -131,7 +141,12 @@ class WalletRepositoryImpl(
         }
     }
 
-    override suspend fun getNewTransactions(pageSize: Int, cursor: String?, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<SubqueryElement> {
+    override suspend fun getNewTransactions(
+        pageSize: Int,
+        cursor: String?,
+        currentAccount: WalletAccount,
+        accounts: List<WalletAccount>
+    ): List<SubqueryElement> {
         val accountsByAddress = accounts.associateBy { it.address }
 
         val response = subscanApi.getSumReward(
@@ -150,10 +165,6 @@ class WalletRepositoryImpl(
         }
 
         return result
-    }
-
-    override fun newTransactionsFirstPageFlow(): Flow<List<SubqueryElement>> {
-        return subqueryDao.observe().mapList { mapSubqueryDbToSubqueryElement(it) }
     }
 
     override suspend fun getContacts(account: WalletAccount, query: String): Set<String> {
@@ -221,13 +232,22 @@ class WalletRepositoryImpl(
         recipientAddress: String?,
         senderAddress: String?
     ): String? {
-        if(recipientAddress == null && senderAddress == null) return null
+        if (recipientAddress == null && senderAddress == null) return null
         val accountAddress = if (transactionAccountAddress == recipientAddress) {
             senderAddress
         } else {
             recipientAddress
         }
         return accountsByAddress[accountAddress]?.name
+    }
+
+    //FIXME выглядит оч криво
+    private fun defineAccountNameForTransaction(
+        accountsByAddress: Map<String, WalletAccount>,
+        displayAddress: String?
+    ): String? {
+        if (displayAddress == null) return null
+        return accountsByAddress[displayAddress]?.name
     }
 
     private fun createTransaction(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal) =
@@ -278,8 +298,6 @@ class WalletRepositoryImpl(
             recentRateChange = change
         )
     }
-
-    private fun observeHistory(): Flow<List<SubqueryHistoryModel>> = subqueryDao.observe()
 
     private fun observeTransactions(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Transaction>> {
         return transactionsDao.observeTransactions(currentAccount.address)

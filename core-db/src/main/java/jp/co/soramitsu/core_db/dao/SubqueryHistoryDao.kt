@@ -16,8 +16,8 @@ abstract class SubqueryHistoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAll(transactions: List<SubqueryHistoryModel>)
 
-    @Query("SELECT * FROM subqueryentity")
-    abstract fun observe(): Flow<List<SubqueryHistoryModel>>
+    @Query("SELECT * FROM subqueryentity WHERE address = :accountAddress")
+    abstract fun observe(accountAddress: String): Flow<List<SubqueryHistoryModel>>
 
     suspend fun insertFromSubquery(accountAddress: String, transactions: List<SubqueryHistoryModel>){
         clear(accountAddress)

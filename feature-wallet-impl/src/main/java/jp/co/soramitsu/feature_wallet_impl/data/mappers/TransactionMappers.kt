@@ -49,29 +49,48 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal, account
     }
 }
 
+fun mapFromSubqueryOperationToString(operation: SubqueryElement.Operation): Pair<String, String?> =
+    when (operation) {
+        is SubqueryElement.Operation.Extrinsic -> Pair(operation.module, operation.callName)
+        else -> Pair(operation.action, null)
+    }
+
+fun mapFromStringToSubqueryOperation(operation: String, call: String?) = when {
+    call != null -> SubqueryElement.Operation.Extrinsic(operation, call)
+    operation == "Transfer" -> SubqueryElement.Operation.Transfer()
+    else -> SubqueryElement.Operation.Reward()
+}
+
+
 fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement): SubqueryHistoryModel {
     with(subqueryElement) {
+        val (o, c) = mapFromSubqueryOperationToString(operation)
         return SubqueryHistoryModel(
             address = address,
-            operation = operation,
+            operation = o,
             amount = amount.toBigInteger(),
-            time = time,
+            time = time * 1000,
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
-            hash = hash
+            hash = hash,
+            displayAddress = displayAddress,
+            call = c
         )
     }
 }
 
-fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel): SubqueryElement {
-    return SubqueryElement(
-        hash = subqueryHistoryModel.hash,
-        address = subqueryHistoryModel.address,
-        operation = subqueryHistoryModel.operation,
-        amount = subqueryHistoryModel.amount.toBigDecimal(),
-        time = subqueryHistoryModel.time,
-        tokenType = mapTokenTypeLocalToTokenType(subqueryHistoryModel.tokenType),
-        accountName = null //FIXME
-    )
+fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel, accountName: String?): SubqueryElement {
+    with(subqueryHistoryModel) {
+        return SubqueryElement(
+            hash = hash,
+            address = address,
+            operation = mapFromStringToSubqueryOperation(operation, call),
+            amount = amount.toBigDecimal(),
+            time = time,
+            tokenType = mapTokenTypeLocalToTokenType(tokenType),
+            accountName = accountName,
+            displayAddress = displayAddress
+        )
+    }
 }
 
 fun mapTransactionToTransactionLocal(
@@ -103,36 +122,25 @@ fun mapNodesToSubqueryElements(
     accountName: String?
 ): SubqueryElement {
     val token = Token.Type.fromNetworkType(currentAccount.network.type)
-
-    val amount = when {
+    var amount = ""
+    var operation: SubqueryElement.Operation?
+    var address = node.address
+    when {
         node.reward != null -> {
-            node.reward.amount
+            amount = node.reward.amount
+            operation = SubqueryElement.Operation.Reward()
         }
         node.extrinsic != null -> {
-            node.extrinsic.fee
+            amount = node.extrinsic.fee
+            operation = SubqueryElement.Operation.Extrinsic(node.extrinsic.module, node.extrinsic.call)
         }
-        node.transfer != null -> {
-            node.transfer.amount + node.transfer.fee
+        node.transfer != null -> {///FIXME от меня трансфер
+            amount = node.transfer.amount
+            operation = SubqueryElement.Operation.Reward()
+            address = node.transfer.to
         }
         else -> {
             println("------- EXCEPTION")
-            throw Exception()
-        }
-    }
-
-    val operation = when {
-        node.reward != null -> {
-            "Reward"
-        }
-        node.extrinsic != null -> {
-            "Extrinsic"
-        }
-        node.transfer != null -> {
-            "Transfer"
-        }
-        else -> {
-            println("------- EXCEPTION")
-
             throw Exception()
         }
     }
@@ -141,11 +149,12 @@ fun mapNodesToSubqueryElements(
         hash = node.id,
         address = node.address,
         operation = operation,
-        amount = amount.toBigDecimal(),
+        amount = token.amountFromPlanks(amount.toBigInteger()),
         time = node.timestamp.toLong(),
         tokenType = token,
         accountName = accountName,
-        nextPageCursor = cursor
+        nextPageCursor = cursor,
+        displayAddress = address
     )
 }
 

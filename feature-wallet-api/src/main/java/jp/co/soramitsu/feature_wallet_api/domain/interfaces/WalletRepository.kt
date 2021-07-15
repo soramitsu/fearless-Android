@@ -26,13 +26,13 @@ interface WalletRepository {
 
     fun transactionsFirstPageFlow(currentAccount: WalletAccount, pageSize: Int, accounts: List<WalletAccount>): Flow<List<Transaction>>
 
-    suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>) : String?
+    suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String?
 
     suspend fun getTransactionPage(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction>
 
     suspend fun getNewTransactions(pageSize: Int, cursor: String? = null, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<SubqueryElement>
 
-    fun newTransactionsFirstPageFlow(): Flow<List<SubqueryElement>>
+    fun newTransactionsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<SubqueryElement>>
 
     suspend fun getContacts(account: WalletAccount, query: String): Set<String>
 

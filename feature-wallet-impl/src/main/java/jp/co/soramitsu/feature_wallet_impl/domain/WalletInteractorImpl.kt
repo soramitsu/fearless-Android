@@ -74,7 +74,11 @@ class WalletInteractorImpl(
     }
 
     override fun newTransactionsFirstPageFlow(): Flow<List<SubqueryElement>>{
-        return walletRepository.newTransactionsFirstPageFlow()
+        return accountRepository.selectedAccountFlow()
+            .flatMapLatest {
+                val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
+                walletRepository.newTransactionsFirstPageFlow(mapAccountToWalletAccount(it), accounts)
+            }
     }
 
     private fun mapAccountToWalletAccount(account: Account) = with(account) {
