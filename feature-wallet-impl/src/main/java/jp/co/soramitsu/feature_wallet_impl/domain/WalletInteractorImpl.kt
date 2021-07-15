@@ -87,7 +87,7 @@ class WalletInteractorImpl(
         return previous.zip(new).all { (previousElement, currentElement) -> previousElement == currentElement }
     }
 
-    override suspend fun syncTransactionsFirstPage(pageSize: Int): Result<Unit> {
+    override suspend fun syncTransactionsFirstPage(pageSize: Int): Result<String?> {
         return runCatching {
             val account = accountRepository.getSelectedAccount()
             val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)

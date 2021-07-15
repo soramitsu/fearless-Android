@@ -20,7 +20,7 @@ abstract class SubqueryHistoryDao {
     abstract fun observe(): Flow<List<SubqueryHistoryModel>>
 
     suspend fun insertFromSubquery(accountAddress: String, transactions: List<SubqueryHistoryModel>){
-        clear("12xtAYsRUrmbniiWQqJtECiBQrMn8AypQcXhnQAc6RB6XkLW")//TODO for debug purposes, change -> accountAddress when done!
+        clear(accountAddress)
 
         val oldest = transactions.minByOrNull(SubqueryHistoryModel::time)
         oldest?.let{

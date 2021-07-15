@@ -16,7 +16,7 @@ interface TransactionHistoryUi {
 
 interface TransactionHistoryMixin : TransactionHistoryUi {
 
-    suspend fun syncFirstTransactionsPage(): Result<Unit>
+    suspend fun syncFirstTransactionsPage(): Result<String?>
 
     fun scrolled(scope: CoroutineScope, currentIndex: Int)
 

@@ -83,8 +83,10 @@ class TransactionHistoryProvider(
         filters.clear()
     }
 
-    override suspend fun syncFirstTransactionsPage(): Result<Unit> {
-        return walletInteractor.syncTransactionsFirstPage(PAGE_SIZE)
+    override suspend fun syncFirstTransactionsPage(): Result<String?> {
+        val result = walletInteractor.syncTransactionsFirstPage(PAGE_SIZE)
+        if (result.isSuccess) lastCursor = result.getOrNull()
+        return result
     }
 
     override fun transactionClicked(transactionModel: TransactionModel) {
@@ -104,7 +106,7 @@ class TransactionHistoryProvider(
                 val newPage = result.getOrThrow()
                 lastPageLoaded = newPage.isEmpty()
 
-                if(!lastPageLoaded) lastCursor = newPage.last().nextPageCursor
+                if (!lastPageLoaded) lastCursor = newPage.last().nextPageCursor
 
                 val combined = newTransformNewPage(newPage, false)
 

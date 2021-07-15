@@ -35,7 +35,7 @@ interface WalletInteractor {
 
     fun newTransactionsFirstPageFlow(): Flow<List<SubqueryElement>>
 
-    suspend fun syncTransactionsFirstPage(pageSize: Int): Result<Unit>
+    suspend fun syncTransactionsFirstPage(pageSize: Int): Result<String?>
 
     suspend fun getTransactionPage(pageSize: Int, page: Int): Result<List<Transaction>>
 

@@ -98,7 +98,7 @@ class WalletRepositoryImpl(
     }
 
     // Ready
-    override suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>) {
+    override suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String? {
         val page = getNewTransactions(pageSize, cursor = null, account, accounts)
         val accountAddress = account.address
 //
@@ -109,6 +109,8 @@ class WalletRepositoryImpl(
 //        transactionsDao.insertFromSubScan(accountAddress, toInsertLocally)
         val elements = page.map { mapSubqueryElementToSubqueryHistoryDb(it) }
         subqueryDao.insertFromSubquery(accountAddress, elements)
+
+        return if(page.isNotEmpty()) page.last().nextPageCursor else null // TODO hz
     }
 
     override suspend fun getTransactionPage(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
