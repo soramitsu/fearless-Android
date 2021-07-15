@@ -73,7 +73,8 @@ fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement): Sub
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
             hash = hash,
             displayAddress = displayAddress,
-            call = c
+            call = c,
+            isIncome = isIncome
         )
     }
 }
@@ -88,7 +89,8 @@ fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel, a
             time = time,
             tokenType = mapTokenTypeLocalToTokenType(tokenType),
             accountName = accountName,
-            displayAddress = displayAddress
+            displayAddress = displayAddress,
+            isIncome = isIncome
         )
     }
 }
@@ -122,22 +124,26 @@ fun mapNodesToSubqueryElements(
     accountName: String?
 ): SubqueryElement {
     val token = Token.Type.fromNetworkType(currentAccount.network.type)
-    var amount = ""
+    var amount: String
     var operation: SubqueryElement.Operation?
     var address = node.address
+    val isIncome: Boolean
     when {
         node.reward != null -> {
             amount = node.reward.amount
             operation = SubqueryElement.Operation.Reward()
+            isIncome = node.reward.isReward
         }
         node.extrinsic != null -> {
             amount = node.extrinsic.fee
             operation = SubqueryElement.Operation.Extrinsic(node.extrinsic.module, node.extrinsic.call)
+            isIncome = false
         }
         node.transfer != null -> {///FIXME от меня трансфер
             amount = node.transfer.amount
             operation = SubqueryElement.Operation.Reward()
             address = node.transfer.to
+            isIncome = false
         }
         else -> {
             println("------- EXCEPTION")
@@ -154,7 +160,8 @@ fun mapNodesToSubqueryElements(
         tokenType = token,
         accountName = accountName,
         nextPageCursor = cursor,
-        displayAddress = address
+        displayAddress = address,
+        isIncome = isIncome
     )
 }
 

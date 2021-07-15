@@ -12,6 +12,7 @@ class SubqueryHistoryModel(
     val amount: BigInteger,
     val time: Long,
     val tokenType: TokenLocal.Type,
+    val isIncome: Boolean,
     val displayAddress: String? = null, //Only to display. For instance for transfer we need to display another address
     val call: String? = null
 ) {
