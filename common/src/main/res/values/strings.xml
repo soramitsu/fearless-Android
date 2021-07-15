@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="beacon_declined">Declined</string>
+    <string name="beacon_pairing_cancelled">Pairing cancelled</string>
     <string name="beacon_signed">Approved</string>
     <string name="beacon_connected">Connected to %s</string>
     <string name="common_cannot_decode_transaction">Cannot decode transaction</string>

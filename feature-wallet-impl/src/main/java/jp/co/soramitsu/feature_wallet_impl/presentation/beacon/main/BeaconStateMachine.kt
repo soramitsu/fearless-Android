@@ -54,6 +54,10 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
 
         class RespondApprovedSign(val request: SignPayloadBeaconRequest) : SideEffect()
 
+        class RespondDeclinedSign(val request: SignPayloadBeaconRequest) : SideEffect()
+
+        class RespondDeclinedPermissions(val request: PermissionBeaconRequest) : SideEffect()
+
         object Exit : SideEffect()
     }
 
@@ -106,6 +110,7 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
 
             Event.DeclinedPermissions -> when (state) {
                 is State.AwaitingPermissionsApproval -> {
+                    sideEffect(SideEffect.RespondDeclinedPermissions(state.request))
                     sideEffect(SideEffect.Exit)
 
                     State.Finished
@@ -117,6 +122,8 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
             Event.DeclinedSigning -> {
                 when (state) {
                     is State.AwaitingSigningApproval -> {
+                        sideEffect(SideEffect.RespondDeclinedSign(state.awaitingRequest))
+
                         State.Connected(state.dAppMetadata)
                     }
 

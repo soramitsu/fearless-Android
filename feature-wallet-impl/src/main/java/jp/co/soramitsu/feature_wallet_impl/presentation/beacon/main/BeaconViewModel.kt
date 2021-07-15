@@ -99,6 +99,18 @@ class BeaconViewModel(
 
                     router.back()
                 }
+
+                is SideEffect.RespondDeclinedSign -> {
+                    beaconInteractor.reportSignDeclined(it.request)
+
+                    showMessage(resourceManager.getString(R.string.beacon_declined))
+                }
+
+                is SideEffect.RespondDeclinedPermissions -> {
+                    beaconInteractor.reportPermissionsDeclined(it.request)
+
+                    showMessage(resourceManager.getString(R.string.beacon_pairing_cancelled))
+                }
             }
         }.launchIn(viewModelScope)
     }

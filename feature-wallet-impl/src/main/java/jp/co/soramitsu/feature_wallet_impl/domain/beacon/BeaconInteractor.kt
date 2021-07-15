@@ -3,8 +3,10 @@ package jp.co.soramitsu.feature_wallet_impl.domain.beacon
 import android.net.Uri
 import com.google.gson.Gson
 import it.airgap.beaconsdk.client.BeaconClient
+import it.airgap.beaconsdk.data.beacon.BeaconError
 import it.airgap.beaconsdk.data.beacon.P2pPeer
 import it.airgap.beaconsdk.message.BeaconRequest
+import it.airgap.beaconsdk.message.ErrorBeaconResponse
 import it.airgap.beaconsdk.message.PermissionBeaconRequest
 import it.airgap.beaconsdk.message.PermissionBeaconResponse
 import it.airgap.beaconsdk.message.SignPayloadBeaconRequest
@@ -74,6 +76,18 @@ class BeaconInteractor(
 
             mapCallToSignableOperation(call)
         }
+    }
+
+    suspend fun reportSignDeclined(
+        request: SignPayloadBeaconRequest
+    ) {
+        beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
+    }
+
+    suspend fun reportPermissionsDeclined(
+        request: PermissionBeaconRequest
+    )  {
+        beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
     }
 
     suspend fun signPayload(
