@@ -21,7 +21,6 @@ import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
-import jp.co.soramitsu.core_db.dao.OperationsDao
 import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
 import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
@@ -127,8 +126,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun assetDao(): AssetDao
 
     abstract fun transactionsDao(): TransactionDao
-
-    abstract fun operationDao(): OperationsDao
 
     abstract fun subqueryHistoryDao(): SubqueryHistoryDao
 

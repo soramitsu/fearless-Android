@@ -16,6 +16,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
+import jp.co.soramitsu.feature_wallet_api.data.mappers.tokenTypeLocalFromNetworkType
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -54,7 +55,7 @@ import java.math.BigDecimal
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
     private val transactionsDao: TransactionDao,
-    private val operationsDao: SubqueryHistoryDao,
+    private val subqueryDao: SubqueryHistoryDao,
     private val subscanApi: SubscanNetworkApi,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
@@ -107,7 +108,7 @@ class WalletRepositoryImpl(
 
 //        transactionsDao.insertFromSubScan(accountAddress, toInsertLocally)
         val elements = page.map { mapSubqueryElementToSubqueryHistoryDb(it) }
-        operationsDao.insertFromSubquery(accountAddress, elements)
+        subqueryDao.insertFromSubquery(accountAddress, elements)
     }
 
     override suspend fun getTransactionPage(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
@@ -133,7 +134,7 @@ class WalletRepositoryImpl(
 
         val response = subscanApi.getSumReward(
             SubqueryHistoryElementByAddressRequest(
-                "12xtAYsRUrmbniiWQqJtECiBQrMn8AypQcXhnQAc6RB6XkLW",
+                currentAccount.address,
                 pageSize,
                 cursor
             )
@@ -143,14 +144,14 @@ class WalletRepositoryImpl(
 
         val result = response.historyElements.nodes.map {
             val accountName = defineAccountNameForTransaction(accountsByAddress, currentAccount.address, it.transfer?.from, it.transfer?.to)
-            mapNodesToSubqueryElements(it, pageInfo.endCursor, accountName)
+            mapNodesToSubqueryElements(it, pageInfo.endCursor, currentAccount, accountName)
         }
 
         return result
     }
 
     override fun newTransactionsFirstPageFlow(): Flow<List<SubqueryElement>> {
-        return operationsDao.observe().mapList { mapSubqueryDbToSubqueryElement(it) }
+        return subqueryDao.observe().mapList { mapSubqueryDbToSubqueryElement(it) }
     }
 
     override suspend fun getContacts(account: WalletAccount, query: String): Set<String> {
@@ -218,7 +219,7 @@ class WalletRepositoryImpl(
         recipientAddress: String?,
         senderAddress: String?
     ): String? {
-        if(recipientAddress == null && senderAddress == null) return accountsByAddress[transactionAccountAddress]?.name
+        if(recipientAddress == null && senderAddress == null) return null
         val accountAddress = if (transactionAccountAddress == recipientAddress) {
             senderAddress
         } else {
@@ -276,7 +277,7 @@ class WalletRepositoryImpl(
         )
     }
 
-    private fun observeHistory(): Flow<List<SubqueryHistoryModel>> = operationsDao.observe()
+    private fun observeHistory(): Flow<List<SubqueryHistoryModel>> = subqueryDao.observe()
 
     private fun observeTransactions(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Transaction>> {
         return transactionsDao.observeTransactions(currentAccount.address)

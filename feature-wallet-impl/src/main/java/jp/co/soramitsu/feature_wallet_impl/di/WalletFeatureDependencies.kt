@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.AssetDao
-import jp.co.soramitsu.core_db.dao.OperationsDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
 import jp.co.soramitsu.core_db.dao.TokenDao
@@ -52,8 +51,6 @@ interface WalletFeatureDependencies {
     fun tokenDao(): TokenDao
 
     fun transactionsDao(): TransactionDao
-
-    fun operationsDao(): OperationsDao
 
     fun subqueryDao(): SubqueryHistoryDao
 

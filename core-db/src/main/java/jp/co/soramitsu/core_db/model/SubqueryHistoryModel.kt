@@ -11,7 +11,7 @@ class SubqueryHistoryModel(
     val operation: String,
     val amount: BigInteger,
     val time: Long,
-    val tokenType: Int
+    val tokenType: TokenLocal.Type
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0

@@ -50,14 +50,16 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal, account
 }
 
 fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement): SubqueryHistoryModel {
-    return SubqueryHistoryModel(
-        address = subqueryElement.address,
-        operation = subqueryElement.operation,
-        amount = subqueryElement.amount.toBigInteger(),
-        time = subqueryElement.time,
-        tokenType = 0,
-        hash = subqueryElement.hash
-    )
+    with(subqueryElement) {
+        return SubqueryHistoryModel(
+            address = address,
+            operation = operation,
+            amount = amount.toBigInteger(),
+            time = time,
+            tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
+            hash = hash
+        )
+    }
 }
 
 fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel): SubqueryElement {
@@ -67,7 +69,7 @@ fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel): 
         operation = subqueryHistoryModel.operation,
         amount = subqueryHistoryModel.amount.toBigDecimal(),
         time = subqueryHistoryModel.time,
-        tokenType = Token.Type.KSM,
+        tokenType = mapTokenTypeLocalToTokenType(subqueryHistoryModel.tokenType),
         accountName = null //FIXME
     )
 }
@@ -94,7 +96,14 @@ fun mapTransactionToTransactionLocal(
     }
 }
 
-fun mapNodesToSubqueryElements(node: SubqueryHistoryElementResponse.Query.HistoryElements.Node, cursor: String, accountName: String?): SubqueryElement {
+fun mapNodesToSubqueryElements(
+    node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
+    cursor: String,
+    currentAccount: WalletAccount,
+    accountName: String?
+): SubqueryElement {
+    val token = Token.Type.fromNetworkType(currentAccount.network.type)
+
     val amount = when {
         node.reward != null -> {
             node.reward.amount
@@ -103,7 +112,7 @@ fun mapNodesToSubqueryElements(node: SubqueryHistoryElementResponse.Query.Histor
             node.extrinsic.fee
         }
         node.transfer != null -> {
-            node.transfer.amount // TODO maybe amount + fee
+            node.transfer.amount + node.transfer.fee
         }
         else -> {
             println("------- EXCEPTION")
@@ -134,47 +143,10 @@ fun mapNodesToSubqueryElements(node: SubqueryHistoryElementResponse.Query.Histor
         operation = operation,
         amount = amount.toBigDecimal(),
         time = node.timestamp.toLong(),
-        tokenType = Token.Type.KSM,
+        tokenType = token,
         accountName = accountName,
         nextPageCursor = cursor
     )
-}
-
-fun mapNodesToTransaction(node: SubqueryHistoryElementResponse.Query.HistoryElements.Node): HistoryElement {
-    return when {
-        node.reward != null -> {
-            RewardSlash(
-                amount = node.reward.amount,
-                isReward = node.reward.isReward,
-                era = node.reward.era,
-                validator = node.reward.validator
-            )
-        }
-        node.extrinsic != null -> {
-            Extrinsic(
-                hash = node.extrinsic.hash,
-                module = node.extrinsic.module,
-                call = node.extrinsic.call,
-                fee = node.extrinsic.fee,
-                success = node.extrinsic.success
-            )
-        }
-        node.transfer != null -> {
-            NewTransfer(
-                amount = node.transfer.amount,
-                to = node.transfer.to,
-                from = node.transfer.from,
-                fee = node.transfer.fee,
-                block = node.transfer.block,
-                extrinsicId = node.transfer.extrinsicId,
-                timestamp = node.timestamp,
-                hash = node.id
-            )
-        }
-        else -> {
-            throw Exception()
-        }
-    }
 }
 
 fun mapTransferToTransaction(transfer: TransactionRemote, account: WalletAccount, accountName: String?): Transaction {

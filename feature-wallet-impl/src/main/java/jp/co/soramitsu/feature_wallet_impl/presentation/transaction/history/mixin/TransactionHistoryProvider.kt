@@ -40,6 +40,7 @@ class TransactionHistoryProvider(
     private var isLoading = false
     private var lastPageLoaded = false
 
+    private var lastCursor: String? = null
     private val filters: MutableList<TransactionFilter> = mutableListOf()
 
     override fun startObservingTransactions(scope: CoroutineScope) {
@@ -97,12 +98,13 @@ class TransactionHistoryProvider(
         isLoading = true
 
         scope.launch {
-            val result = walletInteractor.getNewTransactions(PAGE_SIZE, currentTransactions.last().transactionModel.nextPageCursor) // FIXME looks like shit
+            val result = walletInteractor.getNewTransactions(PAGE_SIZE, cursor = lastCursor)
 
             if (result.isSuccess) {
                 val newPage = result.getOrThrow()
-
                 lastPageLoaded = newPage.isEmpty()
+
+                if(!lastPageLoaded) lastCursor = newPage.last().nextPageCursor
 
                 val combined = newTransformNewPage(newPage, false)
 
