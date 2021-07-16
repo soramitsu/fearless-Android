@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import java.math.BigDecimal
@@ -31,6 +33,18 @@ data class SubqueryElement(
         is Operation.Extrinsic -> false
         is Operation.Reward -> operation.isReward
         is Operation.Transfer -> address == operation.receiver
+    }
+
+    val statusAppearance = when (operation.status) {
+        Status.COMPLETED -> StatusAppearance.COMPLETED
+        Status.FAILED -> StatusAppearance.FAILED
+        Status.PENDING -> StatusAppearance.PENDING
+    }
+
+    val amountColorRes = when {
+        operation.status == SubqueryElement.Status.FAILED -> R.color.gray2
+        getIsIncome() -> R.color.green
+        else -> R.color.white
     }
 
     private fun createFormattedAmount(): String {
@@ -90,5 +104,14 @@ data class SubqueryElement(
                 return if (success) COMPLETED else FAILED
             }
         }
+    }
+
+    enum class StatusAppearance(
+        @DrawableRes val icon: Int,
+        @StringRes val labelRes: Int
+    ) {
+        COMPLETED(R.drawable.ic_transaction_completed, R.string.transaction_status_completed),
+        PENDING(R.drawable.ic_transaction_pending, R.string.transaction_status_pending),
+        FAILED(R.drawable.ic_red_cross, R.string.transaction_status_failed),
     }
 }

@@ -9,6 +9,10 @@ import jp.co.soramitsu.common.list.GroupedListHolder
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.formatDaysSinceEpoch
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
@@ -47,19 +51,19 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
             with(item.transactionModel) {
                 itemTransactionAddress.text = getOperationHeader()
 
-//                itemTransactionAmount.setTextColorRes(amountColorRes)
+                itemTransactionAmount.setTextColorRes(amountColorRes)
                 itemTransactionAmount.text = formattedAmount
 
                 itemTransactionTime.text = time.formatDateTime(context)
 
                 itemTransactionType.text = getElementDescription()
 
-//                if (status != Transaction.Status.COMPLETED) {
-//                    itemTransactionStatus.makeVisible()
-//                    itemTransactionStatus.setImageResource(statusAppearance.icon)
-//                } else {
-//                    itemTransactionStatus.makeGone()
-//                }
+                if (operation.status != SubqueryElement.Status.COMPLETED) {
+                    itemTransactionStatus.makeVisible()
+                    itemTransactionStatus.setImageResource(statusAppearance.icon)
+                } else {
+                    itemTransactionStatus.makeGone()
+                }
 //
 //                setOnClickListener { handler.transactionClicked(this) }
             }
