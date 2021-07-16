@@ -147,14 +147,14 @@ class WalletFeatureModule {
     fun providePaymentUpdater(
         remoteSource: SubstrateRemoteSource,
         assetCache: AssetCache,
-        transactionDao: TransactionDao,
+        subqueryHistoryDao: SubqueryHistoryDao,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         accountUpdateScope: AccountUpdateScope,
     ): PaymentUpdater {
         return PaymentUpdater(
             remoteSource,
             assetCache,
-            transactionDao,
+            subqueryHistoryDao,
             runtimeProperty,
             accountUpdateScope
         )

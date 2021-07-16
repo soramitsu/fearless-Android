@@ -19,11 +19,23 @@ abstract class SubqueryHistoryDao {
     @Query("SELECT * FROM subqueryentity WHERE address = :accountAddress")
     abstract fun observe(accountAddress: String): Flow<List<SubqueryHistoryModel>>
 
-    suspend fun insertFromSubquery(accountAddress: String, transactions: List<SubqueryHistoryModel>){
+    @Query("SELECT * FROM subqueryentity WHERE hash = :hash")
+    abstract suspend fun getTransaction(hash: String): SubqueryHistoryModel?
+
+    @Query(
+        """
+        SELECT DISTINCT receiver FROM subqueryentity WHERE (receiver LIKE '%' || :query  || '%' AND receiver != address) AND address = :accountAddress
+        UNION
+        SELECT DISTINCT sender FROM subqueryentity WHERE (sender LIKE '%' || :query  || '%' AND SENDER != address) AND address = :accountAddress
+    """
+    )
+    abstract suspend fun getContacts(query: String, accountAddress: String): List<String>
+
+    suspend fun insertFromSubquery(accountAddress: String, transactions: List<SubqueryHistoryModel>) {
         clear(accountAddress)
 
         val oldest = transactions.minByOrNull(SubqueryHistoryModel::time)
-        oldest?.let{
+        oldest?.let {
             clearOld(accountAddress, oldest.time)
         }
 

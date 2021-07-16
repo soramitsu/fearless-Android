@@ -71,7 +71,7 @@ fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement): Sub
 
 fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel, accountName: String?): SubqueryElement {
     with(subqueryHistoryModel) {
-        val operation = if (type != null && call != null) {
+        val operation = if (type != null && call != null && call != "Staking") {
             SubqueryElement.Operation.Extrinsic(
                 hash = hash,
                 module = type!!,
@@ -102,28 +102,6 @@ fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel, a
             operation = operation,
             time = time,
             tokenType = mapTokenTypeLocalToTokenType(tokenType),
-        )
-    }
-}
-
-fun mapTransactionToTransactionLocal(
-    transaction: Transaction,
-    accountAddress: String,
-    source: TransactionLocal.Source
-): TransactionLocal {
-    return with(transaction) {
-        TransactionLocal(
-            accountAddress = accountAddress,
-            hash = hash,
-            recipientAddress = recipientAddress,
-            senderAddress = senderAddress,
-            status = mapTransactionStatusToTransactionStatusLocal(status),
-            amount = amount,
-            date = date,
-            source = source,
-            token = mapTokenTypeToTokenTypeLocal(tokenType),
-            feeInPlanks = fee?.let(tokenType::planksFromAmount),
-            networkType = tokenType.networkType
         )
     }
 }

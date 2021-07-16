@@ -8,7 +8,9 @@ import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
+import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
 import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
@@ -33,7 +35,7 @@ import kotlinx.coroutines.flow.onEach
 class PaymentUpdater(
     private val substrateSource: SubstrateRemoteSource,
     private val assetCache: AssetCache,
-    private val transactionsDao: TransactionDao,
+    private val subqueryHistoryDao: SubqueryHistoryDao,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     override val scope: AccountUpdateScope,
 ) : Updater {
@@ -70,20 +72,20 @@ class PaymentUpdater(
                 null -> Transaction.Status.PENDING
             }
 
-            createTransactionLocal(it.extrinsic, localStatus, address)
+            createSubqueryHistoryElement(it.extrinsic, localStatus, address)
         }
 
-        transactionsDao.insert(local)
+        subqueryHistoryDao.insertAll(local)
     }
 
-    private suspend fun createTransactionLocal(
+    private suspend fun createSubqueryHistoryElement(
         extrinsic: TransferExtrinsic,
         status: Transaction.Status,
         accountAddress: String,
-    ): TransactionLocal {
-        val localCopy = transactionsDao.getTransaction(extrinsic.hash)
+    ): SubqueryHistoryModel {
+        val localCopy = subqueryHistoryDao.getTransaction(extrinsic.hash)
 
-        val fee = localCopy?.feeInPlanks
+        val fee = localCopy?.fee
 
         val networkType = accountAddress.networkType()
         val tokenType = Token.Type.fromNetworkType(networkType)
@@ -91,18 +93,16 @@ class PaymentUpdater(
         val senderAddress = extrinsic.senderId.toAddress(networkType)
         val recipientAddress = extrinsic.recipientId.toAddress(networkType)
 
-        return TransactionLocal(
+        return SubqueryHistoryModel(
             hash = extrinsic.hash,
-            accountAddress = accountAddress,
-            senderAddress = senderAddress,
-            recipientAddress = recipientAddress,
-            source = TransactionLocal.Source.BLOCKCHAIN,
-            status = mapTransactionStatusToTransactionStatusLocal(status),
-            feeInPlanks = fee,
-            token = mapTokenTypeToTokenTypeLocal(tokenType),
-            amount = tokenType.amountFromPlanks(extrinsic.amountInPlanks),
-            date = System.currentTimeMillis(),
-            networkType = networkType
+            address = accountAddress,
+            time = System.currentTimeMillis(),
+            tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
+            call = "Transfer",
+            amount = extrinsic.amountInPlanks,
+            sender = senderAddress,
+            receiver = recipientAddress,
+            fee = fee
         )
     }
 }

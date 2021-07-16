@@ -13,7 +13,7 @@ class SubqueryHistoryModel(
     val address: String,
     val time: Long,
     val tokenType: TokenLocal.Type,
-    val type: String?, // maybe the same as module
+    val type: String? = null, // maybe the same as module
     val call: String? = null,
     val amount: BigInteger? = null,
     val sender: String? = null,

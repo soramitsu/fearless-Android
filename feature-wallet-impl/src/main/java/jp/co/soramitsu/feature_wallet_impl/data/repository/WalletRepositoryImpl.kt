@@ -34,7 +34,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodesToSubqueryElemen
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryDbToSubqueryElement
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryElementToSubqueryHistoryDb
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTransaction
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
@@ -168,7 +167,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun getContacts(account: WalletAccount, query: String): Set<String> {
-        return transactionsDao.getContacts(query, account.address).toSet()
+        return subqueryDao.getContacts(query, account.address).toSet()
     }
 
     override suspend fun getTransferFee(accountAddress: String, transfer: Transfer): Fee {
@@ -180,11 +179,9 @@ class WalletRepositoryImpl(
     override suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal) {
         val transactionHash = substrateSource.performTransfer(accountAddress, transfer)
 
-        val transaction = createTransaction(transactionHash, transfer, accountAddress, fee)
+        val transaction = createSubqueryElement(transactionHash, transfer, accountAddress, fee)
 
-        val transactionLocal = mapTransactionToTransactionLocal(transaction, accountAddress, TransactionLocal.Source.APP)
-
-        transactionsDao.insert(transactionLocal)
+        subqueryDao.insert(transaction)//TODO transaction source
     }
 
     override suspend fun checkTransferValidity(accountAddress: String, transfer: Transfer): TransferValidityStatus {
@@ -250,18 +247,18 @@ class WalletRepositoryImpl(
         return accountsByAddress[displayAddress]?.name
     }
 
-    private fun createTransaction(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal) =
-        Transaction(
+    //TODO status
+    private fun createSubqueryElement(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal) =
+        SubqueryHistoryModel(
             hash = hash,
-            tokenType = transfer.tokenType,
-            senderAddress = senderAddress,
-            recipientAddress = transfer.recipient,
-            amount = transfer.amount,
-            date = System.currentTimeMillis(),
-            isIncome = false,
-            fee = fee,
-            status = Transaction.Status.PENDING,
-            accountName = null
+            address = senderAddress,
+            time = System.currentTimeMillis(),
+            tokenType = mapTokenTypeToTokenTypeLocal(transfer.tokenType),
+            call = "Transfer",
+            amount = transfer.amount.toBigInteger(),
+            sender = senderAddress,
+            receiver = transfer.recipient,
+            fee = fee.toBigInteger()
         )
 
     private suspend fun getCachedTransactions(page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
