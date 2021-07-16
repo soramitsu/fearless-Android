@@ -4,10 +4,6 @@ import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
 import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeLocalToTokenType
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
-import jp.co.soramitsu.feature_wallet_api.domain.model.RewardSlash
-import jp.co.soramitsu.feature_wallet_api.domain.model.Extrinsic
-import jp.co.soramitsu.feature_wallet_api.domain.model.HistoryElement
-import jp.co.soramitsu.feature_wallet_api.domain.model.NewTransfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
@@ -16,7 +12,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionRemote
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
 fun mapTransactionStatusToTransactionStatusLocal(status: Transaction.Status) = when (status) {
     Transaction.Status.PENDING -> TransactionLocal.Status.PENDING
@@ -60,7 +55,6 @@ fun mapFromStringToSubqueryOperation(operation: String?, call: String?) = when {
     operation == "Transfer" -> SubqueryElement.Operation.Transfer()
     else -> SubqueryElement.Operation.Reward()
 }
-
 
 fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement): SubqueryHistoryModel {
     with(subqueryElement) {

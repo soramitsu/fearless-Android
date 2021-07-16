@@ -1,10 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.model.response
 
-import jp.co.soramitsu.feature_wallet_api.domain.model.Extrinsic
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import java.math.BigDecimal
-import java.math.BigInteger
-
 class SubqueryHistoryElementResponse(val query: Query) {
     class Query(val historyElements: HistoryElements) {
 
@@ -39,11 +34,12 @@ class SubqueryHistoryElementResponse(val query: Query) {
                     val extrinsicId: String
                 )
 
-                class RewardSlash(
-                    val amount: String,
-                    val isReward: Boolean,
-                    val era: Int,
-                    val validator: String
+                class Extrinsic(
+                    val hash: String,
+                    val module: String,
+                    val call: String,
+                    val fee: String,
+                    val success: Boolean
                 )
             }
         }

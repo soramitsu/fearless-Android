@@ -45,13 +45,9 @@ import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
-import jp.co.soramitsu.core_db.model.Extrinsic
-import jp.co.soramitsu.core_db.model.Reward
 import jp.co.soramitsu.core_db.model.StakingRewardLocal
 import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
-import jp.co.soramitsu.core_db.model.Transaction
-import jp.co.soramitsu.core_db.model.Transfer
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
@@ -69,10 +65,6 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
         AccountStakingLocal::class,
         StakingRewardLocal::class,
         TotalRewardLocal::class,
-        Transaction::class,
-        Transfer::class,
-        Reward::class,
-        Extrinsic::class,
         SubqueryHistoryModel::class
     ]
 )

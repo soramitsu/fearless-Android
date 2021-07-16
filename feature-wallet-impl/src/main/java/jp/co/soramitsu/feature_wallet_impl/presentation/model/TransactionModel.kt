@@ -3,14 +3,12 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.model
 import android.os.Parcelable
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import jp.co.soramitsu.feature_wallet_api.domain.model.HistoryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
-import kotlinx.android.parcel.RawValue
 import java.math.BigDecimal
 
 @Parcelize
