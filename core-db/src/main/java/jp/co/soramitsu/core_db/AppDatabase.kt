@@ -8,6 +8,7 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.core_db.converters.LongMathConverters
 import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
+import jp.co.soramitsu.core_db.converters.SubqueryConverters
 import jp.co.soramitsu.core_db.converters.TokenConverters
 import jp.co.soramitsu.core_db.converters.TransactionConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
@@ -72,8 +73,10 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
     LongMathConverters::class,
     NetworkTypeConverters::class,
     TransactionConverters::class,
-    TokenConverters::class
+    TokenConverters::class,
+    SubqueryConverters::class
 )
+
 abstract class AppDatabase : RoomDatabase() {
 
     companion object {

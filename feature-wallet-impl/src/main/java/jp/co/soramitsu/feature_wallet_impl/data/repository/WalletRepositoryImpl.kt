@@ -92,10 +92,6 @@ class WalletRepositoryImpl(
         return syncAssetsRates(account)
     }
 
-    override fun transactionsFirstPageFlow(currentAccount: WalletAccount, pageSize: Int, accounts: List<WalletAccount>): Flow<List<Transaction>> {
-        return observeTransactions(currentAccount, accounts)
-    }
-
     override fun newTransactionsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<SubqueryElement>> {
         val accountsByAddress = accounts.associateBy { it.address }
 
@@ -116,7 +112,7 @@ class WalletRepositoryImpl(
 //        }
 
 //        transactionsDao.insertFromSubScan(accountAddress, toInsertLocally)
-        val elements = page.map { mapSubqueryElementToSubqueryHistoryDb(it) }
+        val elements = page.map { mapSubqueryElementToSubqueryHistoryDb(it, SubqueryHistoryModel.Source.SUBSCAN) }
         subqueryDao.insertFromSubquery(accountAddress, elements)
 
         return if (page.isNotEmpty()) page.last().nextPageCursor else null // TODO hz
@@ -179,7 +175,7 @@ class WalletRepositoryImpl(
     override suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal) {
         val transactionHash = substrateSource.performTransfer(accountAddress, transfer)
 
-        val transaction = createSubqueryElement(transactionHash, transfer, accountAddress, fee)
+        val transaction = createSubqueryElement(transactionHash, transfer, accountAddress, fee, SubqueryHistoryModel.Source.APP)
 
         subqueryDao.insert(transaction)//TODO transaction source
     }
@@ -247,8 +243,7 @@ class WalletRepositoryImpl(
         return accountsByAddress[displayAddress]?.name
     }
 
-    //TODO status
-    private fun createSubqueryElement(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal) =
+    private fun createSubqueryElement(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal, source: SubqueryHistoryModel.Source) =
         SubqueryHistoryModel(
             hash = hash,
             address = senderAddress,
@@ -258,7 +253,9 @@ class WalletRepositoryImpl(
             amount = transfer.amount.toBigInteger(),
             sender = senderAddress,
             receiver = transfer.recipient,
-            fee = fee.toBigInteger()
+            fee = fee.toBigInteger(),
+            status = SubqueryHistoryModel.Status.PENDING,
+            source = source
         )
 
     private suspend fun getCachedTransactions(page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
@@ -294,17 +291,6 @@ class WalletRepositoryImpl(
             dollarRate = mostRecentPrice,
             recentRateChange = change
         )
-    }
-
-    private fun observeTransactions(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Transaction>> {
-        return transactionsDao.observeTransactions(currentAccount.address)
-            .map {
-                val accountsByAddress = accounts.associateBy { it.address }
-                it.map {
-                    val accountName = defineAccountNameForTransaction(accountsByAddress, it.accountAddress, it.recipientAddress, it.senderAddress)
-                    mapTransactionLocalToTransaction(it, accountName)
-                }
-            }
     }
 
     private suspend fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): SubscanResponse<AssetPriceStatistics> {

@@ -43,7 +43,8 @@ data class SubqueryElement(
     sealed class Operation(
         val header: String?,
         val subheader: String?,
-        val displayAmount: BigDecimal // amount that we show on UI (might be fee)
+        val displayAmount: BigDecimal, // amount that we show on UI (might be fee)
+    val status: Status
     ) {
         class Extrinsic(
             val hash: String,
@@ -51,21 +52,21 @@ data class SubqueryElement(
             val call: String,
             val fee: BigDecimal,
             val success: Boolean
-        ) : Operation(call, module,  fee)
+        ) : Operation(call, module, fee, Status.fromSuccess(success))
 
         class Reward(
             val amount: BigDecimal,
             val isReward: Boolean,
             val era: Int,
             val validator: String
-        ) : Operation(if (isReward) "Reward" else "Slash", "Staking", amount)
+        ) : Operation(if (isReward) "Reward" else "Slash", "Staking", amount, Status.FAILED)
 
         class Transfer(
             val amount: BigDecimal,
             val receiver: String,
             val sender: String,
             val fee: BigDecimal
-        ) : Operation(null, "Transfer", amount)
+        ) : Operation(null, "Transfer", amount, Status.COMPLETED)
 
         //Real amount without fee
         fun getOperationAmount() = when (this) {
@@ -78,6 +79,16 @@ data class SubqueryElement(
             is Reward -> null
             is Transfer -> fee
             is Extrinsic -> fee
+        }
+    }
+
+    enum class Status {
+        PENDING, COMPLETED, FAILED;
+
+        companion object {
+            fun fromSuccess(success: Boolean): Status {
+                return if (success) COMPLETED else FAILED
+            }
         }
     }
 }

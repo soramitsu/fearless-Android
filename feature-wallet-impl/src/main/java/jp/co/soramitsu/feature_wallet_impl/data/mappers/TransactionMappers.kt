@@ -14,10 +14,11 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryH
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionRemote
 import java.math.BigDecimal
 
-fun mapTransactionStatusToTransactionStatusLocal(status: Transaction.Status) = when (status) {
-    Transaction.Status.PENDING -> TransactionLocal.Status.PENDING
-    Transaction.Status.COMPLETED -> TransactionLocal.Status.COMPLETED
-    Transaction.Status.FAILED -> TransactionLocal.Status.FAILED
+
+fun mapSubqueryElementStatusToSubqueryHistoryModelStatus(status: SubqueryElement.Status) = when (status) {
+    SubqueryElement.Status.PENDING -> SubqueryHistoryModel.Status.PENDING
+    SubqueryElement.Status.COMPLETED -> SubqueryHistoryModel.Status.COMPLETED
+    SubqueryElement.Status.FAILED -> SubqueryHistoryModel.Status.FAILED
 }
 
 fun mapTransactionStatusLocalToTransactionStatus(status: TransactionLocal.Status) = when (status) {
@@ -45,7 +46,7 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal, account
     }
 }
 
-fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement): SubqueryHistoryModel {
+fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement, source: SubqueryHistoryModel.Source): SubqueryHistoryModel {
     with(subqueryElement) {
         val amount = operation.getOperationAmount()
         val fee = operation.getOperationFee()
@@ -65,6 +66,8 @@ fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement): Sub
             era = (operation as? SubqueryElement.Operation.Reward)?.era,
             validator = (operation as? SubqueryElement.Operation.Reward)?.validator,
             success = (operation as? SubqueryElement.Operation.Extrinsic)?.success,
+            status = mapSubqueryElementStatusToSubqueryHistoryModelStatus(subqueryElement.operation.status),
+            source = source
         )
     }
 }

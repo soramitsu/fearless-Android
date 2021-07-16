@@ -13,6 +13,8 @@ class SubqueryHistoryModel(
     val address: String,
     val time: Long,
     val tokenType: TokenLocal.Type,
+    val status: Status,
+    val source: Source,
     val type: String? = null, // maybe the same as module
     val call: String? = null,
     val amount: BigInteger? = null,
@@ -23,4 +25,12 @@ class SubqueryHistoryModel(
     val era: Int? = null,
     val validator: String? = null,
     val success: Boolean? = null
-)
+){
+    enum class Source {
+        BLOCKCHAIN, SUBSCAN, APP
+    }
+
+    enum class Status {
+        PENDING, COMPLETED, FAILED
+    }
+}

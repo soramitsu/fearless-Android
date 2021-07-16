@@ -64,15 +64,6 @@ class WalletInteractorImpl(
             .flatMapLatest { assetFlow(it) }
     }
 
-    override fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>> {
-        return accountRepository.selectedAccountFlow()
-            .flatMapLatest {
-                val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
-                walletRepository.transactionsFirstPageFlow(mapAccountToWalletAccount(it), pageSize, accounts)
-            }
-            .distinctUntilChanged { previous, new -> areTransactionPagesTheSame(previous, new) }
-    }
-
     override fun newTransactionsFirstPageFlow(): Flow<List<SubqueryElement>>{
         return accountRepository.selectedAccountFlow()
             .flatMapLatest {

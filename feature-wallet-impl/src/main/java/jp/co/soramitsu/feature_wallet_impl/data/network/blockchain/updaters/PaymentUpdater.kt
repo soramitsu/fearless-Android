@@ -21,10 +21,11 @@ import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.feature_wallet_api.data.cache.updateAsset
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
+import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionStatusToTransactionStatusLocal
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryElementStatusToSubqueryHistoryModelStatus
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.TransferExtrinsic
 import kotlinx.coroutines.Dispatchers
@@ -67,9 +68,9 @@ class PaymentUpdater(
 
         val local = blockTransfers.map {
             val localStatus = when (it.statusEvent) {
-                ExtrinsicStatusEvent.SUCCESS -> Transaction.Status.COMPLETED
-                ExtrinsicStatusEvent.FAILURE -> Transaction.Status.FAILED
-                null -> Transaction.Status.PENDING
+                ExtrinsicStatusEvent.SUCCESS -> SubqueryElement.Status.COMPLETED
+                ExtrinsicStatusEvent.FAILURE -> SubqueryElement.Status.FAILED
+                null -> SubqueryElement.Status.PENDING
             }
 
             createSubqueryHistoryElement(it.extrinsic, localStatus, address)
@@ -80,7 +81,7 @@ class PaymentUpdater(
 
     private suspend fun createSubqueryHistoryElement(
         extrinsic: TransferExtrinsic,
-        status: Transaction.Status,
+        status: SubqueryElement.Status,
         accountAddress: String,
     ): SubqueryHistoryModel {
         val localCopy = subqueryHistoryDao.getTransaction(extrinsic.hash)
@@ -102,7 +103,9 @@ class PaymentUpdater(
             amount = extrinsic.amountInPlanks,
             sender = senderAddress,
             receiver = recipientAddress,
-            fee = fee
+            fee = fee,
+            status = mapSubqueryElementStatusToSubqueryHistoryModelStatus(status),
+            source = SubqueryHistoryModel.Source.BLOCKCHAIN
         )
     }
 }

@@ -5,7 +5,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
-import jp.co.soramitsu.core_db.model.TransactionLocal
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -16,8 +15,10 @@ abstract class SubqueryHistoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAll(transactions: List<SubqueryHistoryModel>)
 
-    @Query("SELECT * FROM subqueryentity WHERE address = :accountAddress")
-    abstract fun observe(accountAddress: String): Flow<List<SubqueryHistoryModel>>
+    @Query("SELECT * FROM subqueryentity WHERE address = :accountAddress ORDER BY (case when status = :statusUp then 0 else 1 end), time DESC")
+    abstract fun observe(accountAddress: String,
+                         statusUp: SubqueryHistoryModel.Status = SubqueryHistoryModel.Status.PENDING
+    ): Flow<List<SubqueryHistoryModel>>
 
     @Query("SELECT * FROM subqueryentity WHERE hash = :hash")
     abstract suspend fun getTransaction(hash: String): SubqueryHistoryModel?

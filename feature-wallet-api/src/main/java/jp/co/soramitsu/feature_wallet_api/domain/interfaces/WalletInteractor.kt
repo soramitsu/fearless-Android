@@ -31,8 +31,6 @@ interface WalletInteractor {
 
     fun currentAssetFlow(): Flow<Asset>
 
-    fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>>
-
     fun newTransactionsFirstPageFlow(): Flow<List<SubqueryElement>>
 
     suspend fun syncTransactionsFirstPage(pageSize: Int): Result<String?>
