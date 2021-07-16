@@ -101,7 +101,7 @@ class WalletRepositoryImpl(
         val accountsByAddress = accounts.associateBy { it.address }
 
         return subqueryDao.observe(currentAccount.address).mapList {
-            val accountName = defineAccountNameForTransaction(accountsByAddress, displayAddress = it.displayAddress)
+            val accountName = defineAccountNameForTransaction(accountsByAddress, displayAddress = it.receiver ?: it.sender ?: it.address)
 
             mapSubqueryDbToSubqueryElement(it, accountName)
         }

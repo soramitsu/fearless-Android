@@ -45,7 +45,7 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
     fun bind(item: NewTransactionHistoryElement, handler: TransactionHistoryAdapter.Handler) {
         with(containerView) {
             with(item.transactionModel) {
-                itemTransactionAddress.text = getOperationHeader() ?: accountName ?: displayAddress ?: address
+                itemTransactionAddress.text = getOperationHeader()
 
 //                itemTransactionAmount.setTextColorRes(amountColorRes)
                 itemTransactionAmount.text = formattedAmount

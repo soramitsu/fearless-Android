@@ -9,36 +9,75 @@ data class SubqueryElement(
     val address: String,
     val accountName: String?,
     val operation: Operation,
-    val amount: BigDecimal,
     val time: Long,
     val tokenType: Token.Type,
-    val extra: String? = null,
-    val nextPageCursor: String? = null,
-    val displayAddress: String? = null,
-    val isIncome: Boolean = true
+    val nextPageCursor: String? = null
 ) {
 
     val formattedAmount = createFormattedAmount()
 
-    fun getOperationHeader() = operation.call
+    fun getOperationHeader() = operation.header ?: accountName ?: getDisplayAddress()
 
-    fun getElementDescription() = operation.module
+    fun getDisplayAddress() = (operation as? Operation.Transfer)?.receiver ?: address
+
+    fun getElementDescription() = operation.subheader
 
     fun getOperationIcon(): Int? = when (operation) {
         is Operation.Reward -> R.drawable.ic_staking
         else -> null
     }
 
+    fun getIsIncome() = when(operation) {
+        is Operation.Extrinsic -> false
+        is Operation.Reward -> operation.isReward
+        is Operation.Transfer -> address == operation.receiver
+    }
+
     private fun createFormattedAmount(): String {
-        val withoutSign = amount.formatTokenAmount(tokenType)
-        val sign = if (isIncome) '+' else '-'
+        val withoutSign = operation.displayAmount.formatTokenAmount(tokenType)
+        val sign = if (getIsIncome()) '+' else '-'
 
         return sign + withoutSign
     }
 
-    sealed class Operation(val call: String?, val module: String?) {
-        class Extrinsic(val callName: String, val moduleName: String) : Operation(callName, moduleName)
-        class Reward : Operation("Reward", "Staking")
-        class Transfer : Operation(null, "Transfer")
+    sealed class Operation(
+        val header: String?,
+        val subheader: String?,
+        val displayAmount: BigDecimal // amount that we show on UI (might be fee)
+    ) {
+        class Extrinsic(
+            val hash: String,
+            val module: String,
+            val call: String,
+            val fee: BigDecimal,
+            val success: Boolean
+        ) : Operation(call, module,  fee)
+
+        class Reward(
+            val amount: BigDecimal,
+            val isReward: Boolean,
+            val era: Int,
+            val validator: String
+        ) : Operation(if (isReward) "Reward" else "Slash", "Staking", amount)
+
+        class Transfer(
+            val amount: BigDecimal,
+            val receiver: String,
+            val sender: String,
+            val fee: BigDecimal
+        ) : Operation(null, "Transfer", amount)
+
+        //Real amount without fee
+        fun getOperationAmount() = when (this) {
+            is Reward -> amount
+            is Transfer -> amount
+            is Extrinsic -> null
+        }
+
+        fun getOperationFee() = when (this) {
+            is Reward -> null
+            is Transfer -> fee
+            is Extrinsic -> fee
+        }
     }
 }

@@ -4,19 +4,23 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.math.BigInteger
 
-@Entity(tableName = "subqueryentity")
+@Entity(
+    tableName = "subqueryentity",
+    primaryKeys = ["hash", "address"]
+)
 class SubqueryHistoryModel(
     val hash: String,
     val address: String,
-    val operation: String?,
-    val amount: BigInteger,
     val time: Long,
     val tokenType: TokenLocal.Type,
-    val isIncome: Boolean,
-    val displayAddress: String? = null, //Only to display. For instance for transfer we need to display another address
-    val call: String? = null
-) {
-    @PrimaryKey(autoGenerate = true)
-    var id: Int = 0
-
-}
+    val type: String?, // maybe the same as module
+    val call: String? = null,
+    val amount: BigInteger? = null,
+    val sender: String? = null,
+    val receiver: String? = null,
+    val fee: BigInteger? = null,
+    val isReward: Boolean? = null,
+    val era: Int? = null,
+    val validator: String? = null,
+    val success: Boolean? = null
+)

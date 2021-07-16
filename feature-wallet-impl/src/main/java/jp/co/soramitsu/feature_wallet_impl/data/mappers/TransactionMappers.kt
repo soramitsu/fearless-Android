@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionRemote
+import java.math.BigDecimal
 
 fun mapTransactionStatusToTransactionStatusLocal(status: Transaction.Status) = when (status) {
     Transaction.Status.PENDING -> TransactionLocal.Status.PENDING
@@ -44,47 +45,63 @@ fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal, account
     }
 }
 
-fun mapFromSubqueryOperationToString(operation: SubqueryElement.Operation): Pair<String?, String?> =
-    when (operation) {
-        is SubqueryElement.Operation.Extrinsic -> Pair(operation.moduleName, operation.callName)
-        else -> Pair(operation.module, null)
-    }
-
-fun mapFromStringToSubqueryOperation(operation: String?, call: String?) = when {
-    operation != null && call != null -> SubqueryElement.Operation.Extrinsic(operation, call)
-    operation == "Transfer" -> SubqueryElement.Operation.Transfer()
-    else -> SubqueryElement.Operation.Reward()
-}
-
 fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement): SubqueryHistoryModel {
     with(subqueryElement) {
-        val (o, c) = mapFromSubqueryOperationToString(operation)
+        val amount = operation.getOperationAmount()
+        val fee = operation.getOperationFee()
+
         return SubqueryHistoryModel(
+            hash = hash,
             address = address,
-            operation = o,
-            amount = amount.toBigInteger(),
             time = time * 1000,
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
-            hash = hash,
-            displayAddress = displayAddress,
-            call = c,
-            isIncome = isIncome
+            type = operation.header,
+            call = operation.subheader,
+            amount = amount?.toBigInteger(),
+            sender = (operation as? SubqueryElement.Operation.Transfer)?.sender,
+            receiver = (operation as? SubqueryElement.Operation.Transfer)?.receiver,
+            fee = fee?.toBigInteger(),
+            isReward = (operation as? SubqueryElement.Operation.Reward)?.isReward,
+            era = (operation as? SubqueryElement.Operation.Reward)?.era,
+            validator = (operation as? SubqueryElement.Operation.Reward)?.validator,
+            success = (operation as? SubqueryElement.Operation.Extrinsic)?.success,
         )
     }
 }
 
 fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel, accountName: String?): SubqueryElement {
     with(subqueryHistoryModel) {
+        val operation = if (type != null && call != null) {
+            SubqueryElement.Operation.Extrinsic(
+                hash = hash,
+                module = type!!,
+                call = call!!,
+                fee = (fee?.toBigDecimal())!!,
+                success = success!!
+            )
+        } else if (call == "Transfer") {
+            SubqueryElement.Operation.Transfer(
+                amount = (amount?.toBigDecimal())!!,
+                receiver = receiver!!,
+                sender = sender!!,
+                fee = (fee?.toBigDecimal())!!
+            )
+        } else {
+            SubqueryElement.Operation.Reward(
+                amount = (amount?.toBigDecimal())!!,
+                isReward = isReward!!,
+                era = era!!,
+                validator = validator!!
+            )
+        }
+
         return SubqueryElement(
             hash = hash,
             address = address,
-            operation = mapFromStringToSubqueryOperation(operation, call),
-            amount = amount.toBigDecimal(),
+            accountName = accountName,
+            operation = operation,
             time = time,
             tokenType = mapTokenTypeLocalToTokenType(tokenType),
-            accountName = accountName,
-            displayAddress = displayAddress,
-            isIncome = isIncome
         )
     }
 }
@@ -118,26 +135,32 @@ fun mapNodesToSubqueryElements(
     accountName: String?
 ): SubqueryElement {
     val token = Token.Type.fromNetworkType(currentAccount.network.type)
-    var amount: String
-    var operation: SubqueryElement.Operation?
-    var address = node.address
-    val isIncome: Boolean
+    val operation: SubqueryElement.Operation?
     when {
         node.reward != null -> {
-            amount = node.reward.amount
-            operation = SubqueryElement.Operation.Reward()
-            isIncome = node.reward.isReward
+            operation = SubqueryElement.Operation.Reward(
+                amount = token.amountFromPlanks(node.reward.amount.toBigInteger()),
+                era = node.reward.era,
+                isReward = node.reward.isReward,
+                validator = node.reward.validator
+            )
         }
         node.extrinsic != null -> {
-            amount = node.extrinsic.fee
-            operation = SubqueryElement.Operation.Extrinsic(node.extrinsic.module, node.extrinsic.call)
-            isIncome = false
+            operation = SubqueryElement.Operation.Extrinsic(
+                hash = node.extrinsic.hash,
+                module = node.extrinsic.module,
+                call = node.extrinsic.call,
+                fee = token.amountFromPlanks(node.extrinsic.fee.toBigInteger()),
+                success = node.extrinsic.success
+            )
         }
         node.transfer != null -> {///FIXME от меня трансфер
-            amount = node.transfer.amount
-            operation = SubqueryElement.Operation.Reward()
-            address = node.transfer.to
-            isIncome = false
+            operation = SubqueryElement.Operation.Transfer(
+                amount = token.amountFromPlanks(node.transfer.amount.toBigInteger()),
+                receiver = node.transfer.to,
+                sender = node.transfer.from,
+                fee = token.amountFromPlanks(node.transfer.fee.toBigInteger())
+            )
         }
         else -> {
             println("------- EXCEPTION")
@@ -149,13 +172,10 @@ fun mapNodesToSubqueryElements(
         hash = node.id,
         address = node.address,
         operation = operation,
-        amount = token.amountFromPlanks(amount.toBigInteger()),
         time = node.timestamp.toLong(),
         tokenType = token,
         accountName = accountName,
-        nextPageCursor = cursor,
-        displayAddress = address,
-        isIncome = isIncome
+        nextPageCursor = cursor
     )
 }
 

@@ -125,7 +125,7 @@ class TransactionHistoryProvider(
 
     private suspend fun newTransformNewPage(page: List<SubqueryElement>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
         val filteredHistoryElements = page.map { transaction ->
-            val addressModel = createIcon(transaction.displayAddress ?: transaction.address, transaction.accountName)
+            val addressModel = createIcon(transaction.getDisplayAddress(), transaction.accountName)
 
             NewTransactionHistoryElement(addressModel, transaction)
         }.applyFilters(filters)
