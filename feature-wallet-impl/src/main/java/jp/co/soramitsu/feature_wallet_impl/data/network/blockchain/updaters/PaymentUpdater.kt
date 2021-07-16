@@ -9,9 +9,7 @@ import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
-import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey

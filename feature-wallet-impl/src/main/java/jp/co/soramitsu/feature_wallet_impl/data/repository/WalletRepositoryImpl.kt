@@ -7,11 +7,9 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
-import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
@@ -33,8 +31,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodesToSubqueryElements
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryDbToSubqueryElement
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryElementToSubqueryHistoryDb
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTransaction
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryElementByAddressRequest
@@ -53,7 +49,6 @@ import java.math.BigDecimal
 @Suppress("EXPERIMENTAL_API_USAGE")
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
-    private val transactionsDao: TransactionDao,
     private val subqueryDao: SubqueryHistoryDao,
     private val subscanApi: SubscanNetworkApi,
     private val httpExceptionHandler: HttpExceptionHandler,
@@ -116,24 +111,6 @@ class WalletRepositoryImpl(
         subqueryDao.insertFromSubquery(accountAddress, elements)
 
         return if (page.isNotEmpty()) page.last().nextPageCursor else null // TODO hz
-    }
-
-    override suspend fun getTransactionPage(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
-        return withContext(Dispatchers.Default) {
-            val subDomain = currentAccount.network.type.subscanSubDomain()
-            val request = TransactionHistoryRequest(currentAccount.address, pageSize, page)
-
-            val response = apiCall { subscanApi.getTransactionHistory(subDomain, request) }
-
-            val transfers = response.content?.transfers
-            val accountsByAddress = accounts.associateBy { it.address }
-            val transactions = transfers?.map {
-                val accountName = defineAccountNameForTransaction(accountsByAddress, currentAccount.address, it.from, it.to)
-                mapTransferToTransaction(it, currentAccount, accountName)
-            }
-
-            transactions ?: getCachedTransactions(page, currentAccount, accounts)
-        }
     }
 
     override suspend fun getNewTransactions(
@@ -258,13 +235,13 @@ class WalletRepositoryImpl(
             source = source
         )
 
-    private suspend fun getCachedTransactions(page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
+    private suspend fun getCachedTransactions(page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<SubqueryElement> {
         return if (page == 0) {
             val accountsByAddress = accounts.associateBy { it.address }
-            transactionsDao.getTransactions(currentAccount.address)
+            subqueryDao.getTransactions(currentAccount.address)
                 .map {
-                    val accountName = defineAccountNameForTransaction(accountsByAddress, it.accountAddress, it.recipientAddress, it.senderAddress)
-                    mapTransactionLocalToTransaction(it, accountName)
+                    val accountName = defineAccountNameForTransaction(accountsByAddress, it.address, it.receiver, it.sender)
+                    mapSubqueryDbToSubqueryElement(it, accountName)
                 }
         } else {
             emptyList()

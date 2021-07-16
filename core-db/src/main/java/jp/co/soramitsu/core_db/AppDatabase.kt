@@ -10,7 +10,6 @@ import jp.co.soramitsu.core_db.converters.LongMathConverters
 import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
 import jp.co.soramitsu.core_db.converters.SubqueryConverters
 import jp.co.soramitsu.core_db.converters.TokenConverters
-import jp.co.soramitsu.core_db.converters.TransactionConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
@@ -21,7 +20,6 @@ import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
 import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
@@ -39,7 +37,6 @@ import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.core_db.migrations.UpdateDefaultNodesList
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
 import jp.co.soramitsu.core_db.model.TokenLocal
@@ -57,7 +54,6 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
     entities = [
         AccountLocal::class,
         NodeLocal::class,
-        TransactionLocal::class,
         AssetLocal::class,
         TokenLocal::class,
         RuntimeCacheEntry::class,
@@ -72,7 +68,6 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 @TypeConverters(
     LongMathConverters::class,
     NetworkTypeConverters::class,
-    TransactionConverters::class,
     TokenConverters::class,
     SubqueryConverters::class
 )
@@ -119,8 +114,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): AccountDao
 
     abstract fun assetDao(): AssetDao
-
-    abstract fun transactionsDao(): TransactionDao
 
     abstract fun subqueryHistoryDao(): SubqueryHistoryDao
 

@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
@@ -94,7 +93,6 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
-        transactionDao: TransactionDao,
         operationsDao: SubqueryHistoryDao,
         subscanNetworkApi: SubscanNetworkApi,
         httpExceptionHandler: HttpExceptionHandler,
@@ -104,7 +102,6 @@ class WalletFeatureModule {
         assetCache: AssetCache,
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
-        transactionDao,
         operationsDao,
         subscanNetworkApi,
         httpExceptionHandler,

@@ -35,8 +35,6 @@ interface WalletInteractor {
 
     suspend fun syncTransactionsFirstPage(pageSize: Int): Result<String?>
 
-    suspend fun getTransactionPage(pageSize: Int, page: Int): Result<List<Transaction>>
-
     suspend fun getNewTransactions(pageSize: Int, cursor: String?) : Result<List<SubqueryElement>>
 
     fun selectedAccountFlow(): Flow<WalletAccount>

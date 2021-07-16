@@ -26,8 +26,6 @@ interface WalletRepository {
 
     suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String?
 
-    suspend fun getTransactionPage(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction>
-
     suspend fun getNewTransactions(pageSize: Int, cursor: String? = null, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<SubqueryElement>
 
     fun newTransactionsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<SubqueryElement>>

@@ -91,14 +91,6 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun getTransactionPage(pageSize: Int, page: Int): Result<List<Transaction>> {
-        return runCatching {
-            val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
-            val currentAccount = accountRepository.getSelectedAccount()
-            walletRepository.getTransactionPage(pageSize, page, mapAccountToWalletAccount(currentAccount), accounts)
-        }
-    }
-
     override suspend fun getNewTransactions(pageSize: Int, cursor: String?): Result<List<SubqueryElement>> {
         return runCatching {
             val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)

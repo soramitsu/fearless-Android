@@ -23,6 +23,9 @@ abstract class SubqueryHistoryDao {
     @Query("SELECT * FROM subqueryentity WHERE hash = :hash")
     abstract suspend fun getTransaction(hash: String): SubqueryHistoryModel?
 
+    @Query("SELECT * FROM subqueryentity WHERE address = :accountAddress ORDER BY time DESC")
+    abstract suspend fun getTransactions(accountAddress: String): List<SubqueryHistoryModel>
+
     @Query(
         """
         SELECT DISTINCT receiver FROM subqueryentity WHERE (receiver LIKE '%' || :query  || '%' AND receiver != address) AND address = :accountAddress

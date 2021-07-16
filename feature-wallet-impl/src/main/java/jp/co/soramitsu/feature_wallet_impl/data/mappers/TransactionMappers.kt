@@ -1,49 +1,19 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
 import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
-import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeLocalToTokenType
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.TransactionRemote
-import java.math.BigDecimal
 
 
 fun mapSubqueryElementStatusToSubqueryHistoryModelStatus(status: SubqueryElement.Status) = when (status) {
     SubqueryElement.Status.PENDING -> SubqueryHistoryModel.Status.PENDING
     SubqueryElement.Status.COMPLETED -> SubqueryHistoryModel.Status.COMPLETED
     SubqueryElement.Status.FAILED -> SubqueryHistoryModel.Status.FAILED
-}
-
-fun mapTransactionStatusLocalToTransactionStatus(status: TransactionLocal.Status) = when (status) {
-    TransactionLocal.Status.PENDING -> Transaction.Status.PENDING
-    TransactionLocal.Status.COMPLETED -> Transaction.Status.COMPLETED
-    TransactionLocal.Status.FAILED -> Transaction.Status.FAILED
-}
-
-fun mapTransactionLocalToTransaction(transactionLocal: TransactionLocal, accountName: String?): Transaction {
-    val tokenType = mapTokenTypeLocalToTokenType(transactionLocal.token)
-
-    return with(transactionLocal) {
-        Transaction(
-            hash = hash,
-            isIncome = recipientAddress == accountAddress,
-            recipientAddress = recipientAddress,
-            senderAddress = senderAddress,
-            amount = amount,
-            date = date,
-            fee = feeInPlanks?.let(tokenType::amountFromPlanks),
-            status = mapTransactionStatusLocalToTransactionStatus(status),
-            tokenType = tokenType,
-            accountName = accountName
-        )
-    }
 }
 
 fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement, source: SubqueryHistoryModel.Source): SubqueryHistoryModel {
@@ -158,23 +128,4 @@ fun mapNodesToSubqueryElements(
         accountName = accountName,
         nextPageCursor = cursor
     )
-}
-
-fun mapTransferToTransaction(transfer: TransactionRemote, account: WalletAccount, accountName: String?): Transaction {
-    val token = Token.Type.fromNetworkType(account.network.type)
-
-    return with(transfer) {
-        Transaction(
-            hash = hash,
-            tokenType = token,
-            date = timeInMillis,
-            amount = amount,
-            status = Transaction.Status.fromSuccess(success),
-            senderAddress = from,
-            recipientAddress = to,
-            fee = token.amountFromPlanks(feeInPlanks),
-            isIncome = account.address == to,
-            accountName = accountName
-        )
-    }
 }
