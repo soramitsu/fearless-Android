@@ -18,11 +18,13 @@ data class SubqueryElement(
 
     val formattedAmount = createFormattedAmount()
 
-    fun getOperationHeader() = operation.header ?: accountName ?: getDisplayAddress()
+    fun getOperationHeader() = format(operation.header) ?: accountName ?: getDisplayAddress()
+
+    private fun format(extrinsicHeader: String?) = extrinsicHeader?.capitalize()?.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")?.joinToString()
 
     fun getDisplayAddress() = (operation as? Operation.Transfer)?.receiver ?: address
 
-    fun getElementDescription() = operation.subheader
+    fun getElementDescription() = format(operation.subheader)
 
     fun getOperationIcon(): Int? = when (operation) {
         is Operation.Reward -> R.drawable.ic_staking
