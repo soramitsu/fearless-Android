@@ -11,6 +11,7 @@ import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
 import java.math.BigDecimal
 
+@Deprecated("Use Operation class instead")
 @Parcelize
 data class TransactionModel(
     val hash: String,

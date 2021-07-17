@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextColorRes
-import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
+import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
@@ -58,7 +58,7 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
 
                 itemTransactionType.text = getElementDescription()
 
-                if (operation.status != SubqueryElement.Status.COMPLETED) {
+                if (operation.status != Operation.Status.COMPLETED) {
                     itemTransactionStatus.makeVisible()
                     itemTransactionStatus.setImageResource(statusAppearance.icon)
                 } else {

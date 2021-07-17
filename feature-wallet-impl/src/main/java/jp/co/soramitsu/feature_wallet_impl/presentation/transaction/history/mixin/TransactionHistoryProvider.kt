@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.applyFilters
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
+import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
@@ -123,7 +123,7 @@ class TransactionHistoryProvider(
         currentPage--
     }
 
-    private suspend fun newTransformNewPage(page: List<SubqueryElement>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
+    private suspend fun newTransformNewPage(page: List<Operation>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
         val filteredHistoryElements = page.map { transaction ->
             val addressModel = createIcon(transaction.getDisplayAddress(), transaction.accountName)
 

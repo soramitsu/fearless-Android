@@ -2,9 +2,8 @@ package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
-import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
+import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
@@ -26,9 +25,9 @@ interface WalletRepository {
 
     suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String?
 
-    suspend fun getNewTransactions(pageSize: Int, cursor: String? = null, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<SubqueryElement>
+    suspend fun getNewTransactions(pageSize: Int, cursor: String? = null, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Operation>
 
-    fun newTransactionsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<SubqueryElement>>
+    fun newTransactionsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Operation>>
 
     suspend fun getContacts(account: WalletAccount, query: String): Set<String>
 

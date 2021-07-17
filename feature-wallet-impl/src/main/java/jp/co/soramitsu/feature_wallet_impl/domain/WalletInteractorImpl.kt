@@ -10,7 +10,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
-import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
+import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -19,7 +19,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -64,7 +63,7 @@ class WalletInteractorImpl(
             .flatMapLatest { assetFlow(it) }
     }
 
-    override fun newTransactionsFirstPageFlow(): Flow<List<SubqueryElement>>{
+    override fun newTransactionsFirstPageFlow(): Flow<List<Operation>>{
         return accountRepository.selectedAccountFlow()
             .flatMapLatest {
                 val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
@@ -91,7 +90,7 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun getNewTransactions(pageSize: Int, cursor: String?): Result<List<SubqueryElement>> {
+    override suspend fun getNewTransactions(pageSize: Int, cursor: String?): Result<List<Operation>> {
         return runCatching {
             val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
             val currentAccount = accountRepository.getSelectedAccount()

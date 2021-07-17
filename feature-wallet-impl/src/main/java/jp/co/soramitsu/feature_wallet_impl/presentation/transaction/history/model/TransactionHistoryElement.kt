@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model
 
 import jp.co.soramitsu.common.address.AddressModel
-import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
+import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
 class TransactionHistoryElement(
@@ -11,5 +11,5 @@ class TransactionHistoryElement(
 
 class NewTransactionHistoryElement(
     val displayAddressModel: AddressModel,
-    val transactionModel: SubqueryElement
+    val transactionModel: Operation
 )

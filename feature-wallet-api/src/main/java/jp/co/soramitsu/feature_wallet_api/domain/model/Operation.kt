@@ -6,7 +6,7 @@ import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import java.math.BigDecimal
 
-data class SubqueryElement(
+data class Operation(
     val hash: String,
     val address: String,
     val accountName: String?,
@@ -44,7 +44,7 @@ data class SubqueryElement(
     }
 
     val amountColorRes = when {
-        operation.status == SubqueryElement.Status.FAILED -> R.color.gray2
+        operation.status == Status.FAILED -> R.color.gray2
         getIsIncome() -> R.color.green
         else -> R.color.white
     }

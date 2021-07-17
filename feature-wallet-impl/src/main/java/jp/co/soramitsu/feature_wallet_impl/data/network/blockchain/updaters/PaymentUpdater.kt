@@ -19,7 +19,7 @@ import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.feature_wallet_api.data.cache.updateAsset
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
-import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
+import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryElementStatusToSubqueryHistoryModelStatus
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
@@ -64,9 +64,9 @@ class PaymentUpdater(
 
         val local = blockTransfers.map {
             val localStatus = when (it.statusEvent) {
-                ExtrinsicStatusEvent.SUCCESS -> SubqueryElement.Status.COMPLETED
-                ExtrinsicStatusEvent.FAILURE -> SubqueryElement.Status.FAILED
-                null -> SubqueryElement.Status.PENDING
+                ExtrinsicStatusEvent.SUCCESS -> Operation.Status.COMPLETED
+                ExtrinsicStatusEvent.FAILURE -> Operation.Status.FAILED
+                null -> Operation.Status.PENDING
             }
 
             createSubqueryHistoryElement(it.extrinsic, localStatus, address)
@@ -77,7 +77,7 @@ class PaymentUpdater(
 
     private suspend fun createSubqueryHistoryElement(
         extrinsic: TransferExtrinsic,
-        status: SubqueryElement.Status,
+        status: Operation.Status,
         accountAddress: String,
     ): OperationLocal {
         val localCopy = operationDao.getOperation(extrinsic.hash)
