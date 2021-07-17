@@ -20,7 +20,7 @@ data class SubqueryElement(
 
     fun getOperationHeader() = format(operation.header) ?: accountName ?: getDisplayAddress()
 
-    private fun format(extrinsicHeader: String?) = extrinsicHeader?.capitalize()?.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")?.joinToString()
+    private fun format(extrinsicHeader: String?) = (extrinsicHeader)?.split(regex ="(?<=[a-z])(?=[A-Z])".toRegex())?.joinToString(" ")?.capitalize()
 
     fun getDisplayAddress() = (operation as? Operation.Transfer)?.receiver ?: address
 
