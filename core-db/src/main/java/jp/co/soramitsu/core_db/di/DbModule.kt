@@ -17,7 +17,7 @@ import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 
 @Module
@@ -59,7 +59,7 @@ class DbModule {
 
     @Provides
     @ApplicationScope
-    fun provideSubqueryHistoryDao(appDatabase: AppDatabase): SubqueryHistoryDao{
+    fun provideSubqueryHistoryDao(appDatabase: AppDatabase): OperationDao{
         return appDatabase.subqueryHistoryDao()
     }
 

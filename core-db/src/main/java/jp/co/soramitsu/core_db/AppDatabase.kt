@@ -20,7 +20,7 @@ import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
 import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
@@ -44,7 +44,7 @@ import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.core_db.model.StakingRewardLocal
-import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
+import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
@@ -62,7 +62,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
         AccountStakingLocal::class,
         StakingRewardLocal::class,
         TotalRewardLocal::class,
-        SubqueryHistoryModel::class
+        OperationLocal::class
     ]
 )
 @TypeConverters(
@@ -115,7 +115,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun assetDao(): AssetDao
 
-    abstract fun subqueryHistoryDao(): SubqueryHistoryDao
+    abstract fun subqueryHistoryDao(): OperationDao
 
     abstract fun runtimeDao(): RuntimeDao
 

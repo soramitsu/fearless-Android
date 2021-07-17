@@ -5,10 +5,10 @@ import androidx.room.PrimaryKey
 import java.math.BigInteger
 
 @Entity(
-    tableName = "subqueryentity",
+    tableName = "operations",
     primaryKeys = ["hash", "address"]
 )
-class SubqueryHistoryModel(
+class OperationLocal(
     val hash: String,
     val address: String,
     val time: Long,
@@ -27,7 +27,7 @@ class SubqueryHistoryModel(
     val success: Boolean? = null
 ){
     enum class Source {
-        BLOCKCHAIN, SUBSCAN, APP
+        BLOCKCHAIN, SUBQUERY, APP
     }
 
     enum class Status {

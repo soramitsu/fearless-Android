@@ -10,7 +10,7 @@ import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
-import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 
 interface DbApi {
@@ -23,7 +23,7 @@ interface DbApi {
 
     fun provideAssetDao(): AssetDao
 
-    fun provideSubqueryHistoryDao(): SubqueryHistoryDao
+    fun provideSubqueryHistoryDao(): OperationDao
 
     fun provideRuntimeDao(): RuntimeDao
 

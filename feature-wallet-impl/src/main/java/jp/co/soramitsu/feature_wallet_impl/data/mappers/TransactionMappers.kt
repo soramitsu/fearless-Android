@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
-import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
+import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeLocalToTokenType
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
@@ -11,17 +11,17 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryH
 
 
 fun mapSubqueryElementStatusToSubqueryHistoryModelStatus(status: SubqueryElement.Status) = when (status) {
-    SubqueryElement.Status.PENDING -> SubqueryHistoryModel.Status.PENDING
-    SubqueryElement.Status.COMPLETED -> SubqueryHistoryModel.Status.COMPLETED
-    SubqueryElement.Status.FAILED -> SubqueryHistoryModel.Status.FAILED
+    SubqueryElement.Status.PENDING -> OperationLocal.Status.PENDING
+    SubqueryElement.Status.COMPLETED -> OperationLocal.Status.COMPLETED
+    SubqueryElement.Status.FAILED -> OperationLocal.Status.FAILED
 }
 
-fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement, source: SubqueryHistoryModel.Source): SubqueryHistoryModel {
+fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement, source: OperationLocal.Source): OperationLocal {
     with(subqueryElement) {
         val amount = operation.getOperationAmount()
         val fee = operation.getOperationFee()
 
-        return SubqueryHistoryModel(
+        return OperationLocal(
             hash = hash,
             address = address,
             time = time * 1000,
@@ -42,8 +42,8 @@ fun mapSubqueryElementToSubqueryHistoryDb(subqueryElement: SubqueryElement, sour
     }
 }
 
-fun mapSubqueryDbToSubqueryElement(subqueryHistoryModel: SubqueryHistoryModel, accountName: String?): SubqueryElement {
-    with(subqueryHistoryModel) {
+fun mapSubqueryDbToSubqueryElement(operationLocal: OperationLocal, accountName: String?): SubqueryElement {
+    with(operationLocal) {
         val operation = if (type != null && call != null && call != "Staking") {
             SubqueryElement.Operation.Extrinsic(
                 hash = hash,

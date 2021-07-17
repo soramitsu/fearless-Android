@@ -8,8 +8,8 @@ import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
-import jp.co.soramitsu.core_db.dao.SubqueryHistoryDao
-import jp.co.soramitsu.core_db.model.SubqueryHistoryModel
+import jp.co.soramitsu.core_db.dao.OperationDao
+import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
@@ -21,8 +21,6 @@ import jp.co.soramitsu.feature_wallet_api.data.cache.updateAsset
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.SubqueryElement
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryElementStatusToSubqueryHistoryModelStatus
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.TransferExtrinsic
@@ -34,7 +32,7 @@ import kotlinx.coroutines.flow.onEach
 class PaymentUpdater(
     private val substrateSource: SubstrateRemoteSource,
     private val assetCache: AssetCache,
-    private val subqueryHistoryDao: SubqueryHistoryDao,
+    private val operationDao: OperationDao,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     override val scope: AccountUpdateScope,
 ) : Updater {
@@ -74,15 +72,15 @@ class PaymentUpdater(
             createSubqueryHistoryElement(it.extrinsic, localStatus, address)
         }
 
-        subqueryHistoryDao.insertAll(local)
+        operationDao.insertAll(local)
     }
 
     private suspend fun createSubqueryHistoryElement(
         extrinsic: TransferExtrinsic,
         status: SubqueryElement.Status,
         accountAddress: String,
-    ): SubqueryHistoryModel {
-        val localCopy = subqueryHistoryDao.getTransaction(extrinsic.hash)
+    ): OperationLocal {
+        val localCopy = operationDao.getOperation(extrinsic.hash)
 
         val fee = localCopy?.fee
 
@@ -92,7 +90,7 @@ class PaymentUpdater(
         val senderAddress = extrinsic.senderId.toAddress(networkType)
         val recipientAddress = extrinsic.recipientId.toAddress(networkType)
 
-        return SubqueryHistoryModel(
+        return OperationLocal(
             hash = extrinsic.hash,
             address = accountAddress,
             time = System.currentTimeMillis(),
@@ -103,7 +101,7 @@ class PaymentUpdater(
             receiver = recipientAddress,
             fee = fee,
             status = mapSubqueryElementStatusToSubqueryHistoryModelStatus(status),
-            source = SubqueryHistoryModel.Source.BLOCKCHAIN
+            source = OperationLocal.Source.BLOCKCHAIN
         )
     }
 }
