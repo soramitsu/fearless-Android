@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.NewTransactionHistoryElement
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 private class TokenFilter(private val type: Token.Type) : TransactionFilter {
-    override fun shouldInclude(model: NewTransactionHistoryElement): Boolean {
+    override fun shouldInclude(model: OperationHistoryElement): Boolean {
         return type == model.transactionModel.tokenType
     }
 }
@@ -48,7 +48,7 @@ class BalanceDetailViewModel(
     val buyEnabled = buyMixin.isBuyEnabled(type)
 
     init {
-        transactionHistoryMixin.startObservingTransactions(viewModelScope)
+        transactionHistoryMixin.startObservingOperations(viewModelScope)
 
         transactionHistoryMixin.addFilter(viewModelScope, TokenFilter(type))
     }
@@ -66,7 +66,7 @@ class BalanceDetailViewModel(
     fun sync() {
         viewModelScope.launch {
             val deferredAssetSync = async { interactor.syncAssetRates(type) }
-            val deferredTransactionsSync = async { transactionHistoryMixin.syncFirstTransactionsPage() }
+            val deferredTransactionsSync = async { transactionHistoryMixin.syncFirstOperationsPage() }
 
             val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
 

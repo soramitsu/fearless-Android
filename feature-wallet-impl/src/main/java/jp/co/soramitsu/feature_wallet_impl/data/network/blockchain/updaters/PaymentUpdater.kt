@@ -21,7 +21,7 @@ import jp.co.soramitsu.feature_wallet_api.data.cache.updateAsset
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryElementStatusToSubqueryHistoryModelStatus
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationStatusToOperationLocalStatus
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.TransferExtrinsic
 import kotlinx.coroutines.Dispatchers
@@ -69,13 +69,13 @@ class PaymentUpdater(
                 null -> Operation.Status.PENDING
             }
 
-            createSubqueryHistoryElement(it.extrinsic, localStatus, address)
+            createOperationLocal(it.extrinsic, localStatus, address)
         }
 
         operationDao.insertAll(local)
     }
 
-    private suspend fun createSubqueryHistoryElement(
+    private suspend fun createOperationLocal(
         extrinsic: TransferExtrinsic,
         status: Operation.Status,
         accountAddress: String,
@@ -100,7 +100,7 @@ class PaymentUpdater(
             sender = senderAddress,
             receiver = recipientAddress,
             fee = fee,
-            status = mapSubqueryElementStatusToSubqueryHistoryModelStatus(status),
+            status = mapOperationStatusToOperationLocalStatus(status),
             source = OperationLocal.Source.BLOCKCHAIN
         )
     }

@@ -49,7 +49,7 @@ interface WalletFeatureDependencies {
 
     fun tokenDao(): TokenDao
 
-    fun subqueryDao(): OperationDao
+    fun operationDao(): OperationDao
 
     fun networkCreator(): NetworkApiCreator
 

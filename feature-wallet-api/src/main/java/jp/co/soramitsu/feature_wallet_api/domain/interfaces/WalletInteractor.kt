@@ -30,11 +30,11 @@ interface WalletInteractor {
 
     fun currentAssetFlow(): Flow<Asset>
 
-    fun newTransactionsFirstPageFlow(): Flow<List<Operation>>
+    fun operationsFirstPageFlow(): Flow<List<Operation>>
 
-    suspend fun syncTransactionsFirstPage(pageSize: Int): Result<String?>
+    suspend fun syncOperationsFirstPage(pageSize: Int): Result<String?>
 
-    suspend fun getNewTransactions(pageSize: Int, cursor: String?) : Result<List<Operation>>
+    suspend fun getOperations(pageSize: Int, cursor: String?) : Result<List<Operation>>
 
     fun selectedAccountFlow(): Flow<WalletAccount>
 

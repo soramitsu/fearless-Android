@@ -71,28 +71,17 @@ val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
     }
 }
 
-val AddSubqueryTablesToDb_22_23 = object : Migration(22, 23) {
+val AddOperationsTablesToDb_22_23 = object : Migration(22, 23) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
-            """CREATE TABLE IF NOT EXISTS `tran` (`id` TEXT NOT NULL, `timestamp` TEXT NOT NULL, `address` TEXT NOT NULL, `rewardId` INTEGER, `extrinsicId` INTEGER, `transferId` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`transferId`) REFERENCES `transfer`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`extrinsicId`) REFERENCES `extrinsic`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`rewardId`) REFERENCES `reward`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """
+                DROP TABLE IF EXISTS `transactions`
             """.trimIndent()
         )
 
         database.execSQL(
             """
-               CREATE TABLE IF NOT EXISTS `transfer` (`id` INTEGER NOT NULL, `amount` TEXT NOT NULL, `senderAddress` TEXT NOT NULL, `recipientAddress` TEXT NOT NULL, `fee` TEXT NOT NULL, `block` TEXT NOT NULL, `extrinsicId` TEXT, PRIMARY KEY(`id`))
-            """.trimIndent()
-        )
-
-        database.execSQL(
-            """
-                CREATE TABLE IF NOT EXISTS `reward` (`id` INTEGER NOT NULL, `isReward` INTEGER NOT NULL, `era` INTEGER, `validator` TEXT, PRIMARY KEY(`id`))
-            """.trimIndent()
-        )
-
-        database.execSQL(
-            """
-                CREATE TABLE IF NOT EXISTS `extrinsic` (`id` INTEGER NOT NULL, `hash` TEXT NOT NULL, `module` TEXT NOT NULL, `call` TEXT NOT NULL, `success` INTEGER NOT NULL, PRIMARY KEY(`id`))
+               CREATE TABLE IF NOT EXISTS `operations` (`hash` TEXT NOT NULL, `address` TEXT NOT NULL, `time` INTEGER NOT NULL, `tokenType` INTEGER NOT NULL, `status` INTEGER NOT NULL, `source` INTEGER NOT NULL, `type` TEXT, `call` TEXT, `amount` TEXT, `sender` TEXT, `receiver` TEXT, `fee` TEXT, `isReward` INTEGER, `era` INTEGER, `validator` TEXT, `success` INTEGER, PRIMARY KEY(`hash`, `address`))
             """.trimIndent()
         )
     }

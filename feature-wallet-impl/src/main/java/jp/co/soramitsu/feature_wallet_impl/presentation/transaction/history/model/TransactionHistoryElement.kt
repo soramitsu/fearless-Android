@@ -4,12 +4,7 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
-class TransactionHistoryElement(
-    val displayAddressModel: AddressModel,
-    val transactionModel: TransactionModel
-)
-
-class NewTransactionHistoryElement(
+class OperationHistoryElement(
     val displayAddressModel: AddressModel,
     val transactionModel: Operation
 )

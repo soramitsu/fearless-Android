@@ -1,11 +1,11 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.model.request
-//TODO maybe extension function for " in cursor
-class SubqueryHistoryElementByAddressRequest (accountAddress: String, pageSize: Int = 1, cursor: String? = null) {
+
+class SubqueryHistoryElementByAddressRequest(accountAddress: String, pageSize: Int = 1, cursor: String? = null) {
     val query = """
     {
         query {
             historyElements(
-                after: ${if(cursor == null) null else "\"$cursor\""},
+                after: ${ if (cursor == null) null else "\"$cursor\""},
                 first: $pageSize,
                 filter: { 
                     address:{ equalTo: "$accountAddress"}

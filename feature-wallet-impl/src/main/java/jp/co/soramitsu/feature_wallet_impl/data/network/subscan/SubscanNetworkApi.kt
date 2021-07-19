@@ -26,15 +26,8 @@ interface SubscanNetworkApi {
         @Body body: AssetPriceRequest
     ): SubscanResponse<AssetPriceStatistics>
 
-    @Headers("x-api-key: ${BuildConfig.SUBSCAN_API_KEY}")
-    @POST("//{subDomain}.api.subscan.io/api/scan/transfers")
-    suspend fun getTransactionHistory(
-        @Path("subDomain") subDomain: String,
-        @Body body: TransactionHistoryRequest
-    ): SubscanResponse<TransactionHistory>
-
     @POST("http://10.0.2.2:3000/")
-    suspend fun getSumReward(
+    suspend fun getSubscanHistory(
         @Body body: SubqueryHistoryElementByAddressRequest
     ): SubQueryResponse<SubqueryHistoryElementResponse>
 }

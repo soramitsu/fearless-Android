@@ -1,3 +1,4 @@
+
 package jp.co.soramitsu.core_db.di
 
 import jp.co.soramitsu.core_db.AppDatabase
@@ -23,7 +24,7 @@ interface DbApi {
 
     fun provideAssetDao(): AssetDao
 
-    fun provideSubqueryHistoryDao(): OperationDao
+    fun provideOperationDao(): OperationDao
 
     fun provideRuntimeDao(): RuntimeDao
 

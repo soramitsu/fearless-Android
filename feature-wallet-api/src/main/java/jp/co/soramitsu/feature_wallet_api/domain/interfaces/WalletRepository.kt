@@ -23,11 +23,11 @@ interface WalletRepository {
 
     suspend fun syncAsset(account: WalletAccount, type: Token.Type)
 
-    suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String?
+    suspend fun syncOperationsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String?
 
-    suspend fun getNewTransactions(pageSize: Int, cursor: String? = null, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Operation>
+    suspend fun getOperations(pageSize: Int, cursor: String? = null, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Operation>
 
-    fun newTransactionsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Operation>>
+    fun operationsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Operation>>
 
     suspend fun getContacts(account: WalletAccount, query: String): Set<String>
 

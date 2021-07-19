@@ -59,8 +59,8 @@ class DbModule {
 
     @Provides
     @ApplicationScope
-    fun provideSubqueryHistoryDao(appDatabase: AppDatabase): OperationDao{
-        return appDatabase.subqueryHistoryDao()
+    fun provideOperationHistoryDao(appDatabase: AppDatabase): OperationDao{
+        return appDatabase.operationDao()
     }
 
     @Provides

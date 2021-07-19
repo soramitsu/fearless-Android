@@ -26,9 +26,9 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodesToSubqueryElements
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryDbToSubqueryElement
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapSubqueryElementToSubqueryHistoryDb
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodesToOperation
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationLocalToOperation
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationLocalDb
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryElementByAddressRequest
@@ -84,27 +84,27 @@ class WalletRepositoryImpl(
         return syncAssetsRates(account)
     }
 
-    override fun newTransactionsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Operation>> {
+    override fun operationsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Operation>> {
         val accountsByAddress = accounts.associateBy { it.address }
 
         return operationDao.observe(currentAccount.address).mapList {
             val accountName = defineAccountNameForTransaction(accountsByAddress, displayAddress = it.receiver ?: it.sender ?: it.address)
 
-            mapSubqueryDbToSubqueryElement(it, accountName)
+            mapOperationLocalToOperation(it, accountName)
         }
     }
 
-    override suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String? {
-        val page = getNewTransactions(pageSize, cursor = null, account, accounts)
+    override suspend fun syncOperationsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String? {
+        val page = getOperations(pageSize, cursor = null, account, accounts)
         val accountAddress = account.address
 
-        val elements = page.map { mapSubqueryElementToSubqueryHistoryDb(it, OperationLocal.Source.SUBQUERY) }
+        val elements = page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
         operationDao.insertFromSubquery(accountAddress, elements)
 
         return if (page.isNotEmpty()) page.last().nextPageCursor else null
     }
 
-    override suspend fun getNewTransactions(
+    override suspend fun getOperations(
         pageSize: Int,
         cursor: String?,
         currentAccount: WalletAccount,
@@ -113,7 +113,7 @@ class WalletRepositoryImpl(
         return withContext(Dispatchers.Default) {
             val accountsByAddress = accounts.associateBy { it.address }
 
-            val response = subscanApi.getSumReward(
+            val response = subscanApi.getSubscanHistory(
                 SubqueryHistoryElementByAddressRequest(
                     currentAccount.address,
                     pageSize,
@@ -125,7 +125,7 @@ class WalletRepositoryImpl(
 
             val operations = response.historyElements.nodes.map {
                 val accountName = defineAccountNameForTransaction(accountsByAddress, currentAccount.address, it.transfer?.from, it.transfer?.to)
-                mapNodesToSubqueryElements(it, pageInfo.endCursor, currentAccount, accountName)
+                mapNodesToOperation(it, pageInfo.endCursor, currentAccount, accountName)
             }
 
             operations
@@ -204,7 +204,6 @@ class WalletRepositoryImpl(
         return accountsByAddress[accountAddress]?.name
     }
 
-    //FIXME выглядит оч криво
     private fun defineAccountNameForTransaction(
         accountsByAddress: Map<String, WalletAccount>,
         displayAddress: String?

@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.core_db.converters.LongMathConverters
 import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
-import jp.co.soramitsu.core_db.converters.SubqueryConverters
+import jp.co.soramitsu.core_db.converters.OperationConverters
 import jp.co.soramitsu.core_db.converters.TokenConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
@@ -27,7 +27,7 @@ import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
 import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_11_12
 import jp.co.soramitsu.core_db.migrations.AddStakingRewardsTable_15_16
 import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
-import jp.co.soramitsu.core_db.migrations.AddSubqueryTablesToDb_22_23
+import jp.co.soramitsu.core_db.migrations.AddOperationsTablesToDb_22_23
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_21_22
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
@@ -69,7 +69,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
     LongMathConverters::class,
     NetworkTypeConverters::class,
     TokenConverters::class,
-    SubqueryConverters::class
+    OperationConverters::class
 )
 
 abstract class AppDatabase : RoomDatabase() {
@@ -102,7 +102,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 19))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 20))
                     .addMigrations(AddTotalRewardsTableToDb_21_22)
-                    .addMigrations(AddSubqueryTablesToDb_22_23)
+                    .addMigrations(AddOperationsTablesToDb_22_23)
                     .build()
             }
             return instance!!
@@ -115,7 +115,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun assetDao(): AssetDao
 
-    abstract fun subqueryHistoryDao(): OperationDao
+    abstract fun operationDao(): OperationDao
 
     abstract fun runtimeDao(): RuntimeDao
 

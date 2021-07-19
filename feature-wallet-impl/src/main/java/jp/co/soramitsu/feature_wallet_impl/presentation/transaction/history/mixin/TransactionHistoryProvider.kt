@@ -10,7 +10,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.NewTransactionHistoryElement
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
@@ -34,7 +34,7 @@ class TransactionHistoryProvider(
 
     override val transactionsLiveData = MutableLiveData<List<Any>>()
 
-    private var currentTransactions: List<NewTransactionHistoryElement> = emptyList()
+    private var currentTransactions: List<OperationHistoryElement> = emptyList()
 
     private var currentPage: Int = 0
     private var isLoading = false
@@ -43,12 +43,12 @@ class TransactionHistoryProvider(
     private var lastCursor: String? = null
     private val filters: MutableList<TransactionFilter> = mutableListOf()
 
-    override fun startObservingTransactions(scope: CoroutineScope) {
+    override fun startObservingOperations(scope: CoroutineScope) {
         currentPage = 0
         isLoading = true
 
-        walletInteractor.newTransactionsFirstPageFlow()
-            .map { newTransformNewPage(it, true) }
+        walletInteractor.operationsFirstPageFlow()
+            .map { transformNewPage(it, true) }
             .flowOn(Dispatchers.Default)
             .onEach {
                 lastPageLoaded = false
@@ -83,8 +83,8 @@ class TransactionHistoryProvider(
         filters.clear()
     }
 
-    override suspend fun syncFirstTransactionsPage(): Result<String?> {
-        val result = walletInteractor.syncTransactionsFirstPage(PAGE_SIZE)
+    override suspend fun syncFirstOperationsPage(): Result<String?> {
+        val result = walletInteractor.syncOperationsFirstPage(PAGE_SIZE)
         if (result.isSuccess) lastCursor = result.getOrNull()
         return result
     }
@@ -100,7 +100,7 @@ class TransactionHistoryProvider(
         isLoading = true
 
         scope.launch {
-            val result = walletInteractor.getNewTransactions(PAGE_SIZE, cursor = lastCursor)
+            val result = walletInteractor.getOperations(PAGE_SIZE, cursor = lastCursor)
 
             if (result.isSuccess) {
                 val newPage = result.getOrThrow()
@@ -108,7 +108,7 @@ class TransactionHistoryProvider(
 
                 if (!lastPageLoaded) lastCursor = newPage.last().nextPageCursor
 
-                val combined = newTransformNewPage(newPage, false)
+                val combined = transformNewPage(newPage, false)
 
                 transactionsLiveData.value = combined
             } else {
@@ -123,17 +123,17 @@ class TransactionHistoryProvider(
         currentPage--
     }
 
-    private suspend fun newTransformNewPage(page: List<Operation>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
+    private suspend fun transformNewPage(page: List<Operation>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
         val filteredHistoryElements = page.map { transaction ->
             val addressModel = createIcon(transaction.getDisplayAddress(), transaction.accountName)
 
-            NewTransactionHistoryElement(addressModel, transaction)
+            OperationHistoryElement(addressModel, transaction)
         }.applyFilters(filters)
 
-        newRegroup(filteredHistoryElements, reset)
+        regroup(filteredHistoryElements, reset)
     }
 
-    private fun newRegroup(newPage: List<NewTransactionHistoryElement>, reset: Boolean): List<Any> {
+    private fun regroup(newPage: List<OperationHistoryElement>, reset: Boolean): List<Any> {
         currentTransactions = if (reset) newPage else currentTransactions + newPage
 
         return currentTransactions.groupBy { it.transactionModel.time.daysFromMillis() }

@@ -54,13 +54,13 @@ class BalanceListViewModel(
     }
 
     init {
-        transactionHistoryMixin.startObservingTransactions(viewModelScope)
+        transactionHistoryMixin.startObservingOperations(viewModelScope)
     }
 
     fun sync() {
         viewModelScope.launch {
             val deferredAssetSync = async(Dispatchers.Default) { interactor.syncAssetsRates() }
-            val deferredTransactionsSync = async(Dispatchers.Default) { transactionHistoryMixin.syncFirstTransactionsPage() }
+            val deferredTransactionsSync = async(Dispatchers.Default) { transactionHistoryMixin.syncFirstOperationsPage() }
 
             val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
 
@@ -100,7 +100,7 @@ class BalanceListViewModel(
         viewModelScope.launch {
             interactor.selectAccount(addressModel.address)
 
-            val result = transactionHistoryMixin.syncFirstTransactionsPage()
+            val result = transactionHistoryMixin.syncFirstOperationsPage()
 
             result.exceptionOrNull()?.let(::showError)
         }

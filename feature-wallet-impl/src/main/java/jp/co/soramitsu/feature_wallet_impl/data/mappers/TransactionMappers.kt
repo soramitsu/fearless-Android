@@ -10,13 +10,13 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 
 
-fun mapSubqueryElementStatusToSubqueryHistoryModelStatus(status: Operation.Status) = when (status) {
+fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
     Operation.Status.COMPLETED -> OperationLocal.Status.COMPLETED
     Operation.Status.FAILED -> OperationLocal.Status.FAILED
 }
 
-fun mapSubqueryElementToSubqueryHistoryDb(operation: Operation, source: OperationLocal.Source): OperationLocal {
+fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.Source): OperationLocal {
     with(operation) {
         val amount = this.operation.getOperationAmount()
         val fee = this.operation.getOperationFee()
@@ -36,13 +36,13 @@ fun mapSubqueryElementToSubqueryHistoryDb(operation: Operation, source: Operatio
             era = (this.operation as? Operation.Operation.Reward)?.era,
             validator = (this.operation as? Operation.Operation.Reward)?.validator,
             success = (this.operation as? Operation.Operation.Extrinsic)?.success,
-            status = mapSubqueryElementStatusToSubqueryHistoryModelStatus(operation.operation.status),
+            status = mapOperationStatusToOperationLocalStatus(operation.operation.status),
             source = source
         )
     }
 }
 
-fun mapSubqueryDbToSubqueryElement(operationLocal: OperationLocal, accountName: String?): Operation {
+fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: String?): Operation {
     with(operationLocal) {
         val operation = if (type != null && call != null && call != "Staking") {
             Operation.Operation.Extrinsic(
@@ -79,7 +79,7 @@ fun mapSubqueryDbToSubqueryElement(operationLocal: OperationLocal, accountName: 
     }
 }
 
-fun mapNodesToSubqueryElements(
+fun mapNodesToOperation(
     node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
     cursor: String,
     currentAccount: WalletAccount,
@@ -105,7 +105,7 @@ fun mapNodesToSubqueryElements(
                 success = node.extrinsic.success
             )
         }
-        node.transfer != null -> {///FIXME от меня трансфер
+        node.transfer != null -> {
             operation = Operation.Operation.Transfer(
                 amount = token.amountFromPlanks(node.transfer.amount.toBigInteger()),
                 receiver = node.transfer.to,
@@ -114,7 +114,6 @@ fun mapNodesToSubqueryElements(
             )
         }
         else -> {
-            println("------- EXCEPTION")
             throw Exception()
         }
     }

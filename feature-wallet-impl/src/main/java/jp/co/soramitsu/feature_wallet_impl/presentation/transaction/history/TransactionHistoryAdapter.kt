@@ -16,13 +16,13 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.NewTransactionHistoryElement
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.android.synthetic.main.item_day_header.view.itemDayHeader
 import kotlinx.android.synthetic.main.item_transaction.view.*
 
 class TransactionHistoryAdapter(
     val handler: Handler
-) : GroupedListAdapter<DayHeader, NewTransactionHistoryElement>(TransactionHistoryDiffCallback) {
+) : GroupedListAdapter<DayHeader, OperationHistoryElement>(TransactionHistoryDiffCallback) {
 
     interface Handler {
         fun transactionClicked(transactionModel: TransactionModel)
@@ -40,13 +40,13 @@ class TransactionHistoryAdapter(
         (holder as DayHolder).bind(group)
     }
 
-    override fun bindChild(holder: GroupedListHolder, child: NewTransactionHistoryElement) {
+    override fun bindChild(holder: GroupedListHolder, child: OperationHistoryElement) {
         (holder as TransactionHolder).bind(child, handler)
     }
 }
 
 class TransactionHolder(view: View) : GroupedListHolder(view) {
-    fun bind(item: NewTransactionHistoryElement, handler: TransactionHistoryAdapter.Handler) {
+    fun bind(item: OperationHistoryElement, handler: TransactionHistoryAdapter.Handler) {
         with(containerView) {
             with(item.transactionModel) {
                 itemTransactionAddress.text = getOperationHeader()
@@ -82,7 +82,7 @@ class DayHolder(view: View) : GroupedListHolder(view) {
     }
 }
 
-object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, NewTransactionHistoryElement>(DayHeader::class.java) {
+object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, OperationHistoryElement>(DayHeader::class.java) {
     override fun areGroupItemsTheSame(oldItem: DayHeader, newItem: DayHeader): Boolean {
         return oldItem.daysSinceEpoch == oldItem.daysSinceEpoch
     }
@@ -91,11 +91,11 @@ object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, NewTr
         return true
     }
 
-    override fun areChildItemsTheSame(oldItem: NewTransactionHistoryElement, newItem: NewTransactionHistoryElement): Boolean {
+    override fun areChildItemsTheSame(oldItem: OperationHistoryElement, newItem: OperationHistoryElement): Boolean {
         return oldItem.transactionModel.hash == newItem.transactionModel.hash
     }
 
-    override fun areChildContentsTheSame(oldItem: NewTransactionHistoryElement, newItem: NewTransactionHistoryElement): Boolean {
+    override fun areChildContentsTheSame(oldItem: OperationHistoryElement, newItem: OperationHistoryElement): Boolean {
         return oldItem.transactionModel == newItem.transactionModel
     }
 }
