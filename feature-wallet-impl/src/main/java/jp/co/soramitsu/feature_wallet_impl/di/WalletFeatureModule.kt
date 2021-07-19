@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -38,6 +39,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.repository.RuntimeWalletConstant
 import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.AssetUseCaseImpl
+import jp.co.soramitsu.feature_wallet_impl.domain.TokenUseCaseImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixinProvider
@@ -177,6 +179,13 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         walletRepository: WalletRepository
     ): AssetUseCase = AssetUseCaseImpl(walletRepository, accountRepository)
+
+    @Provides
+    @FeatureScope
+    fun tokenUseCase(
+        accountRepository: AccountRepository,
+        tokenRepository: TokenRepository
+    ): TokenUseCase = TokenUseCaseImpl(tokenRepository, accountRepository)
 
     @Provides
     fun provideFeeLoaderMixin(

@@ -47,14 +47,20 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="center_vertical|end"
-        android:background="@drawable/bg_primary_list_item"
         android:fontFamily="@font/soramitsu_semibold"
         android:gravity="center_vertical"
         android:paddingStart="@dimen/x2"
         android:paddingEnd="@dimen/x2"
-        android:textColor="@color/white"
+        android:textColor="@color/actions_color"
         android:visibility="gone"
         tools:text="Action" />
+
+    <LinearLayout
+        android:id="@+id/toolbarCustomActions"
+        android:layout_gravity="center_vertical|end"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
     <View
         android:layout_width="match_parent"
@@ -62,5 +68,4 @@
         android:layout_gravity="bottom"
         android:id="@+id/toolbarDivider"
         android:background="@color/dividerGray" />
-
 </FrameLayout>

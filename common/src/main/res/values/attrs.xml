@@ -32,26 +32,12 @@
         <attr name="homeButtonVisible" format="boolean" />
     </declare-styleable>
 
-    <declare-styleable name="GlassyButton">
-        <attr name="text" format="string" />
-        <attr name="drawable" format="reference|color" />
-    </declare-styleable>
-
-    <declare-styleable name="AddressView">
-        <attr name="labelVisible" format="boolean" />
-        <attr name="iconVisible" format="boolean" />
-    </declare-styleable>
-
-    <declare-styleable name="ElementChooserView">
-        <attr name="enabled" format="boolean" />
-    </declare-styleable>
-
     <declare-styleable name="LabeledTextView">
         <attr name="label" format="string" />
         <attr name="message" format="string" />
         <attr name="actionIcon" format="reference|color" />
         <attr name="textIcon" format="reference|color" />
-        <attr name="enabled" />
+        <attr name="enabled" format="boolean" />
         <attr name="android:singleLine" />
     </declare-styleable>
 
@@ -72,5 +58,12 @@
     <declare-styleable name="TableCellView">
         <attr name="title" />
         <attr name="dividerVisible" />
+    </declare-styleable>
+
+    <declare-styleable name="GoNextView">
+        <attr name="inProgress" format="boolean" />
+        <attr name="android:text" />
+        <attr name="icon" />
+        <attr name="actionIcon" />
     </declare-styleable>
 </resources>

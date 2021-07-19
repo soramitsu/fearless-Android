@@ -161,20 +161,20 @@
             app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
+            android:id="@+id/action_mainFragment_to_selectRewardDestinationFragment"
+            app:destination="@id/selectRewardDestinationFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_mainFragment_to_selectRewardDestinationFragment"
-            app:destination="@id/selectRewardDestinationFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
+            android:id="@+id/action_mainFragment_to_crowdloanContributeFragment"
+            app:destination="@id/crowdloanContributeFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_mainFragment_to_crowdloanContributeFragment"
-            app:destination="@id/crowdloanContributeFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <fragment
@@ -409,8 +409,88 @@
         tools:layout="@layout/fragment_setup_staking" />
 
     <action
-        android:id="@+id/openRecommendedValidatorsFragment"
-        app:destination="@id/recommendedValidatorsFragment"
+        android:id="@+id/openStartChangeValidatorsFragment"
+        app:destination="@id/startChangeValidatorsFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <fragment
+        android:id="@+id/startChangeValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.StartChangeValidatorsFragment"
+        android:label="startChangeValidatorsFragment"
+        tools:layout="@layout/fragment_start_change_validators">
+
+        <action
+            android:id="@+id/action_startChangeValidatorsFragment_to_recommendedValidatorsFragment"
+            app:destination="@id/recommendedValidatorsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_startChangeValidatorsFragment_to_selectCustomValidatorsFragment"
+            app:destination="@id/selectCustomValidatorsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/selectCustomValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.SelectCustomValidatorsFragment"
+        android:label="selectCustomValidatorsFragment"
+        tools:layout="@layout/fragment_select_custom_validators">
+
+        <action
+            android:id="@+id/action_selectCustomValidatorsFragment_to_reviewCustomValidatorsFragment"
+            app:destination="@id/reviewCustomValidatorsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_selectCustomValidatorsFragment_to_settingsCustomValidatorsFragment"
+            app:destination="@id/settingsCustomValidatorsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
+            android:id="@+id/action_selectCustomValidatorsFragment_to_searchCustomValidatorsFragment"
+            app:destination="@id/searchCustomValidatorsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsCustomValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment"
+        android:label="settingsCustomValidatorsFragment"
+        tools:layout="@layout/fragment_custom_validators_settings" />
+
+    <fragment
+        android:id="@+id/searchCustomValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.search.SearchCustomValidatorsFragment"
+        android:label="searchCustomValidatorsFragment"
+        tools:layout="@layout/fragment_search_custom_validators" />
+
+    <fragment
+        android:id="@+id/reviewCustomValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review.ReviewCustomValidatorsFragment"
+        android:label="reviewCustomValidatorsFragment"
+        tools:layout="@layout/fragment_select_custom_validators" />
+
+    <action
+        android:id="@+id/openConfirmStakingFragment"
+        app:destination="@id/confirmStakingFragment"
         app:enterAnim="@anim/fragment_open_enter"
         app:exitAnim="@anim/fragment_open_exit"
         app:popEnterAnim="@anim/fragment_close_enter"
@@ -418,18 +498,9 @@
 
     <fragment
         android:id="@+id/recommendedValidatorsFragment"
-        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.recommended.RecommendedValidatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.RecommendedValidatorsFragment"
         android:label="recommendedValidatorsFragment"
-        tools:layout="@layout/fragment_recommended_validators">
-
-        <action
-            android:id="@+id/action_recommendedValidatorsFragment_to_confirmStakingFragment"
-            app:destination="@id/confirmStakingFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
-    </fragment>
+        tools:layout="@layout/fragment_recommended_validators" />
 
     <action
         android:id="@+id/back_to_main"
@@ -452,12 +523,13 @@
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
 
-        <action android:id="@+id/action_confirmStakingFragment_back_to_currentValidatorsFragment"
+        <action
+            android:id="@+id/action_confirmStakingFragment_back_to_currentValidatorsFragment"
             app:enterAnim="@anim/fragment_close_enter"
             app:exitAnim="@anim/fragment_close_exit"
             app:popEnterAnim="@anim/fragment_open_enter"
             app:popExitAnim="@anim/fragment_open_exit"
-            app:popUpTo="@id/currentValidatorsFragment"  />
+            app:popUpTo="@id/currentValidatorsFragment" />
 
     </fragment>
 
@@ -666,24 +738,24 @@
         tools:layout="@layout/fragment_rebond_custom" />
 
     <fragment
-        tools:layout="@layout/fragment_current_validators"
         android:id="@+id/currentValidatorsFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.current.CurrentValidatorsFragment"
-        android:label="CurrentValidatorsFragment" />
+        android:label="CurrentValidatorsFragment"
+        tools:layout="@layout/fragment_current_validators" />
 
     <fragment
-        tools:layout="@layout/fragment_select_reward_destination"
         android:id="@+id/selectRewardDestinationFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.select.SelectRewardDestinationFragment"
-        android:label="SelectRewardDestinationFragment" >
+        android:label="SelectRewardDestinationFragment"
+        tools:layout="@layout/fragment_select_reward_destination">
 
         <action
+            android:id="@+id/action_selectRewardDestinationFragment_to_confirmRewardDestinationFragment"
+            app:destination="@id/confirmRewardDestinationFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            android:id="@+id/action_selectRewardDestinationFragment_to_confirmRewardDestinationFragment"
-            app:destination="@id/confirmRewardDestinationFragment" />
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <fragment
@@ -692,38 +764,38 @@
         android:label="ConfirmRewardDestinationFragment" />
 
     <fragment
-        tools:layout="@layout/fragment_contribute"
         android:id="@+id/crowdloanContributeFragment"
         android:name="jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.CrowdloanContributeFragment"
-        android:label="CrowdloanContributeFragment">
+        android:label="CrowdloanContributeFragment"
+        tools:layout="@layout/fragment_contribute">
 
         <action
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
             android:id="@+id/action_crowdloanContributeFragment_to_confirmContributeFragment"
-            app:destination="@id/confirmContributeFragment" />
-
-        <action
+            app:destination="@id/confirmContributeFragment"
             app:enterAnim="@anim/fragment_open_enter"
             app:exitAnim="@anim/fragment_open_exit"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
             android:id="@+id/action_crowdloanContributeFragment_to_customContributeFragment"
-            app:destination="@id/customContributeFragment" />
+            app:destination="@id/customContributeFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 
     <fragment
-        tools:layout="@layout/fragment_contribute_confirm"
         android:id="@+id/confirmContributeFragment"
         android:name="jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.ConfirmContributeFragment"
-        android:label="ConfirmContributeFragment" />
+        android:label="ConfirmContributeFragment"
+        tools:layout="@layout/fragment_contribute_confirm" />
 
     <fragment
-        tools:layout="@layout/fragment_custom_contribute"
         android:id="@+id/customContributeFragment"
         android:name="jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeFragment"
-        android:label="CustomContributeFragment" />
+        android:label="CustomContributeFragment"
+        tools:layout="@layout/fragment_custom_contribute" />
 
 </navigation>
