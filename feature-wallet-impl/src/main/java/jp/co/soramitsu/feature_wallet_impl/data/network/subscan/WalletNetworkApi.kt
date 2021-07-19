@@ -17,7 +17,7 @@ import retrofit2.http.Path
 
 class SubscanError(message: String) : Throwable(message)
 
-interface SubscanNetworkApi {
+interface WalletNetworkApi {
 
     @Headers("x-api-key: ${BuildConfig.SUBSCAN_API_KEY}")
     @POST("//{subDomain}.api.subscan.io/api/open/price")
@@ -27,7 +27,7 @@ interface SubscanNetworkApi {
     ): SubscanResponse<AssetPriceStatistics>
 
     @POST("http://10.0.2.2:3000/")
-    suspend fun getSubscanHistory(
+    suspend fun getOperationsHistory(
         @Body body: SubqueryHistoryElementByAddressRequest
     ): SubQueryResponse<SubqueryHistoryElementResponse>
 }

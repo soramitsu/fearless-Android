@@ -34,7 +34,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPrice
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryElementByAddressRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.WalletNetworkApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -47,7 +47,7 @@ import java.math.BigDecimal
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
     private val operationDao: OperationDao,
-    private val subscanApi: SubscanNetworkApi,
+    private val walletApi: WalletNetworkApi,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
@@ -113,7 +113,7 @@ class WalletRepositoryImpl(
         return withContext(Dispatchers.Default) {
             val accountsByAddress = accounts.associateBy { it.address }
 
-            val response = subscanApi.getSubscanHistory(
+            val response = walletApi.getOperationsHistory(
                 SubqueryHistoryElementByAddressRequest(
                     currentAccount.address,
                     pageSize,
@@ -251,7 +251,7 @@ class WalletRepositoryImpl(
 
     private suspend fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): SubscanResponse<AssetPriceStatistics> {
         return try {
-            apiCall { subscanApi.getAssetPrice(networkType.subscanSubDomain(), request) }
+            apiCall { walletApi.getAssetPrice(networkType.subscanSubDomain(), request) }
         } catch (_: Exception) {
             SubscanResponse.createEmptyResponse()
         }
