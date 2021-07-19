@@ -20,7 +20,7 @@ data class Operation(
 
     fun getOperationHeader() = format(operation.header) ?: accountName ?: getDisplayAddress()
 
-    private fun format(extrinsicHeader: String?) = (extrinsicHeader)?.split(regex ="(?<=[a-z])(?=[A-Z])".toRegex())?.joinToString(" ")?.capitalize()
+    private fun format(extrinsicHeader: String?) = (extrinsicHeader)?.split(regex = "(?<=[a-z])(?=[A-Z])".toRegex())?.joinToString(" ")?.capitalize()
 
     fun getDisplayAddress() = (operation as? Operation.Transfer)?.receiver ?: address
 
@@ -31,7 +31,7 @@ data class Operation(
         else -> null
     }
 
-    fun getIsIncome() = when(operation) {
+    fun getIsIncome() = when (operation) {
         is Operation.Extrinsic -> false
         is Operation.Reward -> operation.isReward
         is Operation.Transfer -> address == operation.receiver
@@ -60,7 +60,7 @@ data class Operation(
         val header: String?,
         val subheader: String?,
         val displayAmount: BigDecimal, // amount that we show on UI (might be fee)
-    val status: Status
+        val status: Status
     ) {
         class Extrinsic(
             val hash: String,
@@ -84,7 +84,7 @@ data class Operation(
             val fee: BigDecimal
         ) : Operation(null, "Transfer", amount, Status.COMPLETED)
 
-        //Real amount without fee
+        // Real amount without fee
         fun getOperationAmount() = when (this) {
             is Reward -> amount
             is Transfer -> amount

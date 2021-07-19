@@ -62,7 +62,7 @@ class WalletInteractorImpl(
             .flatMapLatest { assetFlow(it) }
     }
 
-    override fun operationsFirstPageFlow(): Flow<List<Operation>>{
+    override fun operationsFirstPageFlow(): Flow<List<Operation>> {
         return accountRepository.selectedAccountFlow()
             .flatMapLatest {
                 val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)

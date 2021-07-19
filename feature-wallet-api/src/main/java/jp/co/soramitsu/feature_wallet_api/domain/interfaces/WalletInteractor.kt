@@ -34,7 +34,7 @@ interface WalletInteractor {
 
     suspend fun syncOperationsFirstPage(pageSize: Int): Result<String?>
 
-    suspend fun getOperations(pageSize: Int, cursor: String?) : Result<List<Operation>>
+    suspend fun getOperations(pageSize: Int, cursor: String?): Result<List<Operation>>
 
     fun selectedAccountFlow(): Flow<WalletAccount>
 

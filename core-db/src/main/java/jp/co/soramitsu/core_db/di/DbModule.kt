@@ -59,7 +59,7 @@ class DbModule {
 
     @Provides
     @ApplicationScope
-    fun provideOperationHistoryDao(appDatabase: AppDatabase): OperationDao{
+    fun provideOperationHistoryDao(appDatabase: AppDatabase): OperationDao {
         return appDatabase.operationDao()
     }
 

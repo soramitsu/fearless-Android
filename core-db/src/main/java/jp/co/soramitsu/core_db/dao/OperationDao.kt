@@ -16,8 +16,9 @@ abstract class OperationDao {
     abstract suspend fun insertAll(operations: List<OperationLocal>)
 
     @Query("SELECT * FROM operations WHERE address = :accountAddress ORDER BY (case when status = :statusUp then 0 else 1 end), time DESC")
-    abstract fun observe(accountAddress: String,
-                         statusUp: OperationLocal.Status = OperationLocal.Status.PENDING
+    abstract fun observe(
+        accountAddress: String,
+        statusUp: OperationLocal.Status = OperationLocal.Status.PENDING
     ): Flow<List<OperationLocal>>
 
     @Query("SELECT * FROM operations WHERE hash = :hash")
