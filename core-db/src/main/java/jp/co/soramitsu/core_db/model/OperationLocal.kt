@@ -7,7 +7,7 @@ import java.math.BigInteger
     tableName = "operations",
     primaryKeys = ["hash", "address"]
 )
-class OperationLocal(
+data class OperationLocal(
     val hash: String,
     val address: String,
     val time: Long,

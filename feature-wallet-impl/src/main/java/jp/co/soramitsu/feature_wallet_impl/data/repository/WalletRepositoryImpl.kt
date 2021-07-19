@@ -88,7 +88,7 @@ class WalletRepositoryImpl(
         val accountsByAddress = accounts.associateBy { it.address }
 
         return operationDao.observe(currentAccount.address).mapList {
-            val accountName = defineAccountNameForTransaction(accountsByAddress, displayAddress = it.receiver ?: it.sender ?: it.address)
+            val accountName = defineAccountNameForTransaction(accountsByAddress, it.address, it.receiver, it.sender)
 
             mapOperationLocalToOperation(it, accountName)
         }
@@ -124,7 +124,7 @@ class WalletRepositoryImpl(
             val pageInfo = response.historyElements.pageInfo
 
             val operations = response.historyElements.nodes.map {
-                val accountName = defineAccountNameForTransaction(accountsByAddress, currentAccount.address, it.transfer?.from, it.transfer?.to)
+                val accountName = defineAccountNameForTransaction(accountsByAddress,  it.address, it.transfer?.to, it.transfer?.from)
                 mapNodeToOperation(it, pageInfo.endCursor, currentAccount, accountName)
             }
 
@@ -191,25 +191,17 @@ class WalletRepositoryImpl(
 
     private fun defineAccountNameForTransaction(
         accountsByAddress: Map<String, WalletAccount>,
-        transactionAccountAddress: String,
-        recipientAddress: String?,
-        senderAddress: String?
+        currentAddress: String,
+        receiver: String?,
+        sender: String?
     ): String? {
-        if (recipientAddress == null && senderAddress == null) return null
-        val accountAddress = if (transactionAccountAddress == recipientAddress) {
-            senderAddress
+        val accountAddress = if (currentAddress == receiver) {
+            sender
         } else {
-            recipientAddress
+            receiver
         }
-        return accountsByAddress[accountAddress]?.name
-    }
 
-    private fun defineAccountNameForTransaction(
-        accountsByAddress: Map<String, WalletAccount>,
-        displayAddress: String?
-    ): String? {
-        if (displayAddress == null) return null
-        return accountsByAddress[displayAddress]?.name
+        return accountsByAddress[accountAddress ?: currentAddress]?.name
     }
 
     private fun createOperation(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal, source: OperationLocal.Source) =

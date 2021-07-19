@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
+import jp.co.soramitsu.common.utils.secondsToMilliseconds
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeLocalToTokenType
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
@@ -18,34 +19,46 @@ fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (s
 
 fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.Source): OperationLocal {
     with(operation) {
-        val amount = type.getOperationAmount()
-        val fee = type.getOperationFee()
-
-        return OperationLocal(
+        val operationLocal = OperationLocal(
             hash = hash,
             address = address,
-            time = time * 1000,
+            time = time.secondsToMilliseconds(),
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
-            type = type.header,
-            call = type.subheader,
-            amount = amount?.toBigInteger(),
-            sender = (type as? Operation.Type.Transfer)?.sender,
-            receiver = (type as? Operation.Type.Transfer)?.receiver,
-            fee = fee?.toBigInteger(),
-            isReward = (type as? Operation.Type.Reward)?.isReward,
-            era = (type as? Operation.Type.Reward)?.era,
-            validator = (type as? Operation.Type.Reward)?.validator,
-            success = (type as? Operation.Type.Extrinsic)?.success,
-            status = mapOperationStatusToOperationLocalStatus(operation.type.status),
+            type = transactionType.header,
+            call = transactionType.subheader,
+            amount = transactionType.operationAmount.toBigInteger(),
+            fee = transactionType.operationFee.toBigInteger(),
+            status = mapOperationStatusToOperationLocalStatus(operation.transactionType.status),
             source = source
         )
+
+        return when (transactionType) {
+            is Operation.TransactionType.Transfer -> {
+                operationLocal.copy(
+                    sender = (transactionType as Operation.TransactionType.Transfer).sender,
+                    receiver = (transactionType as Operation.TransactionType.Transfer).receiver
+                )
+            }
+            is Operation.TransactionType.Extrinsic -> {
+                operationLocal.copy(
+                    success = (transactionType as? Operation.TransactionType.Extrinsic)?.success
+                )
+            }
+            is Operation.TransactionType.Reward -> {
+                operationLocal.copy(
+                    isReward = (transactionType as Operation.TransactionType.Reward).isReward,
+                    era = (transactionType as Operation.TransactionType.Reward).era,
+                    validator = (transactionType as Operation.TransactionType.Reward).validator,
+                )
+            }
+        }
     }
 }
 
 fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: String?): Operation {
     with(operationLocal) {
         val operation = if (type != null && call != null && call != "Staking") {
-            Operation.Type.Extrinsic(
+            Operation.TransactionType.Extrinsic(
                 hash = hash,
                 module = type!!,
                 call = call!!,
@@ -53,14 +66,14 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: St
                 success = success!!
             )
         } else if (call == "Transfer") {
-            Operation.Type.Transfer(
+            Operation.TransactionType.Transfer(
                 amount = (amount?.toBigDecimal())!!,
                 receiver = receiver!!,
                 sender = sender!!,
                 fee = (fee?.toBigDecimal())!!
             )
         } else {
-            Operation.Type.Reward(
+            Operation.TransactionType.Reward(
                 amount = (amount?.toBigDecimal())!!,
                 isReward = isReward!!,
                 era = era!!,
@@ -72,7 +85,7 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: St
             hash = hash,
             address = address,
             accountName = accountName,
-            type = operation,
+            transactionType = operation,
             time = time,
             tokenType = mapTokenTypeLocalToTokenType(tokenType),
         )
@@ -86,10 +99,10 @@ fun mapNodeToOperation(
     accountName: String?
 ): Operation {
     val token = Token.Type.fromNetworkType(currentAccount.network.type)
-    val type: Operation.Type?
+    val type: Operation.TransactionType?
     when {
         node.reward != null -> {
-            type = Operation.Type.Reward(
+            type = Operation.TransactionType.Reward(
                 amount = token.amountFromPlanks(node.reward.amount.toBigInteger()),
                 era = node.reward.era,
                 isReward = node.reward.isReward,
@@ -97,7 +110,7 @@ fun mapNodeToOperation(
             )
         }
         node.extrinsic != null -> {
-            type = Operation.Type.Extrinsic(
+            type = Operation.TransactionType.Extrinsic(
                 hash = node.extrinsic.hash,
                 module = node.extrinsic.module,
                 call = node.extrinsic.call,
@@ -106,7 +119,7 @@ fun mapNodeToOperation(
             )
         }
         node.transfer != null -> {
-            type = Operation.Type.Transfer(
+            type = Operation.TransactionType.Transfer(
                 amount = token.amountFromPlanks(node.transfer.amount.toBigInteger()),
                 receiver = node.transfer.to,
                 sender = node.transfer.from,
@@ -121,7 +134,7 @@ fun mapNodeToOperation(
     return Operation(
         hash = node.id,
         address = node.address,
-        type = type,
+        transactionType = type,
         time = node.timestamp.toLong(),
         tokenType = token,
         accountName = accountName,
@@ -135,7 +148,7 @@ fun mapOperationToOperationModel(operation: Operation): OperationModel {
             hash = hash,
             address = address,
             accountName = accountName,
-            type = type,
+            transactionType = transactionType,
             time = time,
             tokenType = tokenType
         )

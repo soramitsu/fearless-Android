@@ -11,38 +11,38 @@ class OperationModel(
     val hash: String,
     val address: String,
     val accountName: String?,
-    val type: Operation.Type,
+    val transactionType: Operation.TransactionType,
     val time: Long,
     val tokenType: Token.Type
 ) {
     val formattedAmount = createFormattedAmount()
 
-    fun getDisplayAddress() = (type as? Operation.Type.Transfer)?.receiver ?: address
+    fun getDisplayAddress() = (transactionType as? Operation.TransactionType.Transfer)?.receiver ?: address
 
-    fun getOperationHeader() = format(type.header) ?: accountName ?: getDisplayAddress()
+    fun getOperationHeader() = format(transactionType.header) ?: accountName ?: getDisplayAddress()
 
-    fun getElementDescription() = format(type.subheader)
+    fun getElementDescription() = format(transactionType.subheader)
 
-    private fun format(extrinsicHeader: String?) = (extrinsicHeader)?.split(regex = "(?<=[a-z])(?=[A-Z])".toRegex())?.joinToString(" ")?.capitalize()
+    private fun format(extrinsicHeader: String?) = extrinsicHeader?.split(regex = "(?<=[a-z])(?=[A-Z])".toRegex())?.joinToString(" ")?.capitalize()
 
-    fun getOperationIcon(): Int? = when (type) {
-        is Operation.Type.Reward -> R.drawable.ic_staking
+    fun getOperationIcon(): Int? = when (transactionType) {
+        is Operation.TransactionType.Reward -> R.drawable.ic_staking
         else -> null
     }
 
-    fun getIsIncome() = when (type) {
-        is Operation.Type.Extrinsic -> false
-        is Operation.Type.Reward -> type.isReward
-        is Operation.Type.Transfer -> address == type.receiver
+    fun getIsIncome() = when (transactionType) {
+        is Operation.TransactionType.Extrinsic -> false
+        is Operation.TransactionType.Reward -> transactionType.isReward
+        is Operation.TransactionType.Transfer -> address == transactionType.receiver
     }
 
     val amountColorRes = when {
-        type.status == Operation.Status.FAILED -> R.color.gray2
+        transactionType.status == Operation.Status.FAILED -> R.color.gray2
         getIsIncome() -> R.color.green
         else -> R.color.white
     }
 
-    val statusAppearance = when (type.status) {
+    val statusAppearance = when (transactionType.status) {
         Operation.Status.COMPLETED -> StatusAppearance.COMPLETED
         Operation.Status.FAILED -> StatusAppearance.FAILED
         Operation.Status.PENDING -> StatusAppearance.PENDING
@@ -58,7 +58,7 @@ class OperationModel(
     }
 
     private fun createFormattedAmount(): String {
-        val withoutSign = type.displayAmount.formatTokenAmount(tokenType)
+        val withoutSign = transactionType.operationAmount.formatTokenAmount(tokenType)
         val sign = if (getIsIncome()) '+' else '-'
 
         return sign + withoutSign
