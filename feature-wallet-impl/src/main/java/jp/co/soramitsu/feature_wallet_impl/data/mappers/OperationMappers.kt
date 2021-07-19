@@ -8,6 +8,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
@@ -126,4 +127,17 @@ fun mapNodeToOperation(
         accountName = accountName,
         nextPageCursor = cursor
     )
+}
+
+fun mapOperationToOperationModel(operation: Operation): OperationModel {
+    with(operation) {
+        return OperationModel(
+            hash = hash,
+            address = address,
+            accountName = accountName,
+            type = type,
+            time = time,
+            tokenType = tokenType
+        )
+    }
 }

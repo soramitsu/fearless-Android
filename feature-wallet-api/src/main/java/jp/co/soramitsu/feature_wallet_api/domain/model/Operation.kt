@@ -16,46 +16,6 @@ data class Operation(
     val nextPageCursor: String? = null
 ) {
 
-    val formattedAmount = createFormattedAmount()
-
-    fun getOperationHeader() = format(type.header) ?: accountName ?: getDisplayAddress()
-
-    private fun format(extrinsicHeader: String?) = (extrinsicHeader)?.split(regex = "(?<=[a-z])(?=[A-Z])".toRegex())?.joinToString(" ")?.capitalize()
-
-    fun getDisplayAddress() = (type as? Type.Transfer)?.receiver ?: address
-
-    fun getElementDescription() = format(type.subheader)
-
-    fun getOperationIcon(): Int? = when (type) {
-        is Type.Reward -> R.drawable.ic_staking
-        else -> null
-    }
-
-    fun getIsIncome() = when (type) {
-        is Type.Extrinsic -> false
-        is Type.Reward -> type.isReward
-        is Type.Transfer -> address == type.receiver
-    }
-
-    val statusAppearance = when (type.status) {
-        Status.COMPLETED -> StatusAppearance.COMPLETED
-        Status.FAILED -> StatusAppearance.FAILED
-        Status.PENDING -> StatusAppearance.PENDING
-    }
-
-    val amountColorRes = when {
-        type.status == Status.FAILED -> R.color.gray2
-        getIsIncome() -> R.color.green
-        else -> R.color.white
-    }
-
-    private fun createFormattedAmount(): String {
-        val withoutSign = type.displayAmount.formatTokenAmount(tokenType)
-        val sign = if (getIsIncome()) '+' else '-'
-
-        return sign + withoutSign
-    }
-
     sealed class Type(
         val header: String?,
         val subheader: String?,
@@ -108,12 +68,5 @@ data class Operation(
         }
     }
 
-    enum class StatusAppearance(
-        @DrawableRes val icon: Int,
-        @StringRes val labelRes: Int
-    ) {
-        COMPLETED(R.drawable.ic_transaction_completed, R.string.transaction_status_completed),
-        PENDING(R.drawable.ic_transaction_pending, R.string.transaction_status_pending),
-        FAILED(R.drawable.ic_red_cross, R.string.transaction_status_failed),
-    }
+
 }
