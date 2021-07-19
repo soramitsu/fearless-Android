@@ -16,8 +16,8 @@ import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
@@ -49,7 +49,7 @@ interface WalletFeatureDependencies {
 
     fun tokenDao(): TokenDao
 
-    fun transactionsDao(): TransactionDao
+    fun operationDao(): OperationDao
 
     fun networkCreator(): NetworkApiCreator
 

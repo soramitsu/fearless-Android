@@ -71,6 +71,22 @@ val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
     }
 }
 
+val AddOperationsTablesToDb_22_23 = object : Migration(22, 23) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+                DROP TABLE IF EXISTS `transactions`
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+               CREATE TABLE IF NOT EXISTS `operations` (`hash` TEXT NOT NULL, `address` TEXT NOT NULL, `time` INTEGER NOT NULL, `tokenType` INTEGER NOT NULL, `status` INTEGER NOT NULL, `source` INTEGER NOT NULL, `type` TEXT, `call` TEXT, `amount` TEXT, `sender` TEXT, `receiver` TEXT, `fee` TEXT, `isReward` INTEGER, `era` INTEGER, `validator` TEXT, `success` INTEGER, PRIMARY KEY(`hash`, `address`))
+            """.trimIndent()
+        )
+    }
+}
+
 @Suppress("ClassName")
 class MoveActiveNodeTrackingToDb_18_19(private val migrator: PrefsToDbActiveNodeMigrator) : Migration(18, 19) {
 

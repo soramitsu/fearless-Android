@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -34,7 +34,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.WalletNetworkApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
@@ -53,8 +53,8 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideSubscanApi(networkApiCreator: NetworkApiCreator): SubscanNetworkApi {
-        return networkApiCreator.create(SubscanNetworkApi::class.java)
+    fun provideSubscanApi(networkApiCreator: NetworkApiCreator): WalletNetworkApi {
+        return networkApiCreator.create(WalletNetworkApi::class.java)
     }
 
     @Provides
@@ -95,8 +95,8 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
-        transactionDao: TransactionDao,
-        subscanNetworkApi: SubscanNetworkApi,
+        operationsDao: OperationDao,
+        walletNetworkApi: WalletNetworkApi,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingAddressDao: PhishingAddressDao,
@@ -104,8 +104,8 @@ class WalletFeatureModule {
         assetCache: AssetCache,
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
-        transactionDao,
-        subscanNetworkApi,
+        operationsDao,
+        walletNetworkApi,
         httpExceptionHandler,
         phishingApi,
         assetCache,
@@ -146,14 +146,14 @@ class WalletFeatureModule {
     fun providePaymentUpdater(
         remoteSource: SubstrateRemoteSource,
         assetCache: AssetCache,
-        transactionDao: TransactionDao,
+        operationDao: OperationDao,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         accountUpdateScope: AccountUpdateScope,
     ): PaymentUpdater {
         return PaymentUpdater(
             remoteSource,
             assetCache,
-            transactionDao,
+            operationDao,
             runtimeProperty,
             accountUpdateScope
         )
