@@ -10,7 +10,7 @@ data class Operation(
     val hash: String,
     val address: String,
     val accountName: String?,
-    val operation: Operation,
+    val type: Type,
     val time: Long,
     val tokenType: Token.Type,
     val nextPageCursor: String? = null
@@ -18,45 +18,45 @@ data class Operation(
 
     val formattedAmount = createFormattedAmount()
 
-    fun getOperationHeader() = format(operation.header) ?: accountName ?: getDisplayAddress()
+    fun getOperationHeader() = format(type.header) ?: accountName ?: getDisplayAddress()
 
     private fun format(extrinsicHeader: String?) = (extrinsicHeader)?.split(regex = "(?<=[a-z])(?=[A-Z])".toRegex())?.joinToString(" ")?.capitalize()
 
-    fun getDisplayAddress() = (operation as? Operation.Transfer)?.receiver ?: address
+    fun getDisplayAddress() = (type as? Type.Transfer)?.receiver ?: address
 
-    fun getElementDescription() = format(operation.subheader)
+    fun getElementDescription() = format(type.subheader)
 
-    fun getOperationIcon(): Int? = when (operation) {
-        is Operation.Reward -> R.drawable.ic_staking
+    fun getOperationIcon(): Int? = when (type) {
+        is Type.Reward -> R.drawable.ic_staking
         else -> null
     }
 
-    fun getIsIncome() = when (operation) {
-        is Operation.Extrinsic -> false
-        is Operation.Reward -> operation.isReward
-        is Operation.Transfer -> address == operation.receiver
+    fun getIsIncome() = when (type) {
+        is Type.Extrinsic -> false
+        is Type.Reward -> type.isReward
+        is Type.Transfer -> address == type.receiver
     }
 
-    val statusAppearance = when (operation.status) {
+    val statusAppearance = when (type.status) {
         Status.COMPLETED -> StatusAppearance.COMPLETED
         Status.FAILED -> StatusAppearance.FAILED
         Status.PENDING -> StatusAppearance.PENDING
     }
 
     val amountColorRes = when {
-        operation.status == Status.FAILED -> R.color.gray2
+        type.status == Status.FAILED -> R.color.gray2
         getIsIncome() -> R.color.green
         else -> R.color.white
     }
 
     private fun createFormattedAmount(): String {
-        val withoutSign = operation.displayAmount.formatTokenAmount(tokenType)
+        val withoutSign = type.displayAmount.formatTokenAmount(tokenType)
         val sign = if (getIsIncome()) '+' else '-'
 
         return sign + withoutSign
     }
 
-    sealed class Operation(
+    sealed class Type(
         val header: String?,
         val subheader: String?,
         val displayAmount: BigDecimal, // amount that we show on UI (might be fee)
@@ -68,21 +68,21 @@ data class Operation(
             val call: String,
             val fee: BigDecimal,
             val success: Boolean
-        ) : Operation(call, module, fee, Status.fromSuccess(success))
+        ) : Type(call, module, fee, Status.fromSuccess(success))
 
         class Reward(
             val amount: BigDecimal,
             val isReward: Boolean,
             val era: Int,
             val validator: String
-        ) : Operation(if (isReward) "Reward" else "Slash", "Staking", amount, Status.FAILED)
+        ) : Type(if (isReward) "Reward" else "Slash", "Staking", amount, Status.FAILED)
 
         class Transfer(
             val amount: BigDecimal,
             val receiver: String,
             val sender: String,
             val fee: BigDecimal
-        ) : Operation(null, "Transfer", amount, Status.COMPLETED)
+        ) : Type(null, "Transfer", amount, Status.COMPLETED)
 
         // Real amount without fee
         fun getOperationAmount() = when (this) {

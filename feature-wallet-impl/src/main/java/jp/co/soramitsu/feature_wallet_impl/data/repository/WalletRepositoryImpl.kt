@@ -26,7 +26,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodesToOperation
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodeToOperation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationLocalToOperation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationLocalDb
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
@@ -125,7 +125,7 @@ class WalletRepositoryImpl(
 
             val operations = response.historyElements.nodes.map {
                 val accountName = defineAccountNameForTransaction(accountsByAddress, currentAccount.address, it.transfer?.from, it.transfer?.to)
-                mapNodesToOperation(it, pageInfo.endCursor, currentAccount, accountName)
+                mapNodeToOperation(it, pageInfo.endCursor, currentAccount, accountName)
             }
 
             operations

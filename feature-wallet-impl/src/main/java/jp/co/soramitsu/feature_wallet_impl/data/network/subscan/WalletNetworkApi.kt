@@ -23,6 +23,7 @@ interface WalletNetworkApi {
         @Body body: AssetPriceRequest
     ): SubscanResponse<AssetPriceStatistics>
 
+    // TODO change to real endpoint before merging to dev
     @POST("http://10.0.2.2:3000/")
     suspend fun getOperationsHistory(
         @Body body: SubqueryHistoryElementByAddressRequest

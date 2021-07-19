@@ -17,25 +17,25 @@ fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (s
 
 fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.Source): OperationLocal {
     with(operation) {
-        val amount = this.operation.getOperationAmount()
-        val fee = this.operation.getOperationFee()
+        val amount = type.getOperationAmount()
+        val fee = type.getOperationFee()
 
         return OperationLocal(
             hash = hash,
             address = address,
             time = time * 1000,
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
-            type = this.operation.header,
-            call = this.operation.subheader,
+            type = type.header,
+            call = type.subheader,
             amount = amount?.toBigInteger(),
-            sender = (this.operation as? Operation.Operation.Transfer)?.sender,
-            receiver = (this.operation as? Operation.Operation.Transfer)?.receiver,
+            sender = (type as? Operation.Type.Transfer)?.sender,
+            receiver = (type as? Operation.Type.Transfer)?.receiver,
             fee = fee?.toBigInteger(),
-            isReward = (this.operation as? Operation.Operation.Reward)?.isReward,
-            era = (this.operation as? Operation.Operation.Reward)?.era,
-            validator = (this.operation as? Operation.Operation.Reward)?.validator,
-            success = (this.operation as? Operation.Operation.Extrinsic)?.success,
-            status = mapOperationStatusToOperationLocalStatus(operation.operation.status),
+            isReward = (type as? Operation.Type.Reward)?.isReward,
+            era = (type as? Operation.Type.Reward)?.era,
+            validator = (type as? Operation.Type.Reward)?.validator,
+            success = (type as? Operation.Type.Extrinsic)?.success,
+            status = mapOperationStatusToOperationLocalStatus(operation.type.status),
             source = source
         )
     }
@@ -44,7 +44,7 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
 fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: String?): Operation {
     with(operationLocal) {
         val operation = if (type != null && call != null && call != "Staking") {
-            Operation.Operation.Extrinsic(
+            Operation.Type.Extrinsic(
                 hash = hash,
                 module = type!!,
                 call = call!!,
@@ -52,14 +52,14 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: St
                 success = success!!
             )
         } else if (call == "Transfer") {
-            Operation.Operation.Transfer(
+            Operation.Type.Transfer(
                 amount = (amount?.toBigDecimal())!!,
                 receiver = receiver!!,
                 sender = sender!!,
                 fee = (fee?.toBigDecimal())!!
             )
         } else {
-            Operation.Operation.Reward(
+            Operation.Type.Reward(
                 amount = (amount?.toBigDecimal())!!,
                 isReward = isReward!!,
                 era = era!!,
@@ -71,24 +71,24 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: St
             hash = hash,
             address = address,
             accountName = accountName,
-            operation = operation,
+            type = operation,
             time = time,
             tokenType = mapTokenTypeLocalToTokenType(tokenType),
         )
     }
 }
 
-fun mapNodesToOperation(
+fun mapNodeToOperation(
     node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
     cursor: String,
     currentAccount: WalletAccount,
     accountName: String?
 ): Operation {
     val token = Token.Type.fromNetworkType(currentAccount.network.type)
-    val operation: Operation.Operation?
+    val type: Operation.Type?
     when {
         node.reward != null -> {
-            operation = Operation.Operation.Reward(
+            type = Operation.Type.Reward(
                 amount = token.amountFromPlanks(node.reward.amount.toBigInteger()),
                 era = node.reward.era,
                 isReward = node.reward.isReward,
@@ -96,7 +96,7 @@ fun mapNodesToOperation(
             )
         }
         node.extrinsic != null -> {
-            operation = Operation.Operation.Extrinsic(
+            type = Operation.Type.Extrinsic(
                 hash = node.extrinsic.hash,
                 module = node.extrinsic.module,
                 call = node.extrinsic.call,
@@ -105,7 +105,7 @@ fun mapNodesToOperation(
             )
         }
         node.transfer != null -> {
-            operation = Operation.Operation.Transfer(
+            type = Operation.Type.Transfer(
                 amount = token.amountFromPlanks(node.transfer.amount.toBigInteger()),
                 receiver = node.transfer.to,
                 sender = node.transfer.from,
@@ -120,7 +120,7 @@ fun mapNodesToOperation(
     return Operation(
         hash = node.id,
         address = node.address,
-        operation = operation,
+        type = type,
         time = node.timestamp.toLong(),
         tokenType = token,
         accountName = accountName,

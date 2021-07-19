@@ -58,7 +58,7 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
 
                 itemTransactionType.text = getElementDescription()
 
-                if (operation.status != Operation.Status.COMPLETED) {
+                if (type.status != Operation.Status.COMPLETED) {
                     itemTransactionStatus.makeVisible()
                     itemTransactionStatus.setImageResource(statusAppearance.icon)
                 } else {
