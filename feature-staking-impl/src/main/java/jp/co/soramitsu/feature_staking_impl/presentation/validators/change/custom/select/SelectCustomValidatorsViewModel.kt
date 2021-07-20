@@ -22,8 +22,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setValidators
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.retractValidators
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.async
@@ -119,7 +118,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     fun backClicked() {
-        setupStakingSharedState.retractValidators()
+        updateSetupStakingState()
 
         router.back()
     }
@@ -151,7 +150,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     private fun updateSetupStakingState() {
-        setupStakingSharedState.setValidators(selectedValidators.value.toList())
+        setupStakingSharedState.setCustomValidators(selectedValidators.value.toList())
     }
 
     fun clearFilters() {
@@ -182,7 +181,7 @@ class SelectCustomValidatorsViewModel(
 
     private fun observeExternalSelectionChanges() {
         setupStakingSharedState.setupStakingProcess
-            .filterIsInstance<SetupStakingProcess.Confirm>()
+            .filterIsInstance<SetupStakingProcess.ReadyToSubmit>()
             .onEach { selectedValidators.value = it.payload.validators.toSet() }
             .launchIn(viewModelScope)
     }

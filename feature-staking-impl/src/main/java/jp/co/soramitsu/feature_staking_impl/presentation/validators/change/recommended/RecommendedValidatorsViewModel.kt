@@ -12,12 +12,13 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorReco
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit.SelectionMethod
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.retractValidators
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setValidators
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setRecommendedValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.flow.first
@@ -54,7 +55,7 @@ class RecommendedValidatorsViewModel(
     }.inBackground().share()
 
     fun backClicked() {
-        sharedStateSetup.retractValidators()
+        retractRecommended()
 
         router.back()
     }
@@ -65,7 +66,7 @@ class RecommendedValidatorsViewModel(
 
     fun nextClicked() {
         viewModelScope.launch {
-            sharedStateSetup.setValidators(recommendedValidators.first())
+            sharedStateSetup.setRecommendedValidators(recommendedValidators.first())
 
             router.openConfirmStaking()
         }
@@ -82,5 +83,13 @@ class RecommendedValidatorsViewModel(
 
     private suspend fun recommendedSettings(): RecommendationSettings {
         return recommendationSettingsProviderFactory.get().defaultSettings()
+    }
+
+    private fun retractRecommended() = sharedStateSetup.mutate {
+        if (it is ReadyToSubmit && it.payload.selectionMethod == SelectionMethod.RECOMMENDED) {
+            it.previous()
+        } else {
+            it
+        }
     }
 }

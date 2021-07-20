@@ -32,6 +32,18 @@
         app:layout_constraintTop_toTopOf="@id/goNextIcon"
         tools:text="Learn Karura's crowdloan" />
 
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/goNextBadgeText"
+        android:layout_marginEnd="8dp"
+        android:visibility="gone"
+        app:layout_constraintBaseline_toBaselineOf="@id/goNextTitle"
+        app:layout_constraintBottom_toBottomOf="@+id/goNextTitle"
+        app:layout_constraintEnd_toStartOf="@+id/goNextActionImage"
+        tools:text="16 (max 16)" />
+
     <ImageView
         android:id="@+id/goNextActionImage"
         android:layout_width="wrap_content"

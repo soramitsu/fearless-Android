@@ -28,7 +28,7 @@ class ConfirmNominationsViewModel(
     private val tokenUseCase: TokenUseCase
 ) : BaseViewModel() {
 
-    private val currentSetupStakingProcess = sharedStateSetup.get<SetupStakingProcess.Confirm>()
+    private val currentSetupStakingProcess = sharedStateSetup.get<SetupStakingProcess.ReadyToSubmit>()
 
     private val validators = currentSetupStakingProcess.payload.validators
 

@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review.model.ValidatorsSelectionState
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -32,7 +33,7 @@ class ReviewCustomValidatorsViewModel(
 ) : BaseViewModel() {
 
     private val confirmSetupState = sharedStateSetup.setupStakingProcess
-        .filterIsInstance<SetupStakingProcess.Confirm>()
+        .filterIsInstance<SetupStakingProcess.ReadyToSubmit>()
         .share()
 
     private val selectedValidators = confirmSetupState
@@ -82,7 +83,7 @@ class ReviewCustomValidatorsViewModel(
 
             val withoutRemoved = validators - validatorModel.validator
 
-            sharedStateSetup.set(confirmSetupState.first().changeValidators(withoutRemoved))
+            sharedStateSetup.setCustomValidators(withoutRemoved)
 
             if (withoutRemoved.isEmpty()) {
                 router.back()
