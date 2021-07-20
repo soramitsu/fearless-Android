@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.extrinsicHash
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Extrinsic
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.runtime.metadata.call
 import java.math.BigInteger
 
