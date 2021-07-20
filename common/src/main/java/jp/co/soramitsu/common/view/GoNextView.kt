@@ -7,7 +7,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.utils.setVisible
 import kotlinx.android.synthetic.main.view_go_next.view.goNextActionImage
