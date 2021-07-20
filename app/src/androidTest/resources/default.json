@@ -1,0 +1,94 @@
+{
+  "types": {
+    "Balance": "u128",
+    "Index": "u32",
+    "RefCount": "u32",
+    "AccountId": "GenericAccountId",
+    "AccountInfo": "AccountInfoWithTripleRefCount",
+    "AccountInfoWithRefCount": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "nonce",
+          "Index"
+        ],
+        [
+          "refcount",
+          "RefCount"
+        ],
+        [
+          "data",
+          "AccountData"
+        ]
+      ]
+    },
+    "AccountInfoWithDualRefCount": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "nonce",
+          "Index"
+        ],
+        [
+          "consumers",
+          "RefCount"
+        ],
+        [
+          "providers",
+          "RefCount"
+        ],
+        [
+          "data",
+          "AccountData"
+        ]
+      ]
+    },
+    "AccountInfoWithProviders": "AccountInfoWithDualRefCount",
+    "AccountInfoWithTripleRefCount": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "nonce",
+          "Index"
+        ],
+        [
+          "consumers",
+          "RefCount"
+        ],
+        [
+          "providers",
+          "RefCount"
+        ],
+        [
+          "sufficients",
+          "RefCount"
+        ],
+        [
+          "data",
+          "AccountData"
+        ]
+      ]
+    },
+    "AccountData": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "free",
+          "Balance"
+        ],
+        [
+          "reserved",
+          "Balance"
+        ],
+        [
+          "miscFrozen",
+          "Balance"
+        ],
+        [
+          "feeFrozen",
+          "Balance"
+        ]
+      ]
+    }
+  }
+}

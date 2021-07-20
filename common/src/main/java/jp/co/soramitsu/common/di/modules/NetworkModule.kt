@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.network.rpc.WsConnectionManager
 import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.di.Distinct
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
@@ -107,6 +108,16 @@ class NetworkModule {
     @Provides
     @ApplicationScope
     fun provideSocketService(
+        mapper: Gson,
+        socketFactory: WebSocketFactory,
+        logger: Logger,
+        reconnector: Reconnector,
+        requestExecutor: RequestExecutor
+    ): SocketService = SocketService(mapper, logger, socketFactory, reconnector, requestExecutor)
+
+    @Provides
+    @Distinct
+    fun provideNewSocketService(
         mapper: Gson,
         socketFactory: WebSocketFactory,
         logger: Logger,

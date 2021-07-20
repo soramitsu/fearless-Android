@@ -1,0 +1,15 @@
+{
+  "runtime_id": 10,
+  "types": {
+      "AccountInfo": "AccountInfoWithRefCount"
+  },
+  "versioning": [
+      {
+          "runtime_range": [10, null],
+          "types": {
+            "AccountInfo": "AccountInfoWithRefCount"
+          }
+      }
+  ],
+  "runtime_upgrades": []
+}

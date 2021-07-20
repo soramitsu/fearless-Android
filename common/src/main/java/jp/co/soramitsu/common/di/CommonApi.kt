@@ -32,6 +32,10 @@ import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import java.util.Random
+import javax.inject.Qualifier
+
+@Qualifier
+annotation class Distinct
 
 interface CommonApi {
 
@@ -74,6 +78,9 @@ interface CommonApi {
     fun provideJsonMapper(): Gson
 
     fun socketService(): SocketService
+
+    @Distinct
+    fun distinctSocketService(): SocketService
 
     fun connectionManager(): ConnectionManager
 

@@ -1,0 +1,17 @@
+{
+  "runtime_id": 5,
+  "types": {
+      "RefCount": "u8",
+      "AccountInfo": "AccountInfoWithRefCount"
+  },
+  "versioning": [
+      {
+          "runtime_range": [5, null],
+          "types": {
+            "RefCount": "u8",
+            "AccountInfo": "AccountInfoWithRefCount"
+          }
+      }
+  ],
+  "runtime_upgrades": []
+}
