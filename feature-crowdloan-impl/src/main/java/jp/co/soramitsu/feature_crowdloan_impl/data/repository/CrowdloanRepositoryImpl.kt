@@ -48,8 +48,8 @@ class CrowdloanRepositoryImpl(
     private val parachainMetadataApi: ParachainMetadataApi
 ) : CrowdloanRepository {
 
-    override fun crowdloanAvailableFlow(): Flow<Boolean> {
-        return runtimeProperty.observe().map {
+    override suspend fun isCrowdloansAvailable(): Boolean {
+        return runtimeProperty.useValue {
             it.metadata.hasModule(Modules.CROWDLOAN)
         }
     }
