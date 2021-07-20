@@ -12,11 +12,13 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit.SelectionMethod
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
@@ -116,10 +118,22 @@ class CurrentValidatorsViewModel(
     }
 
     fun changeClicked() {
-        val currentState = setupStakingSharedState.get<SetupStakingProcess.Initial>()
-        setupStakingSharedState.set(currentState.changeValidatorsFlow())
+        launch {
+            val currentState = setupStakingSharedState.get<SetupStakingProcess.Initial>()
 
-        router.openStartChangeValidators()
+            val currentValidators = flattenCurrentValidators.first().map(NominatedValidator::validator)
+
+            val newState = if (currentValidators.isEmpty()) {
+                currentState.changeValidatorsFlow()
+            } else {
+                currentState.changeValidatorsFlow()
+                    .next(currentValidators, SelectionMethod.CUSTOM)
+            }
+
+            setupStakingSharedState.set(newState)
+
+            router.openStartChangeValidators()
+        }
     }
 
     fun backClicked() {
