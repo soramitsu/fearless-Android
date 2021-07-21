@@ -105,7 +105,7 @@ class ConfirmStakingViewModel(
 
     val nominationsLiveData = liveData(Dispatchers.Default) {
         val selectedCount = payload.validators.size
-        val maxValidatorsPerNominator = recommendationSettingsProviderFactory.get().maximumValidatorsPerNominator
+        val maxValidatorsPerNominator = interactor.maxValidatorsPerNominator()
 
         emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxValidatorsPerNominator))
     }

@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
@@ -66,7 +67,9 @@ class SelectCustomValidatorsViewModel(
 
     private val selectedValidators = MutableStateFlow(emptySet<Validator>())
 
-    private val maxSelectedValidators = interactor.maxValidatorsPerNominator()
+    private val maxSelectedValidatorsFlow = flowOf {
+        interactor.maxValidatorsPerNominator()
+    }.share()
 
     private val iconsCache: MutableMap<String, AddressModel> = mutableMapOf()
 
@@ -82,6 +85,8 @@ class SelectCustomValidatorsViewModel(
     }.inBackground().share()
 
     val buttonState = selectedValidators.map {
+        val maxSelectedValidators = maxSelectedValidatorsFlow.first()
+
         if (it.isEmpty()) {
             ContinueButtonState(
                 enabled = false,
@@ -104,7 +109,7 @@ class SelectCustomValidatorsViewModel(
         }
     }.inBackground().share()
 
-    val fillWithRecommendedEnabled = selectedValidators.map { it.size < maxSelectedValidators }
+    val fillWithRecommendedEnabled = selectedValidators.map { it.size < maxSelectedValidatorsFlow.first() }
         .share()
 
     val clearFiltersEnabled = recommendationSettingsFlow.map { it.customEnabledFilters.isNotEmpty() || it.postProcessors.isNotEmpty() }
@@ -173,7 +178,7 @@ class SelectCustomValidatorsViewModel(
             val recommended = recommendator().recommendations(recommendationSettingsProvider().defaultSettings())
 
             val missingFromRecommended = recommended.toSet() - selected
-            val neededToFill = maxSelectedValidators - selected.size
+            val neededToFill = maxSelectedValidatorsFlow.first() - selected.size
 
             selected + missingFromRecommended.take(neededToFill).toSet()
         }
