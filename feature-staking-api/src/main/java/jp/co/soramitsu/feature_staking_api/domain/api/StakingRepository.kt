@@ -16,9 +16,21 @@ import java.math.BigInteger
 
 interface StakingRepository {
 
-    fun stakingAvailableFlow(): Flow<Boolean>
+    suspend fun currentSessionIndex(): BigInteger
 
-    suspend fun eraLeftTime(destinationEra: BigInteger? = null): BigInteger
+    suspend fun currentSlot(): BigInteger
+
+    suspend fun genesisSlot(): BigInteger
+
+    suspend fun eraStartSessionIndex(currentEra: BigInteger): BigInteger
+
+    suspend fun sessionLength(): BigInteger
+
+    suspend fun eraLength(): BigInteger
+
+    suspend fun blockCreationTime(): BigInteger
+
+    fun stakingAvailableFlow(): Flow<Boolean>
 
     suspend fun getTotalIssuance(): BigInteger
 
