@@ -12,11 +12,11 @@ class RecommendationSettingsProviderFactory(
 ) {
 
     suspend fun create(lifecycle: Lifecycle): RecommendationSettingsProvider {
-       return computationalCache.useCache(SETTINGS_PROVIDER_KEY, lifecycle) {
-           RecommendationSettingsProvider(
-               maximumRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(),
-               maximumValidatorsPerNominator = stakingConstantsRepository.maxValidatorsPerNominator()
-           )
-       }
+        return computationalCache.useCache(SETTINGS_PROVIDER_KEY, lifecycle) {
+            RecommendationSettingsProvider(
+                maximumRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(),
+                maximumValidatorsPerNominator = stakingConstantsRepository.maxValidatorsPerNominator()
+            )
+        }
     }
 }
