@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -139,4 +140,8 @@ inline fun <T> Flow<T>.observe(
 
 fun MutableStateFlow<Boolean>.toggle() {
     value = !value
+}
+
+fun <T> flowOf(producer: suspend () -> T) = flow {
+    emit(producer())
 }

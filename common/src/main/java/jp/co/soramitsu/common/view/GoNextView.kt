@@ -7,8 +7,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.utils.setVisible
 import kotlinx.android.synthetic.main.view_go_next.view.goNextActionImage
+import kotlinx.android.synthetic.main.view_go_next.view.goNextBadgeText
 import kotlinx.android.synthetic.main.view_go_next.view.goNextIcon
 import kotlinx.android.synthetic.main.view_go_next.view.goNextProgress
 import kotlinx.android.synthetic.main.view_go_next.view.goNextTitle
@@ -38,6 +40,10 @@ class GoNextView @JvmOverloads constructor(
 
         goNextActionImage.setVisible(!inProgress)
         goNextProgress.setVisible(inProgress)
+    }
+
+    fun setBadgeText(badgeText: String?) {
+        goNextBadgeText.setTextOrHide(badgeText)
     }
 
     private fun applyAttributes(attributeSet: AttributeSet?) {

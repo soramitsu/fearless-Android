@@ -1,6 +1,8 @@
 package jp.co.soramitsu.common.utils
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import java.io.InputStream
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -66,4 +68,8 @@ fun <T> List<T>.cycle(): Sequence<T> {
     var i = 0
 
     return generateSequence { this[i++ % this.size] }
+}
+
+inline fun <T> CoroutineScope.lazyAsync(crossinline producer: suspend () -> T) = lazy {
+    async { producer() }
 }

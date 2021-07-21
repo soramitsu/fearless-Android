@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 class RecommendationSettingsProvider(
     maximumRewardedNominators: Int,
-    val maximumValidatorsPerNominator: Int
+    private val maximumValidatorsPerNominator: Int
 ) {
 
     private val alwaysEnabledFilters = listOf(

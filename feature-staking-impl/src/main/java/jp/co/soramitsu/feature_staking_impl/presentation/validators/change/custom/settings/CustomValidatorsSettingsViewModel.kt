@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
+import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.common.utils.reversed
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
@@ -17,7 +18,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sort
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.ValidatorOwnStakeSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -39,8 +39,8 @@ class CustomValidatorsSettingsViewModel(
     private val tokenUseCase: TokenUseCase
 ) : BaseViewModel() {
 
-    private val recommendationSettingsProvider by lazy {
-        async { recommendationSettingsProviderFactory.get() }
+    private val recommendationSettingsProvider by lazyAsync {
+        recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle)
     }
 
     val selectedSortingIdFlow = MutableStateFlow(R.id.customValidatorSettingsSortAPY)

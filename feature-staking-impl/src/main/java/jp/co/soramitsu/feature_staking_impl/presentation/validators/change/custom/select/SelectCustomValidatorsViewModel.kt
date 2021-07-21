@@ -5,7 +5,10 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.invoke
+import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
@@ -22,11 +25,9 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setValidators
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.retractValidators
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -49,8 +50,12 @@ class SelectCustomValidatorsViewModel(
     private val tokenUseCase: TokenUseCase,
 ) : BaseViewModel() {
 
-    private val validatorRecommendator by lazy {
-        async { validatorRecommendatorFactory.create(router.currentStackEntryLifecycle) }
+    private val validatorRecommendator by lazyAsync {
+        validatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
+    }
+
+    private val recommendationSettingsProvider by lazyAsync {
+        recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle)
     }
 
     private val recommendationSettingsFlow = flow {
@@ -67,7 +72,9 @@ class SelectCustomValidatorsViewModel(
 
     private val selectedValidators = MutableStateFlow(emptySet<Validator>())
 
-    private val maxSelectedValidators = interactor.maxValidatorsPerNominator()
+    private val maxSelectedValidatorsFlow = flowOf {
+        interactor.maxValidatorsPerNominator()
+    }.share()
 
     private val iconsCache: MutableMap<String, AddressModel> = mutableMapOf()
 
@@ -83,6 +90,8 @@ class SelectCustomValidatorsViewModel(
     }.inBackground().share()
 
     val buttonState = selectedValidators.map {
+        val maxSelectedValidators = maxSelectedValidatorsFlow.first()
+
         if (it.isEmpty()) {
             ContinueButtonState(
                 enabled = false,
@@ -105,7 +114,7 @@ class SelectCustomValidatorsViewModel(
         }
     }.inBackground().share()
 
-    val fillWithRecommendedEnabled = selectedValidators.map { it.size < maxSelectedValidators }
+    val fillWithRecommendedEnabled = selectedValidators.map { it.size < maxSelectedValidatorsFlow.first() }
         .share()
 
     val clearFiltersEnabled = recommendationSettingsFlow.map { it.customEnabledFilters.isNotEmpty() || it.postProcessors.isNotEmpty() }
@@ -119,7 +128,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     fun backClicked() {
-        setupStakingSharedState.retractValidators()
+        updateSetupStakingState()
 
         router.back()
     }
@@ -151,7 +160,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     private fun updateSetupStakingState() {
-        setupStakingSharedState.setValidators(selectedValidators.value.toList())
+        setupStakingSharedState.setCustomValidators(selectedValidators.value.toList())
     }
 
     fun clearFilters() {
@@ -174,7 +183,7 @@ class SelectCustomValidatorsViewModel(
             val recommended = recommendator().recommendations(recommendationSettingsProvider().defaultSettings())
 
             val missingFromRecommended = recommended.toSet() - selected
-            val neededToFill = maxSelectedValidators - selected.size
+            val neededToFill = maxSelectedValidatorsFlow.first() - selected.size
 
             selected + missingFromRecommended.take(neededToFill).toSet()
         }
@@ -182,7 +191,7 @@ class SelectCustomValidatorsViewModel(
 
     private fun observeExternalSelectionChanges() {
         setupStakingSharedState.setupStakingProcess
-            .filterIsInstance<SetupStakingProcess.Confirm>()
+            .filterIsInstance<SetupStakingProcess.ReadyToSubmit>()
             .onEach { selectedValidators.value = it.payload.validators.toSet() }
             .launchIn(viewModelScope)
     }
@@ -214,6 +223,4 @@ class SelectCustomValidatorsViewModel(
             selectedValidators.value = mutation(selectedValidators.value)
         }
     }
-
-    private suspend fun recommendationSettingsProvider() = recommendationSettingsProviderFactory.get()
 }
