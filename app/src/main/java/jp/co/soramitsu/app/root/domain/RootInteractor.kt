@@ -26,8 +26,6 @@ class RootInteractor(
 
     fun stakingAvailableFlow() = stakingRepository.stakingAvailableFlow()
 
-    fun crowdloanAvailableFlow() = crowdloanRepository.crowdloanAvailableFlow()
-
     suspend fun updatePhishingAddresses() {
         runCatching {
             walletRepository.updatePhishingAddresses()
