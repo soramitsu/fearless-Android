@@ -59,6 +59,11 @@ class CrowdloanInteractor(
 
     fun crowdloansFlow(): Flow<GroupedCrowdloans> {
         return flow {
+            if (crowdloanRepository.isCrowdloansAvailable().not()) {
+                emit(emptyMap())
+                return@flow
+            }
+
             val parachainMetadatas = runCatching {
                 crowdloanRepository.getParachainMetadata()
             }.getOrDefault(emptyMap())
