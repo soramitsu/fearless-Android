@@ -7,6 +7,8 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.invoke
+import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
@@ -26,7 +28,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custo
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -49,8 +50,12 @@ class SelectCustomValidatorsViewModel(
     private val tokenUseCase: TokenUseCase,
 ) : BaseViewModel() {
 
-    private val validatorRecommendator by lazy {
-        async { validatorRecommendatorFactory.create(router.currentStackEntryLifecycle) }
+    private val validatorRecommendator by lazyAsync {
+        validatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
+    }
+
+    private val recommendationSettingsProvider by lazyAsync {
+        recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle)
     }
 
     private val recommendationSettingsFlow = flow {
@@ -218,6 +223,4 @@ class SelectCustomValidatorsViewModel(
             selectedValidators.value = mutation(selectedValidators.value)
         }
     }
-
-    private suspend fun recommendationSettingsProvider() = recommendationSettingsProviderFactory.get()
 }
