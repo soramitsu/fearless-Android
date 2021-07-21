@@ -61,22 +61,12 @@ interface StakingRepository {
 
 suspend fun StakingRepository.getActiveElectedValidatorsExposures() = electedExposuresInActiveEra.first()
 
-suspend fun StakingRepository.historicalEras(): List<BigInteger> {
+suspend fun StakingRepository.historicalEras(countRange: (start: Int, finish: Int) -> IntRange): List<BigInteger> {
     val activeEra = getActiveEraIndex().toInt()
     val currentEra = getCurrentEraIndex().toInt()
     val historyDepth = getHistoryDepth().toInt()
 
-    val historicalRange = (currentEra - historyDepth)..activeEra
+    val historicalRange = countRange((currentEra - historyDepth), activeEra)
 
     return historicalRange.map(Int::toBigInteger)
-}
-
-suspend fun StakingRepository.payoutCheckedEras(): List<BigInteger> {
-    val activeEra = getActiveEraIndex().toInt()
-    val currentEra = getCurrentEraIndex().toInt()
-    val historyDepth = getHistoryDepth().toInt()
-
-    val historicalRange = (currentEra - historyDepth) until activeEra
-
-    return historicalRange.map(kotlin.Int::toBigInteger)
 }

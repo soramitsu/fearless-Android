@@ -16,7 +16,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_api.domain.api.payoutCheckedEras
+import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -86,7 +86,7 @@ class PayoutRepository(
 
         val validatorAddresses = retrieveValidatorAddresses()
 
-        val historicalRange = stakingRepository.payoutCheckedEras()
+        val historicalRange = stakingRepository.historicalEras { start, finish -> start until finish }
         val validatorStats = getValidatorHistoricalStats(runtime, historicalRange, validatorAddresses)
         val historicalRangeSet = historicalRange.toSet()
 
