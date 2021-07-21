@@ -191,7 +191,8 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideRecommendationSettingsProviderFactory(
         stakingConstantsRepository: StakingConstantsRepository,
-    ) = RecommendationSettingsProviderFactory(stakingConstantsRepository)
+        computationalCache: ComputationalCache
+    ) = RecommendationSettingsProviderFactory(computationalCache, stakingConstantsRepository)
 
     @Provides
     @FeatureScope
