@@ -1,5 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_custom_blocked_warning">This validator is blocked and cannot be selected at the moment. Please, try again in the next era.</string>
+    
+    <string name="common_search_no_input">Search results will appear here</string>
+    <string name="common_search_no_results">No search results.\nBe sure you type full account address</string>
+    <string name="search_results_header">Search results: %d</string>
+
+    <string name="common_search">Search</string>
+    <string name="common_reset">Reset</string>
+    <string name="staking_custom_validators_settings_filters">Show</string>
+    <string name="staking_custom_validators_settings_filters_identity">Having onchain identity\nwith at least one identity contact</string>
+    <string name="staking_custom_validators_settings_filters_slashes">Not slashed</string>
+    <string name="staking_custom_validators_settings_filters_oversubscribed">Not oversubscribed</string>
+    <string name="staking_custom_validators_settings_filters_clustering">Limit of 2 validators per identity</string>
+    <string name="staking_custom_validators_settings_sort_title">Sort by</string>
+    <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
+    <string name="staking_custom_validators_settings_sort_total_stake">Total stake (%s)</string>
+    <string name="staking_custom_validators_settings_sort_own_stake">Validator’s own stake (%s)</string>
+    <string name="staking_custom_validators_settings_apply">Show</string>
+
+    <string name="staking_fill_with_recommended">Fill rest with recommended</string>
+    <string name="staking_clear_filters">Clear filters</string>
+    <string name="staking_deselect_all">Deselect all</string>
+
+    <string name="staking_sorting_header_total_stake">Total stake</string>
+    <string name="staking_sorting_header_own_stake">Validator’s own stake</string>
+
+    <string name="staking_show_selected">Show selected: %d (max %d)</string>
+    <string name="staking_select_validators_with_max">Select validators (max %d)</string>
+    <string name="staking_shown_validators_format">Validators: %d (Max %d)</string>
+    <string name="staking_select_validators">Select validators</string>
+
     <string name="staking_set_validators_title">Select validators to start staking</string>
     <string name="staking_set_validators_message">Validators are not selected</string>
 
@@ -7,6 +38,23 @@
     <string name="staking_max_nominators_reached_message">Maximum number of nominators has been reached</string>
 
     <string name="staking_controller_account_zero_balance">We found that controller account has no free tokens, are you sure that you want to change the controller?</string>
+
+    <string name="staking_rewards_apy">Rewards (APY)</string>
+
+    <string name="staking_recommended_feature_1">Most profitable</string>
+    <string name="staking_recommended_feature_2">Not oversubscribed</string>
+    <string name="staking_recommended_feature_3">Having onchain identity</string>
+    <string name="staking_recommended_feature_4">Not slashed</string>
+    <string name="staking_recommended_feature_5">Limit of 2 validators per identity</string>
+
+    <string name="staking_select_custom">Select by yourself</string>
+    <string name="staking_start_change_validators_custom_title">Stake with your validators</string>
+    <string name="staking_start_change_validators_custom_subtitle">You should trust your nominations to act competently and honest; basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.</string>
+
+    <string name="staking_select_recommended">Select recommended</string>
+    <string name="staking_start_change_validators_recommended_title">Stake with recommended validators</string>
+    <string name="staking_start_change_validators_recommended_subtitle">Fearless algorithm has select a list of recommended validators based on the criteria:</string>
+    <string name="staking_validators">Validators</string>
 
     <string name="crowdloan_my_contribution">You contributed: %s</string>
 
@@ -33,7 +81,7 @@
     <string name="crowdloan_fearless_bonus">Fearless wallet bonus (%s)</string>
 
     <string name="crowdloan_referral_code">Referral code</string>
-    <string name="crowdloan_apply">Apply</string>
+    <string name="common_apply">Apply</string>
     <string name="crowdloan_applied">Applied</string>
 
     <string name="crowdloan_bonus">Bonus</string>
@@ -96,7 +144,7 @@
 
     <string name="staking_elected_validators_description">Others, who are active without your stake allocation.</string>
 
-    <string name="staking_waiting_validators_format">Selected: %d (Max %d)</string>
+    <string name="staking_selected_validators_format">Selected: %d (Max %d)</string>
     <string name="staking_waiting_validators_description">Your validators will change in the next era.</string>
 
     <string name="stacking_stash_account">Stash account</string>

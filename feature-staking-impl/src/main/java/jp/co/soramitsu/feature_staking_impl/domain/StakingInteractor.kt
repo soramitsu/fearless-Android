@@ -213,6 +213,8 @@ class StakingInteractor(
         return stakingRepository.getRewardDestination(accountStakingState)
     }
 
+    fun maxValidatorsPerNominator(): Int = stakingConstantsRepository.maxValidatorsPerNominator()
+
     fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
         return selectedAccountStakingStateFlow()
             .filterIsInstance<StakingState.Stash>()

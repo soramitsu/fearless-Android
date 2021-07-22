@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/startChangeValidatorsContainer"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/startChangeValidatorsToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:titleText="@string/staking_validators" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/staking_start_change_validators_recommended_title" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/staking_start_change_validators_recommended_subtitle"
+        android:textColor="@color/black1" />
+
+    <TextView
+        android:id="@+id/startChangeValidatorsRecommendedFeatures"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:lineSpacingExtra="5dp"
+        android:textColor="@color/black1"
+        tools:text="✅ Most profitable\n✅ Most profitable" />
+
+    <jp.co.soramitsu.common.view.GoNextView
+        android:id="@+id/startChangeValidatorsRecommended"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/staking_select_recommended"
+        app:actionIcon="@drawable/ic_arrow_right_24"
+        app:icon="@drawable/ic_security_shield_ok_24"
+        app:inProgress="true" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/staking_start_change_validators_custom_title" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/staking_start_change_validators_custom_subtitle"
+        android:textColor="@color/black1" />
+
+    <jp.co.soramitsu.common.view.GoNextView
+        android:id="@+id/startChangeValidatorsCustom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:actionIcon="@drawable/ic_arrow_right_24"
+        android:text="@string/staking_select_custom"
+        app:icon="@drawable/ic_dotted_list_24"
+        app:inProgress="true" />
+</LinearLayout>

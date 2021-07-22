@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:background="@color/black"
+    android:id="@+id/searchCustomValidatorsContainer"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="match_parent"
+        android:id="@+id/searchCustomValidatorsToolbar"
+        android:layout_height="wrap_content"
+        app:textRight="@string/common_done"
+        app:titleText="@string/common_search" />
+
+    <EditText
+        app:layout_constraintTop_toBottomOf="@id/searchCustomValidatorsToolbar"
+        android:id="@+id/searchCustomValidatorsField"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/ic_search_field"
+        android:drawableStart="@drawable/ic_search"
+        android:imeOptions="actionDone"
+        android:singleLine="true"
+        android:drawablePadding="8dp"
+        android:hint="@string/search_recipient_hint"
+        android:includeFontPadding="false"
+        android:textColor="@color/white"
+        android:padding="12dp"
+        android:textColorHint="@color/black2" />
+
+    <TextView
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="16dp"
+        app:layout_constraintTop_toBottomOf="@id/searchCustomValidatorsField"
+        android:layout_marginTop="21dp"
+        android:id="@+id/searchCustomValidatorAccounts"
+        style="@style/TextAppearance.Soramitsu.CapsTitle2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        tools:text="@string/search_results_header"
+        android:textAllCaps="true"
+        android:textColor="@color/gray1" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.CapsTitle2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginStart="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="16dp"
+        android:id="@+id/searchCustomValidatorRewards"
+        app:layout_constraintTop_toTopOf="@id/searchCustomValidatorAccounts"
+        app:layout_constraintBottom_toBottomOf="@id/searchCustomValidatorAccounts"
+        android:text="@string/staking_rewards_apy"
+        android:textAllCaps="true"
+        android:textColor="@color/gray1" />
+
+    <androidx.constraintlayout.widget.Group
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/searchCustomValidatorListHeader"
+        app:constraint_referenced_ids="searchCustomValidatorAccounts,searchCustomValidatorRewards" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="0dp"
+        android:layout_marginTop="6dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/searchCustomValidatorAccounts"
+        android:id="@+id/searchCustomValidatorsList"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_validator"
+        android:layout_height="0dp" />
+
+    <ProgressBar
+        android:id="@+id/searchCustomValidatorProgress"
+        android:indeterminateTint="@color/white"
+        android:layout_width="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/searchCustomValidatorAccounts"
+        app:layout_constraintVertical_bias="0.4"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:id="@+id/searchCustomValidatorsPlaceholder"
+        android:drawablePadding="26dp"
+        tools:text="@string/common_search_no_input"
+        android:textColor="@color/black1"
+        android:gravity="center"
+        tools:drawableTopCompat="@drawable/ic_placeholder"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/searchCustomValidatorAccounts"
+        app:layout_constraintVertical_bias="0.4" />
+</androidx.constraintlayout.widget.ConstraintLayout>

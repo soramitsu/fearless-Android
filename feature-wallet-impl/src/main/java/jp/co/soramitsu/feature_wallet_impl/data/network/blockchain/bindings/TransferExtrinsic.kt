@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.extrinsicHash
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Extrinsic
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.runtime.metadata.call
 import java.math.BigInteger
 
@@ -20,9 +19,6 @@ class TransferExtrinsic(
     val index: Pair<Int, Int>,
     val hash: String,
 )
-
-val GenericCall.Instance.index: Pair<Int, Int>
-    get() = moduleIndex to callIndex
 
 private val TRANSFER_CALL_NAMES = listOf("transfer", "transfer_keep_alive")
 
@@ -35,7 +31,7 @@ fun bindTransferExtrinsic(scale: String, runtime: RuntimeSnapshot): TransferExtr
     val transferModule = runtime.metadata.balances()
     val transferCalls = TRANSFER_CALL_NAMES.map(transferModule::call)
 
-    val isTransferCall = transferCalls.any { it.index == call.index }
+    val isTransferCall = transferCalls.any { it.index == call.function.index }
 
     if (!isTransferCall) throw notTransfer()
 
@@ -46,7 +42,7 @@ fun bindTransferExtrinsic(scale: String, runtime: RuntimeSnapshot): TransferExtr
         senderId = senderId,
         recipientId = recipientId,
         amountInPlanks = bindNumber(call.arguments["value"]),
-        index = call.index,
+        index = call.function.index,
         hash = scale.extrinsicHash()
     )
 }
