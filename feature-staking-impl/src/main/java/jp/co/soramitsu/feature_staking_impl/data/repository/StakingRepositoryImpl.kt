@@ -111,10 +111,10 @@ class StakingRepositoryImpl(
         binding = ::bindCurrentSlot
     )
 
-    override suspend fun eraStartSessionIndex(currentEra: BigInteger) : BigInteger{
+    override suspend fun eraStartSessionIndex(currentEra: BigInteger): BigInteger {
         val runtime = getRuntime()
         return localStorage.queryNonNull( // Index of session from with the era started
-            keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, currentEra) },
+            keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, currentEra - BigInteger.ONE) },
             binding = ::bindErasStartSessionIndex
         )
     }

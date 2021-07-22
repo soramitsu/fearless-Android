@@ -71,8 +71,7 @@ class StakeSummaryModel<S>(
     val totalStakedFiat: String?,
     val totalRewards: String,
     val totalRewardsFiat: String?,
-    val currentEraDisplay: String,
-    val timeLeft: String?
+    val currentEraDisplay: String
 )
 
 typealias NominatorSummaryModel = StakeSummaryModel<NominatorStatus>
@@ -146,43 +145,21 @@ sealed class StakeViewState<S>(
     }
 
     @ExperimentalCoroutinesApi
-    fun countdownTimerFlow(millis: Long) = callbackFlow<Long> {
-        val timer = object : CountDownTimer(millis, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                offer(millisUntilFinished)
-            }
-
-            override fun onFinish() {
-                offer(0)
-
-                close()
-            }
-        }
-
-        timer.start()
-
-        awaitClose { timer.cancel() }
-    }.flowOn(Dispatchers.Main)
-
-    @ExperimentalCoroutinesApi
     private suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
         return combine(
             summaryFlowProvider(stakeState),
-            currentAssetFlow,
-            countdownTimerFlow(stakingInteractor.getTimeLeft().toLong())
-        ) { summary, asset, timer ->
+            currentAssetFlow
+        ) { summary, asset ->
             val token = asset.token
             val tokenType = token.type
 
-            val timeLeftString = if (summary.status is NominatorStatus.Waiting) timer.formatTime() else null
             StakeSummaryModel(
                 status = summary.status,
                 totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
                 totalRewards = summary.totalRewards.formatTokenAmount(tokenType),
                 totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency(),
-                currentEraDisplay = resourceManager.getString(R.string.staking_era_index, summary.currentEra),
-                timeLeft = timeLeftString
+                currentEraDisplay = resourceManager.getString(R.string.staking_era_index, summary.currentEra)
             )
         }
     }

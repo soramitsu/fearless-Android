@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.view
 
 import android.content.Context
+import android.os.CountDownTimer
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
@@ -10,8 +11,10 @@ import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
+import jp.co.soramitsu.common.view.startTimer
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_stake_summary.view.*
+import kotlin.time.ExperimentalTime
 
 class StakeSummaryView @JvmOverloads constructor(
     context: Context,
@@ -25,7 +28,7 @@ class StakeSummaryView @JvmOverloads constructor(
 
         class Inactive(eraDisplay: String) : Status(R.string.staking_nominator_status_inactive, R.color.red, eraDisplay)
 
-        class Waiting(timeLeft: String) : Status(R.string.staking_nominator_status_waiting, R.color.white_64, timeLeft)
+        class Waiting(val timeLeft: Long) : Status(R.string.staking_nominator_status_waiting, R.color.white_64, null)
     }
 
     init {
@@ -38,6 +41,9 @@ class StakeSummaryView @JvmOverloads constructor(
         }
     }
 
+    var timer: CountDownTimer? = null
+
+    @ExperimentalTime
     fun setElectionStatus(status: Status) {
         with(stakeSummaryStatus) {
             setCompoundDrawableTint(status.tintRes)
@@ -45,7 +51,16 @@ class StakeSummaryView @JvmOverloads constructor(
             setText(status.textRes)
         }
 
-        stakeSummaryStatusHelper.text = status.extraMessage
+        if (status is Status.Waiting) {
+            if (timer != null) timer?.cancel()
+
+            timer = stakeSummaryStatusHelper.startTimer(status.timeLeft)
+
+            timer?.start()
+        } else {
+            stakeSummaryStatusHelper.text = status.extraMessage
+        }
+
     }
 
     fun hideLoading() {

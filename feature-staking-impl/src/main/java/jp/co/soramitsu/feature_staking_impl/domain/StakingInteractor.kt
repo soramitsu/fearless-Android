@@ -68,7 +68,7 @@ class StakingInteractor(
 ) {
     val factory = EraTimeCalculatorFactory(stakingRepository)
 
-    suspend fun getTimeLeft() : BigInteger{
+    suspend fun getTimeLeft(): BigInteger {
         val calculator = factory.create()
         return calculator.calculate()
     }
@@ -142,7 +142,8 @@ class StakingInteractor(
 
         when {
             isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
-            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting
+
+            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(timeLeft = getTimeLeft().toLong())
 
             else -> {
                 val inactiveReason = when {

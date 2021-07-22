@@ -7,7 +7,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
 
 @ExperimentalTime
-fun TextView.startTimer(millis: Long): CountDownTimer{
+fun TextView.startTimer(millis: Long): CountDownTimer {
     return object : CountDownTimer(millis, 1000) {
         override fun onTick(millisUntilFinished: Long) {
             val days = millisUntilFinished.milliseconds.inDays.toInt()
@@ -33,4 +33,3 @@ fun Long.formatTime(): String {
     val seconds = totalSeconds % 60
     return "%02d:%02d:%02d".format(hours, minutes, seconds)
 }
-
