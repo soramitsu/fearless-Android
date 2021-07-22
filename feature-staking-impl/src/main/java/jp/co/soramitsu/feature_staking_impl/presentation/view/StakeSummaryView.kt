@@ -60,7 +60,6 @@ class StakeSummaryView @JvmOverloads constructor(
         } else {
             stakeSummaryStatusHelper.text = status.extraMessage
         }
-
     }
 
     fun hideLoading() {
