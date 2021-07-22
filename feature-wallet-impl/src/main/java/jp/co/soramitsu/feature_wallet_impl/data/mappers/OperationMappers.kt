@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import java.math.BigDecimal
 
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
@@ -148,9 +149,41 @@ fun mapOperationToOperationModel(operation: Operation): OperationModel {
             hash = hash,
             address = address,
             accountName = accountName,
-            transactionType = transactionType,
+            transactionType = mapTransactionTypeToTransactionModelType(transactionType),
             time = time,
             tokenType = tokenType
         )
+    }
+}
+
+fun mapTransactionTypeToTransactionModelType(transactionType: Operation.TransactionType): OperationModel.TransactionModelType {
+    with(transactionType) {
+        return when (transactionType) {
+            is Operation.TransactionType.Extrinsic -> {
+                OperationModel.TransactionModelType.Extrinsic(
+                    hash = transactionType.hash,
+                    module = transactionType.module,
+                    call = transactionType.call,
+                    fee = transactionType.fee,
+                    success = transactionType.success
+                )
+            }
+            is Operation.TransactionType.Reward -> {
+                OperationModel.TransactionModelType.Reward(
+                    amount = transactionType.amount,
+                    isReward = transactionType.isReward,
+                    era = transactionType.era,
+                    validator = transactionType.validator
+                )
+            }
+            is Operation.TransactionType.Transfer -> {
+                OperationModel.TransactionModelType.Transfer(
+                    amount = transactionType.amount,
+                    receiver = transactionType.receiver,
+                    sender = transactionType.sender,
+                    fee = transactionType.fee
+                )
+            }
+        }
     }
 }

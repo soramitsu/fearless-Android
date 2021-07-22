@@ -15,6 +15,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 
 private const val ICON_SIZE_DP = 32
@@ -30,7 +31,7 @@ class TransactionDetailViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val clipboardManager: ClipboardManager,
     private val appLinksProvider: AppLinksProvider,
-    val transaction: TransactionModel
+    val operation: OperationModel
 ) : BaseViewModel(), Browserable {
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
@@ -39,14 +40,14 @@ class TransactionDetailViewModel(
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val recipientAddressModelLiveData = liveData {
-        emit(getIcon(transaction.recipientAddress))
+        emit(getIcon((operation.transactionType as OperationModel.TransactionModelType.Transfer).receiver))
     }
 
     val senderAddressModelLiveData = liveData {
-        emit(getIcon(transaction.senderAddress))
+        emit(getIcon((operation.transactionType as OperationModel.TransactionModelType.Transfer).sender))
     }
 
-    val retryAddressModelLiveData = if (transaction.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
+    val retryAddressModelLiveData = if (operation.getIsIncome()) senderAddressModelLiveData else recipientAddressModelLiveData
 
     fun copyStringClicked(address: String) {
         clipboardManager.addToClipboard(address)
@@ -59,7 +60,7 @@ class TransactionDetailViewModel(
     }
 
     fun repeatTransaction() {
-        router.openRepeatTransaction(transaction.displayAddress)
+        router.openRepeatTransaction(operation.getDisplayAddress())
     }
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP)

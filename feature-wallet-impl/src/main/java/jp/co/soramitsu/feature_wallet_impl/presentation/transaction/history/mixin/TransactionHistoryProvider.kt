@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
@@ -91,8 +92,20 @@ class TransactionHistoryProvider(
         return result
     }
 
-    override fun transactionClicked(transactionModel: TransactionModel) {
-        router.openTransactionDetail(transactionModel)
+    override fun transactionClicked(transactionModel: OperationModel) {
+        when(transactionModel.transactionType){
+            is OperationModel.TransactionModelType.Transfer -> {
+                router.openTransactionDetail(transactionModel)
+            }
+
+            is OperationModel.TransactionModelType.Extrinsic -> {
+                router.openExtrinsicDetail(transactionModel)
+            }
+
+            is OperationModel.TransactionModelType.Reward -> {
+                router.openRewardDetail(transactionModel)
+            }
+        }
     }
 
     private fun maybeLoadNewPage(scope: CoroutineScope) {

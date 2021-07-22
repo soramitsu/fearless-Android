@@ -6,40 +6,33 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailViewModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailViewModel
 
 @Module(includes = [ViewModelModule::class])
-class TransactionDetailModule {
-
+class RewardDetailModule {
     @Provides
     @IntoMap
-    @ViewModelKey(TransactionDetailViewModel::class)
+    @ViewModelKey(RewardDetailViewModel::class)
     fun provideViewModel(
-        interactor: WalletInteractor,
-        router: WalletRouter,
-        resourceManager: ResourceManager,
-        addressIconGenerator: AddressIconGenerator,
-        clipboardManager: ClipboardManager,
+        operationModel: OperationModel,
         appLinksProvider: AppLinksProvider,
-        operationModel: OperationModel
-    ): ViewModel {
-        return TransactionDetailViewModel(
-            interactor,
-            router,
-            resourceManager,
-            addressIconGenerator,
-            clipboardManager,
+        clipboardManager: ClipboardManager,
+        resourceManager: ResourceManager,
+        router: WalletRouter
+        ): ViewModel {
+        return RewardDetailViewModel(
+            operationModel,
             appLinksProvider,
-            operationModel
+            clipboardManager,
+            resourceManager,
+            router
         )
     }
 
@@ -47,7 +40,8 @@ class TransactionDetailModule {
     fun provideViewModelCreator(
         fragment: Fragment,
         viewModelFactory: ViewModelProvider.Factory
-    ): TransactionDetailViewModel {
-        return ViewModelProvider(fragment, viewModelFactory).get(TransactionDetailViewModel::class.java)
+    ): RewardDetailViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(RewardDetailViewModel::class.java)
     }
 }
+

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail
+package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.showBrowser
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
@@ -15,7 +16,10 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.ExternalActionsSource
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailViewModel
 import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailAmount
 import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailDate
 import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailFee
@@ -30,11 +34,11 @@ import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetai
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
 
-class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
+class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     companion object {
-        fun getBundle(transaction: TransactionModel) = Bundle().apply {
-            putParcelable(KEY_TRANSACTION, transaction)
+        fun getBundle(operation: OperationModel) = Bundle().apply {
+            putParcelable(KEY_TRANSACTION, operation)
         }
     }
 
@@ -65,30 +69,33 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     }
 
     override fun inject() {
-        val transaction = argument<TransactionModel>(KEY_TRANSACTION)
+        val operation = argument<OperationModel>(KEY_TRANSACTION)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .transactionDetailComponentFactory()
-            .create(this, transaction)
+            .create(this, operation)
             .inject(this)
     }
 
     override fun subscribe(viewModel: TransactionDetailViewModel) {
-        with(viewModel.transaction) {
+        with(viewModel.operation) {
             transactionDetailStatus.setText(statusAppearance.labelRes)
             transactionDetailStatusIcon.setImageResource(statusAppearance.icon)
 
-            transactionDetailDate.text = date.formatDateTime(requireContext())
+            transactionDetailDate.text = time.formatDateTime(requireContext())
 
-            transactionDetailAmount.text = amount.formatTokenAmount(type)
-            transactionDetailFee.text = fee?.formatTokenAmount(type) ?: getString(R.string.common_unknown)
+            assert(viewModel.operation.transactionType is OperationModel.TransactionModelType.Transfer)
+            val amount = viewModel.operation.transactionType.operationAmount
+            val fee = viewModel.operation.transactionType.operationFee
+            transactionDetailAmount.text = amount.formatTokenAmount(tokenType)
+            transactionDetailFee.text = fee.formatTokenAmount(tokenType)
 
             transactionDetailHash.setMessage(hash)
 
-            transactionDetailTotal.text = total?.formatTokenAmount(type) ?: getString(R.string.common_unknown)
+            transactionDetailTotal.text = (amount + fee).formatTokenAmount(tokenType)
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->
@@ -112,12 +119,12 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     }
 
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
-        val transaction = viewModel.transaction
+        val transaction = viewModel.operation.transactionType as OperationModel.TransactionModelType.Transfer
 
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
-            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(transaction.senderAddress)
-            ExternalActionsSource.TO_ADDRESS -> showExternalAddressActions(transaction.recipientAddress)
+            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(transaction.sender)
+            ExternalActionsSource.TO_ADDRESS -> showExternalAddressActions(transaction.receiver)
         }
     }
 
@@ -132,7 +139,7 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     private fun showExternalTransactionActions() {
         showExternalActionsSheet(
             R.string.transaction_details_copy_hash,
-            viewModel.transaction.hash,
+            viewModel.operation.hash,
             viewModel::viewTransactionExternalClicked
         )
     }
@@ -146,7 +153,7 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                networkType = viewModel.transaction.type.networkType
+                networkType = Node.NetworkType.POLKADOT //TODO add networktype to operationModel
             )
         )
 

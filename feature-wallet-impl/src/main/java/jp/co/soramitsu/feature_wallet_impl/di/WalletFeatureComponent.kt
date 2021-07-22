@@ -14,6 +14,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.receive.di.ReceiveCompon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.di.ChooseAmountComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.di.ConfirmTransferComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.di.ChooseRecipientComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.di.ExtrinsicDetailComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.di.RewardDetailComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.di.TransactionDetailComponent
 import jp.co.soramitsu.runtime.di.RuntimeApi
 
@@ -39,6 +41,10 @@ interface WalletFeatureComponent : WalletFeatureApi {
     fun confirmTransferComponentFactory(): ConfirmTransferComponent.Factory
 
     fun transactionDetailComponentFactory(): TransactionDetailComponent.Factory
+
+    fun rewardDetailComponentFactory(): RewardDetailComponent.Factory
+
+    fun extrinsicDetailComponentFactory(): ExtrinsicDetailComponent.Factory
 
     fun receiveComponentFactory(): ReceiveComponent.Factory
 

@@ -15,13 +15,14 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.utils.enableShowingNewlyAddedTopElements
 import jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import kotlinx.android.synthetic.main.view_transfer_history.view.placeholder
 import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryList
 
 typealias ScrollingListener = (position: Int) -> Unit
 typealias SlidingStateListener = (Int) -> Unit
-typealias TransactionClickListener = (TransactionModel) -> Unit
+typealias TransactionClickListener = (OperationModel) -> Unit
 
 private const val MIN_ALPHA = 0.55 * 255
 private const val MAX_ALPHA = 1 * 255
@@ -143,7 +144,7 @@ class TransferHistorySheet @JvmOverloads constructor(
         super.onDetachedFromWindow()
     }
 
-    override fun transactionClicked(transactionModel: TransactionModel) {
+    override fun transactionClicked(transactionModel: OperationModel) {
         transactionClickListener?.invoke(transactionModel)
     }
 
