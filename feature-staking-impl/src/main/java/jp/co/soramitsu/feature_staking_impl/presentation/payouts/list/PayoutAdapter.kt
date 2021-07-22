@@ -17,6 +17,7 @@ import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDesc
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionRight
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleLeft
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleRight
+import kotlin.time.ExperimentalTime
 
 class PayoutAdapter(
     private val itemHandler: ItemHandler,
@@ -32,6 +33,7 @@ class PayoutAdapter(
         return PayoutViewHolder(view)
     }
 
+    @ExperimentalTime
     override fun onBindViewHolder(holder: PayoutViewHolder, position: Int) {
         val item = getItem(position)
 
@@ -42,25 +44,13 @@ class PayoutAdapter(
 class PayoutViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
     var timer: CountDownTimer? = null
 
+    @ExperimentalTime
     fun bind(payout: PendingPayoutModel, itemHandler: PayoutAdapter.ItemHandler) = with(containerView) {
         with(payout) {
             if (timer != null) timer?.cancel()
 
-            timer = object : CountDownTimer(timeLeft, 1000) {
-                override fun onTick(millisUntilFinished: Long) {
-                    val days = millisUntilFinished.getDays()
-
-                    itemListElementDescriptionLeft.text = if (days > 0)
-                        resources.getQuantityString(R.plurals.staking_payouts_days_left, days, days)
-                    else
-                        millisUntilFinished.formatTime()
-                }
-
-                override fun onFinish() {
-                    itemListElementDescriptionLeft.text = 0L.formatTime()
-
-                    cancel()
-                }
+            timer = itemListElementDescriptionLeft.startTimer(10000L) {
+                it.text = context.getText(R.string.staking_payout_expired)
             }
 
             timer?.start()
