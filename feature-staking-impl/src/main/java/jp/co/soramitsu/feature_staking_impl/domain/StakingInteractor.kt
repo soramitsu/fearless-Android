@@ -6,6 +6,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
+import jp.co.soramitsu.feature_staking_api.domain.api.EraTimeCalculatorFactory
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
@@ -65,8 +66,12 @@ class StakingInteractor(
     private val walletConstants: WalletConstants,
     private val payoutRepository: PayoutRepository,
 ) {
+    val factory = EraTimeCalculatorFactory(stakingRepository)
 
-    suspend fun getTimeLeft() = stakingRepository.eraLeftTime()
+    suspend fun getTimeLeft() : BigInteger{
+        val calculator = factory.create()
+        return calculator.calculate()
+    }
 
     @OptIn(ExperimentalTime::class)
     suspend fun calculatePendingPayouts(): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
@@ -90,7 +95,7 @@ class StakingInteractor(
 
                 val closeToExpire = relativeInfo.erasLeft < historyDepth / 2.toBigInteger()
 
-                val leftTime = stakingRepository.eraLeftTime(destinationEra = it.era + historyDepth).toLong()
+                val leftTime = factory.create().calculate(destinationEra = it.era + historyDepth).toLong()
 
                 with(it) {
                     val validatorIdentity = identityMapping[validatorAddress]
@@ -225,12 +230,10 @@ class StakingInteractor(
                     stakingRepository.ledgerFlow(stash),
                     stakingRepository.observeActiveEraIndex(networkType)
                 ) { ledger, activeEraIndex ->
-                    val unbondingDuration = stakingConstantsRepository.lockupPeriodInEras()
-
                     ledger.unlocking
                         .filter { it.isUnbondingIn(activeEraIndex) }
                         .map {
-                            val leftTime = stakingRepository.eraLeftTime(destinationEra = it.era)
+                            val leftTime = factory.create().calculate(destinationEra = it.era)
                             Unbonding(it.amount, leftTime.toLong())
                         }
                 }

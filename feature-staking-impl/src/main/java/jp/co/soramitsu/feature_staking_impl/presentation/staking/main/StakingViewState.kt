@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import android.os.CountDownTimer
-import android.provider.Settings.Global.getString
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.TitleAndMessage
@@ -15,6 +14,7 @@ import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.common.view.formatTime
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -362,17 +362,4 @@ class WelcomeViewState(
     private suspend fun rewardCalculator(): RewardCalculator {
         return rewardCalculator.await()
     }
-}
-
-fun Long.formatTime(): String {
-    val totalSeconds = this / 1000
-    val hours = totalSeconds / 3600
-    val minutes = (totalSeconds % 3600) / 60
-    val seconds = totalSeconds % 60
-    return "%02d:%02d:%02d".format(hours, minutes, seconds)
-}
-
-fun Long.getDays(): Int {
-    val days = this / 1000 / 3600 / 24
-    return days.toInt()
 }
