@@ -48,7 +48,9 @@ class PayoutViewHolder(override val containerView: View) : RecyclerView.ViewHold
         with(payout) {
             if (timer != null) timer?.cancel()
 
-            timer = itemListElementDescriptionLeft.startTimer(timeLeft)
+            timer = itemListElementDescriptionLeft.startTimer(10000L) {
+                it.text = context.getText(R.string.staking_payout_expired)
+            }
 
             timer?.start()
 

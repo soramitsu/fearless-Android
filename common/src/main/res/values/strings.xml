@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="staking_payout_expired">Payout expired</string>
     <string name="staking_custom_blocked_warning">This validator is blocked and cannot be selected at the moment. Please, try again in the next era.</string>
-    
+
     <string name="common_search_no_input">Search results will appear here</string>
     <string name="common_search_no_results">No search results.\nBe sure you type full account address</string>
     <string name="search_results_header">Search results: %d</string>
