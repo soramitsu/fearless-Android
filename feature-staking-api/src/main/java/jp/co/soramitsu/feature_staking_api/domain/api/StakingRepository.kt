@@ -16,6 +16,20 @@ import java.math.BigInteger
 
 interface StakingRepository {
 
+    suspend fun currentSessionIndex(): BigInteger
+
+    suspend fun currentSlot(): BigInteger
+
+    suspend fun genesisSlot(): BigInteger
+
+    suspend fun eraStartSessionIndex(currentEra: BigInteger): BigInteger
+
+    suspend fun sessionLength(): BigInteger
+
+    suspend fun eraLength(): BigInteger
+
+    suspend fun blockCreationTime(): BigInteger
+
     fun stakingAvailableFlow(): Flow<Boolean>
 
     suspend fun getTotalIssuance(): BigInteger
@@ -59,12 +73,12 @@ interface StakingRepository {
 
 suspend fun StakingRepository.getActiveElectedValidatorsExposures() = electedExposuresInActiveEra.first()
 
-suspend fun StakingRepository.historicalEras(): List<BigInteger> {
+suspend fun StakingRepository.historicalEras(countRange: (start: Int, finish: Int) -> IntRange): List<BigInteger> {
     val activeEra = getActiveEraIndex().toInt()
     val currentEra = getCurrentEraIndex().toInt()
     val historyDepth = getHistoryDepth().toInt()
 
-    val historicalRange = (currentEra - historyDepth) until activeEra
+    val historicalRange = countRange((currentEra - historyDepth), activeEra)
 
     return historicalRange.map(Int::toBigInteger)
 }

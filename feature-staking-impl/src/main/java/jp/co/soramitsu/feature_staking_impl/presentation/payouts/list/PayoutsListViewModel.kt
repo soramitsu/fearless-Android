@@ -118,7 +118,7 @@ class PayoutsListViewModel(
 
             PendingPayoutModel(
                 validatorTitle = validatorInfo.identityName ?: validatorInfo.address,
-                daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
+                timeLeft = timeLeft,
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
                 amount = amount.formatTokenChange(token.type, isIncome = true),
                 amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
@@ -136,7 +136,7 @@ class PayoutsListViewModel(
                 era = era,
                 amountInPlanks = amountInPlanks,
                 createdAt = createdAt,
-                daysLeft = daysLeft,
+                timeLeft = timeLeft,
                 closeToExpire = closeToExpire
             )
         }

@@ -86,7 +86,7 @@ class PayoutRepository(
 
         val validatorAddresses = retrieveValidatorAddresses()
 
-        val historicalRange = stakingRepository.historicalEras()
+        val historicalRange = stakingRepository.historicalEras { start, finish -> start until finish }
         val validatorStats = getValidatorHistoricalStats(runtime, historicalRange, validatorAddresses)
         val historicalRangeSet = historicalRange.toSet()
 
