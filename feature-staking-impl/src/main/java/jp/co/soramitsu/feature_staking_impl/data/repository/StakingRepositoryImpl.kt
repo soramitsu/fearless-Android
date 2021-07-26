@@ -31,6 +31,7 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
@@ -138,12 +139,12 @@ class StakingRepositoryImpl(
         binding = ::bindTotalInsurance
     )
 
-    override suspend fun getActiveEraIndex(): BigInteger = localStorage.queryNonNull(
+    override suspend fun getActiveEraIndex(): EraIndex = localStorage.queryNonNull(
         keyBuilder = { it.metadata.activeEraStorageKey() },
         binding = ::bindActiveEra
     )
 
-    override suspend fun getCurrentEraIndex(): BigInteger = localStorage.queryNonNull(
+    override suspend fun getCurrentEraIndex(): EraIndex = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("CurrentEra").storageKey() },
         binding = ::bindCurrentEra
     )

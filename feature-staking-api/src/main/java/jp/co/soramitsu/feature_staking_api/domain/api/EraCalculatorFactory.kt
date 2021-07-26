@@ -37,7 +37,7 @@ class EraTimeCalculator(
     private val currentSlot: BigInteger,
     private val genesisSlot: BigInteger,
     private val eraStartSessionIndex: BigInteger,
-    private val currentEra: BigInteger,
+    private val currentEra: EraIndex,
 ) {
     fun calculate(destinationEra: EraIndex? = null): BigInteger {
         val sessionStartSlot = currentSessionIndex * sessionLength + genesisSlot
