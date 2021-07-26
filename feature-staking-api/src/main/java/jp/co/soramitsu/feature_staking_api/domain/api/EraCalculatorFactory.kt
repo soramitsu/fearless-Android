@@ -30,9 +30,9 @@ The steps are the following:
  */
 
 class EraTimeCalculator(
-    private val sessionLength: BigInteger,
-    private val eraLength: BigInteger,
-    private val blockCreationTime: BigInteger,
+    private val sessionLength: BigInteger, // Number of blocks per session
+    private val eraLength: BigInteger, // Number of sessions per era
+    private val blockCreationTime: BigInteger, // How long it takes to create a block
     private val currentSessionIndex: BigInteger,
     private val currentSlot: BigInteger,
     private val genesisSlot: BigInteger,
