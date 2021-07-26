@@ -6,6 +6,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
+import jp.co.soramitsu.feature_staking_api.domain.api.EraTimeCalculatorFactory
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
@@ -65,6 +66,12 @@ class StakingInteractor(
     private val walletConstants: WalletConstants,
     private val payoutRepository: PayoutRepository,
 ) {
+    val factory = EraTimeCalculatorFactory(stakingRepository)
+
+    suspend fun getTimeLeft(): BigInteger {
+        val calculator = factory.create()
+        return calculator.calculate()
+    }
 
     @OptIn(ExperimentalTime::class)
     suspend fun calculatePendingPayouts(): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
@@ -88,12 +95,14 @@ class StakingInteractor(
 
                 val closeToExpire = relativeInfo.erasLeft < historyDepth / 2.toBigInteger()
 
+                val leftTime = factory.create().calculate(destinationEra = it.era + historyDepth).toLong()
+
                 with(it) {
                     val validatorIdentity = identityMapping[validatorAddress]
 
                     val validatorInfo = PendingPayout.ValidatorInfo(validatorAddress, validatorIdentity?.display)
 
-                    PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), relativeInfo.daysLeft, closeToExpire)
+                    PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), leftTime, closeToExpire)
                 }
             }
 
@@ -133,7 +142,8 @@ class StakingInteractor(
 
         when {
             isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
-            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting
+
+            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(timeLeft = getTimeLeft().toLong())
 
             else -> {
                 val inactiveReason = when {
@@ -221,16 +231,11 @@ class StakingInteractor(
                     stakingRepository.ledgerFlow(stash),
                     stakingRepository.observeActiveEraIndex(networkType)
                 ) { ledger, activeEraIndex ->
-                    val erasPerDay = networkType.runtimeConfiguration.erasPerDay
-                    val unbondingDuration = stakingConstantsRepository.lockupPeriodInEras()
-
                     ledger.unlocking
                         .filter { it.isUnbondingIn(activeEraIndex) }
                         .map {
-                            val createdAtEra = it.era - unbondingDuration
-                            val relativeInfo = eraRelativeInfo(createdAtEra, activeEraIndex, unbondingDuration, erasPerDay)
-
-                            Unbonding(it.amount, relativeInfo.daysLeft)
+                            val leftTime = factory.create().calculate(destinationEra = it.era)
+                            Unbonding(it.amount, leftTime.toLong())
                         }
                 }
             }

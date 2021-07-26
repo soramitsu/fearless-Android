@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
@@ -67,11 +66,10 @@ class StakingBalanceViewModel(
     val unbondingModelsLiveData = unbondingsFlow
         .combine(assetFlow) { unbondings, asset ->
             unbondings.mapIndexed { index, unbonding ->
-                val daysLeft = unbonding.daysLeft
 
                 UnbondingModel(
                     index = index,
-                    daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
+                    timeLeft = unbonding.timeLeft,
                     amountModel = mapAmountToAmountModel(unbonding.amount, asset)
                 )
             }

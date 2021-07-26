@@ -1,11 +1,13 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
+import android.os.CountDownTimer
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.view.startTimer
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.UnbondingModel
 import kotlinx.android.extensions.LayoutContainer
@@ -13,8 +15,9 @@ import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDesc
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionRight
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleLeft
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleRight
+import kotlin.time.ExperimentalTime
 
-class UnbondingsAdapter : ListAdapter<UnbondingModel, UnbondingsHolder>(UnbondingModelDiffCallback()) {
+class UnbondingsAdapter() : ListAdapter<UnbondingModel, UnbondingsHolder>(UnbondingModelDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UnbondingsHolder {
         val view = parent.inflateChild(R.layout.item_list_default)
@@ -22,6 +25,7 @@ class UnbondingsAdapter : ListAdapter<UnbondingModel, UnbondingsHolder>(Unbondin
         return UnbondingsHolder(view)
     }
 
+    @ExperimentalTime
     override fun onBindViewHolder(holder: UnbondingsHolder, position: Int) {
         val item = getItem(position)
 
@@ -30,13 +34,20 @@ class UnbondingsAdapter : ListAdapter<UnbondingModel, UnbondingsHolder>(Unbondin
 }
 
 class UnbondingsHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+    var timer: CountDownTimer? = null
 
+    @ExperimentalTime
     fun bind(unbonding: UnbondingModel) = with(containerView) {
         with(unbonding) {
+            if (timer != null) timer?.cancel()
+
+            timer = itemListElementDescriptionLeft.startTimer(timeLeft)
+
+            timer?.start()
+
             itemListElementTitleLeft.text = context.getString(R.string.staking_unbond)
             itemListElementTitleRight.text = unbonding.amountModel.token
             itemListElementDescriptionRight.text = unbonding.amountModel.fiat
-            itemListElementDescriptionLeft.text = daysLeft
         }
     }
 }

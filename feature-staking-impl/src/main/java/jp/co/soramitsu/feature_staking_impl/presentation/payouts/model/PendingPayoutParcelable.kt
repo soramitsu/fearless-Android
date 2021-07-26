@@ -10,7 +10,7 @@ class PendingPayoutParcelable(
     val era: BigInteger,
     val amountInPlanks: BigInteger,
     val createdAt: Long,
-    val daysLeft: Int,
+    val timeLeft: Long,
     val closeToExpire: Boolean,
 ) : Parcelable {
     @Parcelize
