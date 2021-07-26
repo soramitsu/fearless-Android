@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
+import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
@@ -60,19 +61,33 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     }
 
     override fun subscribe(viewModel: RewardDetailViewModel) {
-        with(viewModel.operation){
+        with(viewModel.operation) {
+            rewardDetailToolbar.setTitle(getString(
+                if ((transactionType as OperationModel.TransactionModelType.Reward).isReward)
+                    R.string.staking_reward_details
+                else
+                    R.string.wallet_title_stash_details))
+
             rewardDetailHash.setMessage(hash)
-            rewardDetailValidator.setMessage((transactionType as OperationModel.TransactionModelType.Reward).validator)
             rewardDetailStatus.setText(statusAppearance.labelRes)
             rewardDetailStatusIcon.setImageResource(statusAppearance.icon)
             rewardDetailDate.text = time.formatDateTime(requireContext())
-            rewardDetailEra.text = (transactionType).era.toString()
-            rewardDetailReward.text = (transactionType).amount.formatTokenAmount(tokenType)
+            rewardDetailReward.text = formattedAmount
+            rewardDetailReward.setTextColorRes(amountColorRes)
         }
 
         viewModel.showExternalRewardActionsEvent.observeEvent(::showExternalActions)
 
         viewModel.openBrowserEvent.observeEvent(::showBrowser)
+
+        viewModel.validatorAddressModelLiveData.observe { addressModel ->
+            rewardDetailValidator.setMessage(addressModel.nameOrAddress)
+            rewardDetailValidator.setTextIcon(addressModel.image)
+        }
+
+        viewModel.eraLiveData.observe {
+            rewardDetailEra.text = it
+        }
     }
 
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {

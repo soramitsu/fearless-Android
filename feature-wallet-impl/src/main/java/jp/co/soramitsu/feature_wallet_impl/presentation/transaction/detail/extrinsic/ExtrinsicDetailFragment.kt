@@ -7,6 +7,7 @@ import androidx.annotation.StringRes
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
+import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
@@ -63,17 +64,22 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     override fun subscribe(viewModel: ExtrinsicDetailViewModel) {
         with(viewModel.operation) {
             extrinsicDetailHash.setMessage(hash)
-            extrinsicDetailFrom.setMessage(getDisplayAddress())
+            extrinsicDetailFrom.setMessage(accountName ?: getDisplayAddress())
             extrinsicDetailStatus.setText(statusAppearance.labelRes)
             extrinsicDetailStatusIcon.setImageResource(statusAppearance.icon)
             extrinsicDetailDate.text = time.formatDateTime(requireContext())
-            extrinsicDetailModule.text = (transactionType as OperationModel.TransactionModelType.Extrinsic).module
-            extrinsicDetailCall.text = transactionType.call
-            extrinsicDetailFee.text = transactionType.fee.formatTokenAmount(tokenType)
+            extrinsicDetailModule.text = getOperationHeader()
+            extrinsicDetailCall.text = getElementDescription()
+            extrinsicDetailFee.text = formattedFee
         }
 
         viewModel.showExternalExtrinsicActionsEvent.observeEvent(::showExternalActions)
         viewModel.openBrowserEvent.observeEvent(::showBrowser)
+
+        viewModel.fromAddressModelLiveData.observe{ addressModel ->
+            extrinsicDetailFrom.setMessage(addressModel.nameOrAddress)
+            extrinsicDetailFrom.setTextIcon(addressModel.image)
+        }
     }
 
 

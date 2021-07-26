@@ -6,11 +6,13 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailViewModel
@@ -25,6 +27,8 @@ class RewardDetailModule {
         appLinksProvider: AppLinksProvider,
         clipboardManager: ClipboardManager,
         resourceManager: ResourceManager,
+        addressIconGenerator: AddressIconGenerator,
+        addressDisplayUseCase: AddressDisplayUseCase,
         router: WalletRouter
         ): ViewModel {
         return RewardDetailViewModel(
@@ -32,6 +36,8 @@ class RewardDetailModule {
             appLinksProvider,
             clipboardManager,
             resourceManager,
+            addressIconGenerator,
+            addressDisplayUseCase,
             router
         )
     }

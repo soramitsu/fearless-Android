@@ -2,11 +2,16 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.tran
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeInvisible
+import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
@@ -17,20 +22,7 @@ import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmo
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.ExternalActionsSource
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailViewModel
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailAmount
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailDate
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailFee
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailFrom
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailHash
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailRepeat
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailStatus
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailStatusIcon
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailTo
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailToolbar
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailTotal
+import kotlinx.android.synthetic.main.fragment_transfer_details.*
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
 
@@ -87,35 +79,69 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
             transactionDetailDate.text = time.formatDateTime(requireContext())
 
-            assert(viewModel.operation.transactionType is OperationModel.TransactionModelType.Transfer)
             val amount = viewModel.operation.transactionType.operationAmount
-            val fee = viewModel.operation.transactionType.operationFee
-            transactionDetailAmount.text = amount.formatTokenAmount(tokenType)
-            transactionDetailFee.text = fee.formatTokenAmount(tokenType)
+
+            if(getIsIncome()){
+                hideViews()
+            }else{
+                showViews()
+                transactionDetailFee.text = formattedFee
+                val fee = viewModel.operation.transactionType.operationFee
+                transactionDetailTotal.text = (amount + fee).formatTokenAmount(tokenType)
+            }
+
+            assert(viewModel.operation.transactionType is OperationModel.TransactionModelType.Transfer)
+            transactionDetailAmount.text = formattedAmount
+            transactionDetailAmount.setTextColorRes(amountColorRes)
 
             transactionDetailHash.setMessage(hash)
 
-            transactionDetailTotal.text = (amount + fee).formatTokenAmount(tokenType)
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->
-            transactionDetailFrom.setMessage(addressModel.address)
+            transactionDetailFrom.setMessage(addressModel.nameOrAddress)
             transactionDetailFrom.setTextIcon(addressModel.image)
         }
 
         viewModel.recipientAddressModelLiveData.observe { addressModel ->
-            transactionDetailTo.setMessage(addressModel.address)
+            transactionDetailTo.setMessage(addressModel.nameOrAddress)
             transactionDetailTo.setTextIcon(addressModel.image)
         }
 
-        viewModel.retryAddressModelLiveData.observe {
-            transactionDetailRepeat.setTitle(it.address)
-            transactionDetailRepeat.setAccountIcon(it.image)
+        viewModel.retryAddressModelLiveData.observe { addressModel ->
+            val name = addressModel.name
+            if (name != null) {
+                transactionDetailRepeat.setTitle(name)
+                transactionDetailRepeat.setText(addressModel.address)
+                transactionDetailRepeat.showBody()
+            } else {
+                transactionDetailRepeat.setTitle(addressModel.address)
+                transactionDetailRepeat.hideBody()
+            }
+            transactionDetailRepeat.setAccountIcon(addressModel.image)
         }
 
         viewModel.showExternalTransactionActionsEvent.observeEvent(::showExternalActions)
 
         viewModel.openBrowserEvent.observeEvent(::showBrowser)
+    }
+
+    private fun hideViews(){
+        transactionDetailFee.makeGone()
+        transactionDetailTotalLabel.makeGone()
+        transactionDetailFeeLabel.makeGone()
+        transactionDetailTotal.makeGone()
+        transactionDetailDivider4.makeInvisible()
+        transactionDetailDivider5.makeInvisible()
+    }
+
+    private fun showViews(){
+        transactionDetailFee.makeVisible()
+        transactionDetailTotalLabel.makeVisible()
+        transactionDetailFeeLabel.makeVisible()
+        transactionDetailTotal.makeVisible()
+        transactionDetailDivider4.makeVisible()
+        transactionDetailDivider5.makeVisible()
     }
 
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {

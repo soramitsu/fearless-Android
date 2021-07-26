@@ -24,6 +24,9 @@ class OperationModel(
     @IgnoredOnParcel
     val formattedAmount = createFormattedAmount()
 
+    @IgnoredOnParcel
+    val formattedFee = "-${transactionType.operationFee.formatTokenAmount(tokenType)}"
+
     fun getDisplayAddress() = (transactionType as? TransactionModelType.Transfer)?.receiver ?: address
 
     fun getOperationHeader() = format(transactionType.header) ?: accountName ?: getDisplayAddress()

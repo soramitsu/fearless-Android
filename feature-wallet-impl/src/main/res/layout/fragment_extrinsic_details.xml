@@ -16,7 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/wallet_transfer_details_title" />
+        app:titleText="@string/wallet_title_extrinsic_details" />
 
     <ScrollView
         android:layout_width="match_parent"

@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extr
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.ExternalAnalyzer
@@ -10,9 +12,12 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+
+private const val ICON_SIZE_DP = 32
 
 enum class ExternalActionsSource {
     TRANSACTION_HASH, FROM_ADDRESS
@@ -23,13 +28,21 @@ class ExtrinsicDetailViewModel(
     private val appLinksProvider: AppLinksProvider,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
-    private val router: WalletRouter,
-
+    private val addressDisplayUseCase: AddressDisplayUseCase,
+    private val addressIconGenerator: AddressIconGenerator,
+    private val router: WalletRouter
     ) : BaseViewModel(), Browserable {
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalExtrinsicActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
 
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
+
+    val fromAddressModelLiveData = liveData {
+        emit(getIcon(operation.address))
+    }
+
+    private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address,
+        ICON_SIZE_DP, addressDisplayUseCase(address))
 
     fun viewTransactionExternalClicked(analyzer: ExternalAnalyzer, hash: String, networkType: Node.NetworkType) {
         val url = appLinksProvider.getExternalTransactionUrl(analyzer, hash, networkType)
