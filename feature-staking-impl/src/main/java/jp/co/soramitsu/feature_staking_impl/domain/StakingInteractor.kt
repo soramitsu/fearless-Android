@@ -92,6 +92,7 @@ class StakingInteractor(
             val allValidatorAddresses = payouts.map(Payout::validatorAddress).distinct()
             val identityMapping = identityRepository.getIdentitiesFromAddresses(allValidatorAddresses)
 
+            val calculator = getCalculator()
             val pendingPayouts = payouts.map {
                 val relativeInfo = eraRelativeInfo(it.era, activeEraIndex, historyDepth, erasPerDay)
 
@@ -99,7 +100,7 @@ class StakingInteractor(
 
                 val closeToExpire = relativeInfo.erasLeft < historyDepth / 2.toBigInteger()
 
-                val leftTime = getCalculator().calculate(destinationEra = it.era + historyDepth).toLong()
+                val leftTime = calculator.calculate(destinationEra = it.era + historyDepth).toLong()
 
                 with(it) {
                     val validatorIdentity = identityMapping[validatorAddress]
@@ -230,6 +231,7 @@ class StakingInteractor(
             .filterIsInstance<StakingState.Stash>()
             .flatMapLatest { stash ->
                 val networkType = stash.stashAddress.networkType()
+                val calculator = getCalculator()
 
                 combine(
                     stakingRepository.ledgerFlow(stash),
@@ -238,7 +240,7 @@ class StakingInteractor(
                     ledger.unlocking
                         .filter { it.isUnbondingIn(activeEraIndex) }
                         .map {
-                            val leftTime = getCalculator().calculate(destinationEra = it.era)
+                            val leftTime = calculator.calculate(destinationEra = it.era)
                             Unbonding(it.amount, leftTime.toLong())
                         }
                 }
