@@ -63,7 +63,7 @@ class EraTimeCalculatorFactory(val repository: StakingRepository) {
         val currentSessionIndex = repository.currentSessionIndex()
         val currentSlot = repository.currentSlot()
         val genesisSlot = repository.genesisSlot()
-        val activeEra = repository.getActiveEraIndex()
+        val activeEra = repository.getActiveEraIndexFromRemote()
         val eraStartSessionIndex = repository.eraStartSessionIndex(activeEra)
 
         return EraTimeCalculator(
