@@ -17,9 +17,21 @@ import java.math.BigInteger
 
 interface StakingRepository {
 
-    fun stakingAvailableFlow(): Flow<Boolean>
+    suspend fun currentSessionIndex(): BigInteger
 
-    suspend fun eraLeftTime(destinationEra: BigInteger? = null): BigInteger
+    suspend fun currentSlot(): BigInteger
+
+    suspend fun genesisSlot(): BigInteger
+
+    suspend fun eraStartSessionIndex(currentEra: BigInteger): EraIndex
+
+    suspend fun sessionLength(): BigInteger
+
+    suspend fun eraLength(): BigInteger
+
+    suspend fun blockCreationTime(): BigInteger
+
+    fun stakingAvailableFlow(): Flow<Boolean>
 
     suspend fun getTotalIssuance(): BigInteger
 
@@ -31,9 +43,9 @@ interface StakingRepository {
 
     suspend fun getHistoryDepth(): BigInteger
 
-    suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<BigInteger>
+    suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<EraIndex>
 
-    suspend fun getElectedValidatorsExposure(eraIndex: BigInteger): AccountIdMap<Exposure>
+    suspend fun getElectedValidatorsExposure(eraIndex: EraIndex): AccountIdMap<Exposure>
 
     suspend fun getValidatorPrefs(accountIdsHex: List<String>): AccountIdMap<ValidatorPrefs?>
 
