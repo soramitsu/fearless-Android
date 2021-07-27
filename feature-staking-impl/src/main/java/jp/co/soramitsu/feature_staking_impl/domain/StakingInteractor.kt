@@ -67,7 +67,7 @@ class StakingInteractor(
 ) {
     val factory = EraTimeCalculatorFactory(stakingRepository)
 
-    suspend fun getCalculator() : EraTimeCalculator {
+    suspend fun getCalculator(): EraTimeCalculator {
         return factory.create()
     }
 
