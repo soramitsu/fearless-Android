@@ -103,7 +103,7 @@ class PayoutsListViewModel(
         val token = interactor.currentAssetFlow().first().token
         val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatTokenAmount(token.type)
 
-        val payouts = statistics.payouts.map { mapPayoutToPayoutModel(token, it) }
+        val payouts = statistics.payouts.map { mapPayoutToPayoutModel(token, it) }.sortedBy { it.timeLeft }
 
         return PendingPayoutsStatisticsModel(
             payouts = payouts,
