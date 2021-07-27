@@ -112,7 +112,7 @@ class StakingRepositoryImpl(
         binding = ::bindCurrentSlot
     )
 
-    override suspend fun eraStartSessionIndex(currentEra: BigInteger): BigInteger {
+    override suspend fun eraStartSessionIndex(currentEra: BigInteger): EraIndex {
         val runtime = getRuntime()
         return remoteStorage.queryNonNull( // Index of session from with the era started
             keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, currentEra) },
@@ -159,13 +159,13 @@ class StakingRepositoryImpl(
         binding = ::bindHistoryDepth
     )
 
-    override suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<BigInteger> {
+    override suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<EraIndex> {
         return storageCache.observeActiveEraIndex(runtimeProperty.get(), networkType)
     }
 
     override val electedExposuresInActiveEra by lazy { createExposuresFlow() }
 
-    override suspend fun getElectedValidatorsExposure(eraIndex: BigInteger) = withContext(Dispatchers.Default) {
+    override suspend fun getElectedValidatorsExposure(eraIndex: EraIndex) = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 
         val prefixKey = runtime.metadata.staking().storage("ErasStakers").storageKey(runtime, eraIndex)
