@@ -97,25 +97,25 @@ class StakingRepositoryImpl(
         return runtime.metadata.babe().numberConstant("EpochDuration", runtime) // How many blocks per session
     }
 
-    override suspend fun currentSessionIndex() = localStorage.queryNonNull( // Current session index
+    override suspend fun currentSessionIndex() = remoteStorage.queryNonNull( // Current session index
         keyBuilder = { it.metadata.session().storage("CurrentIndex").storageKey() },
         binding = ::bindCurrentIndex
     )
 
-    override suspend fun currentSlot() = localStorage.queryNonNull(
+    override suspend fun currentSlot() = remoteStorage.queryNonNull(
         keyBuilder = { it.metadata.babe().storage("CurrentSlot").storageKey() },
         binding = ::bindCurrentSlot
     )
 
-    override suspend fun genesisSlot() = localStorage.queryNonNull(
+    override suspend fun genesisSlot() = remoteStorage.queryNonNull(
         keyBuilder = { it.metadata.babe().storage("GenesisSlot").storageKey() },
         binding = ::bindCurrentSlot
     )
 
     override suspend fun eraStartSessionIndex(currentEra: BigInteger): BigInteger {
         val runtime = getRuntime()
-        return localStorage.queryNonNull( // Index of session from with the era started
-            keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, currentEra - BigInteger.ONE) },
+        return remoteStorage.queryNonNull( // Index of session from with the era started
+            keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, currentEra) },
             binding = ::bindErasStartSessionIndex
         )
     }
