@@ -23,7 +23,7 @@ interface StakingRepository {
 
     suspend fun genesisSlot(): BigInteger
 
-    suspend fun eraStartSessionIndex(currentEra: BigInteger): BigInteger
+    suspend fun eraStartSessionIndex(currentEra: BigInteger): EraIndex
 
     suspend fun sessionLength(): BigInteger
 
@@ -43,9 +43,9 @@ interface StakingRepository {
 
     suspend fun getHistoryDepth(): BigInteger
 
-    suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<BigInteger>
+    suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<EraIndex>
 
-    suspend fun getElectedValidatorsExposure(eraIndex: BigInteger): AccountIdMap<Exposure>
+    suspend fun getElectedValidatorsExposure(eraIndex: EraIndex): AccountIdMap<Exposure>
 
     suspend fun getValidatorPrefs(accountIdsHex: List<String>): AccountIdMap<ValidatorPrefs?>
 
