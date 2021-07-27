@@ -29,6 +29,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Stak
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ValidatorExposureUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.controller.AccountControllerBalanceUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalTotalValidatorRewardUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalUpdateMediator
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalValidatorRewardPointsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
@@ -159,6 +160,7 @@ class StakingUpdatersModule {
         storageCache: StorageCache,
     ) = HistoricalUpdateMediator(
         historicalUpdaters = listOf(
+            HistoricalTotalValidatorRewardUpdater(),
             HistoricalValidatorRewardPointsUpdater(),
         ),
         runtimeProperty = runtimeProperty,
