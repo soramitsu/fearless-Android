@@ -68,13 +68,9 @@ class StakingInteractor(
     private val payoutRepository: PayoutRepository,
 ) {
     val factory = EraTimeCalculatorFactory(stakingRepository)
-    private var calculator: EraTimeCalculator? = null
 
     suspend fun getCalculator() : EraTimeCalculator {
-        if (calculator == null){
-            calculator = factory.create()
-        }
-        return calculator!!
+        return factory.create()
     }
 
     suspend fun getTimeLeft(): BigInteger {
