@@ -46,7 +46,7 @@ class EraTimeCalculator(
         val eraRemained = eraLength * sessionLength - eraProgress
 
         return if (destinationEra != null) {
-            val leftEras = destinationEra - activeEra
+            val leftEras = destinationEra - activeEra - 1.toBigInteger()
             val timeForLeftEras = leftEras * eraLength * sessionLength * blockCreationTime
             eraRemained * blockCreationTime + timeForLeftEras
         } else {
@@ -63,10 +63,8 @@ class EraTimeCalculatorFactory(val repository: StakingRepository) {
         val currentSessionIndex = repository.currentSessionIndex()
         val currentSlot = repository.currentSlot()
         val genesisSlot = repository.genesisSlot()
-        val activeEra = repository.getActiveEraIndex() // Передавать activeEra
+        val activeEra = repository.getActiveEraIndex()
         val eraStartSessionIndex = repository.eraStartSessionIndex(activeEra)
-
-        println("-------- $sessionLength $eraLength $blockCreationTime $currentSessionIndex $currentSlot $genesisSlot $activeEra $eraStartSessionIndex ")
 
         return EraTimeCalculator(
             sessionLength,

@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_api.domain.api
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
@@ -34,9 +35,11 @@ interface StakingRepository {
 
     suspend fun getTotalIssuance(): BigInteger
 
-    suspend fun getActiveEraIndex(): BigInteger
+    suspend fun getActiveEraIndex(): EraIndex
 
-    suspend fun getCurrentEraIndex(): BigInteger
+    suspend fun getActiveEraIndexFromRemote(): EraIndex
+
+    suspend fun getCurrentEraIndex(): EraIndex
 
     suspend fun getHistoryDepth(): BigInteger
 
