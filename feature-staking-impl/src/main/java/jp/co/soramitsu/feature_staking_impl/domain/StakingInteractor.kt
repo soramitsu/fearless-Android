@@ -107,7 +107,7 @@ class StakingInteractor(
 
                     PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), leftTime, closeToExpire)
                 }
-            }
+            }.sortedBy { it.era }
 
             PendingPayoutsStatistics(
                 payouts = pendingPayouts,
