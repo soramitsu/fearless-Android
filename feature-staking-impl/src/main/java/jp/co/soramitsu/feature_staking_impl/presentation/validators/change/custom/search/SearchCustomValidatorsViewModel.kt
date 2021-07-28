@@ -108,7 +108,7 @@ class SearchCustomValidatorsViewModel(
 
                 SearchValidatorsState.Success(
                     validators = validators,
-                    headerTitle = resourceManager.getString(R.string.search_results_header, validators.size)
+                    headerTitle = resourceManager.getString(R.string.common_search_results_number, validators.size)
                 )
             }
 

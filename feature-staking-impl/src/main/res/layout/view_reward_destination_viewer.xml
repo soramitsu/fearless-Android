@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:dividerVisible="false"
-        app:title="@string/staking_reward_destination" />
+        app:title="@string/staking_confirm_reward_destination" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/viewRewardDestinationPayoutAccount"

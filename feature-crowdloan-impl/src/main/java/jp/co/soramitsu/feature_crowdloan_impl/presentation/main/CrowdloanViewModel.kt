@@ -106,7 +106,7 @@ class CrowdloanViewModel(
         val myContributionDisplay = crowdloan.myContribution?.let {
             val myContributionFormatted = token.amountFromPlanks(it.amount).formatTokenAmount(token.type)
 
-            resourceManager.getString(R.string.crowdloan_my_contribution, myContributionFormatted)
+            resourceManager.getString(R.string.crowdloan_contribution_format, myContributionFormatted)
         }
 
         return CrowdloanModel(

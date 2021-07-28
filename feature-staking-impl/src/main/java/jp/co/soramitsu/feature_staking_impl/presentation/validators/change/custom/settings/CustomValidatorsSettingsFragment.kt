@@ -72,7 +72,7 @@ class CustomValidatorsSettingsFragment : BaseFragment<CustomValidatorsSettingsVi
 
         viewModel.tokenNameFlow.observe {
             customValidatorSettingsSortTotalStake.text = getString(R.string.staking_custom_validators_settings_sort_total_stake, it)
-            customValidatorSettingsSortOwnStake.text = getString(R.string.staking_custom_validators_settings_sort_own_stake, it)
+            customValidatorSettingsSortOwnStake.text = getString(R.string.staking_filter_title_own_stake_token, it)
         }
     }
 

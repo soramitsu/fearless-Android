@@ -2,20 +2,51 @@
 <resources>
     <string name="choose_amount_initial" translatable="false">0</string>
     <string name="identity_twitter_title" translatable="false">Twitter</string>
+    <string name="staking_era_index_no_prefix" translatable="false">#%d</string>
 
     <string name="common_next">Next</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_skip">Skip</string>
+    <string name="common_applied">Applied</string>
+    <string name="common_search">Search</string>
     <string name="common_use">Use</string>
     <string name="common_bonus">Bonus</string>
+    <string name="common_sort_by">Sort by</string>
     <string name="common_error_general_title">Error</string>
     <string name="staking_stash_account">Stash account</string>
     <string name="connection_error_message">Please, check internet connection and try again later.</string>
+    <string name="staking_validator_total_stake_token">Total stake (%s)</string>
+    <string name="staking_filter_title_own_stake_token">Validator\'s own stake (%s)</string>
+    <string name="staking_filter_title_own_stake">Validator\'s own stake</string>
+    <string name="staking_reward_details_validator">Validator</string>
+    <string name="staking_pending_rewards_info">Usually Validators payout the rewards every 2–5 days, so its recommended to wait. However, you can claim them by yourself, especially if rewards close to expire. You will need to pay the fees for operation in this case</string>
+    <string name="staking_reward_payouts_empty_rewards">Perfect! All rewards are paid.</string>
+    <string name="staking_your_allocated_description">Your stake is allocated to the following validators.</string>
+    <string name="staking_stash_can_hint">Stash can bond more and set the controller.</string>
+    <string name="staking_set_separate_account_controller">Set a separate account as a controller to increase staking management security.</string>
+    <string name="staking_custom_validators_list_title">Select validators</string>
+    <string name="staking_custom_fill_button_title">Fill rest with recommended</string>
+    <string name="staking_inactive_validators_format">Inactive (%d)</string>
+    <string name="staking_your_inactive_description">Validators who were not elected in this era.</string>
+    <string name="staking_your_not_allocated_description">Others, who are active without your stake allocation.</string>
+
+    <string name="staking_your_nominated_format">Nominated: %s</string>
+    <string name="staking_custom_clear_button_title">Clear filters</string>
+    <string name="staking_custom_deselect_button_title">Deselect all</string>
+    <string name="staking_unbonding_hint">Your tokens will be available to redeem after the unbonding period.</string>
     <string name="onboarding_restore_account">Import account</string>
+    <string name="staking_custom_validators_settings_sort_total_stake">Total stake (%s)</string>
+
     <string name="onboarding_terms_and_conditions_1">I have read and agreed to
 Terms and Conditions and Privacy Policy</string>
     <string name="onboarding_terms_and_conditions_2">Terms and Conditions</string>
+    <string name="staking_information_controller_actions">Controller can unbond, redeem, rebond, change reward destination and validators</string>
+    <string name="staking_switch_account_to_stash">Switch your account to stash to set the controller.</string>
+    <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
     <string name="onboarding_privacy_policy">Privacy Policy</string>
+    <string name="staking_balance_title">Staking balance</string>
+    <string name="staking_only_apr">APR</string>
+    <string name="staking_only_apy">APY</string>
     <string name="pincode_enter_pin_code">Enter pin code</string>
     <string name="pincode_confirm_your_pin_code">Confirm your pin code</string>
     <string name="tabbar_wallet_title">Wallet</string>
@@ -231,6 +262,7 @@ Derivation path: %s</string>
     <string name="common_learn_more">Learn more</string>
     <string name="staking_custom_validators_title">Select custom validators</string>
     <string name="staking_recommended_validators_apy">Estimated reward, APY</string>
+    <string name="staking_custom_validators_settings_filters">Show</string>
     <string name="runtime_update_failure_title">Runtime update failure</string>
     <string name="runtime_update_failure_description">Failed to update information about blockchain runtime. Some functionality may not work.</string>
     <string name="runtime_update_not_actual_title">Outdated configuration</string>
@@ -255,13 +287,29 @@ Derivation path: %s</string>
     <string name="staking_setup_amount_too_low">Can\'t stake less than minimal value (%s)</string>
     <string name="staking_confirm_reward_destination">Reward destination</string>
     <string name="staking_stash_title">Wallet account</string>
+    <string name="staking_unbondings_placeholder">Your unbondings will appear here.</string>
+    <string name="common_not_enough_funds_title">Insufficient balance</string>
     <string name="staking_setup_sent_message">Staking setup transaction sent</string>
+    <string name="staking_controller_change_success">Controller is changed</string>
+    <string name="staking_unbond_too_big">Amount you want to unbond is greater than your bonded balance</string>
+    <string name="staking_custom_proceed_button_enabled_title">Show selected: %d (max %d)</string>
+    <string name="staking_custom_proceed_button_disabled_title">Select validators (max %d)</string>
+    <string name="common_search_start_title">Search results will appear here</string>
+    <string name="common_search_no_results">No search results.\nBe sure you type full account address</string>
+    <string name="common_search_results_number">Search results: %d</string>
+    <string name="staking_custom_header_validators_title">Validators: %d of %d</string>
+    <string name="staking_selected_validators_format">Selected: %d (Max %d)</string>
+    <string name="staking_your_validators_changing_title">Your validators will change in the next era.</string>
+
     <string name="staking_confirm_selected_validators">Selected validators</string>
     <string name="staking_validator_info_title">Validator info</string>
     <string name="staking_validator_total_stake">Total stake</string>
     <string name="staking_validator_nominators">Nominators</string>
     <string name="staking_validator_estimated_reward">Estimated reward</string>
     <string name="identity_title">Identity</string>
+    <string name="staking_already_controller_title">Already controller</string>
+    <string name="staking_account_is_used_as_controller">Selected account is already in use as controller</string>
+
     <string name="identity_display_name_title">Display name</string>
     <string name="identity_legal_name_title">Legal name</string>
     <string name="identity_email_title">Email</string>
@@ -360,6 +408,14 @@ Derivation path: %s</string>
     <string name="crownloans_raised_format" formatted="false">Raised: %s of %s</string>
     <string name="common_completed_with_count">Completed (%s)</string>
     <string name="common_left">%s left</string>
+    <string name="staking_warning_tiny_payout">The reward is less than the network fee.</string>
+    <string name="staking_bonded_inactive">You are neither nominating nor validating</string>
+    <string name="common_confirmation_title">Are you sure?</string>
+    <string name="staking_era_index">Era #%d</string>
+    <string name="staking_reward_info_max">Maximum APY</string>
+    <string name="staking_reward_info_avg">Average APY</string>
+    <string name="staking_unbond_crossed_existential">After operation the resulting bonded balance will be less than existential deposit. It will cause the whole bonded balance to be unbonded.</string>
+    <string name="staking_reward_estimation_bottom_sheet_title">Earnings in the network</string>
     <string name="common_existential_warning_message">Operation will remove account from blockstore since it will make total balance lower than minimal balance.</string>
     <string name="common_existential_warning_title">Operation will remove account</string>
     <string name="crowdloan_ended_message">Cannot contribute to selected crowdloan since it is already ended.</string>
@@ -371,13 +427,43 @@ Derivation path: %s</string>
     <string name="crowdloan_too_small_contribution_title">Contribution amount is too small</string>
     <string name="crowdloan_learn">Learn %s\'s crowdloan</string>
     <string name="common_time_left">Time left</string>
+    <string name="crowdloan_contribution_format">You contributed: %s</string>
     <string name="crowdloan_placeholder">Active crowdloans\n will appear here</string>
     <string name="crowdloan_contribute_title">Contribute to crowdloan</string>
     <string name="crowdloan_unlock_hint">Your %s tokens will be returned after the leasing period.</string>
     <string name="crowdloan_info">Crowdloan info</string>
+    <string name="crowdloan_empty_bonus_title">Get a special bonus</string>
     <string name="crowdloan_raised_amount" formatted="false">%s of %s</string>
+    <string name="crowdloan_app_bonus_format">Fearless Wallet bonus (%s)</string>
+    <string name="wallet_asset_buy_with">Buy with</string>
     <string name="crowdloan_raised">Raised</string>
+    <string name="common_options_title">Select an option</string>
+    <string name="crowdloan_enter_referral">Enter your referral code</string>
+    <string name="invoice_scan_qr_code_title">QR code</string>
+    <string name="invoice_scan_error_no_info">QR can\'t be decoded</string>
     <string name="crowdloan_leasing_period">Leasing period</string>
+    <string name="staking_story_staking_title">What is Staking?</string>
+    <string name="staking_story_staking_page_1">Staking is an option to earn passive income by locking your tokens in the network. Rewards for staking are paid every 6 hours on Kusama and 24 hours on Polkadot. You can stake as long as you wish, and for unlocking your tokens you need to wait for the unlocking period to end, making your tokens available to be redeemed.</string>
+    <string name="staking_story_staking_page_2">Staking is an important part of the network security and reliability. Anyone can run Polkadot &amp; Kusama validator nodes, but only those who have enough tokens staked will be selected by the network to participate in composing new blocks and receive the rewards. Validators oftently do not have enough tokens by themselves, so Nominators are helping them by locking their tokens for them to achieve the required amount of stake.</string>
+
+    <string name="staking_story_nominator_title">Who is a Nominator?</string>
+    <string name="staking_story_nominator_page_1">Nominators are those who want to earn passive income by locking their tokens for securing the network. To achieve that, Nominators should select a number of Validators to support. Nominators should be careful - if selected Validators won’t behave properly, slashing penalties would be applied to both Validators and Nominators, based on severity of incident.</string>
+    <string name="staking_story_nominator_page_2">Fearless Wallet provides support for Nominators by helping to select Validators. Mobile app fetches data from the blockchain and composes a list of Validators which have most profits, identity with contact info available, not slashed before and available to receive nominations. Fearless Wallet also cares about decentralization, so if one person or a company runs several validator nodes, only up to 2 nodes will be chosen from that person or a company in the recommended list.</string>
+
+    <string name="staking_story_reward_title">Claiming Rewards</string>
+
+    <string name="staking_story_reward_page_1">Rewards for staking are available for claiming at the end of each Era (6 hours in Kusama and 24 hours in Polkadot). They are available for claiming for next 84 Eras, and in most cases Validators are paying out the rewards for everyone. However, Validators might forget or something might happen with them, so Nominators can claim the rewards by themselves.</string>
+    <string name="staking_story_reward_page_2">Although usually Rewards are distributed by Validators, Fearless Wallet helps Nominators by alerting them if there are some Rewards available and they are close to expiration. You will receive Alert about this and other activities on your Staking screen.</string>
+    <string name="staking_selected_validators_mask">Validators (%d)</string>
+    <string name="staking_apy">%s APY</string>
+    <string name="staking_apr">%s APR</string>
+    <string name="staking_story_validator_title">Who is a Validator?</string>
+    <string name="staking_story_validator_page_1">Validators are those who run a blockchain node for 24/7 and require to have enough stake locked (both owned and provided by nominators) to be elected by the network. Validators should maintain their nodes to achieve the best performance and reliability, which will be rewarded. Being a validator is almost a full time job, there are companies exist which are focused to be validators on the blockchain networks</string>
+    <string name="staking_story_validator_page_2">Everyone can be a validator and run a blockchain node, but that requires a certain level of technical skills and responsibility. Polkadot &amp; Kusama network has a program, named Thousand Validators Programme, to provide support for beginners. The network itself always will reward more Validators who have less stake (but enough to be elected) to improve decentralization.</string>
+
+    <string name="invoice_scan_upload">Upload from gallery</string>
+    <string name="contacts_scan">Scan QR code</string>
+    <string name="crowdloan_terms_action">Agree with Terms and Conditions</string>
     <string name="common_completed">Completed</string>
     <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
     <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
@@ -394,6 +480,7 @@ Derivation path: %s</string>
     <string name="staking_set_validators_message">Validators are not selected</string>
     <string name="staking_max_nominators_reached_title">Cannot start staking</string>
     <string name="staking_max_nominators_reached_message">Maximum number of nominators has been reached</string>
+    <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
     <string name="staking_custom_blocked_warning">This validator is blocked and cannot be selected at the moment. Please, try again in the next era.</string>
     <string name="staking_alert_start_next_era_message">Please wait for the next era to start.</string>
     <string name="staking_max_format" formatted="false">%d (max %d)</string>

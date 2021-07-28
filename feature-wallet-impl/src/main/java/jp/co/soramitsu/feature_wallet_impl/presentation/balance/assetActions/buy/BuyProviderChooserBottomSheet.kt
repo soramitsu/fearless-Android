@@ -30,7 +30,7 @@ class BuyProviderChooserBottomSheet(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(R.string.wallet_buy_with)
+        setTitle(R.string.wallet_asset_buy_with)
     }
 
     override fun holderCreator(): HolderCreator<BuyProvider> = {

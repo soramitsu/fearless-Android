@@ -15,7 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/staking_payout_rewards" />
+        app:titleText="@string/staking_reward_payouts_title" />
 
     <TextView
         style="@style/TextAppearance.Soramitsu.Body2"
@@ -97,7 +97,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="@string/payouts_placeholder"
+        android:text="@string/staking_reward_payouts_empty_rewards"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"

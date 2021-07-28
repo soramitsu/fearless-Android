@@ -107,7 +107,7 @@ class PayoutsListViewModel(
 
         return PendingPayoutsStatisticsModel(
             payouts = payouts,
-            payoutAllTitle = resourceManager.getString(R.string.staking_payout_all, totalAmount),
+            payoutAllTitle = resourceManager.getString(R.string.staking_reward_payouts_payout_all, totalAmount),
             placeholderVisible = payouts.isEmpty()
         )
     }

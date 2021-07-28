@@ -132,7 +132,7 @@ class CrowdloanContributeViewModel(
                 bonus.formatTokenAmount(contributionState.tokenName)
             }
 
-            is CustomContributionState.Inactive -> resourceManager.getString(R.string.crowdloan_bonus_action)
+            is CustomContributionState.Inactive -> resourceManager.getString(R.string.crowdloan_empty_bonus_title)
 
             else -> null
         }
