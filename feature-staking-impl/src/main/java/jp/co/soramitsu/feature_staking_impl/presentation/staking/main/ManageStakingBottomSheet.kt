@@ -27,7 +27,7 @@ class ManageStakingBottomSheet(
 //        manageItem(R.drawable.ic_stop_circle_24, R.string.staking_pause_staking)
 //        manageItem(R.drawable.ic_send, R.string.staking_unstake)
 //        manageItem(R.drawable.ic_dotted_list_24, R.string.staking_unstaking_requests)
-        manageItem(R.drawable.ic_basic_circle_star_24, R.string.staking_reward_payouts, ManageStakeAction.PAYOUTS)
+        manageItem(R.drawable.ic_pending_reward, R.string.staking_reward_payouts, ManageStakeAction.PAYOUTS)
         manageItem(R.drawable.ic_finance_wallet_24, R.string.staking_reward_destination, ManageStakeAction.REWARD_DESTINATION)
         manageItem(R.drawable.ic_maps_compas_24, R.string.staking_your_validators, ManageStakeAction.VALIDATORS)
 

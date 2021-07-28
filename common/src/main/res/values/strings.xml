@@ -206,7 +206,7 @@
     <string name="staking_payout_all">Payout all (%s)</string>
     <string name="staking_payout_rewards">Pending rewards</string>
 
-    <string name="payouts_placeholder">Your rewards\n will appear here</string>
+    <string name="payouts_placeholder">Perfect! All rewards are paid.</string>
 
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d day left</item>
