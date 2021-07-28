@@ -100,7 +100,7 @@ class StakingInteractor(
 
                 val closeToExpire = relativeInfo.erasLeft < historyDepth / 2.toBigInteger()
 
-                val leftTime = calculator.calculate(destinationEra = it.era + historyDepth).toLong()
+                val leftTime = calculator.calculate(destinationEra = it.era + historyDepth + 1.toBigInteger()).toLong()
 
                 with(it) {
                     val validatorIdentity = identityMapping[validatorAddress]
