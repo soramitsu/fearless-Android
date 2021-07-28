@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="staking_payout_expired">Payout expired</string>
+    <string name="staking_pending_rewards_info">Usually Validators payout the rewards every 2–5 days, so its recommended to wait. However, you can claim them by yourself, especially if rewards close to expire. You will need to pay the fees for operation in this case</string>
     <string name="staking_custom_blocked_warning">This validator is blocked and cannot be selected at the moment. Please, try again in the next era.</string>
 
     <string name="common_search_no_input">Search results will appear here</string>
@@ -204,7 +204,7 @@
     <string name="staking_reward_details">Reward details</string>
 
     <string name="staking_payout_all">Payout all (%s)</string>
-    <string name="staking_payout_rewards">Payout rewards</string>
+    <string name="staking_payout_rewards">Pending rewards</string>
 
     <string name="payouts_placeholder">Your rewards\n will appear here</string>
 
@@ -222,7 +222,7 @@
     <string name="staking_unstake">Unstake</string>
     <string name="staking_unstaking_requests">Unstaking requests</string>
     <string name="staking_your_validators">Your validators</string>
-    <string name="staking_reward_payouts">Reward payouts</string>
+    <string name="staking_reward_payouts">Pending rewards</string>
     <string name="staking_controller_account">Controller account</string>
 
     <string name="staking_apy">%s APY</string>
