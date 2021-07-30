@@ -149,6 +149,8 @@
     <string name="search_header_my_accounts">мои аккаунты</string>
     <string name="coming_soon">Скоро будет…</string>
     <string name="wallet_receive_share_message" formatted="false">Мой %s адрес для получения %s:</string>
+    <string name="coming_soon_dev_status">Статус разработки</string>
+    <string name="comming_soon_roadmap">План разработки</string>
     <string name="import_json_invalid_format_title">JSON для восстановления недействителен</string>
     <string name="import_json_invalid_format_message">Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
     <string name="import_json_invalid_password_title">Ошибка дешифрования</string>
@@ -381,6 +383,8 @@
     <string name="common_search_results_number">Результаты поиска: %d</string>
     <string name="common_search_start_title">Здесь появятся результаты поиска</string>
     <string name="staking_validator_total_stake_token">Общий стейк (%s)</string>
+    <string name="staking_max_format" formatted="false">%d (макс. %d)</string>
+    <string name="staking_custom_validators_update_list">Обновить свой список</string>
     <string name="staking_rewards_apy">Вознаграждение (APY)</string>
     <string name="wallet_balance_bonded">Застейкано</string>
     <string name="staking_total_rewards_v1.9.0">Заработано</string>
