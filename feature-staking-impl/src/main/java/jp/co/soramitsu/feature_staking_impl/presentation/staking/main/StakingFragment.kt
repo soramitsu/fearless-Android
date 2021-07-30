@@ -28,7 +28,6 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingStakeSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
-import kotlin.time.ExperimentalTime
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -66,7 +65,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             .inject(this)
     }
 
-    @ExperimentalTime
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
 
@@ -173,7 +171,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
     }
 
-    @ExperimentalTime
     private fun <S> StakeSummaryView.bindStakeSummary(
         stakingViewState: StakeViewState<S>,
         mapStatus: (StakeSummaryModel<S>) -> StakeSummaryView.Status
@@ -234,8 +231,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     private fun mapNominatorStatus(summary: NominatorSummaryModel): StakeSummaryView.Status {
         return when (summary.status) {
             is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
-            is NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
-            is NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting(summary.status.timeLeft)
+            NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
+            NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting
         }
     }
 

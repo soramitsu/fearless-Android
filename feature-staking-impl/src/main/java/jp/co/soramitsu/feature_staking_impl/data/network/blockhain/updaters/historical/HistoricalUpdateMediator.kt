@@ -54,7 +54,7 @@ class HistoricalUpdateMediator(
     }
 
     private suspend fun constructHistoricalKeys(runtime: RuntimeSnapshot): List<String> {
-        val historicalRange = stakingRepository.historicalEras { start: Int, finish: Int -> start..finish }
+        val historicalRange = stakingRepository.historicalEras()
 
         return historicalUpdaters.map { updater ->
             historicalRange.map { updater.constructHistoricalKey(runtime, it) }

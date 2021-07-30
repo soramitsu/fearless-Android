@@ -12,7 +12,7 @@ data class PendingPayout(
     val era: BigInteger,
     val amountInPlanks: BigInteger,
     val createdAt: Long,
-    val timeLeft: Long,
+    val daysLeft: Int,
     val closeToExpire: Boolean,
 ) {
     class ValidatorInfo(
