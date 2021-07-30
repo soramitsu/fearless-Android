@@ -71,10 +71,6 @@ class StakingInteractor(
         return factory.create()
     }
 
-    suspend fun getTimeLeft(): BigInteger {
-        return getCalculator().calculate()
-    }
-
     @OptIn(ExperimentalTime::class)
     suspend fun calculatePendingPayouts(): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
         runCatching {
@@ -98,7 +94,7 @@ class StakingInteractor(
 
                 val closeToExpire = relativeInfo.erasLeft < historyDepth / 2.toBigInteger()
 
-                val leftTime = calculator.calculate(destinationEra = it.era + historyDepth + 1.toBigInteger()).toLong()
+                val leftTime = calculator.calculateTillEraSet(destinationEra = it.era + historyDepth + 1.toBigInteger()).toLong()
 
                 with(it) {
                     val validatorIdentity = identityMapping[validatorAddress]
@@ -146,7 +142,7 @@ class StakingInteractor(
         when {
             isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
 
-            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(timeLeft = getTimeLeft().toLong())
+            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(timeLeft = getCalculator().calculate(nominatorState.nominations.submittedInEra + 1.toBigInteger()).toLong())
 
             else -> {
                 val inactiveReason = when {
