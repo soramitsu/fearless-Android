@@ -10,7 +10,7 @@ class PendingPayoutsStatisticsModel(
 
 class PendingPayoutModel(
     val validatorTitle: String,
-    val timeLeft: Long,
+    val daysLeft: String,
     @ColorRes val daysLeftColor: Int,
     val amount: String,
     val amountFiat: String?,

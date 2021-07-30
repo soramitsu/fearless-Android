@@ -7,14 +7,11 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.common.utils.babe
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.constant
 import jp.co.soramitsu.common.utils.hasModule
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.networkType
-import jp.co.soramitsu.common.utils.numberConstant
-import jp.co.soramitsu.common.utils.session
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.model.Node
@@ -31,7 +28,6 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
@@ -41,9 +37,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentIndex
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentSlot
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindErasStartSessionIndex
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindHistoryDepth
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindMaxNominators
@@ -88,49 +81,8 @@ class StakingRepositoryImpl(
     private val remoteStorage: StorageDataSource,
     private val localStorage: StorageDataSource,
     private val walletConstants: WalletConstants,
-    private val stakingStoriesDataSource: StakingStoriesDataSource
+    private val stakingStoriesDataSource: StakingStoriesDataSource,
 ) : StakingRepository {
-
-    override suspend fun sessionLength(): BigInteger {
-        val runtime = getRuntime()
-
-        return runtime.metadata.babe().numberConstant("EpochDuration", runtime) // How many blocks per session
-    }
-
-    override suspend fun currentSessionIndex() = localStorage.queryNonNull( // Current session index
-        keyBuilder = { it.metadata.session().storage("CurrentIndex").storageKey() },
-        binding = ::bindCurrentIndex
-    )
-
-    override suspend fun currentSlot() = localStorage.queryNonNull(
-        keyBuilder = { it.metadata.babe().storage("CurrentSlot").storageKey() },
-        binding = ::bindCurrentSlot
-    )
-
-    override suspend fun genesisSlot() = localStorage.queryNonNull(
-        keyBuilder = { it.metadata.babe().storage("GenesisSlot").storageKey() },
-        binding = ::bindCurrentSlot
-    )
-
-    override suspend fun eraStartSessionIndex(currentEra: BigInteger): BigInteger {
-        val runtime = getRuntime()
-        return localStorage.queryNonNull( // Index of session from with the era started
-            keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, currentEra - BigInteger.ONE) },
-            binding = ::bindErasStartSessionIndex
-        )
-    }
-
-    override suspend fun eraLength(): BigInteger {
-        val runtime = getRuntime()
-
-        return runtime.metadata.staking().numberConstant("SessionsPerEra", runtime) // How many sessions per era
-    }
-
-    override suspend fun blockCreationTime(): BigInteger {
-        val runtime = getRuntime()
-
-        return runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime)
-    }
 
     override fun stakingAvailableFlow() = runtimeProperty.observe().map { it.metadata.hasModule(Modules.STAKING) }
 
@@ -139,12 +91,12 @@ class StakingRepositoryImpl(
         binding = ::bindTotalInsurance
     )
 
-    override suspend fun getActiveEraIndex(): EraIndex = localStorage.queryNonNull(
+    override suspend fun getActiveEraIndex(): BigInteger = localStorage.queryNonNull(
         keyBuilder = { it.metadata.activeEraStorageKey() },
         binding = ::bindActiveEra
     )
 
-    override suspend fun getCurrentEraIndex(): EraIndex = localStorage.queryNonNull(
+    override suspend fun getCurrentEraIndex(): BigInteger = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("CurrentEra").storageKey() },
         binding = ::bindCurrentEra
     )
