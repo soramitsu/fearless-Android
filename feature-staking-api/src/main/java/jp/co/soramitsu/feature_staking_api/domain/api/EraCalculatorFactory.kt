@@ -53,6 +53,12 @@ class EraTimeCalculator(
             eraRemained * blockCreationTime
         }
     }
+
+    fun calculateTillEraSet(destinationEra: EraIndex): BigInteger {
+        val sessionDuration = sessionLength * blockCreationTime
+        val tillEraStart = calculate(destinationEra)
+        return tillEraStart - sessionDuration
+    }
 }
 
 class EraTimeCalculatorFactory(val repository: StakingRepository) {
