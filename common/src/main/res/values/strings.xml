@@ -207,8 +207,8 @@ Derivation path: %s</string>
     <string name="runtime_update_failure_description">Failed to update information about blockchain runtime. Some functionality may not work.</string>
     <string name="staking_setup_too_big_error">Sorry, you don\'t have enough funds to stake specified amount</string>
     <string name="staking_title">Staking</string>
-    <string name="staking_month_period_title">Monthly</string>
-    <string name="staking_year_period_title">Yearly</string>
+    <string name="staking_month_period_title">monthly</string>
+    <string name="staking_year_period_title">yearly</string>
     <string name="staking_recommended_feature_1">Most profitable</string>
     <string name="staking_recommended_feature_2">Not oversubscribed</string>
     <string name="staking_recommended_feature_3">Having onchain identity</string>
@@ -218,7 +218,7 @@ Derivation path: %s</string>
     <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
     <string name="fee_not_yet_loaded_message">Please wait until fee is calculated</string>
     <string name="staking_setup_amount_too_low">Can\'t stake less than minimal value (%s)</string>
-    <string name="staking_confirm_reward_destination">Reward destination</string>
+    <string name="staking_confirm_reward_destination">Rewards destination</string>
     <string name="staking_confirm_selected_validators">Selected validators</string>
     <string name="staking_validator_info_title">Validator info</string>
     <string name="staking_validator_total_stake">Total stake</string>
@@ -317,7 +317,7 @@ Derivation path: %s</string>
     <string name="staking_your_allocated_description">Your stake is allocated to the following validators.</string>
     <string name="staking_your_not_allocated_description">Others, who are active without your stake allocation.</string>
     <string name="staking_your_inactive_description">Validators who were not elected in this era.</string>
-    <string name="crowdloan_crowdloan">Crowdloan</string>
+    <string name="crowdloan_crowdloan">Crowdloans</string>
     <string name="crowdloan_main_description">Select parachains to contribute your %s. You will receive rewards if the parachain acquires a slot by the end of the auction.</string>
     <string name="crownloans_raised_format" formatted="false">Raised: %s of %s</string>
     <string name="common_completed_with_count">Completed (%s)</string>
