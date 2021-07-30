@@ -170,6 +170,7 @@
     <string name="export_mnemonic_without_derivation" formatted="false">Сеть: %s
 Мнемоника: %s</string>
     <string name="common_confirm">Подтвердить</string>
+    <string name="common_confirmed">Подтверждено</string>
     <string name="export_seed_without_derivation" formatted="false">Сеть: %s
 Сид: %s</string>
     <string name="export_seed_with_derivation" formatted="false">Сеть: %s
@@ -215,6 +216,7 @@
     <string name="fee_not_yet_loaded_title">Расчет комиссии в процессе</string>
     <string name="fee_not_yet_loaded_message">Подождите, пока будет рассчитана комиссия</string>
     <string name="staking_setup_amount_too_low">Нельзя застейкать меньше минимального значения (%s)</string>
+    <string name="common_confirm_title">Подтверждение</string>
     <string name="staking_confirm_reward_destination">Назначение вознаграждений</string>
     <string name="staking_confirm_selected_validators">Выбранные валидаторы</string>
     <string name="staking_validator_info_title">Информация о валидаторе</string>
@@ -273,8 +275,8 @@
     <string name="staking_warning_tiny_payout">Вознаграждение меньше комиссии сети.</string>
     <string name="staking_unbonding_limit_reached_message">Вы достигли лимита запросов на вывод из стейка ( %d активных запросов).</string>
     <string name="staking_unbonding_limit_reached_title">Достигнут лимит запросов на вывод из стейка</string>
-    <string name="staking_bond_more">Застейкать больше</string>
-    <string name="staking_unbond">Вывести из стейка</string>
+    <string name="staking_bond_more">Застейкать ещё</string>
+    <string name="staking_unbond">Вывод из стейка</string>
     <string name="staking_redeem">Забрать</string>
     <string name="common_balance">Баланс</string>
     <string name="staking_balance_title">Баланс стейкинга</string>
@@ -285,6 +287,7 @@
     <string name="staking_your_validators">Ваши валидаторы</string>
     <string name="staking_rebond_all">Ребонд все</string>
     <string name="staking_rebond_last">Ребонд последний</string>
+    <string name="common_change">Изменить</string>
     <string name="common_active_with_count">Активные (%s)</string>
     <string name="staking_your_nominated_format">Номинировано: %s</string>
     <string name="staking_your_validators_changing_title">Ваши валидаторы поменяются в следующую эру</string>

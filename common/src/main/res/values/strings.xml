@@ -3,6 +3,7 @@
     <string name="choose_amount_initial" translatable="false">0</string>
     <string name="identity_twitter_title" translatable="false">Twitter</string>
     <string name="staking_era_index_no_prefix" translatable="false">#%d</string>
+
     <string name="common_next">Next</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_skip">Skip</string>
@@ -173,6 +174,7 @@ Derivation path: %s</string>
     <string name="export_mnemonic_without_derivation" formatted="false">Network: %s
 Mnemonic: %s</string>
     <string name="common_confirm">Confirm</string>
+    <string name="common_confirmed">Confirmed</string>
     <string name="export_seed_without_derivation" formatted="false">Network: %s
 Seed: %s</string>
     <string name="export_seed_with_derivation" formatted="false">Network: %s
@@ -218,6 +220,7 @@ Derivation path: %s</string>
     <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
     <string name="fee_not_yet_loaded_message">Please wait until fee is calculated</string>
     <string name="staking_setup_amount_too_low">Can\'t stake less than minimal value (%s)</string>
+    <string name="common_confirm_title">Confirmation</string>
     <string name="staking_confirm_reward_destination">Rewards destination</string>
     <string name="staking_confirm_selected_validators">Selected validators</string>
     <string name="staking_validator_info_title">Validator info</string>
@@ -286,6 +289,7 @@ Derivation path: %s</string>
     <string name="staking_your_validators">Your validators</string>
     <string name="staking_rebond_all">Rebond all</string>
     <string name="staking_rebond_last">Rebond last</string>
+    <string name="common_change">Change</string>
     <string name="common_active_with_count">Active (%s)</string>
     <string name="staking_your_nominated_format">Nominated: %s</string>
     <string name="staking_your_validators_changing_title">Your validators will change in the next era.</string>
