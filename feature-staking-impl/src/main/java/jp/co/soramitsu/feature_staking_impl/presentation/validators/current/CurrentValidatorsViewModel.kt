@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit.SelectionMethod
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
@@ -116,10 +117,18 @@ class CurrentValidatorsViewModel(
     }
 
     fun changeClicked() {
-        val currentState = setupStakingSharedState.get<SetupStakingProcess.Initial>()
-        setupStakingSharedState.set(currentState.changeValidatorsFlow())
+        launch {
+            val currentState = setupStakingSharedState.get<SetupStakingProcess.Initial>()
 
-        router.openStartChangeValidators()
+            val currentValidators = flattenCurrentValidators.first().map(NominatedValidator::validator)
+
+            val newState = currentState.changeValidatorsFlow()
+                .next(currentValidators, SelectionMethod.CUSTOM)
+
+            setupStakingSharedState.set(newState)
+
+            router.openStartChangeValidators()
+        }
     }
 
     fun backClicked() {

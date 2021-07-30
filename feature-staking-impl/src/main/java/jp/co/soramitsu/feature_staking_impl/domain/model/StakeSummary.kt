@@ -11,8 +11,7 @@ class StakeSummary<S>(
 
 sealed class NominatorStatus {
     object Active : NominatorStatus()
-
-    class Waiting(val timeLeft: Long) : NominatorStatus()
+    object Waiting : NominatorStatus()
 
     class Inactive(val reason: Reason) : NominatorStatus() {
 

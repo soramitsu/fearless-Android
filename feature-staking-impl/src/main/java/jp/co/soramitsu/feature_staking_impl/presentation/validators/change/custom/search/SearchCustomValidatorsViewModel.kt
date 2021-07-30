@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingShar
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,7 +52,7 @@ class SearchCustomValidatorsViewModel(
 ) : BaseViewModel() {
 
     private val confirmSetupState = sharedStateSetup.setupStakingProcess
-        .filterIsInstance<SetupStakingProcess.Confirm>()
+        .filterIsInstance<SetupStakingProcess.ReadyToSubmit>()
         .share()
 
     private val selectedValidators = confirmSetupState
@@ -125,7 +126,7 @@ class SearchCustomValidatorsViewModel(
         launch {
             val newSelected = selectedValidators.first().toggle(validatorModel.validator)
 
-            sharedStateSetup.set(confirmSetupState.first().changeValidators(newSelected.toList()))
+            sharedStateSetup.setCustomValidators(newSelected.toList())
         }
     }
 

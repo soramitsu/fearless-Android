@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.cust
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -13,12 +14,12 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review.model.ValidatorsSelectionState
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -32,7 +33,7 @@ class ReviewCustomValidatorsViewModel(
 ) : BaseViewModel() {
 
     private val confirmSetupState = sharedStateSetup.setupStakingProcess
-        .filterIsInstance<SetupStakingProcess.Confirm>()
+        .filterIsInstance<SetupStakingProcess.ReadyToSubmit>()
         .share()
 
     private val selectedValidators = confirmSetupState
@@ -42,8 +43,8 @@ class ReviewCustomValidatorsViewModel(
     private val currentTokenFlow = tokenUseCase.currentTokenFlow()
         .share()
 
-    private val maxValidatorsPerNominatorFlow = flow {
-        emit(interactor.maxValidatorsPerNominator())
+    private val maxValidatorsPerNominatorFlow = flowOf {
+        interactor.maxValidatorsPerNominator()
     }.share()
 
     val selectionStateFlow = combine(
@@ -82,7 +83,7 @@ class ReviewCustomValidatorsViewModel(
 
             val withoutRemoved = validators - validatorModel.validator
 
-            sharedStateSetup.set(confirmSetupState.first().changeValidators(withoutRemoved))
+            sharedStateSetup.setCustomValidators(withoutRemoved)
 
             if (withoutRemoved.isEmpty()) {
                 router.back()
