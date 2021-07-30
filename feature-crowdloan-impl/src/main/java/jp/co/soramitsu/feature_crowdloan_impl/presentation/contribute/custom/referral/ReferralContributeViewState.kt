@@ -46,7 +46,7 @@ abstract class ReferralContributeViewState(
 
     val learnBonusesTitle = LearnMoreModel(
         iconLink = customContributePayload.parachainMetadata.iconLink,
-        text = resourceManager.getString(R.string.crowdloan_learn_bonuses, customContributePayload.parachainMetadata.name)
+        text = resourceManager.getString(R.string.crowdloan_learn, customContributePayload.parachainMetadata.name)
     )
 
     private val bonusPayloadFlow = enteredReferralCodeFlow.map {
@@ -81,7 +81,7 @@ abstract class ReferralContributeViewState(
     override val applyActionState = enteredReferralCodeFlow.combine(privacyAcceptedFlow) { referral, privacyAccepted ->
         when {
             referral.isEmpty() -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.crowdloan_enter_referral))
-            privacyAccepted.not() -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.crowdloan_agree_with_policy))
+            privacyAccepted.not() -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.crowdloan_empty_bonus_title))
             else -> ApplyActionState.Available
         }
     }
@@ -97,7 +97,7 @@ abstract class ReferralContributeViewState(
     private fun createFearlessBonusTitle(): String {
         val percentage = bonusPercentage.fractionToPercentage().formatAsPercentage()
 
-        return resourceManager.getString(R.string.crowdloan_fearless_bonus, percentage)
+        return resourceManager.getString(R.string.crowdloan_app_bonus_format, percentage)
     }
 
     protected fun previousPayload() = customContributePayload.previousBonusPayload as? ReferralCodePayload

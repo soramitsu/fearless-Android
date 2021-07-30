@@ -74,7 +74,7 @@ class CurrentValidatorsViewModel(
         val nominationFormatted = nominatedValidator.nominationInPlanks?.let {
             val amountFormatted = token.type.amountFromPlanks(it).formatTokenAmount(token.type)
 
-            resourceManager.getString(R.string.staking_nominated, amountFormatted)
+            resourceManager.getString(R.string.staking_your_nominated_format, amountFormatted)
         }
 
         val validatorAddress = validator.accountIdHex.fromHex().toAddress(token.type.networkType)
@@ -91,7 +91,7 @@ class CurrentValidatorsViewModel(
                 resourceManager.getString(R.string.common_active_with_count, valuesSize),
                 R.color.green
             ),
-            resourceManager.getString(R.string.staking_active_validators_description)
+            resourceManager.getString(R.string.staking_your_allocated_description)
         )
 
         NominatedValidator.Status.Inactive -> NominatedValidatorStatusModel(
@@ -99,12 +99,12 @@ class CurrentValidatorsViewModel(
                 resourceManager.getString(R.string.staking_inactive_validators_format, valuesSize),
                 R.color.black1
             ),
-            resourceManager.getString(R.string.staking_inactive_validators_description)
+            resourceManager.getString(R.string.staking_your_inactive_description)
         )
 
         NominatedValidator.Status.Elected -> NominatedValidatorStatusModel(
             null,
-            resourceManager.getString(R.string.staking_elected_validators_description)
+            resourceManager.getString(R.string.staking_your_not_allocated_description)
         )
 
         is NominatedValidator.Status.WaitingForNextEra -> NominatedValidatorStatusModel(
@@ -112,7 +112,7 @@ class CurrentValidatorsViewModel(
                 resourceManager.getString(R.string.staking_selected_validators_format, valuesSize, status.maxValidatorsPerNominator),
                 R.color.black1
             ),
-            resourceManager.getString(R.string.staking_waiting_validators_description)
+            resourceManager.getString(R.string.staking_your_validators_changing_title)
         )
     }
 

@@ -33,7 +33,7 @@
         android:id="@+id/customValidatorSettingsFilterIdentity"
         android:layout_marginTop="12dp"
         android:checked="true"
-        android:text="@string/staking_custom_validators_settings_filters_identity" />
+        android:text="@string/staking_recommended_feature_3" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         style="@style/Widget.Fearless.Switch"
@@ -42,7 +42,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:id="@+id/customValidatorSettingsFilterSlashes"
-        android:text="@string/staking_custom_validators_settings_filters_slashes" />
+        android:text="@string/staking_recommended_feature_4" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         style="@style/Widget.Fearless.Switch"
@@ -52,7 +52,7 @@
         android:layout_marginEnd="16dp"
         android:id="@+id/customValidatorSettingsFilterOverSubscribed"
         android:checked="true"
-        android:text="@string/staking_custom_validators_settings_filters_oversubscribed" />
+        android:text="@string/staking_recommended_feature_2" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         style="@style/Widget.Fearless.Switch"
@@ -62,7 +62,7 @@
         android:layout_marginEnd="16dp"
         android:id="@+id/customValidatorSettingsFilterClustering"
         android:checked="true"
-        android:text="@string/staking_custom_validators_settings_filters_clustering" />
+        android:text="@string/staking_recommended_feature_5" />
 
 
     <TextView
@@ -72,7 +72,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="24dp"
-        android:text="@string/staking_custom_validators_settings_sort_title" />
+        android:text="@string/common_sort_by" />
 
     <RadioGroup
         android:id="@+id/customValidatorSettingsSort"
@@ -98,7 +98,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/customValidatorSettingsSortTotalStake"
             android:paddingStart="4dp"
-            android:text="@string/staking_custom_validators_settings_sort_total_stake"
+            android:text="@string/staking_validator_total_stake_token"
             android:textColor="@color/gray1" />
 
         <com.google.android.material.radiobutton.MaterialRadioButton
@@ -107,7 +107,7 @@
             android:id="@+id/customValidatorSettingsSortOwnStake"
             android:layout_height="wrap_content"
             android:paddingStart="4dp"
-            android:text="@string/staking_custom_validators_settings_sort_own_stake"
+            android:text="@string/staking_filter_title_own_stake_token"
             android:textColor="@color/gray1" />
     </RadioGroup>
 

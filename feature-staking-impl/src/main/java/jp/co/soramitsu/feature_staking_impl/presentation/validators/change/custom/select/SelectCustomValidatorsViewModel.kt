@@ -86,7 +86,7 @@ class SelectCustomValidatorsViewModel(
     ).inBackground().share()
 
     val selectedTitle = shownValidators.map {
-        resourceManager.getString(R.string.staking_shown_validators_format, it.size, recommendator().availableValidators.size)
+        resourceManager.getString(R.string.staking_custom_header_validators_title, it.size, recommendator().availableValidators.size)
     }.inBackground().share()
 
     val buttonState = selectedValidators.map {
@@ -95,12 +95,12 @@ class SelectCustomValidatorsViewModel(
         if (it.isEmpty()) {
             ContinueButtonState(
                 enabled = false,
-                text = resourceManager.getString(R.string.staking_select_validators_with_max, maxSelectedValidators)
+                text = resourceManager.getString(R.string.staking_custom_proceed_button_disabled_title, maxSelectedValidators)
             )
         } else {
             ContinueButtonState(
                 enabled = true,
-                text = resourceManager.getString(R.string.staking_show_selected, it.size, maxSelectedValidators)
+                text = resourceManager.getString(R.string.staking_custom_proceed_button_enabled_title, it.size, maxSelectedValidators)
             )
         }
     }
@@ -108,8 +108,8 @@ class SelectCustomValidatorsViewModel(
     val scoringHeader = recommendationSettingsFlow.map {
         when (it.sorting) {
             APYSorting -> resourceManager.getString(R.string.staking_rewards_apy)
-            TotalStakeSorting -> resourceManager.getString(R.string.staking_sorting_header_total_stake)
-            ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_sorting_header_own_stake)
+            TotalStakeSorting -> resourceManager.getString(R.string.staking_validator_total_stake)
+            ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_filter_title_own_stake)
             else -> throw IllegalArgumentException("Unknown sorting: ${it.sorting}")
         }
     }.inBackground().share()

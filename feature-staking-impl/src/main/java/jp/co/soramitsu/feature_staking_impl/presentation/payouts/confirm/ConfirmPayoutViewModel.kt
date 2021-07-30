@@ -173,7 +173,7 @@ class ConfirmPayoutViewModel(
     private fun payloadValidationFailure(reason: PayoutValidationFailure): TitleAndMessage {
         val (titleRes, messageRes) = when (reason) {
             PayoutValidationFailure.CannotPayFee -> R.string.common_not_enough_funds_title to R.string.common_not_enough_funds_message
-            PayoutValidationFailure.UnprofitablePayout -> R.string.common_are_you_sure to R.string.staking_non_profitable_payout
+            PayoutValidationFailure.UnprofitablePayout -> R.string.common_confirmation_title to R.string.staking_warning_tiny_payout
         }
 
         return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)

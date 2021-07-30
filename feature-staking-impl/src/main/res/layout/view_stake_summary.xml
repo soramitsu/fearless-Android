@@ -23,7 +23,7 @@
             android:layout_gravity="center_vertical"
             android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:text="@string/staking_stake" />
+            android:text="@string/staking_your_stake" />
 
         <ImageView
             android:id="@+id/stakeMoreActions"
@@ -51,7 +51,7 @@
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             app:startWithLoading="true"
-            app:titleText="@string/staking_total_staked" />
+            app:titleText="@string/staking_main_stake_balance_staked" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/stakeTotalRewardsView"
@@ -62,7 +62,7 @@
             android:layout_marginEnd="16dp"
             android:layout_weight="1"
             app:startWithLoading="true"
-            app:titleText="@string/staking_total_rewards" />
+            app:titleText="@string/staking_total_rewards_v1.9.0" />
     </LinearLayout>
 
     <View

@@ -59,7 +59,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:includeFontPadding="false"
-            android:text="@string/staking_unbond_explanation"
+            android:text="@string/staking_unbonding_hint"
             android:textColor="@color/black1" />
     </LinearLayout>
 

@@ -59,7 +59,7 @@ class ReferralContributeView @JvmOverloads constructor(
         viewState.applyFearlessCodeEnabledFlow.observe(scope) { enabled ->
             referralFearlessBonusApply.isEnabled = enabled
 
-            val applyBonusButtonText = if (enabled) R.string.common_apply else R.string.crowdloan_applied
+            val applyBonusButtonText = if (enabled) R.string.common_apply else R.string.common_applied
             referralFearlessBonusApply.setText(applyBonusButtonText)
         }
 

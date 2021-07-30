@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_close"
-        app:textRight="Change"
+        app:textRight="@string/common_change"
         app:titleText="@string/staking_your_validators" />
 
     <ProgressBar

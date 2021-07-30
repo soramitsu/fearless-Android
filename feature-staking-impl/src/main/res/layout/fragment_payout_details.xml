@@ -12,7 +12,7 @@
         android:id="@+id/payoutDetailsToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="@string/staking_reward_details" />
+        app:titleText="@string/staking_reward_details_title" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/payoutDetailsValidator"
@@ -22,7 +22,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:label="@string/staking_validator" />
+        app:label="@string/staking_reward_details_validator" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -73,7 +73,7 @@
             style="@style/TextAppearance.Soramitsu.Body1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/staking_era"
+            android:text="@string/staking_reward_details_era"
             android:textColor="@color/gray1" />
 
         <Space
