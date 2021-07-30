@@ -13,6 +13,7 @@
     <string name="onboarding_privacy_policy">Политикой конфиденциальности</string>
     <string name="pincode_enter_pin_code">Введите PIN-код</string>
     <string name="pincode_confirm_your_pin_code">Подтвердите свой PIN-код</string>
+    <string name="pincode_title_create">Установите свой PIN-код</string>
     <string name="tabbar_wallet_title">Кошелёк</string>
     <string name="tabbar_staking_title">Стейкинг</string>
     <string name="tabbar_governance_title">Управление</string>
@@ -60,14 +61,14 @@
     <string name="import_json_invalid_password">Пожалуйста, проверьте корректность пароля и попробуйте снова.</string>
     <string name="account_confirmation_title">Подтверждение</string>
     <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
-    <string name="pincode_create_top_title">Новый пинкод</string>
+    <string name="pincode_create_top_title">Новый PIN-код</string>
     <string name="pincode_fingerprint_error">Вы не авторизованы. Попробуйте другой палец.</string>
     <string name="pincode_touch_fingerprint_scanner">Коснитесь сканера отпечатков пальцев</string>
     <string name="pincode_fingerprint_switch_dialog_title">Использовать биометрию для авторизации</string>
     <string name="profile_title">Аккаунт</string>
     <string name="profile_accounts_title">Аккаунты</string>
     <string name="profile_network_title">Сеть</string>
-    <string name="profile_pincode_change_title">Изменить пин код</string>
+    <string name="profile_pincode_change_title">Изменить PIN-код</string>
     <string name="tabbar_profile_title">Профиль</string>
     <string name="pincode_biometry_dialog_title">Биометрия</string>
     <string name="common_edit">Редактировать</string>
@@ -121,8 +122,7 @@
     <string name="common_retry">Повторить</string>
     <string name="choose_amount_network_error">Сеть недоступна</string>
     <string name="choose_amount_error_balance">К сожалению, запрос проверки баланса не выполнен. Пожалуйста, попробуйте позже.</string>
-    <string name="choose_amount_error_fee">К сожалению, нам не удалось связаться с поставщиком услуг трансфера. Пожалуйста, попробуйте позже.</string>
-    <string name="choose_amount_error_too_big">К сожалению, у вас недостаточно средств для перевода указанной суммы.</string>
+    <string name="choose_amount_error_fee">Извините, сервис переводов недоступен. Пожалуйста, попробуйте позже.</string>
     <string name="choose_amount_checking">Проверка…</string>
     <string name="wallet_send_progress">Отправка…</string>
     <string name="wallet_balance_frozen">Заморожено</string>
@@ -136,7 +136,7 @@
     <string name="wallet_balance_locked">Заблокировано</string>
     <string name="wallet_balance_reserved">Зарезервировано</string>
     <string name="wallet_balance_redeemable">Можно забрать</string>
-    <string name="wallet_balance_unbonding">Несвязанность</string>
+    <string name="wallet_balance_unbonding">Время вывода</string>
     <string name="transaction_details_hash_title">Хеш транзакции</string>
     <string name="transaction_details_copy_hash">Копировать хеш</string>
     <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
@@ -144,8 +144,8 @@
     <string name="wallet_balance_details_title">Детали баланса</string>
     <string name="wallet_balance_details_total">Общий баланс</string>
     <string name="wallet_balance_details_total_after">Общий после перевода</string>
-    <string name="wallet_balance_details_existential_deposit">Экзистенциальный депозит</string>
-    <string name="wallet_send_existential_warning_message">Ваш перевод удалит учетную запись, так как общий баланс будет ниже, чем существующий депозит.</string>
+    <string name="wallet_balance_details_existential_deposit">Минимальный баланс</string>
+    <string name="wallet_send_existential_warning_message">Ваш перевод удалит аккаунт, так как общий баланс будет ниже, чем минимальный баланс.</string>
     <string name="common_warning">Предупреждение</string>
     <string name="common_connecting">Подключение…</string>
     <string name="common_unknown">Неизвестно</string>
@@ -153,7 +153,7 @@
     <string name="connection_delete_description">Подтвердите удаление %s.</string>
     <string name="connection_delete_confirm">Удалить</string>
     <string name="wallet_balance_frozen_template">Замороженные %s</string>
-    <string name="wallet_receive_description">Поделиться этим QR-кодом с отправителем</string>
+    <string name="wallet_receive_description">Поделитесь этим QR-кодом с отправителем</string>
     <string name="wallet_send_existential_warning_title">Перевод удалит аккаунт</string>
     <string name="search_header_my_accounts">мои аккаунты</string>
     <string name="coming_soon">Скоро будет…</string>
@@ -161,12 +161,11 @@
     <string name="coming_soon_dev_status">Статус разработки</string>
     <string name="comming_soon_roadmap">План разработки</string>
     <string name="import_json_invalid_format_title">JSON для восстановления недействителен</string>
-    <string name="import_json_invalid_format_message">Пожалуйста, убедитесь, что введённые данные содержат действительный json.</string>
-    <string name="import_json_invalid_password_title">Не удалось расшифровать хранилище ключей</string>
-    <string name="import_seed_invalid_title">Сид недействителен</string>
-    <string name="import_seed_invalid_message">Пожалуйста, убедитесь, что ваш ввод содержит 64 шестнадцатеричных символа.</string>
-    <string name="error_try_another_one">Пожалуйста, попробуйте другой.</string>
-    <string name="import_mnemonic_invalid_title">Мнемоника недействительна</string>
+    <string name="import_json_invalid_format_message">Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
+    <string name="import_json_invalid_password_title">Ошибка дешифрования</string>
+    <string name="import_seed_invalid_title">Сид неверный</string>
+    <string name="import_seed_invalid_message">Пожалуйста, убедитесь, что введенные данные содержат 64 hex символа.</string>
+    <string name="error_try_another_one">Пожалуйста, попробуйте другую.</string>
     <string name="import_account_exists_title">Аккаунт уже существует</string>
     <string name="tabbar_polkaswap_title">Polkaswap</string>
     <string name="account_export_action">Экспортировать</string>
@@ -188,22 +187,19 @@
     <string name="export_seed_with_derivation" formatted="false">Сеть: %s
 Сид: %s
 Путь деривации: %s</string>
-    <string name="pincode_enter_new_pin_code">Введите новый пин-код</string>
-    <string name="pincode_changed_message">Пин-код успешно изменен</string>
+    <string name="pincode_changed_message">PIN-код успешно изменен</string>
     <string name="common_choose_file">Загрузить файл</string>
     <string name="common_copy_address">Копировать адрес</string>
     <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных ниже.</string>
     <string name="account_import_wrong_network" formatted="false">Сеть в JSON - это %s , а не такая, как у выбранной %s . Выбранная сеть будет использоваться для импорта аккаунта.</string>
     <string name="common_address">Адрес</string>
     <string name="common_share">Поделиться</string>
-    <string name="pincode_title_create">Установить пин-код</string>
-    <string name="pincode_confirm_your_pin_code_v1_0_1">Подтвердите пин-код</string>
     <string name="node_add">Добавить узел</string>
     <string name="connection_delete_description_v1_0_1" formatted="false">Подтвердите удаление %s , %s .</string>
     <string name="network_info_address_v1_0_1">URL-адрес</string>
     <string name="wallet_asset_buy">Купить</string>
     <string name="common_amount_low">Сумма слишком мала</string>
-    <string name="wallet_send_dead_recipient_message">Ваш перевод не состоится, так как окончательная сумма на целевом счете будет меньше, чем существующий депозит. Пожалуйста, попробуйте увеличить сумму.</string>
+    <string name="wallet_send_dead_recipient_message">Ваш перевод не состоится, так как окончательная сумма на целевом счете будет меньше, чем минимальный баланс. Пожалуйста, попробуйте увеличить сумму.</string>
     <string name="buy_completed">Покупка совершена! Ожидайте до 60 минут. Вы можете отслеживать статус по электронной почте.</string>
     <string name="wallet_send_phishing_warning_text">Следующий адрес: %@ как известно, используется для фишинга, поэтому мы не рекомендуем отправлять токены на этот адрес. Вы все равно хотите продолжить?</string>
     <string name="wallet_send_phishing_warning_title">Предупреждение о мошенничестве</string>
@@ -218,21 +214,21 @@
     <string name="staking_setup_restake_description">Больше сумма вознаграждения</string>
     <string name="staking_setup_reward_description">Заработок за первый год</string>
     <string name="staking_setup_payout_description">Перевести награду</string>
-    <string name="staking_setup_learn_more">Узнать больше про выплаты</string>
+    <string name="staking_setup_learn_more">Подробнее о выплатах</string>
     <string name="staking_setup_reward_payout_account">Аккаунт для выплат</string>
     <string name="staking_selected_accounts_mask">Аккаунты ( %d )</string>
     <string name="staking_recommended_validators_title">Рекомендуемые валидаторы</string>
     <string name="staking_recommended_validators_description">Эти валидаторы принесут вам максимальную прибыль с наименьшим шансом мошенничества или провала.</string>
     <string name="common_learn_more">Узнать больше</string>
     <string name="staking_custom_validators_title">Выберите валидаторов сами</string>
-    <string name="staking_recommended_validators_apy">Примерное вознаграждение, APY</string>
+    <string name="staking_recommended_validators_apy">Вознаграждения (APY)</string>
     <string name="runtime_update_failure_title">Ошибка обновления среды выполнения</string>
-    <string name="runtime_update_failure_description">Не удалось обновить информацию о времени выполнения блокчейна. Некоторые функции могут не работать.</string>
+    <string name="runtime_update_failure_description">Не удалось обновить информацию о среде выполнения блокчейна. Некоторые функции могут не работать.</string>
     <string name="runtime_update_not_actual_title">Устаревшая конфигурация</string>
     <string name="runtime_update_not_actual_description">Невозможно получить новейшую информацию о среде выполнения блокчейна, будет использоваться устаревшая версия. Некоторые функции могут не работать.</string>
     <string name="staking_setup_too_big_error">Извините, у вас недостаточно средств для стейкинга выбранной суммы</string>
     <string name="staking_title">Стейкинг</string>
-    <string name="staking_estimate_earning_title">Оцените свой заработок</string>
+    <string name="staking_estimate_earning_title">Расчёт доходности</string>
     <string name="staking_month_period_title">Ежемесячно</string>
     <string name="staking_year_period_title">Ежегодно</string>
     <string name="staking_recommended_title">Валидаторы</string>
@@ -248,7 +244,7 @@
     <string name="fee_not_yet_loaded_title">Расчет комиссии в процессе</string>
     <string name="fee_not_yet_loaded_message">Подождите, пока будет рассчитана комиссия</string>
     <string name="staking_setup_amount_too_low">Нельзя застейкать меньше минимального значения (%s)</string>
-    <string name="staking_confirm_reward_destination">Вознаграждение</string>
+    <string name="staking_confirm_reward_destination">Назначение вознаграждений</string>
     <string name="staking_stash_title">Аккаунт кошелька</string>
     <string name="staking_setup_sent_message">Транзакция на установку стейкинга отправлена</string>
     <string name="staking_confirm_selected_validators">Выбранные валидаторы</string>
@@ -277,7 +273,7 @@
     <string name="staking_validator_own_stake">Собственный</string>
     <string name="staking_validator_total">Всего</string>
     <string name="staking_stake">Стейк</string>
-    <string name="staking_total_rewards">Итого награды</string>
+    <string name="staking_total_rewards">Все вознаграждения</string>
     <string name="staking_nominator_status_election">Период выборов</string>
     <string name="staking_nominator_status_active">Активен</string>
     <string name="staking_nominator_status_inactive">Неактивен</string>
@@ -292,7 +288,7 @@
     <string name="staking_nominator_status_alert_inactive_title">Неактивный статус</string>
     <string name="staking_nominator_status_alert_no_validators">Ни один из ваших валидаторов не был избран сетью.</string>
     <string name="staking_nominator_status_alert_low_stake">Ваш стейк меньше минимального стейка для получения вознаграждений.</string>
-    <string name="staking_no_controller_account">Учетная запись контроллера %s недоступна для обновления настройки разбивки.</string>
+    <string name="staking_no_controller_account">Контроллер аккаунт %s недоступен для выполнения операции.</string>
     <string name="transfers_v1">История</string>
     <string name="staking_manage_title">Управление</string>
     <string name="staking_reward_payouts_title">Ожидаемые вознаграждения</string>
@@ -328,24 +324,25 @@
     <string name="common_not_enough_funds_title">Недостаточный баланс</string>
     <string name="common_confirmation_title">Уверены ли вы?</string>
     <string name="staking_warning_tiny_payout">Вознаграждение меньше комиссии сети.</string>
-    <string name="staking_unbonding_limit_reached_message">Вы достигли лимита запросов на разъединение ( %d активных запросов).</string>
+    <string name="staking_unbonding_limit_reached_message">Вы достигли лимита запросов на вывод из стейка ( %d активных запросов).</string>
     <string name="staking_unbonding_limit_reached_title">Достигнут лимит запросов на вывод из стейка</string>
-    <string name="staking_bond_more">Связать больше</string>
-    <string name="staking_unbond">Не связывать</string>
+    <string name="staking_bond_more">Застейкать больше</string>
+    <string name="staking_unbond">Вывести из стейка</string>
     <string name="staking_redeem">Забрать</string>
     <string name="common_balance">Остаток средств</string>
     <string name="staking_balance_title">Баланс стейкинга</string>
     <string name="make_payout_transaction_sent">Транзакция на выплату отправлена</string>
-    <string name="staking_zero_bond_error">Сумма должна быть положительной</string>
-    <string name="staking_no_stash_account">Учетная запись тайника %s недоступна для обновления настроек разбивки.</string>
+    <string name="staking_zero_bond_error">Сумма должна быть больше нуля</string>
+    <string name="staking_no_stash_account">Стэш аккаунт %s недоступен для обновления настроек стейкинга</string>
     <string name="common_transaction_submitted">Транзакция отправлена</string>
     <string name="staking_your_validators">Ваши валидаторы</string>
     <string name="staking_rebond_all">Ребонд все</string>
     <string name="staking_rebond_last">Ребонд последний</string>
-    <string name="common_active_with_count">Активно ( %s )</string>
+    <string name="common_active_with_count">Активные (%s)</string>
     <string name="staking_your_nominated_format">Номинировано: %s</string>
     <string name="staking_your_validators_changing_title">Ваши валидаторы поменяются в следующую эру</string>
     <string name="staking_bonded_format">Застейкано: %s</string>
+    <string name="staking_unbonding_all_message">Оставшийся баланс стейка будет меньше минимального значения, поэтому он добавлен к сумме вывода.</string>
     <string name="staking_unbonding_hint">Ваши токены будут доступны после истечения периода вывода.</string>
     <string name="staking_redeemable_format">Можно забрать: %s</string>
     <string name="staking_rebond">Вернуть в стейк</string>
@@ -354,6 +351,7 @@
     <string name="staking_stash_account">Стэш аккаунт</string>
     <string name="staking_controller_account">Контроллер аккаунт</string>
     <string name="staking_account_is_used_as_controller">Выбранный аккаунт уже используется в качестве контроллера.</string>
+    <string name="staking_reward_info_title">Доходность с реинвестированием</string>
     <string name="staking_reward_info_max">Максимальный APY</string>
     <string name="staking_reward_info_avg">Средний APY</string>
     <string name="staking_alert_title">Предупреждения</string>
@@ -364,10 +362,10 @@
     <string name="staking_alert_bond_more_message">В настоящее время стейкинг неактивен. \n Текущая минимальная ставка %s .</string>
     <string name="staking_alert_change_validators">Смените своих валидаторов.</string>
     <string name="staking_alert_bond_more_title">Застейкайте ещё токенов</string>
-    <string name="staking_alert_election">Действия по размещению ставок в настоящее время недоступны.</string>
-    <string name="staking_alert_election_message">Сеть выбирает валидаторов. \n Обычно это занимает менее 10 минут.</string>
+    <string name="staking_alert_election">Действия со стейкингом сейчас недоступны.</string>
+    <string name="staking_alert_election_message">Сеть избирает валидаторов.\nОбычно это занимает менее 10 минут.</string>
     <string name="staking_alert_redeem_title">Заберите токены после вывода</string>
-    <string name="staking_alert_no_alerts_now">Теперь все хорошо. Здесь будут появляться оповещения.</string>
+    <string name="staking_alert_no_alerts_now">Сейчас всё хорошо. Здесь будут появляться предупреждения.</string>
     <string name="staking_controller_account_zero_balance">Мы обнаружили, что на этом аккаунте нет свободных токенов. Вы уверены, что хотите сменить контроллер?</string>
     <string name="staking_your_allocated_description">Ваш стейк распределяется между этими валидаторами.</string>
     <string name="staking_your_not_allocated_description">Другие, которые активны без вашего стейка</string>
@@ -395,7 +393,7 @@
     <string name="crowdloan_raised_amount" formatted="false">%s из %s</string>
     <string name="crowdloan_raised">Собрано</string>
     <string name="crowdloan_leasing_period">Срок лизинга или Период лизинга</string>
-    <string name="common_completed">Завершенный</string>
+    <string name="common_completed">Успешно</string>
     <string name="staking_bonded_inactive">Вы не номинируете и не валидируете</string>
     <string name="crodloan_private_crowdloan_title">Приватный краудлоун</string>
     <string name="crodloan_private_crowdloan_message">Приватные краудлоуны пока не поддерживаются</string>
@@ -413,6 +411,7 @@
     <string name="staking_select_custom">Выбрать самому</string>
     <string name="staking_start_change_validators_recommended_subtitle">Алгоритм Fearless Wallet составил список рекомендованных валидаторов, основываясь на критериях:</string>
     <string name="common_not_enough_funds_message">К сожалению, у вас недостаточно средств для оплаты сетевого сбора.</string>
+    <string name="choose_amount_error_too_big">К сожалению, у вас недостаточно средств для совершения данной операции</string>
     <string name="staking_alert_change_validators_message">Стейкинг неактивен. Ни один из ваших валидаторов не был выбран сетью.</string>
     <string name="staking_custom_validators_list_title">Выбор валидаторов</string>
     <string name="staking_custom_fill_button_title">Дополнить рекомендованными</string>
@@ -445,4 +444,27 @@
     <string name="staking_hint_reward_bond_more">Ваши вознаграждения увеличатся со следующей эры.</string>
     <string name="staking_hint_unbond_kills_stash">Fearless wallet изменит назначение вознаграждений
 на ваш аккаунт, чтобы избежать остатка в стейкинге.</string>
+    <string name="staking_custom_validators_settings_filters">Показать</string>
+    <string name="common_sort_by">Сортировать по:</string>
+    <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APY)</string>
+    <string name="staking_pending_rewards_info">Валидаторы выплачивают вознаграждения каждые 2-5 дней. Однако, вы можете инициировать выплату самостоятельно, особенно, если срок вознаграждения истекает. В этом случае придётся заплатить комиссию.</string>
+    <string name="staking_information_controller_actions">Контроллер аккаунт может вывести из стейка, забрать, вернуть в стейк, сменить назначение вознаграждений и валидаторов.</string>
+    <string name="crowdloan_privacy_policy">Я подтверждаю, что прочитал и согласен с Условиями использования и Политикой конфиденциальности</string>
+    <string name="common_options_title">Выберите опцию</string>
+    <string name="invoice_scan_error_no_info">Не удается декодировать QR</string>
+    <string name="invoice_scan_qr_code_title">QR код</string>
+    <string name="invoice_scan_upload">Из галереи</string>
+    <string name="contacts_scan">Сканировать QR-код</string>
+    <string name="staking_selected_validators_mask">Валидаторы (%d)</string>
+    <string name="staking_controller_change_success">Контроллер изменен</string>
+    <string name="staking_already_controller_title">Уже контроллер</string>
+    <string name="staking_reward_estimation_bottom_sheet_title">Доходность в сети</string>
+    <string name="staking_era_index">Эра №%d</string>
+    <string name="staking_unbond_crossed_existential">В результате этой операции все токены будут выведены из стейкинга.</string>
+    <string name="staking_unbond_too_big">Сумма, которую вы хотите вернуть в стейк больше суммы вывода</string>
+    <string name="common_search_no_results">Поиск не дал результатов.\nПроверьте, что вы указали полный адрес аккаунта</string>
+    <string name="staking_custom_validators_settings_sort_total_stake">Общий стейк (%s)</string>
+    <string name="staking_inactive_validators_format">Неактивен (%d)</string>
+    <string name="staking_selected_validators_format" formatted="false">Выбрано %d (макс. %d)</string>
+    <string name="import_mnemonic_invalid_title">Ваша мнемоника недействительна</string>
 </resources>
