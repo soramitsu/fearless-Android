@@ -32,11 +32,23 @@
         app:layout_constraintTop_toTopOf="@id/goNextIcon"
         tools:text="Learn Karura's crowdloan" />
 
+    <TextView
+        android:id="@+id/goNextBadgeText"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:visibility="gone"
+        app:layout_constraintBaseline_toBaselineOf="@id/goNextTitle"
+        app:layout_constraintBottom_toBottomOf="@+id/goNextTitle"
+        app:layout_constraintEnd_toStartOf="@+id/badgeBarrier"
+        tools:text="16 (max 16)" />
+
     <ImageView
         android:id="@+id/goNextActionImage"
         android:layout_width="wrap_content"
-        android:layout_marginEnd="16dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
         android:src="@drawable/ic_arrow_top_right_white_16"
         app:layout_constraintBottom_toBottomOf="@+id/goNextTitle"
         app:layout_constraintEnd_toEndOf="parent"
@@ -48,11 +60,19 @@
         android:layout_height="16dp"
         android:layout_marginEnd="16dp"
         android:indeterminate="true"
-        android:visibility="gone"
         android:indeterminateTint="@color/white"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/goNextTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/goNextTitle" />
+
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/badgeBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="start"
+        app:constraint_referenced_ids="goNextProgress,goNextActionImage" />
 
     <View
         android:id="@+id/view"
