@@ -214,7 +214,7 @@ private fun getStashStatusTitleAndMessage(
     status: StashNoneStatus
 ): Pair<String, String> {
     val (titleRes, messageRes) = when (status) {
-        StashNoneStatus.INACTIVE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_stash_status_inactive
+        StashNoneStatus.INACTIVE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_bonded_inactive
     }
 
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)

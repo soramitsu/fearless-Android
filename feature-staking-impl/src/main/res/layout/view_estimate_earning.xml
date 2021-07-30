@@ -23,7 +23,7 @@
             android:layout_marginStart="16dp"
             android:layout_weight="1"
             android:includeFontPadding="false"
-            android:text="@string/staking_estimate_earning_title"
+            android:text="@string/staking_estimate_earning_title_v1.9.0"
             android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -53,7 +53,7 @@
         app:layout_constraintTop_toBottomOf="@+id/linearLayout"
         app:showTitle="false"
         app:startWithLoading="true"
-        app:titleDetail="@string/staking_only_apr" />
+        app:titleDetail="@string/staking_month_period_title" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
         android:id="@+id/stakingYearGain"
@@ -67,7 +67,7 @@
         app:layout_constraintTop_toTopOf="@+id/stakingMonthGain"
         app:showTitle="false"
         app:startWithLoading="true"
-        app:titleDetail="@string/staking_only_apy" />
+        app:titleDetail="@string/staking_year_period_title" />
 
     <jp.co.soramitsu.common.view.AmountView
         android:id="@+id/estimateEarningAmount"

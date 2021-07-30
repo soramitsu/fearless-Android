@@ -12,7 +12,7 @@
         android:id="@+id/confirmContributeToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="@string/common_confirmation" />
+        app:titleText="@string/common_confirm" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:layout_width="match_parent"
@@ -56,7 +56,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        app:title="@string/crowdloan_bonus" />
+        app:title="@string/common_bonus" />
 
     <Space
         android:layout_width="match_parent"

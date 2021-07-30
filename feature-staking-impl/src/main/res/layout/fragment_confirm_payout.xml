@@ -13,7 +13,7 @@
         android:id="@+id/confirmPayoutToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="@string/common_confirmation" />
+        app:titleText="@string/common_confirm" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/confirmPayoutOriginAccount"
@@ -33,7 +33,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:label="@string/staking_reward_destination" />
+        app:label="@string/staking_confirm_reward_destination" />
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -25,6 +25,6 @@ class KaruraContributeViewState(
     override suspend fun validatePayload(payload: ReferralCodePayload) {
         val isReferralValid = interactor.isReferralValid(payload.referralCode)
 
-        if (!isReferralValid) throw IllegalArgumentException(resourceManager.getString(R.string.referral_code_is_invalid))
+        if (!isReferralValid) throw IllegalArgumentException(resourceManager.getString(R.string.crowdloan_referral_code_invalid))
     }
 }

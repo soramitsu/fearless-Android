@@ -12,7 +12,7 @@
         android:id="@+id/redeemToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="@string/common_confirmation" />
+        app:titleText="@string/common_confirm" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/redeemOriginAccount"

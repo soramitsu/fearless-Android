@@ -30,7 +30,7 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:drawableTop="@drawable/ic_security_unlock_24"
-        android:text="@string/staking_unbond" />
+        android:text="@string/staking_unbond"/>
 
     <View
         android:layout_width="1dp"
