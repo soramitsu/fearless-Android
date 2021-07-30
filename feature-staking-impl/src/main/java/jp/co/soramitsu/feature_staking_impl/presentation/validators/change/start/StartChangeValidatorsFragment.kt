@@ -57,5 +57,10 @@ class StartChangeValidatorsFragment : BaseFragment<StartChangeValidatorsViewMode
         }
 
         viewModel.recommendedFeaturesText.observe(startChangeValidatorsRecommendedFeatures::setText)
+
+        viewModel.customValidatorsTexts.observe {
+            startChangeValidatorsCustom.title.text = it.title
+            startChangeValidatorsCustom.setBadgeText(it.badge)
+        }
     }
 }
