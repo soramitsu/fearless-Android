@@ -24,13 +24,6 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/governanceFragment"
-        android:enabled="true"
-        android:icon="@drawable/ic_governance_24"
-        android:title="@string/tabbar_governance_title"
-        app:showAsAction="ifRoom" />
-
-    <item
         android:id="@+id/profileFragment"
         android:enabled="true"
         android:icon="@drawable/ic_settings"

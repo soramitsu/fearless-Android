@@ -20,7 +20,6 @@ Terms and Conditions and Privacy Policy</string>
     <string name="pincode_title_create">Set your pin code</string>
     <string name="tabbar_wallet_title">Wallet</string>
     <string name="tabbar_staking_title">Staking</string>
-    <string name="tabbar_governance_title">Governance</string>
     <string name="transfers_empty">Incoming and outgoing
 transfers will appear here</string>
     <string name="profile_settings_title">Settings</string>
@@ -153,8 +152,6 @@ transfers will appear here</string>
     <string name="search_header_my_accounts">my accounts</string>
     <string name="coming_soon">Coming soon…</string>
     <string name="wallet_receive_share_message" formatted="false">My %s address to receive %s:</string>
-    <string name="coming_soon_dev_status">Check Dev Status</string>
-    <string name="comming_soon_roadmap">Check Roadmap</string>
     <string name="import_json_invalid_format_title">Restore JSON is invalid</string>
     <string name="import_json_invalid_format_message">Please, make sure that your input contains valid json.</string>
     <string name="import_json_invalid_password_title">Keystore decryption failed</string>
