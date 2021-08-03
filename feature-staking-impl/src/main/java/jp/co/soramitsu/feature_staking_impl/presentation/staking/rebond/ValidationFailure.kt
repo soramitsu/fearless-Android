@@ -17,7 +17,7 @@ fun rebondValidationFailure(
 
         RebondValidationFailure.NOT_ENOUGH_UNBONDINGS -> {
             resourceManager.getString(R.string.common_not_enough_funds_title) to
-                resourceManager.getString(R.string.staking_rebond_too_big)
+                resourceManager.getString(R.string.staking_rebond_insufficient_bondings)
         }
 
         RebondValidationFailure.ZERO_AMOUNT -> {

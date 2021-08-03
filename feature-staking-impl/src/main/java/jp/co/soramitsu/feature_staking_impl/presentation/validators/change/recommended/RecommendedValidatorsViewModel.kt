@@ -56,7 +56,7 @@ class RecommendedValidatorsViewModel(
     val selectedTitle = recommendedValidators.map {
         val maxValidators = interactor.maxValidatorsPerNominator()
 
-        resourceManager.getString(R.string.staking_selected_validators_format, it.size, maxValidators)
+        resourceManager.getString(R.string.staking_custom_header_validators_title, it.size, maxValidators)
     }.inBackground().share()
 
     fun backClicked() {

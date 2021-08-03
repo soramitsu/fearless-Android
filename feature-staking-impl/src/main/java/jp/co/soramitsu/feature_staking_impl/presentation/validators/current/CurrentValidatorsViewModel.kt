@@ -109,7 +109,7 @@ class CurrentValidatorsViewModel(
 
         is NominatedValidator.Status.WaitingForNextEra -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_selected_validators_format, valuesSize, status.maxValidatorsPerNominator),
+                resourceManager.getString(R.string.staking_custom_header_validators_title, valuesSize, status.maxValidatorsPerNominator),
                 R.color.black1
             ),
             resourceManager.getString(R.string.staking_your_validators_changing_title)
