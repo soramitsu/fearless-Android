@@ -56,7 +56,6 @@ transfers will appear here</string>
     <string name="recovery_raw_seed">Raw seed</string>
     <string name="recovery_json">Restore JSON</string>
     <string name="account_import_password_placeholder">Password</string>
-    <string name="common_error_general_message">We are working hard to fix the problem. Please, try again later.</string>
     <string name="recover_json_hint">Paste json or upload file...</string>
     <string name="import_json_paste">Paste json</string>
     <string name="recovery_passphrase">Mnemonic passphrase</string>
@@ -66,7 +65,7 @@ transfers will appear here</string>
     <string name="pincode_create_top_title">Create pin code</string>
     <string name="pincode_fingerprint_error">You are not authorized. Try another finger.</string>
     <string name="pincode_fingerprint_switch_dialog_title">Use biometric to authorize</string>
-    <string name="profile_title">Account</string>
+    <string name="account_info_title">Account</string>
     <string name="profile_accounts_title">Accounts</string>
     <string name="profile_network_title">Networks</string>
     <string name="profile_pincode_change_title">Change pin code</string>
@@ -79,7 +78,7 @@ transfers will appear here</string>
     <string name="about_telegram">Join Telegram Group</string>
     <string name="common_email_chooser_title">Select email app</string>
     <string name="common_skip_process">Skip process</string>
-    <string name="account_address">Account address</string>
+    <string name="common_account">Account address</string>
     <string name="account_export">Export account</string>
     <string name="common_copied">Copied to clipboard</string>
     <string name="connection_management_default_title">Default</string>
@@ -115,7 +114,7 @@ transfers will appear here</string>
     <string name="wallet_send_total_title">Total</string>
     <string name="search_contacts">Contacts</string>
     <string name="search_result_header">Search result</string>
-    <string name="search_recipient_no_results">No search results</string>
+    <string name="wallet_search_empty_title">No search results</string>
     <string name="common_retry">Retry</string>
     <string name="choose_amount_network_error">Network not responding</string>
     <string name="choose_amount_error_balance">Sorry, balance checking request failed. Please, try again later.</string>
@@ -131,7 +130,7 @@ transfers will appear here</string>
     <string name="wallet_balance_locked">Locked</string>
     <string name="wallet_balance_reserved">Reserved</string>
     <string name="wallet_balance_redeemable">Redeemable</string>
-    <string name="wallet_balance_unbonding">Unstaking</string>
+    <string name="wallet_balance_unbonding_v1_9_0">Unstaking</string>
     <string name="transaction_details_hash_title">Extrinsic Hash</string>
     <string name="transaction_details_copy_hash">Copy hash</string>
     <string name="transaction_details_view_polkascan">View in Polkascan</string>
@@ -139,10 +138,10 @@ transfers will appear here</string>
     <string name="wallet_balance_details_title">Balance details</string>
     <string name="wallet_balance_details_total">Total balance</string>
     <string name="wallet_balance_details_total_after">Total after transfer</string>
-    <string name="wallet_balance_details_existential_deposit">Minimal balance</string>
+    <string name="wallet_send_balance_minimal">Minimal balance</string>
     <string name="wallet_send_existential_warning_message">Your transfer will remove account from blockstore since it will make total balance lower than minimal balance.</string>
     <string name="common_warning">Warning</string>
-    <string name="common_connecting">Connecting…</string>
+    <string name="network_status_connecting">Connecting…</string>
     <string name="common_unknown">Unknown</string>
     <string name="connection_delete_title">Delete network?</string>
     <string name="connection_delete_confirm">Delete</string>
@@ -156,9 +155,10 @@ transfers will appear here</string>
     <string name="import_json_invalid_format_message">Please, make sure that your input contains valid json.</string>
     <string name="import_json_invalid_password_title">Keystore decryption failed</string>
     <string name="import_seed_invalid_title">Seed is invalid</string>
-    <string name="import_seed_invalid_message">Please, make sure that your input contains 64 hex symbols.</string>
-    <string name="error_try_another_one">Please, try another one.</string>
-    <string name="import_account_exists_title">Account already exists</string>
+    <string name="account_import_invalid_seed">Please, make sure that your input contains 64 hex symbols.</string>
+    <string name="account_error_try_another_one">Please, try another one.</string>
+    <string name="mnemonic_error_try_another_one">Please, try another one.</string>
+    <string name="account_add_already_exists_message">Account already exists</string>
     <string name="account_export_action">Export</string>
     <string name="account_export_warning_message">Sharing or copying your secret is a high risk operation, don’t send it to anyone. Would you like to proceed with sharing/copying process?</string>
     <string name="account_export_warning_title">Be careful</string>
@@ -180,14 +180,13 @@ Seed: %s</string>
 Seed: %s
 Derivation path: %s</string>
     <string name="pincode_changed_message">Pin code has been successfully changed</string>
-    <string name="common_choose_file">Upload file</string>
     <string name="common_copy_address">Copy address</string>
     <string name="account_import_json_no_network">JSON contains no network information. Please specify it below.</string>
     <string name="common_address">Address</string>
     <string name="common_share">Share</string>
-    <string name="node_add">Add node</string>
-    <string name="connection_delete_description_v1_0_1" formatted="false">Confirm %s, %s deletion.</string>
-    <string name="network_info_address_v1_0_1">URL address</string>
+    <string name="connections_add_connection">Add node</string>
+    <string name="connection_delete_description" formatted="false">Confirm %s, %s deletion.</string>
+    <string name="network_info_address">URL address</string>
     <string name="wallet_asset_buy">Buy</string>
     <string name="common_amount_low">Amount is too low</string>
     <string name="wallet_send_dead_recipient_message">Your transfer will fail since the final amount on the destination account will be less than the minimal balance. Please, try to increase the amount.</string>
@@ -196,17 +195,16 @@ Derivation path: %s</string>
     <string name="wallet_send_phishing_warning_title">Scam alert</string>
     <string name="staking_start_title">Start staking</string>
     <string name="network_fee">Network fee</string>
-    <string name="staking_setup_reward_destination">Choose reward destination</string>
+    <string name="staking_setup_reward_destination_section_title">Choose reward destination</string>
     <string name="staking_setup_restake">Restake</string>
     <string name="staking_payout">Payout</string>
-    <string name="staking_setup_learn_more">Learn more about payouts</string>
+    <string name="staking_rewards_learn_more">Learn more about payouts</string>
     <string name="staking_setup_reward_payout_account">Payout account</string>
-    <string name="staking_recommended_validators_title">Recommended validators</string>
+    <string name="staking_recommended_section_title">Recommended validators</string>
     <string name="common_learn_more">Learn more</string>
     <string name="staking_recommended_validators_apy">Estimated reward (APY)</string>
     <string name="runtime_update_failure_title">Runtime update failure</string>
     <string name="runtime_update_failure_description">Failed to update information about blockchain runtime. Some functionality may not work.</string>
-    <string name="staking_setup_too_big_error">Sorry, you don\'t have enough funds to stake specified amount</string>
     <string name="staking_title">Staking</string>
     <string name="staking_month_period_title">monthly</string>
     <string name="staking_year_period_title">yearly</string>
@@ -214,13 +212,13 @@ Derivation path: %s</string>
     <string name="staking_recommended_feature_2">Not oversubscribed</string>
     <string name="staking_recommended_feature_3">Having onchain identity</string>
     <string name="staking_recommended_feature_4">Not slashed</string>
-    <string name="staking_validators">Validators</string>
+    <string name="staking_recommended_title">Validators</string>
     <string name="staking_confirm_nominations" formatted="false">%s of %s</string>
     <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
     <string name="fee_not_yet_loaded_message">Please wait until fee is calculated</string>
     <string name="staking_setup_amount_too_low">Can\'t stake less than minimal value (%s)</string>
     <string name="common_confirm_title">Confirmation</string>
-    <string name="staking_confirm_reward_destination">Rewards destination</string>
+    <string name="staking_rewards_destination_title">Rewards destination</string>
     <string name="staking_confirm_selected_validators">Selected validators</string>
     <string name="staking_validator_info_title">Validator info</string>
     <string name="staking_validator_total_stake">Total stake</string>
@@ -237,13 +235,12 @@ Derivation path: %s</string>
     <string name="staking_total_staked">Total staked</string>
     <string name="staking_main_minimum_stake_title">Minimum stake</string>
     <string name="staking_main_active_nominators_title">Active nominators</string>
-    <string name="staking_main_lockup_period_title">Unstaking period</string>
+    <string name="staking_unbonding_period_v1_9_0">Unstaking period</string>
     <plurals name="staking_main_lockup_period_value">
         <item quantity="one">%d day</item>
         <item quantity="other">%d days</item>
     </plurals>
     <string name="staking_validator_own_stake">Own</string>
-    <string name="staking_validator_total">Total</string>
     <string name="staking_stake">Stake</string>
     <string name="staking_nominator_status_active">Active</string>
     <string name="staking_nominator_status_inactive">Inactive</string>
@@ -254,7 +251,7 @@ Derivation path: %s</string>
     <string name="staking_nominator_status_alert_inactive_title">Inactive status</string>
     <string name="staking_nominator_status_alert_no_validators">None of your validators have been elected by network.</string>
     <string name="staking_nominator_status_alert_low_stake">Your staked amount is less than the minimum stake to get a reward.</string>
-    <string name="staking_no_controller_account">Controller account %s is unavailable to update staking setup.</string>
+    <string name="staking_add_controller">Controller account %s is unavailable to update staking setup.</string>
     <string name="staking_manage_title">Manage</string>
     <string name="staking_reward_payouts_title">Pending rewards</string>
     <string name="staking_reward_payouts_payout_all">Payout all (%s)</string>
@@ -276,20 +273,20 @@ Derivation path: %s</string>
     <string name="staking_warning_tiny_payout">The reward is less than the network fee.</string>
     <string name="staking_unbonding_limit_reached_message">You have reached the unstaking requests limit (%d active requests).</string>
     <string name="staking_unbonding_limit_reached_title">Unstaking requests limit reached</string>
-    <string name="staking_bond_more">Stake more</string>
-    <string name="staking_unbond">Unstake</string>
+    <string name="staking_bond_more_v1_9_0">Stake more</string>
+    <string name="staking_unbond_v1_9_0">Unstake</string>
     <string name="staking_redeem">Redeem</string>
     <string name="common_balance">Balance</string>
     <string name="staking_balance_title">Staking balance</string>
     <string name="make_payout_transaction_sent">Payout transaction sent</string>
     <string name="staking_zero_bond_error">Amount must be positive</string>
-    <string name="staking_no_stash_account">Stash account %s is unavailable to update staking setup.</string>
+    <string name="staking_stash_missing_message">Stash account %s is unavailable to update staking setup.</string>
     <string name="common_transaction_submitted">Transaction submitted</string>
     <string name="staking_your_validators">Your validators</string>
     <string name="staking_rebond_all">Rebond all</string>
     <string name="staking_rebond_last">Rebond last</string>
     <string name="common_change">Change</string>
-    <string name="common_active_with_count">Active (%s)</string>
+    <string name="crowdloan_active_section_format">Active (%s)</string>
     <string name="staking_your_nominated_format">Nominated: %s</string>
     <string name="staking_your_validators_changing_title">Your validators will change in the next era.</string>
     <string name="staking_bonded_format">Bonded: %s</string>
@@ -343,7 +340,6 @@ Derivation path: %s</string>
     <string name="crowdloan_raised_amount" formatted="false">%s of %s</string>
     <string name="crowdloan_raised">Raised</string>
     <string name="crowdloan_leasing_period">Leasing period</string>
-    <string name="common_completed">Completed</string>
     <string name="staking_bonded_inactive">You are neither nominating nor validating</string>
     <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
     <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
@@ -361,7 +357,6 @@ Derivation path: %s</string>
     <string name="staking_start_change_validators_recommended_subtitle">Fearless algorithm selected a list of recommended validators based on the criteria:</string>
     <string name="common_not_enough_funds_message">Sorry, you don\'t have enough funds to pay the network fee.</string>
     <string name="choose_amount_error_too_big">Sorry, you don\'t have enough funds to spend specified amount</string>
-    <string name="staking_alert_change_validators_message">Staking is inactive. None of your validators were elected by network.</string>
     <string name="staking_custom_validators_list_title">Select validators</string>
     <string name="staking_custom_fill_button_title">Fill rest with recommended</string>
     <string name="staking_custom_clear_button_title">Clear filters</string>
@@ -391,12 +386,11 @@ Derivation path: %s</string>
     <string name="staking_estimate_earning_title_v1.9.0">Estimated earnings</string>
     <string name="staking_main_stake_balance_staked">Staked</string>
     <string name="staking_pending_rewards_info">Validators payout the rewards every 2-5 days. However, you can payout them by yourself, especially if rewards are close to expiring, but you will pay the fee.</string>
-    <string name="staking_custom_validators_settings_filters">Show</string>
-    <string name="common_sort_by">Sort by</string>
+    <string name="wallet_filters_header">Show</string>
+    <string name="common_filter_sort_header">Sort by</string>
     <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
-    <string name="staking_information_controller_actions">Controller can unbond, redeem, rebond, change reward destination and validators</string>
-    <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
-    <string name="staking_unbondings_placeholder">Unstaking transactions will appear here</string>
+    <string name="staking_controller_can_hint">Controller can unbond, redeem, rebond, change reward destination and validators</string>
+    <string name="staking_unbonding_empty_list_v1_9_0">Unstaking transactions will appear here</string>
     <string name="common_options_title">Select an option</string>
     <string name="invoice_scan_error_no_info">QR can\'t be decoded</string>
     <string name="invoice_scan_qr_code_title">QR code</string>
@@ -415,16 +409,17 @@ Derivation path: %s</string>
     <string name="staking_story_reward_page_1">Rewards for staking are available for claiming at the end of each Era (6 hours in Kusama and 24 hours in Polkadot). They are available for claiming for next 84 Eras, and in most cases Validators are paying out the rewards for everyone. However, Validators might forget or something might happen with them, so Nominators can claim the rewards by themselves.</string>
     <string name="staking_story_reward_page_2">Although usually Rewards are distributed by Validators, Fearless Wallet helps Nominators by alerting them if there are some Rewards available and they are close to expiration. You will receive Alert about this and other activities on your Staking screen.</string>
     <string name="staking_selected_validators_mask">Validators (%d)</string>
-    <string name="staking_apy">%s APY</string>
-    <string name="staking_apr">%s APR</string>
+    <string name="staking_selected_validators_count_v1_9_1">selected %d (max %d)</string>
+    <string name="staking_apy" translatable="false">%s APY</string>
+    <string name="staking_apr" translatable="false">%s APR</string>
     <string name="staking_controller_change_success">Controller is changed</string>
     <string name="staking_already_controller_title">Already controller</string>
-    <string name="staking_era_index">Era #%d</string>
+    <string name="staking_era_title">Era #%d</string>
     <string name="staking_unbond_crossed_existential">After operation the resulting bonded balance will be less than minimal balance. It will cause the whole bonded balance to be unbonded.</string>
     <string name="staking_unbond_too_big">Amount you want to unbond is greater than your bonded balance</string>
-    <string name="common_search_no_results">No search results.\nBe sure you type full account address</string>
+    <string name="staking_validator_search_empty_title">No search results.\nBe sure you type full account address</string>
     <string name="staking_custom_validators_settings_sort_total_stake">Total stake (%s)</string>
-    <string name="staking_inactive_validators_format">Inactive (%d)</string>
-    <string name="staking_selected_validators_format" formatted="false">Validators: [%I] of %d</string>
+    <string name="staking_your_not_elected_format">Inactive (%d)</string>
+    <string name="staking_selected_validators_format" formatted="false">Validators: %d of %d</string>
     <string name="import_mnemonic_invalid_title">Your mnemonic is invalid</string>
 </resources>

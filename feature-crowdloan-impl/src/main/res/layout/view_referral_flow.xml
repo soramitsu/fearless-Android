@@ -90,7 +90,7 @@
         android:layout_marginStart="16dp"
         android:id="@+id/referralPrivacyText"
         app:layout_constrainedWidth="true"
-        android:text="@string/crowdloan_privacy_policy"
+        android:text="@string/onboarding_terms_and_conditions_1"
         app:layout_constraintBottom_toBottomOf="@+id/referralPrivacySwitch"
         app:layout_constraintEnd_toEndOf="@+id/referralBonus"
         app:layout_constraintHorizontal_bias="0.0"

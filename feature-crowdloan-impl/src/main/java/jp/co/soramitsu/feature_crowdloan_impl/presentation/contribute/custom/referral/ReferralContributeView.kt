@@ -76,7 +76,7 @@ class ReferralContributeView @JvmOverloads constructor(
 
         referralFearlessBonusApply.setOnClickListener { viewState.applyFearlessCode() }
 
-        referralPrivacyText.text = createSpannable(context.getString(R.string.crowdloan_privacy_policy)) {
+        referralPrivacyText.text = createSpannable(context.getString(R.string.onboarding_terms_and_conditions_1)) {
             clickable(context.getString(R.string.onboarding_terms_and_conditions_2)) {
                 viewState.termsClicked()
             }

@@ -22,7 +22,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
-        android:text="@string/staking_custom_validators_settings_filters" />
+        android:text="@string/wallet_filters_header" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         style="@style/Widget.Fearless.Switch"
@@ -72,7 +72,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="24dp"
-        android:text="@string/common_sort_by" />
+        android:text="@string/common_filter_sort_header" />
 
     <RadioGroup
         android:id="@+id/customValidatorSettingsSort"
