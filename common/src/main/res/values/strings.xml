@@ -59,7 +59,7 @@ transfers will appear here</string>
     <string name="recovery_raw_seed">Raw seed</string>
     <string name="recovery_json">Restore JSON</string>
     <string name="account_import_password_placeholder">Password</string>
-    <string name="recover_json_hint">Paste json or upload file...</string>
+    <string name="recover_json_hint">Paste json or upload file…</string>
     <string name="import_json_paste">Paste json</string>
     <string name="recovery_passphrase">Mnemonic passphrase</string>
     <string name="account_import_invalid_seed">Seed is invalid. Please, make sure that your input contains 64 hex symbols.</string>
@@ -150,7 +150,7 @@ from the right network</string>
     <string name="connection_delete_title">Delete network?</string>
     <string name="connection_delete_description">Confirm %s deletion.</string>
     <string name="connection_delete_confirm">Delete</string>
-    <string name="network_status_connecting">Connecting...</string>
+    <string name="network_status_connecting">Connecting…</string>
     <string name="wallet_balance_frozen_template">Frozen %s</string>
     <string name="wallet_receive_description">Share this QR to sender</string>
     <string name="wallet_send_existential_warning_title">Transfer will remove account</string>
@@ -393,7 +393,7 @@ Derivation path: %s</string>
     <string name="history_v1.9.0">History</string>
     <string name="staking_estimate_earning_title_v1.9.0">Estimated earnings</string>
     <string name="staking_main_stake_balance_staked">Staked</string>
-    <string name="staking_pending_rewards_info">Validators payout the rewards every 2-5 days. However, you can payout them by yourself, especially if rewards are close to expiring, but you will pay the fee.</string>
+    <string name="staking_pending_rewards_info">Validators payout the rewards every 2–5 days. However, you can payout them by yourself, especially if rewards are close to expiring, but you will pay the fee.</string>
     <string name="staking_custom_validators_update_list">Update your list</string>
     <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
     <string name="common_options_title">Select an option</string>
