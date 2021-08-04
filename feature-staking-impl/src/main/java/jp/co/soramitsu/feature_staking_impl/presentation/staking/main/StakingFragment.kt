@@ -11,6 +11,8 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
@@ -73,7 +75,12 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                 is LoadingState.Loaded -> {
                     stakingAlertsInfo.hideLoading()
 
-                    stakingAlertsInfo.setStatus(loadingState.data)
+                    if (loadingState.data.isEmpty()) {
+                        stakingAlertsInfo.makeGone()
+                    } else {
+                        stakingAlertsInfo.makeVisible()
+                        stakingAlertsInfo.setStatus(loadingState.data)
+                    }
                 }
 
                 is LoadingState.Loading -> {

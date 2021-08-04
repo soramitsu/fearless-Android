@@ -151,7 +151,7 @@ sealed class StakeViewState<S>(
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
                 totalRewards = summary.totalRewards.formatTokenAmount(tokenType),
                 totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency(),
-                currentEraDisplay = resourceManager.getString(R.string.staking_era_index, summary.currentEra)
+                currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
             )
         }
     }

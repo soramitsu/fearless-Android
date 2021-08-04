@@ -162,7 +162,7 @@ class MnemonicImportSource : ImportSource(R.string.recovery_passphrase) {
         return when (throwable) {
             is Bip39Exception -> ImportError(
                 titleRes = R.string.import_mnemonic_invalid_title,
-                messageRes = R.string.error_try_another_one
+                messageRes = R.string.mnemonic_error_try_another_one
             )
             else -> null
         }
@@ -179,7 +179,7 @@ class RawSeedImportSource : ImportSource(R.string.recovery_raw_seed) {
         return when (throwable) {
             is IllegalArgumentException, is DecoderException -> ImportError(
                 titleRes = R.string.import_seed_invalid_title,
-                messageRes = R.string.import_seed_invalid_message
+                messageRes = R.string.account_import_invalid_seed
             )
             else -> null
         }

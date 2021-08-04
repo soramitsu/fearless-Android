@@ -23,7 +23,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:label="@string/profile_title" />
+        app:label="@string/account_info_title" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/confirmPayoutRewardDestination"
@@ -33,7 +33,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:label="@string/staking_confirm_reward_destination" />
+        app:label="@string/staking_rewards_destination_title" />
 
     <LinearLayout
         android:layout_width="match_parent"

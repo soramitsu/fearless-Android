@@ -13,7 +13,7 @@
 
     <fragment
         android:id="@+id/crowdloanFragment"
-        tools:layout="@layout/fragment_coming_soon"
+        tools:layout="@layout/fragment_crowdloans"
         android:name="jp.co.soramitsu.feature_crowdloan_impl.presentation.main.CrowdloanFragment"
         android:label="CrowdloanFragment" />
 
@@ -22,12 +22,6 @@
         tools:layout="@layout/fragment_staking"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingFragment"
         android:label="StakingFragment" />
-
-    <fragment
-        android:id="@+id/governanceFragment"
-        tools:layout="@layout/fragment_coming_soon"
-        android:name="jp.co.soramitsu.app.root.presentation.main.coming_soon.ComingSoonFragment"
-        android:label="GovernanceFragment" />
 
     <fragment
         android:id="@+id/walletFragment"

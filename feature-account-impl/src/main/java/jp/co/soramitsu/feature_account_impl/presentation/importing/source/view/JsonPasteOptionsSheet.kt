@@ -21,7 +21,7 @@ class JsonPasteOptionsSheet(
             onPaste()
         }
 
-        item(icon = R.drawable.ic_file_upload, titleRes = R.string.common_choose_file) {
+        item(icon = R.drawable.ic_file_upload, titleRes = R.string.recover_json_hint) {
             onOpenFile()
         }
     }

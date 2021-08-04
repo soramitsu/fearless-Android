@@ -33,7 +33,7 @@ class UnbondingsHolder(override val containerView: View) : RecyclerView.ViewHold
 
     fun bind(unbonding: UnbondingModel) = with(containerView) {
         with(unbonding) {
-            itemListElementTitleLeft.text = context.getString(R.string.staking_unbond)
+            itemListElementTitleLeft.text = context.getString(R.string.staking_unbond_v1_9_0)
             itemListElementTitleRight.text = unbonding.amountModel.token
             itemListElementDescriptionRight.text = unbonding.amountModel.fiat
             itemListElementDescriptionLeft.text = daysLeft
