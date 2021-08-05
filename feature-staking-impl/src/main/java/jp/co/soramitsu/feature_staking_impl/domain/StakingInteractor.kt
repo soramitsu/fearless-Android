@@ -48,6 +48,8 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.days
 import kotlin.time.milliseconds
 
+const val HOURS_IN_DAY = 24
+
 class EraRelativeInfo(
     val daysLeft: Int,
     val daysPast: Int,
@@ -162,6 +164,13 @@ class StakingInteractor(
     }
 
     suspend fun getLockupPeriodInDays() = getLockupPeriodInDays(getSelectedNetworkType())
+
+    suspend fun getEra1HoursLength(): Int {
+
+        val erasPerDay = getSelectedNetworkType().runtimeConfiguration.erasPerDay
+
+        return HOURS_IN_DAY / erasPerDay
+    }
 
     fun stakingStoriesFlow(): Flow<List<StakingStory>> {
         return stakingRepository.stakingStoriesFlow()

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.confirm
 
+import android.provider.Settings.Global.getString
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
@@ -119,6 +120,16 @@ class ConfirmStakingViewModel(
             }
         }
         .asLiveData()
+
+    val unstakingTime = liveData(Dispatchers.Default) {
+        val lockupPeriod = interactor.getLockupPeriodInDays()
+        emit(resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, lockupPeriod, lockupPeriod))
+    }
+
+    val eraHoursLength = liveData(Dispatchers.Default) {
+        val hours = interactor.getEra1HoursLength()
+        emit(resourceManager.getQuantityString(R.plurals.common_hours_format, hours, hours))
+    }
 
     val rewardDestinationLiveData = flowOf(payload)
         .map {
