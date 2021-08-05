@@ -399,6 +399,8 @@ Derivation path: %s</string>
     <string name="staking_hint_no_rewards">Tokens in unstaking period generate no rewards.</string>
     <string name="staking_hint_redeem">After unstaking period you will need to redeem your tokens.</string>
     <string name="staking_hint_reward_bond_more">Your rewards will be increased starting from the next era.</string>
+    <string name="staking_hint_unbond_kills_stash">Fearless wallet will change rewards destination
+to your account to avoid remaining stake.</string>
     <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
     <string name="common_options_title">Select an option</string>
     <string name="invoice_scan_error_no_info">QR can\'t be decoded</string>

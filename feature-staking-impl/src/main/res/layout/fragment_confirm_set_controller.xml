@@ -33,31 +33,7 @@
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
         app:label="@string/staking_controller_account" />
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:orientation="horizontal"
-        android:gravity="center|left">
-
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_reward_24"
-            app:tint="@color/white" />
-
-        <TextView
-            style="@style/TextAppearance.Soramitsu.Body2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:includeFontPadding="false"
-            android:text="@string/staking_hint_reward_bond_more"
-            android:textColor="@color/white" />
-    </LinearLayout>
+    
     <Space
         android:layout_width="match_parent"
         android:layout_height="0dp"

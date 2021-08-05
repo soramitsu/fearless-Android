@@ -396,6 +396,8 @@
     <string name="staking_hint_no_rewards">Во время вывода токены не приносят наград.</string>
     <string name="staking_hint_redeem">После вывода токенов из стейкинга не забудьте их забрать.</string>
     <string name="staking_hint_reward_bond_more">Ваши вознаграждения увеличатся со следующей эры.</string>
+    <string name="staking_hint_unbond_kills_stash">Fearless wallet изменит назначение вознаграждений
+на ваш аккаунт, чтобы избежать остатка в стейкинге.</string>
     <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APY)</string>
     <string name="common_options_title">Выберите опцию</string>
     <string name="invoice_scan_error_no_info">Не удается декодировать QR</string>
