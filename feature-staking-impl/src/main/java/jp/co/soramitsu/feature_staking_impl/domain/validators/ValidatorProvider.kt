@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
+import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 
 sealed class ValidatorSource {
@@ -25,6 +26,7 @@ class ValidatorProvider(
     private val identityRepository: IdentityRepository,
     private val accountRepository: AccountRepository,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
+    private val stakingConstantsRepository: StakingConstantsRepository,
 ) {
 
     suspend fun getValidators(
@@ -56,7 +58,8 @@ class ValidatorProvider(
                     totalStake = it.total,
                     ownStake = it.own,
                     nominatorStakes = it.others,
-                    apy = rewardCalculator.getApyFor(accountIdHex)
+                    apy = rewardCalculator.getApyFor(accountIdHex),
+                    maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(),
                 )
             }
 

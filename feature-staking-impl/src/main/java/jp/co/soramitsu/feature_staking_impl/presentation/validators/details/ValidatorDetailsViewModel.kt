@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsParcelToValidatorDetailsModel
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsToErrors
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.NominatorParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -45,8 +47,15 @@ class ValidatorDetailsViewModel(
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
+    private val accountFlow = interactor.selectedAccountFlow()
+        .share()
+
     val validatorDetails = validatorDetailsFlow.combine(assetFlow) { validator, asset ->
         mapValidatorDetailsParcelToValidatorDetailsModel(validator, asset, iconGenerator, resourceManager)
+    }.flowOn(Dispatchers.IO).asLiveData()
+
+    val errorFlow = validatorDetailsFlow.combine(accountFlow) { validator, account ->
+        mapValidatorDetailsToErrors(validator, account)
     }.flowOn(Dispatchers.IO).asLiveData()
 
     private val _openEmailEvent = MutableLiveData<Event<String>>()

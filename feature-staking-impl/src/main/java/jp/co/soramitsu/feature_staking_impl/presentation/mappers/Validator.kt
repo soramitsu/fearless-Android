@@ -8,6 +8,8 @@ import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSorting
@@ -18,6 +20,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.Valid
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorStakeModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorStakeModel.ActiveStakeModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.Error
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -106,10 +109,46 @@ fun mapValidatorToValidatorDetailsParcelModel(
         val stakeModel = electedInfo?.let {
             val nominators = it.nominatorStakes.map(::mapNominatorToNominatorParcelModel)
 
-            ValidatorStakeParcelModel.Active(it.totalStake, it.ownStake, nominators, it.apy)
+            ValidatorStakeParcelModel.Active(it.totalStake, it.ownStake, nominators, it.apy, slashed)
         } ?: ValidatorStakeParcelModel.Inactive
 
         ValidatorDetailsParcelModel(accountIdHex, stakeModel, identityModel)
+    }
+}
+
+fun mapValidatorToValidatorDetailsWithStakeFlagParcelModel(
+    nominatedValidator: NominatedValidator
+): ValidatorDetailsParcelModel {
+    val isNominated = nominatedValidator.status is NominatedValidator.Status.Active // if we nominated all money to this validator
+
+    return with(nominatedValidator.validator) {
+        val identityModel = identity?.let(::mapIdentityToIdentityParcelModel)
+
+        val stakeModel = electedInfo?.let {
+            val nominators = it.nominatorStakes.map(::mapNominatorToNominatorParcelModel)
+
+            ValidatorStakeParcelModel.Active(it.totalStake, it.ownStake, nominators, it.apy, slashed, it.maxNominators, isNominated)
+        } ?: ValidatorStakeParcelModel.Inactive
+
+        ValidatorDetailsParcelModel(accountIdHex, stakeModel, identityModel)
+    }
+}
+
+fun mapValidatorDetailsToErrors(
+    validator: ValidatorDetailsParcelModel,
+    account: StakingAccount
+): Error? {
+    return when (val stake = validator.stake) {
+        ValidatorStakeParcelModel.Inactive -> null
+        is ValidatorStakeParcelModel.Active -> {
+            when {
+                stake.isOversubscribed() && !stake.isNominated -> Error.OversubscribedPaid
+                stake.isOversubscribed() && stake.isInLimit(account.address) -> Error.OversubscribedPaid
+                stake.isOversubscribed() && !stake.isInLimit(account.address) -> Error.OversubscribedUnpaid
+                stake.isSlashed -> Error.Slashed
+                else -> null
+            }
+        }
     }
 }
 
@@ -140,7 +179,7 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
                 val totalStake = token.amountFromPlanks(stake.totalStake)
                 val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.type)
                 val totalStakeFiatFormatted = token.fiatAmount(totalStake)?.formatAsCurrency()
-                val nominatorsCountFormatted = stake.nominators.size.toString()
+                val nominatorsCount = stake.nominators.size
                 val apyPercentageFormatted = (PERCENT_MULTIPLIER * stake.apy).formatAsPercentage()
 
                 ValidatorStakeModel(
@@ -149,8 +188,9 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
                     activeStakeModel = ActiveStakeModel(
                         totalStake = totalStakeFormatted,
                         totalStakeFiat = totalStakeFiatFormatted,
-                        nominatorsCount = nominatorsCountFormatted,
-                        apy = apyPercentageFormatted
+                        nominatorsCount = nominatorsCount,
+                        apy = apyPercentageFormatted,
+                        maxNominations = stake.maxNominators
                     )
                 )
             }
