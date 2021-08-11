@@ -206,7 +206,6 @@ Derivation path: %s</string>
     <string name="staking_year_period_title">yearly</string>
     <string name="staking_recommended_title">Validators</string>
     <string name="staking_recommended_section_title">Recommended validators</string>
-    <string name="staking_your_oversubscribed_message">Your tokens are allocated to the oversubscribed validators. You will not receive rewards in this era.</string>
     <string name="staking_recommended_feature_1">Most profitable</string>
     <string name="staking_recommended_feature_2">Not oversubscribed</string>
     <string name="staking_validator_other_oversubscribed_message">Oversubscribed. Only the top staked nominators are paid rewards.</string>
