@@ -19,9 +19,9 @@ class OperationModel(
 
     fun getDisplayAddress() = (transactionType as? Operation.TransactionType.Transfer)?.receiver ?: address
 
-    fun getOperationHeader() = format(transactionType.header) ?: accountName ?: getDisplayAddress()
+    fun getOperationHeader() = format(transactionType.getHeader()) ?: accountName ?: getDisplayAddress()
 
-    fun getElementDescription() = format(transactionType.subheader)
+    fun getElementDescription() = format(transactionType.getSubheader())
 
     private fun format(extrinsicHeader: String?) = extrinsicHeader?.split(regex = "(?<=[a-z])(?=[A-Z])".toRegex())?.joinToString(" ")?.capitalize()
 

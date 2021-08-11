@@ -69,13 +69,13 @@ class PaymentUpdater(
                 null -> Operation.Status.PENDING
             }
 
-            createOperationLocal(it.extrinsic, localStatus, address)
+            createTransferOperationLocal(it.extrinsic, localStatus, address)
         }
 
         operationDao.insertAll(local)
     }
 
-    private suspend fun createOperationLocal(
+    private suspend fun createTransferOperationLocal(
         extrinsic: TransferExtrinsic,
         status: Operation.Status,
         accountAddress: String,
@@ -95,13 +95,14 @@ class PaymentUpdater(
             address = accountAddress,
             time = System.currentTimeMillis(),
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
-            call = "Transfer",
+            call = Operation.TransactionType.Transfer.transferCall,
             amount = extrinsic.amountInPlanks,
             sender = senderAddress,
             receiver = recipientAddress,
             fee = fee,
             status = mapOperationStatusToOperationLocalStatus(status),
-            source = OperationLocal.Source.BLOCKCHAIN
+            source = OperationLocal.Source.BLOCKCHAIN,
+            operationType = OperationLocal.OperationType.TRANSFER
         )
     }
 }

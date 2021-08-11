@@ -556,6 +556,7 @@
     <string name="staking_main_lockup_period_title">Lock-Up period</string>
     <string name="staking_main_network_title">%s network</string>
     <string name="staking_total_staked">Total staked</string>
+    <string name="staking_slash">Slash</string>
 
     <string name="staking_story_staking_title">What is Staking?</string>
     <string name="staking_story_staking_page_1">Staking is an option to earn passive income by locking your tokens in the network. Rewards for staking are paid every 6 hours on Kusama and 24 hours on Polkadot. You can stake as long as you wish, and for unlocking your tokens you need to wait for the unlocking period to end, making your tokens available to be redeemed.</string>

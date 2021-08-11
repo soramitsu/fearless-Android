@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import jp.co.soramitsu.core_db.model.OperationLocal
 import java.math.BigDecimal
 
 data class Operation(
@@ -13,8 +14,6 @@ data class Operation(
 ) {
 
     sealed class TransactionType(
-        val header: String?,
-        val subheader: String?,
         val operationAmount: BigDecimal,
         val operationFee: BigDecimal,
         val status: Status
@@ -25,21 +24,44 @@ data class Operation(
             val call: String,
             val fee: BigDecimal,
             val success: Boolean
-        ) : TransactionType(call, module, operationAmount = BigDecimal.ZERO, operationFee = fee, Status.fromSuccess(success))
+        ) : TransactionType(operationAmount = BigDecimal.ZERO, operationFee = fee, Status.fromSuccess(success))
 
         class Reward(
             val amount: BigDecimal,
             val isReward: Boolean,
             val era: Int,
             val validator: String
-        ) : TransactionType(if (isReward) "Reward" else "Slash", "Staking", operationAmount = amount, operationFee = BigDecimal.ZERO, Status.FAILED)
+        ) : TransactionType(operationAmount = amount, operationFee = BigDecimal.ZERO, Status.FAILED)
 
         class Transfer(
             val amount: BigDecimal,
             val receiver: String,
             val sender: String,
             val fee: BigDecimal
-        ) : TransactionType(null, "Transfer", operationAmount = amount, operationFee = fee, Status.COMPLETED)
+        ) : TransactionType(operationAmount = amount, operationFee = fee, Status.COMPLETED){
+            companion object {
+                val transferCall = "Transfer"
+            }
+        }
+
+        fun getHeader(): String? = when (this) {
+            is Extrinsic -> call
+            is Reward -> if (isReward) "Reward" else "Slash"
+            is Transfer -> null
+        }
+
+        fun getSubheader(): String = when (this) {
+            is Extrinsic -> module
+            is Reward -> "Staking"
+            is Transfer -> "Transfer"
+        }
+
+        fun getOperationType(): OperationLocal.OperationType = when (this) {
+            is Extrinsic ->  OperationLocal.OperationType.EXTRINSIC
+            is Reward -> OperationLocal.OperationType.REWARD
+            is Transfer -> OperationLocal.OperationType.TRANSFER
+        }
+
     }
 
     enum class Status {

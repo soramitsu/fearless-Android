@@ -14,6 +14,7 @@ data class OperationLocal(
     val tokenType: TokenLocal.Type,
     val status: Status,
     val source: Source,
+    val operationType: OperationType, // Reward/Transfer/Extrinsic
     val type: String? = null,
     val call: String? = null,
     val amount: BigInteger? = null,
@@ -25,6 +26,10 @@ data class OperationLocal(
     val validator: String? = null,
     val success: Boolean? = null
 ) {
+    enum class OperationType{
+        EXTRINSIC, TRANSFER, REWARD
+    }
+
     enum class Source {
         BLOCKCHAIN, SUBQUERY, APP
     }

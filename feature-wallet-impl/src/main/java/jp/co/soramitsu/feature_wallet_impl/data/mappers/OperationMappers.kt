@@ -26,19 +26,20 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
             address = address,
             time = time.seconds.toLongMilliseconds(),
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
-            type = transactionType.header,
-            call = transactionType.subheader,
+            type = transactionType.getHeader(),
+            call = transactionType.getSubheader(),
             amount = transactionType.operationAmount.toBigInteger(),
             fee = transactionType.operationFee.toBigInteger(),
             status = mapOperationStatusToOperationLocalStatus(operation.transactionType.status),
-            source = source
+            source = source,
+            operationType = transactionType.getOperationType()
         )
 
         return when (transactionType) {
             is Operation.TransactionType.Transfer -> {
                 operationLocal.copy(
                     sender = (transactionType as Operation.TransactionType.Transfer).sender,
-                    receiver = (transactionType as Operation.TransactionType.Transfer).receiver
+                    receiver = (transactionType as Operation.TransactionType.Transfer).receiver,
                 )
             }
             is Operation.TransactionType.Extrinsic -> {
@@ -59,28 +60,29 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
 
 fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: String?): Operation {
     with(operationLocal) {
-        val operation = if (type != null && call != null && call != "Staking") {
-            Operation.TransactionType.Extrinsic(
+        val operation = when (operationType) {
+            OperationLocal.OperationType.EXTRINSIC -> Operation.TransactionType.Extrinsic(
                 hash = hash,
                 module = type!!,
                 call = call!!,
                 fee = (fee?.toBigDecimal())!!,
                 success = success!!
             )
-        } else if (call == "Transfer") {
-            Operation.TransactionType.Transfer(
+            OperationLocal.OperationType.TRANSFER -> Operation.TransactionType.Transfer(
                 amount = (amount?.toBigDecimal())!!,
                 receiver = receiver!!,
                 sender = sender!!,
                 fee = (fee?.toBigDecimal())!!
             )
-        } else {
-            Operation.TransactionType.Reward(
+            OperationLocal.OperationType.REWARD-> Operation.TransactionType.Reward(
                 amount = (amount?.toBigDecimal())!!,
                 isReward = isReward!!,
                 era = era!!,
                 validator = validator!!
             )
+            else -> {
+                throw Exception()
+            }
         }
 
         return Operation(

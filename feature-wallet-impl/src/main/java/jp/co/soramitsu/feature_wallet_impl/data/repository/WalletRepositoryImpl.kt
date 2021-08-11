@@ -147,7 +147,7 @@ class WalletRepositoryImpl(
     override suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal) {
         val operationHash = substrateSource.performTransfer(accountAddress, transfer)
 
-        val operation = createOperation(operationHash, transfer, accountAddress, fee, OperationLocal.Source.APP)
+        val operation = createTransferOperationLocal(operationHash, transfer, accountAddress, fee, OperationLocal.Source.APP)
 
         operationDao.insert(operation)
     }
@@ -206,19 +206,20 @@ class WalletRepositoryImpl(
         return accountsByAddress[accountAddress ?: currentAddress]?.name
     }
 
-    private fun createOperation(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal, source: OperationLocal.Source) =
+    private fun createTransferOperationLocal(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal, source: OperationLocal.Source) =
         OperationLocal(
             hash = hash,
             address = senderAddress,
             time = System.currentTimeMillis(),
             tokenType = mapTokenTypeToTokenTypeLocal(transfer.tokenType),
-            call = "Transfer",
+            call = Operation.TransactionType.Transfer.transferCall,
             amount = transfer.amount.toBigInteger(),
             sender = senderAddress,
             receiver = transfer.recipient,
             fee = fee.toBigInteger(),
             status = OperationLocal.Status.PENDING,
-            source = source
+            source = source,
+            operationType = OperationLocal.OperationType.TRANSFER
         )
 
     private suspend fun updateAssetRates(

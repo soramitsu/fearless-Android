@@ -15,4 +15,10 @@ class OperationConverters {
 
     @TypeConverter
     fun toOperationStatus(ordinal: Int) = OperationLocal.Status.values()[ordinal]
+
+    @TypeConverter
+    fun fromOperationType(type: OperationLocal.OperationType) = type.ordinal
+
+    @TypeConverter
+    fun toOperationType(ordinal: Int) = OperationLocal.OperationType.values()[ordinal]
 }
