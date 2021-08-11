@@ -70,8 +70,8 @@ class ValidatorInfoView @JvmOverloads constructor(
     }
 
     fun setError(vararg error: Error) {
-        for(err in error){
-            when(err){
+        for (err in error) {
+            when (err) {
                 is Error.OversubscribedUnpaid -> validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
                 is Error.OversubscribedPaid -> validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
                 is Error.Slashed -> validatorNominatorsView.setDescription(context.getString(err.errorDescription), err.errorIcon)

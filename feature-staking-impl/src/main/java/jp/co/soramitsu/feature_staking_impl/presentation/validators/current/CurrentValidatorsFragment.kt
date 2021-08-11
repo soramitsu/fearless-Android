@@ -16,7 +16,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
 import kotlinx.android.synthetic.main.fragment_current_validators.*
-import kotlinx.coroutines.flow.subscribe
 
 class CurrentValidatorsFragment : BaseFragment<CurrentValidatorsViewModel>(), CurrentValidatorsAdapter.Handler {
 
@@ -74,7 +73,7 @@ class CurrentValidatorsFragment : BaseFragment<CurrentValidatorsViewModel>(), Cu
             }
         }
 
-        viewModel.oversubscribedValidatorsFlow.observe{
+        viewModel.oversubscribedValidatorsFlow.observe {
             currentValidatorsOversubscribedMessage.setVisible(it)
             payoutDivider.setVisible(it)
         }

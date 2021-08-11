@@ -20,7 +20,7 @@ sealed class ValidatorStakeParcelModel : Parcelable {
         val isSlashed: Boolean,
         val maxNominators: Int = Int.MAX_VALUE,
         val isNominated: Boolean = false,
-        ) : ValidatorStakeParcelModel() {
+    ) : ValidatorStakeParcelModel() {
 
         fun isInLimit(address: String): Boolean {
             val indexOfCurrentAccount = nominators.sortedBy { it.value }.indexOfFirst { it.who.contentEquals(address.toAccountId()) }

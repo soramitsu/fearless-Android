@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextOrHide
-import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_validator_info_item.view.*
