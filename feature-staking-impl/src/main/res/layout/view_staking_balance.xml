@@ -51,7 +51,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/dividerBonded"
-        app:title="@string/wallet_balance_unbonding" />
+        app:title="@string/wallet_balance_unbonding_v1_9_0" />
 
     <View
         android:id="@+id/dividerUnbonding"

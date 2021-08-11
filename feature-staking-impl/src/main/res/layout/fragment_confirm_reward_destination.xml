@@ -17,7 +17,7 @@
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/confirmRewardDestinationOriginAccount"
         android:layout_width="match_parent"
-        app:label="@string/profile_title"
+        app:label="@string/account_info_title"
         app:actionIcon="@drawable/ic_more_vertical"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"

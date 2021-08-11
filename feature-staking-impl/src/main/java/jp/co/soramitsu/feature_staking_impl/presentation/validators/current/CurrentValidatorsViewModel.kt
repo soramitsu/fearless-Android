@@ -88,7 +88,7 @@ class CurrentValidatorsViewModel(
     private fun mapNominatedValidatorStatusToUiModel(status: NominatedValidator.Status, valuesSize: Int) = when (status) {
         NominatedValidator.Status.Active -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.common_active_with_count, valuesSize),
+                resourceManager.getString(R.string.crowdloan_active_section_format, valuesSize),
                 R.color.green
             ),
             resourceManager.getString(R.string.staking_your_allocated_description)
@@ -96,7 +96,7 @@ class CurrentValidatorsViewModel(
 
         NominatedValidator.Status.Inactive -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_inactive_validators_format, valuesSize),
+                resourceManager.getString(R.string.staking_your_not_elected_format, valuesSize),
                 R.color.black1
             ),
             resourceManager.getString(R.string.staking_your_inactive_description)
@@ -109,7 +109,7 @@ class CurrentValidatorsViewModel(
 
         is NominatedValidator.Status.WaitingForNextEra -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_selected_validators_format, valuesSize, status.maxValidatorsPerNominator),
+                resourceManager.getString(R.string.staking_custom_header_validators_title, valuesSize, status.maxValidatorsPerNominator),
                 R.color.black1
             ),
             resourceManager.getString(R.string.staking_your_validators_changing_title)

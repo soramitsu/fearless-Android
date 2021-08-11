@@ -87,7 +87,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
     private fun showDeleteNodeDialog(nodeModel: NodeModel) {
         val message = getString(
-            R.string.connection_delete_description_v1_0_1,
+            R.string.connection_delete_description,
             nodeModel.networkModelType.networkType.readableName,
             nodeModel.name
         )

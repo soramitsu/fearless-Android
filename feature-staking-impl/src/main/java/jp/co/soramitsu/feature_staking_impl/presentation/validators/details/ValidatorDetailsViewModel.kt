@@ -91,7 +91,7 @@ class ValidatorDetailsViewModel(
             resourceManager.getString(R.string.staking_validator_nominators),
             nominatorsStakeFormatted,
             nominatorsStakeFiatFormatted,
-            resourceManager.getString(R.string.staking_validator_total),
+            resourceManager.getString(R.string.wallet_send_total_title),
             totalStakeFormatted,
             totalStakeFiatFormatted
         )

@@ -119,7 +119,7 @@ class StakingViewModel(
                 AlertModel(
                     WARNING_ICON,
                     resourceManager.getString(R.string.staking_alert_change_validators),
-                    resourceManager.getString(R.string.staking_alert_change_validators_message),
+                    resourceManager.getString(R.string.staking_nominator_status_alert_no_validators),
                     AlertModel.Type.CallToAction { router.openCurrentValidators() }
                 )
             }

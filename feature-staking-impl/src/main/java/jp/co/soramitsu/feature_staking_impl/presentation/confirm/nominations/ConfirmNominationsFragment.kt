@@ -35,6 +35,8 @@ class ConfirmNominationsFragment : BaseFragment<ConfirmNominationsViewModel>(), 
         confirmNominationsToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
+
+        println("--------- CONFIRM NOMINATIONS FRAGMENT")
     }
 
     override fun inject() {
