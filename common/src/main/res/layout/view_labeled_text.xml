@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:background="@drawable/bg_input_shape_selector"
+    tools:background="@color/black"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
     <ImageView
@@ -32,7 +32,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
-        tools:text="@string/account_address" />
+        tools:text="@string/common_account" />
 
     <TextView
         android:id="@+id/labeledTextText"

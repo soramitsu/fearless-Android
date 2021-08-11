@@ -43,6 +43,7 @@ class SuperOf(
 )
 
 class Validator(
+    val address: String,
     val slashed: Boolean,
     val accountIdHex: String,
     val prefs: ValidatorPrefs?,

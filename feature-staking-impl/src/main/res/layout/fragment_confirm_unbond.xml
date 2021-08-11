@@ -12,7 +12,7 @@
         android:id="@+id/confirmUnbondToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="@string/common_confirmation" />
+        app:titleText="@string/common_confirm" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/confirmUnbondOriginAccount"
@@ -22,7 +22,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:label="@string/profile_title" />
+        app:label="@string/account_info_title" />
 
     <jp.co.soramitsu.common.view.AmountView
         android:id="@+id/confirmUnbondAmount"

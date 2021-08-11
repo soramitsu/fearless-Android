@@ -13,7 +13,7 @@
         android:id="@+id/confirmStakeToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="Confirm stake" />
+        app:titleText="@string/common_confirm_title" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/confirmStakeOriginAccount"
@@ -24,7 +24,7 @@
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
         app:enabled="false"
-        app:label="@string/profile_title" />
+        app:label="@string/account_info_title" />
 
     <jp.co.soramitsu.common.view.AmountView
         android:id="@+id/confirmStakeAmount"

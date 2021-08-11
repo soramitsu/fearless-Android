@@ -16,10 +16,10 @@ class StakingRewardEstimationBottomSheet(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(R.string.staking_reward_estimation_bottom_sheet_title)
+        setTitle(R.string.staking_reward_info_title)
 
-        addItem(payload.apr, R.string.staking_maximum_apy)
-        addItem(payload.apy, R.string.staking_average_apy)
+        addItem(payload.apr, R.string.staking_reward_info_max)
+        addItem(payload.apy, R.string.staking_reward_info_avg)
     }
 
     private fun addItem(

@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit.SelectionMethod
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
@@ -73,7 +74,7 @@ class CurrentValidatorsViewModel(
         val nominationFormatted = nominatedValidator.nominationInPlanks?.let {
             val amountFormatted = token.type.amountFromPlanks(it).formatTokenAmount(token.type)
 
-            resourceManager.getString(R.string.staking_nominated, amountFormatted)
+            resourceManager.getString(R.string.staking_your_nominated_format, amountFormatted)
         }
 
         val validatorAddress = validator.accountIdHex.fromHex().toAddress(token.type.networkType)
@@ -87,39 +88,47 @@ class CurrentValidatorsViewModel(
     private fun mapNominatedValidatorStatusToUiModel(status: NominatedValidator.Status, valuesSize: Int) = when (status) {
         NominatedValidator.Status.Active -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.common_active_with_count, valuesSize),
+                resourceManager.getString(R.string.crowdloan_active_section_format, valuesSize),
                 R.color.green
             ),
-            resourceManager.getString(R.string.staking_active_validators_description)
+            resourceManager.getString(R.string.staking_your_allocated_description)
         )
 
         NominatedValidator.Status.Inactive -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_inactive_validators_format, valuesSize),
+                resourceManager.getString(R.string.staking_your_not_elected_format, valuesSize),
                 R.color.black1
             ),
-            resourceManager.getString(R.string.staking_inactive_validators_description)
+            resourceManager.getString(R.string.staking_your_inactive_description)
         )
 
         NominatedValidator.Status.Elected -> NominatedValidatorStatusModel(
             null,
-            resourceManager.getString(R.string.staking_elected_validators_description)
+            resourceManager.getString(R.string.staking_your_not_allocated_description)
         )
 
         is NominatedValidator.Status.WaitingForNextEra -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_waiting_validators_format, valuesSize, status.maxValidatorsPerNominator),
+                resourceManager.getString(R.string.staking_custom_header_validators_title, valuesSize, status.maxValidatorsPerNominator),
                 R.color.black1
             ),
-            resourceManager.getString(R.string.staking_waiting_validators_description)
+            resourceManager.getString(R.string.staking_your_validators_changing_title)
         )
     }
 
     fun changeClicked() {
-        val currentState = setupStakingSharedState.get<SetupStakingProcess.Initial>()
-        setupStakingSharedState.set(currentState.changeValidatorsFlow())
+        launch {
+            val currentState = setupStakingSharedState.get<SetupStakingProcess.Initial>()
 
-        router.openRecommendedValidators()
+            val currentValidators = flattenCurrentValidators.first().map(NominatedValidator::validator)
+
+            val newState = currentState.changeValidatorsFlow()
+                .next(currentValidators, SelectionMethod.CUSTOM)
+
+            setupStakingSharedState.set(newState)
+
+            router.openStartChangeValidators()
+        }
     }
 
     fun backClicked() {

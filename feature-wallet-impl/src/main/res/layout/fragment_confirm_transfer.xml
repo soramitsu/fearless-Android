@@ -83,7 +83,6 @@
         app:actionIcon="@drawable/ic_more_vertical"
         app:enabled="false"
         app:label="@string/choose_amount_to"
-        app:labelVisible="false"
         app:layout_constraintEnd_toEndOf="@id/confirmTransferDivider1"
         app:layout_constraintStart_toStartOf="@+id/confirmTransferDivider1"
         app:layout_constraintTop_toBottomOf="@+id/confirmTransferDivider1" />

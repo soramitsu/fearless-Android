@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true"
+    android:theme="@style/PinkOverlay">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/customValidatorSettingsToolbar"
+        app:textRight="@string/common_reset"
+        app:titleText="@string/profile_settings_title" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Header3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/wallet_filters_header" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        style="@style/Widget.Fearless.Switch"
+        android:layout_width="match_parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/customValidatorSettingsFilterIdentity"
+        android:layout_marginTop="12dp"
+        android:checked="true"
+        android:text="@string/staking_recommended_feature_3" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        style="@style/Widget.Fearless.Switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:id="@+id/customValidatorSettingsFilterSlashes"
+        android:text="@string/staking_recommended_feature_4" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        style="@style/Widget.Fearless.Switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:id="@+id/customValidatorSettingsFilterOverSubscribed"
+        android:checked="true"
+        android:text="@string/staking_recommended_feature_2" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        style="@style/Widget.Fearless.Switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:id="@+id/customValidatorSettingsFilterClustering"
+        android:checked="true"
+        android:text="@string/staking_recommended_feature_5" />
+
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Header3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/common_filter_sort_header" />
+
+    <RadioGroup
+        android:id="@+id/customValidatorSettingsSort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp">
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:id="@+id/customValidatorSettingsSortAPY"
+            android:paddingStart="4dp"
+            android:text="@string/staking_custom_validators_settings_sort_apy"
+            android:textColor="@color/gray1" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/customValidatorSettingsSortTotalStake"
+            android:paddingStart="4dp"
+            android:text="@string/staking_validator_total_stake_token"
+            android:textColor="@color/gray1" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="match_parent"
+            android:id="@+id/customValidatorSettingsSortOwnStake"
+            android:layout_height="wrap_content"
+            android:paddingStart="4dp"
+            android:text="@string/staking_filter_title_own_stake_token"
+            android:textColor="@color/gray1" />
+    </RadioGroup>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:id="@+id/customValidatorSettingsApply"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="@string/common_apply" />
+
+</LinearLayout>

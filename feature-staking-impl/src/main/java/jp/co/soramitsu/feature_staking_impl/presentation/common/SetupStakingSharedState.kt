@@ -52,45 +52,86 @@ sealed class SetupStakingProcess {
             else -> Initial
         }
 
-        fun next(validators: List<Validator>): SetupStakingProcess {
+        fun next(validators: List<Validator>, selectionMethod: ReadyToSubmit.SelectionMethod): SetupStakingProcess {
             val payload = with(payload) {
                 when (this) {
-                    is Payload.Full -> Confirm.Payload.Full(amount, rewardDestination, controllerAddress, validators)
-                    is Payload.ExistingStash -> Confirm.Payload.ExistingStash(validators)
-                    is Payload.Validators -> Confirm.Payload.Validators(validators)
+                    is Payload.Full -> ReadyToSubmit.Payload.Full(amount, rewardDestination, controllerAddress, validators, selectionMethod)
+                    is Payload.ExistingStash -> ReadyToSubmit.Payload.ExistingStash(validators, selectionMethod)
+                    is Payload.Validators -> ReadyToSubmit.Payload.Validators(validators, selectionMethod)
                 }
             }
 
-            return Confirm(payload)
+            return ReadyToSubmit(payload)
         }
     }
 
-    class Confirm(
-        val payload: Payload
+    class ReadyToSubmit(
+        val payload: Payload,
     ) : SetupStakingProcess() {
 
-        sealed class Payload(val validators: List<Validator>) {
+        enum class SelectionMethod {
+            RECOMMENDED, CUSTOM
+        }
+
+        sealed class Payload(
+            val validators: List<Validator>,
+            val selectionMethod: SelectionMethod
+        ) {
 
             class Full(
                 val amount: BigDecimal,
                 val rewardDestination: RewardDestination,
                 val currentAccountAddress: String,
-                validators: List<Validator>
-            ) : Payload(validators)
+                validators: List<Validator>,
+                selectionMethod: SelectionMethod
+            ) : Payload(validators, selectionMethod) {
+
+                override fun changeValidators(
+                    newValidators: List<Validator>,
+                    selectionMethod: SelectionMethod
+                ): Payload {
+                    return Full(amount, rewardDestination, currentAccountAddress, newValidators, selectionMethod)
+                }
+            }
 
             class ExistingStash(
-                validators: List<Validator>
-            ) : Payload(validators)
+                validators: List<Validator>,
+                selectionMethod: SelectionMethod
+            ) : Payload(validators, selectionMethod) {
+
+                override fun changeValidators(
+                    newValidators: List<Validator>,
+                    selectionMethod: SelectionMethod
+                ): Payload {
+                    return ExistingStash(newValidators, selectionMethod)
+                }
+            }
 
             class Validators(
-                validators: List<Validator>
-            ) : Payload(validators)
+                validators: List<Validator>,
+                selectionMethod: SelectionMethod
+            ) : Payload(validators, selectionMethod) {
+
+                override fun changeValidators(
+                    newValidators: List<Validator>,
+                    selectionMethod: SelectionMethod
+                ): Payload {
+                    return Validators(newValidators, selectionMethod)
+                }
+            }
+
+            abstract fun changeValidators(newValidators: List<Validator>, selectionMethod: SelectionMethod): Payload
         }
 
-        fun previous(): SetupStakingProcess {
+        fun changeValidators(
+            newValidators: List<Validator>,
+            selectionMethod: SelectionMethod
+        ) = ReadyToSubmit(payload.changeValidators(newValidators, selectionMethod))
+
+        fun previous(): Validators {
             val payload = with(payload) {
                 when (this) {
-                    is Payload.Full -> Validators.Payload.Full(amount, rewardDestination, currentAccountAddress,)
+                    is Payload.Full -> Validators.Payload.Full(amount, rewardDestination, currentAccountAddress)
                     is Payload.ExistingStash -> Validators.Payload.ExistingStash
                     is Payload.Validators -> Validators.Payload.Validators
                 }
@@ -114,4 +155,8 @@ class SetupStakingSharedState {
     }
 
     inline fun <reified T : SetupStakingProcess> get(): T = setupStakingProcess.value as T
+
+    fun mutate(mutation: (SetupStakingProcess) -> SetupStakingProcess) {
+        set(mutation(get()))
+    }
 }

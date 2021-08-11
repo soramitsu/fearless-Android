@@ -28,13 +28,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:background="@drawable/apply_button_background"
+        android:background="@drawable/primary_chip_background"
         android:includeFontPadding="false"
         android:paddingStart="12dp"
         android:paddingTop="6dp"
         android:paddingEnd="12dp"
         android:paddingBottom="6dp"
-        android:text="@string/crowdloan_apply"
+        android:text="@string/common_apply"
         android:textColor="@color/button_text_colors"
         app:layout_constraintBottom_toBottomOf="@+id/referralFearlessBonusTitle"
         app:layout_constraintEnd_toEndOf="parent"
@@ -60,7 +60,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:hint="@string/crowdloan_referral_code"
+        android:hint="@string/crowdloan_referral_code_invalid"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider1" />
@@ -73,7 +73,7 @@
         app:layout_constraintEnd_toEndOf="@+id/referralReferralCodeInput"
         app:layout_constraintStart_toStartOf="@+id/referralReferralCodeInput"
         app:layout_constraintTop_toBottomOf="@+id/referralReferralCodeInput"
-        app:title="@string/crowdloan_bonus" />
+        app:title="@string/common_bonus" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/referralPrivacySwitch"
@@ -90,14 +90,14 @@
         android:layout_marginStart="16dp"
         android:id="@+id/referralPrivacyText"
         app:layout_constrainedWidth="true"
-        android:text="@string/crowdloan_privacy_policy"
+        android:text="@string/onboarding_terms_and_conditions_1"
         app:layout_constraintBottom_toBottomOf="@+id/referralPrivacySwitch"
         app:layout_constraintEnd_toEndOf="@+id/referralBonus"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/referralPrivacySwitch"
         app:layout_constraintTop_toTopOf="@+id/referralPrivacySwitch" />
 
-    <jp.co.soramitsu.common.view.LearnMoreView
+    <jp.co.soramitsu.common.view.GoNextView
         android:id="@+id/referralLearnMore"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

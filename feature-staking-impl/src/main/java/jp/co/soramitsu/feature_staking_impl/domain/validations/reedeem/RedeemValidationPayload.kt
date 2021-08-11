@@ -5,5 +5,5 @@ import java.math.BigDecimal
 
 class RedeemValidationPayload(
     val fee: BigDecimal,
-    val asset: Asset,
+    val asset: Asset
 )

@@ -176,9 +176,9 @@ class SubscanValidatorSetFetcher(
     }
 
     private fun extractNominationsFromArgument(argument: Any?): List<String> {
-        require(argument is List<*>)
+        require(argument is List<*>?)
 
-        return argument.mapNotNull(::extractAccountIdFromArgument)
+        return argument.orEmpty().mapNotNull(::extractAccountIdFromArgument)
     }
 
     private suspend fun fetchExtrinsics(accountAddress: String, module: String, call: String? = null) = subscanPagedSynchronizer.fetchAll(

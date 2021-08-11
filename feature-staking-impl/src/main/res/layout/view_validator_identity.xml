@@ -22,12 +22,6 @@
         android:textColor="@color/white" />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
-        android:id="@+id/validatorIdentityDisplayNameView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:validatorInfoItemTitle="@string/identity_display_name_title" />
-
-    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/validatorIdentityLegalNameView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -15,7 +15,31 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/staking_payout_rewards" />
+        app:titleText="@string/staking_reward_payouts_title" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:id="@+id/payoutInstructionTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/staking_pending_rewards_info"
+        android:textColor="@color/black1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/payoutsListToolbar"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"/>
+
+    <View
+        android:id="@+id/payoutDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/payoutInstructionTextView"
+        android:background="@color/dividerGray" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/payoutsList"
@@ -27,7 +51,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/payoutsListToolbar"
+        app:layout_constraintTop_toBottomOf="@id/payoutDivider"
         tools:itemCount="20"
         tools:listitem="@layout/item_list_default" />
 
@@ -54,7 +78,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/payoutsListToolbar" />
 
-
     <ImageView
         android:id="@+id/payoutsPlaceholderIcon"
         android:layout_width="wrap_content"
@@ -74,7 +97,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="@string/payouts_placeholder"
+        android:text="@string/staking_reward_payouts_empty_rewards"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"

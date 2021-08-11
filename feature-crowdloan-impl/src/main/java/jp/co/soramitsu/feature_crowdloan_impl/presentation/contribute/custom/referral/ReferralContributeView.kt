@@ -59,7 +59,7 @@ class ReferralContributeView @JvmOverloads constructor(
         viewState.applyFearlessCodeEnabledFlow.observe(scope) { enabled ->
             referralFearlessBonusApply.isEnabled = enabled
 
-            val applyBonusButtonText = if (enabled) R.string.crowdloan_apply else R.string.crowdloan_applied
+            val applyBonusButtonText = if (enabled) R.string.common_apply else R.string.common_applied
             referralFearlessBonusApply.setText(applyBonusButtonText)
         }
 
@@ -76,7 +76,7 @@ class ReferralContributeView @JvmOverloads constructor(
 
         referralFearlessBonusApply.setOnClickListener { viewState.applyFearlessCode() }
 
-        referralPrivacyText.text = createSpannable(context.getString(R.string.crowdloan_privacy_policy)) {
+        referralPrivacyText.text = createSpannable(context.getString(R.string.onboarding_terms_and_conditions_1)) {
             clickable(context.getString(R.string.onboarding_terms_and_conditions_2)) {
                 viewState.termsClicked()
             }

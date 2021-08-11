@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/node_add" />
+        app:titleText="@string/connections_add_connection" />
 
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/nodeNameField"
@@ -34,7 +34,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:hint="@string/network_info_address_v1_0_1"
+        android:hint="@string/network_info_address"
         android:inputType="textWebEmailAddress|textNoSuggestions" />
 
     <jp.co.soramitsu.common.view.PrimaryButton

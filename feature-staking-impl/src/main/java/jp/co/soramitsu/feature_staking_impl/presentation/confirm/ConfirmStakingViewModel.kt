@@ -30,7 +30,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakin
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
-import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.Confirm.Payload
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit.Payload
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
@@ -68,7 +68,7 @@ class ConfirmStakingViewModel(
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
 
-    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.Confirm>()
+    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.ReadyToSubmit>()
 
     private val payload = currentProcessState.payload
 
@@ -105,7 +105,7 @@ class ConfirmStakingViewModel(
 
     val nominationsLiveData = liveData(Dispatchers.Default) {
         val selectedCount = payload.validators.size
-        val maxValidatorsPerNominator = recommendationSettingsProviderFactory.get().maximumValidatorsPerNominator
+        val maxValidatorsPerNominator = interactor.maxValidatorsPerNominator()
 
         emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxValidatorsPerNominator))
     }
@@ -145,8 +145,6 @@ class ConfirmStakingViewModel(
     }
 
     fun backClicked() {
-        setupStakingSharedState.set(currentProcessState.previous())
-
         router.back()
     }
 

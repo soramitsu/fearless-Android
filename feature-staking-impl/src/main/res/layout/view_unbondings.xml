@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="15dp"
-        android:text="@string/wallet_balance_unbonding"
+        android:text="@string/wallet_balance_unbonding_v1_9_0"
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -51,7 +51,7 @@
         android:layout_marginTop="15dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:text="@string/staking_unbondings_placeholder"
+        android:text="@string/staking_unbonding_empty_list_v1_9_0"
         android:textColor="@color/white_64"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

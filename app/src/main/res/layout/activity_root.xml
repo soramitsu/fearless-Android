@@ -18,7 +18,7 @@
         android:id="@+id/rootNetworkBar"
         android:layout_width="match_parent"
         android:background="@color/colorAccent"
-        android:text="@string/common_connecting"
+        android:text="@string/network_status_connecting"
         android:gravity="center"
         android:paddingTop="16dp"
         android:visibility="gone"
