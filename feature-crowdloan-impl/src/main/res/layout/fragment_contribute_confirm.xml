@@ -19,7 +19,7 @@
         android:id="@+id/confirmContributeOriginAcount"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:label="@string/account_address"
+        app:label="@string/common_account"
         app:actionIcon="@drawable/ic_more_vertical"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp" />

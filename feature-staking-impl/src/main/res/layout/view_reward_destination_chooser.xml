@@ -51,7 +51,7 @@
         android:paddingTop="12dp"
         android:layout_marginEnd="16dp"
         android:paddingBottom="12dp"
-        android:text="@string/staking_setup_learn_more"
+        android:text="@string/staking_rewards_learn_more"
         app:drawableStartCompat="@drawable/ic_fearless"
         app:drawableEndCompat="@drawable/ic_arrow_top_right_white_16" />
 

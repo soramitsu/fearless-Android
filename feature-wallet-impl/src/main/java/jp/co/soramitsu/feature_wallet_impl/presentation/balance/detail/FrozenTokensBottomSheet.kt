@@ -22,6 +22,6 @@ class FrozenTokensBottomSheet(
         currencyItem(R.string.wallet_balance_bonded, payload.bonded)
         currencyItem(R.string.wallet_balance_reserved, payload.reserved)
         currencyItem(R.string.wallet_balance_redeemable, payload.redeemable)
-        currencyItem(R.string.wallet_balance_unbonding, payload.unbonding)
+        currencyItem(R.string.wallet_balance_unbonding_v1_9_0, payload.unbonding)
     }
 }
