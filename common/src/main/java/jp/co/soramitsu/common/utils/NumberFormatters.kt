@@ -96,8 +96,6 @@ fun Long.formatDateFromMillis(context: Context) = DateUtils.formatDateTime(conte
 
 fun Long.formatDateTime(context: Context) = DateUtils.getRelativeDateTimeString(context, this, DateUtils.SECOND_IN_MILLIS, 0, 0)
 
-fun Long.secondsToMilliseconds() = this * 1000
-
 fun decimalFormatterFor(pattern: String): DecimalFormat {
     return DecimalFormat(pattern).apply {
         val symbols = decimalFormatSymbols

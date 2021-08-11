@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
-import jp.co.soramitsu.common.utils.secondsToMilliseconds
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeLocalToTokenType
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
@@ -10,6 +9,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
@@ -17,12 +18,13 @@ fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (s
     Operation.Status.FAILED -> OperationLocal.Status.FAILED
 }
 
+@ExperimentalTime
 fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.Source): OperationLocal {
     with(operation) {
         val operationLocal = OperationLocal(
             hash = hash,
             address = address,
-            time = time.secondsToMilliseconds(),
+            time = time.seconds.toLongMilliseconds(),
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
             type = transactionType.header,
             call = transactionType.subheader,

@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import kotlin.time.ExperimentalTime
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 class WalletRepositoryImpl(
@@ -94,6 +95,7 @@ class WalletRepositoryImpl(
         }
     }
 
+    @ExperimentalTime
     override suspend fun syncOperationsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String? {
         val page = getOperations(pageSize, cursor = null, account, accounts)
         val accountAddress = account.address
