@@ -30,7 +30,7 @@ The steps are the following:
  */
 
 class EraTimeCalculator(
-    private val startTimeStamp: BigInteger, // Doing math takes very long time. By finishing all requests and calculations the time will be outdated for ~5 seconds
+    private val startTimeStamp: BigInteger,
     private val sessionLength: BigInteger, // Number of blocks per session
     private val eraLength: BigInteger, // Number of sessions per era
     private val blockCreationTime: BigInteger, // How long it takes to create a block
@@ -46,16 +46,16 @@ class EraTimeCalculator(
         val eraProgress = (currentSessionIndex - eraStartSessionIndex) * sessionLength + sessionProgress
         val eraRemained = eraLength * sessionLength - eraProgress
 
+        val finishTimeStamp = System.currentTimeMillis().toBigInteger()
+        val deltaTime = finishTimeStamp - startTimeStamp // Doing math takes very long time. By finishing all requests and calculations the time will be outdated for ~5 seconds
+
         return if (destinationEra != null) {
             val leftEras = destinationEra - activeEra - 1.toBigInteger()
             val timeForLeftEras = leftEras * eraLength * sessionLength * blockCreationTime
 
-            val finishTimeStamp = System.currentTimeMillis().toBigInteger()
-            val deltaTime = finishTimeStamp - startTimeStamp
-
             eraRemained * blockCreationTime + timeForLeftEras - deltaTime
         } else {
-            eraRemained * blockCreationTime
+            eraRemained * blockCreationTime - deltaTime
         }
     }
 
@@ -69,32 +69,14 @@ class EraTimeCalculator(
 class EraTimeCalculatorFactory(val repository: StakingRepository) {
     suspend fun create(): EraTimeCalculator {
         val startRequestTime = System.currentTimeMillis().toBigInteger()
-        println("------ StartTime: $startRequestTime")
-
         val sessionLength = repository.sessionLength()
-        println("------ Session Length: $sessionLength")
         val eraLength = repository.eraLength()
-        println("------ eraLength: $eraLength")
-
         val blockCreationTime = repository.blockCreationTime()
-        println("------ blockCreationTime: $blockCreationTime")
-
         val currentSessionIndex = repository.currentSessionIndex()
-        println("------ currentSessionIndex: $currentSessionIndex")
-
         val currentSlot = repository.currentSlot()
-        println("------ currentSlot: $currentSlot")
-
         val genesisSlot = repository.genesisSlot()
-        println("------ genesisSlot: $genesisSlot")
-
         val activeEra = repository.getActiveEraIndexFromRemote()
-        println("------ activeEra: $activeEra")
-
         val eraStartSessionIndex = repository.eraStartSessionIndex(activeEra)
-        println("------ eraStartSessionIndex: $eraStartSessionIndex")
-        println("--------------------------------------------------")
-
 
         return EraTimeCalculator(
             startRequestTime,
