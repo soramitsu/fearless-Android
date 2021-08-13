@@ -119,6 +119,7 @@ class PayoutsListViewModel(
             PendingPayoutModel(
                 validatorTitle = validatorInfo.identityName ?: validatorInfo.address,
                 timeLeft = timeLeft,
+                timeLeftTimestamp = timeLeftTimestamp,
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
                 amount = amount.formatTokenChange(token.type, isIncome = true),
                 amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
