@@ -47,7 +47,8 @@ class PayoutViewHolder(override val containerView: View) : RecyclerView.ViewHold
     fun bind(payout: PendingPayoutModel, itemHandler: PayoutAdapter.ItemHandler) = with(containerView) {
         with(payout) {
             if (timer != null) timer?.cancel()
-            val deltaTime = timeLeftTimestamp - System.currentTimeMillis()
+
+            val deltaTime =  System.currentTimeMillis() - timeLeftTimestamp
             timer = itemListElementDescriptionLeft.startTimer(timeLeft - deltaTime) {
                 it.text = context.getText(R.string.staking_payout_expired)
                 it.setTextColor(context.getColor(R.color.red))
