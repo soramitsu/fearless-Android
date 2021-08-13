@@ -47,7 +47,8 @@ class EraTimeCalculator(
         val eraRemained = eraLength * sessionLength - eraProgress
 
         val finishTimeStamp = System.currentTimeMillis().toBigInteger()
-        val deltaTime = finishTimeStamp - startTimeStamp // Doing math takes very long time. By finishing all requests and calculations the time will be outdated for ~5 seconds
+        // Doing math takes very long time. By finishing all requests and calculations the time will be outdated for ~5 seconds
+        val deltaTime = finishTimeStamp - startTimeStamp
 
         return if (destinationEra != null) {
             val leftEras = destinationEra - activeEra - 1.toBigInteger()
