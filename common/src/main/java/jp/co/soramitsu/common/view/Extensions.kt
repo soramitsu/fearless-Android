@@ -7,8 +7,10 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
 
 @ExperimentalTime
-fun TextView.startTimer(millis: Long, onFinish: ((view: TextView) -> Unit)? = null): CountDownTimer {
-    return object : CountDownTimer(millis, 1000) {
+fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long = 0L, onFinish: ((view: TextView) -> Unit)? = null): CountDownTimer {
+    val deltaTime = if(timeLeftTimestamp != 0L) System.currentTimeMillis() - timeLeftTimestamp else 0L
+
+    return object : CountDownTimer(millis - deltaTime, 1000) {
         override fun onTick(millisUntilFinished: Long) {
             val days = millisUntilFinished.milliseconds.inDays.toInt()
 

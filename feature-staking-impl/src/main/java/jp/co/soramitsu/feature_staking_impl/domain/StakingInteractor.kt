@@ -239,7 +239,7 @@ class StakingInteractor(
                         .filter { it.isUnbondingIn(activeEraIndex) }
                         .map {
                             val leftTime = calculator.calculate(destinationEra = it.era)
-                            Unbonding(it.amount, leftTime.toLong())
+                            Unbonding(it.amount, leftTime.toLong(), System.currentTimeMillis())
                         }
                 }
             }
