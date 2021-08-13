@@ -144,7 +144,9 @@ class StakingInteractor(
         when {
             isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
 
-            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(timeLeft = getCalculator().calculate(nominatorState.nominations.submittedInEra + 1.toBigInteger()).toLong())
+            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(
+                timeLeft = getCalculator().calculate(nominatorState.nominations.submittedInEra + 1.toBigInteger()).toLong()
+            )
 
             else -> {
                 val inactiveReason = when {
