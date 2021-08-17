@@ -5,12 +5,19 @@ import android.widget.TextView
 import jp.co.soramitsu.common.R
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
+private val TIMER_TAG = R.string.common_time_left
 
 @ExperimentalTime
-fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long = 0L, onFinish: ((view: TextView) -> Unit)? = null): CountDownTimer {
-    val deltaTime = if(timeLeftTimestamp != 0L) System.currentTimeMillis() - timeLeftTimestamp else 0L
+fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, onFinish: ((view: TextView) -> Unit)? = null) {
+    val deltaTime = if(timeLeftTimestamp != null) System.currentTimeMillis() - timeLeftTimestamp else 0L
 
-    return object : CountDownTimer(millis - deltaTime, 1000) {
+    val currentTimer = getTag(TIMER_TAG)
+
+    if (currentTimer is CountDownTimer) {
+        currentTimer.cancel()
+    }
+
+    val newTimer = object : CountDownTimer(millis - deltaTime, 1000) {
         override fun onTick(millisUntilFinished: Long) {
             val days = millisUntilFinished.milliseconds.inDays.toInt()
 
@@ -28,8 +35,15 @@ fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long = 0L, onFinish: ((
             }
 
             cancel()
+
+            setTag(TIMER_TAG, null)
         }
+
     }
+    newTimer.start()
+
+    setTag(TIMER_TAG, newTimer)
+
 }
 
 fun Long.formatTime(): String {

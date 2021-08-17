@@ -143,11 +143,6 @@ class StakingRepositoryImpl(
         binding = ::bindActiveEra
     )
 
-    override suspend fun getActiveEraIndexFromRemote(): EraIndex = remoteStorage.queryNonNull(
-        keyBuilder = { it.metadata.activeEraStorageKey() },
-        binding = ::bindActiveEra
-    )
-
     override suspend fun getCurrentEraIndex(): EraIndex = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("CurrentEra").storageKey() },
         binding = ::bindCurrentEra

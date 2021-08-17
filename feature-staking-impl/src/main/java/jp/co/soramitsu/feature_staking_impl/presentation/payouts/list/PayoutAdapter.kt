@@ -41,19 +41,14 @@ class PayoutAdapter(
 }
 
 class PayoutViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
-    var timer: CountDownTimer? = null
 
     @ExperimentalTime
     fun bind(payout: PendingPayoutModel, itemHandler: PayoutAdapter.ItemHandler) = with(containerView) {
         with(payout) {
-            if (timer != null) timer?.cancel()
-
-            timer = itemListElementDescriptionLeft.startTimer(timeLeft, timeLeftTimestamp) {
+            itemListElementDescriptionLeft.startTimer(timeLeft, timeLeftTimestamp) {
                 it.text = context.getText(R.string.staking_payout_expired)
                 it.setTextColor(context.getColor(R.color.red))
             }
-
-            timer?.start()
 
             itemListElementTitleLeft.text = validatorTitle
             itemListElementTitleRight.text = amount
