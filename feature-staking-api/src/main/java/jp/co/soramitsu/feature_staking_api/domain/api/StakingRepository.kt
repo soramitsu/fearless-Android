@@ -37,8 +37,6 @@ interface StakingRepository {
 
     suspend fun getActiveEraIndex(): EraIndex
 
-    suspend fun getActiveEraIndexFromRemote(): EraIndex
-
     suspend fun getCurrentEraIndex(): EraIndex
 
     suspend fun getHistoryDepth(): BigInteger

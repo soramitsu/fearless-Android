@@ -41,8 +41,6 @@ class StakeSummaryView @JvmOverloads constructor(
         }
     }
 
-    var timer: CountDownTimer? = null
-
     @ExperimentalTime
     fun setElectionStatus(status: Status) {
         with(stakeSummaryStatus) {
@@ -52,11 +50,7 @@ class StakeSummaryView @JvmOverloads constructor(
         }
 
         if (status is Status.Waiting) {
-            if (timer != null) timer?.cancel()
-
-            timer = stakeSummaryStatusHelper.startTimer(status.timeLeft)
-
-            timer?.start()
+            stakeSummaryStatusHelper.startTimer(status.timeLeft)
         } else {
             stakeSummaryStatusHelper.text = status.extraMessage
         }

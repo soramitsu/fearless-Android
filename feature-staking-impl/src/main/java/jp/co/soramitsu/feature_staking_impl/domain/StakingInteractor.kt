@@ -56,6 +56,8 @@ class EraRelativeInfo(
     val erasPast: BigInteger,
 )
 
+val ERA_OFFSET = 1.toBigInteger()
+
 class StakingInteractor(
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
@@ -94,7 +96,7 @@ class StakingInteractor(
 
                 val closeToExpire = relativeInfo.erasLeft < historyDepth / 2.toBigInteger()
 
-                val leftTime = calculator.calculateTillEraSet(destinationEra = it.era + historyDepth + 1.toBigInteger()).toLong()
+                val leftTime = calculator.calculateTillEraSet(destinationEra = it.era + historyDepth + ERA_OFFSET).toLong()
                 val currentTimestamp = System.currentTimeMillis()
                 with(it) {
                     val validatorIdentity = identityMapping[validatorAddress]
@@ -142,7 +144,7 @@ class StakingInteractor(
             isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
 
             nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(
-                timeLeft = getCalculator().calculate(nominatorState.nominations.submittedInEra + 1.toBigInteger()).toLong()
+                timeLeft = getCalculator().calculate(nominatorState.nominations.submittedInEra + ERA_OFFSET).toLong()
             )
 
             else -> {
@@ -236,7 +238,10 @@ class StakingInteractor(
                         .filter { it.isUnbondingIn(activeEraIndex) }
                         .map {
                             val leftTime = calculator.calculate(destinationEra = it.era)
-                            Unbonding(it.amount, leftTime.toLong(), System.currentTimeMillis())
+                            Unbonding(
+                                amount = it.amount,
+                                timeLeft = leftTime.toLong(),
+                                calculatedAt = System.currentTimeMillis())
                         }
                 }
             }
