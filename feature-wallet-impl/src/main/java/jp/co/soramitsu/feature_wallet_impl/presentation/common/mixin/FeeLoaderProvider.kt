@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -45,6 +46,8 @@ class FeeLoaderProvider(
 
                 FeeStatus.Loaded(feeModel)
             } else {
+                feeResult.requireException().printStackTrace()
+
                 retryEvent.postValue(
                     Event(
                         RetryPayload(

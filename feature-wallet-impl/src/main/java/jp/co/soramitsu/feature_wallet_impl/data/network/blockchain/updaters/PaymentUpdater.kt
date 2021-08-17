@@ -35,7 +35,7 @@ class PaymentUpdater(
     private val assetCache: AssetCache,
     private val transactionsDao: TransactionDao,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    override val scope: AccountUpdateScope,
+    override val scope: AccountUpdateScope
 ) : Updater {
 
     override val requiredModules: List<String> = listOf(Modules.SYSTEM)

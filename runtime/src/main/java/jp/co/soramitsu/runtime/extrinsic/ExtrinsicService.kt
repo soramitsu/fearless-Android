@@ -1,10 +1,10 @@
 package jp.co.soramitsu.runtime.extrinsic
 
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 
 class ExtrinsicService(
-    private val substrateCalls: SubstrateCalls,
+    private val rpcCalls: RpcCalls,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory
 ) {
 
@@ -18,6 +18,6 @@ class ExtrinsicService(
 
         val extrinsic = extrinsicBuilder.build()
 
-        substrateCalls.submitExtrinsic(extrinsic)
+        rpcCalls.submitExtrinsic(extrinsic)
     }
 }
