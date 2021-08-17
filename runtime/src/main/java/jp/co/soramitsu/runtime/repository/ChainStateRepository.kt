@@ -31,7 +31,7 @@ class ChainStateRepository(
 
     suspend fun blockHashCount(): BigInteger? {
         return runtimeProperty.useValue { runtime ->
-           runtime.metadata.system().optionalNumberConstant("BlockHashCount", runtime)
+            runtime.metadata.system().optionalNumberConstant("BlockHashCount", runtime)
         }
     }
 

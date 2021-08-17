@@ -42,7 +42,6 @@ fun <T> DataType<T>.toHex(value: T): String {
     return toByteArray(value).toHexString(withPrefix = true)
 }
 
-
 fun <T> DataType<T>.toByteArray(value: T): ByteArray {
     val stream = ByteArrayOutputStream()
     val writer = ScaleCodecWriter(stream)

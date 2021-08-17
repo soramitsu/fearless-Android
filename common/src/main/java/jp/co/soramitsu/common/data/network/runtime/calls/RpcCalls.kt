@@ -85,7 +85,7 @@ class RpcCalls(
      *
      *  @param blockNumber - if null, then the  best block hash is returned
      */
-    suspend fun getBlockHash(blockNumber: BlockNumber? = null) : String = withContext(Dispatchers.IO) {
+    suspend fun getBlockHash(blockNumber: BlockNumber? = null): String = withContext(Dispatchers.IO) {
 //        val blockNumberHex = blockNumber?.let { compactInt.toHex(blockNumber) }
 
         socketService.executeAsync(GetBlockHashRequest(blockNumber), mapper = pojo<String>().nonNull())

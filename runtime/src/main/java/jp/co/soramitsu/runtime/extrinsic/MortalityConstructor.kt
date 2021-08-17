@@ -17,7 +17,7 @@ class MortalityConstructor(
     private val chainStateRepository: ChainStateRepository,
 ) {
 
-    suspend fun constructMortality() : Mortality {
+    suspend fun constructMortality(): Mortality {
         val finalizedHash = rpcCalls.getFinalizedHead()
 
         val bestHeader = rpcCalls.getBlockHeader()
