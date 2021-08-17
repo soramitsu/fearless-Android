@@ -12,8 +12,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.SubmitExtrinsicRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.math.BigInteger
 
 @Suppress("EXPERIMENTAL_API_USAGE")
@@ -81,13 +79,11 @@ class RpcCalls(
     }
 
     /**
-     * Retrieves the header for a specific block
+     * Retrieves the hash of a specific block
      *
      *  @param blockNumber - if null, then the  best block hash is returned
      */
-    suspend fun getBlockHash(blockNumber: BlockNumber? = null): String = withContext(Dispatchers.IO) {
-//        val blockNumberHex = blockNumber?.let { compactInt.toHex(blockNumber) }
-
-        socketService.executeAsync(GetBlockHashRequest(blockNumber), mapper = pojo<String>().nonNull())
+    suspend fun getBlockHash(blockNumber: BlockNumber? = null): String {
+        return socketService.executeAsync(GetBlockHashRequest(blockNumber), mapper = pojo<String>().nonNull())
     }
 }
