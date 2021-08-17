@@ -154,7 +154,7 @@ class StakingInteractor(
 
             NetworkInfo(
                 lockupPeriodInDays = lockupPeriod,
-                minimumStake = minimumStake(exposures, walletConstants.existentialDeposit()),
+                minimumStake = minimumStake(exposures, stakingRepository.minimumNominatorBond()),
                 totalStake = totalStake(exposures),
                 nominatorsCount = activeNominators(exposures),
             )
