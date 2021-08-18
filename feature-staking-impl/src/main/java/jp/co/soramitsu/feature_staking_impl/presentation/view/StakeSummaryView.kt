@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.startTimer
+import jp.co.soramitsu.common.view.stopTimer
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_stake_summary.view.*
 import kotlin.time.ExperimentalTime
@@ -52,6 +53,7 @@ class StakeSummaryView @JvmOverloads constructor(
         if (status is Status.Waiting) {
             stakeSummaryStatusHelper.startTimer(status.timeLeft)
         } else {
+            stakeSummaryStatusHelper.stopTimer()
             stakeSummaryStatusHelper.text = status.extraMessage
         }
     }

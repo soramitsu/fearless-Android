@@ -46,6 +46,15 @@ fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, onFinish:
 
 }
 
+fun TextView.stopTimer(){
+    val currentTimer = getTag(TIMER_TAG)
+
+    if(currentTimer is CountDownTimer){
+        currentTimer.cancel()
+        setTag(TIMER_TAG, null)
+    }
+}
+
 fun Long.formatTime(): String {
     val totalSeconds = this / 1000
     val hours = totalSeconds / 3600
