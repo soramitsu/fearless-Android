@@ -135,7 +135,6 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         stakingRewardsRepository: StakingRewardsRepository,
         stakingConstantsRepository: StakingConstantsRepository,
-        walletConstants: WalletConstants,
         identityRepository: IdentityRepository,
         payoutRepository: PayoutRepository,
     ) = StakingInteractor(
@@ -145,7 +144,6 @@ class StakingFeatureModule {
         stakingRewardsRepository,
         stakingConstantsRepository,
         identityRepository,
-        walletConstants,
         payoutRepository
     )
 
