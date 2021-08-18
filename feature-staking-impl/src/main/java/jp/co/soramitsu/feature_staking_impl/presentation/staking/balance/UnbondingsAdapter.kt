@@ -38,7 +38,7 @@ class UnbondingsHolder(override val containerView: View) : RecyclerView.ViewHold
     @ExperimentalTime
     fun bind(unbonding: UnbondingModel) = with(containerView) {
         with(unbonding) {
-          itemListElementDescriptionLeft.startTimer(timeLeft, calculatedAt)
+            itemListElementDescriptionLeft.startTimer(timeLeft, calculatedAt)
 
 
             itemListElementTitleLeft.text = context.getString(R.string.staking_unbond_v1_9_0)
