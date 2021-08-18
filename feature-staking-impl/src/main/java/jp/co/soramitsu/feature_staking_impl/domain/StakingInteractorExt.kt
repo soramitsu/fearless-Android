@@ -41,7 +41,7 @@ fun Exposure.willAccountBeRewarded(
 
 fun minimumStake(
     exposures: Collection<Exposure>,
-    existentialDeposit: BigInteger,
+    minimumNominatorBond: BigInteger,
 ): BigInteger {
 
     val stakeByNominator = exposures
@@ -55,5 +55,5 @@ fun minimumStake(
             acc
         }
 
-    return stakeByNominator.values.minOrNull()!!.coerceAtLeast(existentialDeposit)
+    return stakeByNominator.values.minOrNull()!!.coerceAtLeast(minimumNominatorBond)
 }
