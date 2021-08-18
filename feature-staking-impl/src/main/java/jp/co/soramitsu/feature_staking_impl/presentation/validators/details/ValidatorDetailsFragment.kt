@@ -112,7 +112,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
         }
 
         viewModel.errorFlow.observe {
-            it?.let { validatorInfo.setError(it) }
+            it?.let { validatorInfo.setErrors(it) }
         }
 
         viewModel.openEmailEvent.observeEvent {

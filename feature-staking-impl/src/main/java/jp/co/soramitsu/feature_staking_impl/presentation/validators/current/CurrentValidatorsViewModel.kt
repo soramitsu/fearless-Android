@@ -59,6 +59,9 @@ class CurrentValidatorsViewModel(
         .map { it.token }
         .share()
 
+    private val accountFlow = stakingInteractor.selectedAccountFlow()
+        .share()
+
     val currentValidatorModelsLiveData = groupedCurrentValidatorsFlow.combine(tokenFlow) { gropedList, token ->
         gropedList.mapKeys { (status, validators) -> mapNominatedValidatorStatusToUiModel(status, validators.size) }
             .mapValues { (_, nominatedValidators) -> nominatedValidators.map { mapNominatedValidatorToUiModel(it, token) } }
@@ -69,7 +72,7 @@ class CurrentValidatorsViewModel(
         .asLiveData()
 
     val oversubscribedValidatorsFlow = groupedCurrentValidatorsFlow.map {
-        it[NominatedValidator.Status.Active]?.get(0)?.validator?.electedInfo?.isOversubscribed() ?: false
+        it[NominatedValidator.Status.Active]?.get(0)?.validator?.electedInfo?.isOversubscribed ?: false
     }.inBackground()
         .share()
 
@@ -87,7 +90,7 @@ class CurrentValidatorsViewModel(
         return NominatedValidatorModel(
             addressModel = iconGenerator.createAddressModel(validatorAddress, AddressIconGenerator.SIZE_MEDIUM, validator.identity?.display),
             nominated = nominationFormatted,
-            isOversubscribed = validator.electedInfo?.isOversubscribed() ?: false,
+            isOversubscribed = validator.electedInfo?.isOversubscribed ?: false,
             isSlashed = validator.slashed
         )
     }
@@ -149,7 +152,7 @@ class CurrentValidatorsViewModel(
 
             val nominatedValidator = allValidators.first { it.validator.accountIdHex == accountId }
 
-            mapValidatorToValidatorDetailsWithStakeFlagParcelModel(nominatedValidator)
+            mapValidatorToValidatorDetailsWithStakeFlagParcelModel(nominatedValidator, accountFlow.first())
         }
 
         router.openValidatorDetails(payload)

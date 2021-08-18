@@ -44,8 +44,8 @@ class ValidatorInfoView @JvmOverloads constructor(
         validatorTotalStakeView.setExtraOrHide(fiat)
     }
 
-    fun setNominatorsCount(count: Int, maxNominations: Int) {
-        validatorNominatorsView.setBody(context.getString(R.string.staking_max_format, count, maxNominations))
+    fun setNominatorsCount(count: Int, maxNominations: Int?) {
+        validatorNominatorsView.setBody(if (maxNominations == null) count.toString() else context.getString(R.string.staking_max_format, count, maxNominations))
     }
 
     fun setEstimatedRewardApy(reward: String) {
@@ -69,7 +69,7 @@ class ValidatorInfoView @JvmOverloads constructor(
         validatorStatusView.setBodyIconResource(R.drawable.ic_status_indicator, statusColorRes)
     }
 
-    fun setError(vararg error: Error) {
+    fun setErrors(vararg error: Error) {
         for (err in error) {
             when (err) {
                 is Error.OversubscribedUnpaid -> validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)

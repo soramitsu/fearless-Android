@@ -18,15 +18,15 @@ sealed class ValidatorStakeParcelModel : Parcelable {
         val nominators: List<NominatorParcelModel>,
         val apy: BigDecimal,
         val isSlashed: Boolean,
-        val maxNominators: Int = Int.MAX_VALUE,
-        val isNominated: Boolean = false,
+        val nominatorInfo: NominatorInfo? = null
     ) : ValidatorStakeParcelModel() {
 
-        fun isInLimit(address: String): Boolean {
-            val indexOfCurrentAccount = nominators.sortedBy { it.value }.indexOfFirst { it.who.contentEquals(address.toAccountId()) }
-            return indexOfCurrentAccount < maxNominators
-        }
-
-        fun isOversubscribed() = nominators.size > maxNominators
+        @Parcelize
+        class NominatorInfo(
+            val maxNominators: Int,
+            val isNominated: Boolean,
+            val isInLimit: Boolean,
+            val isOversubscribed: Boolean
+        ) : Parcelable 
     }
 }

@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
@@ -117,7 +118,8 @@ fun mapValidatorToValidatorDetailsParcelModel(
 }
 
 fun mapValidatorToValidatorDetailsWithStakeFlagParcelModel(
-    nominatedValidator: NominatedValidator
+    nominatedValidator: NominatedValidator,
+    account: StakingAccount
 ): ValidatorDetailsParcelModel {
     val isNominated = nominatedValidator.status is NominatedValidator.Status.Active // if we nominated all money to this validator
 
@@ -127,7 +129,12 @@ fun mapValidatorToValidatorDetailsWithStakeFlagParcelModel(
         val stakeModel = electedInfo?.let {
             val nominators = it.nominatorStakes.map(::mapNominatorToNominatorParcelModel)
 
-            ValidatorStakeParcelModel.Active(it.totalStake, it.ownStake, nominators, it.apy, slashed, it.maxNominators, isNominated)
+            val indexOfCurrentAccount = nominators.sortedBy { it.value }.indexOfFirst { it.who.contentEquals(account.address.toAccountId()) }
+            val isInLimit = indexOfCurrentAccount < it.maxNominators
+
+            val isOversubscribed = nominators.size > it.maxNominators
+
+            ValidatorStakeParcelModel.Active(it.totalStake, it.ownStake, nominators, it.apy, slashed, ValidatorStakeParcelModel.Active.NominatorInfo(it.maxNominators, isNominated, isInLimit, isOversubscribed))
         } ?: ValidatorStakeParcelModel.Inactive
 
         ValidatorDetailsParcelModel(accountIdHex, stakeModel, identityModel)
@@ -135,19 +142,20 @@ fun mapValidatorToValidatorDetailsWithStakeFlagParcelModel(
 }
 
 fun mapValidatorDetailsToErrors(
-    validator: ValidatorDetailsParcelModel,
-    account: StakingAccount
+    validator: ValidatorDetailsParcelModel
 ): Error? {
     return when (val stake = validator.stake) {
         ValidatorStakeParcelModel.Inactive -> null
         is ValidatorStakeParcelModel.Active -> {
-            when {
-                stake.isOversubscribed() && !stake.isNominated -> Error.OversubscribedPaid
-                stake.isOversubscribed() && stake.isInLimit(account.address) -> Error.OversubscribedPaid
-                stake.isOversubscribed() && !stake.isInLimit(account.address) -> Error.OversubscribedUnpaid
-                stake.isSlashed -> Error.Slashed
-                else -> null
-            }
+            val nominatorInfo = stake.nominatorInfo ?: return null
+
+            return if (nominatorInfo.isOversubscribed) {
+                if (!nominatorInfo.isNominated) Error.OversubscribedPaid
+                else if (nominatorInfo.isInLimit) Error.OversubscribedPaid
+                else Error.OversubscribedUnpaid
+            } else if (stake.isSlashed) Error.Slashed
+            else null
+
         }
     }
 }
@@ -190,7 +198,7 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
                         totalStakeFiat = totalStakeFiatFormatted,
                         nominatorsCount = nominatorsCount,
                         apy = apyPercentageFormatted,
-                        maxNominations = stake.maxNominators
+                        maxNominations = stake.nominatorInfo?.maxNominators
                     )
                 )
             }

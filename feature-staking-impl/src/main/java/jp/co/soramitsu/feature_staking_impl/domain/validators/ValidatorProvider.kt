@@ -52,6 +52,7 @@ class ValidatorProvider(
 
         return requestedValidatorIds.map { accountIdHex ->
             val prefs = validatorPrefs[accountIdHex]
+            val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
             val electedInfo = electedValidatorExposures[accountIdHex]?.let {
                 Validator.ElectedInfo(
@@ -59,7 +60,8 @@ class ValidatorProvider(
                     ownStake = it.own,
                     nominatorStakes = it.others,
                     apy = rewardCalculator.getApyFor(accountIdHex),
-                    maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(),
+                    maxNominators = maxNominators,
+                    isOversubscribed = it.others.size > maxNominators
                 )
             }
 
