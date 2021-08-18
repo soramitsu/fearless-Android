@@ -136,7 +136,6 @@ class StakingInteractor(
     suspend fun observeNominatorSummary(
         nominatorState: StakingState.Stash.Nominator,
     ): Flow<StakeSummary<NominatorStatus>> = observeStakeSummary(nominatorState) {
-        val existentialDeposit = walletConstants.existentialDeposit()
         val eraStakers = it.eraStakers.values
 
         when {
@@ -148,7 +147,7 @@ class StakingInteractor(
 
             else -> {
                 val inactiveReason = when {
-                    it.asset.bondedInPlanks < minimumStake(eraStakers, existentialDeposit) -> NominatorStatus.Inactive.Reason.MIN_STAKE
+                    it.asset.bondedInPlanks < minimumStake(eraStakers, stakingRepository.minimumNominatorBond()) -> NominatorStatus.Inactive.Reason.MIN_STAKE
                     else -> NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR
                 }
 
@@ -165,7 +164,7 @@ class StakingInteractor(
 
             NetworkInfo(
                 lockupPeriodInDays = lockupPeriod,
-                minimumStake = minimumStake(exposures, walletConstants.existentialDeposit()),
+                minimumStake = minimumStake(exposures, stakingRepository.minimumNominatorBond()),
                 totalStake = totalStake(exposures),
                 nominatorsCount = activeNominators(exposures),
             )
