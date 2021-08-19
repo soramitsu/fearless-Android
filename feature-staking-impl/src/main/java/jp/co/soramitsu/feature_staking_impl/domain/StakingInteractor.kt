@@ -92,8 +92,6 @@ class StakingInteractor(
             val pendingPayouts = payouts.map {
                 val relativeInfo = eraRelativeInfo(it.era, activeEraIndex, historyDepth, erasPerDay)
 
-                val estimatedCreatedAt = System.currentTimeMillis().milliseconds - relativeInfo.daysPast.days
-
                 val closeToExpire = relativeInfo.erasLeft < historyDepth / 2.toBigInteger()
 
                 val leftTime = calculator.calculateTillEraSet(destinationEra = it.era + historyDepth + ERA_OFFSET).toLong()
@@ -103,7 +101,13 @@ class StakingInteractor(
 
                     val validatorInfo = PendingPayout.ValidatorInfo(validatorAddress, validatorIdentity?.display)
 
-                    PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), leftTime, currentTimestamp, closeToExpire)
+                    PendingPayout(
+                        validatorInfo = validatorInfo,
+                        era = era,
+                        amountInPlanks = amount,
+                        timeLeft = leftTime,
+                        createdAt = currentTimestamp,
+                        closeToExpire = closeToExpire)
                 }
             }.sortedBy { it.era }
 
