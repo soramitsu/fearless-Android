@@ -22,7 +22,7 @@ import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 
 @Module
-open class DbModule {
+class DbModule {
 
     @Provides
     @ApplicationScope
@@ -33,7 +33,7 @@ open class DbModule {
 
     @Provides
     @ApplicationScope
-    open fun provideAppDatabase(
+    fun provideAppDatabase(
         context: Context,
         prefsToDbActiveNodeMigrator: PrefsToDbActiveNodeMigrator,
     ): AppDatabase {
