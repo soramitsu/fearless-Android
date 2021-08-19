@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.payouts.list
 
-import android.os.CountDownTimer
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -11,8 +10,6 @@ import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.startTimer
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutModel
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.formatTime
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.getDays
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionLeft
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionRight

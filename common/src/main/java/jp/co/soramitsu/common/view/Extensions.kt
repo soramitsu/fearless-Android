@@ -9,7 +9,7 @@ private val TIMER_TAG = R.string.common_time_left
 
 @ExperimentalTime
 fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, onFinish: ((view: TextView) -> Unit)? = null) {
-    val deltaTime = if(timeLeftTimestamp != null) System.currentTimeMillis() - timeLeftTimestamp else 0L
+    val deltaTime = if (timeLeftTimestamp != null) System.currentTimeMillis() - timeLeftTimestamp else 0L
 
     val currentTimer = getTag(TIMER_TAG)
 
@@ -38,18 +38,16 @@ fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, onFinish:
 
             setTag(TIMER_TAG, null)
         }
-
     }
     newTimer.start()
 
     setTag(TIMER_TAG, newTimer)
-
 }
 
-fun TextView.stopTimer(){
+fun TextView.stopTimer() {
     val currentTimer = getTag(TIMER_TAG)
 
-    if(currentTimer is CountDownTimer){
+    if (currentTimer is CountDownTimer) {
         currentTimer.cancel()
         setTag(TIMER_TAG, null)
     }

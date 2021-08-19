@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
-import android.os.CountDownTimer
 import android.provider.Settings.Global.getString
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

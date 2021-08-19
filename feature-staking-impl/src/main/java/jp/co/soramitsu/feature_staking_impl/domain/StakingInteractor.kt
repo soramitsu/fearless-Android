@@ -241,7 +241,8 @@ class StakingInteractor(
                             Unbonding(
                                 amount = it.amount,
                                 timeLeft = leftTime.toLong(),
-                                calculatedAt = System.currentTimeMillis())
+                                calculatedAt = System.currentTimeMillis()
+                            )
                         }
                 }
             }

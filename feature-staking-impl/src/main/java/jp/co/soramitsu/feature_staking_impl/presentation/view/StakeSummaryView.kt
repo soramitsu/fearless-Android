@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.view
 
 import android.content.Context
-import android.os.CountDownTimer
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout

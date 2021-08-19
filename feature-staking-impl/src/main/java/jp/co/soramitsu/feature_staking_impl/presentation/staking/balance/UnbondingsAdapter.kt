@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
-import android.os.CountDownTimer
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -39,7 +38,6 @@ class UnbondingsHolder(override val containerView: View) : RecyclerView.ViewHold
     fun bind(unbonding: UnbondingModel) = with(containerView) {
         with(unbonding) {
             itemListElementDescriptionLeft.startTimer(timeLeft, calculatedAt)
-
 
             itemListElementTitleLeft.text = context.getString(R.string.staking_unbond_v1_9_0)
             itemListElementTitleRight.text = unbonding.amountModel.token
