@@ -37,6 +37,8 @@ fun mapChainRemoteToChain(
     }
 
     return with(chainRemote) {
+        val optionsOrEmpty = options.orEmpty()
+
         Chain(
             id = chainId,
             parentId = parentId,
@@ -46,8 +48,8 @@ fun mapChainRemoteToChain(
             nodes = nodes,
             icon = icon,
             addressPrefix = addressPrefix,
-            isEthereumBased = ETHEREUM_OPTION in options,
-            isTestNet = TESTNET_OPTION in options
+            isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty,
+            isTestNet = TESTNET_OPTION in optionsOrEmpty
         )
     }
 }

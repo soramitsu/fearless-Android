@@ -8,6 +8,6 @@ data class ChainRemote(
     val icon: String,
     val addressPrefix: Int,
     val types: ChainTypesInfo?,
-    val options: List<String>,
+    val options: List<String>?,
     val parentId: String?
 )

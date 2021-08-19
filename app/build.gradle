@@ -15,7 +15,7 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
         versionCode computeVersionCode()
         versionName computeVersionName()
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
       ci {
@@ -133,6 +133,12 @@ dependencies {
     implementation insetterDep
 
     implementation liveDataKtxDep
+
+    kaptAndroidTest daggerKapt
+
+    androidTestImplementation androidTestRunnerDep
+    androidTestImplementation androidTestRulesDep
+    androidTestImplementation androidJunitDep
 }
 
 task printVersion {
