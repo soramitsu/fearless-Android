@@ -16,7 +16,6 @@ import androidx.room.Index
         )
     ],
     indices = [
-        Index(value = ["url"], unique = true),
         Index(value = ["chainId"])
     ]
 )

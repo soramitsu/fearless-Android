@@ -12,10 +12,12 @@ class ChainLocal(
     val icon: String,
     @Embedded
     val types: TypesConfig?,
-    val prefix: Int
+    val prefix: Int,
+    val isEthereumBased: Boolean,
+    val isTestNet: Boolean,
 ) {
     class TypesConfig(
         val url: String,
-        val overrideCommon: Boolean
+        val overridesCommon: Boolean
     )
 }

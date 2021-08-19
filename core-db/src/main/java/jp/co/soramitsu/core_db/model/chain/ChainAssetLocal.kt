@@ -21,7 +21,7 @@ import androidx.room.Index
     ]
 )
 class ChainAssetLocal(
-    val id: String,
+    val id: Int,
     val chainId: String,
     val name: String,
     val symbol: String,

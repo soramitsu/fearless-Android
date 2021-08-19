@@ -21,6 +21,8 @@ abstract class ChainDao {
     ) {
         deleteChains(removed)
 
+        deleteChains(newOrUpdated.map(JoinedChainInfo::chain)) // delete all nodes and assets associated with changed chains
+
         insertChains(newOrUpdated.map(JoinedChainInfo::chain))
         insertChainNodes(newOrUpdated.flatMap(JoinedChainInfo::nodes))
         insertChainAssets(newOrUpdated.flatMap(JoinedChainInfo::assets))
@@ -29,13 +31,13 @@ abstract class ChainDao {
     @Delete
     protected abstract suspend fun deleteChains(chains: List<ChainLocal>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     protected abstract suspend fun insertChains(chains: List<ChainLocal>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     protected abstract suspend fun insertChainNodes(nodes: List<ChainNodeLocal>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
 
     @Query("SELECT * FROM chains")

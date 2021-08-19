@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
+import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
@@ -23,6 +24,8 @@ import jp.co.soramitsu.runtime.RuntimeCache
 import jp.co.soramitsu.runtime.RuntimeConstructor
 import jp.co.soramitsu.runtime.RuntimePrepopulator
 import jp.co.soramitsu.runtime.RuntimeUpdater
+import jp.co.soramitsu.runtime.chain.ChainSyncService
+import jp.co.soramitsu.runtime.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
@@ -152,4 +155,15 @@ class RuntimeModule {
         socketService: SocketService,
         bulkRetriever: BulkRetriever
     ): StorageDataSource = RemoteStorageSource(runtimeProperty, socketService, bulkRetriever)
+
+    @Provides
+    @ApplicationScope
+    fun provideChainFetcher(apiCreator: NetworkApiCreator) = apiCreator.create(ChainFetcher::class.java)
+
+    @Provides
+    @ApplicationScope
+    fun provideChainSyncService(
+        dao: ChainDao,
+        chainFetcher: ChainFetcher
+    ) = ChainSyncService(dao, chainFetcher)
 }

@@ -46,12 +46,12 @@ class SimpleEntityReadWriteTest {
 
         val chainsFromDb = chainDao.getJoinChainInfo()
 
-        assertEquals(chainsFromDb.size, 1)
+        assertEquals(1, chainsFromDb.size)
 
         val chainFromDb = chainsFromDb.first()
 
-        assertEquals(chainFromDb.assets.size, chainInfo.assets.size)
-        assertEquals(chainFromDb.nodes.size, chainInfo.nodes.size)
+        assertEquals(chainInfo.assets.size, chainFromDb.assets.size)
+        assertEquals(chainInfo.nodes.size, chainFromDb.nodes.size)
     }
 
     @Test
@@ -62,10 +62,25 @@ class SimpleEntityReadWriteTest {
         chainDao.update(removed = listOf(chainInfo.chain), newOrUpdated = emptyList())
 
         val assetsCursor = db.query("SELECT * FROM chain_assets", emptyArray())
-        assertEquals(assetsCursor.count, 0)
+        assertEquals(0, assetsCursor.count)
 
         val nodesCursor = db.query("SELECT * FROM chain_nodes", emptyArray())
-        assertEquals(nodesCursor.count, 0)
+        assertEquals(0, nodesCursor.count)
+    }
+
+    @Test
+    fun shouldDeleteRemovedNodes() = runBlocking {
+        val chainInfo = createTestChain("0x00", nodesCount = 3)
+
+        chainDao.update(newOrUpdated = listOf(chainInfo), removed = emptyList())
+
+        val newChainInfo = createTestChain("0x00", nodesCount = 2)
+
+        chainDao.update(newOrUpdated = listOf(newChainInfo), removed = emptyList())
+
+        val chainFromDb2 = chainDao.getJoinChainInfo().first()
+
+        assertEquals(2, chainFromDb2.nodes.size)
     }
 
     @Test
@@ -92,7 +107,7 @@ class SimpleEntityReadWriteTest {
 
         val chainsFromDb = chainDao.getJoinChainInfo()
 
-        assertEquals(newOrUpdated.size, chainsFromDb.size)
+        assertEquals(chainsFromDb.size, newOrUpdated.size)
 
         newOrUpdated.zip(chainsFromDb) { expected, actual ->
             assertEquals(expected.chain.id, actual.chain.id)
@@ -102,19 +117,21 @@ class SimpleEntityReadWriteTest {
         Unit
     }
 
-    private fun createTestChain(id: String, name: String = id): JoinedChainInfo {
+    private fun createTestChain(
+        id: String,
+        name: String = id,
+        nodesCount: Int = 3
+    ): JoinedChainInfo {
         val chain = chainOf(id, name)
         val nodes = with(chain) {
-            listOf(
-                nodeOf("link1"),
-                nodeOf("link2"),
-                nodeOf("link3")
-            )
+            (1..nodesCount).map {
+                nodeOf("link${it}")
+            }
         }
         val assets = with(chain) {
             listOf(
-                assetOf("0x001", symbol = "A"),
-                assetOf("0x002", symbol = "B")
+                assetOf(0, symbol = "A"),
+                assetOf(1, symbol = "B")
             )
         }
 
@@ -130,7 +147,9 @@ class SimpleEntityReadWriteTest {
         name = name,
         icon = "Test",
         types = null,
-        prefix = 0
+        prefix = 0,
+        isTestNet = false,
+        isEthereumBased = false
     )
 
     private fun ChainLocal.nodeOf(
@@ -142,7 +161,7 @@ class SimpleEntityReadWriteTest {
     )
 
     private fun ChainLocal.assetOf(
-        assetId: String,
+        assetId: Int,
         symbol: String,
     ) = ChainAssetLocal(
         name = "Test",
