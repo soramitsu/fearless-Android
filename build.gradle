@@ -135,6 +135,10 @@ buildscript {
         archCoreTestDep = "androidx.arch.core:core-testing:$architectureComponentVersion"
 
         progressButtonDep = "com.github.razir.progressbutton:progressbutton:$progressButtonsVersion"
+
+        androidTestRunnerDep = 'androidx.test:runner:1.4.0'
+        androidTestRulesDep = 'androidx.test:rules:1.4.0'
+        androidJunitDep = 'androidx.test.ext:junit:1.1.3'
     }
 
     repositories {
