@@ -110,5 +110,4 @@ open class DbModule {
     fun provideChainDao(appDatabase: AppDatabase): ChainDao {
         return appDatabase.chainDao()
     }
-
 }

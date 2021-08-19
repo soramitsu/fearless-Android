@@ -139,4 +139,3 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
         assets = assets
     )
 }
-
