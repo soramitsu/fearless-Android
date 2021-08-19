@@ -11,6 +11,11 @@ import jp.co.soramitsu.feature_wallet_impl.data.buyToken.rpc.subscribeStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+class StorageQuery<R>(
+    val key: String,
+    val binder: (Any?) -> R
+)
+
 abstract class StorageEntryBase<R>(
     protected val runtime: RuntimeSnapshot,
     protected val storageEntryMetadata: StorageEntry,
@@ -27,9 +32,11 @@ abstract class StorageEntryBase<R>(
     }
 
     protected fun subscribe(key: String): Flow<R?> {
-        return api.rpc.state.subscribeStorage(key)
-            .map {
-                it?.let {
+        return api.rpc.state.subscribeStorage(listOf(key))
+            .map { changes ->
+                val (_, change) = changes.first()
+
+                change?.let {
                     val decoded = storageEntryMetadata.type.value!!.fromHexOrIncompatible(it, runtime)
 
                     binder(decoded)
@@ -63,5 +70,7 @@ class SingleMapStorageEntry<K, R>(
         return query(storageEntryMetadata.storageKey(runtime, key))
     }
 
-    fun subscribe(key: K): Flow<R?> = subscribe(storageEntryMetadata.storageKey(runtime, key))
+    fun subscribe(key: K): Flow<R?> {
+        return subscribe(storageEntryMetadata.storageKey(runtime, key))
+    }
 }

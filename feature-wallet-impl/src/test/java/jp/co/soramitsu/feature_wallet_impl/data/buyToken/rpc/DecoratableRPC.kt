@@ -49,7 +49,7 @@ class DecoratableRPC(
                 }
             }
 
-            override fun <A : Any, R> subscription0List(callName: String, binder: (SubscriptionChange) -> R): RpcSubscriptionList<A, R> {
+            override fun <A : Any, R> subscriptionList(callName: String, binder: (SubscriptionChange) -> R): RpcSubscriptionList<A, R> {
                 return decorateInternal(callName) {
                     RpcSubscriptionList(moduleName, callName, socketService, binder)
                 }

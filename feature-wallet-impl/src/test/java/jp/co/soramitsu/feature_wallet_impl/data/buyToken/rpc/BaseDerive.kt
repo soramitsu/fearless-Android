@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.buyToken.rpc
 
+import jp.co.soramitsu.common.utils.second
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
 
 interface AuthorRpc : DecoratableRPCModule
@@ -26,7 +27,9 @@ val StateRpc.getStorage: RpcCall1<String, String?>
         call1("getStorage", asOptionalString)
     }
 
-val StateRpc.subscribeStorage: RpcSubscription1<String, String?>
+val StateRpc.subscribeStorage: RpcSubscription1<List<String>, List<Pair<String, String?>>>
     get() = with(decorator) {
-        subscription1("subscribeStorage") { it.storageChange().getSingleChange() }
+        subscription1("subscribeStorage") { subscriptionChange ->
+            subscriptionChange.storageChange().changes.map { it.first()!! to it.second() }
+        }
     }

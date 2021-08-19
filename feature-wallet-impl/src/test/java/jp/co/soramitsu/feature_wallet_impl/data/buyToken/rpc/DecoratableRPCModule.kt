@@ -18,7 +18,7 @@ interface DecoratableRPCModule {
 
         fun <A : Any, R> subscription1(callName: String, binder: (SubscriptionChange) -> R): RpcSubscription1<A, R>
 
-        fun <A : Any, R> subscription0List(callName: String, binder: (SubscriptionChange) -> R): RpcSubscriptionList<A, R>
+        fun <A : Any, R> subscriptionList(callName: String, binder: (SubscriptionChange) -> R): RpcSubscriptionList<A, R>
     }
 }
 

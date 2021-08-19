@@ -74,11 +74,10 @@ class TestApi {
         val runtimeMetadata = RuntimeMetadata(typeRegistry, runtimeMetadataStruct)
         val runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata)
 
-        print("A")
         val api = SubstrateApi(runtime, socketService)
 
         api.query.staking.historyDepth.subscribe()
-            .onEach { print(it) }
+            .onEach { println(it) }
             .collect()
     }
 }
