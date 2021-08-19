@@ -1,11 +1,13 @@
-package jp.co.soramitsu.feature_crowdloan_impl.data.repository
+package jp.co.soramitsu.runtime.repository
 
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.bindBlockNumber
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.babe
 import jp.co.soramitsu.common.utils.numberConstant
+import jp.co.soramitsu.common.utils.optionalNumberConstant
 import jp.co.soramitsu.common.utils.system
+import jp.co.soramitsu.common.utils.useValue
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
@@ -25,6 +27,12 @@ class ChainStateRepository(
         val runtime = runtimeProperty.get()
 
         return runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime)
+    }
+
+    suspend fun blockHashCount(): BigInteger? {
+        return runtimeProperty.useValue { runtime ->
+            runtime.metadata.system().optionalNumberConstant("BlockHashCount", runtime)
+        }
     }
 
     suspend fun currentBlock() = localStorage.queryNonNull(
