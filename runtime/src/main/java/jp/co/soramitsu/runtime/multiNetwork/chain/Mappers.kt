@@ -1,11 +1,11 @@
-package jp.co.soramitsu.runtime.chain
+package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
-import jp.co.soramitsu.runtime.chain.model.Chain
-import jp.co.soramitsu.runtime.chain.remote.model.ChainRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 
 private const val ETHEREUM_OPTION = "ethereumBased"
 private const val TESTNET_OPTION = "testnet"

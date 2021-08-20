@@ -8,8 +8,8 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.FeatureContainer
 import jp.co.soramitsu.core_db.AppDatabase
-import jp.co.soramitsu.runtime.chain.ChainSyncService
-import jp.co.soramitsu.runtime.chain.remote.ChainFetcher
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test

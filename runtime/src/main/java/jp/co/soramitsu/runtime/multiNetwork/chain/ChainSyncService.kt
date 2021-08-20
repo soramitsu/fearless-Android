@@ -1,9 +1,9 @@
-package jp.co.soramitsu.runtime.chain
+package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
-import jp.co.soramitsu.runtime.chain.model.Chain
-import jp.co.soramitsu.runtime.chain.remote.ChainFetcher
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

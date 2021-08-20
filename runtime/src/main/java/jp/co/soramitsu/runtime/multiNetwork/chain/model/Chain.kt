@@ -1,4 +1,4 @@
-package jp.co.soramitsu.runtime.chain.model
+package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
 data class Chain(
     val id: String,

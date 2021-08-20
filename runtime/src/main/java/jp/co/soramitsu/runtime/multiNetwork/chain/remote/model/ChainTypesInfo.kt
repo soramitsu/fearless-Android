@@ -1,4 +1,4 @@
-package jp.co.soramitsu.runtime.chain.remote.model
+package jp.co.soramitsu.runtime.multiNetwork.chain.remote.model
 
 class ChainTypesInfo(
     val url: String,

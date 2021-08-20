@@ -4,10 +4,10 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.RuntimeUpdater
-import jp.co.soramitsu.runtime.chain.ChainSyncService
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
