@@ -13,6 +13,7 @@ import jp.co.soramitsu.core_db.converters.TransactionConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.RuntimeDao
@@ -34,17 +35,20 @@ import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.core_db.migrations.UpdateDefaultNodesList
-import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.core_db.model.TransactionLocal
-import jp.co.soramitsu.core_db.model.AssetLocal
-import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
-import jp.co.soramitsu.core_db.model.TokenLocal
-import jp.co.soramitsu.core_db.model.PhishingAddressLocal
-import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
+import jp.co.soramitsu.core_db.model.AssetLocal
+import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core_db.model.PhishingAddressLocal
+import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
 import jp.co.soramitsu.core_db.model.StakingRewardLocal
+import jp.co.soramitsu.core_db.model.StorageEntryLocal
+import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
+import jp.co.soramitsu.core_db.model.TransactionLocal
+import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
+import jp.co.soramitsu.core_db.model.chain.ChainLocal
+import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
@@ -61,7 +65,11 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
         StorageEntryLocal::class,
         AccountStakingLocal::class,
         StakingRewardLocal::class,
-        TotalRewardLocal::class
+        TotalRewardLocal::class,
+
+        ChainLocal::class,
+        ChainNodeLocal::class,
+        ChainAssetLocal::class
     ]
 )
 @TypeConverters(
@@ -127,4 +135,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun stakingRewardsDao(): StakingRewardDao
 
     abstract fun stakingTotalRewardDao(): StakingTotalRewardDao
+
+    abstract fun chainDao(): ChainDao
 }
