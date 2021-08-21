@@ -35,6 +35,7 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailToken
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTotal
 import kotlinx.android.synthetic.main.fragment_balance_detail.transfersContainer
+import kotlinx.android.synthetic.main.fragment_balance_list.*
 
 private const val KEY_TOKEN = "KEY_TOKEN"
 
@@ -66,6 +67,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         transfersContainer.setSlidingStateListener(::setRefreshEnabled)
 
         transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
+
+        transfersContainer.setFilterClickListener { viewModel.filterClicked() }
 
         balanceDetailContainer.setOnRefreshListener {
             viewModel.sync()
