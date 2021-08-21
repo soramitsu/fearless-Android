@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailViewModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProviderFactory
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 
@@ -27,8 +28,9 @@ class BalanceDetailModule {
         walletInteractor: WalletInteractor,
         addressIconGenerator: AddressIconGenerator,
         walletRouter: WalletRouter,
+        historyFiltersProviderFactory: HistoryFiltersProviderFactory
     ): TransactionHistoryMixin {
-        return TransactionHistoryProvider(walletInteractor, addressIconGenerator, walletRouter)
+        return TransactionHistoryProvider(walletInteractor, addressIconGenerator, walletRouter, historyFiltersProviderFactory)
     }
 
     @Provides

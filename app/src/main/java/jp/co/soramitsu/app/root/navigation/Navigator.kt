@@ -262,7 +262,7 @@ class Navigator :
         navController!!.previousBackStackEntry!!.savedStateHandle.set(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA, payload)
     }
 
-    override fun setHistoryFilter(historyFilter: List<HistoryFilter>){
+    override fun setHistoryFilter(historyFilter: List<HistoryFilter>) {
         navController!!.previousBackStackEntry!!.savedStateHandle.set(TransactionHistoryFilterFragment.KEY_FILTER_LIVE_DATA, historyFilter)
     }
 

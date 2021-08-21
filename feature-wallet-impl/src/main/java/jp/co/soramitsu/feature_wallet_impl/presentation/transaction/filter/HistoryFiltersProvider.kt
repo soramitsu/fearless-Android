@@ -15,7 +15,7 @@ class HistoryFiltersProvider {
 
     fun createModifiedFilters(
         filterIncluder: (HistoryFilter) -> Boolean
-    ): HistoryFilters{
+    ): HistoryFilters {
         val current = customFiltersFlow.value
         return current.copy(
             filters = customizableFilters.filter(filterIncluder)
@@ -24,11 +24,11 @@ class HistoryFiltersProvider {
 
     fun observeFilters(): Flow<HistoryFilters> = customFiltersFlow
 
-    fun setCustomFilters(filters: HistoryFilters){
+    fun setCustomFilters(filters: HistoryFilters) {
         customFiltersFlow.value = filters
     }
 
-    private val customizableFilters : List<HistoryFilter> = listOf(
+    private val customizableFilters: List<HistoryFilter> = listOf(
         RewardFilter,
         TransferFilter,
         ExtrinsicFilter

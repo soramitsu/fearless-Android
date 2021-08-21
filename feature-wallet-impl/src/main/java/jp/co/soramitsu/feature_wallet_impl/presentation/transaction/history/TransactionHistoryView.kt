@@ -111,7 +111,6 @@ class TransferHistorySheet @JvmOverloads constructor(
     fun setFilterClickListener(clickListener: OnClickListener) {
         transactionHistoryFilter.setOnClickListener(clickListener)
         println("------ SET CLICK LISTENER")
-
     }
 
     fun initializeBehavior(anchorView: View) {

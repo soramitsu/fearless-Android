@@ -74,7 +74,7 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: St
                 sender = sender!!,
                 fee = (fee?.toBigDecimal())!!
             )
-            OperationLocal.OperationType.REWARD-> Operation.TransactionType.Reward(
+            OperationLocal.OperationType.REWARD -> Operation.TransactionType.Reward(
                 amount = (amount?.toBigDecimal())!!,
                 isReward = isReward!!,
                 era = era!!,

@@ -4,7 +4,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilter
-import kotlinx.coroutines.flow.Flow
 
 interface WalletRouter {
     fun openAssetDetails(type: Token.Type)

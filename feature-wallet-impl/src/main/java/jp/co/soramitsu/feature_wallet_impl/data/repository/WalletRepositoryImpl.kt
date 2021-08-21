@@ -126,7 +126,7 @@ class WalletRepositoryImpl(
             val pageInfo = response.historyElements.pageInfo
 
             val operations = response.historyElements.nodes.map {
-                val accountName = defineAccountNameForTransaction(accountsByAddress,  it.address, it.transfer?.to, it.transfer?.from)
+                val accountName = defineAccountNameForTransaction(accountsByAddress, it.address, it.transfer?.to, it.transfer?.from)
                 mapNodeToOperation(it, pageInfo.endCursor, currentAccount, accountName)
             }
 

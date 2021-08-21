@@ -16,18 +16,13 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProviderFactory
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilter
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilters
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -39,7 +34,6 @@ class BalanceListViewModel(
     private val router: WalletRouter,
     private val buyMixin: BuyMixin.Presentation,
     private val transactionHistoryMixin: TransactionHistoryMixin,
-    private val historyFiltersProviderFactory: HistoryFiltersProviderFactory
 ) : BaseViewModel(),
     TransactionHistoryUi by transactionHistoryMixin,
     BuyMixin by buyMixin {
@@ -55,12 +49,6 @@ class BalanceListViewModel(
     val balanceLiveData = balanceFlow().asLiveData()
 
     private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token.type }
-
-    val filterFlow : Flow<HistoryFilters> = flow {
-         emitAll(historyFiltersProvider().observeFilters())
-    }
-
-    private suspend fun historyFiltersProvider() = historyFiltersProviderFactory.get()
 
     val buyEnabledLiveData = primaryTokenLiveData.map(initial = false) {
         buyMixin.isBuyEnabled(it)
@@ -90,7 +78,7 @@ class BalanceListViewModel(
         transactionHistoryMixin.scrolled(viewModelScope, index)
     }
 
-    fun filterClicked(){
+    fun filterClicked() {
         router.openFilter()
     }
 

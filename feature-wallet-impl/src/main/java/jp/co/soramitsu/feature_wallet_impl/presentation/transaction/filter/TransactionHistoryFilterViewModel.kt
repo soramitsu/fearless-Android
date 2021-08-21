@@ -1,13 +1,11 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.ExtrinsicFilter
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilters
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.RewardFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.TransferFilter
@@ -61,7 +59,7 @@ class TransactionHistoryFilterViewModel(
     }
 
     fun resetFilter() {
-        viewModelScope.launch{
+        viewModelScope.launch {
             val defaultFilters = historyFiltersProvider().defaultFilters()
 
             initFromSettings(defaultFilters)
@@ -71,7 +69,6 @@ class TransactionHistoryFilterViewModel(
     fun backClicked() {
         router.back()
     }
-
 
     private fun <T> createClassEnabledMap(vararg classes: Class<out T>) = classes.associate {
         it to MutableStateFlow(false)
@@ -86,5 +83,4 @@ class TransactionHistoryFilterViewModel(
     }
 
     private fun <T> Map<out T, MutableStateFlow<Boolean>>.checkEnabled(key: T) = get(key)?.value ?: false
-
 }

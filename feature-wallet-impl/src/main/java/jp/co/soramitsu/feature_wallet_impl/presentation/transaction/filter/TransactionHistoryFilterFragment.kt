@@ -1,29 +1,23 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter
 
 import android.os.Bundle
-import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.Filter
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
-import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferViewModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.ExtrinsicFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.RewardFilter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.TransferFilter
-import kotlinx.android.parcel.Parcelize
 import kotlinx.android.synthetic.main.fragment_transactions_filter.*
 import kotlinx.coroutines.flow.MutableStateFlow
-
 
 private const val KEY_PAYLOAD = "KEY_FILTER_LIVE_DATA"
 
@@ -47,7 +41,6 @@ class TransactionHistoryFilterFragment : BaseFragment<TransactionHistoryFilterVi
     override fun initViews() {
         transactionsFilterToolbar.setHomeButtonListener { viewModel.backClicked() }
 
-
         transactionsFilterToolbar.setRightActionClickListener {
             viewModel.resetFilter()
         }
@@ -69,12 +62,12 @@ class TransactionHistoryFilterFragment : BaseFragment<TransactionHistoryFilterVi
     }
 
     override fun subscribe(viewModel: TransactionHistoryFilterViewModel) {
-        viewModel.isApplyButtonEnabled.observe{
+        viewModel.isApplyButtonEnabled.observe {
             transactionFilterApplyBtn.setState(if (it) ButtonState.NORMAL else ButtonState.DISABLED)
         }
     }
 
-    private fun CompoundButton.bindFilter(filterClass: Class<out HistoryFilter>){
+    private fun CompoundButton.bindFilter(filterClass: Class<out HistoryFilter>) {
         bondFromMap(filterClass, viewModel.filtersEnabledMap)
     }
 

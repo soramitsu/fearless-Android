@@ -5,7 +5,7 @@ class HistoryFiltersProviderFactory {
 
     @Synchronized
     fun get(): HistoryFiltersProvider {
-        if(instance != null) return instance!!
+        if (instance != null) return instance!!
 
         instance = HistoryFiltersProvider()
 

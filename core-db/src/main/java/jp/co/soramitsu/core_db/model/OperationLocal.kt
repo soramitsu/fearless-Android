@@ -26,7 +26,7 @@ data class OperationLocal(
     val validator: String? = null,
     val success: Boolean? = null
 ) {
-    enum class OperationType{
+    enum class OperationType {
         EXTRINSIC, TRANSFER, REWARD
     }
 

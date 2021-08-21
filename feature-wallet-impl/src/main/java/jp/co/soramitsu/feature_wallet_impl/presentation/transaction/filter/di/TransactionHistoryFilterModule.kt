@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProviderFactory
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.TransactionHistoryFilterViewModel
 
-@Module(includes=[ViewModelModule::class])
+@Module(includes = [ViewModelModule::class])
 class TransactionHistoryFilterModule {
     @Provides
     @IntoMap
@@ -20,7 +20,7 @@ class TransactionHistoryFilterModule {
     fun provideViewModel(
         router: WalletRouter,
         provider: HistoryFiltersProviderFactory
-        ) : ViewModel {
+    ): ViewModel {
         return TransactionHistoryFilterViewModel(router, provider)
     }
 

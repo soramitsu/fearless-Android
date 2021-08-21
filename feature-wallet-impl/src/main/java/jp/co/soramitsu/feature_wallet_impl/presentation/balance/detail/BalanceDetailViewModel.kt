@@ -63,7 +63,7 @@ class BalanceDetailViewModel(
         transactionHistoryMixin.scrolled(viewModelScope, index)
     }
 
-    fun filterClicked(){
+    fun filterClicked() {
         println("------ OPEN FILTER")
 
         router.openFilter()

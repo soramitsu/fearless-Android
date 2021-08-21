@@ -27,8 +27,14 @@ class BalanceListModule {
         walletInteractor: WalletInteractor,
         addressIconGenerator: AddressIconGenerator,
         walletRouter: WalletRouter,
+        historyFiltersProviderFactory: HistoryFiltersProviderFactory
     ): TransactionHistoryMixin {
-        return TransactionHistoryProvider(walletInteractor, addressIconGenerator, walletRouter)
+        return TransactionHistoryProvider(
+            walletInteractor,
+            addressIconGenerator,
+            walletRouter,
+            historyFiltersProviderFactory
+        )
     }
 
     @Provides
@@ -40,7 +46,6 @@ class BalanceListModule {
         addressIconGenerator: AddressIconGenerator,
         buyMixin: BuyMixin.Presentation,
         transactionHistoryMixin: TransactionHistoryMixin,
-        historyFiltersProviderFactory: HistoryFiltersProviderFactory
     ): ViewModel {
 
         return BalanceListViewModel(
@@ -49,7 +54,6 @@ class BalanceListModule {
             router,
             buyMixin,
             transactionHistoryMixin,
-            historyFiltersProviderFactory
         )
     }
 

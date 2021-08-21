@@ -38,7 +38,7 @@ data class Operation(
             val receiver: String,
             val sender: String,
             val fee: BigDecimal
-        ) : TransactionType(operationAmount = amount, operationFee = fee, Status.COMPLETED){
+        ) : TransactionType(operationAmount = amount, operationFee = fee, Status.COMPLETED) {
             companion object {
                 val transferCall = "Transfer"
             }
@@ -57,11 +57,10 @@ data class Operation(
         }
 
         fun getOperationType(): OperationLocal.OperationType = when (this) {
-            is Extrinsic ->  OperationLocal.OperationType.EXTRINSIC
+            is Extrinsic -> OperationLocal.OperationType.EXTRINSIC
             is Reward -> OperationLocal.OperationType.REWARD
             is Transfer -> OperationLocal.OperationType.TRANSFER
         }
-
     }
 
     enum class Status {
@@ -73,6 +72,4 @@ data class Operation(
             }
         }
     }
-
-
 }

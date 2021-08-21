@@ -8,4 +8,4 @@ class TransactionFilter(
     val isRewards: Boolean,
     val isTransfers: Boolean,
     val isExtrinsics: Boolean
-): Parcelable
+) : Parcelable

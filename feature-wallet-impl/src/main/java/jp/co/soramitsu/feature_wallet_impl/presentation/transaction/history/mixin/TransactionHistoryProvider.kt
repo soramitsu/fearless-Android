@@ -4,17 +4,23 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.applyFilters
+import jp.co.soramitsu.common.utils.applyFiltersAny
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProviderFactory
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilters
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -31,7 +37,8 @@ private const val ICON_SIZE_DP = 32
 class TransactionHistoryProvider(
     private val walletInteractor: WalletInteractor,
     private val iconGenerator: AddressIconGenerator,
-    private val router: WalletRouter
+    private val router: WalletRouter,
+    private val historyFiltersProviderFactory: HistoryFiltersProviderFactory
 ) : TransactionHistoryMixin {
 
     override val transactionsLiveData = MutableLiveData<List<Any>>()
@@ -43,6 +50,13 @@ class TransactionHistoryProvider(
     private var lastPageLoaded = false
 
     private var lastCursor: String? = null
+
+    private val filterFlow: Flow<HistoryFilters> = flow {
+        emitAll(historyFiltersProvider().observeFilters())
+    }
+
+    private fun historyFiltersProvider() = historyFiltersProviderFactory.get()
+
     private val filters: MutableList<TransactionFilter> = mutableListOf()
 
     override fun startObservingOperations(scope: CoroutineScope) {
@@ -131,8 +145,10 @@ class TransactionHistoryProvider(
         val filteredHistoryElements = operations.map { transaction ->
             val addressModel = createIcon(transaction.getDisplayAddress(), transaction.accountName)
 
-            OperationHistoryElement(addressModel, transaction)
-        }.applyFilters(filters)
+            val result = OperationHistoryElement(addressModel, transaction)
+            result
+        }.applyFiltersAny(filterFlow.first().filters)
+            .applyFilters(filters)
 
         regroup(filteredHistoryElements, reset)
     }
