@@ -46,6 +46,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.mixin.FeeLoaderProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecksProvider
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProviderFactory
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
 @Module
@@ -68,6 +69,11 @@ class WalletFeatureModule {
     fun providePhishingApi(networkApiCreator: NetworkApiCreator): PhishingApi {
         return networkApiCreator.create(PhishingApi::class.java)
     }
+
+    @Provides
+    @FeatureScope
+    fun provideHistoryFiltersProviderFactory()
+    = HistoryFiltersProviderFactory()
 
     @Provides
     @FeatureScope

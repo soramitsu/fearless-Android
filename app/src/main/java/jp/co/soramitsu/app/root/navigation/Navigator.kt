@@ -70,6 +70,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.TransactionHistoryFilterFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilter
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.flow.Flow
@@ -239,6 +241,10 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_crowdloanContributeFragment, CrowdloanContributeFragment.getBundle(payload))
     }
 
+    override val filterList: List<HistoryFilter>?
+        get() = navController!!.currentBackStackEntry!!.savedStateHandle
+            .get(TransactionHistoryFilterFragment.KEY_FILTER_LIVE_DATA)
+
     override val customBonusFlow: Flow<BonusPayload?>
         get() = navController!!.currentBackStackEntry!!.savedStateHandle
             .getLiveData<BonusPayload?>(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA)
@@ -254,6 +260,10 @@ class Navigator :
 
     override fun setCustomBonus(payload: BonusPayload) {
         navController!!.previousBackStackEntry!!.savedStateHandle.set(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA, payload)
+    }
+
+    override fun setHistoryFilter(historyFilter: List<HistoryFilter>){
+        navController!!.previousBackStackEntry!!.savedStateHandle.set(TransactionHistoryFilterFragment.KEY_FILTER_LIVE_DATA, historyFilter)
     }
 
     override fun openConfirmContribute(payload: ConfirmContributePayload) {
@@ -343,6 +353,10 @@ class Navigator :
 
     override fun openChooseRecipient() {
         navController?.navigate(R.id.action_open_send)
+    }
+
+    override fun openFilter() {
+        navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
     override fun openChooseAmount(recipientAddress: String) {

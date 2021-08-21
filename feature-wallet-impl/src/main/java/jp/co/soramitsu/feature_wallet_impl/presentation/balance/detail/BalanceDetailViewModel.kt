@@ -63,6 +63,12 @@ class BalanceDetailViewModel(
         transactionHistoryMixin.scrolled(viewModelScope, index)
     }
 
+    fun filterClicked(){
+        println("------ OPEN FILTER")
+
+        router.openFilter()
+    }
+
     fun sync() {
         viewModelScope.launch {
             val deferredAssetSync = async { interactor.syncAssetRates(type) }

@@ -16,8 +16,7 @@ import jp.co.soramitsu.common.utils.enableShowingNewlyAddedTopElements
 import jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import kotlinx.android.synthetic.main.view_transfer_history.view.placeholder
-import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryList
+import kotlinx.android.synthetic.main.view_transfer_history.view.*
 
 typealias ScrollingListener = (position: Int) -> Unit
 typealias SlidingStateListener = (Int) -> Unit
@@ -107,6 +106,12 @@ class TransferHistorySheet @JvmOverloads constructor(
         bottomSheetBehavior?.state?.let {
             slidingStateListener?.invoke(it)
         }
+    }
+
+    fun setFilterClickListener(clickListener: OnClickListener) {
+        transactionHistoryFilter.setOnClickListener(clickListener)
+        println("------ SET CLICK LISTENER")
+
     }
 
     fun initializeBehavior(anchorView: View) {

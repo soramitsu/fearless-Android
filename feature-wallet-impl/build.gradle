@@ -100,4 +100,6 @@ dependencies {
     implementation zXingEmbeddedDep
 
     implementation insetterDep
+
+    implementation navigationFragmentDep
 }

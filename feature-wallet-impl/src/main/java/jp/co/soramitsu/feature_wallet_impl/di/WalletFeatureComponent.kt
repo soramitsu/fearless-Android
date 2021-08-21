@@ -15,6 +15,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.di.ChooseAmo
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.di.ConfirmTransferComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.di.ChooseRecipientComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.di.TransactionDetailComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.di.TransactionHistoryFilterComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.di.TransactionHistoryFilterModule
 import jp.co.soramitsu.runtime.di.RuntimeApi
 
 @Component(
@@ -22,7 +24,8 @@ import jp.co.soramitsu.runtime.di.RuntimeApi
         WalletFeatureDependencies::class
     ],
     modules = [
-        WalletFeatureModule::class
+        WalletFeatureModule::class,
+        TransactionHistoryFilterModule::class
     ]
 )
 @FeatureScope
@@ -39,6 +42,8 @@ interface WalletFeatureComponent : WalletFeatureApi {
     fun confirmTransferComponentFactory(): ConfirmTransferComponent.Factory
 
     fun transactionDetailComponentFactory(): TransactionDetailComponent.Factory
+
+    fun transactionHistoryComponentFactory(): TransactionHistoryFilterComponent.Factory
 
     fun receiveComponentFactory(): ReceiveComponent.Factory
 

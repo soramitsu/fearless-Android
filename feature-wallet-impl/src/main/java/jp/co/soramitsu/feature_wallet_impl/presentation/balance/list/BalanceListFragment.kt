@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.navGraphViewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
@@ -16,6 +17,7 @@ import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.TransactionHistoryFilterViewModel
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListActions
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
@@ -24,6 +26,7 @@ import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmou
 import kotlinx.android.synthetic.main.fragment_balance_list.container
 import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
+import javax.inject.Inject
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
 
@@ -54,6 +57,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
 
         transfersContainer.setSlidingStateListener(this::setRefreshEnabled)
+        transfersContainer.setFilterClickListener { viewModel.filterClicked() }
 
         transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
 
@@ -118,6 +122,10 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         viewModel.showAccountChooser.observeEvent {
             AccountChooserBottomSheetDialog(requireActivity(), it, viewModel::accountSelected).show()
+        }
+
+        viewModel.filterFlow.observe {
+            println("---- FILTER FLOW $it")
         }
     }
 
