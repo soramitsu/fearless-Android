@@ -16,6 +16,7 @@
     <string name="staking_custom_validators_settings_sort_title">Sort by</string>
     <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
     <string name="staking_custom_validators_settings_sort_total_stake">Total stake (%s)</string>
+    <string name="wallet_filters_title">Filters</string>
     <string name="staking_custom_validators_settings_sort_own_stake">Validator’s own stake (%s)</string>
     <string name="staking_custom_validators_settings_apply">Show</string>
 

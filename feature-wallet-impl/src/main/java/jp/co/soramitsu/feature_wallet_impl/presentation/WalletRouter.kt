@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilter
 
 interface WalletRouter {
     fun openAssetDetails(type: Token.Type)
@@ -13,10 +12,6 @@ interface WalletRouter {
     fun openChooseRecipient()
 
     fun openFilter()
-
-    val filterList: List<HistoryFilter>?
-
-    fun setHistoryFilter(historyFilter: List<HistoryFilter>)
 
     fun openChooseAmount(recipientAddress: String)
 

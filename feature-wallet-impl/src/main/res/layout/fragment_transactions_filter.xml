@@ -16,7 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/staking_payout_rewards"
+        app:titleText="@string/wallet_filters_title"
         app:textRight="@string/common_reset"/>
 
     <TextView
