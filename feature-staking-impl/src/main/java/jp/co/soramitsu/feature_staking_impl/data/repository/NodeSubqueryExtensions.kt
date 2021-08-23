@@ -10,3 +10,11 @@ fun Node.NetworkType.getSubqueryTotalRewardsPath() =
         Node.NetworkType.KUSAMA -> "sum-reward-kusama"
         else -> throw WrongNetworkTypeForSubqueryRequest("$this is not supported for fetching staking rewards via Subquery")
     }
+
+fun Node.NetworkType.getSubqueryEraValidatorInfos() =
+    when (this) {
+        Node.NetworkType.POLKADOT -> "fearless-wallet"
+        Node.NetworkType.KUSAMA -> "fearless-wallet-ksm"
+        Node.NetworkType.WESTEND -> "fearless-wallet-westend__ZWYxc"
+        else -> throw WrongNetworkTypeForSubqueryRequest("$this is not supported for fetching pending rewards via Subquery")
+    }
