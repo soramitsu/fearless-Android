@@ -9,8 +9,8 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Fund
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.getContributions
-import jp.co.soramitsu.feature_crowdloan_impl.data.repository.ChainStateRepository
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
+import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow

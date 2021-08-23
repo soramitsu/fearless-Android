@@ -2,7 +2,7 @@ package jp.co.soramitsu.runtime.extrinsic
 
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.CryptoType
@@ -21,9 +21,10 @@ private val FAKE_CRYPTO_TYPE = CryptoType.SR25519
 
 class ExtrinsicBuilderFactory(
     private val accountRepository: AccountRepository,
-    private val substrateCalls: SubstrateCalls,
+    private val rpcCalls: RpcCalls,
     private val keypairFactory: KeypairFactory,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    private val mortalityConstructor: MortalityConstructor,
 ) {
 
     /**
@@ -31,14 +32,14 @@ class ExtrinsicBuilderFactory(
      * Should be primarily used for fee calculation
      */
     suspend fun createWithFakeKeyPair(
-        accountAddress: String
+        accountAddress: String,
     ) = create(accountAddress, generateFakeKeyPair(), FAKE_CRYPTO_TYPE)
 
     /**
      * Require account to be present in database and have keypair saved locally
      */
     suspend fun create(
-        accountAddress: String
+        accountAddress: String,
     ): ExtrinsicBuilder {
         val account = accountRepository.getAccount(accountAddress)
 
@@ -51,10 +52,11 @@ class ExtrinsicBuilderFactory(
     private suspend fun create(
         accountAddress: String,
         keypair: Keypair,
-        cryptoType: CryptoType
+        cryptoType: CryptoType,
     ): ExtrinsicBuilder {
-        val nonce = substrateCalls.getNonce(accountAddress)
-        val runtimeVersion = substrateCalls.getRuntimeVersion()
+        val nonce = rpcCalls.getNonce(accountAddress)
+        val runtimeVersion = rpcCalls.getRuntimeVersion()
+        val mortality = mortalityConstructor.constructMortality()
 
         val runtimeConfiguration = accountAddress.networkType().runtimeConfiguration
 
@@ -64,6 +66,8 @@ class ExtrinsicBuilderFactory(
             nonce = nonce,
             runtimeVersion = runtimeVersion,
             genesisHash = runtimeConfiguration.genesisHash.fromHex(),
+            blockHash = mortality.blockHash.fromHex(),
+            era = mortality.era,
             encryptionType = mapCryptoTypeToEncryption(cryptoType),
             accountIdentifier = multiAddressFromId(accountAddress.toAccountId())
         )
