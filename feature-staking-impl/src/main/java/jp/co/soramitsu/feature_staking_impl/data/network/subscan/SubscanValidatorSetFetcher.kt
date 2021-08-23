@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.subscan
 
 import com.google.gson.annotations.SerializedName
+import jp.co.soramitsu.common.data.network.subquery.EraValidatorInfoQueryResponse
+import jp.co.soramitsu.common.data.network.subquery.EraValidatorInfoQueryResponse.EraValidatorInfo.Nodes.Node
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
@@ -55,8 +57,8 @@ class SubscanValidatorSetFetcher(
             )
         )
 
-        return validatorsInfos.data.query?.eraValidatorInfos?.nodes?.map {
-            it.address
-        }?.distinct() ?: emptyList()
+        return validatorsInfos.data.query?.eraValidatorInfos?.nodes?.map (
+            Node::address
+        )?.distinct().orEmpty()
     }
 }
