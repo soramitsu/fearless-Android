@@ -46,8 +46,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 import kotlin.time.ExperimentalTime
-import kotlin.time.days
-import kotlin.time.milliseconds
 
 class EraRelativeInfo(
     val daysLeft: Int,
@@ -107,7 +105,8 @@ class StakingInteractor(
                         amountInPlanks = amount,
                         timeLeft = leftTime,
                         createdAt = currentTimestamp,
-                        closeToExpire = closeToExpire)
+                        closeToExpire = closeToExpire
+                    )
                 }
             }.sortedBy { it.era }
 
