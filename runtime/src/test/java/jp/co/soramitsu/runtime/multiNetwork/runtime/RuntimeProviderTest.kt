@@ -188,6 +188,28 @@ class RuntimeProviderTest {
         }
     }
 
+    @Test
+    fun `should construct runtime on type usage change`() {
+        runBlocking {
+            initProvider(typesUsage = TypesUsage.BASE)
+
+            runtimeProvider.updateTypesUsage(TypesUsage.OWN)
+
+            verifyReconstructionStarted()
+        }
+    }
+
+    @Test
+    fun `should not construct runtime on same type usage`() {
+        runBlocking {
+            initProvider(typesUsage = TypesUsage.BASE)
+
+            runtimeProvider.updateTypesUsage(TypesUsage.BASE)
+
+            verifyReconstructionNotStarted()
+        }
+    }
+
     private suspend fun verifyReconstructionNotStarted() {
         verifyReconstructionAfterInit(0)
     }
