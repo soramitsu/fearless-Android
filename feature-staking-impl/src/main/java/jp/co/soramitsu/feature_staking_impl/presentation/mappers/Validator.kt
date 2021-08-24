@@ -134,7 +134,19 @@ fun mapValidatorToValidatorDetailsWithStakeFlagParcelModel(
 
             val isOversubscribed = nominators.size > it.maxNominators
 
-            ValidatorStakeParcelModel.Active(it.totalStake, it.ownStake, nominators, it.apy, slashed, ValidatorStakeParcelModel.Active.NominatorInfo(it.maxNominators, isNominated, isInLimit, isOversubscribed))
+            ValidatorStakeParcelModel.Active(
+                it.totalStake,
+                it.ownStake,
+                nominators,
+                it.apy,
+                slashed,
+                ValidatorStakeParcelModel.Active.NominatorInfo(
+                    it.maxNominators,
+                    isNominated,
+                    isInLimit,
+                    isOversubscribed
+                )
+            )
         } ?: ValidatorStakeParcelModel.Inactive
 
         ValidatorDetailsParcelModel(accountIdHex, stakeModel, identityModel)
@@ -155,7 +167,6 @@ fun mapValidatorDetailsToErrors(
                 else Error.OversubscribedUnpaid
             } else if (stake.isSlashed) Error.Slashed
             else null
-
         }
     }
 }

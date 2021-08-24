@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel
 
 import android.os.Parcelable
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.android.parcel.Parcelize
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -27,6 +26,6 @@ sealed class ValidatorStakeParcelModel : Parcelable {
             val isNominated: Boolean,
             val isInLimit: Boolean,
             val isOversubscribed: Boolean
-        ) : Parcelable 
+        ) : Parcelable
     }
 }
