@@ -5,6 +5,7 @@
     <string name="choose_amount_initial" translatable="false">0</string>
     <string name="identity_twitter_title" translatable="false">Twitter</string>
     <string name="staking_era_index_no_prefix" translatable="false">#%d</string>
+
     <string name="common_next">Next</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_skip">Skip</string>
@@ -394,13 +395,6 @@ Derivation path: %s</string>
     <string name="staking_main_stake_balance_staked">Staked</string>
     <string name="staking_pending_rewards_info">Validators payout the rewards every 2–5 days. However, you can payout them by yourself, especially if rewards are close to expiring, but you will pay the fee.</string>
     <string name="staking_custom_validators_update_list">Update your list</string>
-    <string name="staking_hint_rewards_format">Staked tokens generate rewards each era (%s).</string>
-    <string name="staking_hint_unstake_format">If you want to unstake tokens, you will have to wait for the unstaking period (%s).</string>
-    <string name="staking_hint_no_rewards">Tokens in unstaking period generate no rewards.</string>
-    <string name="staking_hint_redeem">After unstaking period you will need to redeem your tokens.</string>
-    <string name="staking_hint_reward_bond_more">Your rewards will be increased starting from the next era.</string>
-    <string name="staking_hint_unbond_kills_stash">Fearless wallet will change rewards destination
-to your account to avoid remaining stake.</string>
     <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
     <string name="common_options_title">Select an option</string>
     <string name="invoice_scan_error_no_info">QR can\'t be decoded</string>
@@ -423,10 +417,6 @@ to your account to avoid remaining stake.</string>
     <string name="staking_controller_change_success">Controller is changed</string>
     <string name="staking_already_controller_title">Already controller</string>
     <string name="staking_unbond_crossed_existential">After operation the resulting bonded balance will be less than minimal balance. It will cause the whole bonded balance to be unbonded.</string>
-    <plurals name="common_hours_format">
-        <item quantity="one">%d hour</item>
-        <item quantity="other">%d hours</item>
-    </plurals>
     <string name="import_mnemonic_invalid_title">Your mnemonic is invalid</string>
     <string name="account_error_try_another_one">Please, try another one.</string>
 </resources>

@@ -391,13 +391,6 @@
     <string name="staking_main_stake_balance_staked">Застейкано</string>
     <string name="staking_pending_rewards_info">Валидаторы выплачивают вознаграждения каждые 2–5 дней. Однако, вы можете инициировать выплату самостоятельно, особенно, если срок вознаграждения истекает. В этом случае придётся заплатить комиссию.</string>
     <string name="staking_custom_validators_update_list">Обновить свой список</string>
-    <string name="staking_hint_rewards_format">Застейканые токены приносят награду каждую эру (%s).</string>
-    <string name="staking_hint_unstake_format">Для вывода токенов из стейкинга потребуется %s.</string>
-    <string name="staking_hint_no_rewards">Во время вывода токены не приносят наград.</string>
-    <string name="staking_hint_redeem">После вывода токенов из стейкинга не забудьте их забрать.</string>
-    <string name="staking_hint_reward_bond_more">Ваши вознаграждения увеличатся со следующей эры.</string>
-    <string name="staking_hint_unbond_kills_stash">Fearless wallet изменит назначение вознаграждений
-на ваш аккаунт, чтобы избежать остатка в стейкинге.</string>
     <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APY)</string>
     <string name="common_options_title">Выберите опцию</string>
     <string name="invoice_scan_error_no_info">Не удается декодировать QR</string>
@@ -421,12 +414,6 @@ Fearless Wallet также заботится о децентрализации,
     <string name="staking_controller_change_success">Контроллер изменен</string>
     <string name="staking_already_controller_title">Уже контроллер</string>
     <string name="staking_unbond_crossed_existential">В результате этой операции все токены будут выведены из стейкинга.</string>
-    <plurals name="common_hours_format">
-        <item quantity="one">%d час</item>
-        <item quantity="few">%d часа</item>
-        <item quantity="many">%d часов</item>
-        <item quantity="other">%d час</item>
-    </plurals>
     <string name="import_mnemonic_invalid_title">Ваша мнемоника недействительна</string>
     <string name="account_error_try_another_one">Пожалуйста, попробуйте другой.</string>
 </resources>

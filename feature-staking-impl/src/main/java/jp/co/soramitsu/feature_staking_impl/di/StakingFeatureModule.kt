@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.di
 
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -135,7 +134,6 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         stakingRewardsRepository: StakingRewardsRepository,
         stakingConstantsRepository: StakingConstantsRepository,
-        walletConstants: WalletConstants,
         identityRepository: IdentityRepository,
         payoutRepository: PayoutRepository,
     ) = StakingInteractor(
@@ -145,7 +143,6 @@ class StakingFeatureModule {
         stakingRewardsRepository,
         stakingConstantsRepository,
         identityRepository,
-        walletConstants,
         payoutRepository
     )
 
@@ -243,14 +240,12 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideValidatorSetFetcher(
-        gson: Gson,
         stakingApi: StakingApi,
-        subscanPagedSynchronizer: SubscanPagedSynchronizer,
+        stakingRepository: StakingRepository,
     ): SubscanValidatorSetFetcher {
         return SubscanValidatorSetFetcher(
-            gson,
             stakingApi,
-            subscanPagedSynchronizer
+            stakingRepository
         )
     }
 
