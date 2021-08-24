@@ -82,9 +82,6 @@ data class ListDiff<T>(
     val addedOrModified: List<T>,
 )
 
-/**
- * Emits list with items that were
- */
 fun <T> Flow<List<T>>.diffed(): Flow<ListDiff<T>> {
     return zipWithPrevious().map { (previous, new) ->
         val addedOrModified = new - previous.orEmpty()
