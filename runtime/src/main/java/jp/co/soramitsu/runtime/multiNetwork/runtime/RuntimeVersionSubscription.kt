@@ -21,7 +21,7 @@ class RuntimeVersionSubscription(
 
     init {
         socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
-            .map {  it.runtimeVersionChange().specVersion }
+            .map { it.runtimeVersionChange().specVersion }
             .onEach {
                 chainDao.insertRuntimeInfo(ChainRuntimeInfoLocal(chainId, it))
 

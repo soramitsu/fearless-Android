@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
-
 class BaseTypeSynchronizer(
     private val runtimeFilesCache: RuntimeFilesCache,
     private val typesFetcher: TypesFetcher,
