@@ -46,7 +46,14 @@ class ValidatorInfoView @JvmOverloads constructor(
     }
 
     fun setNominatorsCount(count: Int, maxNominations: Int?) {
-        validatorNominatorsView.setBody(if (maxNominations == null) count.format() else context.getString(R.string.staking_max_format, count.format(), maxNominations.format()))
+        validatorNominatorsView.setBody(
+            if (maxNominations == null)
+                count.format()
+            else
+                context.getString(
+                    R.string.staking_max_format, count.format(), maxNominations.format()
+                )
+        )
     }
 
     fun setEstimatedRewardApy(reward: String) {

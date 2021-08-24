@@ -161,14 +161,13 @@ fun mapValidatorDetailsToErrors(
         is ValidatorStakeParcelModel.Active -> {
             val nominatorInfo = stake.nominatorInfo ?: return null
 
-            return mutableListOf<Error>().apply{
+            return mutableListOf<Error>().apply {
                 if (nominatorInfo.isOversubscribed) {
-                    if (!nominatorInfo.isNominated) Error.OversubscribedPaid
-                    else if (nominatorInfo.isInLimit) Error.OversubscribedPaid
-                    else Error.OversubscribedUnpaid
+                    if (!nominatorInfo.isNominated) add(Error.OversubscribedPaid)
+                    else if (nominatorInfo.isInLimit) add(Error.OversubscribedPaid)
+                    else add(Error.OversubscribedUnpaid)
                 }
-
-                if (stake.isSlashed) Error.Slashed
+                if (stake.isSlashed) add(Error.Slashed)
             }
         }
     }

@@ -72,7 +72,7 @@ class CurrentValidatorsViewModel(
         .asLiveData()
 
     val oversubscribedValidatorsFlow = groupedCurrentValidatorsFlow.map {
-        it[NominatedValidator.Status.Active]?.any{ it.validator?.electedInfo?.isOversubscribed ?: false} ?: false
+        it[NominatedValidator.Status.Active]?.any { it.validator?.electedInfo?.isOversubscribed ?: false } ?: false
     }.inBackground()
         .share()
 
