@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.confirm
 
+import android.provider.Settings.Global.getString
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
@@ -42,6 +43,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -119,6 +121,23 @@ class ConfirmStakingViewModel(
             }
         }
         .asLiveData()
+
+    val unstakingTime = flow {
+        val lockupPeriod = interactor.getLockupPeriodInDays()
+        emit(
+            resourceManager.getString(
+                R.string.staking_hint_unstake_format,
+                resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, lockupPeriod, lockupPeriod)
+            )
+        )
+    }.inBackground()
+        .share()
+
+    val eraHoursLength = flow {
+        val hours = interactor.getEraHoursLength()
+        emit(resourceManager.getString(R.string.staking_hint_rewards_format, resourceManager.getQuantityString(R.plurals.common_hours_format, hours, hours)))
+    }.inBackground()
+        .share()
 
     val rewardDestinationLiveData = flowOf(payload)
         .map {

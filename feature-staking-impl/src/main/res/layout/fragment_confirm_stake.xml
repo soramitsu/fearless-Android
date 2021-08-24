@@ -84,6 +84,60 @@
         android:layout_marginEnd="16dp"
         android:background="@color/gray3" />
 
+    <TextView
+        android:id="@+id/confirmStakingEachEraLength"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:drawablePadding="8dp"
+        android:gravity="left|center"
+        android:includeFontPadding="false"
+        android:text="@string/staking_hint_rewards_format"
+        android:textColor="@color/white"
+        app:drawableLeftCompat="@drawable/ic_reward_24" />
+
+    <TextView
+        android:id="@+id/confirmStakingUnstakingPeriodLength"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:drawablePadding="8dp"
+        android:gravity="left|center"
+        android:includeFontPadding="false"
+        android:text="@string/staking_hint_unstake_format"
+        android:textColor="@color/white"
+        app:drawableLeftCompat="@drawable/ic_unstake_24" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:drawablePadding="8dp"
+        android:gravity="left|center"
+        android:includeFontPadding="false"
+        android:text="@string/staking_hint_no_rewards"
+        android:textColor="@color/white"
+        app:drawableLeftCompat="@drawable/ic_no_reward_24" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:drawablePadding="8dp"
+        android:gravity="left|center"
+        android:includeFontPadding="false"
+        android:text="@string/staking_hint_redeem"
+        android:textColor="@color/white"
+        app:drawableLeftCompat="@drawable/ic_arrows_circle_arrow_right_24" />
+
     <Space
         android:layout_width="match_parent"
         android:layout_height="0dp"

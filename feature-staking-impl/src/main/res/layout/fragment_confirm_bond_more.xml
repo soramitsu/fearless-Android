@@ -33,6 +33,20 @@
         android:layout_marginEnd="16dp"
         android:enabled="false" />
 
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:drawablePadding="8dp"
+        android:gravity="left|center"
+        android:includeFontPadding="false"
+        android:text="@string/staking_hint_reward_bond_more"
+        android:textColor="@color/white"
+        app:drawableLeftCompat="@drawable/ic_reward_24" />
+
     <Space
         android:layout_width="match_parent"
         android:layout_height="0dp"
