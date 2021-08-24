@@ -49,10 +49,10 @@ class ValidatorProvider(
         val slashes = stakingRepository.getSlashes(requestedValidatorIds)
 
         val rewardCalculator = rewardCalculatorFactory.create(electedValidatorExposures, validatorPrefs)
+        val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
         return requestedValidatorIds.map { accountIdHex ->
             val prefs = validatorPrefs[accountIdHex]
-            val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
             val electedInfo = electedValidatorExposures[accountIdHex]?.let {
                 Validator.ElectedInfo(

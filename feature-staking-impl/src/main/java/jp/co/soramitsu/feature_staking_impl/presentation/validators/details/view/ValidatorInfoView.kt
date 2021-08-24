@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
@@ -45,7 +46,7 @@ class ValidatorInfoView @JvmOverloads constructor(
     }
 
     fun setNominatorsCount(count: Int, maxNominations: Int?) {
-        validatorNominatorsView.setBody(if (maxNominations == null) count.toString() else context.getString(R.string.staking_max_format, count, maxNominations))
+        validatorNominatorsView.setBody(if (maxNominations == null) count.format() else context.getString(R.string.staking_max_format, count.format(), maxNominations.format()))
     }
 
     fun setEstimatedRewardApy(reward: String) {
@@ -69,7 +70,7 @@ class ValidatorInfoView @JvmOverloads constructor(
         validatorStatusView.setBodyIconResource(R.drawable.ic_status_indicator, statusColorRes)
     }
 
-    fun setErrors(vararg error: Error) {
+    fun setErrors(error: List<Error>) {
         for (err in error) {
             when (err) {
                 is Error.OversubscribedUnpaid -> validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)

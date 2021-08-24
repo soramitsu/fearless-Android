@@ -51,9 +51,7 @@ class ValidatorDetailsViewModel(
         mapValidatorDetailsParcelToValidatorDetailsModel(validator, asset, iconGenerator, resourceManager)
     }.inBackground().asLiveData()
 
-    val errorFlow = validatorDetailsFlow.map { validator ->
-        mapValidatorDetailsToErrors(validator)
-    }.inBackground()
+    val errorFlow = validatorDetailsFlow.map(::mapValidatorDetailsToErrors).inBackground()
 
     private val _openEmailEvent = MutableLiveData<Event<String>>()
     val openEmailEvent: LiveData<Event<String>> = _openEmailEvent

@@ -155,18 +155,21 @@ fun mapValidatorToValidatorDetailsWithStakeFlagParcelModel(
 
 fun mapValidatorDetailsToErrors(
     validator: ValidatorDetailsParcelModel
-): Error? {
+): List<Error>? {
     return when (val stake = validator.stake) {
         ValidatorStakeParcelModel.Inactive -> null
         is ValidatorStakeParcelModel.Active -> {
             val nominatorInfo = stake.nominatorInfo ?: return null
 
-            return if (nominatorInfo.isOversubscribed) {
-                if (!nominatorInfo.isNominated) Error.OversubscribedPaid
-                else if (nominatorInfo.isInLimit) Error.OversubscribedPaid
-                else Error.OversubscribedUnpaid
-            } else if (stake.isSlashed) Error.Slashed
-            else null
+            return mutableListOf<Error>().apply{
+                if (nominatorInfo.isOversubscribed) {
+                    if (!nominatorInfo.isNominated) Error.OversubscribedPaid
+                    else if (nominatorInfo.isInLimit) Error.OversubscribedPaid
+                    else Error.OversubscribedUnpaid
+                }
+
+                if (stake.isSlashed) Error.Slashed
+            }
         }
     }
 }
