@@ -193,7 +193,7 @@ class RuntimeProviderTest {
         runBlocking {
             initProvider(typesUsage = TypesUsage.BASE)
 
-            runtimeProvider.updateTypesUsage(TypesUsage.OWN)
+            runtimeProvider.considerUpdatingTypesUsage(TypesUsage.OWN)
 
             verifyReconstructionStarted()
         }
@@ -204,7 +204,7 @@ class RuntimeProviderTest {
         runBlocking {
             initProvider(typesUsage = TypesUsage.BASE)
 
-            runtimeProvider.updateTypesUsage(TypesUsage.BASE)
+            runtimeProvider.considerUpdatingTypesUsage(TypesUsage.BASE)
 
             verifyReconstructionNotStarted()
         }

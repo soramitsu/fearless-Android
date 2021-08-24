@@ -11,6 +11,7 @@ import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class ChainDao {
@@ -43,6 +44,9 @@ abstract class ChainDao {
 
     @Query("SELECT * FROM chains")
     abstract suspend fun getJoinChainInfo(): List<JoinedChainInfo>
+
+    @Query("SELECT * FROM chains")
+    abstract fun joinChainInfoFlow(): Flow<List<JoinedChainInfo>>
 
     @Query("SELECT * FROM chain_runtimes WHERE chainId = :chainId")
     abstract suspend fun runtimeInfo(chainId: String): ChainRuntimeInfoLocal

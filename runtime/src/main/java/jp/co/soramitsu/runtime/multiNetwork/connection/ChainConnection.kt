@@ -6,6 +6,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.state.SocketStateMachine.State
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -40,6 +41,12 @@ class ChainConnection(
                 autoBalance(state.value)
             }
         }
+    }
+
+    fun finish() {
+        cancel()
+
+        socketService.stop()
     }
 
     private fun autoBalance(currentState: State) {

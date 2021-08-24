@@ -8,6 +8,7 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -48,12 +49,16 @@ class RuntimeProvider(
         tryLoadFromCache()
     }
 
-    fun updateTypesUsage(newTypesUsage: TypesUsage) {
-        val currentTypesUsage = typesUsage
+    fun finish() {
+        invalidateRuntime()
 
-        typesUsage = newTypesUsage
+        cancel()
+    }
 
-        if (currentTypesUsage != newTypesUsage) {
+    fun considerUpdatingTypesUsage(newTypesUsage: TypesUsage) {
+        if (typesUsage != newTypesUsage) {
+            typesUsage = newTypesUsage
+
             constructNewRuntime(typesUsage)
         }
     }

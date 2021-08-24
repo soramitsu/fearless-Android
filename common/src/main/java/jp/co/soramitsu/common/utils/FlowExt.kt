@@ -77,6 +77,33 @@ fun <T> Flow<T>.asLiveData(scope: CoroutineScope): LiveData<T> {
     return liveData
 }
 
+data class ListDiff<T>(
+    val removed: List<T>,
+    val addedOrModified: List<T>,
+)
+
+/**
+ * Emits list with items that were
+ */
+fun <T> Flow<List<T>>.diffed(): Flow<ListDiff<T>> {
+    return zipWithPrevious().map { (previous, new) ->
+        val addedOrModified = new - previous.orEmpty()
+        val removed = previous.orEmpty() - new
+
+        ListDiff(removed = removed, addedOrModified = addedOrModified)
+    }
+}
+
+fun <T> Flow<T>.zipWithPrevious(): Flow<Pair<T?, T>> = flow {
+    var current: T? = null
+
+    collect {
+        emit(current to it)
+
+        current = it
+    }
+}
+
 fun <T> viewModelSharedFlow() = MutableSharedFlow<T>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
 fun <T> Flow<T>.inBackground() = flowOn(Dispatchers.Default)
@@ -131,7 +158,7 @@ fun RadioGroup.bindTo(flow: MutableStateFlow<Int>, scope: LifecycleCoroutineScop
 
 inline fun <T> Flow<T>.observe(
     scope: LifecycleCoroutineScope,
-    crossinline collector: suspend (T) -> Unit
+    crossinline collector: suspend (T) -> Unit,
 ) {
     scope.launchWhenResumed {
         collect(collector)
