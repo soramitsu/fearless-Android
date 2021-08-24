@@ -30,7 +30,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -48,6 +47,8 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.days
 import kotlin.time.milliseconds
 
+const val HOURS_IN_DAY = 24
+
 class EraRelativeInfo(
     val daysLeft: Int,
     val daysPast: Int,
@@ -62,7 +63,6 @@ class StakingInteractor(
     private val stakingRewardsRepository: StakingRewardsRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
     private val identityRepository: IdentityRepository,
-    private val walletConstants: WalletConstants,
     private val payoutRepository: PayoutRepository,
 ) {
 
@@ -128,7 +128,6 @@ class StakingInteractor(
     suspend fun observeNominatorSummary(
         nominatorState: StakingState.Stash.Nominator,
     ): Flow<StakeSummary<NominatorStatus>> = observeStakeSummary(nominatorState) {
-        val existentialDeposit = walletConstants.existentialDeposit()
         val eraStakers = it.eraStakers.values
 
         when {
@@ -137,7 +136,7 @@ class StakingInteractor(
 
             else -> {
                 val inactiveReason = when {
-                    it.asset.bondedInPlanks < minimumStake(eraStakers, existentialDeposit) -> NominatorStatus.Inactive.Reason.MIN_STAKE
+                    it.asset.bondedInPlanks < minimumStake(eraStakers, stakingRepository.minimumNominatorBond()) -> NominatorStatus.Inactive.Reason.MIN_STAKE
                     else -> NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR
                 }
 
@@ -154,7 +153,7 @@ class StakingInteractor(
 
             NetworkInfo(
                 lockupPeriodInDays = lockupPeriod,
-                minimumStake = minimumStake(exposures, walletConstants.existentialDeposit()),
+                minimumStake = minimumStake(exposures, stakingRepository.minimumNominatorBond()),
                 totalStake = totalStake(exposures),
                 nominatorsCount = activeNominators(exposures),
             )
@@ -162,6 +161,13 @@ class StakingInteractor(
     }
 
     suspend fun getLockupPeriodInDays() = getLockupPeriodInDays(getSelectedNetworkType())
+
+    suspend fun getEraHoursLength(): Int {
+
+        val erasPerDay = getSelectedNetworkType().runtimeConfiguration.erasPerDay
+
+        return HOURS_IN_DAY / erasPerDay
+    }
 
     fun stakingStoriesFlow(): Flow<List<StakingStory>> {
         return stakingRepository.stakingStoriesFlow()

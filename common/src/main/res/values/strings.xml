@@ -252,9 +252,13 @@ Derivation path: %s</string>
     <string name="staking_reward_details_title">Reward details</string>
     <string name="staking_reward_details_era">Era</string>
     <string name="staking_reward">Reward</string>
+    <string name="staking_slash">Slash</string>
     <string name="wallet_asset_buy_with">Buy with</string>
     <string name="common_apply">Apply</string>
     <string name="common_reset">Reset</string>
+    <string name="wallet_filters_transfers">Transfers</string>
+    <string name="wallet_filters_rewards_and_slashes">Rewards and Slashes</string>
+    <string name="wallet_filters_extrinsics">Other transactions</string>
     <string name="wallet_filters_header">Show</string>
     <string name="common_available_format">Available: %s</string>
     <string name="staking_rewards_learn_more">Learn more about rewards</string>
@@ -385,6 +389,7 @@ Derivation path: %s</string>
     <string name="staking_your_elected_format">Elected (%s)</string>
     <string name="staking_rewards_apy">Rewards (APY)</string>
     <string name="staking_validator_slashed_desc">Validator is slashed for misbehaves (e.g. goes offline, attacks the network, or runs modified software) in the network.</string>
+    <string name="staking_payout_expired">Payout expired</string>
     <string name="wallet_balance_unbonding_v1_9_0">Unstaking</string>
     <string name="staking_unbonding_period_v1_9_0">Unstaking period</string>
     <string name="wallet_balance_bonded">Staked</string>

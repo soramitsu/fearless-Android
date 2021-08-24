@@ -248,9 +248,13 @@
     <string name="staking_reward_details_title">Детали награды</string>
     <string name="staking_reward_details_era">Эра</string>
     <string name="staking_reward">Вознаграждение</string>
+    <string name="staking_slash">Слэш</string>
     <string name="wallet_asset_buy_with">Купить с</string>
     <string name="common_apply">Применять</string>
     <string name="common_reset">Сброс</string>
+    <string name="wallet_filters_transfers">Переводы</string>
+    <string name="wallet_filters_rewards_and_slashes">Вознаграждения и слэши</string>
+    <string name="wallet_filters_extrinsics">Прочие транзакции</string>
     <string name="wallet_filters_header">Показывать</string>
     <string name="common_available_format">Доступно: %s</string>
     <string name="staking_rewards_learn_more">Подробнее о вознаграждениях</string>
@@ -383,6 +387,7 @@
     <string name="staking_your_elected_format">Избраны (%s)</string>
     <string name="staking_rewards_apy">Вознаграждение (APY)</string>
     <string name="staking_validator_slashed_desc">Валидатор наказан за неправильные действия в сети (например, был оффлайн, атаковал сеть, работал с модифицированным ПО).</string>
+    <string name="staking_payout_expired">Срок выплаты истёк</string>
     <string name="wallet_balance_unbonding_v1_9_0">В процессе вывода</string>
     <string name="staking_unbonding_period_v1_9_0">Время вывода</string>
     <string name="wallet_balance_bonded">Застейкано</string>
