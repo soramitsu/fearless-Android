@@ -15,7 +15,7 @@ class RuntimeProviderPool(
 
     fun getRuntimeProvider(chainId: String) = pool.getValue(chainId)
 
-    fun setupRuntimeProvider(chain: Chain) : RuntimeProvider {
+    fun setupRuntimeProvider(chain: Chain): RuntimeProvider {
         val provider = pool.getOrPut(chain.id) {
             RuntimeProvider(runtimeFactory, runtimeSyncService, baseTypeSynchronizer, chain)
         }
