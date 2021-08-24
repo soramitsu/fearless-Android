@@ -162,7 +162,7 @@ class StakingInteractor(
 
     suspend fun getLockupPeriodInDays() = getLockupPeriodInDays(getSelectedNetworkType())
 
-    suspend fun getEra1HoursLength(): Int {
+    suspend fun getEraHoursLength(): Int {
 
         val erasPerDay = getSelectedNetworkType().runtimeConfiguration.erasPerDay
 

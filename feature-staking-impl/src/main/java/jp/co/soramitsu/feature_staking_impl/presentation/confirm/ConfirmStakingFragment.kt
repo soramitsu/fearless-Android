@@ -109,11 +109,11 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         }
 
         viewModel.unstakingTime.observe {
-            confirmStakingUnstakingPeriodLength.text = getString(R.string.staking_hint_unstake_format, it)
+            confirmStakingUnstakingPeriodLength.text = it
         }
 
         viewModel.eraHoursLength.observe {
-            confirmStakingEachEraLength.text = getString(R.string.staking_hint_rewards_format, it)
+            confirmStakingEachEraLength.text = it
         }
     }
 }
