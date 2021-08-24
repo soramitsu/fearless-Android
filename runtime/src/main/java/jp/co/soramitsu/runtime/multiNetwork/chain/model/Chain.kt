@@ -22,11 +22,22 @@ data class Chain(
         val id: Int,
         val symbol: String,
         val precision: Int,
-        val name: String?
+        val name: String?,
     )
 
     data class Node(
         val url: String,
-        val name: String
+        val name: String,
     )
 }
+
+enum class TypesUsage {
+    BASE, OWN, BOTH,
+}
+
+val Chain.typesUsage: TypesUsage
+    get() = when {
+        types == null -> TypesUsage.BASE
+        types.overridesCommon -> TypesUsage.OWN
+        else -> TypesUsage.BOTH
+    }

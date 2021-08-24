@@ -49,6 +49,7 @@ import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
+import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
@@ -69,7 +70,8 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
         ChainLocal::class,
         ChainNodeLocal::class,
-        ChainAssetLocal::class
+        ChainAssetLocal::class,
+        ChainRuntimeInfoLocal::class
     ]
 )
 @TypeConverters(

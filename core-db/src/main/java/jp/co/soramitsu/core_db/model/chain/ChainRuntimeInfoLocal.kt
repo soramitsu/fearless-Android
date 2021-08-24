@@ -5,7 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 
 @Entity(
-    tableName = "chain_assets",
+    tableName = "chain_runtimes",
     primaryKeys = ["chainId"],
     foreignKeys = [
         ForeignKey(
@@ -19,10 +19,7 @@ import androidx.room.Index
         Index(value = ["chainId"])
     ]
 )
-class ChainAssetLocal(
-    val id: Int,
+class ChainRuntimeInfoLocal(
     val chainId: String,
-    val name: String?,
-    val symbol: String,
-    val precision: Int
+    val version: Int,
 )

@@ -9,6 +9,7 @@ import androidx.room.Transaction
 import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
+import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
 
 @Dao
@@ -42,4 +43,10 @@ abstract class ChainDao {
 
     @Query("SELECT * FROM chains")
     abstract suspend fun getJoinChainInfo(): List<JoinedChainInfo>
+
+    @Query("SELECT * FROM chain_runtimes WHERE chainId = :chainId")
+    abstract suspend fun runtimeInfo(chainId: String) : ChainRuntimeInfoLocal
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertRuntimeInfo(runtimeInfoLocal: ChainRuntimeInfoLocal)
 }
