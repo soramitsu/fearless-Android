@@ -113,7 +113,6 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         }
 
         viewModel.eraHoursLength.observe {
-            println("-------- $it")
             confirmStakingEachEraLength.text = getString(R.string.staking_hint_rewards_format, it)
         }
     }
