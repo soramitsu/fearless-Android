@@ -16,7 +16,7 @@ import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitl
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleRight
 import kotlin.time.ExperimentalTime
 
-class UnbondingsAdapter() : ListAdapter<UnbondingModel, UnbondingsHolder>(UnbondingModelDiffCallback()) {
+class UnbondingsAdapter : ListAdapter<UnbondingModel, UnbondingsHolder>(UnbondingModelDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UnbondingsHolder {
         val view = parent.inflateChild(R.layout.item_list_default)

@@ -19,9 +19,6 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Acco
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CounterForNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentIndexUpdater
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentSlotUpdater
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.GenesisSlotUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.HistoryDepthUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MaxNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MinBondUpdater
@@ -194,31 +191,10 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
-    fun provideCurrentIndexUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        storageCache: StorageCache,
-    ) = CurrentIndexUpdater(runtimeProperty, storageCache)
-
-    @Provides
-    @FeatureScope
     fun provideCounterForNominatorsUpdater(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         storageCache: StorageCache,
     ) = CounterForNominatorsUpdater(runtimeProperty, storageCache)
-
-    @Provides
-    @FeatureScope
-    fun provideCurrentSlotUpdaterUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        storageCache: StorageCache,
-    ) = CurrentSlotUpdater(runtimeProperty, storageCache)
-
-    @Provides
-    @FeatureScope
-    fun provideGenesisSlotUpdaterUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        storageCache: StorageCache,
-    ) = GenesisSlotUpdater(runtimeProperty, storageCache)
 
     @Provides
     @FeatureScope
@@ -237,9 +213,6 @@ class StakingUpdatersModule {
         minBondUpdater: MinBondUpdater,
         maxNominatorsUpdater: MaxNominatorsUpdater,
         counterForNominatorsUpdater: CounterForNominatorsUpdater,
-        currentIndexUpdater: CurrentIndexUpdater,
-        currentSlotUpdater: CurrentSlotUpdater,
-        genesisSlotUpdater: GenesisSlotUpdater
     ) = StakingUpdaters(
         updaters = arrayOf(
             activeEraUpdater,
@@ -256,9 +229,6 @@ class StakingUpdatersModule {
             minBondUpdater,
             maxNominatorsUpdater,
             counterForNominatorsUpdater,
-            currentIndexUpdater,
-            currentSlotUpdater,
-            genesisSlotUpdater
         )
     )
 }

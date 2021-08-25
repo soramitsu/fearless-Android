@@ -68,7 +68,7 @@ fun bindCurrentSlot(
 ): BigInteger {
     val returnType = runtime.metadata.storageReturnType("Babe", "CurrentSlot")
 
-    return bindSessionIndex(returnType.fromHexOrNull(runtime, scale))
+    return bindSlot(returnType.fromHexOrNull(runtime, scale))
 }
 
 @UseCaseBinding
@@ -87,3 +87,6 @@ fun bindEraIndex(dynamicInstance: Any?): EraIndex = bindNumber(dynamicInstance)
 
 @HelperBinding
 fun bindSessionIndex(dynamicInstance: Any?): BigInteger = bindNumber(dynamicInstance)
+
+@HelperBinding
+fun bindSlot(dynamicInstance: Any?): BigInteger = bindNumber(dynamicInstance)

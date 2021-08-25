@@ -241,7 +241,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     private fun mapNominatorStatus(summary: NominatorSummaryModel): StakeSummaryView.Status {
         return when (summary.status) {
             is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
-            is NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
+            NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
             is NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting(summary.status.timeLeft)
         }
     }
