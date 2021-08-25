@@ -381,7 +381,7 @@
     <string name="staking_validator_total_stake_token">Общий стейк (%s)</string>
     <string name="staking_validator_apy_percent">Примерное вознаграждение (% APY)</string>
     <string name="staking_rewards_destination_title">Назначение вознаграждений</string>
-    <string name="staking_max_format" formatted="false">%d (макс. %d)</string>
+    <string name="staking_max_format" formatted="false">%s (макс. %s)</string>
     <string name="staking_your_oversubscribed_message">Ваши токены попали к валидатору, превысившему лимит номинаторов. В этой эре вы не получите награду от этого валидатора. </string>
     <string name="staking_your_not_elected_format">Не избраны (%s)</string>
     <string name="staking_your_elected_format">Избраны (%s)</string>

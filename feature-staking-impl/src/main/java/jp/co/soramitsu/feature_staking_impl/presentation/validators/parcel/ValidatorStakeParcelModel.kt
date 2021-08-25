@@ -16,5 +16,16 @@ sealed class ValidatorStakeParcelModel : Parcelable {
         val ownStake: BigInteger,
         val nominators: List<NominatorParcelModel>,
         val apy: BigDecimal,
-    ) : ValidatorStakeParcelModel()
+        val isSlashed: Boolean,
+        val nominatorInfo: NominatorInfo? = null
+    ) : ValidatorStakeParcelModel() {
+
+        @Parcelize
+        class NominatorInfo(
+            val maxNominators: Int,
+            val isNominated: Boolean,
+            val isInLimit: Boolean,
+            val isOversubscribed: Boolean
+        ) : Parcelable
+    }
 }

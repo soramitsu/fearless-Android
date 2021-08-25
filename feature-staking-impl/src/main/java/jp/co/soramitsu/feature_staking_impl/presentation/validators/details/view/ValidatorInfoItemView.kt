@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.dp
 import jp.co.soramitsu.common.utils.makeGone
@@ -12,9 +13,7 @@ import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_validator_info_item.view.validatorIdentityBody
-import kotlinx.android.synthetic.main.view_validator_info_item.view.validatorIdentityExtra
-import kotlinx.android.synthetic.main.view_validator_info_item.view.validatorIdentityTitle
+import kotlinx.android.synthetic.main.view_validator_info_item.view.*
 
 class ValidatorInfoItemView @JvmOverloads constructor(
     context: Context,
@@ -43,6 +42,12 @@ class ValidatorInfoItemView @JvmOverloads constructor(
         setBodyIconResource(bodyIcon)
 
         typedArray.recycle()
+    }
+
+    fun setDescription(description: String, @DrawableRes icon: Int) {
+        validatorsIdentityDescription.makeVisible()
+        validatorsIdentityDescription.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0)
+        validatorsIdentityDescription.text = description
     }
 
     fun setTitle(title: String) {
@@ -75,6 +80,14 @@ class ValidatorInfoItemView @JvmOverloads constructor(
 
     fun setExtraOrHide(extra: String?) {
         validatorIdentityExtra.setTextOrHide(extra)
+    }
+
+    fun showDescription() {
+        validatorsIdentityDescription.makeVisible()
+    }
+
+    fun hideDescription() {
+        validatorsIdentityDescription.makeGone()
     }
 }
 

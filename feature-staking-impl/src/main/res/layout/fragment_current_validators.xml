@@ -2,10 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/currentValidatorsContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:id="@+id/currentValidatorsContainer"
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.Toolbar
@@ -15,6 +15,28 @@
         app:homeButtonIcon="@drawable/ic_close"
         app:textRight="@string/common_change"
         app:titleText="@string/staking_your_validators" />
+
+    <TextView
+        android:id="@+id/currentValidatorsOversubscribedMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:drawablePadding="8dp"
+        android:text="@string/staking_your_oversubscribed_message"
+        app:drawableStartCompat="@drawable/ic_warning_filled"
+        android:visibility="gone"/>
+
+    <View
+        android:id="@+id/payoutDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/dividerGray"
+        app:layout_constraintTop_toBottomOf="@+id/payoutInstructionTextView" />
 
     <ProgressBar
         android:id="@+id/currentValidatorsProgress"
@@ -28,7 +50,7 @@
         android:id="@+id/currentValidatorsList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_current_validator" />
 </LinearLayout>

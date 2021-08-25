@@ -19,7 +19,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit.SelectionMethod
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsWithStakeFlagParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel.TitleConfig
@@ -59,6 +59,9 @@ class CurrentValidatorsViewModel(
         .map { it.token }
         .share()
 
+    private val accountFlow = stakingInteractor.selectedAccountFlow()
+        .share()
+
     val currentValidatorModelsLiveData = groupedCurrentValidatorsFlow.combine(tokenFlow) { gropedList, token ->
         gropedList.mapKeys { (status, validators) -> mapNominatedValidatorStatusToUiModel(status, validators.size) }
             .mapValues { (_, nominatedValidators) -> nominatedValidators.map { mapNominatedValidatorToUiModel(it, token) } }
@@ -67,6 +70,11 @@ class CurrentValidatorsViewModel(
         .withLoading()
         .inBackground()
         .asLiveData()
+
+    val oversubscribedValidatorsFlow = groupedCurrentValidatorsFlow.map {
+        it[NominatedValidator.Status.Active]?.any { it.validator?.electedInfo?.isOversubscribed ?: false } ?: false
+    }.inBackground()
+        .share()
 
     private suspend fun mapNominatedValidatorToUiModel(nominatedValidator: NominatedValidator, token: Token): NominatedValidatorModel {
         val validator = nominatedValidator.validator
@@ -81,14 +89,16 @@ class CurrentValidatorsViewModel(
 
         return NominatedValidatorModel(
             addressModel = iconGenerator.createAddressModel(validatorAddress, AddressIconGenerator.SIZE_MEDIUM, validator.identity?.display),
-            nominated = nominationFormatted
+            nominated = nominationFormatted,
+            isOversubscribed = validator.electedInfo?.isOversubscribed ?: false,
+            isSlashed = validator.slashed
         )
     }
 
     private fun mapNominatedValidatorStatusToUiModel(status: NominatedValidator.Status, valuesSize: Int) = when (status) {
         NominatedValidator.Status.Active -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.crowdloan_active_section_format, valuesSize),
+                resourceManager.getString(R.string.staking_your_elected_format, valuesSize),
                 R.color.green
             ),
             resourceManager.getString(R.string.staking_your_allocated_description)
@@ -142,7 +152,7 @@ class CurrentValidatorsViewModel(
 
             val nominatedValidator = allValidators.first { it.validator.accountIdHex == accountId }
 
-            mapValidatorToValidatorDetailsParcelModel(nominatedValidator.validator)
+            mapValidatorToValidatorDetailsWithStakeFlagParcelModel(nominatedValidator, accountFlow.first())
         }
 
         router.openValidatorDetails(payload)
