@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
@@ -43,25 +42,14 @@ class SetupStakingValidationsModule {
 
     @Provides
     @FeatureScope
-    fun provideMaxNominatorsReachedValidation(
-        stakingRepository: StakingRepository
-    ) = SetupStakingMaximumNominatorsValidation(
-        stakingRepository = stakingRepository,
-        errorProducer = { SetupStakingValidationFailure.MaxNominatorsReached }
-    )
-
-    @Provides
-    @FeatureScope
     fun provideSetupStakingValidationSystem(
         enoughToPayFeesValidation: SetupStakingFeeValidation,
-        minimumAmountValidation: MinimumAmountValidation,
-        maxNominatorsReachedValidation: SetupStakingMaximumNominatorsValidation
+        minimumAmountValidation: MinimumAmountValidation
     ) = ValidationSystem(
         CompositeValidation(
             listOf(
                 enoughToPayFeesValidation,
-                minimumAmountValidation,
-                maxNominatorsReachedValidation
+                minimumAmountValidation
             )
         )
     )
