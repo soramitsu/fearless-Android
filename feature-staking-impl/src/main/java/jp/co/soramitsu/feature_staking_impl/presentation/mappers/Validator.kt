@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
@@ -209,9 +210,9 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
                     activeStakeModel = ActiveStakeModel(
                         totalStake = totalStakeFormatted,
                         totalStakeFiat = totalStakeFiatFormatted,
-                        nominatorsCount = nominatorsCount,
+                        nominatorsCount = nominatorsCount.format(),
                         apy = apyPercentageFormatted,
-                        maxNominations = stake.nominatorInfo?.maxNominators
+                        maxNominations = stake.nominatorInfo?.maxNominators?.format()
                     )
                 )
             }

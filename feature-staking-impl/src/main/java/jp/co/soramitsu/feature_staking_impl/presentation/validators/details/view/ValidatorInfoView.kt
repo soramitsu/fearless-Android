@@ -45,7 +45,7 @@ class ValidatorInfoView @JvmOverloads constructor(
         validatorTotalStakeView.setExtraOrHide(fiat)
     }
 
-    fun setNominatorsCount(count: Int, maxNominations: Int?) {
+    fun setNominatorsCount(count: String, maxNominations: String?) {
         validatorNominatorsView.setBody(
             if (maxNominations == null)
                 count.format()

@@ -9,8 +9,8 @@ class ValidatorStakeModel(
     class ActiveStakeModel(
         val totalStake: String,
         val totalStakeFiat: String?,
-        val nominatorsCount: Int,
-        val maxNominations: Int?,
+        val nominatorsCount: String,
+        val maxNominations: String?,
         val apy: String
     )
 }
