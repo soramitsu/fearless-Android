@@ -1,7 +1,9 @@
 package jp.co.soramitsu.common.data.network.runtime.calls
 
+import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock
+import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock.Block.Header
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
@@ -13,7 +15,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import java.math.BigInteger
 
 @Suppress("EXPERIMENTAL_API_USAGE")
-class SubstrateCalls(
+class RpcCalls(
     private val socketService: SocketService,
 ) {
 
@@ -58,5 +60,30 @@ class SubstrateCalls(
         val blockRequest = GetBlockRequest(hash)
 
         return socketService.executeAsync(blockRequest, mapper = pojo<SignedBlock>().nonNull())
+    }
+
+    /**
+     * Get hash of the last finalized block in the canon chain
+     */
+    suspend fun getFinalizedHead(): String {
+        return socketService.executeAsync(GetFinalizedHeadRequest, mapper = pojo<String>().nonNull())
+    }
+
+    /**
+     * Retrieves the header for a specific block
+     *
+     * @param hash - hash of the block. If null - then the  best pending header is returned
+     */
+    suspend fun getBlockHeader(hash: String? = null): Header {
+        return socketService.executeAsync(GetHeaderRequest(hash), mapper = pojo<Header>().nonNull())
+    }
+
+    /**
+     * Retrieves the hash of a specific block
+     *
+     *  @param blockNumber - if null, then the  best block hash is returned
+     */
+    suspend fun getBlockHash(blockNumber: BlockNumber? = null): String {
+        return socketService.executeAsync(GetBlockHashRequest(blockNumber), mapper = pojo<String>().nonNull())
     }
 }

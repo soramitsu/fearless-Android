@@ -33,6 +33,47 @@
         android:layout_marginEnd="16dp"
         android:enabled="false" />
 
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:drawablePadding="8dp"
+        android:gravity="left|center"
+        android:includeFontPadding="false"
+        android:text="@string/staking_hint_no_rewards"
+        android:textColor="@color/white"
+        app:drawableLeftCompat="@drawable/ic_no_reward_24" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:drawablePadding="8dp"
+        android:gravity="left|center"
+        android:includeFontPadding="false"
+        android:text="@string/staking_hint_unbond_kills_stash"
+        android:textColor="@color/white"
+        app:drawableLeftCompat="@drawable/ic_finance_wallet_24" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:drawablePadding="8dp"
+        android:gravity="left|center"
+        android:includeFontPadding="false"
+        android:text="@string/staking_hint_redeem"
+        android:textColor="@color/white"
+        app:drawableLeftCompat="@drawable/ic_arrows_circle_arrow_right_24" />
+
     <Space
         android:layout_width="match_parent"
         android:layout_height="0dp"

@@ -12,13 +12,15 @@
         android:id="@+id/validatorStatusView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:validatorInfoItemTitle="@string/transaction_detail_status" />
+        app:validatorInfoItemTitle="@string/transaction_detail_status"
+        />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/validatorNominatorsView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:validatorInfoItemTitle="@string/staking_validator_nominators" />
+        app:validatorInfoItemTitle="@string/staking_validator_nominators"
+        />
 
     <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/validatorTotalStakeView"

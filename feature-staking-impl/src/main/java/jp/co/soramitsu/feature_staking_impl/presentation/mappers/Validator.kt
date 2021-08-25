@@ -3,11 +3,15 @@ package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSorting
@@ -18,6 +22,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.Valid
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorStakeModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorStakeModel.ActiveStakeModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.Error
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -106,10 +111,66 @@ fun mapValidatorToValidatorDetailsParcelModel(
         val stakeModel = electedInfo?.let {
             val nominators = it.nominatorStakes.map(::mapNominatorToNominatorParcelModel)
 
-            ValidatorStakeParcelModel.Active(it.totalStake, it.ownStake, nominators, it.apy)
+            ValidatorStakeParcelModel.Active(it.totalStake, it.ownStake, nominators, it.apy, slashed)
         } ?: ValidatorStakeParcelModel.Inactive
 
         ValidatorDetailsParcelModel(accountIdHex, stakeModel, identityModel)
+    }
+}
+
+fun mapValidatorToValidatorDetailsWithStakeFlagParcelModel(
+    nominatedValidator: NominatedValidator,
+    account: StakingAccount
+): ValidatorDetailsParcelModel {
+    val isNominated = nominatedValidator.status is NominatedValidator.Status.Active // if we nominated all money to this validator
+
+    return with(nominatedValidator.validator) {
+        val identityModel = identity?.let(::mapIdentityToIdentityParcelModel)
+
+        val stakeModel = electedInfo?.let {
+            val nominators = it.nominatorStakes.map(::mapNominatorToNominatorParcelModel)
+
+            val indexOfCurrentAccount = nominators.sortedBy { it.value }.indexOfFirst { it.who.contentEquals(account.address.toAccountId()) }
+            val isInLimit = indexOfCurrentAccount < it.maxNominators
+
+            val isOversubscribed = nominators.size > it.maxNominators
+
+            ValidatorStakeParcelModel.Active(
+                it.totalStake,
+                it.ownStake,
+                nominators,
+                it.apy,
+                slashed,
+                ValidatorStakeParcelModel.Active.NominatorInfo(
+                    it.maxNominators,
+                    isNominated,
+                    isInLimit,
+                    isOversubscribed
+                )
+            )
+        } ?: ValidatorStakeParcelModel.Inactive
+
+        ValidatorDetailsParcelModel(accountIdHex, stakeModel, identityModel)
+    }
+}
+
+fun mapValidatorDetailsToErrors(
+    validator: ValidatorDetailsParcelModel
+): List<Error>? {
+    return when (val stake = validator.stake) {
+        ValidatorStakeParcelModel.Inactive -> null
+        is ValidatorStakeParcelModel.Active -> {
+            val nominatorInfo = stake.nominatorInfo ?: return null
+
+            return mutableListOf<Error>().apply {
+                if (nominatorInfo.isOversubscribed) {
+                    if (!nominatorInfo.isNominated) add(Error.OversubscribedPaid)
+                    else if (nominatorInfo.isInLimit) add(Error.OversubscribedPaid)
+                    else add(Error.OversubscribedUnpaid)
+                }
+                if (stake.isSlashed) add(Error.Slashed)
+            }
+        }
     }
 }
 
@@ -140,7 +201,7 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
                 val totalStake = token.amountFromPlanks(stake.totalStake)
                 val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.type)
                 val totalStakeFiatFormatted = token.fiatAmount(totalStake)?.formatAsCurrency()
-                val nominatorsCountFormatted = stake.nominators.size.toString()
+                val nominatorsCount = stake.nominators.size
                 val apyPercentageFormatted = (PERCENT_MULTIPLIER * stake.apy).formatAsPercentage()
 
                 ValidatorStakeModel(
@@ -149,8 +210,9 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
                     activeStakeModel = ActiveStakeModel(
                         totalStake = totalStakeFormatted,
                         totalStakeFiat = totalStakeFiatFormatted,
-                        nominatorsCount = nominatorsCountFormatted,
-                        apy = apyPercentageFormatted
+                        nominatorsCount = nominatorsCount.format(),
+                        apy = apyPercentageFormatted,
+                        maxNominations = stake.nominatorInfo?.maxNominators?.format()
                     )
                 )
             }

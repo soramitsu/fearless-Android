@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
 import jp.co.soramitsu.common.data.network.runtime.calls.FeeCalculationRequest
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.preBinder
@@ -36,7 +36,7 @@ import kotlinx.coroutines.withContext
 
 class WssSubstrateSource(
     private val socketService: SocketService,
-    private val substrateCalls: SubstrateCalls,
+    private val rpcCalls: RpcCalls,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) : SubstrateRemoteSource {
@@ -73,7 +73,7 @@ class WssSubstrateSource(
     }
 
     override suspend fun fetchAccountTransfersInBlock(blockHash: String, accountAddress: String): Result<List<TransferExtrinsicWithStatus>> = runCatching {
-        val block = substrateCalls.getBlock(blockHash)
+        val block = rpcCalls.getBlock(blockHash)
 
         val runtime = runtimeProperty.get()
 
