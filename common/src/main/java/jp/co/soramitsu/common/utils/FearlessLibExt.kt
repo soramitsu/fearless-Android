@@ -2,9 +2,11 @@ package jp.co.soramitsu.common.utils
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
+import jp.co.soramitsu.common.data.network.runtime.binding.bindNullableNumberConstant
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumberConstant
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.fromUnsignedBytes
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -36,6 +38,10 @@ fun <T> DataType<T>.fromHex(hex: String): T {
     return read(codecReader)
 }
 
+fun <T> DataType<T>.toHex(value: T): String {
+    return toByteArray(value).toHexString(withPrefix = true)
+}
+
 fun <T> DataType<T>.toByteArray(value: T): ByteArray {
     val stream = ByteArrayOutputStream()
     val writer = ScaleCodecWriter(stream)
@@ -63,6 +69,7 @@ val GenericEvent.Instance.index
 fun Module.constant(name: String) = constantOrNull(name) ?: throw NoSuchElementException()
 
 fun Module.numberConstant(name: String, runtimeSnapshot: RuntimeSnapshot) = bindNumberConstant(constant(name), runtimeSnapshot)
+fun Module.optionalNumberConstant(name: String, runtimeSnapshot: RuntimeSnapshot) = bindNullableNumberConstant(constant(name), runtimeSnapshot)
 
 fun Module.constantOrNull(name: String) = constants[name]
 
@@ -90,6 +97,8 @@ private const val HEX_SYMBOLS_PER_BYTE = 2
 private const val UINT_32_BYTES = 4
 
 fun String.u32ArgumentFromStorageKey() = uint32.fromHex(takeLast(HEX_SYMBOLS_PER_BYTE * UINT_32_BYTES)).toLong().toBigInteger()
+
+fun ByteArray.decodeToInt() = fromUnsignedBytes().toInt()
 
 object Modules {
     const val STAKING = "Staking"

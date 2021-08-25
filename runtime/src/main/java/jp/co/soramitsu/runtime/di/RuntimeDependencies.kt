@@ -4,7 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core_db.dao.ChainDao
@@ -32,7 +32,7 @@ interface RuntimeDependencies {
 
     fun accountRepository(): AccountRepository
 
-    fun substrateCalls(): SubstrateCalls
+    fun substrateCalls(): RpcCalls
 
     fun keypairFactory(): KeypairFactory
 

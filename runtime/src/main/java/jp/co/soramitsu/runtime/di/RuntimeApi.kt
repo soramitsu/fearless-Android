@@ -7,6 +7,7 @@ import jp.co.soramitsu.runtime.RuntimeUpdater
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
+import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
@@ -32,4 +33,6 @@ interface RuntimeApi {
     fun localStorageSource(): StorageDataSource
 
     fun chainSyncService(): ChainSyncService
+
+    fun chainStateRepository(): ChainStateRepository
 }

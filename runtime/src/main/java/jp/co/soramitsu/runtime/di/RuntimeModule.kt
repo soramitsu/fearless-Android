@@ -6,7 +6,7 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -29,6 +29,8 @@ import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
+import jp.co.soramitsu.runtime.extrinsic.MortalityConstructor
+import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.NetworkAwareStorageCache
 import jp.co.soramitsu.runtime.storage.source.LocalStorageSource
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
@@ -44,13 +46,13 @@ class RuntimeModule {
     @Provides
     @ApplicationScope
     fun provideDefinitionsFetcher(
-        apiCreator: NetworkApiCreator
+        apiCreator: NetworkApiCreator,
     ) = apiCreator.create(DefinitionsFetcher::class.java)
 
     @Provides
     @ApplicationScope
     fun provideRuntimeCache(
-        fileProvider: FileProvider
+        fileProvider: FileProvider,
     ) = RuntimeCache(fileProvider)
 
     @Provides
@@ -59,7 +61,7 @@ class RuntimeModule {
         context: Context,
         runtimeDao: RuntimeDao,
         preferences: Preferences,
-        runtimeCache: RuntimeCache
+        runtimeCache: RuntimeCache,
     ) = RuntimePrepopulator(
         context,
         runtimeDao,
@@ -74,7 +76,7 @@ class RuntimeModule {
         gson: Gson,
         definitionsFetcher: DefinitionsFetcher,
         runtimeDao: RuntimeDao,
-        runtimeCache: RuntimeCache
+        runtimeCache: RuntimeCache,
     ) = RuntimeConstructor(
         socketService,
         definitionsFetcher,
@@ -90,7 +92,7 @@ class RuntimeModule {
         socketService: SocketService,
         runtimeConstructor: RuntimeConstructor,
         runtimePrepopulator: RuntimePrepopulator,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     ) = RuntimeUpdater(
         runtimeConstructor,
         socketService,
@@ -107,14 +109,16 @@ class RuntimeModule {
     @ApplicationScope
     fun provideExtrinsicBuilderFactory(
         accountRepository: AccountRepository,
-        substrateCalls: SubstrateCalls,
+        rpcCalls: RpcCalls,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        keypairFactory: KeypairFactory
+        keypairFactory: KeypairFactory,
+        mortalityConstructor: MortalityConstructor,
     ) = ExtrinsicBuilderFactory(
         accountRepository,
-        substrateCalls,
+        rpcCalls,
         keypairFactory,
-        runtimeProperty
+        runtimeProperty,
+        mortalityConstructor
     )
 
     @Provides
@@ -122,22 +126,22 @@ class RuntimeModule {
     fun provideStorageCache(
         storageDao: StorageDao,
         runtimeDao: RuntimeDao,
-        accountRepository: AccountRepository
+        accountRepository: AccountRepository,
     ): StorageCache = NetworkAwareStorageCache(storageDao, runtimeDao, accountRepository)
 
     @Provides
     @ApplicationScope
     fun provideFeeEstimator(
-        substrateCalls: SubstrateCalls,
+        rpcCalls: RpcCalls,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
-    ): FeeEstimator = FeeEstimator(substrateCalls, extrinsicBuilderFactory)
+    ): FeeEstimator = FeeEstimator(rpcCalls, extrinsicBuilderFactory)
 
     @Provides
     @ApplicationScope
     fun provideExtrinsicService(
-        substrateCalls: SubstrateCalls,
+        rpcCalls: RpcCalls,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
-    ): ExtrinsicService = ExtrinsicService(substrateCalls, extrinsicBuilderFactory)
+    ): ExtrinsicService = ExtrinsicService(rpcCalls, extrinsicBuilderFactory)
 
     @Provides
     @Named(LOCAL_STORAGE_SOURCE)
@@ -153,8 +157,22 @@ class RuntimeModule {
     fun provideRemoteStorageSource(
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         socketService: SocketService,
-        bulkRetriever: BulkRetriever
+        bulkRetriever: BulkRetriever,
     ): StorageDataSource = RemoteStorageSource(runtimeProperty, socketService, bulkRetriever)
+
+    @Provides
+    @ApplicationScope
+    fun provideChainStateRepository(
+        @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
+        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    ) = ChainStateRepository(localStorageSource, runtimeProperty)
+
+    @Provides
+    @ApplicationScope
+    fun provideMortalityProvider(
+        chainStateRepository: ChainStateRepository,
+        rpcCalls: RpcCalls,
+    ) = MortalityConstructor(rpcCalls, chainStateRepository)
 
     @Provides
     @ApplicationScope
