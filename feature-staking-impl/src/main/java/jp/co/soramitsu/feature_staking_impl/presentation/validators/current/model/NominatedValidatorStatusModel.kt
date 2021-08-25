@@ -16,4 +16,6 @@ data class NominatedValidatorStatusModel(
 class NominatedValidatorModel(
     val addressModel: AddressModel,
     val nominated: String?,
+    val isOversubscribed: Boolean,
+    val isSlashed: Boolean
 )

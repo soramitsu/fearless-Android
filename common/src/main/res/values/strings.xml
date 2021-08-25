@@ -383,7 +383,7 @@ Derivation path: %s</string>
     <string name="staking_validator_total_stake_token">Total stake (%s)</string>
     <string name="staking_validator_apy_percent">Estimated reward (% APY)</string>
     <string name="staking_rewards_destination_title">Rewards destination</string>
-    <string name="staking_max_format" formatted="false">%d (max %d)</string>
+    <string name="staking_max_format" formatted="false">%s (max %s)</string>
     <string name="staking_your_oversubscribed_message">Your tokens are allocated to the oversubscribed validators. You will not receive rewards in this era.</string>
     <string name="staking_your_not_elected_format">Not elected (%s)</string>
     <string name="staking_your_elected_format">Elected (%s)</string>

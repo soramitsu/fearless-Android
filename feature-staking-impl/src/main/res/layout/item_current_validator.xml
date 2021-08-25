@@ -56,13 +56,12 @@
         android:id="@+id/itemCurrentValidatorBadge"
         android:layout_width="16dp"
         android:layout_height="16dp"
-        android:layout_marginEnd="10dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/itemCurrentValidatorInfo"
-        app:layout_constraintEnd_toStartOf="@id/itemCurrentValidatorInfo"
-        app:layout_constraintTop_toTopOf="@+id/itemCurrentValidatorInfo"
-        tools:src="@drawable/ic_alert_triangle_yellow_24"
-        tools:visibility="visible" />
+        app:layout_constraintBottom_toBottomOf="@+id/currentValidatorSlashedIcon"
+        app:layout_constraintEnd_toStartOf="@+id/currentValidatorSlashedIcon"
+        app:layout_constraintTop_toTopOf="@+id/currentValidatorSlashedIcon"
+        app:srcCompat="@drawable/ic_warning_filled"
+        tools:visibility="visible"
+        android:layout_marginEnd="8dp"/>
 
     <ImageView
         android:id="@+id/itemCurrentValidatorInfo"
@@ -83,4 +82,15 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/currentValidatorSlashedIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/itemCurrentValidatorInfo"
+        app:layout_constraintEnd_toStartOf="@+id/itemCurrentValidatorInfo"
+        app:layout_constraintTop_toTopOf="@+id/itemCurrentValidatorInfo"
+        app:srcCompat="@drawable/ic_status_error_16"
+        android:layout_marginEnd="12dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

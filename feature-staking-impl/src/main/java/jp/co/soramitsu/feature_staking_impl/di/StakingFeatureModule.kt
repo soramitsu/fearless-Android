@@ -175,8 +175,9 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         identityRepository: IdentityRepository,
         rewardCalculatorFactory: RewardCalculatorFactory,
-        accountRepository: AccountRepository
-    ) = ValidatorProvider(stakingRepository, identityRepository, accountRepository, rewardCalculatorFactory)
+        accountRepository: AccountRepository,
+        stakingConstantsRepository: StakingConstantsRepository
+    ) = ValidatorProvider(stakingRepository, identityRepository, accountRepository, rewardCalculatorFactory, stakingConstantsRepository)
 
     @Provides
     @FeatureScope
