@@ -72,8 +72,7 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideHistoryFiltersProviderFactory()
-    HistoryFiltersProviderFactory()
+    fun provideHistoryFiltersProviderFactory() = HistoryFiltersProviderFactory()
 
     @Provides
     @FeatureScope
