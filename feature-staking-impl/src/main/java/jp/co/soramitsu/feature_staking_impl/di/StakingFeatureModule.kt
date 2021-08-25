@@ -18,6 +18,7 @@ import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_staking_api.domain.api.EraTimeCalculatorFactory
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
@@ -136,6 +137,7 @@ class StakingFeatureModule {
         stakingConstantsRepository: StakingConstantsRepository,
         identityRepository: IdentityRepository,
         payoutRepository: PayoutRepository,
+        factory: EraTimeCalculatorFactory
     ) = StakingInteractor(
         walletRepository,
         accountRepository,
@@ -143,8 +145,15 @@ class StakingFeatureModule {
         stakingRewardsRepository,
         stakingConstantsRepository,
         identityRepository,
-        payoutRepository
+        payoutRepository,
+        factory
     )
+
+    @Provides
+    @FeatureScope
+    fun provideEraTimeCalculatorFactory(
+        stakingRepository: StakingRepository
+    ) = EraTimeCalculatorFactory(stakingRepository)
 
     @Provides
     @FeatureScope
