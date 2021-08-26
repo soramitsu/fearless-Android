@@ -35,7 +35,6 @@ class StakingModule {
         resourceManager: ResourceManager,
         rewardCalculatorFactory: RewardCalculatorFactory,
         router: StakingRouter,
-        welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
         validationExecutor: ValidationExecutor
     ) = StakingViewStateFactory(
         interactor,
@@ -43,7 +42,6 @@ class StakingModule {
         resourceManager,
         router,
         rewardCalculatorFactory,
-        welcomeStakingValidationSystem,
         validationExecutor
     )
 

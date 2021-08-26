@@ -22,7 +22,6 @@ class StakingViewStateFactory(
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
-    private val welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
     private val validationExecutor: ValidationExecutor
 ) {
 
@@ -70,7 +69,6 @@ class StakingViewStateFactory(
         currentAssetFlow,
         scope,
         errorDisplayer,
-        welcomeStakingValidationSystem,
         validationExecutor
     )
 

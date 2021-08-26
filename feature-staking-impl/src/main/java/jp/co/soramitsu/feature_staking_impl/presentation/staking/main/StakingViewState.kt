@@ -23,8 +23,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -263,7 +261,6 @@ class WelcomeViewState(
     private val currentAssetFlow: Flow<Asset>,
     private val scope: CoroutineScope,
     private val errorDisplayer: (String) -> Unit,
-    private val validationSystem: WelcomeStakingValidationSystem,
     private val validationExecutor: ValidationExecutor
 ) : StakingViewState(), Validatable by validationExecutor {
 
@@ -312,19 +309,10 @@ class WelcomeViewState(
 
     fun nextClicked() {
         scope.launch {
-            val payload = WelcomeStakingValidationPayload()
             val amount = parsedAmountFlow.first()
+            setupStakingSharedState.set(currentSetupProgress.fullFlow(amount))
 
-            validationExecutor.requireValid(
-                validationSystem = validationSystem,
-                payload = payload,
-                errorDisplayer = { it.message?.let(errorDisplayer) },
-                validationFailureTransformer = { welcomeStakingValidationFailure(it, resourceManager) },
-            ) {
-                setupStakingSharedState.set(currentSetupProgress.fullFlow(amount))
-
-                router.openSetupStaking()
-            }
+            router.openSetupStaking()
         }
     }
 
