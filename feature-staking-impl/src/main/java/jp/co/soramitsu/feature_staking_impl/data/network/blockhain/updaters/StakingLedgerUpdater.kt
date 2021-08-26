@@ -44,7 +44,7 @@ class LedgerWithController(
 )
 
 class StakingLedgerUpdater(
-    private val socketService: SocketService,
+    private val socketProperty: SuspendableProperty<SocketService>,
     private val stakingRepository: StakingRepository,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val accountStakingDao: AccountStakingDao,
@@ -111,7 +111,7 @@ class StakingLedgerUpdater(
         val key = runtime.metadata.staking().storage("Ledger").storageKey(runtime, controllerId)
         val request = SubscribeStorageRequest(key)
 
-        return socketService.subscriptionFlow(request)
+        return socketProperty.get().subscriptionFlow(request)
             .map { it.storageChange() }
             .onEach { storageCache.insert(StorageChange(it.block, key, it.getSingleChange())) }
             .map {

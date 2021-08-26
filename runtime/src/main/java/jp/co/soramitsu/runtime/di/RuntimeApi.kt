@@ -7,9 +7,11 @@ import jp.co.soramitsu.runtime.RuntimeUpdater
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
-import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
+import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
+import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Named
 
 interface RuntimeApi {
@@ -19,6 +21,8 @@ interface RuntimeApi {
     fun provideRuntimeUpdater(): RuntimeUpdater
 
     fun provideRuntimeProperty(): SuspendableProperty<RuntimeSnapshot>
+
+    fun externalRequirementFlow(): MutableStateFlow<ChainConnection.ExternalRequirement>
 
     fun storageCache(): StorageCache
 

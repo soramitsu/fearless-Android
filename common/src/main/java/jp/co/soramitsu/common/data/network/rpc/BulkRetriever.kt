@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.network.rpc
 
+import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
@@ -45,7 +46,7 @@ class QueryStorageAtResponse(
 private const val DEFAULT_PAGE_SIZE = 1000
 
 class BulkRetriever(
-    private val socketService: SocketService,
+    private val connectionProperty: SuspendableProperty<SocketService>,
     private val pageSize: Int = DEFAULT_PAGE_SIZE
 ) {
 
@@ -54,12 +55,14 @@ class BulkRetriever(
 
         var currentOffset: String? = null
 
+        val socket = connectionProperty.get()
+
         while (true) {
             ensureActive()
 
             val request = GetKeysPagedRequest(keyPrefix, DEFAULT_PAGE_SIZE, currentOffset)
 
-            val page = socketService.executeAsync(request, mapper = pojoList<String>().nonNull())
+            val page = socket.executeAsync(request, mapper = pojoList<String>().nonNull())
 
             result += page
 
@@ -73,13 +76,14 @@ class BulkRetriever(
 
     suspend fun queryKeys(keys: List<String>): Map<String, String?> = withContext(Dispatchers.IO) {
         val chunks = keys.chunked(pageSize)
+        val socket = connectionProperty.get()
 
         chunks.fold(mutableMapOf()) { acc, chunk ->
             ensureActive()
 
             val request = QueryStorageAtRequest(chunk)
 
-            val chunkValues = socketService.executeAsync(request, mapper = pojoList<QueryStorageAtResponse>().nonNull())
+            val chunkValues = socket.executeAsync(request, mapper = pojoList<QueryStorageAtResponse>().nonNull())
                 .first().changesAsMap()
 
             acc.putAll(chunkValues)

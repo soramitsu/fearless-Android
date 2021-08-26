@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.map
 
 class RemoteStorageSource(
     runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    private val socketService: SocketService,
+    private val connectionProperty: SuspendableProperty<SocketService>,
     private val bulkRetriever: BulkRetriever,
 ) : BaseStorageSource(runtimeProperty) {
 
@@ -30,7 +30,7 @@ class RemoteStorageSource(
     }
 
     override suspend fun observe(key: String, networkType: Node.NetworkType): Flow<String?> {
-        return socketService.subscriptionFlow(SubscribeStorageRequest(key))
+        return connectionProperty.get().subscriptionFlow(SubscribeStorageRequest(key))
             .map { it.storageChange().getSingleChange() }
     }
 
@@ -39,7 +39,7 @@ class RemoteStorageSource(
     }
 
     override suspend fun queryChildState(storageKey: String, childKey: String): String? {
-        val response = socketService.executeAsync(GetChildStateRequest(storageKey, childKey))
+        val response = connectionProperty.get().executeAsync(GetChildStateRequest(storageKey, childKey))
 
         return response.result as? String?
     }

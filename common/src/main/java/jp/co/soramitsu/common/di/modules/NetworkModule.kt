@@ -12,14 +12,13 @@ import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.data.network.ExternalAnalyzerLinks
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
-import jp.co.soramitsu.common.data.network.rpc.WsConnectionManager
 import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.recovery.Reconnector
@@ -114,7 +113,6 @@ class NetworkModule {
     fun provideRequestExecutor() = RequestExecutor()
 
     @Provides
-    @ApplicationScope
     fun provideSocketService(
         mapper: Gson,
         socketFactory: WebSocketFactory,
@@ -122,12 +120,6 @@ class NetworkModule {
         reconnector: Reconnector,
         requestExecutor: RequestExecutor
     ): SocketService = SocketService(mapper, logger, socketFactory, reconnector, requestExecutor)
-
-    @Provides
-    @ApplicationScope
-    fun provideConnectionManager(
-        socketService: SocketService
-    ): ConnectionManager = WsConnectionManager(socketService)
 
     @Provides
     @ApplicationScope
@@ -140,8 +132,8 @@ class NetworkModule {
 
     @Provides
     fun provideNetworkStateMixin(
-        connectionManager: ConnectionManager
-    ): NetworkStateMixin = NetworkStateProvider(connectionManager)
+        socketProperty: SuspendableProperty<SocketService>
+    ): NetworkStateMixin = NetworkStateProvider(socketProperty)
 
     @Provides
     @ApplicationScope
@@ -149,5 +141,11 @@ class NetworkModule {
 
     @Provides
     @ApplicationScope
-    fun provideSubstrateCalls(socketService: SocketService) = RpcCalls(socketService)
+    fun provideSubstrateCalls(
+        socketProperty: SuspendableProperty<SocketService>
+    ) = RpcCalls(socketProperty)
+
+    @Provides
+    @ApplicationScope
+    fun provideSocketProperty() = SuspendableProperty<SocketService>()
 }

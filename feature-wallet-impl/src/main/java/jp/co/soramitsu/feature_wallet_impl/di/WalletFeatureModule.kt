@@ -72,12 +72,12 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideSubstrateSource(
-        socketService: SocketService,
+        socketProperty: SuspendableProperty<SocketService>,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         rpcCalls: RpcCalls,
     ): SubstrateRemoteSource = WssSubstrateSource(
-        socketService,
+        socketProperty,
         rpcCalls,
         runtimeProperty,
         extrinsicBuilderFactory,

@@ -49,7 +49,7 @@ abstract class ChainDao {
     abstract fun joinChainInfoFlow(): Flow<List<JoinedChainInfo>>
 
     @Query("SELECT * FROM chain_runtimes WHERE chainId = :chainId")
-    abstract suspend fun runtimeInfo(chainId: String): ChainRuntimeInfoLocal
+    abstract suspend fun runtimeInfo(chainId: String): ChainRuntimeInfoLocal?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertRuntimeInfo(runtimeInfoLocal: ChainRuntimeInfoLocal)

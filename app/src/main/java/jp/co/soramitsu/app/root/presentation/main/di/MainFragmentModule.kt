@@ -8,9 +8,10 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.app.root.presentation.main.MainViewModel
-import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Module(
     includes = [
@@ -23,10 +24,10 @@ class MainFragmentModule {
     @IntoMap
     @ViewModelKey(MainViewModel::class)
     fun provideViewModel(
-        connectionManager: ConnectionManager,
+        externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
         interactor: RootInteractor
     ): ViewModel {
-        return MainViewModel(connectionManager, interactor)
+        return MainViewModel(interactor, externalRequirementsFlow)
     }
 
     @Provides

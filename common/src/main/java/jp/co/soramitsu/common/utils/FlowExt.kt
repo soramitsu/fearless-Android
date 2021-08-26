@@ -80,6 +80,7 @@ fun <T> Flow<T>.asLiveData(scope: CoroutineScope): LiveData<T> {
 data class ListDiff<T>(
     val removed: List<T>,
     val addedOrModified: List<T>,
+    val all: List<T>
 )
 
 fun <T> Flow<List<T>>.diffed(): Flow<ListDiff<T>> {
@@ -87,7 +88,7 @@ fun <T> Flow<List<T>>.diffed(): Flow<ListDiff<T>> {
         val addedOrModified = new - previous.orEmpty()
         val removed = previous.orEmpty() - new
 
-        ListDiff(removed = removed, addedOrModified = addedOrModified)
+        ListDiff(removed = removed, addedOrModified = addedOrModified, all = new)
     }
 }
 

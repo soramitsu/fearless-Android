@@ -3,12 +3,13 @@ package jp.co.soramitsu.runtime.storage
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.StorageEntry
+import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.core.storage.StorageCache
-import jp.co.soramitsu.core_db.dao.RuntimeDao
+import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.runtime.ext.runtimeCacheName
+import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -21,11 +22,11 @@ import java.math.BigInteger
 
 class NetworkAwareStorageCache(
     private val storageDao: StorageDao,
-    private val runtimeDao: RuntimeDao,
+    private val chainDao: ChainDao,
     private val accountRepository: AccountRepository
 ) : StorageCache {
 
-    private suspend fun currentNetwork() = accountRepository.getSelectedNodeOrDefault().networkType
+    private suspend fun currentNetwork() = accountRepository.currentNetworkType()
 
     override suspend fun isPrefixInCache(prefixKey: String): Boolean {
         return storageDao.isPrefixInCache(currentNetwork(), prefixKey)
@@ -65,7 +66,9 @@ class NetworkAwareStorageCache(
     }
 
     override suspend fun getEntries(keyPrefix: String): List<StorageEntry> {
-        return observeEntries(keyPrefix, currentNetwork()).first()
+        val networkType = currentNetwork()
+
+        return observeEntries(keyPrefix, networkType).first()
     }
 
     override suspend fun getEntries(fullKeys: List<String>): List<StorageEntry> {
@@ -76,9 +79,9 @@ class NetworkAwareStorageCache(
     }
 
     override suspend fun currentRuntimeVersion(): BigInteger {
-        val key = currentNetwork().runtimeCacheName()
+        val chainId = currentNetwork().chainId
 
-        return runtimeDao.getCacheEntry(key).latestKnownVersion.toBigInteger()
+        return chainDao.runtimeInfo(chainId)!!.version.toBigInteger()
     }
 
     private suspend fun mapStorageEntryToLocal(storageEntry: StorageEntry): StorageEntryLocal {

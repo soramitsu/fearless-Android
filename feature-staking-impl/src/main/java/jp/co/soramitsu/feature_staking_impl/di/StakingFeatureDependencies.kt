@@ -45,6 +45,8 @@ interface StakingFeatureDependencies {
 
     fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
 
+    fun connectionProperty(): SuspendableProperty<SocketService>
+
     fun accountRepository(): AccountRepository
 
     fun storageCache(): StorageCache
@@ -66,8 +68,6 @@ interface StakingFeatureDependencies {
     fun substrateCalls(): RpcCalls
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
-
-    fun socketService(): SocketService
 
     fun assetCache(): AssetCache
 

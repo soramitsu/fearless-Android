@@ -7,6 +7,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -14,8 +15,13 @@ import kotlinx.coroutines.flow.stateIn
 
 class ChainConnection(
     val socketService: SocketService,
+    private val externalRequirementFlow: Flow<ExternalRequirement>,
     initialNodes: List<Chain.Node>,
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+
+    enum class ExternalRequirement {
+        ALLOWED, STOPPED, FORBIDDEN
+    }
 
     private var availableNodes: List<Chain.Node> = initialNodes
 
@@ -30,7 +36,15 @@ class ChainConnection(
         state.onEach(::autoBalance)
             .launchIn(this)
 
-        socketService.start(availableNodes.first().url)
+        externalRequirementFlow.onEach {
+            if (it == ExternalRequirement.ALLOWED) {
+                socketService.resume()
+            } else {
+                socketService.pause()
+            }
+        }.launchIn(this)
+
+        socketService.start(availableNodes.first().url, remainPaused = true)
     }
 
     fun considerUpdateNodes(nodes: List<Chain.Node>) {

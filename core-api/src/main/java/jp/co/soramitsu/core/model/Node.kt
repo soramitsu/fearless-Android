@@ -59,3 +59,6 @@ data class Node(
         }
     }
 }
+
+val Node.NetworkType.chainId
+    get() = runtimeConfiguration.genesisHash

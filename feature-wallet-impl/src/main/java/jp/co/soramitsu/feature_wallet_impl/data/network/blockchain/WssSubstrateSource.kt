@@ -35,7 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class WssSubstrateSource(
-    private val socketService: SocketService,
+    private val socketProperty: SuspendableProperty<SocketService>,
     private val rpcCalls: RpcCalls,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
@@ -45,7 +45,7 @@ class WssSubstrateSource(
         val publicKeyBytes = address.toAccountId()
         val request = AccountInfoRequest(publicKeyBytes)
 
-        val response = socketService.executeAsync(request, mapper = pojo<String>())
+        val response = socketService().executeAsync(request, mapper = pojo<String>())
         val accountInfo = response.result?.let { bindAccountInfo(it, runtimeProperty.get()) }
 
         return accountInfo ?: AccountInfo.empty()
@@ -56,7 +56,7 @@ class WssSubstrateSource(
 
         val request = FeeCalculationRequest(extrinsic)
 
-        return socketService.executeAsync(request, mapper = pojo<FeeResponse>().nonNull())
+        return socketService().executeAsync(request, mapper = pojo<FeeResponse>().nonNull())
     }
 
     override suspend fun performTransfer(
@@ -65,7 +65,7 @@ class WssSubstrateSource(
     ): String {
         val extrinsic = buildTransferExtrinsic(accountAddress, realKeyPair = true, transfer)
 
-        return socketService.executeAsync(
+        return socketService().executeAsync(
             SubmitExtrinsicRequest(extrinsic),
             mapper = pojo<String>().nonNull(),
             deliveryType = DeliveryType.AT_MOST_ONCE
@@ -80,7 +80,7 @@ class WssSubstrateSource(
         val eventsKey = runtime.metadata.system().storage("Events").storageKey()
         val eventsRequest = GetStorageRequest(listOf(eventsKey, blockHash))
 
-        val rawResponse = socketService.executeAsync(eventsRequest, mapper = preBinder())
+        val rawResponse = socketService().executeAsync(eventsRequest, mapper = preBinder())
 
         val statusesByExtrinsicId = bindExtrinsicStatusEventRecords(rawResponse, runtime)
             .filter { it.phase is Phase.ApplyExtrinsic }
@@ -128,4 +128,6 @@ class WssSubstrateSource(
                 }
         }
     }
+
+    private suspend fun socketService() = socketProperty.get()
 }

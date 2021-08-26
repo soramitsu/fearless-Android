@@ -59,8 +59,6 @@ interface WalletFeatureDependencies {
 
     fun logger(): Logger
 
-    fun socketService(): SocketService
-
     fun jsonMapper(): Gson
 
     fun addressIconGenerator(): AddressIconGenerator
@@ -78,6 +76,8 @@ interface WalletFeatureDependencies {
     fun phishingAddressesDao(): PhishingAddressDao
 
     fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
+
+    fun connectionProperty(): SuspendableProperty<SocketService>
 
     fun substrateCalls(): RpcCalls
 

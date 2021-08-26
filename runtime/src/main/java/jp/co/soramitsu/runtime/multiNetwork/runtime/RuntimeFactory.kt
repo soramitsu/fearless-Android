@@ -30,6 +30,7 @@ class ConstructedRuntime(
 
 object BaseTypesNotInCacheException : Exception()
 object ChainInfoNotInCacheException : Exception()
+object NoRuntimeVersionException : Exception()
 
 class RuntimeFactory(
     private val runtimeFilesCache: RuntimeFilesCache,
@@ -47,8 +48,8 @@ class RuntimeFactory(
     suspend fun constructRuntime(
         chainId: String,
         typesUsage: TypesUsage,
-    ): ConstructedRuntime = withContext(dispatcher) {
-        val runtimeVersion = chainDao.runtimeInfo(chainId).version
+    ): ConstructedRuntime? = withContext(dispatcher) {
+        val runtimeVersion = chainDao.runtimeInfo(chainId)?.version ?: return@withContext null
 
         val (types, baseHash, ownHash) = when (typesUsage) {
             TypesUsage.BASE -> {
