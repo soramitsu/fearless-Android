@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical
 
-import android.util.Log
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -42,7 +41,6 @@ class HistoricalUpdateMediator(
 
         val networkType = accountRepository.currentNetworkType()
 
-        Log.d("RX", "FFFetching historical updates for $networkType")
         return storageCache.observeActiveEraIndex(runtime, networkType)
             .map {
                 val allKeysNeeded = constructHistoricalKeys(runtime)

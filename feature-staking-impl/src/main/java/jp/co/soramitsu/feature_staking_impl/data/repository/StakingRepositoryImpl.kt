@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
-import android.util.Log
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
@@ -249,33 +248,17 @@ class StakingRepositoryImpl(
         val exposuresFlow = MutableSharedFlow<AccountIdMap<Exposure>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
         accountRepository.selectedNetworkTypeFlow()
-            .onEach {
-                Log.d("RX", "Invalidated on new network type $it")
-                exposuresFlow.resetReplayCache()
-            } // invalidating cache on network change
+            .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on network change
             .flatMapLatest { networkType ->
                 runtimeProperty.observe()
                     .filter { it.metadata.hasModule(Modules.STAKING) } // check that staking is supported
                     .flatMapLatest { runtime ->
-                        Log.d("RX", "Got new runtime for $networkType")
-
                         storageCache.observeActiveEraIndex(runtime, networkType)
                     }
             }
-            .onEach {
-                Log.d("RX", "Invalidated on active era change $it")
-
-                exposuresFlow.resetReplayCache()
-            } // invalidating cache on era change
-            .map {
-                Log.d("RX", "Calculating new exporues $it")
-
-                getElectedValidatorsExposure(it)
-            }
-            .onEach {
-                Log.d("RX", "Emitting new exposure")
-                exposuresFlow.emit(it)
-            }
+            .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on era change
+            .map(::getElectedValidatorsExposure)
+            .onEach(exposuresFlow::emit)
             .inBackground()
             .launchIn(GlobalScope)
 
@@ -307,7 +290,7 @@ class StakingRepositoryImpl(
         }
     }
 
-    private suspend fun observeAccountValidatorPrefs(
+    private fun observeAccountValidatorPrefs(
         stashId: AccountId,
         networkType: Node.NetworkType,
     ): Flow<ValidatorPrefs?> {
@@ -320,7 +303,7 @@ class StakingRepositoryImpl(
         )
     }
 
-    private suspend fun observeAccountNominations(
+    private fun observeAccountNominations(
         stashId: AccountId,
         networkType: Node.NetworkType,
     ): Flow<Nominations?> {

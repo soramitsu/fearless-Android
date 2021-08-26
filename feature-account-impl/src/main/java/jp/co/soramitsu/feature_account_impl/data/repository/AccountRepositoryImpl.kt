@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
-import android.util.Log
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
 import jp.co.soramitsu.common.data.mappers.mapKeyPairToSigningData
@@ -110,8 +109,6 @@ class AccountRepositoryImpl(
 
             account.network.type != accountDataSource.getSelectedNode()?.networkType -> {
                 val defaultNode = getDefaultNode(account.address.networkType())
-
-                Log.d("RX", "Switching to ${defaultNode.name} (${defaultNode.networkType})")
 
                 selectNode(defaultNode)
             }

@@ -149,16 +149,10 @@ class StakingInteractor(
     suspend fun observeNetworkInfoState(networkType: Node.NetworkType): Flow<NetworkInfo> {
         val lockupPeriod = getLockupPeriodInDays(networkType)
 
-//        Log.d("RX", "Got lockup period")
-
         return stakingRepository.electedExposuresInActiveEra.map { exposuresMap ->
-//            Log.d("RX", "Got new exposures period")
-
             val exposures = exposuresMap.values
 
             val minimumNominatorBond = stakingRepository.minimumNominatorBond()
-
-//            Log.d("RX", "Got min nominator bond")
 
             NetworkInfo(
                 lockupPeriodInDays = lockupPeriod,

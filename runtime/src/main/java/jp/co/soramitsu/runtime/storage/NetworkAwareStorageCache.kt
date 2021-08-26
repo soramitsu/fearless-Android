@@ -1,6 +1,5 @@
 package jp.co.soramitsu.runtime.storage
 
-import android.util.Log
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.StorageEntry
@@ -68,8 +67,6 @@ class NetworkAwareStorageCache(
 
     override suspend fun getEntries(keyPrefix: String): List<StorageEntry> {
         val networkType = currentNetwork()
-
-        Log.d("RX", "Getting entries for $networkType")
 
         return observeEntries(keyPrefix, networkType).first()
     }

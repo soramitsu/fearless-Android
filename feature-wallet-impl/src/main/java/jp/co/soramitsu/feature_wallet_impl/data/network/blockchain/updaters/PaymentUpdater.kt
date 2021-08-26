@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
-import android.util.Log
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -43,8 +42,6 @@ class PaymentUpdater(
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val address = scope.getAccount().address
-
-        Log.d("RX", "Balance update triggered for $address (${address.networkType()})")
 
         val runtime = runtimeProperty.get()
         val key = runtime.metadata.system().storage("Account").storageKey(runtime, address.toAccountId())
