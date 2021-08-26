@@ -18,14 +18,11 @@ import kotlinx.coroutines.launch
 
 class TransactionHistoryFilterViewModel(
     private val router: WalletRouter,
-    private val historyFiltersProviderFactory: HistoryFiltersProviderFactory
+    private val historyFiltersProvider: HistoryFiltersProvider
 ) : BaseViewModel() {
 
-    private val historyFiltersProvider by lazy {
-        async { historyFiltersProviderFactory.get() }
-    }
 
-    private val initialFiltersFlow = flow { emit(historyFiltersProvider.invoke().currentFilters()) }
+    private val initialFiltersFlow = flow { emit(historyFiltersProvider.currentFilters()) }
         .share()
 
     val filtersEnabledMap = createClassEnabledMap(
@@ -35,7 +32,7 @@ class TransactionHistoryFilterViewModel(
     )
 
     private val modifiedFilters = combine(filtersEnabledMap.values) {
-        val result = historyFiltersProvider.invoke().createModifiedFilters(
+        val result = historyFiltersProvider.createModifiedFilters(
             filterIncluder = { filtersEnabledMap.checkEnabled(it::class.java) }
         )
         result
@@ -60,7 +57,7 @@ class TransactionHistoryFilterViewModel(
 
     fun resetFilter() {
         viewModelScope.launch {
-            val defaultFilters = historyFiltersProvider().defaultFilters()
+            val defaultFilters = historyFiltersProvider.defaultFilters()
 
             initFromSettings(defaultFilters)
         }
@@ -76,7 +73,7 @@ class TransactionHistoryFilterViewModel(
 
     fun applyClicked() {
         viewModelScope.launch {
-            historyFiltersProvider.invoke().setCustomFilters(modifiedFilters.first())
+            historyFiltersProvider.setCustomFilters(modifiedFilters.first())
 
             router.back()
         }

@@ -5,6 +5,7 @@ import dagger.Provides
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
+import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -46,7 +47,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.mixin.FeeLoaderProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecksProvider
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProviderFactory
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
 @Module
@@ -72,7 +73,7 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideHistoryFiltersProviderFactory() = HistoryFiltersProviderFactory()
+    fun provideHistoryFiltersProvider() = HistoryFiltersProvider()
 
     @Provides
     @FeatureScope

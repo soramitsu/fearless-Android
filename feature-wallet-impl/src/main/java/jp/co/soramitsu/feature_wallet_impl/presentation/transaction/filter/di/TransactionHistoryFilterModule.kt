@@ -6,10 +6,11 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProviderFactory
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.TransactionHistoryFilterViewModel
 
 @Module(includes = [ViewModelModule::class])
@@ -19,7 +20,7 @@ class TransactionHistoryFilterModule {
     @ViewModelKey(TransactionHistoryFilterViewModel::class)
     fun provideViewModel(
         router: WalletRouter,
-        provider: HistoryFiltersProviderFactory
+        provider: HistoryFiltersProvider
     ): ViewModel {
         return TransactionHistoryFilterViewModel(router, provider)
     }

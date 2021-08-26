@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.BalanceListViewModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProviderFactory
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 
@@ -27,13 +27,13 @@ class BalanceListModule {
         walletInteractor: WalletInteractor,
         addressIconGenerator: AddressIconGenerator,
         walletRouter: WalletRouter,
-        historyFiltersProviderFactory: HistoryFiltersProviderFactory
+        historyFiltersProvider: HistoryFiltersProvider
     ): TransactionHistoryMixin {
         return TransactionHistoryProvider(
             walletInteractor,
             addressIconGenerator,
             walletRouter,
-            historyFiltersProviderFactory
+            historyFiltersProvider
         )
     }
 
