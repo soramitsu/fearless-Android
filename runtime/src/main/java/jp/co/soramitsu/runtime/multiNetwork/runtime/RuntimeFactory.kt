@@ -49,7 +49,7 @@ class RuntimeFactory(
         chainId: String,
         typesUsage: TypesUsage,
     ): ConstructedRuntime? = withContext(dispatcher) {
-        val runtimeVersion = chainDao.runtimeInfo(chainId)?.version ?: return@withContext null
+        val runtimeVersion = chainDao.runtimeInfo(chainId)?.syncedVersion ?: return@withContext null
 
         val (types, baseHash, ownHash) = when (typesUsage) {
             TypesUsage.BASE -> {

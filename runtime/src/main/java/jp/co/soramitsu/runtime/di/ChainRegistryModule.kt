@@ -64,7 +64,8 @@ class ChainRegistryModule {
     fun provideRuntimeSyncService(
         typesFetcher: TypesFetcher,
         runtimeFilesCache: RuntimeFilesCache,
-    ) = RuntimeSyncService(typesFetcher, runtimeFilesCache)
+        chainDao: ChainDao,
+    ) = RuntimeSyncService(typesFetcher, runtimeFilesCache, chainDao)
 
     @Provides
     @ApplicationScope

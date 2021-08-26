@@ -1,7 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import jp.co.soramitsu.core_db.dao.ChainDao
-import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.runtimeVersionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
@@ -21,8 +20,8 @@ class RuntimeVersionSubscription(
     init {
         connection.socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
             .map { it.runtimeVersionChange().specVersion }
-            .onEach {
-                chainDao.insertRuntimeInfo(ChainRuntimeInfoLocal(chainId, it))
+            .onEach { runtimeVersion ->
+                chainDao.updateRemoteRuntimeVersion(chainId, runtimeVersion)
 
                 runtimeSyncService.applyRuntimeVersion(chainId)
             }
