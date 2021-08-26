@@ -250,7 +250,7 @@ class StakingRepositoryImpl(
 
         accountRepository.selectedNetworkTypeFlow()
             .onEach {
-            Log.d("RX", "Invalidated on new network type $it")
+                Log.d("RX", "Invalidated on new network type $it")
                 exposuresFlow.resetReplayCache()
             } // invalidating cache on network change
             .flatMapLatest { networkType ->
@@ -265,7 +265,8 @@ class StakingRepositoryImpl(
             .onEach {
                 Log.d("RX", "Invalidated on active era change $it")
 
-                exposuresFlow.resetReplayCache() } // invalidating cache on era change
+                exposuresFlow.resetReplayCache()
+            } // invalidating cache on era change
             .map {
                 Log.d("RX", "Calculating new exporues $it")
 
