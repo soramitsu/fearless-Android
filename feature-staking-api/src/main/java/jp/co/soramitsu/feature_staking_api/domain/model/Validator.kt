@@ -56,5 +56,7 @@ class Validator(
         val ownStake: BigInteger,
         val nominatorStakes: List<IndividualExposure>,
         val apy: BigDecimal,
+        val maxNominators: Int,
+        val isOversubscribed: Boolean
     )
 }

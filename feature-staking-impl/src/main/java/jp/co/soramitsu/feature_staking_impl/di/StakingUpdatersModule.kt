@@ -158,7 +158,7 @@ class StakingUpdatersModule {
     ) = HistoricalUpdateMediator(
         historicalUpdaters = listOf(
             HistoricalTotalValidatorRewardUpdater(),
-            HistoricalValidatorRewardPointsUpdater()
+            HistoricalValidatorRewardPointsUpdater(),
         ),
         runtimeProperty = runtimeProperty,
         bulkRetriever = bulkRetriever,
@@ -212,7 +212,7 @@ class StakingUpdatersModule {
         accountControllerBalanceUpdater: AccountControllerBalanceUpdater,
         minBondUpdater: MinBondUpdater,
         maxNominatorsUpdater: MaxNominatorsUpdater,
-        counterForNominatorsUpdater: CounterForNominatorsUpdater
+        counterForNominatorsUpdater: CounterForNominatorsUpdater,
     ) = StakingUpdaters(
         updaters = arrayOf(
             activeEraUpdater,
@@ -228,7 +228,7 @@ class StakingUpdatersModule {
             accountControllerBalanceUpdater,
             minBondUpdater,
             maxNominatorsUpdater,
-            counterForNominatorsUpdater
+            counterForNominatorsUpdater,
         )
     )
 }

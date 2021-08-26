@@ -89,7 +89,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/totalStakeView"
             app:layout_constraintTop_toBottomOf="@id/totalStakeView"
-            app:titleText="@string/staking_main_lockup_period_title"
+            app:titleText="@string/staking_unbonding_period_v1_9_0"
             app:startWithLoading="true" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

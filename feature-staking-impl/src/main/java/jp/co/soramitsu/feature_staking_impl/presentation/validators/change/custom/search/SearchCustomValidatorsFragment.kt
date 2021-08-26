@@ -78,11 +78,11 @@ class SearchCustomValidatorsFragment : BaseFragment<SearchCustomValidatorsViewMo
             when (it) {
                 SearchValidatorsState.NoInput -> {
                     searchCustomValidatorsPlaceholder.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.ic_placeholder, 0, 0)
-                    searchCustomValidatorsPlaceholder.text = getString(R.string.common_search_no_input)
+                    searchCustomValidatorsPlaceholder.text = getString(R.string.common_search_start_title)
                 }
                 SearchValidatorsState.NoResults -> {
                     searchCustomValidatorsPlaceholder.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.ic_no_search_results, 0, 0)
-                    searchCustomValidatorsPlaceholder.text = getString(R.string.common_search_no_results)
+                    searchCustomValidatorsPlaceholder.text = getString(R.string.staking_validator_search_empty_title)
                 }
                 SearchValidatorsState.Loading -> {}
                 is SearchValidatorsState.Success -> {

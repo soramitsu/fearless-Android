@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
+import android.provider.Settings.Global.getString
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.TitleAndMessage
@@ -34,6 +35,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,7 +66,7 @@ class StakeSummaryModel<S>(
     val totalStakedFiat: String?,
     val totalRewards: String,
     val totalRewardsFiat: String?,
-    val currentEraDisplay: String,
+    val currentEraDisplay: String
 )
 
 typealias NominatorSummaryModel = StakeSummaryModel<NominatorStatus>
@@ -137,6 +139,7 @@ sealed class StakeViewState<S>(
         }
     }
 
+    @ExperimentalCoroutinesApi
     private suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
         return combine(
             summaryFlowProvider(stakeState),
@@ -151,7 +154,7 @@ sealed class StakeViewState<S>(
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
                 totalRewards = summary.totalRewards.formatTokenAmount(tokenType),
                 totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency(),
-                currentEraDisplay = resourceManager.getString(R.string.staking_era_index, summary.currentEra)
+                currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
             )
         }
     }
@@ -214,7 +217,7 @@ private fun getStashStatusTitleAndMessage(
     status: StashNoneStatus
 ): Pair<String, String> {
     val (titleRes, messageRes) = when (status) {
-        StashNoneStatus.INACTIVE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_stash_status_inactive
+        StashNoneStatus.INACTIVE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_bonded_inactive
     }
 
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)

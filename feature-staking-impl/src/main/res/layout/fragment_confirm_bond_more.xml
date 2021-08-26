@@ -12,7 +12,7 @@
         android:id="@+id/confirmBondMoreToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="@string/common_confirmation" />
+        app:titleText="@string/common_confirm" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/confirmBondMoreOriginAccount"
@@ -22,7 +22,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:label="@string/profile_title" />
+        app:label="@string/account_info_title" />
 
     <jp.co.soramitsu.common.view.AmountView
         android:id="@+id/confirmBondMoreAmount"
@@ -32,6 +32,20 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:enabled="false" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:drawablePadding="8dp"
+        android:gravity="left|center"
+        android:includeFontPadding="false"
+        android:text="@string/staking_hint_reward_bond_more"
+        android:textColor="@color/white"
+        app:drawableLeftCompat="@drawable/ic_reward_24" />
 
     <Space
         android:layout_width="match_parent"

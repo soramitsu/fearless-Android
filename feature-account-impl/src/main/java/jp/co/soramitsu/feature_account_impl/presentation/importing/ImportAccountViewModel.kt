@@ -148,8 +148,8 @@ class ImportAccountViewModel(
         if (errorMessage == null) {
             errorMessage = when (throwable) {
                 is AccountAlreadyExistsException -> ImportError(
-                    titleRes = R.string.import_account_exists_title,
-                    messageRes = R.string.error_try_another_one
+                    titleRes = R.string.account_add_already_exists_message,
+                    messageRes = R.string.account_error_try_another_one
                 )
                 else -> ImportError()
             }

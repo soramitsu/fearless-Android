@@ -31,7 +31,7 @@ class BifrostContributeViewState(
 
     override suspend fun validatePayload(payload: ReferralCodePayload) {
         if (bifrostInteractor.isCodeValid(payload.referralCode).not()) {
-            throw IllegalArgumentException(resourceManager.getString(R.string.referral_code_is_invalid))
+            throw IllegalArgumentException(resourceManager.getString(R.string.crowdloan_referral_code_invalid))
         }
     }
 }

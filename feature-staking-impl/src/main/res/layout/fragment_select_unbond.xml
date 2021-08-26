@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/staking_unbond" />
+        app:titleText="@string/staking_unbond_v1_9_0" />
 
     <jp.co.soramitsu.common.view.AmountView
         android:id="@+id/unbondAmount"
@@ -37,7 +37,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:id="@+id/unbondPeriod"
-        app:title="@string/staking_main_lockup_period_title" />
+        app:title="@string/staking_unbonding_period_v1_9_0" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -59,7 +59,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:includeFontPadding="false"
-            android:text="@string/staking_unbond_explanation"
+            android:text="@string/staking_unbonding_hint"
             android:textColor="@color/black1" />
     </LinearLayout>
 

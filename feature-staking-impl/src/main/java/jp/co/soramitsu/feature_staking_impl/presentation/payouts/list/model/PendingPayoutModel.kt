@@ -10,7 +10,8 @@ class PendingPayoutsStatisticsModel(
 
 class PendingPayoutModel(
     val validatorTitle: String,
-    val daysLeft: String,
+    val timeLeft: Long,
+    val createdAt: Long, // the timestamp when we counted left time. Without it the timer will restart all over again on scroll of recycler view
     @ColorRes val daysLeftColor: Int,
     val amount: String,
     val amountFiat: String?,

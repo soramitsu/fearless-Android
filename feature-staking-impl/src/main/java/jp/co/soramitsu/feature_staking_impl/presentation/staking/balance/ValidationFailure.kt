@@ -12,7 +12,7 @@ fun manageStakingActionValidationFailure(
     return when (reason) {
         is ManageStakingValidationFailure.ControllerRequired -> {
             resourceManager.getString(R.string.common_error_general_title) to
-                resourceManager.getString(R.string.staking_no_controller_account, reason.controllerAddress)
+                resourceManager.getString(R.string.staking_add_controller, reason.controllerAddress)
         }
 
         is ManageStakingValidationFailure.UnbondingRequestLimitReached -> {
@@ -21,7 +21,7 @@ fun manageStakingActionValidationFailure(
         }
         is ManageStakingValidationFailure.StashRequired -> {
             resourceManager.getString(R.string.common_error_general_title) to
-                resourceManager.getString(R.string.staking_no_stash_account, reason.stashAddress)
+                resourceManager.getString(R.string.staking_stash_missing_message, reason.stashAddress)
         }
     }
 }

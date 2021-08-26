@@ -24,6 +24,7 @@ import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
+import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
@@ -76,4 +77,6 @@ interface CrowdloanFeatureDependencies {
 
     @Named(LOCAL_STORAGE_SOURCE)
     fun localStorageSource(): StorageDataSource
+
+    fun chainStateRepository(): ChainStateRepository
 }
