@@ -21,8 +21,4 @@ interface TransactionHistoryMixin : TransactionHistoryUi {
     fun scrolled(scope: CoroutineScope, currentIndex: Int)
 
     fun startObservingOperations(scope: CoroutineScope)
-
-    fun addFilter(scope: CoroutineScope, filter: TransactionFilter)
-
-    fun clear()
 }

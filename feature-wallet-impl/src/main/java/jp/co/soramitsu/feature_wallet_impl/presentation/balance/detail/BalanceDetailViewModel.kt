@@ -49,14 +49,6 @@ class BalanceDetailViewModel(
 
     init {
         transactionHistoryMixin.startObservingOperations(viewModelScope)
-
-        transactionHistoryMixin.addFilter(viewModelScope, TokenFilter(type))
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-
-        transactionHistoryMixin.clear()
     }
 
     fun transactionsScrolled(index: Int) {

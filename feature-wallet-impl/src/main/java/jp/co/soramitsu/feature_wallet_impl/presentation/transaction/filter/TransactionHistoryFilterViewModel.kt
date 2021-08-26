@@ -11,16 +11,17 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filte
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.TransferFilter
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class TransactionHistoryFilterViewModel(
     private val router: WalletRouter,
     private val historyFiltersProvider: HistoryFiltersProvider
 ) : BaseViewModel() {
-
 
     private val initialFiltersFlow = flow { emit(historyFiltersProvider.currentFilters()) }
         .share()
@@ -32,10 +33,9 @@ class TransactionHistoryFilterViewModel(
     )
 
     private val modifiedFilters = combine(filtersEnabledMap.values) {
-        val result = historyFiltersProvider.createModifiedFilters(
+        historyFiltersProvider.createModifiedFilters(
             filterIncluder = { filtersEnabledMap.checkEnabled(it::class.java) }
         )
-        result
     }.inBackground()
         .share()
 

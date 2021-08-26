@@ -19,18 +19,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filte
 import kotlinx.android.synthetic.main.fragment_transactions_filter.*
 import kotlinx.coroutines.flow.MutableStateFlow
 
-private const val KEY_PAYLOAD = "KEY_FILTER_LIVE_DATA"
-
 class TransactionHistoryFilterFragment : BaseFragment<TransactionHistoryFilterViewModel>() {
-    companion object {
-        const val KEY_FILTER_LIVE_DATA = "KEY_FILTER_LIVE_DATA"
-
-        fun getFilterBundle(filter: TransactionFilter): Bundle {
-            return Bundle().apply {
-                putParcelable(KEY_PAYLOAD, filter)
-            }
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,

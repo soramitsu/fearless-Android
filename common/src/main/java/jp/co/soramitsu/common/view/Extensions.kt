@@ -5,6 +5,7 @@ import android.widget.TextView
 import jp.co.soramitsu.common.R
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
+
 private val TIMER_TAG = R.string.common_time_left
 
 @ExperimentalTime

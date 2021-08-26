@@ -55,8 +55,6 @@ class TransactionHistoryProvider(
         emitAll(historyFiltersProvider.observeFilters())
     }
 
-    private val filters: MutableList<TransactionFilter> = mutableListOf()
-
     override fun startObservingOperations(scope: CoroutineScope) {
         currentPage = 0
         isLoading = true
@@ -79,22 +77,6 @@ class TransactionHistoryProvider(
         if (currentIndex >= currentSize - SCROLL_OFFSET) {
             maybeLoadNewPage(scope)
         }
-    }
-
-    override fun addFilter(scope: CoroutineScope, filter: TransactionFilter) {
-        filters += filter
-
-        scope.launch {
-            val filtered = withContext(Dispatchers.Default) {
-                currentTransactions.applyFilters(filters)
-            }
-
-            transactionsLiveData.value = filtered
-        }
-    }
-
-    override fun clear() {
-        filters.clear()
     }
 
     override suspend fun syncFirstOperationsPage(): Result<String?> {
@@ -146,7 +128,6 @@ class TransactionHistoryProvider(
             val result = OperationHistoryElement(addressModel, transaction)
             result
         }.applyFiltersAny(filterFlow.first().filters)
-            .applyFilters(filters)
 
         regroup(filteredHistoryElements, reset)
     }
