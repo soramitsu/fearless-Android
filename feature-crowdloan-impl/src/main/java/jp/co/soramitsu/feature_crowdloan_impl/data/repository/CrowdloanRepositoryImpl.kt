@@ -20,6 +20,7 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.toByteArray
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.LeaseEntry
@@ -77,7 +78,7 @@ class CrowdloanRepositoryImpl(
 
     override suspend fun getParachainMetadata(): Map<ParaId, ParachainMetadata> {
         return withContext(Dispatchers.Default) {
-            val networkType = accountRepository.getSelectedNodeOrDefault().networkType
+            val networkType = accountRepository.currentNetworkType()
 
             parachainMetadataApi.getParachainMetadata(networkType.runtimeCacheName())
                 .associateBy { it.paraid }

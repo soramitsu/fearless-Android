@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
@@ -201,7 +202,7 @@ class StakingInteractor(
     }
 
     suspend fun getSelectedNetworkType(): Node.NetworkType {
-        return accountRepository.getSelectedNodeOrDefault().networkType
+        return accountRepository.currentNetworkType()
     }
 
     fun selectedAccountFlow(): Flow<StakingAccount> {

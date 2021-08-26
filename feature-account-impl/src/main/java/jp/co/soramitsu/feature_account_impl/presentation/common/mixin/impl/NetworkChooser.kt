@@ -52,5 +52,5 @@ class NetworkChooser(
         interactor.getNetworks().map { mapNetworkTypeToNetworkModel(it.type) }
     }
 
-    private suspend fun getNetworkType() = forcedNetworkType ?: interactor.getSelectedNode().networkType
+    private suspend fun getNetworkType() = forcedNetworkType ?: interactor.selectedNetworkType()
 }

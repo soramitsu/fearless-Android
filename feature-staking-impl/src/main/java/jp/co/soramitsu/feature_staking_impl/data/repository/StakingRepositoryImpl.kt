@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
+import android.util.Log
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
@@ -67,7 +68,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
@@ -249,17 +249,32 @@ class StakingRepositoryImpl(
         val exposuresFlow = MutableSharedFlow<AccountIdMap<Exposure>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
         accountRepository.selectedNetworkTypeFlow()
-            .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on network change
+            .onEach {
+            Log.d("RX", "Invalidated on new network type $it")
+                exposuresFlow.resetReplayCache()
+            } // invalidating cache on network change
             .flatMapLatest { networkType ->
                 runtimeProperty.observe()
                     .filter { it.metadata.hasModule(Modules.STAKING) } // check that staking is supported
                     .flatMapLatest { runtime ->
+                        Log.d("RX", "Got new runtime for $networkType")
+
                         storageCache.observeActiveEraIndex(runtime, networkType)
                     }
             }
-            .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on era change
-            .mapLatest(::getElectedValidatorsExposure)
-            .onEach(exposuresFlow::emit)
+            .onEach {
+                Log.d("RX", "Invalidated on active era change $it")
+
+                exposuresFlow.resetReplayCache() } // invalidating cache on era change
+            .map {
+                Log.d("RX", "Calculating new exporues $it")
+
+                getElectedValidatorsExposure(it)
+            }
+            .onEach {
+                Log.d("RX", "Emitting new exposure")
+                exposuresFlow.emit(it)
+            }
             .inBackground()
             .launchIn(GlobalScope)
 
@@ -291,7 +306,7 @@ class StakingRepositoryImpl(
         }
     }
 
-    private fun observeAccountValidatorPrefs(
+    private suspend fun observeAccountValidatorPrefs(
         stashId: AccountId,
         networkType: Node.NetworkType,
     ): Flow<ValidatorPrefs?> {
@@ -304,7 +319,7 @@ class StakingRepositoryImpl(
         )
     }
 
-    private fun observeAccountNominations(
+    private suspend fun observeAccountNominations(
         stashId: AccountId,
         networkType: Node.NetworkType,
     ): Flow<Nominations?> {
