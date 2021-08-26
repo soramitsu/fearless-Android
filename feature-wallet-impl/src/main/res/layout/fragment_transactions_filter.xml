@@ -26,7 +26,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
-        android:text="@string/staking_custom_validators_settings_filters" />
+        android:text="@string/wallet_filters_header" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/transactionsFilterSwitchTransfers"
@@ -35,7 +35,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="12dp"
-
         android:text="@string/wallet_filters_transfers" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial

@@ -64,8 +64,6 @@ class BalanceDetailViewModel(
     }
 
     fun filterClicked() {
-        println("------ OPEN FILTER")
-
         router.openFilter()
     }
 

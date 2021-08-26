@@ -9,6 +9,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class HistoryFiltersProvider {
+    private val customizableFilters: List<HistoryFilter> = listOf(
+        RewardFilter,
+        TransferFilter,
+        ExtrinsicFilter
+    )
+
     private val customFiltersFlow = MutableStateFlow(defaultFilters())
 
     fun currentFilters() = customFiltersFlow.value
@@ -28,17 +34,7 @@ class HistoryFiltersProvider {
         customFiltersFlow.value = filters
     }
 
-    private val customizableFilters: List<HistoryFilter> = listOf(
-        RewardFilter,
-        TransferFilter,
-        ExtrinsicFilter
-    )
-
     fun defaultFilters() = HistoryFilters(
-        filters = listOf( // TODO for some reason if I use customizableFilters as a variable here it is null O_o
-            RewardFilter,
-            TransferFilter,
-            ExtrinsicFilter
-        )
+        filters = customizableFilters
     )
 }

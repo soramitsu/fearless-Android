@@ -18,9 +18,14 @@
 Terms and Conditions and Privacy Policy</string>
     <string name="onboarding_terms_and_conditions_2">Terms and Conditions</string>
     <string name="onboarding_privacy_policy">Privacy Policy</string>
+    <string name="wallet_filters_title">Filters</string>
     <string name="pincode_enter_pin_code">Enter pin code</string>
     <string name="pincode_confirm_your_pin_code">Confirm your pin code</string>
     <string name="pincode_title_create">Set your pin code</string>
+    <string name="wallet_transfer_details_title">Extrinsic details</string>
+    <string name="transaction_details_extrinsic_fee">Fee</string>
+    <string name="common_call">Call</string>
+    <string name="common_module">Module</string>
     <string name="tabbar_wallet_title">Wallet</string>
     <string name="tabbar_staking_title">Staking</string>
     <string name="transfers_empty">Incoming and outgoing

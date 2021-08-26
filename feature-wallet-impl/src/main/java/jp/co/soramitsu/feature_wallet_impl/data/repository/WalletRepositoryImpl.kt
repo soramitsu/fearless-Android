@@ -35,6 +35,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHi
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.WalletNetworkApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.getSubqueryPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -115,7 +116,10 @@ class WalletRepositoryImpl(
         return withContext(Dispatchers.Default) {
             val accountsByAddress = accounts.associateBy { it.address }
 
+            val networkType = currentAccount.address.networkType().getSubqueryPath()
+
             val response = walletApi.getOperationsHistory(
+                networkType,
                 SubqueryHistoryElementByAddressRequest(
                     currentAccount.address,
                     pageSize,

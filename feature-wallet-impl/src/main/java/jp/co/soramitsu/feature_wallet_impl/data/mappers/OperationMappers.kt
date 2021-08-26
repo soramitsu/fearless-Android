@@ -35,23 +35,23 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
             operationType = transactionType.getOperationType()
         )
 
-        return when (transactionType) {
+        return when (val type = transactionType) {
             is Operation.TransactionType.Transfer -> {
                 operationLocal.copy(
-                    sender = (transactionType as Operation.TransactionType.Transfer).sender,
-                    receiver = (transactionType as Operation.TransactionType.Transfer).receiver,
+                    sender = type.sender,
+                    receiver = type.receiver,
                 )
             }
             is Operation.TransactionType.Extrinsic -> {
                 operationLocal.copy(
-                    success = (transactionType as? Operation.TransactionType.Extrinsic)?.success
+                    success = type.success
                 )
             }
             is Operation.TransactionType.Reward -> {
                 operationLocal.copy(
-                    isReward = (transactionType as Operation.TransactionType.Reward).isReward,
-                    era = (transactionType as Operation.TransactionType.Reward).era,
-                    validator = (transactionType as Operation.TransactionType.Reward).validator,
+                    isReward = type.isReward,
+                    era = type.era,
+                    validator = type.validator,
                 )
             }
         }
@@ -80,9 +80,7 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: St
                 era = era!!,
                 validator = validator!!
             )
-            else -> {
-                throw Exception()
-            }
+            else -> throw Exception()
         }
 
         return Operation(
