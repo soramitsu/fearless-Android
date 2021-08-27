@@ -4,10 +4,7 @@ import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExtrinsicParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.RewardParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransferParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransferDetailFragment
@@ -25,7 +22,7 @@ interface TransactionDetailComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance operationModel: TransferParcelizeModel
+            @BindsInstance operationModel: OperationParcelizeModel.TransferModel
         ): TransactionDetailComponent
     }
 
@@ -45,7 +42,7 @@ interface RewardDetailComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance operationModel: RewardParcelizeModel
+            @BindsInstance operationModel: OperationParcelizeModel.RewardModel
         ): RewardDetailComponent
     }
 
@@ -65,7 +62,7 @@ interface ExtrinsicDetailComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance extrinsicModel: ExtrinsicParcelizeModel
+            @BindsInstance extrinsicModel: OperationParcelizeModel.ExtrinsicModel
         ): ExtrinsicDetailComponent
     }
 

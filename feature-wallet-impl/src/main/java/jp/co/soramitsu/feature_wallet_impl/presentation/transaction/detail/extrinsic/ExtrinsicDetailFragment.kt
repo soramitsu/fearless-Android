@@ -14,17 +14,15 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import kotlinx.android.synthetic.main.fragment_extrinsic_details.*
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExtrinsicParcelizeModel
-import kotlinx.android.synthetic.main.fragment_reward_slash_details.*
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 
 private const val KEY_EXTRINSIC = "KEY_EXTRINSIC"
 
 class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     companion object {
-        fun getBundle(operation: ExtrinsicParcelizeModel) = Bundle().apply {
+        fun getBundle(operation: OperationParcelizeModel.ExtrinsicModel) = Bundle().apply {
             putParcelable(KEY_EXTRINSIC, operation)
         }
     }
@@ -48,7 +46,7 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<ExtrinsicParcelizeModel>(KEY_EXTRINSIC)
+        val operation = argument<OperationParcelizeModel.ExtrinsicModel>(KEY_EXTRINSIC)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),

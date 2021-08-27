@@ -15,8 +15,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExtrinsicParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 
 private const val ICON_SIZE_DP = 32
 
@@ -31,7 +30,7 @@ class ExtrinsicDetailViewModel(
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
-    val operation: ExtrinsicParcelizeModel,
+    val operation: OperationParcelizeModel.ExtrinsicModel,
 ) : BaseViewModel(), Browserable {
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalExtrinsicActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent

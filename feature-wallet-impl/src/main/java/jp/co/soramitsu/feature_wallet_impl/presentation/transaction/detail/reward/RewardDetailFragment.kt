@@ -16,9 +16,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCal
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.RewardParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransferParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.*
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailHash
 
@@ -26,7 +24,7 @@ private const val KEY_REWARD = "KEY_REWARD"
 
 class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     companion object {
-        fun getBundle(operation: RewardParcelizeModel) = Bundle().apply {
+        fun getBundle(operation: OperationParcelizeModel.RewardModel) = Bundle().apply {
             putParcelable(KEY_REWARD, operation)
         }
     }
@@ -50,7 +48,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<RewardParcelizeModel>(KEY_REWARD)
+        val operation = argument<OperationParcelizeModel.RewardModel>(KEY_REWARD)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -61,7 +59,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
             .inject(this)
     }
 
-    private fun amountColorRes(operation: RewardParcelizeModel) = when {
+    private fun amountColorRes(operation: OperationParcelizeModel.RewardModel) = when {
         operation.isFailed -> R.color.gray2
         operation.isIncome -> R.color.green
         else -> R.color.white

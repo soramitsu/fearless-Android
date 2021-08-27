@@ -14,8 +14,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.RewardParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailViewModel
 
 @Module(includes = [ViewModelModule::class])
@@ -24,7 +23,7 @@ class RewardDetailModule {
     @IntoMap
     @ViewModelKey(RewardDetailViewModel::class)
     fun provideViewModel(
-        operationModel: RewardParcelizeModel,
+        operationModel: OperationParcelizeModel.RewardModel,
         appLinksProvider: AppLinksProvider,
         clipboardManager: ClipboardManager,
         resourceManager: ResourceManager,

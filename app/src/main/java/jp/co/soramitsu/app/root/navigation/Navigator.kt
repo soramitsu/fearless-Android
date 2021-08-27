@@ -65,9 +65,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.Valid
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExtrinsicParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.RewardParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransferParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment
@@ -371,19 +369,19 @@ class Navigator :
         navController?.navigate(R.id.openSelectAmount, bundle)
     }
 
-    override fun openTransferDetail(transaction: TransferParcelizeModel) {
+    override fun openTransferDetail(transaction: OperationParcelizeModel.TransferModel) {
         val bundle = TransferDetailFragment.getBundle(transaction)
 
         navController?.navigate(R.id.open_transfer_detail, bundle)
     }
 
-    override fun openRewardDetail(reward: RewardParcelizeModel) {
+    override fun openRewardDetail(reward: OperationParcelizeModel.RewardModel) {
         val bundle = RewardDetailFragment.getBundle(reward)
 
         navController?.navigate(R.id.open_reward_detail, bundle)
     }
 
-    override fun openExtrinsicDetail(extrinsic: ExtrinsicParcelizeModel) {
+    override fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.ExtrinsicModel) {
         val bundle = ExtrinsicDetailFragment.getBundle(extrinsic)
 
         navController?.navigate(R.id.open_extrinsic_detail, bundle)

@@ -8,11 +8,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExtrinsicParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.RewardParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransferParcelizeModel
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
@@ -195,7 +192,7 @@ fun mapOperationModelToParcelizeModel(operation: OperationModel): OperationParce
     with(operation) {
         return when (val type = operation.transactionType) {
             is Operation.TransactionType.Transfer -> {
-                TransferParcelizeModel(
+                OperationParcelizeModel.TransferModel(
                     time = time,
                     address = address,
                     accountName = accountName,
@@ -215,7 +212,7 @@ fun mapOperationModelToParcelizeModel(operation: OperationModel): OperationParce
                 )
             }
             is Operation.TransactionType.Reward -> {
-                RewardParcelizeModel(
+                OperationParcelizeModel.RewardModel(
                     hash = hash,
                     address = address,
                     time = time,
@@ -232,7 +229,7 @@ fun mapOperationModelToParcelizeModel(operation: OperationModel): OperationParce
                 )
             }
             is Operation.TransactionType.Extrinsic -> {
-                ExtrinsicParcelizeModel(
+                OperationParcelizeModel.ExtrinsicModel(
                     time = time,
                     address = address,
                     accountName = accountName,

@@ -14,8 +14,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExtrinsicParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailViewModel
 
 @Module(includes = [ViewModelModule::class])
@@ -30,7 +29,7 @@ class ExtrinsicDetailModule {
         addressDisplayUseCase: AddressDisplayUseCase,
         addressIconGenerator: AddressIconGenerator,
         router: WalletRouter,
-        operation: ExtrinsicParcelizeModel,
+        operation: OperationParcelizeModel.ExtrinsicModel,
         ): ViewModel {
         return ExtrinsicDetailViewModel(
             appLinksProvider,

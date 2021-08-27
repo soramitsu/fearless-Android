@@ -20,7 +20,7 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransferParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import kotlinx.android.synthetic.main.fragment_transfer_details.*
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
@@ -28,7 +28,7 @@ private const val KEY_TRANSACTION = "KEY_DRAFT"
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     companion object {
-        fun getBundle(operation: TransferParcelizeModel) = Bundle().apply {
+        fun getBundle(operation: OperationParcelizeModel.TransferModel) = Bundle().apply {
             putParcelable(KEY_TRANSACTION, operation)
         }
     }
@@ -60,7 +60,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<TransferParcelizeModel>(KEY_TRANSACTION)
+        val operation = argument<OperationParcelizeModel.TransferModel>(KEY_TRANSACTION)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -71,7 +71,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             .inject(this)
     }
 
-    private fun amountColorRes(operation: TransferParcelizeModel) = when {
+    private fun amountColorRes(operation: OperationParcelizeModel.TransferModel) = when {
         operation.isFailed -> jp.co.soramitsu.feature_wallet_api.R.color.gray2
         operation.isIncome -> jp.co.soramitsu.feature_wallet_api.R.color.green
         else -> jp.co.soramitsu.feature_wallet_api.R.color.white

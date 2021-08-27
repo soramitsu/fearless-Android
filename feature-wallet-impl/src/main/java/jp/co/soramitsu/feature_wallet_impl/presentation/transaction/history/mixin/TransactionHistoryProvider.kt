@@ -9,10 +9,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExtrinsicParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.RewardParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransferParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.coroutines.CoroutineScope
@@ -95,15 +92,15 @@ class TransactionHistoryProvider(
 
     override fun transactionClicked(transactionModel: OperationParcelizeModel) {
         when (transactionModel) {
-            is TransferParcelizeModel -> {
+            is OperationParcelizeModel.TransferModel -> {
                 router.openTransferDetail(transactionModel)
             }
 
-            is ExtrinsicParcelizeModel -> {
+            is OperationParcelizeModel.ExtrinsicModel -> {
                 router.openExtrinsicDetail(transactionModel)
             }
 
-            is RewardParcelizeModel -> {
+            is OperationParcelizeModel.RewardModel -> {
                 router.openRewardDetail(transactionModel)
             }
         }

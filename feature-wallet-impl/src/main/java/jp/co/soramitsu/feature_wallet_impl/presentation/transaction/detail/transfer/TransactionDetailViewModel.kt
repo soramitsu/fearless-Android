@@ -16,8 +16,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayU
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransferParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 
 private const val ICON_SIZE_DP = 32
 
@@ -33,7 +32,7 @@ class TransactionDetailViewModel(
     private val clipboardManager: ClipboardManager,
     private val appLinksProvider: AppLinksProvider,
     private val addressDisplayUseCase: AddressDisplayUseCase,
-    val operation: TransferParcelizeModel
+    val operation: OperationParcelizeModel.TransferModel
 ) : BaseViewModel(), Browserable {
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
