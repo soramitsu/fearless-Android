@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.di.modules
 
+import android.content.Context
 import com.google.gson.Gson
 import com.neovisionaries.ws.client.WebSocketFactory
 import dagger.Module
@@ -14,7 +15,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.network.rpc.WsConnectionManager
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
@@ -23,9 +24,14 @@ import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.recovery.Reconnector
 import jp.co.soramitsu.fearless_utils.wsrpc.request.RequestExecutor
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import java.io.File
 import java.util.concurrent.TimeUnit
+
+private const val HTTP_CACHE = "http_cache"
+private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
 
 @Module
 class NetworkModule {
@@ -60,11 +66,14 @@ class NetworkModule {
 
     @Provides
     @ApplicationScope
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(
+        context: Context
+    ): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
+            .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
             .retryOnConnectionFailure(true)
 
         if (BuildConfig.DEBUG) {
@@ -140,5 +149,5 @@ class NetworkModule {
 
     @Provides
     @ApplicationScope
-    fun provideSubstrateCalls(socketService: SocketService) = SubstrateCalls(socketService)
+    fun provideSubstrateCalls(socketService: SocketService) = RpcCalls(socketService)
 }

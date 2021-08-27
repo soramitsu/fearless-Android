@@ -132,7 +132,7 @@ class CrowdloanContributeViewModel(
                 bonus.formatTokenAmount(contributionState.tokenName)
             }
 
-            is CustomContributionState.Inactive -> resourceManager.getString(R.string.crowdloan_bonus_action)
+            is CustomContributionState.Inactive -> resourceManager.getString(R.string.crowdloan_empty_bonus_title)
 
             else -> null
         }
@@ -182,7 +182,7 @@ class CrowdloanContributeViewModel(
         val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.type)
 
         val timeLeft = when (val state = crowdloan.state) {
-            Crowdloan.State.Finished -> resourceManager.getString(R.string.common_completed)
+            Crowdloan.State.Finished -> resourceManager.getString(R.string.transaction_status_completed)
             is Crowdloan.State.Active -> resourceManager.formatDuration(state.remainingTimeInMillis)
         }
 

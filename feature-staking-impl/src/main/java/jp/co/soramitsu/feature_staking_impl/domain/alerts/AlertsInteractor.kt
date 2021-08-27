@@ -74,11 +74,13 @@ class AlertsInteractor(
         }
     }
 
-    private fun produceMinStakeAlert(context: AlertContext) = requireState(context.stakingState) { _: StakingState.Stash ->
+    private fun produceMinStakeAlert(context: AlertContext) = requireState(context.stakingState) { state: StakingState.Stash ->
         with(context) {
             val minimalStakeInPlanks = minimumStake(exposures.values, minimumNominatorBond)
 
             if (
+                // do not show alert for validators
+                state !is StakingState.Stash.Validator &&
                 asset.bondedInPlanks < minimalStakeInPlanks &&
                 // prevent alert for situation where all tokens are being unbounded
                 asset.bondedInPlanks > BigInteger.ZERO

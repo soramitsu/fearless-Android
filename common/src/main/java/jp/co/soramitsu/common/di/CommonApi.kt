@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -93,7 +93,7 @@ interface CommonApi {
 
     fun httpExceptionHandler(): HttpExceptionHandler
 
-    fun provideSubstrateCalls(): SubstrateCalls
+    fun provideSubstrateCalls(): RpcCalls
 
     fun defaultPagedKeysRetriever(): BulkRetriever
 

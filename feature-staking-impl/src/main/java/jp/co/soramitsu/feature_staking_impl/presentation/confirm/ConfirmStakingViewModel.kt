@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.confirm
 
+import android.provider.Settings.Global.getString
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
@@ -30,7 +31,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakin
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
-import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.Confirm.Payload
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit.Payload
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
@@ -42,6 +43,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -68,7 +70,7 @@ class ConfirmStakingViewModel(
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
 
-    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.Confirm>()
+    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.ReadyToSubmit>()
 
     private val payload = currentProcessState.payload
 
@@ -105,7 +107,7 @@ class ConfirmStakingViewModel(
 
     val nominationsLiveData = liveData(Dispatchers.Default) {
         val selectedCount = payload.validators.size
-        val maxValidatorsPerNominator = recommendationSettingsProviderFactory.get().maximumValidatorsPerNominator
+        val maxValidatorsPerNominator = interactor.maxValidatorsPerNominator()
 
         emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxValidatorsPerNominator))
     }
@@ -119,6 +121,23 @@ class ConfirmStakingViewModel(
             }
         }
         .asLiveData()
+
+    val unstakingTime = flow {
+        val lockupPeriod = interactor.getLockupPeriodInDays()
+        emit(
+            resourceManager.getString(
+                R.string.staking_hint_unstake_format,
+                resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, lockupPeriod, lockupPeriod)
+            )
+        )
+    }.inBackground()
+        .share()
+
+    val eraHoursLength = flow {
+        val hours = interactor.getEraHoursLength()
+        emit(resourceManager.getString(R.string.staking_hint_rewards_format, resourceManager.getQuantityString(R.plurals.common_hours_format, hours, hours)))
+    }.inBackground()
+        .share()
 
     val rewardDestinationLiveData = flowOf(payload)
         .map {

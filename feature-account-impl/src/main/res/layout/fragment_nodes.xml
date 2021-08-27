@@ -38,7 +38,7 @@
         android:drawableEnd="@drawable/ic_arrow_right_24"
         android:drawablePadding="16dp"
         android:padding="16dp"
-        android:text="@string/node_add"
+        android:text="@string/connections_add_connection"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"

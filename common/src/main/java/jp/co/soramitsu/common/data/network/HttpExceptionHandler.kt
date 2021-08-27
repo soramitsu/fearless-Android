@@ -25,7 +25,7 @@ class HttpExceptionHandler(
                 val errorCode = response.code()
                 response.errorBody()?.close()
 
-                BaseException.httpError(errorCode, resourceManager.getString(R.string.common_error_general_message))
+                BaseException.httpError(errorCode, resourceManager.getString(R.string.common_undefined_error_message))
             }
             is IOException -> BaseException.networkError(resourceManager.getString(R.string.connection_error_message), exception)
             else -> BaseException.unexpectedError(exception)

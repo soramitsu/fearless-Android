@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.di
 
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -19,6 +18,7 @@ import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_staking_api.domain.api.EraTimeCalculatorFactory
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
@@ -135,9 +135,9 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         stakingRewardsRepository: StakingRewardsRepository,
         stakingConstantsRepository: StakingConstantsRepository,
-        walletConstants: WalletConstants,
         identityRepository: IdentityRepository,
         payoutRepository: PayoutRepository,
+        factory: EraTimeCalculatorFactory
     ) = StakingInteractor(
         walletRepository,
         accountRepository,
@@ -145,9 +145,15 @@ class StakingFeatureModule {
         stakingRewardsRepository,
         stakingConstantsRepository,
         identityRepository,
-        walletConstants,
-        payoutRepository
+        payoutRepository,
+        factory
     )
+
+    @Provides
+    @FeatureScope
+    fun provideEraTimeCalculatorFactory(
+        stakingRepository: StakingRepository
+    ) = EraTimeCalculatorFactory(stakingRepository)
 
     @Provides
     @FeatureScope
@@ -178,8 +184,9 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         identityRepository: IdentityRepository,
         rewardCalculatorFactory: RewardCalculatorFactory,
-        accountRepository: AccountRepository
-    ) = ValidatorProvider(stakingRepository, identityRepository, accountRepository, rewardCalculatorFactory)
+        accountRepository: AccountRepository,
+        stakingConstantsRepository: StakingConstantsRepository
+    ) = ValidatorProvider(stakingRepository, identityRepository, accountRepository, rewardCalculatorFactory, stakingConstantsRepository)
 
     @Provides
     @FeatureScope
@@ -191,7 +198,8 @@ class StakingFeatureModule {
     @FeatureScope
     fun provideRecommendationSettingsProviderFactory(
         stakingConstantsRepository: StakingConstantsRepository,
-    ) = RecommendationSettingsProviderFactory(stakingConstantsRepository)
+        computationalCache: ComputationalCache
+    ) = RecommendationSettingsProviderFactory(computationalCache, stakingConstantsRepository)
 
     @Provides
     @FeatureScope
@@ -242,14 +250,12 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideValidatorSetFetcher(
-        gson: Gson,
         stakingApi: StakingApi,
-        subscanPagedSynchronizer: SubscanPagedSynchronizer,
+        stakingRepository: StakingRepository,
     ): SubscanValidatorSetFetcher {
         return SubscanValidatorSetFetcher(
-            gson,
             stakingApi,
-            subscanPagedSynchronizer
+            stakingRepository
         )
     }
 

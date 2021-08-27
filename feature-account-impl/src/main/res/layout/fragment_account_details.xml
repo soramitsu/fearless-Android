@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/profile_title" />
+        app:titleText="@string/account_info_title" />
 
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/accountDetailsNameField"

@@ -83,7 +83,7 @@ class PayoutsListViewModel(
             if (result.isSuccess) {
                 payoutsStatisticsFlow.emit(result.requireValue())
             } else {
-                val errorMessage = result.requireException().message ?: resourceManager.getString(R.string.common_error_general_message)
+                val errorMessage = result.requireException().message ?: resourceManager.getString(R.string.common_undefined_error_message)
 
                 retryEvent.value = Event(
                     RetryPayload(
@@ -107,7 +107,7 @@ class PayoutsListViewModel(
 
         return PendingPayoutsStatisticsModel(
             payouts = payouts,
-            payoutAllTitle = resourceManager.getString(R.string.staking_payout_all, totalAmount),
+            payoutAllTitle = resourceManager.getString(R.string.staking_reward_payouts_payout_all, totalAmount),
             placeholderVisible = payouts.isEmpty()
         )
     }
@@ -118,7 +118,8 @@ class PayoutsListViewModel(
 
             PendingPayoutModel(
                 validatorTitle = validatorInfo.identityName ?: validatorInfo.address,
-                daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
+                timeLeft = timeLeft,
+                createdAt = createdAt,
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
                 amount = amount.formatTokenChange(token.type, isIncome = true),
                 amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
@@ -136,7 +137,7 @@ class PayoutsListViewModel(
                 era = era,
                 amountInPlanks = amountInPlanks,
                 createdAt = createdAt,
-                daysLeft = daysLeft,
+                timeLeft = timeLeft,
                 closeToExpire = closeToExpire
             )
         }

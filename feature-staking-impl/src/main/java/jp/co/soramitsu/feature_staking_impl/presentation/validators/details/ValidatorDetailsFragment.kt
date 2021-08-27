@@ -83,7 +83,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
                 if (activeStakeModel != null) {
                     validatorInfo.showActiveStakeFields()
 
-                    validatorInfo.setNominatorsCount(activeStakeModel.nominatorsCount)
+                    validatorInfo.setNominatorsCount(activeStakeModel.nominatorsCount, activeStakeModel.maxNominations)
                     validatorInfo.setEstimatedRewardApy(activeStakeModel.apy)
                     validatorInfo.setTotalStakeValue(activeStakeModel.totalStake)
                     validatorInfo.setTotalStakeValueFiat(activeStakeModel.totalStakeFiat)
@@ -109,6 +109,10 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
                 validatorAccountInfo.setText(validator.address)
                 validatorAccountInfo.showBody()
             }
+        }
+
+        viewModel.errorFlow.observe {
+            it?.let { validatorInfo.setErrors(it) }
         }
 
         viewModel.openEmailEvent.observeEvent {

@@ -100,7 +100,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="25dp"
-                android:text="@string/staking_setup_reward_destination"
+                android:text="@string/staking_setup_reward_destination_section_title"
                 android:textColor="@color/white" />
 
             <jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationChooserView
@@ -123,6 +123,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="22dp"
-        android:text="@string/common_next"
+        android:text="@string/common_continue"
          />
 </LinearLayout>
