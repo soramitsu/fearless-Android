@@ -45,7 +45,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="24dp"
                 app:actionIcon="@drawable/ic_more_vertical"
-                app:label="@string/staking_validator"
+                app:label="@string/staking_reward_details_validator"
                 app:layout_constraintEnd_toEndOf="@+id/transactionDetailDivider4"
                 app:layout_constraintStart_toStartOf="@+id/transactionDetailDivider4"
                 app:layout_constraintTop_toBottomOf="@+id/transactionDetailHash"
@@ -133,7 +133,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="15dp"
-                android:text="@string/staking_era"
+                android:text="@string/staking_reward_details_era"
                 android:textColor="@color/gray1"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/transactionDetailDivider2" />

@@ -112,8 +112,10 @@ class WalletRepositoryImpl(
     ): List<Operation> {
         return withContext(Dispatchers.Default) {
             val accountsByAddress = accounts.associateBy { it.address }
+            val path = currentAccount.address.networkType().getSubqueryEraValidatorInfos()
 
             val response = walletApi.getOperationsHistory(
+                path,
                 SubqueryHistoryElementByAddressRequest(
                     currentAccount.address,
                     pageSize,
