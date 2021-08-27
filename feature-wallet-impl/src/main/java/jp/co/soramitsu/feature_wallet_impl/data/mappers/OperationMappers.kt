@@ -10,7 +10,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
-import java.math.BigDecimal
+import kotlin.time.ExperimentalTime
 
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
@@ -23,7 +23,7 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
         val operationLocal = OperationLocal(
             hash = hash,
             address = address,
-            time = time.secondsToMilliseconds(),
+            time = time,
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
             type = transactionType.header,
             call = transactionType.subheader,
@@ -93,6 +93,7 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: St
     }
 }
 
+@ExperimentalTime
 fun mapNodeToOperation(
     node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
     cursor: String,
@@ -136,7 +137,7 @@ fun mapNodeToOperation(
         hash = node.id,
         address = node.address,
         transactionType = type,
-        time = node.timestamp.toLong(),
+        time = node.timestamp.toLong().secondsToMilliseconds(),
         tokenType = token,
         accountName = accountName,
         nextPageCursor = cursor

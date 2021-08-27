@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.calculateTotalBalance
 import java.math.BigInteger
 

@@ -7,7 +7,6 @@ import jp.co.soramitsu.common.utils.applyFilters
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel

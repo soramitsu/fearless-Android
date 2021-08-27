@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import kotlin.time.ExperimentalTime
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 class WalletRepositoryImpl(
@@ -94,6 +95,7 @@ class WalletRepositoryImpl(
         }
     }
 
+    @ExperimentalTime
     override suspend fun syncOperationsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String? {
         val page = getOperations(pageSize, cursor = null, account, accounts)
         val accountAddress = account.address
@@ -104,6 +106,7 @@ class WalletRepositoryImpl(
         return if (page.isNotEmpty()) page.last().nextPageCursor else null
     }
 
+    @ExperimentalTime
     override suspend fun getOperations(
         pageSize: Int,
         cursor: String?,
@@ -126,7 +129,7 @@ class WalletRepositoryImpl(
             val pageInfo = response.historyElements.pageInfo
 
             val operations = response.historyElements.nodes.map {
-                val accountName = defineAccountNameForTransaction(accountsByAddress,  it.address, it.transfer?.to, it.transfer?.from)
+                val accountName = defineAccountNameForTransaction(accountsByAddress, it.address, it.transfer?.to, it.transfer?.from)
                 mapNodeToOperation(it, pageInfo.endCursor, currentAccount, accountName)
             }
 
