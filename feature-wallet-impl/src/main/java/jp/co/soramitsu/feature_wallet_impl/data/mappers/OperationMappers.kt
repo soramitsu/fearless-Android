@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
@@ -149,9 +150,101 @@ fun mapOperationToOperationModel(operation: Operation): OperationModel {
             hash = hash,
             address = address,
             accountName = accountName,
-            transactionType = transactionType,
+            transactionType = mapTransactionTypeToTransactionModelType(transactionType),
             time = time,
             tokenType = tokenType
         )
+    }
+}
+
+fun mapTransactionTypeToTransactionModelType(transactionType: Operation.TransactionType): Operation.TransactionType {
+    return when (transactionType) {
+        is Operation.TransactionType.Extrinsic -> {
+            Operation.TransactionType.Extrinsic(
+                hash = transactionType.hash,
+                module = transactionType.module,
+                call = transactionType.call,
+                fee = transactionType.fee,
+                success = transactionType.success
+            )
+        }
+        is Operation.TransactionType.Reward -> {
+            Operation.TransactionType.Reward(
+                amount = transactionType.amount,
+                isReward = transactionType.isReward,
+                era = transactionType.era,
+                validator = transactionType.validator
+            )
+        }
+        is Operation.TransactionType.Transfer -> {
+            Operation.TransactionType.Transfer(
+                amount = transactionType.amount,
+                receiver = transactionType.receiver,
+                sender = transactionType.sender,
+                fee = transactionType.fee
+            )
+        }
+    }
+}
+
+fun mapOperationModelToParcelizeModel(operation: OperationModel): OperationParcelizeModel {
+    with(operation) {
+        return when (val type = operation.transactionType) {
+            is Operation.TransactionType.Transfer -> {
+                OperationParcelizeModel.TransferModel(
+                    time = time,
+                    address = address,
+                    accountName = accountName,
+                    hash = hash,
+                    amount = type.amount,
+                    receiver = type.receiver,
+                    sender = type.sender,
+                    fee = type.fee,
+                    isIncome = getIsIncome(),
+                    displayAddress = getDisplayAddress(),
+                    formattedAmount = formattedAmount,
+                    formattedFee = formattedFee,
+                    tokenType = tokenType,
+                    isFailed = type.status == Operation.Status.FAILED,
+                    iconId = statusAppearance.icon,
+                    messageId = statusAppearance.labelRes,
+                )
+            }
+            is Operation.TransactionType.Reward -> {
+                OperationParcelizeModel.RewardModel(
+                    hash = hash,
+                    address = address,
+                    time = time,
+                    accountName = accountName,
+                    amount = type.amount,
+                    formattedAmount = formattedAmount,
+                    isReward = type.isReward,
+                    era = type.era,
+                    validator = type.validator,
+                    isFailed = type.status == Operation.Status.FAILED,
+                    isIncome = getIsIncome(),
+                    iconId = statusAppearance.icon,
+                    messageId = statusAppearance.labelRes,
+                )
+            }
+            is Operation.TransactionType.Extrinsic -> {
+                OperationParcelizeModel.ExtrinsicModel(
+                    time = time,
+                    address = address,
+                    accountName = accountName,
+                    displayAddress = getDisplayAddress(),
+                    hash = hash,
+                    module = type.module,
+                    call = type.call,
+                    fee = type.fee,
+                    formattedFee = formattedFee,
+                    success = type.success,
+                    operationHeader = getOperationHeader(),
+                    elementDescription = getElementDescription(),
+                    iconId = statusAppearance.icon,
+                    messageId = statusAppearance.labelRes
+                )
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail
+package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,6 +7,11 @@ import androidx.annotation.StringRes
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeInvisible
+import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
@@ -15,26 +20,16 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailAmount
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailDate
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailFee
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailFrom
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailHash
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailRepeat
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailStatus
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailStatusIcon
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailTo
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailToolbar
-import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailTotal
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import kotlinx.android.synthetic.main.fragment_transfer_details.*
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
 
-class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
+class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     companion object {
-        fun getBundle(transaction: TransactionModel) = Bundle().apply {
-            putParcelable(KEY_TRANSACTION, transaction)
+        fun getBundle(operation: OperationParcelizeModel.TransferModel) = Bundle().apply {
+            putParcelable(KEY_TRANSACTION, operation)
         }
     }
 
@@ -65,45 +60,65 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     }
 
     override fun inject() {
-        val transaction = argument<TransactionModel>(KEY_TRANSACTION)
+        val operation = argument<OperationParcelizeModel.TransferModel>(KEY_TRANSACTION)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .transactionDetailComponentFactory()
-            .create(this, transaction)
+            .create(this, operation)
             .inject(this)
     }
 
+    private fun amountColorRes(operation: OperationParcelizeModel.TransferModel) = when {
+        operation.isFailed -> jp.co.soramitsu.feature_wallet_api.R.color.gray2
+        operation.isIncome -> jp.co.soramitsu.feature_wallet_api.R.color.green
+        else -> jp.co.soramitsu.feature_wallet_api.R.color.white
+    }
+
     override fun subscribe(viewModel: TransactionDetailViewModel) {
-        with(viewModel.transaction) {
-            transactionDetailStatus.setText(statusAppearance.labelRes)
-            transactionDetailStatusIcon.setImageResource(statusAppearance.icon)
+        with(viewModel.operation) {
+            transactionDetailStatus.setText(messageId)
+            transactionDetailStatusIcon.setImageResource(iconId)
 
-            transactionDetailDate.text = date.formatDateTime(requireContext())
+            transactionDetailDate.text = time.formatDateTime(requireContext())
 
-            transactionDetailAmount.text = amount.formatTokenAmount(type)
-            transactionDetailFee.text = fee?.formatTokenAmount(type) ?: getString(R.string.common_unknown)
+            if (isIncome) {
+                hideViews()
+            } else {
+                showViews()
+                transactionDetailFee.text = formattedFee
+                transactionDetailTotal.text = (amount + fee).formatTokenAmount(tokenType)
+            }
+
+            transactionDetailAmount.text = formattedAmount
+            transactionDetailAmount.setTextColorRes(amountColorRes(this))
 
             transactionDetailHash.setMessage(hash)
-
-            transactionDetailTotal.text = total?.formatTokenAmount(type) ?: getString(R.string.common_unknown)
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->
-            transactionDetailFrom.setMessage(addressModel.address)
+            transactionDetailFrom.setMessage(addressModel.nameOrAddress)
             transactionDetailFrom.setTextIcon(addressModel.image)
         }
 
         viewModel.recipientAddressModelLiveData.observe { addressModel ->
-            transactionDetailTo.setMessage(addressModel.address)
+            transactionDetailTo.setMessage(addressModel.nameOrAddress)
             transactionDetailTo.setTextIcon(addressModel.image)
         }
 
-        viewModel.retryAddressModelLiveData.observe {
-            transactionDetailRepeat.setTitle(it.address)
-            transactionDetailRepeat.setAccountIcon(it.image)
+        viewModel.retryAddressModelLiveData.observe { addressModel ->
+            val name = addressModel.name
+            if (name != null) {
+                transactionDetailRepeat.setTitle(name)
+                transactionDetailRepeat.setText(addressModel.address)
+                transactionDetailRepeat.showBody()
+            } else {
+                transactionDetailRepeat.setTitle(addressModel.address)
+                transactionDetailRepeat.hideBody()
+            }
+            transactionDetailRepeat.setAccountIcon(addressModel.image)
         }
 
         viewModel.showExternalTransactionActionsEvent.observeEvent(::showExternalActions)
@@ -111,13 +126,31 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         viewModel.openBrowserEvent.observeEvent(::showBrowser)
     }
 
+    private fun hideViews() {
+        transactionDetailFee.makeGone()
+        transactionDetailTotalLabel.makeGone()
+        transactionDetailFeeLabel.makeGone()
+        transactionDetailTotal.makeGone()
+        transactionDetailDivider4.makeInvisible()
+        transactionDetailDivider5.makeInvisible()
+    }
+
+    private fun showViews() {
+        transactionDetailFee.makeVisible()
+        transactionDetailTotalLabel.makeVisible()
+        transactionDetailFeeLabel.makeVisible()
+        transactionDetailTotal.makeVisible()
+        transactionDetailDivider4.makeVisible()
+        transactionDetailDivider5.makeVisible()
+    }
+
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
-        val transaction = viewModel.transaction
+        val transaction = viewModel.operation
 
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
-            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(transaction.senderAddress)
-            ExternalActionsSource.TO_ADDRESS -> showExternalAddressActions(transaction.recipientAddress)
+            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(transaction.sender)
+            ExternalActionsSource.TO_ADDRESS -> showExternalAddressActions(transaction.receiver)
         }
     }
 
@@ -132,7 +165,7 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     private fun showExternalTransactionActions() {
         showExternalActionsSheet(
             R.string.transaction_details_copy_hash,
-            viewModel.transaction.hash,
+            viewModel.operation.hash,
             viewModel::viewTransactionExternalClicked
         )
     }
@@ -146,7 +179,7 @@ class TransactionDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                networkType = viewModel.transaction.type.networkType
+                networkType = viewModel.operation.address.networkType()
             )
         )
 

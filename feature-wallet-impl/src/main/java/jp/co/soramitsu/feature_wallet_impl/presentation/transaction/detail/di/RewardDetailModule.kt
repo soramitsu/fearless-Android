@@ -13,36 +13,32 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransactionDetailViewModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailViewModel
 
 @Module(includes = [ViewModelModule::class])
-class TransactionDetailModule {
-
+class RewardDetailModule {
     @Provides
     @IntoMap
-    @ViewModelKey(TransactionDetailViewModel::class)
+    @ViewModelKey(RewardDetailViewModel::class)
     fun provideViewModel(
-        interactor: WalletInteractor,
-        router: WalletRouter,
+        operationModel: OperationParcelizeModel.RewardModel,
+        appLinksProvider: AppLinksProvider,
+        clipboardManager: ClipboardManager,
         resourceManager: ResourceManager,
         addressIconGenerator: AddressIconGenerator,
-        clipboardManager: ClipboardManager,
-        appLinksProvider: AppLinksProvider,
         addressDisplayUseCase: AddressDisplayUseCase,
-        operationModel: OperationParcelizeModel.TransferModel
+        router: WalletRouter
     ): ViewModel {
-        return TransactionDetailViewModel(
-            interactor,
-            router,
+        return RewardDetailViewModel(
+            operationModel,
+            appLinksProvider,
+            clipboardManager,
             resourceManager,
             addressIconGenerator,
-            clipboardManager,
-            appLinksProvider,
             addressDisplayUseCase,
-            operationModel
+            router
         )
     }
 
@@ -50,7 +46,7 @@ class TransactionDetailModule {
     fun provideViewModelCreator(
         fragment: Fragment,
         viewModelFactory: ViewModelProvider.Factory
-    ): TransactionDetailViewModel {
-        return ViewModelProvider(fragment, viewModelFactory).get(TransactionDetailViewModel::class.java)
+    ): RewardDetailViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(RewardDetailViewModel::class.java)
     }
 }

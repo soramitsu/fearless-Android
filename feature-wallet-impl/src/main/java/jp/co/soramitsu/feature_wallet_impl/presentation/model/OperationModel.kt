@@ -17,6 +17,8 @@ class OperationModel(
 ) {
     val formattedAmount = createFormattedAmount()
 
+    val formattedFee = "-${transactionType.operationFee.formatTokenAmount(tokenType)}"
+
     fun getDisplayAddress() = (transactionType as? Operation.TransactionType.Transfer)?.receiver ?: address
 
     fun getOperationHeader() = format(transactionType.getHeader()) ?: accountName ?: getDisplayAddress()

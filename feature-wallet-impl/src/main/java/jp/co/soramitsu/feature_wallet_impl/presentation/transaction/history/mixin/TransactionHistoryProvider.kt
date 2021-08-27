@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilters
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.coroutines.CoroutineScope
@@ -87,8 +88,20 @@ class TransactionHistoryProvider(
         return result
     }
 
-    override fun transactionClicked(transactionModel: TransactionModel) {
-        router.openTransactionDetail(transactionModel)
+    override fun transactionClicked(transactionModel: OperationParcelizeModel) {
+        when (transactionModel) {
+            is OperationParcelizeModel.TransferModel -> {
+                router.openTransferDetail(transactionModel)
+            }
+
+            is OperationParcelizeModel.ExtrinsicModel -> {
+                router.openExtrinsicDetail(transactionModel)
+            }
+
+            is OperationParcelizeModel.RewardModel -> {
+                router.openRewardDetail(transactionModel)
+            }
+        }
     }
 
     private fun maybeLoadNewPage(scope: CoroutineScope) {

@@ -16,7 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/wallet_transfer_details_title" />
+        app:titleText="@string/transaction_details_title" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -259,7 +259,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:textVisible="false" />
+            app:textVisible="true" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>

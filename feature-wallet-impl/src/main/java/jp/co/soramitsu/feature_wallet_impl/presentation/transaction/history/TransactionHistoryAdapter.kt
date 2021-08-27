@@ -14,7 +14,8 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationModelToParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.android.synthetic.main.item_day_header.view.itemDayHeader
@@ -25,7 +26,7 @@ class TransactionHistoryAdapter(
 ) : GroupedListAdapter<DayHeader, OperationHistoryElement>(TransactionHistoryDiffCallback) {
 
     interface Handler {
-        fun transactionClicked(transactionModel: TransactionModel)
+        fun transactionClicked(transactionModel: OperationParcelizeModel)
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
@@ -64,8 +65,8 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
                 } else {
                     itemTransactionStatus.makeGone()
                 }
-//
-//                setOnClickListener { handler.transactionClicked(this) }
+
+                setOnClickListener { handler.transactionClicked(mapOperationModelToParcelizeModel(this)) }
             }
 
             val operationIcon = item.transactionModel.getOperationIcon()?.let { ContextCompat.getDrawable(context, it) }

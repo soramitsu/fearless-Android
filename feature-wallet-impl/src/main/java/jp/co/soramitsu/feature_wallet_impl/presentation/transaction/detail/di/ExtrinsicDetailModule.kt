@@ -13,36 +13,32 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransactionDetailViewModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailViewModel
 
 @Module(includes = [ViewModelModule::class])
-class TransactionDetailModule {
-
+class ExtrinsicDetailModule {
     @Provides
     @IntoMap
-    @ViewModelKey(TransactionDetailViewModel::class)
+    @ViewModelKey(ExtrinsicDetailViewModel::class)
     fun provideViewModel(
-        interactor: WalletInteractor,
-        router: WalletRouter,
-        resourceManager: ResourceManager,
-        addressIconGenerator: AddressIconGenerator,
-        clipboardManager: ClipboardManager,
         appLinksProvider: AppLinksProvider,
+        clipboardManager: ClipboardManager,
+        resourceManager: ResourceManager,
         addressDisplayUseCase: AddressDisplayUseCase,
-        operationModel: OperationParcelizeModel.TransferModel
-    ): ViewModel {
-        return TransactionDetailViewModel(
-            interactor,
-            router,
-            resourceManager,
-            addressIconGenerator,
-            clipboardManager,
+        addressIconGenerator: AddressIconGenerator,
+        router: WalletRouter,
+        operation: OperationParcelizeModel.ExtrinsicModel,
+        ): ViewModel {
+        return ExtrinsicDetailViewModel(
             appLinksProvider,
+            clipboardManager,
+            resourceManager,
             addressDisplayUseCase,
-            operationModel
+            addressIconGenerator,
+            router,
+            operation,
         )
     }
 
@@ -50,7 +46,7 @@ class TransactionDetailModule {
     fun provideViewModelCreator(
         fragment: Fragment,
         viewModelFactory: ViewModelProvider.Factory
-    ): TransactionDetailViewModel {
-        return ViewModelProvider(fragment, viewModelFactory).get(TransactionDetailViewModel::class.java)
+    ): ExtrinsicDetailViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(ExtrinsicDetailViewModel::class.java)
     }
 }

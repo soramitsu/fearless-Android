@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail
+package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,10 +12,11 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 
 private const val ICON_SIZE_DP = 32
 
@@ -30,7 +31,8 @@ class TransactionDetailViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val clipboardManager: ClipboardManager,
     private val appLinksProvider: AppLinksProvider,
-    val transaction: TransactionModel
+    private val addressDisplayUseCase: AddressDisplayUseCase,
+    val operation: OperationParcelizeModel.TransferModel
 ) : BaseViewModel(), Browserable {
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
@@ -39,14 +41,14 @@ class TransactionDetailViewModel(
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val recipientAddressModelLiveData = liveData {
-        emit(getIcon(transaction.recipientAddress))
+        emit(getIcon(operation.receiver))
     }
 
     val senderAddressModelLiveData = liveData {
-        emit(getIcon(transaction.senderAddress))
+        emit(getIcon(operation.sender))
     }
 
-    val retryAddressModelLiveData = if (transaction.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
+    val retryAddressModelLiveData = if (operation.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
 
     fun copyStringClicked(address: String) {
         clipboardManager.addToClipboard(address)
@@ -59,10 +61,10 @@ class TransactionDetailViewModel(
     }
 
     fun repeatTransaction() {
-        router.openRepeatTransaction(transaction.displayAddress)
+        router.openRepeatTransaction(operation.displayAddress)
     }
 
-    private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP)
+    private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))
 
     fun showExternalActionsClicked(externalActionsSource: ExternalActionsSource) {
         _showExternalViewEvent.value = Event(externalActionsSource)
