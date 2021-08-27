@@ -30,7 +30,7 @@ class RewardDetailModule {
         addressIconGenerator: AddressIconGenerator,
         addressDisplayUseCase: AddressDisplayUseCase,
         router: WalletRouter
-        ): ViewModel {
+    ): ViewModel {
         return RewardDetailViewModel(
             operationModel,
             appLinksProvider,
@@ -50,4 +50,3 @@ class RewardDetailModule {
         return ViewModelProvider(fragment, viewModelFactory).get(RewardDetailViewModel::class.java)
     }
 }
-

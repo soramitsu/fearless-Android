@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.tran
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.base.BaseFragment
@@ -11,9 +10,9 @@ import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.showBrowser
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
@@ -81,9 +80,9 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
             val amount = viewModel.operation.transactionType.operationAmount
 
-            if(getIsIncome()){
+            if (getIsIncome()) {
                 hideViews()
-            }else{
+            } else {
                 showViews()
                 transactionDetailFee.text = formattedFee
                 val fee = viewModel.operation.transactionType.operationFee
@@ -95,7 +94,6 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             transactionDetailAmount.setTextColorRes(amountColorRes)
 
             transactionDetailHash.setMessage(hash)
-
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->
@@ -126,7 +124,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         viewModel.openBrowserEvent.observeEvent(::showBrowser)
     }
 
-    private fun hideViews(){
+    private fun hideViews() {
         transactionDetailFee.makeGone()
         transactionDetailTotalLabel.makeGone()
         transactionDetailFeeLabel.makeGone()
@@ -135,7 +133,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         transactionDetailDivider5.makeInvisible()
     }
 
-    private fun showViews(){
+    private fun showViews() {
         transactionDetailFee.makeVisible()
         transactionDetailTotalLabel.makeVisible()
         transactionDetailFeeLabel.makeVisible()
@@ -179,7 +177,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                networkType = Node.NetworkType.POLKADOT //TODO add networktype to operationModel
+                networkType = viewModel.operation.address.networkType()
             )
         )
 

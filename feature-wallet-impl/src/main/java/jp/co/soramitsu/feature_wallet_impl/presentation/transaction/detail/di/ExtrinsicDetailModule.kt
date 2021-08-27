@@ -49,5 +49,4 @@ class ExtrinsicDetailModule {
     ): ExtrinsicDetailViewModel {
         return ViewModelProvider(fragment, viewModelFactory).get(ExtrinsicDetailViewModel::class.java)
     }
-
 }

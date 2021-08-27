@@ -8,13 +8,12 @@ import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
+import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.setTextColorRes
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
@@ -118,7 +117,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                networkType = Node.NetworkType.POLKADOT //TODO add networktype to operationModel
+                networkType = viewModel.operation.address.networkType()
             )
         )
 
@@ -130,5 +129,4 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
         )
             .show()
     }
-
 }

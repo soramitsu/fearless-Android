@@ -31,7 +31,7 @@ class RewardDetailViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val router: WalletRouter,
-    ) : BaseViewModel(), Browserable {
+) : BaseViewModel(), Browserable {
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalRewardActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
@@ -66,12 +66,11 @@ class RewardDetailViewModel(
         showMessage(resourceManager.getString(R.string.common_copied))
     }
 
-    fun showExternalActionsClicked(externalActionsSource: ExternalActionsSource){
+    fun showExternalActionsClicked(externalActionsSource: ExternalActionsSource) {
         _showExternalViewEvent.value = Event(externalActionsSource)
     }
 
     fun backClicked() {
         router.back()
     }
-
 }

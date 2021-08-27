@@ -31,7 +31,7 @@ class ExtrinsicDetailViewModel(
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter
-    ) : BaseViewModel(), Browserable {
+) : BaseViewModel(), Browserable {
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalExtrinsicActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
 
@@ -41,8 +41,10 @@ class ExtrinsicDetailViewModel(
         emit(getIcon(operation.address))
     }
 
-    private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address,
-        ICON_SIZE_DP, addressDisplayUseCase(address))
+    private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(
+        address,
+        ICON_SIZE_DP, addressDisplayUseCase(address)
+    )
 
     fun viewTransactionExternalClicked(analyzer: ExternalAnalyzer, hash: String, networkType: Node.NetworkType) {
         val url = appLinksProvider.getExternalTransactionUrl(analyzer, hash, networkType)
@@ -62,12 +64,11 @@ class ExtrinsicDetailViewModel(
         showMessage(resourceManager.getString(R.string.common_copied))
     }
 
-    fun showExternalActionsClicked(externalActionsSource: ExternalActionsSource){
+    fun showExternalActionsClicked(externalActionsSource: ExternalActionsSource) {
         _showExternalViewEvent.value = Event(externalActionsSource)
     }
 
     fun backClicked() {
         router.back()
     }
-
 }

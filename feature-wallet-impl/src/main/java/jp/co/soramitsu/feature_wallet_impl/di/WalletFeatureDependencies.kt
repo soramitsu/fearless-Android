@@ -87,5 +87,4 @@ interface WalletFeatureDependencies {
     fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
 
     fun addressDisplayUseCase(): AddressDisplayUseCase
-
 }

@@ -9,7 +9,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
-import kotlinx.android.parcel.RawValue
 import java.math.BigDecimal
 
 @Parcelize
@@ -20,7 +19,7 @@ class OperationModel(
     val transactionType: TransactionModelType,
     val time: Long,
     val tokenType: Token.Type
-): Parcelable {
+) : Parcelable {
     @IgnoredOnParcel
     val formattedAmount = createFormattedAmount()
 
@@ -82,7 +81,7 @@ class OperationModel(
         val operationAmount: BigDecimal,
         val operationFee: BigDecimal,
         val status: Operation.Status
-    ) : Parcelable{
+    ) : Parcelable {
         @Parcelize
         class Extrinsic(
             val hash: String,
@@ -90,7 +89,13 @@ class OperationModel(
             val call: String,
             val fee: BigDecimal,
             val success: Boolean
-        ) : TransactionModelType(call, module, operationAmount = BigDecimal.ZERO, operationFee = fee, Operation.Status.fromSuccess(success))
+        ) : TransactionModelType(
+            call,
+            module,
+            operationAmount = BigDecimal.ZERO,
+            operationFee = fee,
+            Operation.Status.fromSuccess(success)
+        )
 
         @Parcelize
         class Reward(
@@ -98,7 +103,13 @@ class OperationModel(
             val isReward: Boolean,
             val era: Int,
             val validator: String
-        ) : TransactionModelType(if (isReward) "Reward" else "Slash", "Staking", operationAmount = amount, operationFee = BigDecimal.ZERO, Operation.Status.FAILED)
+        ) : TransactionModelType(
+            if (isReward) "Reward" else "Slash",
+            "Staking",
+            operationAmount = amount,
+            operationFee = BigDecimal.ZERO,
+            Operation.Status.FAILED
+        )
 
         @Parcelize
         class Transfer(
@@ -106,7 +117,11 @@ class OperationModel(
             val receiver: String,
             val sender: String,
             val fee: BigDecimal
-        ) : TransactionModelType(null, "Transfer", operationAmount = amount, operationFee = fee, Operation.Status.COMPLETED)
+        ) : TransactionModelType(
+            null,
+            "Transfer",
+            operationAmount = amount,
+            operationFee = fee, Operation.Status.COMPLETED
+        )
     }
-
 }
