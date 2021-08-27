@@ -15,7 +15,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/itemListElementDescriptionLeft"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/itemListElementTitleLeft"
-        android:src="@drawable/ic_subtract" />
+        android:src="@drawable/ic_staking" />
 
     <TextView
         android:id="@+id/itemListElementTitleLeft"

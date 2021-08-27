@@ -11,6 +11,8 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
@@ -28,6 +30,7 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingStakeSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
+import kotlin.time.ExperimentalTime
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -65,6 +68,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             .inject(this)
     }
 
+    @ExperimentalTime
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
 
@@ -73,7 +77,12 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                 is LoadingState.Loaded -> {
                     stakingAlertsInfo.hideLoading()
 
-                    stakingAlertsInfo.setStatus(loadingState.data)
+                    if (loadingState.data.isEmpty()) {
+                        stakingAlertsInfo.makeGone()
+                    } else {
+                        stakingAlertsInfo.makeVisible()
+                        stakingAlertsInfo.setStatus(loadingState.data)
+                    }
                 }
 
                 is LoadingState.Loading -> {
@@ -171,6 +180,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
     }
 
+    @ExperimentalTime
     private fun <S> StakeSummaryView.bindStakeSummary(
         stakingViewState: StakeViewState<S>,
         mapStatus: (StakeSummaryModel<S>) -> StakeSummaryView.Status
@@ -232,7 +242,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         return when (summary.status) {
             is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
             NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
-            NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting
+            is NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting(summary.status.timeLeft)
         }
     }
 

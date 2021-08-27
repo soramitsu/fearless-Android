@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
-            android:text="@string/profile_title"
+            android:text="@string/account_info_title"
             android:textAllCaps="true"
             android:textColor="@color/gray1" />
 

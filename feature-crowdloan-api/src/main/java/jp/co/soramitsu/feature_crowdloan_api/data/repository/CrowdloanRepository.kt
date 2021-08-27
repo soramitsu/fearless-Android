@@ -12,7 +12,7 @@ import java.math.BigInteger
 
 interface CrowdloanRepository {
 
-    fun crowdloanAvailableFlow(): Flow<Boolean>
+    suspend fun isCrowdloansAvailable(): Boolean
 
     suspend fun allFundInfos(): Map<ParaId, FundInfo>
 

@@ -23,7 +23,7 @@ fun unbondValidationFailure(
 
         UnbondValidationFailure.NotEnoughBonded -> {
             resourceManager.getString(R.string.common_not_enough_funds_title) to
-                resourceManager.getString(R.string.staking_unbond_too_big)
+                resourceManager.getString(R.string.staking_rebond_insufficient_bondings)
         }
 
         is UnbondValidationFailure.UnbondLimitReached -> {

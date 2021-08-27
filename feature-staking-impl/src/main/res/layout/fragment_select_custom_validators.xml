@@ -15,7 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/staking_select_validators" />
+        app:titleText="@string/staking_custom_validators_list_title" />
 
     <HorizontalScrollView
         android:layout_width="match_parent"
@@ -47,7 +47,7 @@
                 android:paddingTop="6dp"
                 android:paddingEnd="12dp"
                 android:paddingBottom="6dp"
-                android:text="@string/staking_fill_with_recommended"
+                android:text="@string/staking_custom_fill_button_title"
                 android:textColor="@color/button_text_colors" />
 
             <TextView
@@ -62,7 +62,7 @@
                 android:paddingTop="6dp"
                 android:paddingEnd="12dp"
                 android:paddingBottom="6dp"
-                android:text="@string/staking_clear_filters"
+                android:text="@string/staking_custom_clear_button_title"
                 android:textColor="@color/button_text_colors" />
 
             <TextView
@@ -77,7 +77,7 @@
                 android:paddingTop="6dp"
                 android:paddingEnd="12dp"
                 android:paddingBottom="6dp"
-                android:text="@string/staking_deselect_all"
+                android:text="@string/staking_custom_deselect_button_title"
                 android:textColor="@color/button_text_colors" />
         </LinearLayout>
     </HorizontalScrollView>

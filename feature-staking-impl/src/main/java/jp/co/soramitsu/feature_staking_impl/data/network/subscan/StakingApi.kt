@@ -1,10 +1,12 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.subscan
 
+import jp.co.soramitsu.common.data.network.subquery.EraValidatorInfoQueryResponse
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
 import jp.co.soramitsu.common.data.network.subquery.SumRewardResponse
 import jp.co.soramitsu.common.data.network.subscan.SubscanResponse
 import jp.co.soramitsu.feature_staking_impl.BuildConfig
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.ExtrinsicHistoryRequest
+import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingEraValidatorInfosRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingRewardRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingSumRewardRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.response.ExtrinsicHistory
@@ -35,4 +37,10 @@ interface StakingApi {
         @Path("path") path: String,
         @Body body: StakingSumRewardRequest
     ): SubQueryResponse<SumRewardResponse>
+
+    @POST("//api.subquery.network/sq/ef1rspb/{path}")
+    suspend fun getValidatorsInfo(
+        @Path("path") path: String,
+        @Body body: StakingEraValidatorInfosRequest
+    ): SubQueryResponse<EraValidatorInfoQueryResponse>
 }

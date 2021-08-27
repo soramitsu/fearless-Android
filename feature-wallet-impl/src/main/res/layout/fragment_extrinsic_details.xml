@@ -134,7 +134,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="15dp"
-                android:text="@string/transaction_details_extrinsic_module"
+                android:text="@string/common_module"
                 android:textColor="@color/gray1"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/extrinsicDetailDivider2" />
@@ -166,7 +166,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="14dp"
-                android:text="@string/transaction_details_extrinsic_call"
+                android:text="@string/common_call"
                 android:textColor="@color/gray1"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/extrinsicDetailDivider3" />

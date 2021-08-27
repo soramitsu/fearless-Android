@@ -35,7 +35,6 @@ import jp.co.soramitsu.runtime.ext.runtimeCacheName
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 
@@ -48,8 +47,8 @@ class CrowdloanRepositoryImpl(
     private val parachainMetadataApi: ParachainMetadataApi
 ) : CrowdloanRepository {
 
-    override fun crowdloanAvailableFlow(): Flow<Boolean> {
-        return runtimeProperty.observe().map {
+    override suspend fun isCrowdloansAvailable(): Boolean {
+        return runtimeProperty.useValue {
             it.metadata.hasModule(Modules.CROWDLOAN)
         }
     }

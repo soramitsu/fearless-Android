@@ -12,7 +12,7 @@
         android:id="@+id/customContributeToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="@string/crowdloan_bonus" />
+        app:titleText="@string/common_bonus" />
 
     <FrameLayout
         android:id="@+id/customFlowContainer"

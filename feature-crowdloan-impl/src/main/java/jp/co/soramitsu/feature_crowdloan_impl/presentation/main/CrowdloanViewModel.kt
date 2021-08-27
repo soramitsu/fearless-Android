@@ -72,7 +72,7 @@ class CrowdloanViewModel(
                 textColorRes = R.color.black1
             )
             Crowdloan.State.Active::class -> CrowdloanStatusModel(
-                text = resourceManager.getString(R.string.common_active_with_count, statusCount),
+                text = resourceManager.getString(R.string.crowdloan_active_section_format, statusCount),
                 textColorRes = R.color.green
             )
             else -> throw IllegalArgumentException("Unsupported crowdloan status type: ${statusClass.simpleName}")
@@ -106,7 +106,7 @@ class CrowdloanViewModel(
         val myContributionDisplay = crowdloan.myContribution?.let {
             val myContributionFormatted = token.amountFromPlanks(it.amount).formatTokenAmount(token.type)
 
-            resourceManager.getString(R.string.crowdloan_my_contribution, myContributionFormatted)
+            resourceManager.getString(R.string.crowdloan_contribution_format, myContributionFormatted)
         }
 
         return CrowdloanModel(

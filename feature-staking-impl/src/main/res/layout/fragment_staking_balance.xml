@@ -54,5 +54,5 @@
         android:background="@color/blurColor"
         app:contentBackground="@android:color/transparent"
         app:dividerVisible="false"
-        app:titleText="@string/staking_balance" />
+        app:titleText="@string/staking_balance_title" />
 </FrameLayout>

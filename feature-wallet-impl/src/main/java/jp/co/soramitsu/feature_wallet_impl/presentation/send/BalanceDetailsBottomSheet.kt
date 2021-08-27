@@ -28,7 +28,7 @@ class BalanceDetailsBottomSheet(
             currencyItem(R.string.choose_amount_available_balance, assetModel.available)
             currencyItem(R.string.wallet_balance_details_total, assetModel.total)
             currencyItem(R.string.wallet_balance_details_total_after, transferDraft.totalAfterTransfer(assetModel.total))
-            currencyItem(R.string.wallet_balance_details_existential_deposit, existentialDeposit)
+            currencyItem(R.string.wallet_send_balance_minimal, existentialDeposit)
         }
     }
 }

@@ -19,17 +19,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeViews
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.displayFeeStatus
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeAmount
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeConfirm
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeOriginAccount
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeRewardDestination
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidators
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidatorsCount
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeToolbar
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingFeeFiat
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingFeeProgress
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingFeeToken
-import kotlinx.android.synthetic.main.fragment_confirm_stake.stakingConfirmationContainer
+import kotlinx.android.synthetic.main.fragment_confirm_stake.*
 
 class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
 
@@ -116,6 +106,14 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
             confirmStakeAmount.setVisible(bondedAmount != null)
 
             bondedAmount?.let { confirmStakeAmount.amountInput.setText(it.toString()) }
+        }
+
+        viewModel.unstakingTime.observe {
+            confirmStakingUnstakingPeriodLength.text = it
+        }
+
+        viewModel.eraHoursLength.observe {
+            confirmStakingEachEraLength.text = it
         }
     }
 }

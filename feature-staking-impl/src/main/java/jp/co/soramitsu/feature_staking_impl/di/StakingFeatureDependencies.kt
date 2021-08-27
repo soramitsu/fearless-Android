@@ -7,7 +7,7 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
@@ -63,7 +63,7 @@ interface StakingFeatureDependencies {
 
     fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
 
-    fun substrateCalls(): SubstrateCalls
+    fun substrateCalls(): RpcCalls
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
 

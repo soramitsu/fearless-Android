@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_api.domain.api
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
@@ -16,19 +17,33 @@ import java.math.BigInteger
 
 interface StakingRepository {
 
+    suspend fun currentSessionIndex(): BigInteger
+
+    suspend fun currentSlot(): BigInteger
+
+    suspend fun genesisSlot(): BigInteger
+
+    suspend fun eraStartSessionIndex(currentEra: BigInteger): EraIndex
+
+    suspend fun sessionLength(): BigInteger
+
+    suspend fun eraLength(): BigInteger
+
+    suspend fun blockCreationTime(): BigInteger
+
     fun stakingAvailableFlow(): Flow<Boolean>
 
     suspend fun getTotalIssuance(): BigInteger
 
-    suspend fun getActiveEraIndex(): BigInteger
+    suspend fun getActiveEraIndex(): EraIndex
 
-    suspend fun getCurrentEraIndex(): BigInteger
+    suspend fun getCurrentEraIndex(): EraIndex
 
     suspend fun getHistoryDepth(): BigInteger
 
-    suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<BigInteger>
+    suspend fun observeActiveEraIndex(networkType: Node.NetworkType): Flow<EraIndex>
 
-    suspend fun getElectedValidatorsExposure(eraIndex: BigInteger): AccountIdMap<Exposure>
+    suspend fun getElectedValidatorsExposure(eraIndex: EraIndex): AccountIdMap<Exposure>
 
     suspend fun getValidatorPrefs(accountIdsHex: List<String>): AccountIdMap<ValidatorPrefs?>
 

@@ -13,7 +13,7 @@
         android:id="@+id/bondMoreToolbar"
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/staking_bond_more" />
+        app:titleText="@string/staking_bond_more_v1_9_0" />
 
     <jp.co.soramitsu.common.view.AmountView
         android:layout_width="match_parent"
