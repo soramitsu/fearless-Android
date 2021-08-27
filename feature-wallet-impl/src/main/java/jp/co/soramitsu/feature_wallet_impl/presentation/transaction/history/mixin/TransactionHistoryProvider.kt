@@ -140,6 +140,7 @@ class TransactionHistoryProvider(
     private fun regroup(newPage: List<OperationHistoryElement>, reset: Boolean): List<Any> {
         currentTransactions = if (reset) newPage else currentTransactions + newPage
 
+
         return currentTransactions.groupBy { it.transactionModel.time.daysFromMillis() }
             .map { (daysSinceEpoch, transactions) ->
                 val header = DayHeader(daysSinceEpoch)
