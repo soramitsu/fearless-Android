@@ -115,11 +115,10 @@ class WalletRepositoryImpl(
     ): List<Operation> {
         return withContext(Dispatchers.Default) {
             val accountsByAddress = accounts.associateBy { it.address }
-
-            val networkType = currentAccount.address.networkType().getSubqueryPath()
+            val path = currentAccount.address.networkType().getSubqueryEraValidatorInfos()
 
             val response = walletApi.getOperationsHistory(
-                networkType,
+                path,
                 SubqueryHistoryElementByAddressRequest(
                     currentAccount.address,
                     pageSize,
@@ -151,7 +150,7 @@ class WalletRepositoryImpl(
     override suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal) {
         val operationHash = substrateSource.performTransfer(accountAddress, transfer)
 
-        val operation = createTransferOperationLocal(operationHash, transfer, accountAddress, fee, OperationLocal.Source.APP)
+        val operation = createOperation(operationHash, transfer, accountAddress, fee, OperationLocal.Source.APP)
 
         operationDao.insert(operation)
     }
@@ -210,7 +209,7 @@ class WalletRepositoryImpl(
         return accountsByAddress[accountAddress ?: currentAddress]?.name
     }
 
-    private fun createTransferOperationLocal(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal, source: OperationLocal.Source) =
+    private fun createOperation(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal, source: OperationLocal.Source) =
         OperationLocal(
             hash = hash,
             address = senderAddress,
