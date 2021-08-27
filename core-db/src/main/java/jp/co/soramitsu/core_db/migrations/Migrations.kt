@@ -81,7 +81,7 @@ val AddOperationsTablesToDb_22_23 = object : Migration(22, 23) {
 
         database.execSQL(
             """
-               CREATE TABLE IF NOT EXISTS `operations` (`hash` TEXT NOT NULL, `address` TEXT NOT NULL, `time` INTEGER NOT NULL, `tokenType` INTEGER NOT NULL, `status` INTEGER NOT NULL, `source` INTEGER NOT NULL, `type` TEXT, `call` TEXT, `amount` TEXT, `sender` TEXT, `receiver` TEXT, `fee` TEXT, `isReward` INTEGER, `era` INTEGER, `validator` TEXT, `success` INTEGER, PRIMARY KEY(`hash`, `address`))
+               CREATE TABLE IF NOT EXISTS `operations` (`hash` TEXT NOT NULL, `address` TEXT NOT NULL, `time` INTEGER NOT NULL, `tokenType` INTEGER NOT NULL, `status` INTEGER NOT NULL, `source` INTEGER NOT NULL, `operationType` INTEGER NOT NULL, `type` TEXT, `call` TEXT, `amount` TEXT, `sender` TEXT, `receiver` TEXT, `fee` TEXT, `isReward` INTEGER, `era` INTEGER, `validator` TEXT, `success` INTEGER, PRIMARY KEY(`hash`, `address`))
             """.trimIndent()
         )
     }
