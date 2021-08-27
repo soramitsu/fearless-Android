@@ -25,6 +25,7 @@ interface WalletNetworkApi {
 
     @POST("//api.subquery.network/sq/ef1rspb/{path}")
     suspend fun getOperationsHistory(
+        @Path("path") path: String,
         @Body body: SubqueryHistoryElementByAddressRequest
     ): SubQueryResponse<SubqueryHistoryElementResponse>
 }
