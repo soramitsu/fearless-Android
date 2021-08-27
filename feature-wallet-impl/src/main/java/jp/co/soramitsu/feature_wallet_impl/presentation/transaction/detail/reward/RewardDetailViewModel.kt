@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayU
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.RewardParcelizeModel
 
 private const val ICON_SIZE_DP = 32
 
@@ -24,7 +25,7 @@ enum class ExternalActionsSource {
 }
 
 class RewardDetailViewModel(
-    val operation: OperationModel,
+    val operation: RewardParcelizeModel,
     private val appLinksProvider: AppLinksProvider,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
@@ -39,11 +40,11 @@ class RewardDetailViewModel(
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val validatorAddressModelLiveData = liveData {
-        emit(getIcon((operation.transactionType as OperationModel.TransactionModelType.Reward).validator))
+        emit(getIcon(operation.validator))
     }
 
     val eraLiveData = liveData {
-        emit(resourceManager.getString(R.string.staking_era_index_no_prefix, (operation.transactionType as OperationModel.TransactionModelType.Reward).era))
+        emit(resourceManager.getString(R.string.staking_era_index_no_prefix, operation.era))
     }
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))

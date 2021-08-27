@@ -17,6 +17,8 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.RewardParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransferParcelizeModel
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.*
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailHash
 
@@ -24,7 +26,7 @@ private const val KEY_REWARD = "KEY_REWARD"
 
 class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     companion object {
-        fun getBundle(operation: OperationModel) = Bundle().apply {
+        fun getBundle(operation: RewardParcelizeModel) = Bundle().apply {
             putParcelable(KEY_REWARD, operation)
         }
     }
@@ -48,7 +50,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<OperationModel>(KEY_REWARD)
+        val operation = argument<RewardParcelizeModel>(KEY_REWARD)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -59,14 +61,20 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
             .inject(this)
     }
 
+    private fun amountColorRes(operation: RewardParcelizeModel) = when {
+        operation.isFailed -> R.color.gray2
+        operation.isIncome -> R.color.green
+        else -> R.color.white
+    }
+
     override fun subscribe(viewModel: RewardDetailViewModel) {
         with(viewModel.operation) {
             rewardDetailHash.setMessage(hash)
-            rewardDetailStatus.setText(statusAppearance.labelRes)
-            rewardDetailStatusIcon.setImageResource(statusAppearance.icon)
+            rewardDetailStatus.setText(messageId)
+            rewardDetailStatusIcon.setImageResource(iconId)
             rewardDetailDate.text = time.formatDateTime(requireContext())
             rewardDetailReward.text = formattedAmount
-            rewardDetailReward.setTextColorRes(amountColorRes)
+            rewardDetailReward.setTextColorRes(amountColorRes(this))
         }
 
         viewModel.showExternalRewardActionsEvent.observeEvent(::showExternalActions)
@@ -84,7 +92,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     }
 
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
-        val transaction = viewModel.operation.transactionType as OperationModel.TransactionModelType.Reward
+        val transaction = viewModel.operation
 
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()

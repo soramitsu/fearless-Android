@@ -17,13 +17,14 @@ import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import kotlinx.android.synthetic.main.fragment_extrinsic_details.*
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExtrinsicParcelizeModel
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.*
 
 private const val KEY_EXTRINSIC = "KEY_EXTRINSIC"
 
 class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     companion object {
-        fun getBundle(operation: OperationModel) = Bundle().apply {
+        fun getBundle(operation: ExtrinsicParcelizeModel) = Bundle().apply {
             putParcelable(KEY_EXTRINSIC, operation)
         }
     }
@@ -47,7 +48,7 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<OperationModel>(KEY_EXTRINSIC)
+        val operation = argument<ExtrinsicParcelizeModel>(KEY_EXTRINSIC)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -61,12 +62,12 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     override fun subscribe(viewModel: ExtrinsicDetailViewModel) {
         with(viewModel.operation) {
             extrinsicDetailHash.setMessage(hash)
-            extrinsicDetailFrom.setMessage(accountName ?: getDisplayAddress())
-            extrinsicDetailStatus.setText(statusAppearance.labelRes)
-            extrinsicDetailStatusIcon.setImageResource(statusAppearance.icon)
+            extrinsicDetailFrom.setMessage(accountName ?: address)
+            extrinsicDetailStatus.setText(messageId)
+            extrinsicDetailStatusIcon.setImageResource(iconId)
             extrinsicDetailDate.text = time.formatDateTime(requireContext())
-            extrinsicDetailModule.text = getOperationHeader()
-            extrinsicDetailCall.text = getElementDescription()
+            extrinsicDetailModule.text = operationHeader
+            extrinsicDetailCall.text =  elementDescription
             extrinsicDetailFee.text = formattedFee
         }
 
@@ -82,7 +83,7 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
-            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(viewModel.operation.getDisplayAddress())
+            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(viewModel.operation.displayAddress)
         }
     }
 

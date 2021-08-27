@@ -20,7 +20,7 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransferParcelizeModel
 import kotlinx.android.synthetic.main.fragment_transfer_details.*
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
@@ -28,7 +28,7 @@ private const val KEY_TRANSACTION = "KEY_DRAFT"
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     companion object {
-        fun getBundle(operation: OperationModel) = Bundle().apply {
+        fun getBundle(operation: TransferParcelizeModel) = Bundle().apply {
             putParcelable(KEY_TRANSACTION, operation)
         }
     }
@@ -60,7 +60,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<OperationModel>(KEY_TRANSACTION)
+        val operation = argument<TransferParcelizeModel>(KEY_TRANSACTION)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -71,27 +71,29 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             .inject(this)
     }
 
+    private fun amountColorRes(operation: TransferParcelizeModel) = when {
+        operation.isFailed -> jp.co.soramitsu.feature_wallet_api.R.color.gray2
+        operation.isIncome -> jp.co.soramitsu.feature_wallet_api.R.color.green
+        else -> jp.co.soramitsu.feature_wallet_api.R.color.white
+    }
+
     override fun subscribe(viewModel: TransactionDetailViewModel) {
         with(viewModel.operation) {
-            transactionDetailStatus.setText(statusAppearance.labelRes)
-            transactionDetailStatusIcon.setImageResource(statusAppearance.icon)
+            transactionDetailStatus.setText(messageId)
+            transactionDetailStatusIcon.setImageResource(iconId)
 
             transactionDetailDate.text = time.formatDateTime(requireContext())
 
-            val amount = viewModel.operation.transactionType.operationAmount
-
-            if (getIsIncome()) {
+            if (isIncome) {
                 hideViews()
             } else {
                 showViews()
                 transactionDetailFee.text = formattedFee
-                val fee = viewModel.operation.transactionType.operationFee
                 transactionDetailTotal.text = (amount + fee).formatTokenAmount(tokenType)
             }
 
-            assert(viewModel.operation.transactionType is OperationModel.TransactionModelType.Transfer)
             transactionDetailAmount.text = formattedAmount
-            transactionDetailAmount.setTextColorRes(amountColorRes)
+            transactionDetailAmount.setTextColorRes(amountColorRes(this))
 
             transactionDetailHash.setMessage(hash)
         }
@@ -143,7 +145,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     }
 
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
-        val transaction = viewModel.operation.transactionType as OperationModel.TransactionModelType.Transfer
+        val transaction = viewModel.operation
 
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()

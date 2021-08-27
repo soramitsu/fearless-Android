@@ -9,7 +9,10 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.ExtrinsicParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.RewardParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransferParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.coroutines.CoroutineScope
@@ -90,17 +93,17 @@ class TransactionHistoryProvider(
         return result
     }
 
-    override fun transactionClicked(transactionModel: OperationModel) {
-        when (transactionModel.transactionType) {
-            is OperationModel.TransactionModelType.Transfer -> {
-                router.openTransactionDetail(transactionModel)
+    override fun transactionClicked(transactionModel: OperationParcelizeModel) {
+        when (transactionModel) {
+            is TransferParcelizeModel -> {
+                router.openTransferDetail(transactionModel)
             }
 
-            is OperationModel.TransactionModelType.Extrinsic -> {
+            is ExtrinsicParcelizeModel -> {
                 router.openExtrinsicDetail(transactionModel)
             }
 
-            is OperationModel.TransactionModelType.Reward -> {
+            is RewardParcelizeModel -> {
                 router.openRewardDetail(transactionModel)
             }
         }
