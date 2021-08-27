@@ -158,33 +158,31 @@ fun mapOperationToOperationModel(operation: Operation): OperationModel {
 }
 
 fun mapTransactionTypeToTransactionModelType(transactionType: Operation.TransactionType): OperationModel.TransactionModelType {
-    with(transactionType) {
-        return when (transactionType) {
-            is Operation.TransactionType.Extrinsic -> {
-                OperationModel.TransactionModelType.Extrinsic(
-                    hash = transactionType.hash,
-                    module = transactionType.module,
-                    call = transactionType.call,
-                    fee = transactionType.fee,
-                    success = transactionType.success
-                )
-            }
-            is Operation.TransactionType.Reward -> {
-                OperationModel.TransactionModelType.Reward(
-                    amount = transactionType.amount,
-                    isReward = transactionType.isReward,
-                    era = transactionType.era,
-                    validator = transactionType.validator
-                )
-            }
-            is Operation.TransactionType.Transfer -> {
-                OperationModel.TransactionModelType.Transfer(
-                    amount = transactionType.amount,
-                    receiver = transactionType.receiver,
-                    sender = transactionType.sender,
-                    fee = transactionType.fee
-                )
-            }
+    return when (transactionType) {
+        is Operation.TransactionType.Extrinsic -> {
+            OperationModel.TransactionModelType.Extrinsic(
+                hash = transactionType.hash,
+                module = transactionType.module,
+                call = transactionType.call,
+                fee = transactionType.fee,
+                success = transactionType.success
+            )
+        }
+        is Operation.TransactionType.Reward -> {
+            OperationModel.TransactionModelType.Reward(
+                amount = transactionType.amount,
+                isReward = transactionType.isReward,
+                era = transactionType.era,
+                validator = transactionType.validator
+            )
+        }
+        is Operation.TransactionType.Transfer -> {
+            OperationModel.TransactionModelType.Transfer(
+                amount = transactionType.amount,
+                receiver = transactionType.receiver,
+                sender = transactionType.sender,
+                fee = transactionType.fee
+            )
         }
     }
 }
