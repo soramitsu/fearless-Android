@@ -51,6 +51,4 @@ data class Operation(
             }
         }
     }
-
-
 }
