@@ -62,12 +62,6 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
 
     override fun subscribe(viewModel: RewardDetailViewModel) {
         with(viewModel.operation) {
-            rewardDetailToolbar.setTitle(getString(
-                if ((transactionType as OperationModel.TransactionModelType.Reward).isReward)
-                    R.string.staking_reward_details
-                else
-                    R.string.wallet_title_stash_details))
-
             rewardDetailHash.setMessage(hash)
             rewardDetailStatus.setText(statusAppearance.labelRes)
             rewardDetailStatusIcon.setImageResource(statusAppearance.icon)

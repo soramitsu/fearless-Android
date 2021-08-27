@@ -23,7 +23,6 @@ interface WalletNetworkApi {
         @Body body: AssetPriceRequest
     ): SubscanResponse<AssetPriceStatistics>
 
-    // TODO change to real endpoint before merging to dev
     @POST("//api.subquery.network/sq/ef1rspb/{path}")
     suspend fun getOperationsHistory(
         @Path("path") path: String,
