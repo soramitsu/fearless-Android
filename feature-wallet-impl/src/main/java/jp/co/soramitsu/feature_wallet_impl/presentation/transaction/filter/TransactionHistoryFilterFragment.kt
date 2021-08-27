@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.ButtonState
+import jp.co.soramitsu.common.view.bindFromMap
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
@@ -57,12 +58,6 @@ class TransactionHistoryFilterFragment : BaseFragment<TransactionHistoryFilterVi
     }
 
     private fun CompoundButton.bindFilter(filterClass: Class<out HistoryFilter>) {
-        bondFromMap(filterClass, viewModel.filtersEnabledMap)
-    }
-
-    private fun <T> CompoundButton.bondFromMap(key: Class<out T>, map: Map<out Class<out T>, MutableStateFlow<Boolean>>) {
-        val source = map[key] ?: error("Cannot find $key source")
-
-        bindTo(source, lifecycleScope)
+        bindFromMap(filterClass, viewModel.filtersEnabledMap, lifecycleScope)
     }
 }

@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.ButtonState
+import jp.co.soramitsu.common.view.bindFromMap
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
@@ -77,16 +78,10 @@ class CustomValidatorsSettingsFragment : BaseFragment<CustomValidatorsSettingsVi
     }
 
     private fun CompoundButton.bindPostProcessor(postProcessorClass: Class<out RecommendationPostProcessor>) {
-        bondFromMap(postProcessorClass, viewModel.postProcessorsEnabledMap)
+        bindFromMap(postProcessorClass, viewModel.postProcessorsEnabledMap, lifecycleScope)
     }
 
     private fun CompoundButton.bindFilter(filterClass: Class<out RecommendationFilter>) {
-        bondFromMap(filterClass, viewModel.filtersEnabledMap)
-    }
-
-    private fun <T> CompoundButton.bondFromMap(key: Class<out T>, map: Map<out Class<out T>, MutableStateFlow<Boolean>>) {
-        val source = map[key] ?: error("Cannot find $key source")
-
-        bindTo(source, lifecycleScope)
+        bindFromMap(filterClass, viewModel.filtersEnabledMap, lifecycleScope)
     }
 }

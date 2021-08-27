@@ -129,9 +129,7 @@ fun mapNodeToOperation(
                 fee = token.amountFromPlanks(node.transfer.fee.toBigInteger())
             )
         }
-        else -> {
-            throw Exception()
-        }
+        else -> throw Exception()
     }
 
     return Operation(

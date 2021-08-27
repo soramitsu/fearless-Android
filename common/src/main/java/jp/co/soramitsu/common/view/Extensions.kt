@@ -1,8 +1,13 @@
 package jp.co.soramitsu.common.view
 
 import android.os.CountDownTimer
+import android.widget.CompoundButton
 import android.widget.TextView
+import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.utils.bindTo
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
 
@@ -60,4 +65,10 @@ fun Long.formatTime(): String {
     val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
     return "%02d:%02d:%02d".format(hours, minutes, seconds)
+}
+
+fun <T> CompoundButton.bindFromMap(key: Class<out T>, map: Map<out Class<out T>, MutableStateFlow<Boolean>>, lifecycleScope: LifecycleCoroutineScope) {
+    val source = map[key] ?: error("Cannot find $key source")
+
+    bindTo(source, lifecycleScope)
 }
