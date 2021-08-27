@@ -24,7 +24,7 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
         val operationLocal = OperationLocal(
             hash = hash,
             address = address,
-            time = time.seconds.toLongMilliseconds(),
+            time = time,
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
             type = transactionType.getHeader(),
             call = transactionType.getSubheader(),
@@ -94,6 +94,7 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: St
     }
 }
 
+@ExperimentalTime
 fun mapNodeToOperation(
     node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
     cursor: String,
@@ -137,7 +138,7 @@ fun mapNodeToOperation(
         hash = node.id,
         address = node.address,
         transactionType = type,
-        time = node.timestamp.toLong(),
+        time = node.timestamp.toLong().seconds.toLongMilliseconds(),
         tokenType = token,
         accountName = accountName,
         nextPageCursor = cursor

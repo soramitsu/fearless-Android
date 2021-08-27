@@ -7,6 +7,7 @@ class SubqueryHistoryElementByAddressRequest(accountAddress: String, pageSize: I
             historyElements(
                 after: ${ if (cursor == null) null else "\"$cursor\""},
                 first: $pageSize,
+                orderBy: TIMESTAMP_DESC,
                 filter: { 
                     address:{ equalTo: "$accountAddress"}
                 }

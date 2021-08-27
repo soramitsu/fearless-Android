@@ -12,8 +12,6 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
 
-class SubscanError(message: String) : Throwable(message)
-
 interface WalletNetworkApi {
 
     @Headers("x-api-key: ${BuildConfig.SUBSCAN_API_KEY}")
