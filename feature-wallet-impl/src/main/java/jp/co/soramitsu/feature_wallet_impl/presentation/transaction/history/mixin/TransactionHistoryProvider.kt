@@ -11,10 +11,10 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilters
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.coroutines.CoroutineScope
