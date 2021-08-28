@@ -101,9 +101,9 @@ class RuntimeProvider(
             invalidateRuntime()
 
             runCatching {
-                val constructedRuntime = runtimeFactory.constructRuntime(chainId, typesUsage)
-
-                runtimeFlow.emit(constructedRuntime)
+                runtimeFactory.constructRuntime(chainId, typesUsage)?.also {
+                    runtimeFlow.emit(it)
+                }
             }.onFailure {
                 when (it) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)

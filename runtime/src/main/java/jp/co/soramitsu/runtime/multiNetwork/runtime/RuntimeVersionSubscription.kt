@@ -4,7 +4,6 @@ import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.runtimeVersionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
-import jp.co.soramitsu.runtime.SubscribeRuntimeVersionRequest
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

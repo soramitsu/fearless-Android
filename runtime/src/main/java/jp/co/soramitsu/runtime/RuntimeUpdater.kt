@@ -1,103 +1,37 @@
 package jp.co.soramitsu.runtime
 
 import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.core.updater.GlobalScopeUpdater
-import jp.co.soramitsu.core.updater.SubscriptionBuilder
-import jp.co.soramitsu.core.updater.Updater
+import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.runtimeVersionChange
-import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.runtime.ext.runtimeCacheName
-import kotlinx.coroutines.Dispatchers
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-
-typealias RuntimeUpdateRetry = suspend () -> RuntimePreparationStatus
-
-sealed class RuntimePreparationStatus : Updater.SideEffect {
-    object Ok : RuntimePreparationStatus()
-
-    class Error(val retry: RuntimeUpdateRetry) : RuntimePreparationStatus()
-}
+import kotlinx.coroutines.launch
 
 class RuntimeUpdater(
-    private val runtimeConstructor: RuntimeConstructor,
-    private val socketService: SocketService,
     private val accountRepository: AccountRepository,
-    private val runtimePrepopulator: RuntimePrepopulator,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>
-) : GlobalScopeUpdater {
+    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    private val connectionProperty: SuspendableProperty<SocketService>,
+    private val chainRegistry: ChainRegistry,
+) {
 
-    override val requiredModules: List<String> = emptyList()
+    fun sync() {
+        GlobalScope.launch {
+            chainRegistry.currentChains.first { it.isNotEmpty() } // wait until chains loads
 
-    init {
-        accountRepository.selectedNetworkTypeFlow()
-            .onEach { runtimeProperty.invalidate() }
-            .launchIn(GlobalScope)
-    }
-
-    override suspend fun listenForUpdates(
-        storageSubscriptionBuilder: SubscriptionBuilder
-    ): Flow<RuntimePreparationStatus> {
-        return socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
-            .map { it.runtimeVersionChange().specVersion }
-            .distinctUntilChanged()
-            .map { performUpdate(it) }
-            .catch { emit(errorStatus()) }
-            .flowOn(Dispatchers.Default)
-    }
-
-    suspend fun initFromCache() {
-        runtimeProperty.invalidate()
-
-        runtimePrepopulator.maybePrepopulateCache()
-
-        val result = runCatching {
-            runtimeConstructor.constructFromCache(getCurrentNetworkName())
-        }.recoverCatching {
-            // Android may clear cache files if device memory is low
-            runtimePrepopulator.forcePrepopulateCache()
-
-            runtimeConstructor.constructFromCache(getCurrentNetworkName())
+            accountRepository.selectedNetworkTypeFlow()
+                .onEach { runtimeProperty.invalidate() }
+                .map { currentNetworkType -> chainRegistry.getService(currentNetworkType.chainId) }
+                .onEach { connectionProperty.set(it.connection.socketService) }
+                .flatMapLatest { it.runtimeProvider.observe() }
+                .onEach(runtimeProperty::set)
+                .collect()
         }
-
-        val runtime = result.getOrNull() ?: return
-
-        runtimeProperty.set(runtime)
-    }
-
-    // cannot use default parameter because of the bug in the compiler (https://youtrack.jetbrains.com/issue/KT-44849)
-    private suspend fun performUpdate() = performUpdate(null)
-
-    private suspend fun performUpdate(newRuntimeVersion: Int?) = try {
-        runtimeProperty.invalidate()
-
-        val runtime = if (newRuntimeVersion != null) {
-            runtimeConstructor.constructRuntime(newRuntimeVersion, getCurrentNetworkName())
-        } else {
-            runtimeConstructor.constructRuntime(getCurrentNetworkName())
-        }
-
-        runtimeProperty.set(runtime)
-
-        RuntimePreparationStatus.Ok
-    } catch (_: Exception) {
-        errorStatus()
-    }
-
-    private fun errorStatus(): RuntimePreparationStatus.Error = RuntimePreparationStatus.Error(::performUpdate)
-
-    private suspend fun getCurrentNetworkName(): String {
-        val networkType = accountRepository.getSelectedNodeOrDefault().networkType
-
-        return networkType.runtimeCacheName()
     }
 }

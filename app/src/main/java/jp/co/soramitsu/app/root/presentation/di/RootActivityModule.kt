@@ -10,11 +10,12 @@ import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.RootViewModel
-import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Module(
     includes = [
@@ -32,14 +33,14 @@ class RootActivityModule {
     fun provideViewModel(
         interactor: RootInteractor,
         rootRouter: RootRouter,
-        connectionManager: ConnectionManager,
         resourceManager: ResourceManager,
-        networkStateMixin: NetworkStateMixin
+        networkStateMixin: NetworkStateMixin,
+        externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>
     ): ViewModel {
         return RootViewModel(
             interactor,
             rootRouter,
-            connectionManager,
+            externalRequirementsFlow,
             resourceManager,
             networkStateMixin
         )

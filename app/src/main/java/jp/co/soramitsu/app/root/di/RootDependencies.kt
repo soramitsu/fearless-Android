@@ -1,7 +1,6 @@
 package jp.co.soramitsu.app.root.di
 
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -16,6 +15,8 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.runtime.RuntimeUpdater
+import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
+import kotlinx.coroutines.flow.MutableStateFlow
 
 interface RootDependencies {
 
@@ -23,7 +24,7 @@ interface RootDependencies {
 
     fun networkStateMixin(): NetworkStateMixin
 
-    fun connectionManager(): ConnectionManager
+    fun externalRequirementsFlow(): MutableStateFlow<ChainConnection.ExternalRequirement>
 
     fun accountRepository(): AccountRepository
 
@@ -43,9 +44,9 @@ interface RootDependencies {
 
     fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
 
+    fun connectionProperty(): SuspendableProperty<SocketService>
+
     fun stakingRepository(): StakingRepository
 
     fun runtimeUpdater(): RuntimeUpdater
-
-    fun socketService(): SocketService
 }

@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -22,6 +21,7 @@ import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrCodeGenerator
+import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.bip39.Bip39
@@ -73,9 +73,9 @@ interface CommonApi {
 
     fun provideJsonMapper(): Gson
 
-    fun socketService(): SocketService
+    fun socketServiceCreator(): SocketService
 
-    fun connectionManager(): ConnectionManager
+    fun connectionProperty(): SuspendableProperty<SocketService>
 
     fun provideSocketSingleRequestExecutor(): SocketSingleRequestExecutor
 

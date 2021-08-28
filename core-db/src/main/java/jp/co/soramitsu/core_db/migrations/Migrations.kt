@@ -58,6 +58,66 @@ class UpdateDefaultNodesList(
     }
 }
 
+val AddChainRegistryTables_22_23 = object : Migration(22, 23) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chains` (
+            `id` TEXT NOT NULL,
+            `parentId` TEXT,
+            `name` TEXT NOT NULL,
+            `icon` TEXT NOT NULL,
+            `prefix` INTEGER NOT NULL,
+            `isEthereumBased` INTEGER NOT NULL,
+            `isTestNet` INTEGER NOT NULL,
+            `url` TEXT,
+            `overridesCommon` INTEGER,
+            PRIMARY KEY(`id`))
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_nodes` (
+            `chainId` TEXT NOT NULL,
+            `url` TEXT NOT NULL,
+            `name` TEXT NOT NULL,
+            PRIMARY KEY(`chainId`, `url`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        database.execSQL("""CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)""")
+
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_assets` (
+            `id` INTEGER NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `name` TEXT,
+            `symbol` TEXT NOT NULL,
+            `precision` INTEGER NOT NULL,
+            PRIMARY KEY(`chainId`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
+
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_runtimes` (
+            `chainId` TEXT NOT NULL,
+            `version` INTEGER NOT NULL,
+            PRIMARY KEY(`chainId`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_runtimes_chainId` ON `chain_runtimes` (`chainId`)")
+
+        database.execSQL("DROP TABLE IF EXISTS `runtimeCache`")
+    }
+}
+
 val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(

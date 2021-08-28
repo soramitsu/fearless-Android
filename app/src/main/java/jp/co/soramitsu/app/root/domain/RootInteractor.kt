@@ -16,11 +16,9 @@ class RootInteractor(
     private val walletRepository: WalletRepository,
 ) {
 
-    fun selectedNodeFlow() = accountRepository.selectedNodeFlow()
+    fun selectedNetworkTypeFlow() = accountRepository.selectedNetworkTypeFlow()
 
-    suspend fun listenForUpdates(): Flow<Updater.SideEffect> {
-        return updateSystem.start()
-    }
+    fun runUpdateSystem(): Flow<Updater.SideEffect> = updateSystem.start()
 
     fun isBuyProviderRedirectLink(link: String) = ExternalProvider.REDIRECT_URL_BASE in link
 

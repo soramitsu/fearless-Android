@@ -291,7 +291,7 @@ class StakingRepositoryImpl(
         }
     }
 
-    private suspend fun observeAccountValidatorPrefs(
+    private fun observeAccountValidatorPrefs(
         stashId: AccountId,
         networkType: Node.NetworkType,
     ): Flow<ValidatorPrefs?> {
@@ -304,7 +304,7 @@ class StakingRepositoryImpl(
         )
     }
 
-    private suspend fun observeAccountNominations(
+    private fun observeAccountNominations(
         stashId: AccountId,
         networkType: Node.NetworkType,
     ): Flow<Nominations?> {

@@ -15,18 +15,19 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.withContext
 
 class UpdateSystem(
     private val runtimeUpdater: RuntimeUpdater,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val updaters: List<Updater>,
-    private val socketService: SocketService
+    private val socketProperty: SuspendableProperty<SocketService>,
 ) {
 
-    suspend fun start(): Flow<Updater.SideEffect> = withContext(Dispatchers.Default) {
-        runtimeUpdater.initFromCache() // make sure runtime is available to other updaters, since they may use it to construct storage keys
+    init {
+        runtimeUpdater.sync()
+    }
 
+    fun start(): Flow<Updater.SideEffect> = socketProperty.observe().flatMapLatest { socket ->
         val scopeFlows = updaters.groupBy(Updater::scope).map { (scope, scopeUpdaters) ->
             scope.invalidationFlow().flatMapLatest {
                 val runtimeMetadata = runtimeProperty.get().metadata
@@ -38,7 +39,7 @@ class UpdateSystem(
                     .map { it.listenForUpdates(subscriptionBuilder).flowOn(Dispatchers.IO) }
 
                 if (updatersFlow.isNotEmpty()) {
-                    val cancellable = socketService.subscribeUsing(subscriptionBuilder.proxy.build())
+                    val cancellable = socket.subscribeUsing(subscriptionBuilder.proxy.build())
 
                     updatersFlow.merge().onCompletion { cancellable.cancel() }
                 } else {
@@ -48,5 +49,5 @@ class UpdateSystem(
         }
 
         scopeFlows.merge()
-    }
+    }.flowOn(Dispatchers.Default)
 }

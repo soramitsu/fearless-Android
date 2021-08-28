@@ -28,7 +28,7 @@ class RootFeatureModule {
         crowdloanUpdaters: CrowdloanUpdaters,
         runtimeUpdater: RuntimeUpdater,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        socketService: SocketService
+        socketProperty: SuspendableProperty<SocketService>,
     ): UpdateSystem {
         return UpdateSystem(
             runtimeUpdater,
@@ -36,10 +36,9 @@ class RootFeatureModule {
             updaters = listOf(
                 *walletUpdaters.updaters,
                 *stakingUpdaters.updaters,
-                *crowdloanUpdaters.updaters,
-                runtimeUpdater
+                *crowdloanUpdaters.updaters
             ),
-            socketService
+            socketProperty
         )
     }
 

@@ -90,7 +90,7 @@ class StakingUpdatersModule {
     @FeatureScope
     fun provideStakingLedgerUpdater(
         stakingRepository: StakingRepository,
-        socketService: SocketService,
+        socketProperty: SuspendableProperty<SocketService>,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         accountStakingDao: AccountStakingDao,
         assetCache: AssetCache,
@@ -98,7 +98,7 @@ class StakingUpdatersModule {
         accountUpdateScope: AccountUpdateScope
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
-            socketService,
+            socketProperty,
             stakingRepository,
             runtimeProperty,
             accountStakingDao,

@@ -8,7 +8,8 @@ import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 
 @Component(
     modules = [
-        RuntimeModule::class
+        RuntimeModule::class,
+        ChainRegistryModule::class
     ],
     dependencies = [
         RuntimeDependencies::class

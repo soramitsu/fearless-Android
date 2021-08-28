@@ -1,105 +1,39 @@
 package jp.co.soramitsu.app.root.presentation
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
-import jp.co.soramitsu.common.data.network.rpc.LifecycleCondition
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.updater.Updater
-import jp.co.soramitsu.runtime.RuntimePreparationStatus
-import jp.co.soramitsu.runtime.RuntimeUpdateRetry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
+import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection.ExternalRequirement
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlin.coroutines.EmptyCoroutineContext
 
 class RootViewModel(
     private val interactor: RootInteractor,
     private val rootRouter: RootRouter,
-    private val connectionManager: ConnectionManager,
+    private val externalConnectionRequirementFlow: MutableStateFlow<ExternalRequirement>,
     private val resourceManager: ResourceManager,
     private val networkStateMixin: NetworkStateMixin
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
 
-    private val connectionScope = CoroutineScope(Dispatchers.Main)
-    private val nodeScope = CoroutineScope(EmptyCoroutineContext)
-
     private var willBeClearedForLanguageChange = false
 
-    private val _runtimeUpdateFailedLiveData = MutableLiveData<Event<RuntimeUpdateRetry>>()
-    val runtimeUpdateFailedLiveData: LiveData<Event<RuntimeUpdateRetry>> = _runtimeUpdateFailedLiveData
-
     init {
-        observeAllowedToConnect()
+        interactor.runUpdateSystem()
+            .onEach { handleUpdatesSideEffect(it) }
+            .launchIn(this)
+
         updatePhishingAddresses()
     }
 
-    private fun observeAllowedToConnect() {
-        connectionManager.lifecycleConditionFlow()
-            .distinctUntilChanged()
-            .onEach { lifecycleCondition ->
-                if (lifecycleCondition == LifecycleCondition.ALLOWED) {
-                    bindConnectionToNode()
-                } else {
-                    unbindConnection()
-                }
-            }
-            .launchIn(viewModelScope)
-    }
-
-    private fun bindConnectionToNode() = connectionScope.launch {
-        interactor.selectedNodeFlow()
-            .distinctUntilChanged()
-            .onEach {
-                if (connectionManager.started()) {
-                    connectionManager.switchUrl(it.link)
-                } else {
-                    connectionManager.start(it.link)
-                }
-            }.flowOn(Dispatchers.IO)
-            .collectLatest {
-                nodeScope.coroutineContext.cancelChildren()
-
-                listenForUpdates()
-            }
-    }
-
-    private suspend fun listenForUpdates() {
-        interactor.listenForUpdates()
-            .collect { handleUpdatesSideEffect(it) }
-    }
-
     private fun handleUpdatesSideEffect(sideEffect: Updater.SideEffect) {
-        when (sideEffect) {
-            is RuntimePreparationStatus -> handleRuntimePreparationStatus(sideEffect)
-        }
-    }
-
-    @Suppress("NON_EXHAUSTIVE_WHEN")
-    private fun handleRuntimePreparationStatus(status: RuntimePreparationStatus) {
-        if (status is RuntimePreparationStatus.Error) {
-            _runtimeUpdateFailedLiveData.postValue(Event(status.retry))
-        }
-    }
-
-    private fun unbindConnection() {
-        connectionScope.coroutineContext.cancelChildren()
-
-        connectionManager.stop()
+        // pass
     }
 
     private fun updatePhishingAddresses() {
@@ -113,26 +47,18 @@ class RootViewModel(
     override fun onCleared() {
         super.onCleared()
 
-        connectionManager.setLifecycleCondition(LifecycleCondition.FORBIDDEN)
-    }
-
-    fun retryConfirmed(retry: RuntimeUpdateRetry) {
-        nodeScope.launch {
-            val status = retry.invoke()
-
-            handleRuntimePreparationStatus(status)
-        }
+        externalConnectionRequirementFlow.value = ExternalRequirement.FORBIDDEN
     }
 
     fun noticeInBackground() {
         if (!willBeClearedForLanguageChange) {
-            connectionManager.setLifecycleCondition(LifecycleCondition.STOPPED)
+            externalConnectionRequirementFlow.value = ExternalRequirement.STOPPED
         }
     }
 
     fun noticeInForeground() {
-        if (connectionManager.getLifecycleCondition() == LifecycleCondition.STOPPED) {
-            connectionManager.setLifecycleCondition(LifecycleCondition.ALLOWED)
+        if (externalConnectionRequirementFlow.value == ExternalRequirement.STOPPED) {
+            externalConnectionRequirementFlow.value = ExternalRequirement.ALLOWED
         }
     }
 
