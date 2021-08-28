@@ -9,6 +9,7 @@ import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.fetchValuesToCache
@@ -38,7 +39,9 @@ class HistoricalUpdateMediator(
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()
 
-        return storageCache.observeActiveEraIndex(runtime, accountRepository.getSelectedNodeOrDefault().networkType)
+        val networkType = accountRepository.currentNetworkType()
+
+        return storageCache.observeActiveEraIndex(runtime, networkType)
             .map {
                 val allKeysNeeded = constructHistoricalKeys(runtime)
                 val keysInDataBase = storageCache.filterKeysInCache(allKeysNeeded).toSet()

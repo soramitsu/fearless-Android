@@ -4,6 +4,8 @@ import android.util.Log
 import jp.co.soramitsu.common.utils.md5
 import jp.co.soramitsu.common.utils.newLimitedThreadPoolExecutor
 import jp.co.soramitsu.common.utils.retryUntilDone
+import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
@@ -12,7 +14,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -38,6 +39,7 @@ private const val LOG_TAG = "RuntimeSyncService"
 class RuntimeSyncService(
     private val typesFetcher: TypesFetcher,
     private val runtimeFilesCache: RuntimeFilesCache,
+    private val chainDao: ChainDao,
     maxConcurrentUpdates: Int = 8,
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
@@ -67,7 +69,7 @@ class RuntimeSyncService(
         knownChains[chain.id] = newSyncInfo
 
         if (existingSyncInfo != null && existingSyncInfo != newSyncInfo) {
-            launchSync(chain.id, syncMetadata = false)
+            launchSync(chain.id)
         }
     }
 
@@ -80,7 +82,7 @@ class RuntimeSyncService(
     // Android may clear cache files sometimes so it necessary to have force sync mechanism
     fun cacheNotFound(chainId: String) {
         if (!syncingChains.contains(chainId)) {
-            launchSync(chainId, syncMetadata = true)
+            launchSync(chainId)
         }
     }
 
@@ -88,18 +90,15 @@ class RuntimeSyncService(
         return syncingChains.containsKey(chainId)
     }
 
-    private fun launchSync(chainId: String, syncMetadata: Boolean = true) {
+    private fun launchSync(chainId: String) {
         cancelExistingSync(chainId)
 
-        syncingChains[chainId] = launch(syncDispatcher, CoroutineStart.UNDISPATCHED) {
-            sync(chainId, syncMetadata)
+        syncingChains[chainId] = launch(syncDispatcher) {
+            sync(chainId)
         }
     }
 
-    private suspend fun sync(
-        chainId: String,
-        syncMetadata: Boolean
-    ) {
+    private suspend fun sync(chainId: String) {
         val syncInfo = knownChains[chainId]
 
         if (syncInfo == null) {
@@ -107,10 +106,14 @@ class RuntimeSyncService(
             return
         }
 
-        val metadataHash = if (syncMetadata) {
+        val runtimeInfo = chainDao.runtimeInfo(chainId) ?: return
+
+        val metadataHash = if (runtimeInfo.shouldSyncMetadata()) {
             val runtimeMetadata = syncInfo.connection.socketService.executeAsync(GetMetadataRequest, mapper = pojo<String>().nonNull())
 
             runtimeFilesCache.saveChainMetadata(chainId, runtimeMetadata)
+
+            chainDao.updateSyncedRuntimeVersion(chainId, runtimeInfo.remoteVersion)
 
             runtimeMetadata.md5()
         } else {
@@ -145,4 +148,6 @@ class RuntimeSyncService(
     private fun syncFinished(chainId: String) {
         syncingChains.remove(chainId)
     }
+
+    private fun ChainRuntimeInfoLocal.shouldSyncMetadata() = syncedVersion < remoteVersion
 }

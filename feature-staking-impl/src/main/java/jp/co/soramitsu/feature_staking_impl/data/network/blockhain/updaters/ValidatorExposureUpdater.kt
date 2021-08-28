@@ -11,6 +11,7 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.StakingUpdater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +31,7 @@ class ValidatorExposureUpdater(
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val runtime = runtimeProperty.get()
 
-        return storageCache.observeActiveEraIndex(runtime, accountRepository.getSelectedNodeOrDefault().networkType)
+        return storageCache.observeActiveEraIndex(runtime, accountRepository.currentNetworkType())
             .map { eraStakersPrefix(runtime, it) }
             .filterNot(storageCache::isPrefixInCache)
             .onEach(::updateNominatorsForEra)

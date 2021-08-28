@@ -81,7 +81,7 @@ class NetworkAwareStorageCache(
     override suspend fun currentRuntimeVersion(): BigInteger {
         val chainId = currentNetwork().chainId
 
-        return chainDao.runtimeInfo(chainId)!!.version.toBigInteger()
+        return chainDao.runtimeInfo(chainId)!!.syncedVersion.toBigInteger()
     }
 
     private suspend fun mapStorageEntryToLocal(storageEntry: StorageEntry): StorageEntryLocal {

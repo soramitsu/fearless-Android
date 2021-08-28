@@ -65,11 +65,11 @@ interface AccountInteractor {
 
     fun selectedAccountFlow(): Flow<Account>
 
+    suspend fun selectedNetworkType(): Node.NetworkType
+
     suspend fun getSelectedAccount(): Account
 
     suspend fun getNetworks(): List<Network>
-
-    suspend fun getSelectedNode(): Node
 
     fun groupedAccountsFlow(): Flow<List<Any>>
 

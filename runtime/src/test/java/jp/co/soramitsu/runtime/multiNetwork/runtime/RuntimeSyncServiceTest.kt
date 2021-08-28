@@ -2,6 +2,8 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import com.google.gson.Gson
 import jp.co.soramitsu.common.utils.md5
+import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
@@ -48,6 +50,9 @@ class RuntimeSyncServiceTest {
     private lateinit var typesFetcher: TypesFetcher
 
     @Mock
+    private lateinit var chainDao: ChainDao
+
+    @Mock
     private lateinit var runtimeFilesCache: RuntimeFilesCache
 
     private lateinit var service: RuntimeSyncService
@@ -60,7 +65,7 @@ class RuntimeSyncServiceTest {
         socketAnswersRequest(GetMetadataRequest, "Stub")
 
 
-        service = RuntimeSyncService(typesFetcher, runtimeFilesCache)
+        service = RuntimeSyncService(typesFetcher, runtimeFilesCache, chainDao)
     }
 
     @Test
@@ -82,6 +87,8 @@ class RuntimeSyncServiceTest {
     @Test
     fun `should not start syncing the same chain`() {
         runBlocking {
+            chainDaoReturnsUnsyncedRuntimeInfo()
+
             service.registerChain(chain = testChain, connection = testConnection)
             service.applyRuntimeVersion(testChain.id)
 
@@ -98,6 +105,8 @@ class RuntimeSyncServiceTest {
     @Test
     fun `should sync modified chain`() {
         runBlocking {
+            chainDaoReturnsUnsyncedRuntimeInfo()
+
             val newChain = Mockito.mock(Chain::class.java)
             whenever(newChain.id).thenAnswer { testChain.id }
             whenever(newChain.types).thenReturn(Chain.Types(url = "Changed", overridesCommon = false))
@@ -106,6 +115,8 @@ class RuntimeSyncServiceTest {
             service.applyRuntimeVersion(testChain.id)
 
             service.awaitSync(testChain.id)
+
+            chainDaoReturnsSyncedRuntimeInfo()
 
             // since neither types nor metadata will be syncing, it may finish faster than test will be able to call awaitSync
             // so, listen for sync changes before executing sync
@@ -125,6 +136,8 @@ class RuntimeSyncServiceTest {
     @Test
     fun `should sync types when url is not null`() {
         runBlocking {
+            chainDaoReturnsSyncedRuntimeInfo()
+
             whenever(testChain.types).thenReturn(Chain.Types("Stub", overridesCommon = false))
 
             service.registerChain(chain = testChain, connection = testConnection)
@@ -139,6 +152,8 @@ class RuntimeSyncServiceTest {
     @Test
     fun `should not sync types when url is null`() {
         runBlocking {
+            chainDaoReturnsUnsyncedRuntimeInfo()
+
             service.registerChain(chain = testChain, connection = testConnection)
             service.applyRuntimeVersion(testChain.id)
 
@@ -151,6 +166,8 @@ class RuntimeSyncServiceTest {
     @Test
     fun `should cancel syncing when chain is unregistered`() {
         runBlocking {
+            chainDaoReturnsUnsyncedRuntimeInfo()
+
             service.registerChain(chain = testChain, connection = testConnection)
             service.applyRuntimeVersion(testChain.id)
 
@@ -165,6 +182,8 @@ class RuntimeSyncServiceTest {
     @Test
     fun `should broadcast sync result`() {
         runBlocking {
+            chainDaoReturnsUnsyncedRuntimeInfo()
+
             whenever(testChain.types).thenReturn(Chain.Types("testUrl", overridesCommon = false))
             service.registerChain(chain = testChain, connection = testConnection)
             service.applyRuntimeVersion(testChain.id)
@@ -173,6 +192,48 @@ class RuntimeSyncServiceTest {
 
             assertEquals(TEST_TYPES.md5(), result.typesHash)
         }
+    }
+
+    @Test
+    fun `should sync new version of metadata`() {
+        runBlocking {
+            chainDaoReturnsUnsyncedRuntimeInfo()
+
+            whenever(testChain.types).thenReturn(Chain.Types("testUrl", overridesCommon = false))
+            service.registerChain(chain = testChain, connection = testConnection)
+            service.applyRuntimeVersion(testChain.id)
+
+            val syncResult = service.awaitSync(testChain.id)
+
+            assertNotNull(syncResult.metadataHash)
+        }
+    }
+
+    @Test
+    fun `should not sync the same version of metadata`() {
+        runBlocking {
+            chainDaoReturnsSyncedRuntimeInfo()
+
+            whenever(testChain.types).thenReturn(Chain.Types("testUrl", overridesCommon = false))
+            service.registerChain(chain = testChain, connection = testConnection)
+            service.applyRuntimeVersion(testChain.id)
+
+            val syncResult = service.awaitSync(testChain.id)
+
+            assertNull(syncResult.metadataHash)
+        }
+    }
+
+    private suspend fun chainDaoReturnsUnsyncedRuntimeInfo() {
+        chainDaoReturnsRuntimeInfo(remoteVersion = 1, syncedVersion = 0)
+    }
+
+    private suspend fun chainDaoReturnsSyncedRuntimeInfo() {
+        chainDaoReturnsRuntimeInfo(remoteVersion = 1, syncedVersion = 1)
+    }
+
+    private suspend fun chainDaoReturnsRuntimeInfo(remoteVersion: Int, syncedVersion: Int) {
+        whenever(chainDao.runtimeInfo(any())).thenReturn(ChainRuntimeInfoLocal("1", syncedVersion, remoteVersion))
     }
 
     private suspend fun RuntimeSyncService.awaitSync(chainId: String) = syncResultFlow(chainId).first()

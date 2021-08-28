@@ -21,5 +21,6 @@ import androidx.room.Index
 )
 class ChainRuntimeInfoLocal(
     val chainId: String,
-    val version: Int,
+    val syncedVersion: Int,
+    val remoteVersion: Int,
 )

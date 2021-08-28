@@ -117,10 +117,40 @@ class SimpleEntityReadWriteTest {
         Unit
     }
 
+    @Test
+    fun shouldUpdateRuntimeVersions() {
+        runBlocking {
+            val chainId = "0x00"
+
+            chainDao.update(newOrUpdated = listOf(createTestChain(chainId)), removed = emptyList())
+
+            chainDao.updateRemoteRuntimeVersion(chainId, 1)
+
+            checkRuntimeVersions(remote = 1, synced = 0)
+
+            chainDao.updateSyncedRuntimeVersion(chainId, 1)
+
+            checkRuntimeVersions(remote = 1, synced = 1)
+
+            chainDao.updateRemoteRuntimeVersion(chainId, 2)
+
+            checkRuntimeVersions(remote = 2, synced = 1)
+        }
+    }
+
+    private suspend fun checkRuntimeVersions(remote: Int, synced: Int) {
+        val runtimeInfo = chainDao.runtimeInfo("0x00")
+
+        requireNotNull(runtimeInfo)
+
+        assertEquals(runtimeInfo.remoteVersion, remote)
+        assertEquals(runtimeInfo.syncedVersion, synced)
+    }
+
     private fun createTestChain(
         id: String,
         name: String = id,
-        nodesCount: Int = 3
+        nodesCount: Int = 3,
     ): JoinedChainInfo {
         val chain = chainOf(id, name)
         val nodes = with(chain) {

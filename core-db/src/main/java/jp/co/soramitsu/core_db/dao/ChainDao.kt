@@ -51,6 +51,24 @@ abstract class ChainDao {
     @Query("SELECT * FROM chain_runtimes WHERE chainId = :chainId")
     abstract suspend fun runtimeInfo(chainId: String): ChainRuntimeInfoLocal?
 
+    @Query("UPDATE chain_runtimes SET syncedVersion = :syncedVersion WHERE chainId = :chainId")
+    abstract suspend fun updateSyncedRuntimeVersion(chainId: String, syncedVersion: Int)
+
+    @Transaction
+    open suspend fun updateRemoteRuntimeVersion(chainId: String, remoteVersion: Int) {
+        if (isRuntimeInfoExists(chainId)) {
+            updateRemoteRuntimeVersionUnsafe(chainId, remoteVersion)
+        } else {
+            insertRuntimeInfo(ChainRuntimeInfoLocal(chainId, syncedVersion = 0, remoteVersion = remoteVersion))
+        }
+    }
+
+    @Query("UPDATE chain_runtimes SET remoteVersion = :remoteVersion WHERE chainId = :chainId")
+    protected abstract suspend fun updateRemoteRuntimeVersionUnsafe(chainId: String, remoteVersion: Int)
+
+    @Query("SELECT EXISTS (SELECT * FROM chain_runtimes WHERE chainId = :chainId)")
+    protected abstract suspend fun isRuntimeInfoExists(chainId: String): Boolean
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun insertRuntimeInfo(runtimeInfoLocal: ChainRuntimeInfoLocal)
+    protected abstract suspend fun insertRuntimeInfo(runtimeInfoLocal: ChainRuntimeInfoLocal)
 }

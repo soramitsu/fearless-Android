@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
@@ -148,16 +149,10 @@ class StakingInteractor(
     suspend fun observeNetworkInfoState(networkType: Node.NetworkType): Flow<NetworkInfo> {
         val lockupPeriod = getLockupPeriodInDays(networkType)
 
-//        Log.d("RX", "Got lockup period")
-
         return stakingRepository.electedExposuresInActiveEra.map { exposuresMap ->
-//            Log.d("RX", "Got new exposures period")
-
             val exposures = exposuresMap.values
 
             val minimumNominatorBond = stakingRepository.minimumNominatorBond()
-
-//            Log.d("RX", "Got min nominator bond")
 
             NetworkInfo(
                 lockupPeriodInDays = lockupPeriod,
@@ -201,7 +196,7 @@ class StakingInteractor(
     }
 
     suspend fun getSelectedNetworkType(): Node.NetworkType {
-        return accountRepository.getSelectedNodeOrDefault().networkType
+        return accountRepository.currentNetworkType()
     }
 
     fun selectedAccountFlow(): Flow<StakingAccount> {

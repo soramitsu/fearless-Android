@@ -97,7 +97,7 @@ val AddChainRegistryTables_22_23 = object : Migration(22, 23) {
             `name` TEXT,
             `symbol` TEXT NOT NULL,
             `precision` INTEGER NOT NULL,
-            PRIMARY KEY(`chainId`),
+            PRIMARY KEY(`chainId`, `id`),
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
         )
@@ -107,7 +107,8 @@ val AddChainRegistryTables_22_23 = object : Migration(22, 23) {
             """
             CREATE TABLE IF NOT EXISTS `chain_runtimes` (
             `chainId` TEXT NOT NULL,
-            `version` INTEGER NOT NULL,
+            `syncedVersion` INTEGER NOT NULL,
+            `remoteVersion` INTEGER NOT NULL, 
             PRIMARY KEY(`chainId`),
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()

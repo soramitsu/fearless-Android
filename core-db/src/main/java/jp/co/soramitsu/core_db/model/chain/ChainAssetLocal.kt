@@ -6,7 +6,7 @@ import androidx.room.Index
 
 @Entity(
     tableName = "chain_assets",
-    primaryKeys = ["chainId"],
+    primaryKeys = ["chainId", "id"],
     foreignKeys = [
         ForeignKey(
             entity = ChainLocal::class,

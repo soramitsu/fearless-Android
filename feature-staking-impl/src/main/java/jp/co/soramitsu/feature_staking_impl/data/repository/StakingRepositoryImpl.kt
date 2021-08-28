@@ -67,7 +67,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
@@ -258,7 +257,7 @@ class StakingRepositoryImpl(
                     }
             }
             .onEach { exposuresFlow.resetReplayCache() } // invalidating cache on era change
-            .mapLatest(::getElectedValidatorsExposure)
+            .map(::getElectedValidatorsExposure)
             .onEach(exposuresFlow::emit)
             .inBackground()
             .launchIn(GlobalScope)
