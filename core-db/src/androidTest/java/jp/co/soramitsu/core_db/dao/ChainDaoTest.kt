@@ -1,50 +1,22 @@
 package jp.co.soramitsu.core_db.dao
 
-import android.content.Context
-import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import jp.co.soramitsu.core_db.AppDatabase
-import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
-import jp.co.soramitsu.core_db.model.chain.ChainLocal
-import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
-import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
-class SimpleEntityReadWriteTest {
-    private lateinit var chainDao: ChainDao
-    private lateinit var db: AppDatabase
-
-    @Before
-    fun createDb() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-
-        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
-            .build()
-
-        chainDao = db.chainDao()
-    }
-
-    @After
-    @Throws(IOException::class)
-    fun closeDb() {
-        db.close()
-    }
+class ChainDaoTest : DaoTest<ChainDao>(AppDatabase::chainDao){
 
     @Test
     fun shouldInsertWholeChain() = runBlocking {
         val chainInfo = createTestChain("0x00")
 
-        chainDao.update(newOrUpdated = listOf(chainInfo), removed = emptyList())
+        dao.update(newOrUpdated = listOf(chainInfo), removed = emptyList())
 
-        val chainsFromDb = chainDao.getJoinChainInfo()
+        val chainsFromDb = dao.getJoinChainInfo()
 
         assertEquals(1, chainsFromDb.size)
 
@@ -58,8 +30,8 @@ class SimpleEntityReadWriteTest {
     fun shouldDeleteChainWithCascade() = runBlocking {
         val chainInfo = createTestChain("0x00")
 
-        chainDao.update(newOrUpdated = listOf(chainInfo), removed = emptyList())
-        chainDao.update(removed = listOf(chainInfo.chain), newOrUpdated = emptyList())
+        dao.update(newOrUpdated = listOf(chainInfo), removed = emptyList())
+        dao.update(removed = listOf(chainInfo.chain), newOrUpdated = emptyList())
 
         val assetsCursor = db.query("SELECT * FROM chain_assets", emptyArray())
         assertEquals(0, assetsCursor.count)
@@ -72,13 +44,13 @@ class SimpleEntityReadWriteTest {
     fun shouldDeleteRemovedNodes() = runBlocking {
         val chainInfo = createTestChain("0x00", nodesCount = 3)
 
-        chainDao.update(newOrUpdated = listOf(chainInfo), removed = emptyList())
+        dao.update(newOrUpdated = listOf(chainInfo), removed = emptyList())
 
         val newChainInfo = createTestChain("0x00", nodesCount = 2)
 
-        chainDao.update(newOrUpdated = listOf(newChainInfo), removed = emptyList())
+        dao.update(newOrUpdated = listOf(newChainInfo), removed = emptyList())
 
-        val chainFromDb2 = chainDao.getJoinChainInfo().first()
+        val chainFromDb2 = dao.getJoinChainInfo().first()
 
         assertEquals(2, chainFromDb2.nodes.size)
     }
@@ -91,7 +63,7 @@ class SimpleEntityReadWriteTest {
             createTestChain("0x02"),
         )
 
-        chainDao.update(newOrUpdated = chainsInitial, removed = emptyList())
+        dao.update(newOrUpdated = chainsInitial, removed = emptyList())
 
         val newOrUpdated = listOf(
             createTestChain("0x00", "new name"),
@@ -103,9 +75,9 @@ class SimpleEntityReadWriteTest {
             chainOf("0x02")
         )
 
-        chainDao.update(newOrUpdated = newOrUpdated, removed = removed)
+        dao.update(newOrUpdated = newOrUpdated, removed = removed)
 
-        val chainsFromDb = chainDao.getJoinChainInfo()
+        val chainsFromDb = dao.getJoinChainInfo()
 
         assertEquals(chainsFromDb.size, newOrUpdated.size)
 
@@ -122,82 +94,28 @@ class SimpleEntityReadWriteTest {
         runBlocking {
             val chainId = "0x00"
 
-            chainDao.update(newOrUpdated = listOf(createTestChain(chainId)), removed = emptyList())
+            dao.update(newOrUpdated = listOf(createTestChain(chainId)), removed = emptyList())
 
-            chainDao.updateRemoteRuntimeVersion(chainId, 1)
+            dao.updateRemoteRuntimeVersion(chainId, 1)
 
             checkRuntimeVersions(remote = 1, synced = 0)
 
-            chainDao.updateSyncedRuntimeVersion(chainId, 1)
+            dao.updateSyncedRuntimeVersion(chainId, 1)
 
             checkRuntimeVersions(remote = 1, synced = 1)
 
-            chainDao.updateRemoteRuntimeVersion(chainId, 2)
+            dao.updateRemoteRuntimeVersion(chainId, 2)
 
             checkRuntimeVersions(remote = 2, synced = 1)
         }
     }
 
     private suspend fun checkRuntimeVersions(remote: Int, synced: Int) {
-        val runtimeInfo = chainDao.runtimeInfo("0x00")
+        val runtimeInfo = dao.runtimeInfo("0x00")
 
         requireNotNull(runtimeInfo)
 
         assertEquals(runtimeInfo.remoteVersion, remote)
         assertEquals(runtimeInfo.syncedVersion, synced)
     }
-
-    private fun createTestChain(
-        id: String,
-        name: String = id,
-        nodesCount: Int = 3,
-    ): JoinedChainInfo {
-        val chain = chainOf(id, name)
-        val nodes = with(chain) {
-            (1..nodesCount).map {
-                nodeOf("link${it}")
-            }
-        }
-        val assets = with(chain) {
-            listOf(
-                assetOf(0, symbol = "A"),
-                assetOf(1, symbol = "B")
-            )
-        }
-
-        return JoinedChainInfo(chain, nodes, assets)
-    }
-
-    private fun chainOf(
-        id: String,
-        name: String = id,
-    ) = ChainLocal(
-        id = id,
-        parentId = null,
-        name = name,
-        icon = "Test",
-        types = null,
-        prefix = 0,
-        isTestNet = false,
-        isEthereumBased = false
-    )
-
-    private fun ChainLocal.nodeOf(
-        link: String,
-    ) = ChainNodeLocal(
-        name = "Test",
-        url = link,
-        chainId = id
-    )
-
-    private fun ChainLocal.assetOf(
-        assetId: Int,
-        symbol: String,
-    ) = ChainAssetLocal(
-        name = "Test",
-        chainId = id,
-        symbol = symbol,
-        id = assetId,
-        precision = 10
-    )
 }
