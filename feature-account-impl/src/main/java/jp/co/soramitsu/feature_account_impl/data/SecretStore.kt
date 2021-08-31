@@ -6,7 +6,6 @@ import jp.co.soramitsu.fearless_utils.scale.toHexString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-
 class SecretStore(
     private val encryptedPreferences: EncryptedPreferences,
 ) {
