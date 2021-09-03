@@ -3,9 +3,11 @@ package jp.co.soramitsu.feature_account_impl.data
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.feature_account_impl.data.Secrets.KeyPair.PrivateKey
+import jp.co.soramitsu.feature_account_impl.data.Secrets.SubstrateDerivationPath
 import jp.co.soramitsu.feature_account_impl.data.Secrets.SubstrateKeypair
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,8 +49,25 @@ class SecretStoreTest {
         assertNull("Chain secrets should not overwrite meta account secrets", metaSecrets)
     }
 
-    private fun createSecrets(): EncodableStruct<Secrets> {
+    @Test
+    fun `chain secrets should not overwrite meta secrets`() = runBlocking {
+        val metaSecrets = createSecrets(derivationPath = "/1")
+        val chainSecrets = createSecrets(derivationPath = "/2")
+
+        secretStore.putMetaAccountSecrets(metaId = 11, metaSecrets)
+        secretStore.putChainAccountSecrets(metaId = 1, chainId="1", chainSecrets)
+
+        val secretsFromStore = secretStore.getMetaAccountSecrets(11)
+
+        requireNotNull(secretsFromStore)
+        assertEquals( metaSecrets[SubstrateDerivationPath], secretsFromStore[SubstrateDerivationPath])
+    }
+
+    private fun createSecrets(
+        derivationPath: String? = null,
+    ): EncodableStruct<Secrets> {
         return Secrets(
+            substrateDerivationPath = derivationPath,
             substrateKeyPair = Keypair(
                 privateKey = byteArrayOf(),
                 publicKey = byteArrayOf()
