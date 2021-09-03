@@ -4,4 +4,4 @@ class SubQueryResponse<T>(
     val data: T
 )
 
-class SubQueryNodes<T>(private val nodes: List<T>) : List<T> by nodes
+class SubQueryNodes<T>(val nodes: List<T>)

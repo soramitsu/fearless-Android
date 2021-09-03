@@ -7,7 +7,7 @@ import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import jp.co.soramitsu.feature_staking_impl.domain.model.TotalReward
 
 fun mapSubqueryHistoryToTotalReward(response: SubQueryResponse<TransactionHistoryRemote>): TotalReward {
-    return response.data.historyElements.sumByBigInteger { it.reward.amount }
+    return response.data.historyElements.nodes.sumByBigInteger { it.reward.amount }
 }
 
 fun mapTotalRewardLocalToTotalReward(reward: TotalRewardLocal): TotalReward {

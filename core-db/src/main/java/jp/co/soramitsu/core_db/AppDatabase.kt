@@ -48,7 +48,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
 @Database(
-    version = 22,
+    version = 23,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
