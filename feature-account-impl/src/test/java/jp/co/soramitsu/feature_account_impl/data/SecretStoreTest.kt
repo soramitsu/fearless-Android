@@ -2,9 +2,9 @@ package jp.co.soramitsu.feature_account_impl.data
 
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.feature_account_impl.data.Secrets.KeyPair.PrivateKey
-import jp.co.soramitsu.feature_account_impl.data.Secrets.SubstrateDerivationPath
-import jp.co.soramitsu.feature_account_impl.data.Secrets.SubstrateKeypair
+import jp.co.soramitsu.feature_account_impl.data.KeyPairSchema.PrivateKey
+import jp.co.soramitsu.feature_account_impl.data.MetaAccountSecrets.SubstrateDerivationPath
+import jp.co.soramitsu.feature_account_impl.data.MetaAccountSecrets.SubstrateKeypair
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -23,7 +23,7 @@ class SecretStoreTest {
 
     @Test
     fun `should save and retrieve meta account secrets`() = runBlocking {
-        val secrets = createSecrets()
+        val secrets = createMetaSecrets()
 
         secretStore.putMetaAccountSecrets(META_ID, secrets)
 
@@ -35,14 +35,14 @@ class SecretStoreTest {
 
     @Test
     fun `should save and retrieve chain account secrets`() = runBlocking {
-        val secrets = createSecrets()
+        val secrets = createChainSecrets()
 
         secretStore.putChainAccountSecrets(META_ID, CHAIN_ID, secrets)
 
         val secretsFromStore = secretStore.getChainAccountSecrets(META_ID, CHAIN_ID)
 
         requireNotNull(secretsFromStore)
-        assertArrayEquals(secrets[SubstrateKeypair][PrivateKey], secretsFromStore[SubstrateKeypair][PrivateKey])
+        assertArrayEquals(secrets[ChainAccountSecrets.Keypair][PrivateKey], secretsFromStore[ChainAccountSecrets.Keypair][PrivateKey])
 
         val metaSecrets = secretStore.getMetaAccountSecrets(META_ID)
 
@@ -51,8 +51,8 @@ class SecretStoreTest {
 
     @Test
     fun `chain secrets should not overwrite meta secrets`() = runBlocking {
-        val metaSecrets = createSecrets(derivationPath = "/1")
-        val chainSecrets = createSecrets(derivationPath = "/2")
+        val metaSecrets = createMetaSecrets(derivationPath = "/1")
+        val chainSecrets = createChainSecrets(derivationPath = "/2")
 
         secretStore.putMetaAccountSecrets(metaId = 11, metaSecrets)
         secretStore.putChainAccountSecrets(metaId = 1, chainId="1", chainSecrets)
@@ -63,12 +63,24 @@ class SecretStoreTest {
         assertEquals( metaSecrets[SubstrateDerivationPath], secretsFromStore[SubstrateDerivationPath])
     }
 
-    private fun createSecrets(
+    private fun createMetaSecrets(
         derivationPath: String? = null,
-    ): EncodableStruct<Secrets> {
-        return Secrets(
+    ): EncodableStruct<MetaAccountSecrets> {
+        return MetaAccountSecrets(
             substrateDerivationPath = derivationPath,
             substrateKeyPair = Keypair(
+                privateKey = byteArrayOf(),
+                publicKey = byteArrayOf()
+            )
+        )
+    }
+
+    private fun createChainSecrets(
+        derivationPath: String? = null,
+    ): EncodableStruct<ChainAccountSecrets> {
+        return ChainAccountSecrets(
+            derivationPath = derivationPath,
+            keyPair = Keypair(
                 privateKey = byteArrayOf(),
                 publicKey = byteArrayOf()
             )
