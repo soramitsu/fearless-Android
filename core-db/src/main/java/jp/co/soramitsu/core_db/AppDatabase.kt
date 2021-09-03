@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
+import jp.co.soramitsu.core_db.converters.CryptoTypeConverters
 import jp.co.soramitsu.core_db.converters.LongMathConverters
 import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
 import jp.co.soramitsu.core_db.converters.TokenConverters
@@ -14,6 +15,7 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
@@ -45,10 +47,12 @@ import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import jp.co.soramitsu.core_db.model.TransactionLocal
+import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
+import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
@@ -69,14 +73,17 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
         ChainLocal::class,
         ChainNodeLocal::class,
         ChainAssetLocal::class,
-        ChainRuntimeInfoLocal::class
+        ChainRuntimeInfoLocal::class,
+        MetaAccountLocal::class,
+        ChainAccountLocal::class
     ]
 )
 @TypeConverters(
     LongMathConverters::class,
     NetworkTypeConverters::class,
     TransactionConverters::class,
-    TokenConverters::class
+    TokenConverters::class,
+    CryptoTypeConverters::class
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -136,4 +143,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun stakingTotalRewardDao(): StakingTotalRewardDao
 
     abstract fun chainDao(): ChainDao
+
+    abstract fun metaAccountDao(): MetaAccountDao
 }
