@@ -2,6 +2,8 @@ package jp.co.soramitsu.common.data.network.subquery
 
 import java.math.BigInteger
 
-class SumRewardResponse(val sumReward: SumReward?) {
-    class SumReward(val accountTotal: BigInteger?)
+class TransactionHistoryRemote(val historyElements: SubQueryNodes<HistoryElement>) {
+    class HistoryElement(val reward: Reward) {
+        class Reward(val amount: BigInteger)
+    }
 }

@@ -2,10 +2,16 @@ package jp.co.soramitsu.feature_staking_impl.data.network.subscan.request
 
 class StakingSumRewardRequest(accountAddress: String) {
     val query = """
-        {
-        sumReward
-           (id: "$accountAddress")
-           {accountTotal}
+    query {
+        historyElements(
+        filter: {
+            reward: { notEqualTo: "null"},
+            address: { equalTo: "$accountAddress"}  }
+        ) {
+            nodes {
+                  reward
+            }
         }
+    }
     """.trimIndent()
 }

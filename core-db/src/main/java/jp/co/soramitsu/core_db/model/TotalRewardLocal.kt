@@ -8,5 +8,5 @@ import java.math.BigInteger
 data class TotalRewardLocal(
     @PrimaryKey
     val accountAddress: String,
-    val totalReward: BigInteger?
+    val totalReward: BigInteger
 )
