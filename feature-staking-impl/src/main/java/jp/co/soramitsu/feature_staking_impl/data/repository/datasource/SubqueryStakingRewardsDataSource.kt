@@ -18,7 +18,6 @@ class SubqueryStakingRewardsDataSource(
     private val stakingTotalRewardDao: StakingTotalRewardDao,
 ) : StakingRewardsDataSource {
 
-
     override suspend fun totalRewardsFlow(accountAddress: String): Flow<TotalReward> {
         return stakingTotalRewardDao.observeTotalRewards(accountAddress)
             .filterNotNull()

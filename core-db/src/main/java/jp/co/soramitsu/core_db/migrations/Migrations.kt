@@ -70,7 +70,8 @@ val RemoveStakingRewardsTable_22_23 = object : Migration(22, 23) {
                 `accountAddress` TEXT NOT NULL, 
                 `totalReward` TEXT  NOT NULL, 
                  PRIMARY KEY(`accountAddress`))
-            """.trimIndent())
+            """.trimIndent()
+        )
     }
 }
 
