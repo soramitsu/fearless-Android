@@ -51,6 +51,16 @@ fun <T> DataType<T>.toByteArray(value: T): ByteArray {
     return stream.toByteArray()
 }
 
+typealias StructBuilderWithContext<S> = S.(EncodableStruct<S>) -> Unit
+
+operator fun <S : Schema<S>> S.invoke(block: StructBuilderWithContext<S>? = null): EncodableStruct<S> {
+    val struct = EncodableStruct(this)
+
+    block?.invoke(this, struct)
+
+    return struct
+}
+
 fun <S : Schema<S>> EncodableStruct<S>.hash(): String {
     return schema.toByteArray(this).blake2b256().toHexString(withPrefix = true)
 }
