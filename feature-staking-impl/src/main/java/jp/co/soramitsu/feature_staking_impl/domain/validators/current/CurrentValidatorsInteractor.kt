@@ -2,12 +2,13 @@ package jp.co.soramitsu.feature_staking_impl.domain.validators.current
 
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.list.emptyGroupedList
-import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
+import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator
+import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator.Status
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.common.isWaiting
@@ -25,7 +26,7 @@ class CurrentValidatorsInteractor(
 
     suspend fun nominatedValidatorsFlow(
         nominatorState: StakingState.Stash,
-    ): Flow<GroupedList<NominatedValidator.Status, NominatedValidator>> {
+    ): Flow<GroupedList<Status.Group, NominatedValidator>> {
         if (nominatorState !is StakingState.Stash.Nominator) {
             return flowOf(emptyGroupedList())
         }
@@ -36,7 +37,7 @@ class CurrentValidatorsInteractor(
             val stashId = nominatorState.stashId
 
             val exposures = stakingRepository.getActiveElectedValidatorsExposures()
-            val activeNominations = exposures.mapValuesNotNull { (_, exposure) ->
+            val activeNominations = exposures.mapValues { (_, exposure) ->
                 exposure.others.firstOrNull { it.who.contentEquals(stashId) }
             }
 
@@ -45,26 +46,49 @@ class CurrentValidatorsInteractor(
             val allValidators = activeNominations.keys + nominatedValidatorIds
 
             val isWaitingForNextEra = nominatorState.nominations.isWaiting(activeEra)
-            val waitingForNextEraStatus = NominatedValidator.Status.WaitingForNextEra(stakingConstantsRepository.maxValidatorsPerNominator())
+
+            val waitingForNextEraGroup = Status.Group.WaitingForNextEra(
+                stakingConstantsRepository.maxValidatorsPerNominator()
+            )
+
+            val maxRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
             validatorProvider.getValidators(
                 ValidatorSource.Custom(allValidators.toList()),
                 cachedExposures = exposures
             )
-                .map {
-                    val nominationInPlanks = activeNominations[it.accountIdHex]?.value
+                .map { validator ->
+                    val userIndividualExposure = activeNominations[validator.accountIdHex]
 
                     val status = when {
-                        nominationInPlanks != null -> NominatedValidator.Status.Active
-                        isWaitingForNextEra -> waitingForNextEraStatus
-                        exposures[it.accountIdHex] != null -> NominatedValidator.Status.Elected
-                        else -> NominatedValidator.Status.Inactive
+                        userIndividualExposure != null -> {
+                            // safe to !! here since non null nomination means that validator is elected
+                            val userNominationIndex = validator.electedInfo!!.nominatorStakes
+                                .sortedByDescending(IndividualExposure::value)
+                                .indexOfFirst { it.who.contentEquals(stashId) }
+
+                            val userNominationRank = userNominationIndex + 1
+
+                            val willBeRewarded = userNominationRank < maxRewardedNominators
+
+                            Status.Active(nomination = userIndividualExposure.value, willUserBeRewarded = willBeRewarded)
+                        }
+                        isWaitingForNextEra -> Status.WaitingForNextEra
+                        exposures[validator.accountIdHex] != null -> Status.Elected
+                        else -> Status.Inactive
                     }
 
-                    NominatedValidator(it, nominationInPlanks, status)
+                    NominatedValidator(validator, status)
                 }
-                .groupBy(NominatedValidator::status)
-                .toSortedMap(NominatedValidator.Status.COMPARATOR)
+                .groupBy {
+                    when (it.status) {
+                        is Status.Active -> Status.Group.Active
+                        is Status.Elected -> Status.Group.Elected
+                        is Status.Inactive -> Status.Group.Inactive
+                        is Status.WaitingForNextEra -> waitingForNextEraGroup
+                    }
+                }
+                .toSortedMap(Status.Group.COMPARATOR)
         }
     }
 }
