@@ -18,7 +18,8 @@ class WelcomeStakingValidationModule {
         stakingRepository: StakingRepository
     ) = WelcomeStakingMaxNominatorsValidation(
         stakingRepository = stakingRepository,
-        errorProducer = { WelcomeStakingValidationFailure.MAX_NOMINATORS_REACHED }
+        errorProducer = { WelcomeStakingValidationFailure.MAX_NOMINATORS_REACHED },
+        isAlreadyNominating = { false }
     )
 
     @Provides
