@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingEraValidatorInfosRequest
-import jp.co.soramitsu.feature_staking_impl.data.repository.getSubqueryEraValidatorInfos
+import jp.co.soramitsu.feature_staking_impl.data.repository.subqueryFearlessApiPath
 
 internal open class CallArg<T>(
     val name: String,
@@ -45,7 +45,7 @@ class SubscanValidatorSetFetcher(
 
     suspend fun fetchAllValidators(stashAccountAddress: String): List<String> {
         val historicalRange = stakingRepository.historicalEras()
-        val subqueryPath = stashAccountAddress.networkType().getSubqueryEraValidatorInfos()
+        val subqueryPath = stashAccountAddress.networkType().subqueryFearlessApiPath()
 
         val validatorsInfos = stakingApi.getValidatorsInfo(
             subqueryPath,

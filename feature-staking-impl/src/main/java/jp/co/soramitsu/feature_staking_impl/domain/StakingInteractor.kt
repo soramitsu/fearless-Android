@@ -35,6 +35,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -298,7 +299,7 @@ class StakingInteractor(
             StakeSummary(
                 status = status,
                 totalStaked = totalStaked,
-                totalRewards = totalReward,
+                totalReward = asset.token.amountFromPlanks(totalReward),
                 currentEra = activeEraIndex.toInt(),
             )
         }

@@ -58,6 +58,23 @@ class UpdateDefaultNodesList(
     }
 }
 
+val RemoveStakingRewardsTable_22_23 = object : Migration(22, 23) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE IF EXISTS `staking_rewards`")
+
+        // totalReward nullable -> not null
+        database.execSQL("DROP TABLE IF EXISTS `total_reward`")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `total_reward` (
+                `accountAddress` TEXT NOT NULL, 
+                `totalReward` TEXT  NOT NULL, 
+                 PRIMARY KEY(`accountAddress`))
+            """.trimIndent()
+        )
+    }
+}
+
 val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
