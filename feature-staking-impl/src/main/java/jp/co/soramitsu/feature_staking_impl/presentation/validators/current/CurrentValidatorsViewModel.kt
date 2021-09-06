@@ -79,7 +79,6 @@ class CurrentValidatorsViewModel(
     private suspend fun mapNominatedValidatorToUiModel(nominatedValidator: NominatedValidator, token: Token): NominatedValidatorModel {
         val validator = nominatedValidator.validator
 
-
         val nominationFormatted = (nominatedValidator.status as? NominatedValidator.Status.Active)?.let { activeStatus ->
             val amountFormatted = token.type.amountFromPlanks(activeStatus.nomination).formatTokenAmount(token.type)
 

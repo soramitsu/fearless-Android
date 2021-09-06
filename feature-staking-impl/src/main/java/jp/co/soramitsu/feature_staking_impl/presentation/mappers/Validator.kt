@@ -140,7 +140,6 @@ private fun mapValidatorToValidatorDetailsParcelModel(
     }
 }
 
-
 // FIXME Wrong logic for isOversubscribed & isSlashed - should not require elected state/nominator info
 fun mapValidatorDetailsToErrors(
     validator: ValidatorDetailsParcelModel,

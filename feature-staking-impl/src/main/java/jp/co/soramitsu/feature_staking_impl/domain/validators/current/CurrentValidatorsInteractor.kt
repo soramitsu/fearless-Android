@@ -81,7 +81,7 @@ class CurrentValidatorsInteractor(
                     NominatedValidator(validator, status)
                 }
                 .groupBy {
-                    when(it.status) {
+                    when (it.status) {
                         is Status.Active -> Status.Group.Active
                         is Status.Elected -> Status.Group.Elected
                         is Status.Inactive -> Status.Group.Inactive

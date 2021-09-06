@@ -20,9 +20,9 @@ class NominatedValidator(
             }
 
             object Active : Group(0)
-            object Elected: Group(1)
-            object Inactive: Group(2)
-            class WaitingForNextEra(val maxValidatorsPerNominator: Int): Group(3)
+            object Elected : Group(1)
+            object Inactive : Group(2)
+            class WaitingForNextEra(val maxValidatorsPerNominator: Int) : Group(3)
         }
     }
 }
