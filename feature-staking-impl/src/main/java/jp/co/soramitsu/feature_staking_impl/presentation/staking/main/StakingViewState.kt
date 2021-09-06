@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
-import android.provider.Settings.Global.getString
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.TitleAndMessage
@@ -152,8 +151,8 @@ sealed class StakeViewState<S>(
                 status = summary.status,
                 totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
-                totalRewards = summary.totalRewards.formatTokenAmount(tokenType),
-                totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency(),
+                totalRewards = summary.totalReward.formatTokenAmount(tokenType),
+                totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatAsCurrency(),
                 currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
             )
         }

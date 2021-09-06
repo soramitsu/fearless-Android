@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.networkType
@@ -25,10 +26,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -39,19 +38,24 @@ class ValidatorDetailsViewModel(
     private val iconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val appLinksProvider: AppLinksProvider,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
-
-    private val validatorDetailsFlow = MutableStateFlow(validator)
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    val validatorDetails = validatorDetailsFlow.combine(assetFlow) { validator, asset ->
-        mapValidatorDetailsParcelToValidatorDetailsModel(validator, asset, iconGenerator, resourceManager)
-    }.inBackground().asLiveData()
+    private val maxNominators = flowOf { interactor.maxValidatorsPerNominator() }
+        .inBackground()
 
-    val errorFlow = validatorDetailsFlow.map(::mapValidatorDetailsToErrors).inBackground()
+    val validatorDetails = maxNominators.combine(assetFlow) { maxNominators, asset ->
+        mapValidatorDetailsParcelToValidatorDetailsModel(validator, asset, maxNominators, iconGenerator, resourceManager)
+    }
+        .inBackground()
+        .asLiveData()
+
+    val errorFlow = flowOf { mapValidatorDetailsToErrors(validator) }
+        .inBackground()
+        .share()
 
     private val _openEmailEvent = MutableLiveData<Event<String>>()
     val openEmailEvent: LiveData<Event<String>> = _openEmailEvent

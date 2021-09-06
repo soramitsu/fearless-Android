@@ -127,7 +127,8 @@ class SetupStakingViewModel(
                 bondAmount = amount,
                 controllerAddress = currentAccountAddress,
                 maxFee = fee,
-                asset = assetFlow.first()
+                asset = assetFlow.first(),
+                isAlreadyNominating = false // on setup staking screen => not nominator
             )
 
             validationExecutor.requireValid(
