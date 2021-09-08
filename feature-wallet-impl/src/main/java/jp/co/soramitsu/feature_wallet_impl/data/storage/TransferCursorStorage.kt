@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.storage
 
 import jp.co.soramitsu.common.data.storage.Preferences
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private const val TRANSACTIONS_CURSOR_KEY = "TRANSACTIONS_CURSOR_KEY"
@@ -20,7 +21,7 @@ class TransferCursorStorage(
         preferences.putString(cursorKey(address), toSave)
     }
 
-    fun cursorFlow(address: String) = preferences.stringFlow(cursorKey(address))
+    suspend fun awaitCursor(address: String) = preferences.stringFlow(cursorKey(address))
         .filterNotNull() // suspends until cursor is inserted
         .map {
             if (it == NULL_CURSOR) {
@@ -28,7 +29,7 @@ class TransferCursorStorage(
             } else {
                 it
             }
-        }
+        }.first()
 
     private fun cursorKey(address: String) = TRANSACTIONS_CURSOR_KEY + address
 }

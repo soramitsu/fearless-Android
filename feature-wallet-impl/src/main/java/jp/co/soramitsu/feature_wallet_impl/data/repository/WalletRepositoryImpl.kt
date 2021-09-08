@@ -43,7 +43,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.zip
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import kotlin.time.ExperimentalTime
@@ -99,9 +99,9 @@ class WalletRepositoryImpl(
             mapOperationLocalToOperation(it, accountName)
         }
 
-        // `zip` instead of `combine` since we want to only emit new values in pairs (operations, cursor)
-        // since insertions are not atomic (operations inserted into db, cursor into prefs)
-        return operationsFlow.zip(cursorStorage.cursorFlow(currentAccount.address)) { operations, cursor ->
+        return operationsFlow.mapLatest { operations ->
+            val cursor = cursorStorage.awaitCursor(currentAccount.address)
+
             CursorPage(cursor, operations)
         }
     }
