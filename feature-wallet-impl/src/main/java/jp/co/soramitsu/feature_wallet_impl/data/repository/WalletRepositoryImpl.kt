@@ -1,19 +1,21 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
+import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.subscan.SubscanResponse
 import jp.co.soramitsu.common.data.network.subscan.subscanSubDomain
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.OperationDao
-import jp.co.soramitsu.core_db.model.PhishingAddressLocal
+import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.model.OperationLocal
+import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -35,7 +37,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHi
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.WalletNetworkApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.getSubqueryPath
+import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -54,6 +56,7 @@ class WalletRepositoryImpl(
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
     private val walletConstants: WalletConstants,
+    private val cursorStorage: TransferCursorStorage,
     private val phishingAddressDao: PhishingAddressDao
 ) : WalletRepository {
 
@@ -86,34 +89,44 @@ class WalletRepositoryImpl(
         return syncAssetsRates(account)
     }
 
-    override fun operationsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Operation>> {
+    override fun operationsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<CursorPage<Operation>> {
         val accountsByAddress = accounts.associateBy { it.address }
 
         return operationDao.observe(currentAccount.address).mapList {
             val accountName = defineAccountNameForTransaction(accountsByAddress, it.address, it.receiver, it.sender)
 
             mapOperationLocalToOperation(it, accountName)
+        }.map {
+            val cursor = cursorStorage.getFirstPageNextCursor(currentAccount.address)
+
+            CursorPage(cursor, it)
         }
     }
 
     @ExperimentalTime
-    override suspend fun syncOperationsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String? {
-        val page = getOperations(pageSize, cursor = null, account, accounts)
+    override suspend fun syncOperationsFirstPage(
+        pageSize: Int,
+        filters: Set<TransactionFilter>,
+        account: WalletAccount,
+        accounts: List<WalletAccount>
+    ) {
+        val page = getOperations(pageSize, cursor = null, filters, account, accounts)
         val accountAddress = account.address
+
+        cursorStorage.saveFirstPageNextCursor(account.address, page.nextCursor)
 
         val elements = page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
         operationDao.insertFromSubquery(accountAddress, elements)
-
-        return if (page.isNotEmpty()) page.last().nextPageCursor else null
     }
 
     @ExperimentalTime
     override suspend fun getOperations(
         pageSize: Int,
         cursor: String?,
+        filters: Set<TransactionFilter>,
         currentAccount: WalletAccount,
         accounts: List<WalletAccount>
-    ): List<Operation> {
+    ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
             val accountsByAddress = accounts.associateBy { it.address }
             val path = currentAccount.address.networkType().getSubqueryEraValidatorInfos()
@@ -123,7 +136,8 @@ class WalletRepositoryImpl(
                 SubqueryHistoryElementByAddressRequest(
                     currentAccount.address,
                     pageSize,
-                    cursor
+                    cursor,
+                    filters
                 )
             ).data.query
 
@@ -131,10 +145,10 @@ class WalletRepositoryImpl(
 
             val operations = response.historyElements.nodes.map {
                 val accountName = defineAccountNameForTransaction(accountsByAddress, it.address, it.transfer?.to, it.transfer?.from)
-                mapNodeToOperation(it, pageInfo.endCursor, currentAccount, accountName)
+                mapNodeToOperation(it, currentAccount, accountName)
             }
 
-            operations
+            CursorPage(pageInfo.endCursor, operations)
         }
     }
 

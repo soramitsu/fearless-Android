@@ -7,7 +7,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 
-class OperationModel(
+data class OperationModel(
     val hash: String,
     val address: String,
     val accountName: String?,

@@ -1,24 +1,28 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
-import androidx.lifecycle.LiveData
-import jp.co.soramitsu.common.utils.Filter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.coroutines.CoroutineScope
-
-interface TransactionFilter : Filter<OperationHistoryElement>
+import kotlinx.coroutines.flow.Flow
 
 interface TransactionHistoryUi {
-    val transactionsLiveData: LiveData<List<Any>>
+
+    sealed class State {
+
+        object Empty : State()
+
+        object EmptyProgress : State()
+
+        class Data(val items: List<Any>) : State()
+    }
+
+    val state: Flow<State>
 
     fun transactionClicked(transactionModel: OperationParcelizeModel)
 }
 
-interface TransactionHistoryMixin : TransactionHistoryUi {
+interface TransactionHistoryMixin : TransactionHistoryUi, CoroutineScope {
 
-    suspend fun syncFirstOperationsPage(): Result<String?>
+    suspend fun syncFirstOperationsPage(): Result<*>
 
-    fun scrolled(scope: CoroutineScope, currentIndex: Int)
-
-    fun startObservingOperations(scope: CoroutineScope)
+    fun scrolled(currentIndex: Int)
 }

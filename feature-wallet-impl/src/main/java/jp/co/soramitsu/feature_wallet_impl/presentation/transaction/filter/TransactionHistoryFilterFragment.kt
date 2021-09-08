@@ -7,18 +7,17 @@ import android.widget.CompoundButton
 import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bindFromMap
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.ExtrinsicFilter
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.HistoryFilter
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.RewardFilter
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.filters.TransferFilter
-import kotlinx.android.synthetic.main.fragment_transactions_filter.*
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.android.synthetic.main.fragment_transactions_filter.transactionFilterApplyBtn
+import kotlinx.android.synthetic.main.fragment_transactions_filter.transactionsFilterOtherTransactions
+import kotlinx.android.synthetic.main.fragment_transactions_filter.transactionsFilterRewards
+import kotlinx.android.synthetic.main.fragment_transactions_filter.transactionsFilterSwitchTransfers
+import kotlinx.android.synthetic.main.fragment_transactions_filter.transactionsFilterToolbar
 
 class TransactionHistoryFilterFragment : BaseFragment<TransactionHistoryFilterViewModel>() {
 
@@ -35,9 +34,9 @@ class TransactionHistoryFilterFragment : BaseFragment<TransactionHistoryFilterVi
             viewModel.resetFilter()
         }
 
-        transactionsFilterRewards.bindFilter(RewardFilter::class.java)
-        transactionsFilterSwitchTransfers.bindFilter(TransferFilter::class.java)
-        transactionsFilterOtherTransactions.bindFilter(ExtrinsicFilter::class.java)
+        transactionsFilterRewards.bindFilter(TransactionFilter.REWARD)
+        transactionsFilterSwitchTransfers.bindFilter(TransactionFilter.TRANSFER)
+        transactionsFilterOtherTransactions.bindFilter(TransactionFilter.EXTRINSIC)
 
         transactionFilterApplyBtn.setOnClickListener { viewModel.applyClicked() }
     }
@@ -57,7 +56,7 @@ class TransactionHistoryFilterFragment : BaseFragment<TransactionHistoryFilterVi
         }
     }
 
-    private fun CompoundButton.bindFilter(filterClass: Class<out HistoryFilter>) {
-        bindFromMap(filterClass, viewModel.filtersEnabledMap, lifecycleScope)
+    private fun CompoundButton.bindFilter(filter: TransactionFilter) {
+        bindFromMap(filter, viewModel.filtersEnabledMap, viewLifecycleOwner.lifecycleScope)
     }
 }

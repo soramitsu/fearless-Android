@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
+import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
@@ -23,11 +24,22 @@ interface WalletRepository {
 
     suspend fun syncAsset(account: WalletAccount, type: Token.Type)
 
-    suspend fun syncOperationsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>): String?
+    suspend fun syncOperationsFirstPage(
+        pageSize: Int,
+        filters: Set<TransactionFilter>,
+        account: WalletAccount,
+        accounts: List<WalletAccount>
+    )
 
-    suspend fun getOperations(pageSize: Int, cursor: String? = null, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Operation>
+    suspend fun getOperations(
+        pageSize: Int,
+        cursor: String?,
+        filters: Set<TransactionFilter>,
+        currentAccount: WalletAccount,
+        accounts: List<WalletAccount>
+    ): CursorPage<Operation>
 
-    fun operationsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Operation>>
+    fun operationsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<CursorPage<Operation>>
 
     suspend fun getContacts(account: WalletAccount, query: String): Set<String>
 

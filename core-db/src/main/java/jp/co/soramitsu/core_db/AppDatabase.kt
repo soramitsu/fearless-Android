@@ -14,19 +14,19 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.NodeDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
+import jp.co.soramitsu.core_db.migrations.AddOperationsTablesToDb_23_24
 import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
 import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_11_12
 import jp.co.soramitsu.core_db.migrations.AddStakingRewardsTable_15_16
 import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
-import jp.co.soramitsu.core_db.migrations.AddOperationsTablesToDb_22_23
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_21_22
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
@@ -39,11 +39,10 @@ import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
 import jp.co.soramitsu.core_db.model.StorageEntryLocal
-import jp.co.soramitsu.core_db.model.StakingRewardLocal
-import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
@@ -101,8 +100,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 19))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 20))
                     .addMigrations(AddTotalRewardsTableToDb_21_22, RemoveStakingRewardsTable_22_23)
-                    .addMigrations(AddOperationsTablesToDb_22_23)
-                    .addMigrations(AddOperationsTablesToDb_22_23)
+                    .addMigrations(AddOperationsTablesToDb_23_24)
                     .build()
             }
             return instance!!

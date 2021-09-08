@@ -13,7 +13,7 @@ class PreferencesImpl(
 
     override fun contains(field: String) = sharedPreferences.contains(field)
 
-    override fun putString(field: String, value: String) {
+    override fun putString(field: String, value: String?) {
         sharedPreferences.edit().putString(field, value).apply()
     }
 

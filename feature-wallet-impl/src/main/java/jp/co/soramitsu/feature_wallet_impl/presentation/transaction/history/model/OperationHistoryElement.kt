@@ -6,5 +6,4 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 class OperationHistoryElement(
     val displayAddressModel: AddressModel,
     val transactionModel: OperationModel
-
 )

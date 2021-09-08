@@ -88,7 +88,7 @@ val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
     }
 }
 
-val AddOperationsTablesToDb_22_23 = object : Migration(22, 23) {
+val AddOperationsTablesToDb_23_24 = object : Migration(23, 24) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
             """

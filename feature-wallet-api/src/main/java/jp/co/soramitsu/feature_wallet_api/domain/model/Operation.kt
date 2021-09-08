@@ -9,16 +9,15 @@ data class Operation(
     val accountName: String?,
     val transactionType: TransactionType,
     val time: Long,
-    val tokenType: Token.Type,
-    val nextPageCursor: String? = null
-) {
+    val tokenType: Token.Type
+    ) {
 
     sealed class TransactionType(
         val operationAmount: BigDecimal,
         val operationFee: BigDecimal,
         val status: Status
     ) {
-        class Extrinsic(
+        data class Extrinsic(
             val hash: String,
             val module: String,
             val call: String,
@@ -26,14 +25,14 @@ data class Operation(
             val success: Boolean
         ) : TransactionType(operationAmount = BigDecimal.ZERO, operationFee = fee, Status.fromSuccess(success))
 
-        class Reward(
+        data class Reward(
             val amount: BigDecimal,
             val isReward: Boolean,
             val era: Int,
             val validator: String
         ) : TransactionType(operationAmount = amount, operationFee = BigDecimal.ZERO, Status.FAILED)
 
-        class Transfer(
+        data class Transfer(
             val amount: BigDecimal,
             val receiver: String,
             val sender: String,

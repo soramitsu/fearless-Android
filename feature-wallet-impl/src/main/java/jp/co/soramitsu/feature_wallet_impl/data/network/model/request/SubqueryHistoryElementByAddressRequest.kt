@@ -1,15 +1,25 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.model.request
 
-class SubqueryHistoryElementByAddressRequest(accountAddress: String, pageSize: Int = 1, cursor: String? = null) {
+import android.annotation.SuppressLint
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.allFiltersIncluded
+
+class SubqueryHistoryElementByAddressRequest(
+    accountAddress: String,
+    pageSize: Int = 1,
+    cursor: String? = null,
+    filters: Set<TransactionFilter>
+) {
     val query = """
     {
         query {
             historyElements(
-                after: ${ if (cursor == null) null else "\"$cursor\""},
+                after: ${if (cursor == null) null else "\"$cursor\""},
                 first: $pageSize,
                 orderBy: TIMESTAMP_DESC,
                 filter: { 
-                    address:{ equalTo: "$accountAddress"}
+                    address:{ equalTo: "$accountAddress"},
+                    ${filters.toQueryFilter()}
                 }
             ) {
                 pageInfo {
@@ -29,4 +39,23 @@ class SubqueryHistoryElementByAddressRequest(accountAddress: String, pageSize: I
     }
 
     """.trimIndent()
+
+    /*
+        or: [ {transfer: { notEqualTo: "null"} },  {extrinsic: { notEqualTo: "null"} } ]
+     */
+    private fun Set<TransactionFilter>.toQueryFilter(): String {
+
+        // optimize query in case all filters are on
+        if (allFiltersIncluded()) {
+            return ""
+        }
+
+        return joinToString(prefix = "or: [", postfix = "]", separator = ",") {
+            "{ ${it.filterName}: {  notEqualTo: \"null\" } }"
+        }
+    }
+
+    private val TransactionFilter.filterName
+        @SuppressLint("DefaultLocale")
+        get() = name.toLowerCase()
 }

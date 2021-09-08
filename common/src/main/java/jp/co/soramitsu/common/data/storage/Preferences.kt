@@ -5,7 +5,7 @@ import jp.co.soramitsu.core.model.Language
 interface Preferences {
     fun contains(field: String): Boolean
 
-    fun putString(field: String, value: String)
+    fun putString(field: String, value: String?)
 
     fun getString(field: String, defaultValue: String): String
 

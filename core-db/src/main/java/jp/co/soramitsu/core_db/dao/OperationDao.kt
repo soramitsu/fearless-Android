@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import jp.co.soramitsu.core_db.model.OperationLocal
 import kotlinx.coroutines.flow.Flow
 
@@ -36,7 +37,8 @@ abstract class OperationDao {
     )
     abstract suspend fun getContacts(query: String, accountAddress: String): List<String>
 
-    suspend fun insertFromSubquery(accountAddress: String, operations: List<OperationLocal>) {
+    @Transaction
+    open suspend fun insertFromSubquery(accountAddress: String, operations: List<OperationLocal>) {
         clear(accountAddress, OperationLocal.Source.SUBQUERY)
 
         val oldest = operations.minByOrNull(OperationLocal::time)

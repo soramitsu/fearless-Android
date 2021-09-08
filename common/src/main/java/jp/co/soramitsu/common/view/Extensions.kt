@@ -4,7 +4,6 @@ import android.os.CountDownTimer
 import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.bindTo
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,7 +66,7 @@ fun Long.formatTime(): String {
     return "%02d:%02d:%02d".format(hours, minutes, seconds)
 }
 
-fun <T> CompoundButton.bindFromMap(key: Class<out T>, map: Map<out Class<out T>, MutableStateFlow<Boolean>>, lifecycleScope: LifecycleCoroutineScope) {
+fun <K> CompoundButton.bindFromMap(key: K, map: Map<out K, MutableStateFlow<Boolean>>, lifecycleScope: LifecycleCoroutineScope) {
     val source = map[key] ?: error("Cannot find $key source")
 
     bindTo(source, lifecycleScope)

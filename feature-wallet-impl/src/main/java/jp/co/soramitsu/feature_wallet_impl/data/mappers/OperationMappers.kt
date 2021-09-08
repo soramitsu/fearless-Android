@@ -98,7 +98,6 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal, accountName: St
 @ExperimentalTime
 fun mapNodeToOperation(
     node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
-    cursor: String,
     currentAccount: WalletAccount,
     accountName: String?
 ): Operation {
@@ -139,8 +138,7 @@ fun mapNodeToOperation(
         transactionType = type,
         time = node.timestamp.toLong().seconds.toLongMilliseconds(),
         tokenType = token,
-        accountName = accountName,
-        nextPageCursor = cursor
+        accountName = accountName
     )
 }
 
