@@ -118,8 +118,8 @@ class WalletRepositoryImpl(
 
         val elements = page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
 
-        cursorStorage.saveCursor(account.address, page.nextCursor)
         operationDao.insertFromSubquery(accountAddress, elements)
+        cursorStorage.saveCursor(account.address, page.nextCursor)
     }
 
     @ExperimentalTime
