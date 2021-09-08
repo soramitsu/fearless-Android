@@ -43,6 +43,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import kotlin.time.ExperimentalTime
@@ -57,7 +58,7 @@ class WalletRepositoryImpl(
     private val assetCache: AssetCache,
     private val walletConstants: WalletConstants,
     private val cursorStorage: TransferCursorStorage,
-    private val phishingAddressDao: PhishingAddressDao
+    private val phishingAddressDao: PhishingAddressDao,
 ) : WalletRepository {
 
     override fun assetsFlow(accountAddress: String): Flow<List<Asset>> {
@@ -92,14 +93,16 @@ class WalletRepositoryImpl(
     override fun operationsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<CursorPage<Operation>> {
         val accountsByAddress = accounts.associateBy { it.address }
 
-        return operationDao.observe(currentAccount.address).mapList {
+        val operationsFlow = operationDao.observe(currentAccount.address).mapList {
             val accountName = defineAccountNameForTransaction(accountsByAddress, it.address, it.receiver, it.sender)
 
             mapOperationLocalToOperation(it, accountName)
-        }.map {
-            val cursor = cursorStorage.getFirstPageNextCursor(currentAccount.address)
+        }
 
-            CursorPage(cursor, it)
+        // `zip` instead of `combine` since we want to only emit new values in pairs (operations, cursor)
+        // since insertions are not atomic (operations inserted into db, cursor into prefs)
+        return operationsFlow.zip(cursorStorage.cursorFlow(currentAccount.address)) { operations, cursor ->
+            CursorPage(cursor, operations)
         }
     }
 
@@ -108,14 +111,14 @@ class WalletRepositoryImpl(
         pageSize: Int,
         filters: Set<TransactionFilter>,
         account: WalletAccount,
-        accounts: List<WalletAccount>
+        accounts: List<WalletAccount>,
     ) {
         val page = getOperations(pageSize, cursor = null, filters, account, accounts)
         val accountAddress = account.address
 
-        cursorStorage.saveFirstPageNextCursor(account.address, page.nextCursor)
-
         val elements = page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
+
+        cursorStorage.saveCursor(account.address, page.nextCursor)
         operationDao.insertFromSubquery(accountAddress, elements)
     }
 
@@ -125,7 +128,7 @@ class WalletRepositoryImpl(
         cursor: String?,
         filters: Set<TransactionFilter>,
         currentAccount: WalletAccount,
-        accounts: List<WalletAccount>
+        accounts: List<WalletAccount>,
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
             val accountsByAddress = accounts.associateBy { it.address }
@@ -213,7 +216,7 @@ class WalletRepositoryImpl(
         accountsByAddress: Map<String, WalletAccount>,
         currentAddress: String,
         receiver: String?,
-        sender: String?
+        sender: String?,
     ): String? {
         val accountAddress = if (currentAddress == receiver) {
             sender
@@ -243,7 +246,7 @@ class WalletRepositoryImpl(
     private suspend fun updateAssetRates(
         account: WalletAccount,
         todayResponse: SubscanResponse<AssetPriceStatistics>?,
-        yesterdayResponse: SubscanResponse<AssetPriceStatistics>?
+        yesterdayResponse: SubscanResponse<AssetPriceStatistics>?,
     ) = assetCache.updateToken(account.address.networkType()) { cached ->
         val todayStats = todayResponse?.content
         val yesterdayStats = yesterdayResponse?.content
