@@ -34,11 +34,13 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
-import java.util.*
+import java.util.Locale
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 class WalletRepositoryImpl(

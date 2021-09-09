@@ -9,5 +9,3 @@ class PriceInfo(
     @SerializedName("usd_24h_change")
     val rateChange: BigDecimal
 )
-
-

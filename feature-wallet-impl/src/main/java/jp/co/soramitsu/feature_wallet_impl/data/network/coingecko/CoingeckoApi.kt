@@ -1,7 +1,8 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.coingecko
 
 import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
-import retrofit2.http.*
+import retrofit2.http.Query
+import retrofit2.http.GET
 
 interface CoingeckoApi {
 
