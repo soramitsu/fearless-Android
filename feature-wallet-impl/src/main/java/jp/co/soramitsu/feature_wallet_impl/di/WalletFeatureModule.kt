@@ -35,6 +35,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateS
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
@@ -55,6 +56,12 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideSubscanApi(networkApiCreator: NetworkApiCreator): SubscanNetworkApi {
         return networkApiCreator.create(SubscanNetworkApi::class.java)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideCoingeckoApi(networkApiCreator: NetworkApiCreator): CoingeckoApi {
+        return networkApiCreator.create(CoingeckoApi::class.java)
     }
 
     @Provides
@@ -102,6 +109,7 @@ class WalletFeatureModule {
         phishingAddressDao: PhishingAddressDao,
         walletConstants: WalletConstants,
         assetCache: AssetCache,
+        coingeckoApi: CoingeckoApi,
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         transactionDao,
@@ -110,7 +118,8 @@ class WalletFeatureModule {
         phishingApi,
         assetCache,
         walletConstants,
-        phishingAddressDao
+        phishingAddressDao,
+        coingeckoApi
     )
 
     @Provides
