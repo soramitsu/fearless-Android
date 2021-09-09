@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeLocalToTokenType
@@ -110,7 +111,7 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal): Operation {
                 amount = amount!!,
                 isReward = isReward!!,
                 era = era!!,
-                validator = validator!!,
+                validator = validator,
             )
         }
 
@@ -136,7 +137,7 @@ fun mapNodeToOperation(
                 amount = amount,
                 era = era,
                 isReward = isReward,
-                validator = validator
+                validator = validator.nullIfEmpty()
             )
         }
 
@@ -216,8 +217,12 @@ private fun mapStatusToStatusAppearance(status: Operation.Status): OperationStat
     }
 }
 
-private fun Operation.Type.Extrinsic.formattedCall() = call.capitalize()
-private fun Operation.Type.Extrinsic.formattedModule() = module.capitalize()
+private val CAMEL_CASE_REGEX = "(?<=[a-z])(?=[A-Z])".toRegex()
+
+private fun String.camelCaseToCapitalizedWords() = CAMEL_CASE_REGEX.split(this).joinToString(separator = " ") { it.capitalize() }
+
+private fun Operation.Type.Extrinsic.formattedCall() = call.camelCaseToCapitalizedWords()
+private fun Operation.Type.Extrinsic.formattedModule() = module.camelCaseToCapitalizedWords()
 
 suspend fun mapOperationToOperationModel(
     operation: Operation,
@@ -305,7 +310,7 @@ fun mapOperationToParcel(operation: Operation): OperationParcelizeModel {
 
             is Operation.Type.Reward -> {
                 OperationParcelizeModel.Reward(
-                    hash = hash,
+                    eventId = hash,
                     address = address,
                     time = time,
                     amount = formatAmount(tokenType, operationType),

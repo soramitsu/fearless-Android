@@ -7,13 +7,13 @@ sealed class OperationParcelizeModel : Parcelable {
 
     @Parcelize
     class Reward(
-        val hash: String,
+        val eventId: String,
         val address: String,
         val time: Long,
         val amount: String,
         val isReward: Boolean,
         val era: Int,
-        val validator: String,
+        val validator: String?,
     ) : OperationParcelizeModel()
 
     @Parcelize

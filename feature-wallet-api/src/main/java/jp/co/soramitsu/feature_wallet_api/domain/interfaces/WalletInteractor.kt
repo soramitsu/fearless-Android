@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
+import jp.co.soramitsu.feature_wallet_api.domain.model.OperationsPageChange
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -31,7 +32,7 @@ interface WalletInteractor {
 
     fun currentAssetFlow(): Flow<Asset>
 
-    fun operationsFirstPageFlow(): Flow<CursorPage<Operation>>
+    fun operationsFirstPageFlow(): Flow<OperationsPageChange>
 
     suspend fun syncOperationsFirstPage(
         pageSize: Int,

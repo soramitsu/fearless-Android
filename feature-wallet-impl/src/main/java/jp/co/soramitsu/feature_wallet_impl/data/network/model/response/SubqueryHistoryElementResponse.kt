@@ -22,7 +22,7 @@ class SubqueryHistoryElementResponse(val query: Query) {
                     val era: Int,
                     val amount: BigInteger,
                     val isReward: Boolean,
-                    val validator: String
+                    val validator: String,
                 )
 
                 class Transfer(

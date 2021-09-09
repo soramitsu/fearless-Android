@@ -75,3 +75,5 @@ inline fun <T> CoroutineScope.lazyAsync(crossinline producer: suspend () -> T) =
 }
 
 inline fun <T> Iterable<T>.filterToSet(predicate: (T) -> Boolean) : Set<T> = filterTo(mutableSetOf(), predicate)
+
+fun String.nullIfEmpty(): String? = if (isEmpty()) null else this

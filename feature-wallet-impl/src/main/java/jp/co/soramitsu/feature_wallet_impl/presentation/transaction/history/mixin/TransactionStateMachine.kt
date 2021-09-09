@@ -43,7 +43,7 @@ object TransactionStateMachine {
 
         class Scrolled(val currentItemIndex: Int) : Action()
 
-        data class CachePageArrived(val newPage: CursorPage<Operation>) : Action()
+        data class CachePageArrived(val newPage: CursorPage<Operation>, val accountChanged: Boolean) : Action()
 
         data class NewPage(val newPage: CursorPage<Operation>, val loadedWith: Set<TransactionFilter>) : Action()
 
@@ -73,10 +73,21 @@ object TransactionStateMachine {
         when (action) {
 
             is Action.CachePageArrived -> {
+
                 val nextCursor = action.newPage.nextCursor
 
                 when {
-                    !canUseCache(using = state.filters)-> state // ignore cached page changes if not used
+                    !canUseCache(using = state.filters)-> {
+                        if (action.accountChanged) {
+                            // trigger cold load for new account when not able to use cache
+                            sideEffectListener(SideEffect.LoadPage(nextCursor = null, filters = state.filters))
+
+                            State.EmptyProgress(state.filters)
+                        } else {
+                            // if account is the same - ignore new page, since cache is not used
+                            state
+                        }
+                    }
                     action.newPage.isEmpty() -> State.Empty(state.filters)
                     nextCursor != null -> State.Data(nextCursor, action.newPage, state.filters)
                     else -> State.FullData(action.newPage, state.filters)

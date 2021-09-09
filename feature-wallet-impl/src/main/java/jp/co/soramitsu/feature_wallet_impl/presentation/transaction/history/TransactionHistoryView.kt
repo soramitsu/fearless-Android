@@ -77,6 +77,8 @@ class TransferHistorySheet @JvmOverloads constructor(
         transactionHistoryProgress.makeVisible()
         transactionHistoryList.makeGone()
 
+        adapter.submitList(emptyList())
+
         bottomSheetBehavior?.isDraggable = false
     }
 

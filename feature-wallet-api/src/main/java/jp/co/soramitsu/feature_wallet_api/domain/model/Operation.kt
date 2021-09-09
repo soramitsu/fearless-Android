@@ -24,7 +24,7 @@ data class Operation(
             val amount: BigInteger,
             val isReward: Boolean,
             val era: Int,
-            val validator: String
+            val validator: String?
         ) : Type()
 
         data class Transfer(

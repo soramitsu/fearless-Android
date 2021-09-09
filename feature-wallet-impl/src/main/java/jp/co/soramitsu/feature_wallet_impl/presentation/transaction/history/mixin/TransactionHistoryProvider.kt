@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mix
 
 import android.util.Log
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.inBackground
@@ -23,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -51,8 +51,9 @@ class TransactionHistoryProvider(
         .shareIn(this, started = SharingStarted.Eagerly, replay = 1)
 
     private val cachedPage = walletInteractor.operationsFirstPageFlow()
-        .distinctUntilChanged()
-        .onEach { performTransition(Action.CachePageArrived(it)) }
+        .distinctUntilChangedBy { it.cursorPage }
+        .onEach { performTransition(Action.CachePageArrived(it.cursorPage, it.accountChanged)) }
+        .map { it.cursorPage }
         .inBackground()
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
 
@@ -115,7 +116,7 @@ class TransactionHistoryProvider(
         val cached = cachedPage.replayCache.firstOrNull()
 
         cached?.let {
-            launch { performTransition(Action.CachePageArrived(cached)) }
+            launch { performTransition(Action.CachePageArrived(it, accountChanged = false)) }
         }
     }
 
@@ -158,9 +159,5 @@ class TransactionHistoryProvider(
 
                 listOf(header) + transactions
             }.flatten()
-    }
-
-    private suspend fun createIcon(address: String, accountName: String?): AddressModel {
-        return iconGenerator.createAddressModel(address, ICON_SIZE_DP, accountName)
     }
 }

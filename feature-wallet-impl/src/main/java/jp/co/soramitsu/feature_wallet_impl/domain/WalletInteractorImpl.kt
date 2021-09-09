@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
+import jp.co.soramitsu.feature_wallet_api.domain.model.OperationsPageChange
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.math.BigDecimal
@@ -64,10 +66,12 @@ class WalletInteractorImpl(
             .flatMapLatest { assetFlow(it) }
     }
 
-    override fun operationsFirstPageFlow(): Flow<CursorPage<Operation>> {
+    override fun operationsFirstPageFlow(): Flow<OperationsPageChange> {
         return accountRepository.selectedAccountFlow()
             .flatMapLatest {
-                walletRepository.operationsFirstPageFlow(mapAccountToWalletAccount(it))
+                walletRepository.operationsFirstPageFlow(mapAccountToWalletAccount(it)).withIndex().map { (index, cursorPage) ->
+                    OperationsPageChange(cursorPage, accountChanged = index == 0)
+                }
             }
     }
 
