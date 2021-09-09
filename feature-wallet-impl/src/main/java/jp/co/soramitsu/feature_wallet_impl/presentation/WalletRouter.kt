@@ -21,11 +21,11 @@ interface WalletRouter {
 
     fun openRepeatTransaction(recipientAddress: String)
 
-    fun openTransferDetail(transaction: OperationParcelizeModel.TransferModel)
+    fun openTransferDetail(transaction: OperationParcelizeModel.Transfer)
 
-    fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.ExtrinsicModel)
+    fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.Extrinsic)
 
-    fun openRewardDetail(reward: OperationParcelizeModel.RewardModel)
+    fun openRewardDetail(reward: OperationParcelizeModel.Reward)
 
     fun openAddAccount()
 

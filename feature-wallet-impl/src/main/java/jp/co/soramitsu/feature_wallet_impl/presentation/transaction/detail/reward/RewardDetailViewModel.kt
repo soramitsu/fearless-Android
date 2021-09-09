@@ -24,7 +24,7 @@ enum class ExternalActionsSource {
 }
 
 class RewardDetailViewModel(
-    val operation: OperationParcelizeModel.RewardModel,
+    val operation: OperationParcelizeModel.Reward,
     private val appLinksProvider: AppLinksProvider,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,

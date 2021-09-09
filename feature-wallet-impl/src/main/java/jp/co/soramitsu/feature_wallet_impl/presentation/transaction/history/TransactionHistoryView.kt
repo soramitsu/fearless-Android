@@ -17,7 +17,7 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import kotlinx.android.synthetic.main.view_transfer_history.view.placeholder
 import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryFilter
 import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryList
@@ -25,7 +25,7 @@ import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHist
 
 typealias ScrollingListener = (position: Int) -> Unit
 typealias SlidingStateListener = (Int) -> Unit
-typealias TransactionClickListener = (OperationParcelizeModel) -> Unit
+typealias TransactionClickListener = (OperationModel) -> Unit
 
 private const val MIN_ALPHA = 0.55 * 255
 private const val MAX_ALPHA = 1 * 255
@@ -172,7 +172,7 @@ class TransferHistorySheet @JvmOverloads constructor(
         super.onDetachedFromWindow()
     }
 
-    override fun transactionClicked(transactionModel: OperationParcelizeModel) {
+    override fun transactionClicked(transactionModel: OperationModel) {
         transactionClickListener?.invoke(transactionModel)
     }
 

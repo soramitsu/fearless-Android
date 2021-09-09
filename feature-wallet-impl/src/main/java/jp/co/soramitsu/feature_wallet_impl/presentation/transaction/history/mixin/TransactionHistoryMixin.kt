@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
@@ -17,7 +17,7 @@ interface TransactionHistoryUi {
 
     val state: Flow<State>
 
-    fun transactionClicked(transactionModel: OperationParcelizeModel)
+    fun transactionClicked(transactionModel: OperationModel)
 }
 
 interface TransactionHistoryMixin : TransactionHistoryUi, CoroutineScope {

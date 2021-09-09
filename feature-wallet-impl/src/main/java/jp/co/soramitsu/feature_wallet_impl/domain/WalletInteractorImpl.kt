@@ -67,9 +67,7 @@ class WalletInteractorImpl(
     override fun operationsFirstPageFlow(): Flow<CursorPage<Operation>> {
         return accountRepository.selectedAccountFlow()
             .flatMapLatest {
-                val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
-
-                walletRepository.operationsFirstPageFlow(mapAccountToWalletAccount(it), accounts)
+                walletRepository.operationsFirstPageFlow(mapAccountToWalletAccount(it))
             }
     }
 
@@ -83,9 +81,8 @@ class WalletInteractorImpl(
     ) = withContext(Dispatchers.Default) {
         runCatching {
             val account = accountRepository.getSelectedAccount()
-            val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
 
-            walletRepository.syncOperationsFirstPage(pageSize, filters, mapAccountToWalletAccount(account), accounts)
+            walletRepository.syncOperationsFirstPage(pageSize, filters, mapAccountToWalletAccount(account))
         }
     }
 
@@ -95,15 +92,13 @@ class WalletInteractorImpl(
         filters: Set<TransactionFilter>,
     ): Result<CursorPage<Operation>> {
         return runCatching {
-            val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
             val currentAccount = accountRepository.getSelectedAccount()
 
             walletRepository.getOperations(
                 pageSize,
                 cursor,
                 filters,
-                mapAccountToWalletAccount(currentAccount),
-                accounts
+                mapAccountToWalletAccount(currentAccount)
             )
         }
     }

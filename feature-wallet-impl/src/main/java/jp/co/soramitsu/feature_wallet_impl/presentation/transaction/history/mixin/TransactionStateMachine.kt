@@ -8,30 +8,35 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 
 object TransactionStateMachine {
 
-    const val PAGE_SIZE = 20
-    private const val SCROLL_OFFSET = PAGE_SIZE
+    const val PAGE_SIZE = 100
+    private const val SCROLL_OFFSET = PAGE_SIZE / 2
 
     sealed class State(val filters: Set<TransactionFilter>) {
+
+        interface WithData {
+            val data: List<Operation>
+        }
+
         class Empty(filters: Set<TransactionFilter>) : State(filters)
 
         class EmptyProgress(filters: Set<TransactionFilter>) : State(filters)
 
         class Data(
             val nextCursor: String,
-            val data: List<Operation>,
+            override val data: List<Operation>,
             filters: Set<TransactionFilter>,
-        ) : State(filters)
+        ) : State(filters), WithData
 
         class NewPageProgress(
             val nextCursor: String,
-            val data: List<Operation>,
+            override val data: List<Operation>,
             filters: Set<TransactionFilter>,
-        ) : State(filters)
+        ) : State(filters), WithData
 
         class FullData(
-            val data: List<Operation>,
+            override val data: List<Operation>,
             filters: Set<TransactionFilter>,
-        ) : State(filters)
+        ) : State(filters), WithData
     }
 
     sealed class Action {

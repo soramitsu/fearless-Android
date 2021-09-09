@@ -95,14 +95,13 @@ class PaymentUpdater(
             address = accountAddress,
             time = System.currentTimeMillis(),
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
-            call = Operation.TransactionType.Transfer.transferCall,
             amount = extrinsic.amountInPlanks,
             sender = senderAddress,
             receiver = recipientAddress,
             fee = fee,
             status = mapOperationStatusToOperationLocalStatus(status),
             source = OperationLocal.Source.BLOCKCHAIN,
-            operationType = OperationLocal.OperationType.TRANSFER
+            operationType = OperationLocal.Type.TRANSFER
         )
     }
 }

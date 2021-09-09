@@ -72,7 +72,7 @@
                 app:layout_constraintBottom_toBottomOf="@+id/rewardDetailStatusIcon"
                 app:layout_constraintEnd_toStartOf="@+id/rewardDetailStatusIcon"
                 app:layout_constraintTop_toTopOf="@+id/rewardDetailStatusIcon"
-                tools:text="@string/transaction_status_completed" />
+                android:text="@string/transaction_status_completed" />
 
             <ImageView
                 android:id="@+id/rewardDetailStatusIcon"
@@ -82,7 +82,7 @@
                 app:layout_constraintBottom_toBottomOf="@+id/rewardDetailStatusLabel"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/rewardDetailStatusLabel"
-                tools:src="@drawable/ic_transaction_completed" />
+                android:src="@drawable/ic_transaction_completed" />
 
             <View
                 android:id="@+id/rewardDetailDivider1"

@@ -32,7 +32,7 @@ class TransactionDetailViewModel(
     private val clipboardManager: ClipboardManager,
     private val appLinksProvider: AppLinksProvider,
     private val addressDisplayUseCase: AddressDisplayUseCase,
-    val operation: OperationParcelizeModel.TransferModel
+    val operation: OperationParcelizeModel.Transfer
 ) : BaseViewModel(), Browserable {
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
@@ -61,7 +61,9 @@ class TransactionDetailViewModel(
     }
 
     fun repeatTransaction() {
-        router.openRepeatTransaction(operation.displayAddress)
+        val retryAddress = retryAddressModelLiveData.value?.address ?: return
+
+        router.openRepeatTransaction(retryAddress)
     }
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))

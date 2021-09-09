@@ -90,20 +90,14 @@ class WalletRepositoryImpl(
         return syncAssetsRates(account)
     }
 
-    override fun operationsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<CursorPage<Operation>> {
-        val accountsByAddress = accounts.associateBy { it.address }
+    override fun operationsFirstPageFlow(currentAccount: WalletAccount): Flow<CursorPage<Operation>> {
+        return operationDao.observe(currentAccount.address)
+            .mapList(::mapOperationLocalToOperation)
+            .mapLatest { operations ->
+                val cursor = cursorStorage.awaitCursor(currentAccount.address)
 
-        val operationsFlow = operationDao.observe(currentAccount.address).mapList {
-            val accountName = defineAccountNameForTransaction(accountsByAddress, it.address, it.receiver, it.sender)
-
-            mapOperationLocalToOperation(it, accountName)
-        }
-
-        return operationsFlow.mapLatest { operations ->
-            val cursor = cursorStorage.awaitCursor(currentAccount.address)
-
-            CursorPage(cursor, operations)
-        }
+                CursorPage(cursor, operations)
+            }
     }
 
     @ExperimentalTime
@@ -111,9 +105,8 @@ class WalletRepositoryImpl(
         pageSize: Int,
         filters: Set<TransactionFilter>,
         account: WalletAccount,
-        accounts: List<WalletAccount>,
     ) {
-        val page = getOperations(pageSize, cursor = null, filters, account, accounts)
+        val page = getOperations(pageSize, cursor = null, filters, account)
         val accountAddress = account.address
 
         val elements = page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
@@ -128,10 +121,8 @@ class WalletRepositoryImpl(
         cursor: String?,
         filters: Set<TransactionFilter>,
         currentAccount: WalletAccount,
-        accounts: List<WalletAccount>,
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
-            val accountsByAddress = accounts.associateBy { it.address }
             val path = currentAccount.address.networkType().getSubqueryEraValidatorInfos()
 
             val response = walletApi.getOperationsHistory(
@@ -146,9 +137,11 @@ class WalletRepositoryImpl(
 
             val pageInfo = response.historyElements.pageInfo
 
+            val tokenType = Token.Type.fromNetworkType(currentAccount.network.type)
+
             val operations = response.historyElements.nodes.map {
-                val accountName = defineAccountNameForTransaction(accountsByAddress, it.address, it.transfer?.to, it.transfer?.from)
-                mapNodeToOperation(it, currentAccount, accountName)
+
+                mapNodeToOperation(it, tokenType)
             }
 
             CursorPage(pageInfo.endCursor, operations)
@@ -233,14 +226,14 @@ class WalletRepositoryImpl(
             address = senderAddress,
             time = System.currentTimeMillis(),
             tokenType = mapTokenTypeToTokenTypeLocal(transfer.tokenType),
-            call = Operation.TransactionType.Transfer.transferCall,
+            call = null,
             amount = transfer.amount.toBigInteger(),
             sender = senderAddress,
             receiver = transfer.recipient,
             fee = fee.toBigInteger(),
             status = OperationLocal.Status.PENDING,
             source = source,
-            operationType = OperationLocal.OperationType.TRANSFER
+            operationType = OperationLocal.Type.TRANSFER
         )
 
     private suspend fun updateAssetRates(

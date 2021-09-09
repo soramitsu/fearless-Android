@@ -11,18 +11,26 @@ import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import kotlinx.android.synthetic.main.fragment_extrinsic_details.*
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailCall
+import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailDate
+import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailFee
+import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailFrom
+import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailHash
+import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailModule
+import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailStatus
+import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailStatusIcon
+import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailToolbar
 
 private const val KEY_EXTRINSIC = "KEY_EXTRINSIC"
 
 class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     companion object {
-        fun getBundle(operation: OperationParcelizeModel.ExtrinsicModel) = Bundle().apply {
+        fun getBundle(operation: OperationParcelizeModel.Extrinsic) = Bundle().apply {
             putParcelable(KEY_EXTRINSIC, operation)
         }
     }
@@ -46,7 +54,7 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<OperationParcelizeModel.ExtrinsicModel>(KEY_EXTRINSIC)
+        val operation = argument<OperationParcelizeModel.Extrinsic>(KEY_EXTRINSIC)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -60,13 +68,12 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     override fun subscribe(viewModel: ExtrinsicDetailViewModel) {
         with(viewModel.operation) {
             extrinsicDetailHash.setMessage(hash)
-            extrinsicDetailFrom.setMessage(accountName ?: address)
-            extrinsicDetailStatus.setText(messageId)
-            extrinsicDetailStatusIcon.setImageResource(iconId)
+            extrinsicDetailStatus.setText(statusAppearance.labelRes)
+            extrinsicDetailStatusIcon.setImageResource(statusAppearance.icon)
             extrinsicDetailDate.text = time.formatDateTime(requireContext())
-            extrinsicDetailModule.text = operationHeader
-            extrinsicDetailCall.text =  elementDescription
-            extrinsicDetailFee.text = formattedFee
+            extrinsicDetailModule.text = module
+            extrinsicDetailCall.text =  call
+            extrinsicDetailFee.text = fee
         }
 
         viewModel.showExternalExtrinsicActionsEvent.observeEvent(::showExternalActions)
@@ -81,7 +88,7 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
-            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(viewModel.operation.displayAddress)
+            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(viewModel.operation.originAddress)
         }
     }
 
@@ -110,7 +117,7 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                networkType = viewModel.operation.address.networkType()
+                networkType = viewModel.operation.originAddress.networkType()
             )
         )
 

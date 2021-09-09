@@ -3,23 +3,27 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mix
 import android.util.Log
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToParcel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionStateMachine.Action
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionStateMachine.State
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -34,6 +38,8 @@ class TransactionHistoryProvider(
     private val iconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
     private val historyFiltersProvider: HistoryFiltersProvider,
+    private val resourceManager: ResourceManager,
+    private val addressDisplayUseCase: AddressDisplayUseCase,
 ) : TransactionHistoryMixin, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     private val domainState = MutableStateFlow<State>(
@@ -58,25 +64,33 @@ class TransactionHistoryProvider(
     }
 
     override fun scrolled(currentIndex: Int) {
-        launch {  performTransition(Action.Scrolled(currentIndex)) }
+        launch { performTransition(Action.Scrolled(currentIndex)) }
     }
 
     override suspend fun syncFirstOperationsPage(): Result<*> {
         return walletInteractor.syncOperationsFirstPage(TransactionStateMachine.PAGE_SIZE, filters = historyFiltersProvider.allFilters)
     }
 
-    override fun transactionClicked(transactionModel: OperationParcelizeModel) {
-        when (transactionModel) {
-            is OperationParcelizeModel.TransferModel -> {
-                router.openTransferDetail(transactionModel)
-            }
+    override fun transactionClicked(operationUi: OperationModel) {
+        launch {
+            val operations = (domainState.first() as? State.WithData)?.data ?: return@launch
 
-            is OperationParcelizeModel.ExtrinsicModel -> {
-                router.openExtrinsicDetail(transactionModel)
-            }
+            val clickedOperation = operations.first { it.hash == operationUi.hash }
 
-            is OperationParcelizeModel.RewardModel -> {
-                router.openRewardDetail(transactionModel)
+            withContext(Dispatchers.Main) {
+                when (val payload = mapOperationToParcel(clickedOperation)) {
+                    is OperationParcelizeModel.Transfer -> {
+                        router.openTransferDetail(payload)
+                    }
+
+                    is OperationParcelizeModel.Extrinsic -> {
+                        router.openExtrinsicDetail(payload)
+                    }
+
+                    is OperationParcelizeModel.Reward -> {
+                        router.openRewardDetail(payload)
+                    }
+                }
             }
         }
     }
@@ -101,7 +115,7 @@ class TransactionHistoryProvider(
         val cached = cachedPage.replayCache.firstOrNull()
 
         cached?.let {
-            launch {  performTransition(Action.CachePageArrived(cached)) }
+            launch { performTransition(Action.CachePageArrived(cached)) }
         }
     }
 
@@ -117,7 +131,7 @@ class TransactionHistoryProvider(
     }
 
     private suspend fun mapOperationHistoryStateToUi(state: State): TransactionHistoryUi.State {
-        return when(state) {
+        return when (state) {
             is State.Empty -> TransactionHistoryUi.State.Empty
             is State.EmptyProgress -> TransactionHistoryUi.State.EmptyProgress
             is State.Data -> TransactionHistoryUi.State.Data(transformData(state.data))
@@ -126,22 +140,19 @@ class TransactionHistoryProvider(
         }
     }
 
-    private suspend fun transformData(data: List<Operation>) : List<Any>  {
-        val operations = data.map(::mapOperationToOperationModel)
+    private suspend fun transformData(data: List<Operation>): List<Any> {
+        val accountIdentifier = addressDisplayUseCase.createIdentifier()
 
-        val filteredHistoryElements = operations.map { transaction ->
-            val addressModel = createIcon(transaction.getDisplayAddress(), transaction.accountName)
-
-            val result = OperationHistoryElement(addressModel, transaction)
-            result
+        val operations = data.map {
+            mapOperationToOperationModel(it, accountIdentifier, resourceManager, iconGenerator)
         }
 
-        return regroup(filteredHistoryElements)
+        return regroup(operations)
     }
 
-    private fun regroup(operations: List<OperationHistoryElement>): List<Any> {
+    private fun regroup(operations: List<OperationModel>): List<Any> {
 
-        return operations.groupBy { it.transactionModel.time.daysFromMillis() }
+        return operations.groupBy { it.time.daysFromMillis() }
             .map { (daysSinceEpoch, transactions) ->
                 val header = DayHeader(daysSinceEpoch)
 

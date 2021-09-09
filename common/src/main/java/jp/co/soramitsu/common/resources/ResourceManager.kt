@@ -1,5 +1,7 @@
 package jp.co.soramitsu.common.resources
 
+import android.graphics.drawable.Drawable
+import androidx.annotation.DrawableRes
 import jp.co.soramitsu.common.R
 
 interface ResourceManager {
@@ -18,6 +20,8 @@ interface ResourceManager {
     fun formatDate(timestamp: Long): String
 
     fun formatDuration(elapsedTime: Long): String
+
+    fun getDrawable(@DrawableRes id: Int): Drawable
 }
 
 fun ResourceManager.formatTimeLeft(elapsedTimeInMillis: Long): String {

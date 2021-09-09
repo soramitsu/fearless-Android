@@ -23,7 +23,7 @@ class RewardDetailModule {
     @IntoMap
     @ViewModelKey(RewardDetailViewModel::class)
     fun provideViewModel(
-        operationModel: OperationParcelizeModel.RewardModel,
+        operation: OperationParcelizeModel.Reward,
         appLinksProvider: AppLinksProvider,
         clipboardManager: ClipboardManager,
         resourceManager: ResourceManager,
@@ -32,7 +32,7 @@ class RewardDetailModule {
         router: WalletRouter
     ): ViewModel {
         return RewardDetailViewModel(
-            operationModel,
+            operation,
             appLinksProvider,
             clipboardManager,
             resourceManager,

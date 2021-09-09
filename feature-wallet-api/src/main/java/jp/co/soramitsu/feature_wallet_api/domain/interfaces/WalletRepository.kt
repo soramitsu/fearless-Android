@@ -27,19 +27,17 @@ interface WalletRepository {
     suspend fun syncOperationsFirstPage(
         pageSize: Int,
         filters: Set<TransactionFilter>,
-        account: WalletAccount,
-        accounts: List<WalletAccount>
+        account: WalletAccount
     )
 
     suspend fun getOperations(
         pageSize: Int,
         cursor: String?,
         filters: Set<TransactionFilter>,
-        currentAccount: WalletAccount,
-        accounts: List<WalletAccount>
+        currentAccount: WalletAccount
     ): CursorPage<Operation>
 
-    fun operationsFirstPageFlow(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<CursorPage<Operation>>
+    fun operationsFirstPageFlow(currentAccount: WalletAccount): Flow<CursorPage<Operation>>
 
     suspend fun getContacts(account: WalletAccount, query: String): Set<String>
 
