@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.model.request
 
 import android.annotation.SuppressLint
-import android.util.Log
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.allFiltersIncluded
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryExpressions.and
@@ -80,8 +79,6 @@ class SubqueryHistoryRequest(
         }
 
         val result = anyOf(typeExpressions)
-
-        Log.d("RX", result)
 
         return result
     }
