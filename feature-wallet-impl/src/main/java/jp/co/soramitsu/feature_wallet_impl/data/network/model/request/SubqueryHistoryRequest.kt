@@ -1,8 +1,29 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.model.request
 
 import android.annotation.SuppressLint
+import android.util.Log
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.allFiltersIncluded
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryExpressions.and
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryExpressions.anyOf
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryExpressions.not
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryExpressions.or
+
+private class ModuleRestriction(
+    val moduleName: String,
+    val restrictedCalls: List<String>
+)
+
+private val EXTRINSIC_RESTRICTIONS = listOf(
+    ModuleRestriction(
+        moduleName = "balances",
+        restrictedCalls = listOf(
+            "transfer",
+            "transferKeepAlive",
+            "forceTransfer"
+        )
+    )
+)
 
 class SubqueryHistoryRequest(
     accountAddress: String,
@@ -50,10 +71,44 @@ class SubqueryHistoryRequest(
             return ""
         }
 
-        return joinToString(prefix = "or: [", postfix = "]", separator = ",") {
-            "{ ${it.filterName}: {  notEqualTo: \"null\" } }"
+        val typeExpressions = map {
+            if (it == TransactionFilter.EXTRINSIC) {
+                createExtrinsicExpression()
+            } else {
+                hasType(it.filterName)
+            }
         }
+
+        val result = anyOf(typeExpressions)
+
+        Log.d("RX", result)
+
+        return result
     }
+
+    private fun createExtrinsicExpression(): String {
+        val exists = hasType(TransactionFilter.EXTRINSIC.filterName)
+
+        val restrictedModulesList = EXTRINSIC_RESTRICTIONS.map {
+            val restrictedCallsExpressions = it.restrictedCalls.map(::callNamed)
+
+            and(
+                moduleNamed(it.moduleName),
+                anyOf(restrictedCallsExpressions)
+            )
+        }
+
+        val hasRestrictedModules = or(restrictedModulesList)
+
+        return and(
+            exists,
+            not(hasRestrictedModules)
+        )
+    }
+
+    private fun callNamed(callName: String) = "extrinsic: {contains: {call: \"$callName\"}}"
+    private fun moduleNamed(moduleName: String) = "extrinsic: {contains: {module: \"$moduleName\"}}"
+    private fun hasType(typeName: String) = "$typeName: {isNull: false}"
 
     private val TransactionFilter.filterName
         @SuppressLint("DefaultLocale")
