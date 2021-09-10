@@ -26,6 +26,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodeToOperation
@@ -33,7 +34,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationLocalToOpera
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationLocalDb
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryElementByAddressRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.WalletNetworkApi
@@ -127,7 +128,7 @@ class WalletRepositoryImpl(
 
             val response = walletApi.getOperationsHistory(
                 path,
-                SubqueryHistoryElementByAddressRequest(
+                SubqueryHistoryRequest(
                     currentAccount.address,
                     pageSize,
                     cursor,
@@ -221,19 +222,16 @@ class WalletRepositoryImpl(
     }
 
     private fun createOperation(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal, source: OperationLocal.Source) =
-        OperationLocal(
+        OperationLocal.manualTransfer(
             hash = hash,
-            address = senderAddress,
-            time = System.currentTimeMillis(),
+            accountAddress = senderAddress,
             tokenType = mapTokenTypeToTokenTypeLocal(transfer.tokenType),
-            call = null,
-            amount = transfer.amount.toBigInteger(),
-            sender = senderAddress,
-            receiver = transfer.recipient,
-            fee = fee.toBigInteger(),
+            amount = transfer.amountInPlanks,
+            senderAddress = senderAddress,
+            receiverAddress = transfer.recipient,
+            fee = transfer.tokenType.planksFromAmount(fee),
             status = OperationLocal.Status.PENDING,
-            source = source,
-            operationType = OperationLocal.Type.TRANSFER
+            source = source
         )
 
     private suspend fun updateAssetRates(

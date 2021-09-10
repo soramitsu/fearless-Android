@@ -28,12 +28,13 @@ data class Operation(
         ) : Type()
 
         data class Transfer(
+            val hash: String?,
             val myAddress: String,
             val amount: BigInteger,
             val receiver: String,
             val sender: String,
             val status: Status,
-            val fee: BigInteger,
+            val fee: BigInteger?,
         ) : Type()
     }
 

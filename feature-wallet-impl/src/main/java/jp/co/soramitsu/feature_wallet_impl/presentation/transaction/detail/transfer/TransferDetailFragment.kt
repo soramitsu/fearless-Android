@@ -109,7 +109,11 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             transactionDetailAmount.text = amount
             transactionDetailAmount.setTextColorRes(amountColorRes(this))
 
-            transactionDetailHash.setMessage(hash)
+            if (hash != null) {
+                transactionDetailHash.setMessage(hash)
+            } else {
+                transactionDetailHash.makeGone()
+            }
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->
@@ -179,7 +183,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     private fun showExternalTransactionActions() {
         showExternalActionsSheet(
             R.string.transaction_details_copy_hash,
-            viewModel.operation.hash,
+            viewModel.operation.hash!!,
             viewModel::viewTransactionExternalClicked
         )
     }

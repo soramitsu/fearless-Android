@@ -53,6 +53,13 @@ private val Operation.Type.operationFee
         is Operation.Type.Transfer -> fee
     }
 
+private val Operation.Type.hash
+    get() = when (this) {
+        is Operation.Type.Extrinsic -> hash
+        is Operation.Type.Transfer -> hash
+        is Operation.Type.Reward -> null
+    }
+
 private fun Operation.rewardOrNull() = type as? Operation.Type.Reward
 private fun Operation.transferOrNull() = type as? Operation.Type.Transfer
 private fun Operation.extrinsicOrNull() = type as? Operation.Type.Extrinsic
@@ -67,7 +74,7 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
 
     return with(operation) {
         OperationLocal(
-            hash = id,
+            id = id,
             address = address,
             time = time,
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
@@ -79,6 +86,7 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
             source = source,
             operationType = typeLocal,
             sender = transferOrNull()?.sender,
+            hash = type.hash,
             receiver = transferOrNull()?.receiver,
             isReward = rewardOrNull()?.isReward,
             era = rewardOrNull()?.era,
@@ -91,7 +99,7 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal): Operation {
     with(operationLocal) {
         val operationType = when (operationType) {
             OperationLocal.Type.EXTRINSIC -> Operation.Type.Extrinsic(
-                hash = hash,
+                hash = hash!!,
                 module = module!!,
                 call = call!!,
                 fee = fee!!,
@@ -103,8 +111,9 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal): Operation {
                 amount = amount!!,
                 receiver = receiver!!,
                 sender = sender!!,
-                fee = fee!!,
-                status = mapOperationStatusLocalToOperationStatus(status)
+                fee = fee,
+                status = mapOperationStatusLocalToOperationStatus(status),
+                hash = hash
             )
 
             OperationLocal.Type.REWARD -> Operation.Type.Reward(
@@ -116,7 +125,7 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal): Operation {
         }
 
         return Operation(
-            id = hash,
+            id = id,
             address = address,
             type = operationType,
             time = time,
@@ -158,7 +167,8 @@ fun mapNodeToOperation(
                 receiver = to,
                 sender = from,
                 fee = fee,
-                status = Operation.Status.fromSuccess(success)
+                status = Operation.Status.fromSuccess(success),
+                hash = extrinsicHash
             )
         }
 
@@ -236,7 +246,7 @@ suspend fun mapOperationToOperationModel(
         when (val operationType = type) {
             is Operation.Type.Reward -> {
                 OperationModel(
-                    hash = id,
+                    id = id,
                     time = time,
                     amount = formatAmount(tokenType, operationType),
                     amountColorRes = if (operationType.isReward) R.color.green else R.color.white,
@@ -257,7 +267,7 @@ suspend fun mapOperationToOperationModel(
                 }
 
                 OperationModel(
-                    hash = id,
+                    id = id,
                     time = time,
                     amount = formatAmount(tokenType, operationType),
                     amountColorRes = amountColor,
@@ -273,7 +283,7 @@ suspend fun mapOperationToOperationModel(
                 val amountColor = if (operationType.status == Operation.Status.FAILED) R.color.gray2 else R.color.white
 
                 OperationModel(
-                    hash = id,
+                    id = id,
                     time = time,
                     amount = formatFee(tokenType, operationType),
                     amountColorRes = amountColor,
@@ -287,21 +297,30 @@ suspend fun mapOperationToOperationModel(
     }
 }
 
-fun mapOperationToParcel(operation: Operation): OperationParcelizeModel {
+fun mapOperationToParcel(
+    operation: Operation,
+    resourceManager: ResourceManager
+): OperationParcelizeModel {
     with(operation) {
         return when (val operationType = operation.type) {
             is Operation.Type.Transfer -> {
 
-                val total = operationType.amount + operationType.fee
+                val feeOrZero = operationType.fee ?: BigInteger.ZERO
+
+                val feeFormatted = operationType.fee?.let {
+                    tokenType.formatPlanks(it, negative = true)
+                } ?: resourceManager.getString(R.string.common_unknown)
+
+                val total = operationType.amount + feeOrZero
 
                 OperationParcelizeModel.Transfer(
                     time = time,
                     address = address,
-                    hash = id,
+                    hash = operationType.hash,
                     amount = formatAmount(operation.tokenType, operationType),
                     receiver = operationType.receiver,
                     sender = operationType.sender,
-                    fee = tokenType.formatPlanks(operationType.fee, negative = true),
+                    fee = feeFormatted,
                     isIncome = operationType.isIncome,
                     total = tokenType.formatPlanks(total, negative = !operationType.isIncome),
                     statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
@@ -324,7 +343,7 @@ fun mapOperationToParcel(operation: Operation): OperationParcelizeModel {
                 OperationParcelizeModel.Extrinsic(
                     time = time,
                     originAddress = address,
-                    hash = id,
+                    hash = operationType.hash,
                     module = operationType.formattedModule(),
                     call = operationType.formattedCall(),
                     fee = formatFee(tokenType, operationType),

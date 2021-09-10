@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.allFiltersIncluded
 
-class SubqueryHistoryElementByAddressRequest(
+class SubqueryHistoryRequest(
     accountAddress: String,
     pageSize: Int = 1,
     cursor: String? = null,

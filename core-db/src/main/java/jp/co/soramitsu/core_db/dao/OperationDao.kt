@@ -1,5 +1,6 @@
 package jp.co.soramitsu.core_db.dao
 
+import android.util.Log
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -39,7 +40,15 @@ abstract class OperationDao {
 
     @Transaction
     open suspend fun insertFromSubquery(accountAddress: String, operations: List<OperationLocal>) {
-        clear(accountAddress, OperationLocal.Source.SUBQUERY)
+        clearBySource(accountAddress, OperationLocal.Source.SUBQUERY)
+
+        val operationsWithHashes = operations.mapNotNullTo(mutableSetOf(), OperationLocal::hash)
+
+        if (operationsWithHashes.isNotEmpty()) {
+            val cleared = clearByHashes(accountAddress, operationsWithHashes)
+
+            Log.d("RX", "Cleared: $cleared")
+        }
 
         val oldest = operations.minByOrNull(OperationLocal::time)
         oldest?.let {
@@ -50,8 +59,11 @@ abstract class OperationDao {
     }
 
     @Query("DELETE FROM operations WHERE address = :accountAddress AND source = :source")
-    protected abstract suspend fun clear(accountAddress: String, source: OperationLocal.Source): Int
+    protected abstract suspend fun clearBySource(accountAddress: String, source: OperationLocal.Source): Int
 
     @Query("DELETE FROM operations WHERE time < :minTime AND address = :accountAddress")
     protected abstract suspend fun clearOld(accountAddress: String, minTime: Long): Int
+
+    @Query("DELETE FROM operations WHERE address = :accountAddress AND hash in (:hashes)")
+    protected abstract suspend fun clearByHashes(accountAddress: String, hashes: Set<String>): Int
 }

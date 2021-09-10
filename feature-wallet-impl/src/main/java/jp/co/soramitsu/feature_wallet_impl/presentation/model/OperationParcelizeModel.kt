@@ -31,7 +31,7 @@ sealed class OperationParcelizeModel : Parcelable {
     class Transfer(
         val time: Long,
         val address: String,
-        val hash: String,
+        val hash: String?,
         val isIncome: Boolean,
         val amount: String,
         val total: String,

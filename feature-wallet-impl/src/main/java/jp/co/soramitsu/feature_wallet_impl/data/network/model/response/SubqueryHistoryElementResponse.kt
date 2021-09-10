@@ -33,7 +33,7 @@ class SubqueryHistoryElementResponse(val query: Query) {
                     val fee: BigInteger,
                     val block: String,
                     val success: Boolean,
-                    val extrinsicId: String
+                    val extrinsicHash: String? // nullable since not all transfers not hash hash on SubQuery
                 )
 
                 class Extrinsic(

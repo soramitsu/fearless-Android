@@ -4,7 +4,7 @@ import android.graphics.drawable.Drawable
 import androidx.annotation.ColorRes
 
 class OperationModel(
-    val hash: String,
+    val id: String,
     val time: Long,
     val amount: String,
     @ColorRes val amountColorRes: Int,

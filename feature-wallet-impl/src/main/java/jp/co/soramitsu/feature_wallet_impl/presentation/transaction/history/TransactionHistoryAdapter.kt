@@ -94,7 +94,7 @@ object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, Opera
     }
 
     override fun areChildItemsTheSame(oldItem: OperationModel, newItem: OperationModel): Boolean {
-        return oldItem.hash == newItem.hash
+        return oldItem.id == newItem.id
     }
 
     override fun areChildContentsTheSame(oldItem: OperationModel, newItem: OperationModel): Boolean {

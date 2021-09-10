@@ -72,14 +72,14 @@ class TransactionHistoryProvider(
         return walletInteractor.syncOperationsFirstPage(TransactionStateMachine.PAGE_SIZE, filters = historyFiltersProvider.allFilters)
     }
 
-    override fun transactionClicked(operationUi: OperationModel) {
+    override fun transactionClicked(transactionModel: OperationModel) {
         launch {
             val operations = (domainState.first() as? State.WithData)?.data ?: return@launch
 
-            val clickedOperation = operations.first { it.id == operationUi.hash }
+            val clickedOperation = operations.first { it.id == transactionModel.id }
 
             withContext(Dispatchers.Main) {
-                when (val payload = mapOperationToParcel(clickedOperation)) {
+                when (val payload = mapOperationToParcel(clickedOperation, resourceManager)) {
                     is OperationParcelizeModel.Transfer -> {
                         router.openTransferDetail(payload)
                     }

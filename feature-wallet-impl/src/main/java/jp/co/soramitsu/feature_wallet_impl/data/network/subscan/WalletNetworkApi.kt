@@ -4,7 +4,7 @@ import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
 import jp.co.soramitsu.common.data.network.subscan.SubscanResponse
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryElementByAddressRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 import retrofit2.http.Body
@@ -24,6 +24,6 @@ interface WalletNetworkApi {
     @POST("//api.subquery.network/sq/ef1rspb/{path}")
     suspend fun getOperationsHistory(
         @Path("path") path: String,
-        @Body body: SubqueryHistoryElementByAddressRequest
+        @Body body: SubqueryHistoryRequest
     ): SubQueryResponse<SubqueryHistoryElementResponse>
 }
