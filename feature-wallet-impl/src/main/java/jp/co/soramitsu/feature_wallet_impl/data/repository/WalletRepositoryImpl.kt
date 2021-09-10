@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
-import jp.co.soramitsu.common.data.network.subscan.subscanSubDomain
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
@@ -33,13 +32,11 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodeToOperation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationLocalToOperation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationLocalDb
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
 import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.WalletNetworkApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.getSubQueryPath
 import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -49,17 +46,18 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.util.Locale
+import kotlin.time.ExperimentalTime
 
-@Suppress("EXPERIMENTAL_API_USAGE")
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
     private val operationDao: OperationDao,
-    private val walletApi: WalletNetworkApi,
+    private val walletOperationsApi: SubQueryOperationsApi,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
     private val walletConstants: WalletConstants,
     private val phishingAddressDao: PhishingAddressDao,
+    private val cursorStorage: TransferCursorStorage,
     private val coingeckoApi: CoingeckoApi
 ) : WalletRepository {
 
@@ -123,9 +121,9 @@ class WalletRepositoryImpl(
         currentAccount: WalletAccount,
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
-            val path = currentAccount.address.networkType().getSubqueryEraValidatorInfos()
+            val path = currentAccount.address.networkType().getSubQueryPath()
 
-            val response = walletApi.getOperationsHistory(
+            val response = walletOperationsApi.getOperationsHistory(
                 path,
                 SubqueryHistoryRequest(
                     currentAccount.address,
@@ -204,21 +202,6 @@ class WalletRepositoryImpl(
 
     override suspend fun getAccountFreeBalance(accountAddress: String) =
         substrateSource.getAccountInfo(accountAddress).data.free
-
-    private fun defineAccountNameForTransaction(
-        accountsByAddress: Map<String, WalletAccount>,
-        currentAddress: String,
-        receiver: String?,
-        sender: String?,
-    ): String? {
-        val accountAddress = if (currentAddress == receiver) {
-            sender
-        } else {
-            receiver
-        }
-
-        return accountsByAddress[accountAddress ?: currentAddress]?.name
-    }
 
     private fun createOperation(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal, source: OperationLocal.Source) =
         OperationLocal.manualTransfer(

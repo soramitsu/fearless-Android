@@ -34,9 +34,9 @@ import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
-import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.WalletNetworkApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
@@ -57,8 +57,8 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideSubscanApi(networkApiCreator: NetworkApiCreator): WalletNetworkApi {
-        return networkApiCreator.create(WalletNetworkApi::class.java)
+    fun provideSubscanApi(networkApiCreator: NetworkApiCreator): SubQueryOperationsApi {
+        return networkApiCreator.create(SubQueryOperationsApi::class.java)
     }
 
     @Provides
@@ -114,7 +114,7 @@ class WalletFeatureModule {
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
         operationsDao: OperationDao,
-        walletNetworkApi: WalletNetworkApi,
+        subQueryOperationsApi: SubQueryOperationsApi,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingAddressDao: PhishingAddressDao,
@@ -125,13 +125,13 @@ class WalletFeatureModule {
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
-        walletNetworkApi,
+        subQueryOperationsApi,
         httpExceptionHandler,
         phishingApi,
         assetCache,
         walletConstants,
-        cursorStorage,
         phishingAddressDao,
+        cursorStorage,
         coingeckoApi
     )
 

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.subscan
+package jp.co.soramitsu.feature_wallet_impl.data.network.subquery
 
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryRequest
@@ -7,7 +7,7 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.Path
 
-interface WalletNetworkApi {
+interface SubQueryOperationsApi {
 
     @POST("//api.subquery.network/sq/ef1rspb/{path}")
     suspend fun getOperationsHistory(
