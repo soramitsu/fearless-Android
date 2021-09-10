@@ -1,6 +1,5 @@
 package jp.co.soramitsu.core_db.dao
 
-import android.util.Log
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -46,8 +45,6 @@ abstract class OperationDao {
 
         if (operationsWithHashes.isNotEmpty()) {
             val cleared = clearByHashes(accountAddress, operationsWithHashes)
-
-            Log.d("RX", "Cleared: $cleared")
         }
 
         val oldest = operations.minByOrNull(OperationLocal::time)

@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
-import android.util.Log
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
@@ -106,8 +105,6 @@ class TransactionHistoryProvider(
                 TransactionStateMachine.SideEffect.TriggerCache -> triggerCache()
             }
         }
-
-        Log.d("RX", "Transition ${action.javaClass.simpleName}: ${domainState.value.javaClass.simpleName} to ${newState.javaClass.simpleName}")
 
         domainState.value = newState
     }
