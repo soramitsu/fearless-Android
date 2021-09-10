@@ -99,7 +99,8 @@ class CurrentValidatorsViewModel(
 
         is NominatedValidator.Status.Group.Active -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_your_elected_format, statusGroup.numberOfValidators
+                resourceManager.getString(
+                    R.string.staking_your_elected_format, statusGroup.numberOfValidators
                 ),
                 R.color.green
             ),
@@ -121,7 +122,11 @@ class CurrentValidatorsViewModel(
 
         is NominatedValidator.Status.Group.WaitingForNextEra -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_custom_header_validators_title, statusGroup.numberOfValidators, statusGroup.maxValidatorsPerNominator),
+                resourceManager.getString(
+                    R.string.staking_custom_header_validators_title,
+                    statusGroup.numberOfValidators,
+                    statusGroup.maxValidatorsPerNominator
+                ),
                 R.color.black1
             ),
             resourceManager.getString(R.string.staking_your_validators_changing_title)
