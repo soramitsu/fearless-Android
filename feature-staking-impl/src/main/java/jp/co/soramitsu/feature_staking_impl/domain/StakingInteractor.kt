@@ -235,6 +235,8 @@ class StakingInteractor(
 
     suspend fun maxValidatorsPerNominator(): Int = stakingConstantsRepository.maxValidatorsPerNominator()
 
+    suspend fun maxRewardedNominators(): Int = stakingConstantsRepository.maxRewardedNominatorPerValidator()
+
     fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
         return selectedAccountStakingStateFlow()
             .filterIsInstance<StakingState.Stash>()

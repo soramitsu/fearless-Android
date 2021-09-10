@@ -43,8 +43,6 @@ class CurrentValidatorsInteractor(
 
             val nominatedValidatorIds = nominatorState.nominations.targets.mapTo(mutableSetOf(), ByteArray::toHexString)
 
-            val allValidators = activeNominations.keys + nominatedValidatorIds
-
             val isWaitingForNextEra = nominatorState.nominations.isWaiting(activeEra)
 
             val waitingForNextEraGroup = Status.Group.WaitingForNextEra(
@@ -54,7 +52,7 @@ class CurrentValidatorsInteractor(
             val maxRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
             validatorProvider.getValidators(
-                ValidatorSource.Custom(allValidators.toList()),
+                ValidatorSource.Custom(nominatedValidatorIds.toList()),
                 cachedExposures = exposures
             )
                 .map { validator ->
