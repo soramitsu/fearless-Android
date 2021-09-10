@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
-import jp.co.soramitsu.common.data.network.subscan.SubscanResponse
+import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
 import jp.co.soramitsu.common.data.network.subscan.subscanSubDomain
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
@@ -30,18 +30,17 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTra
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.AssetPriceRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.AssetPriceStatistics
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.util.Locale
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 class WalletRepositoryImpl(
@@ -52,7 +51,8 @@ class WalletRepositoryImpl(
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
     private val walletConstants: WalletConstants,
-    private val phishingAddressDao: PhishingAddressDao
+    private val phishingAddressDao: PhishingAddressDao,
+    private val coingeckoApi: CoingeckoApi
 ) : WalletRepository {
 
     override fun assetsFlow(accountAddress: String): Flow<List<Asset>> {
@@ -62,11 +62,9 @@ class WalletRepositoryImpl(
 
     override suspend fun syncAssetsRates(account: WalletAccount) = coroutineScope {
         val networkType = account.network.type
+        val priceStats = getAssetPriceCoingecko(networkType)
 
-        val currentPriceStatsDeferred = async { getAssetPrice(networkType, AssetPriceRequest.createForNow()) }
-        val yesterdayPriceStatsDeferred = async { getAssetPrice(networkType, AssetPriceRequest.createForYesterday()) }
-
-        updateAssetRates(account, currentPriceStatsDeferred.await(), yesterdayPriceStatsDeferred.await())
+        updateAssetRates(account, priceStats)
     }
 
     override fun assetFlow(accountAddress: String, type: Token.Type): Flow<Asset> {
@@ -219,22 +217,16 @@ class WalletRepositoryImpl(
 
     private suspend fun updateAssetRates(
         account: WalletAccount,
-        todayResponse: SubscanResponse<AssetPriceStatistics>?,
-        yesterdayResponse: SubscanResponse<AssetPriceStatistics>?
+        priceStats: Map<String, PriceInfo>?
     ) = assetCache.updateToken(account.address.networkType()) { cached ->
-        val todayStats = todayResponse?.content
-        val yesterdayStats = yesterdayResponse?.content
+        val network = account.address.networkType().toString().toLowerCase(Locale.ROOT)
 
-        var mostRecentPrice = todayStats?.price
+        val price = priceStats?.get(network)?.price
 
-        if (mostRecentPrice == null) {
-            mostRecentPrice = cached.dollarRate
-        }
-
-        val change = todayStats?.calculateRateChange(yesterdayStats)
+        val change = priceStats?.get(network)?.rateChange
 
         cached.copy(
-            dollarRate = mostRecentPrice,
+            dollarRate = price,
             recentRateChange = change
         )
     }
@@ -250,12 +242,8 @@ class WalletRepositoryImpl(
             }
     }
 
-    private suspend fun getAssetPrice(networkType: Node.NetworkType, request: AssetPriceRequest): SubscanResponse<AssetPriceStatistics> {
-        return try {
-            apiCall { subscanApi.getAssetPrice(networkType.subscanSubDomain(), request) }
-        } catch (_: Exception) {
-            SubscanResponse.createEmptyResponse()
-        }
+    private suspend fun getAssetPriceCoingecko(networkType: Node.NetworkType): Map<String, PriceInfo> {
+        return apiCall { coingeckoApi.getAssetPrice(networkType.toString(), "usd", true) }
     }
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
