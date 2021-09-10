@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-
 class BalanceDetailViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,

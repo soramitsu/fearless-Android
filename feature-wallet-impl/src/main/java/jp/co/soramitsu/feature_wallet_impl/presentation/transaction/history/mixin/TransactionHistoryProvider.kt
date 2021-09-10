@@ -76,7 +76,7 @@ class TransactionHistoryProvider(
         launch {
             val operations = (domainState.first() as? State.WithData)?.data ?: return@launch
 
-            val clickedOperation = operations.first { it.hash == operationUi.hash }
+            val clickedOperation = operations.first { it.id == operationUi.hash }
 
             withContext(Dispatchers.Main) {
                 when (val payload = mapOperationToParcel(clickedOperation)) {

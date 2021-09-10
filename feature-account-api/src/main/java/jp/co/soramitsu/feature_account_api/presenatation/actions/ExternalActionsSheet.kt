@@ -50,7 +50,7 @@ open class ExternalActionsSheet(
         }
     }
 
-    private fun ExternalAnalyzer.isSupported(payload: Payload) : Boolean {
+    private fun ExternalAnalyzer.isSupported(payload: Payload): Boolean {
         return isNetworkSupported(payload.content.networkType) and (this !in payload.forceForbid)
     }
 }

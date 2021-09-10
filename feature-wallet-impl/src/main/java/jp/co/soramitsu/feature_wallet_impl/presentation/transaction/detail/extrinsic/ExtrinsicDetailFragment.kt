@@ -72,7 +72,7 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
             extrinsicDetailStatusIcon.setImageResource(statusAppearance.icon)
             extrinsicDetailDate.text = time.formatDateTime(requireContext())
             extrinsicDetailModule.text = module
-            extrinsicDetailCall.text =  call
+            extrinsicDetailCall.text = call
             extrinsicDetailFee.text = fee
         }
 

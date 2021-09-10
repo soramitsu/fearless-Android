@@ -67,7 +67,7 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
 
     return with(operation) {
         OperationLocal(
-            hash = hash,
+            hash = id,
             address = address,
             time = time,
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
@@ -116,7 +116,7 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal): Operation {
         }
 
         return Operation(
-            hash = hash,
+            id = hash,
             address = address,
             type = operationType,
             time = time,
@@ -166,7 +166,7 @@ fun mapNodeToOperation(
     }
 
     return Operation(
-        hash = node.id,
+        id = node.id,
         address = node.address,
         type = type,
         time = node.timestamp.toLong().seconds.toLongMilliseconds(),
@@ -236,7 +236,7 @@ suspend fun mapOperationToOperationModel(
         when (val operationType = type) {
             is Operation.Type.Reward -> {
                 OperationModel(
-                    hash = hash,
+                    hash = id,
                     time = time,
                     amount = formatAmount(tokenType, operationType),
                     amountColorRes = if (operationType.isReward) R.color.green else R.color.white,
@@ -257,7 +257,7 @@ suspend fun mapOperationToOperationModel(
                 }
 
                 OperationModel(
-                    hash = hash,
+                    hash = id,
                     time = time,
                     amount = formatAmount(tokenType, operationType),
                     amountColorRes = amountColor,
@@ -273,7 +273,7 @@ suspend fun mapOperationToOperationModel(
                 val amountColor = if (operationType.status == Operation.Status.FAILED) R.color.gray2 else R.color.white
 
                 OperationModel(
-                    hash = hash,
+                    hash = id,
                     time = time,
                     amount = formatFee(tokenType, operationType),
                     amountColorRes = amountColor,
@@ -297,7 +297,7 @@ fun mapOperationToParcel(operation: Operation): OperationParcelizeModel {
                 OperationParcelizeModel.Transfer(
                     time = time,
                     address = address,
-                    hash = hash,
+                    hash = id,
                     amount = formatAmount(operation.tokenType, operationType),
                     receiver = operationType.receiver,
                     sender = operationType.sender,
@@ -310,7 +310,7 @@ fun mapOperationToParcel(operation: Operation): OperationParcelizeModel {
 
             is Operation.Type.Reward -> {
                 OperationParcelizeModel.Reward(
-                    eventId = hash,
+                    eventId = id,
                     address = address,
                     time = time,
                     amount = formatAmount(tokenType, operationType),
@@ -324,7 +324,7 @@ fun mapOperationToParcel(operation: Operation): OperationParcelizeModel {
                 OperationParcelizeModel.Extrinsic(
                     time = time,
                     originAddress = address,
-                    hash = hash,
+                    hash = id,
                     module = operationType.formattedModule(),
                     call = operationType.formattedCall(),
                     fee = formatFee(tokenType, operationType),

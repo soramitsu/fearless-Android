@@ -5,7 +5,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.allFiltersIncluded
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 
-
 object TransactionStateMachine {
 
     const val PAGE_SIZE = 100
@@ -77,7 +76,7 @@ object TransactionStateMachine {
                 val nextCursor = action.newPage.nextCursor
 
                 when {
-                    !canUseCache(using = state.filters)-> {
+                    !canUseCache(using = state.filters) -> {
                         if (action.accountChanged) {
                             // trigger cold load for new account when not able to use cache
                             sideEffectListener(SideEffect.LoadPage(nextCursor = null, filters = state.filters))
@@ -161,4 +160,3 @@ object TransactionStateMachine {
 
     private fun canUseCache(using: Set<TransactionFilter>) = using.allFiltersIncluded()
 }
-

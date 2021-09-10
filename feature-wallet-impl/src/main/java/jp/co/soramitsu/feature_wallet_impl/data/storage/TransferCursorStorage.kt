@@ -16,7 +16,7 @@ class TransferCursorStorage(
 ) {
 
     fun saveCursor(address: String, cursor: String?) {
-        val toSave= cursor ?: NULL_CURSOR
+        val toSave = cursor ?: NULL_CURSOR
 
         preferences.putString(cursorKey(address), toSave)
     }

@@ -8,7 +8,8 @@ class SubqueryHistoryElementResponse(val query: Query) {
         class HistoryElements(val nodes: Array<Node>, val pageInfo: PageInfo) {
             class PageInfo(
                 val startCursor: String,
-                val endCursor: String?)
+                val endCursor: String?
+            )
 
             class Node(
                 val id: String,

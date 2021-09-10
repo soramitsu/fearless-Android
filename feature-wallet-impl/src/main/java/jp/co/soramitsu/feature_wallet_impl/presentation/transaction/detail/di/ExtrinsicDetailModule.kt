@@ -30,7 +30,7 @@ class ExtrinsicDetailModule {
         addressIconGenerator: AddressIconGenerator,
         router: WalletRouter,
         operation: OperationParcelizeModel.Extrinsic,
-        ): ViewModel {
+    ): ViewModel {
         return ExtrinsicDetailViewModel(
             appLinksProvider,
             clipboardManager,

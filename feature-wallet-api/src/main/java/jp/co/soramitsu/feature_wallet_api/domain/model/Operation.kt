@@ -3,12 +3,12 @@ package jp.co.soramitsu.feature_wallet_api.domain.model
 import java.math.BigInteger
 
 data class Operation(
-    val hash: String,
+    val id: String,
     val address: String,
     val type: Type,
     val time: Long,
-    val tokenType: Token.Type
-    ) {
+    val tokenType: Token.Type,
+) {
 
     sealed class Type {
 
@@ -17,14 +17,14 @@ data class Operation(
             val module: String,
             val call: String,
             val fee: BigInteger,
-            val status: Status
+            val status: Status,
         ) : Type()
 
         data class Reward(
             val amount: BigInteger,
             val isReward: Boolean,
             val era: Int,
-            val validator: String?
+            val validator: String?,
         ) : Type()
 
         data class Transfer(
@@ -33,7 +33,7 @@ data class Operation(
             val receiver: String,
             val sender: String,
             val status: Status,
-            val fee: BigInteger
+            val fee: BigInteger,
         ) : Type()
     }
 
