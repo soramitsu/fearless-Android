@@ -48,7 +48,7 @@ class CurrentValidatorsInteractor(
 
             val maxRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
-            validatorProvider.getValidators(
+            val groupedByStatusClass = validatorProvider.getValidators(
                 ValidatorSource.Custom(nominatedValidatorIds.toList()),
                 cachedExposures = exposures
             )
