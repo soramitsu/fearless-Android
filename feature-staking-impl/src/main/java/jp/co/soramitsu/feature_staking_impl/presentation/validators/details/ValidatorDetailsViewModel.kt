@@ -44,7 +44,7 @@ class ValidatorDetailsViewModel(
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    private val maxNominators = flowOf { interactor.maxValidatorsPerNominator() }
+    private val maxNominators = flowOf { interactor.maxRewardedNominators() }
         .inBackground()
 
     val validatorDetails = maxNominators.combine(assetFlow) { maxNominators, asset ->
