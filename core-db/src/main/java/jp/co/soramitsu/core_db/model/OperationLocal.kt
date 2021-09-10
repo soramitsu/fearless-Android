@@ -66,4 +66,3 @@ data class OperationLocal(
         )
     }
 }
-
