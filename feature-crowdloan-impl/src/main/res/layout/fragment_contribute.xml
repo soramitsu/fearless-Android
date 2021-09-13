@@ -159,6 +159,7 @@
 
             <jp.co.soramitsu.common.view.GoNextView
                 android:layout_width="match_parent"
+                app:actionIcon="@drawable/ic_arrow_top_right_white_16"
                 android:id="@+id/crowdloanContributeLearnMore"
                 android:layout_height="wrap_content" />
         </LinearLayout>

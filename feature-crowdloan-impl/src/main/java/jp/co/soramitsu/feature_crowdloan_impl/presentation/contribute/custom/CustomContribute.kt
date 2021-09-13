@@ -53,5 +53,5 @@ interface CustomContributeSubmitter {
 
 interface BonusPayload : Parcelable {
 
-    fun calculateBonus(amount: BigDecimal): BigDecimal
+    fun calculateBonus(amount: BigDecimal): BigDecimal?
 }

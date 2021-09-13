@@ -129,7 +129,7 @@ class CrowdloanContributeViewModel(
             is CustomContributionState.Active -> {
                 val bonus = contributionState.payload.calculateBonus(amount)
 
-                bonus.formatTokenAmount(contributionState.tokenName)
+                bonus?.formatTokenAmount(contributionState.tokenName)
             }
 
             is CustomContributionState.Inactive -> resourceManager.getString(R.string.crowdloan_empty_bonus_title)
@@ -165,9 +165,9 @@ class CrowdloanContributeViewModel(
 
     val estimatedRewardFlow = parsedAmountFlow.map { amount ->
         payload.parachainMetadata?.let { metadata ->
-            val estimatedReward = amount * metadata.rewardRate
+            val estimatedReward = metadata.rewardRate?.let { amount * it }
 
-            estimatedReward.formatTokenAmount(metadata.token)
+            estimatedReward?.formatTokenAmount(metadata.token)
         }
     }.share()
 
