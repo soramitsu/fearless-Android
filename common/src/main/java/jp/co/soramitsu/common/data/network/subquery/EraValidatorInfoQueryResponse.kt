@@ -11,13 +11,7 @@ class EraValidatorInfoQueryResponse(val query: EraValidatorInfo?) {
                 val era: BigInteger,
                 val total: String,
                 val own: String,
-                val others: List<Other>
-            ) {
-                class Other(
-                    val who: String,
-                    val value: String
-                )
-            }
+            )
         }
     }
 }
