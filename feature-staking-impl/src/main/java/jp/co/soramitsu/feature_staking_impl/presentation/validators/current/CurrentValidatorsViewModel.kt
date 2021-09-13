@@ -60,7 +60,7 @@ class CurrentValidatorsViewModel(
         .share()
 
     val currentValidatorModelsLiveData = groupedCurrentValidatorsFlow.combine(tokenFlow) { gropedList, token ->
-        gropedList.mapKeys { (statusGroup, validators) -> mapNominatedValidatorStatusToUiModel(statusGroup, validators.size) }
+        gropedList.mapKeys { (statusGroup, _) -> mapNominatedValidatorStatusToUiModel(statusGroup) }
             .mapValues { (_, nominatedValidators) -> nominatedValidators.map { mapNominatedValidatorToUiModel(it, token) } }
             .toListWithHeaders()
     }
@@ -69,9 +69,9 @@ class CurrentValidatorsViewModel(
         .asLiveData()
 
     val shouldShowOversubscribedNoRewardWarning = groupedCurrentValidatorsFlow.map { groupedList ->
-        val activeValidators = groupedList[NominatedValidator.Status.Group.Active] ?: return@map false
+        val (_, validators) = groupedList.entries.first { (group, _) -> group is NominatedValidator.Status.Group.Active }
 
-        activeValidators.any { (it.status as NominatedValidator.Status.Active).willUserBeRewarded.not() }
+        validators.any { (it.status as NominatedValidator.Status.Active).willUserBeRewarded.not() }
     }
         .inBackground()
         .share()
@@ -95,31 +95,38 @@ class CurrentValidatorsViewModel(
         )
     }
 
-    private fun mapNominatedValidatorStatusToUiModel(statusGroup: NominatedValidator.Status.Group, valuesSize: Int) = when (statusGroup) {
-        NominatedValidator.Status.Group.Active -> NominatedValidatorStatusModel(
+    private fun mapNominatedValidatorStatusToUiModel(statusGroup: NominatedValidator.Status.Group) = when (statusGroup) {
+
+        is NominatedValidator.Status.Group.Active -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_your_elected_format, valuesSize),
+                resourceManager.getString(
+                    R.string.staking_your_elected_format, statusGroup.numberOfValidators
+                ),
                 R.color.green
             ),
             resourceManager.getString(R.string.staking_your_allocated_description)
         )
 
-        NominatedValidator.Status.Group.Inactive -> NominatedValidatorStatusModel(
+        is NominatedValidator.Status.Group.Inactive -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_your_not_elected_format, valuesSize),
+                resourceManager.getString(R.string.staking_your_not_elected_format, statusGroup.numberOfValidators),
                 R.color.black1
             ),
             resourceManager.getString(R.string.staking_your_inactive_description)
         )
 
-        NominatedValidator.Status.Group.Elected -> NominatedValidatorStatusModel(
+        is NominatedValidator.Status.Group.Elected -> NominatedValidatorStatusModel(
             null,
             resourceManager.getString(R.string.staking_your_not_allocated_description)
         )
 
         is NominatedValidator.Status.Group.WaitingForNextEra -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_custom_header_validators_title, valuesSize, statusGroup.maxValidatorsPerNominator),
+                resourceManager.getString(
+                    R.string.staking_custom_header_validators_title,
+                    statusGroup.numberOfValidators,
+                    statusGroup.maxValidatorsPerNominator
+                ),
                 R.color.black1
             ),
             resourceManager.getString(R.string.staking_your_validators_changing_title)
