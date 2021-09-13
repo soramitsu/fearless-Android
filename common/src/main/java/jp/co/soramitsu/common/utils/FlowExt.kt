@@ -77,7 +77,7 @@ fun <T> Flow<T>.asLiveData(scope: CoroutineScope): LiveData<T> {
     return liveData
 }
 
-fun <T> viewModelSharedFlow() = MutableSharedFlow<T>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+fun <T> singleReplaySharedFlow() = MutableSharedFlow<T>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
 fun <T> Flow<T>.inBackground() = flowOn(Dispatchers.Default)
 

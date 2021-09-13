@@ -1,11 +1,13 @@
 package jp.co.soramitsu.common.resources
 
+import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.formatDateTime
+import jp.co.soramitsu.common.utils.getDrawableCompat
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
 
@@ -55,5 +57,9 @@ class ResourceManagerImpl(
                 DateUtils.formatElapsedTime(inSeconds)
             }
         }
+    }
+
+    override fun getDrawable(id: Int): Drawable {
+        return contextManager.getContext().getDrawableCompat(id)
     }
 }

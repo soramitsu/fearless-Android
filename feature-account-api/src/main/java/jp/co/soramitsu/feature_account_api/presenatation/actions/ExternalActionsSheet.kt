@@ -21,7 +21,8 @@ open class ExternalActionsSheet(
 
     class Payload(
         @StringRes val copyLabel: Int,
-        val content: ExternalAccountActions.Payload
+        val content: ExternalAccountActions.Payload,
+        val forceForbid: Set<ExternalAnalyzer> = emptySet(),
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,16 +37,20 @@ open class ExternalActionsSheet(
             onCopy(value)
         }
 
-        if (ExternalAnalyzer.POLKASCAN.isNetworkSupported(networkType)) {
+        if (ExternalAnalyzer.POLKASCAN.isSupported(payload)) {
             item(R.drawable.ic_globe_24, R.string.transaction_details_view_polkascan) {
                 onViewExternal(ExternalAnalyzer.POLKASCAN, value, networkType)
             }
         }
 
-        if (ExternalAnalyzer.SUBSCAN.isNetworkSupported(networkType)) {
+        if (ExternalAnalyzer.SUBSCAN.isSupported(payload)) {
             item(R.drawable.ic_globe_24, R.string.transaction_details_view_subscan) {
                 onViewExternal(ExternalAnalyzer.SUBSCAN, value, networkType)
             }
         }
+    }
+
+    private fun ExternalAnalyzer.isSupported(payload: Payload): Boolean {
+        return isNetworkSupported(payload.content.networkType) and (this !in payload.forceForbid)
     }
 }

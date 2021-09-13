@@ -14,8 +14,8 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.changeAccount.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.showState
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListActions
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
@@ -54,6 +54,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
 
         transfersContainer.setSlidingStateListener(this::setRefreshEnabled)
+        transfersContainer.setFilterClickListener { viewModel.filterClicked() }
 
         transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
 
@@ -98,7 +99,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         setupBuyIntegration(viewModel)
 
-        viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
+        viewModel.state.observe(transfersContainer::showState)
 
         viewModel.buyEnabledLiveData.observe(balanceListActions.buy::setEnabled)
 
@@ -114,10 +115,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         viewModel.hideRefreshEvent.observeEvent {
             walletContainer.isRefreshing = false
-        }
-
-        viewModel.showAccountChooser.observeEvent {
-            AccountChooserBottomSheetDialog(requireActivity(), it, viewModel::accountSelected).show()
         }
     }
 

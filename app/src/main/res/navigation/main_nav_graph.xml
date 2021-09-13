@@ -22,8 +22,24 @@
         app:popExitAnim="@anim/fragment_close_exit" />
 
     <action
-        android:id="@+id/open_transaction_detail"
-        app:destination="@id/transactionDetailFragment"
+        android:id="@+id/open_transfer_detail"
+        app:destination="@id/transferDetailFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <action
+        android:id="@+id/open_reward_detail"
+        app:destination="@id/rewardDetailFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <action
+        android:id="@+id/open_extrinsic_detail"
+        app:destination="@id/extrinsicDetailFragment"
         app:enterAnim="@anim/fragment_open_enter"
         app:exitAnim="@anim/fragment_open_exit"
         app:popEnterAnim="@anim/fragment_close_enter"
@@ -283,10 +299,22 @@
 
 
     <fragment
-        android:id="@+id/transactionDetailFragment"
-        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment"
-        android:label="TransactionDetailFragment"
-        tools:layout="@layout/fragment_transaction_details" />
+        android:id="@+id/transferDetailFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransferDetailFragment"
+        android:label="TransferDetailFragment"
+        tools:layout="@layout/fragment_transfer_details" />
+
+    <fragment
+        android:id="@+id/extrinsicDetailFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment"
+        android:label="ExtrinsicDetailFragment"
+        tools:layout="@layout/fragment_extrinsic_details" />
+
+    <fragment
+        android:id="@+id/rewardDetailFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailFragment"
+        android:label="RewardDetailFragment"
+        tools:layout="@layout/fragment_reward_slash_details" />
 
     <action
         android:id="@+id/openSelectAmount"
@@ -331,6 +359,19 @@
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
+
+    <action
+        android:id="@+id/action_mainFragment_to_filterFragment"
+        app:destination="@id/transactionHistoryFilterFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <fragment
+        android:id="@+id/transactionHistoryFilterFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.TransactionHistoryFilterFragment"
+        android:label="TransactionHistoryFilterFragment"/>
 
     <fragment
         android:id="@+id/confirmTransferFragment"

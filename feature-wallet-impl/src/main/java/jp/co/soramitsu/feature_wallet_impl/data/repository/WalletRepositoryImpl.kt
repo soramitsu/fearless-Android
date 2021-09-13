@@ -1,57 +1,63 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
+import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
-import jp.co.soramitsu.common.data.network.subscan.subscanSubDomain
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
-import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
+import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionLocalToTransaction
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionLocal
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransferToTransaction
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodeToOperation
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationLocalToOperation
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationLocalDb
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.TransactionHistoryRequest
+import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.getSubQueryPath
+import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.util.Locale
+import kotlin.time.ExperimentalTime
 
-@Suppress("EXPERIMENTAL_API_USAGE")
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
-    private val transactionsDao: TransactionDao,
-    private val subscanApi: SubscanNetworkApi,
+    private val operationDao: OperationDao,
+    private val walletOperationsApi: SubQueryOperationsApi,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
     private val walletConstants: WalletConstants,
     private val phishingAddressDao: PhishingAddressDao,
+    private val cursorStorage: TransferCursorStorage,
     private val coingeckoApi: CoingeckoApi
 ) : WalletRepository {
 
@@ -82,41 +88,66 @@ class WalletRepositoryImpl(
         return syncAssetsRates(account)
     }
 
-    override fun transactionsFirstPageFlow(currentAccount: WalletAccount, pageSize: Int, accounts: List<WalletAccount>): Flow<List<Transaction>> {
-        return observeTransactions(currentAccount, accounts)
+    override fun operationsFirstPageFlow(currentAccount: WalletAccount): Flow<CursorPage<Operation>> {
+        return operationDao.observe(currentAccount.address)
+            .mapList(::mapOperationLocalToOperation)
+            .mapLatest { operations ->
+                val cursor = cursorStorage.awaitCursor(currentAccount.address)
+
+                CursorPage(cursor, operations)
+            }
     }
 
-    override suspend fun syncTransactionsFirstPage(pageSize: Int, account: WalletAccount, accounts: List<WalletAccount>) {
-        val page = getTransactionPage(pageSize, 0, account, accounts)
+    @ExperimentalTime
+    override suspend fun syncOperationsFirstPage(
+        pageSize: Int,
+        filters: Set<TransactionFilter>,
+        account: WalletAccount,
+    ) {
+        val page = getOperations(pageSize, cursor = null, filters, account)
         val accountAddress = account.address
 
-        val toInsertLocally = page.map {
-            mapTransactionToTransactionLocal(it, accountAddress, TransactionLocal.Source.SUBSCAN)
-        }
+        val elements = page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
 
-        transactionsDao.insertFromSubScan(accountAddress, toInsertLocally)
+        operationDao.insertFromSubquery(accountAddress, elements)
+        cursorStorage.saveCursor(account.address, page.nextCursor)
     }
 
-    override suspend fun getTransactionPage(pageSize: Int, page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
+    @ExperimentalTime
+    override suspend fun getOperations(
+        pageSize: Int,
+        cursor: String?,
+        filters: Set<TransactionFilter>,
+        currentAccount: WalletAccount,
+    ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
-            val subDomain = currentAccount.network.type.subscanSubDomain()
-            val request = TransactionHistoryRequest(currentAccount.address, pageSize, page)
+            val path = currentAccount.address.networkType().getSubQueryPath()
 
-            val response = apiCall { subscanApi.getTransactionHistory(subDomain, request) }
+            val response = walletOperationsApi.getOperationsHistory(
+                path,
+                SubqueryHistoryRequest(
+                    currentAccount.address,
+                    pageSize,
+                    cursor,
+                    filters
+                )
+            ).data.query
 
-            val transfers = response.content?.transfers
-            val accountsByAddress = accounts.associateBy { it.address }
-            val transactions = transfers?.map {
-                val accountName = defineAccountNameForTransaction(accountsByAddress, currentAccount.address, it.from, it.to)
-                mapTransferToTransaction(it, currentAccount, accountName)
+            val pageInfo = response.historyElements.pageInfo
+
+            val tokenType = Token.Type.fromNetworkType(currentAccount.network.type)
+
+            val operations = response.historyElements.nodes.map {
+
+                mapNodeToOperation(it, tokenType)
             }
 
-            transactions ?: getCachedTransactions(page, currentAccount, accounts)
+            CursorPage(pageInfo.endCursor, operations)
         }
     }
 
     override suspend fun getContacts(account: WalletAccount, query: String): Set<String> {
-        return transactionsDao.getContacts(query, account.address).toSet()
+        return operationDao.getContacts(query, account.address).toSet()
     }
 
     override suspend fun getTransferFee(accountAddress: String, transfer: Transfer): Fee {
@@ -126,13 +157,11 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal) {
-        val transactionHash = substrateSource.performTransfer(accountAddress, transfer)
+        val operationHash = substrateSource.performTransfer(accountAddress, transfer)
 
-        val transaction = createTransaction(transactionHash, transfer, accountAddress, fee)
+        val operation = createOperation(operationHash, transfer, accountAddress, fee, OperationLocal.Source.APP)
 
-        val transactionLocal = mapTransactionToTransactionLocal(transaction, accountAddress, TransactionLocal.Source.APP)
-
-        transactionsDao.insert(transactionLocal)
+        operationDao.insert(operation)
     }
 
     override suspend fun checkTransferValidity(accountAddress: String, transfer: Transfer): TransferValidityStatus {
@@ -174,50 +203,22 @@ class WalletRepositoryImpl(
     override suspend fun getAccountFreeBalance(accountAddress: String) =
         substrateSource.getAccountInfo(accountAddress).data.free
 
-    private fun defineAccountNameForTransaction(
-        accountsByAddress: Map<String, WalletAccount>,
-        transactionAccountAddress: String,
-        recipientAddress: String,
-        senderAddress: String
-    ): String? {
-        val accountAddress = if (transactionAccountAddress == recipientAddress) {
-            senderAddress
-        } else {
-            recipientAddress
-        }
-        return accountsByAddress[accountAddress]?.name
-    }
-
-    private fun createTransaction(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal) =
-        Transaction(
+    private fun createOperation(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal, source: OperationLocal.Source) =
+        OperationLocal.manualTransfer(
             hash = hash,
-            tokenType = transfer.tokenType,
+            accountAddress = senderAddress,
+            tokenType = mapTokenTypeToTokenTypeLocal(transfer.tokenType),
+            amount = transfer.amountInPlanks,
             senderAddress = senderAddress,
-            recipientAddress = transfer.recipient,
-            amount = transfer.amount,
-            date = System.currentTimeMillis(),
-            isIncome = false,
-            fee = fee,
-            status = Transaction.Status.PENDING,
-            accountName = null
+            receiverAddress = transfer.recipient,
+            fee = transfer.tokenType.planksFromAmount(fee),
+            status = OperationLocal.Status.PENDING,
+            source = source
         )
-
-    private suspend fun getCachedTransactions(page: Int, currentAccount: WalletAccount, accounts: List<WalletAccount>): List<Transaction> {
-        return if (page == 0) {
-            val accountsByAddress = accounts.associateBy { it.address }
-            transactionsDao.getTransactions(currentAccount.address)
-                .map {
-                    val accountName = defineAccountNameForTransaction(accountsByAddress, it.accountAddress, it.recipientAddress, it.senderAddress)
-                    mapTransactionLocalToTransaction(it, accountName)
-                }
-        } else {
-            emptyList()
-        }
-    }
 
     private suspend fun updateAssetRates(
         account: WalletAccount,
-        priceStats: Map<String, PriceInfo>?
+        priceStats: Map<String, PriceInfo>?,
     ) = assetCache.updateToken(account.address.networkType()) { cached ->
         val network = account.address.networkType().toString().toLowerCase(Locale.ROOT)
 
@@ -229,17 +230,6 @@ class WalletRepositoryImpl(
             dollarRate = price,
             recentRateChange = change
         )
-    }
-
-    private fun observeTransactions(currentAccount: WalletAccount, accounts: List<WalletAccount>): Flow<List<Transaction>> {
-        return transactionsDao.observeTransactions(currentAccount.address)
-            .map {
-                val accountsByAddress = accounts.associateBy { it.address }
-                it.map {
-                    val accountName = defineAccountNameForTransaction(accountsByAddress, it.accountAddress, it.recipientAddress, it.senderAddress)
-                    mapTransactionLocalToTransaction(it, accountName)
-                }
-            }
     }
 
     private suspend fun getAssetPriceCoingecko(networkType: Node.NetworkType): Map<String, PriceInfo> {

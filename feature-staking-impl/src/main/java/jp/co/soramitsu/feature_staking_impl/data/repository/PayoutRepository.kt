@@ -28,7 +28,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindTotalValidatorEraReward
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindValidatorPrefs
-import jp.co.soramitsu.feature_staking_impl.data.network.subscan.SubscanValidatorSetFetcher
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.SubQueryValidatorSetFetcher
 import java.math.BigInteger
 
 typealias HistoricalMapping<T> = Map<BigInteger, T> // EraIndex -> T
@@ -56,7 +56,7 @@ class PayoutRepository(
     private val stakingRepository: StakingRepository,
     private val bulkRetriever: BulkRetriever,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    private val validatorSetFetcher: SubscanValidatorSetFetcher,
+    private val validatorSetFetcher: SubQueryValidatorSetFetcher,
     private val storageCache: StorageCache,
 ) {
 
