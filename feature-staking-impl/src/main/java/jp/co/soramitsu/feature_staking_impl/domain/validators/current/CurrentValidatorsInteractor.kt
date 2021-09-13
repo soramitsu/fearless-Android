@@ -77,8 +77,8 @@ class CurrentValidatorsInteractor(
                 }
                 .groupBy { it.status::class }
 
-            val activeCount = with(groupedByStatusClass) { groupSize(Status.Active::class) + groupSize(Status.Elected::class) }
-            val activeGroup = Status.Group.Active(activeCount)
+            val totalElectiveCount = with(groupedByStatusClass) { groupSize(Status.Active::class) + groupSize(Status.Elected::class) }
+            val electedGroup = Status.Group.Active(totalElectiveCount)
 
             val waitingForNextEraGroup = Status.Group.WaitingForNextEra(
                 maxValidatorsPerNominator = stakingConstantsRepository.maxValidatorsPerNominator(),
@@ -87,7 +87,7 @@ class CurrentValidatorsInteractor(
 
             groupedByStatusClass.mapKeys { (statusClass, validators) ->
                 when (statusClass) {
-                    Status.Active::class -> activeGroup
+                    Status.Active::class -> electedGroup
                     Status.Elected::class -> Status.Group.Elected(validators.size)
                     Status.Inactive::class -> Status.Group.Inactive(validators.size)
                     Status.WaitingForNextEra::class -> waitingForNextEraGroup
