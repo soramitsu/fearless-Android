@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlin.reflect.KClass
 
 class CurrentValidatorsInteractor(
     private val stakingRepository: StakingRepository,
@@ -45,13 +46,9 @@ class CurrentValidatorsInteractor(
 
             val isWaitingForNextEra = nominatorState.nominations.isWaiting(activeEra)
 
-            val waitingForNextEraGroup = Status.Group.WaitingForNextEra(
-                stakingConstantsRepository.maxValidatorsPerNominator()
-            )
-
             val maxRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator()
 
-            validatorProvider.getValidators(
+            val groupedByStatusClass = validatorProvider.getValidators(
                 ValidatorSource.Custom(nominatedValidatorIds.toList()),
                 cachedExposures = exposures
             )
@@ -78,15 +75,30 @@ class CurrentValidatorsInteractor(
 
                     NominatedValidator(validator, status)
                 }
-                .groupBy {
-                    when (it.status) {
-                        is Status.Active -> Status.Group.Active
-                        is Status.Elected -> Status.Group.Elected
-                        is Status.Inactive -> Status.Group.Inactive
-                        is Status.WaitingForNextEra -> waitingForNextEraGroup
-                    }
+                .groupBy { it.status::class }
+
+            val totalElectiveCount = with(groupedByStatusClass) { groupSize(Status.Active::class) + groupSize(Status.Elected::class) }
+            val electedGroup = Status.Group.Active(totalElectiveCount)
+
+            val waitingForNextEraGroup = Status.Group.WaitingForNextEra(
+                maxValidatorsPerNominator = stakingConstantsRepository.maxValidatorsPerNominator(),
+                numberOfValidators = groupedByStatusClass.groupSize(Status.WaitingForNextEra::class)
+            )
+
+            groupedByStatusClass.mapKeys { (statusClass, validators) ->
+                when (statusClass) {
+                    Status.Active::class -> electedGroup
+                    Status.Elected::class -> Status.Group.Elected(validators.size)
+                    Status.Inactive::class -> Status.Group.Inactive(validators.size)
+                    Status.WaitingForNextEra::class -> waitingForNextEraGroup
+                    else -> throw IllegalArgumentException("Unknown status class: $statusClass")
                 }
+            }
                 .toSortedMap(Status.Group.COMPARATOR)
         }
+    }
+
+    private fun Map<KClass<out Status>, List<NominatedValidator>>.groupSize(statusClass: KClass<out Status>): Int {
+        return get(statusClass)?.size ?: 0
     }
 }

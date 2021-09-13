@@ -14,15 +14,15 @@ class NominatedValidator(
         object Inactive : Status()
         object WaitingForNextEra : Status()
 
-        sealed class Group(val position: Int) {
+        sealed class Group(val numberOfValidators: Int, val position: Int) {
             companion object {
                 val COMPARATOR = Comparator.comparingInt<Group> { it.position }
             }
 
-            object Active : Group(0)
-            object Elected : Group(1)
-            object Inactive : Group(2)
-            class WaitingForNextEra(val maxValidatorsPerNominator: Int) : Group(3)
+            class Active(numberOfValidators: Int) : Group(numberOfValidators, 0)
+            class Elected(numberOfValidators: Int) : Group(numberOfValidators, 1)
+            class Inactive(numberOfValidators: Int) : Group(numberOfValidators, 2)
+            class WaitingForNextEra(val maxValidatorsPerNominator: Int, numberOfValidators: Int) : Group(numberOfValidators, 3)
         }
     }
 }
