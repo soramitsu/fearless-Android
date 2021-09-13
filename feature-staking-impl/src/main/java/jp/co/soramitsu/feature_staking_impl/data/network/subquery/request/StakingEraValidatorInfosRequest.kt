@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.data.network.subscan.request
+package jp.co.soramitsu.feature_staking_impl.data.network.subquery.request
 
 import java.math.BigInteger
 

@@ -5,8 +5,8 @@ import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapSubqueryHistoryToTotalReward
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapTotalRewardLocalToTotalReward
-import jp.co.soramitsu.feature_staking_impl.data.network.subscan.StakingApi
-import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.StakingSumRewardRequest
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.StakingApi
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingSumRewardRequest
 import jp.co.soramitsu.feature_staking_impl.data.repository.subqueryFearlessApiPath
 import jp.co.soramitsu.feature_staking_impl.domain.model.TotalReward
 import kotlinx.coroutines.flow.Flow
