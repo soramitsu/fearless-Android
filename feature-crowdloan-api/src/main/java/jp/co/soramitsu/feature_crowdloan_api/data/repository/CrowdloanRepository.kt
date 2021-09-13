@@ -33,7 +33,7 @@ class ParachainMetadata(
     val iconLink: String,
     val name: String,
     val description: String,
-    val rewardRate: BigDecimal,
+    val rewardRate: BigDecimal?,
     val website: String,
     val customFlow: String?,
     val token: String
