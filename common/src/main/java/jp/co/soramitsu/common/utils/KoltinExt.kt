@@ -73,3 +73,7 @@ fun <T> List<T>.cycle(): Sequence<T> {
 inline fun <T> CoroutineScope.lazyAsync(crossinline producer: suspend () -> T) = lazy {
     async { producer() }
 }
+
+inline fun <T> Iterable<T>.filterToSet(predicate: (T) -> Boolean): Set<T> = filterTo(mutableSetOf(), predicate)
+
+fun String.nullIfEmpty(): String? = if (isEmpty()) null else this

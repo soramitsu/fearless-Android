@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_api.domain.model
 
 import java.math.BigDecimal
 
+@Deprecated("Use Operation class instead")
 data class Transaction(
     val hash: String,
     val tokenType: Token.Type,

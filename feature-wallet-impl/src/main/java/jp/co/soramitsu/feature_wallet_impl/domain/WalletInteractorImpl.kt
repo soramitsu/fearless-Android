@@ -1,27 +1,30 @@
 package jp.co.soramitsu.feature_wallet_impl.domain
 
+import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStatus
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
+import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
+import jp.co.soramitsu.feature_wallet_api.domain.model.OperationsPageChange
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.math.BigDecimal
@@ -29,7 +32,7 @@ import java.math.BigDecimal
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
-    private val fileProvider: FileProvider
+    private val fileProvider: FileProvider,
 ) : WalletInteractor {
 
     override fun assetsFlow(): Flow<List<Asset>> {
@@ -63,38 +66,44 @@ class WalletInteractorImpl(
             .flatMapLatest { assetFlow(it) }
     }
 
-    override fun transactionsFirstPageFlow(pageSize: Int): Flow<List<Transaction>> {
+    override fun operationsFirstPageFlow(): Flow<OperationsPageChange> {
         return accountRepository.selectedAccountFlow()
             .flatMapLatest {
-                val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
-                walletRepository.transactionsFirstPageFlow(mapAccountToWalletAccount(it), pageSize, accounts)
+                walletRepository.operationsFirstPageFlow(mapAccountToWalletAccount(it)).withIndex().map { (index, cursorPage) ->
+                    OperationsPageChange(cursorPage, accountChanged = index == 0)
+                }
             }
-            .distinctUntilChanged { previous, new -> areTransactionPagesTheSame(previous, new) }
     }
 
     private fun mapAccountToWalletAccount(account: Account) = with(account) {
         WalletAccount(address, name, cryptoType, network)
     }
 
-    private fun areTransactionPagesTheSame(previous: List<Transaction>, new: List<Transaction>): Boolean {
-        if (previous.size != new.size) return false
-
-        return previous.zip(new).all { (previousElement, currentElement) -> previousElement == currentElement }
-    }
-
-    override suspend fun syncTransactionsFirstPage(pageSize: Int): Result<Unit> {
-        return runCatching {
+    override suspend fun syncOperationsFirstPage(
+        pageSize: Int,
+        filters: Set<TransactionFilter>,
+    ) = withContext(Dispatchers.Default) {
+        runCatching {
             val account = accountRepository.getSelectedAccount()
-            val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
-            walletRepository.syncTransactionsFirstPage(pageSize, mapAccountToWalletAccount(account), accounts)
+
+            walletRepository.syncOperationsFirstPage(pageSize, filters, mapAccountToWalletAccount(account))
         }
     }
 
-    override suspend fun getTransactionPage(pageSize: Int, page: Int): Result<List<Transaction>> {
+    override suspend fun getOperations(
+        pageSize: Int,
+        cursor: String?,
+        filters: Set<TransactionFilter>,
+    ): Result<CursorPage<Operation>> {
         return runCatching {
-            val accounts = accountRepository.getAccounts().map(::mapAccountToWalletAccount)
             val currentAccount = accountRepository.getSelectedAccount()
-            walletRepository.getTransactionPage(pageSize, page, mapAccountToWalletAccount(currentAccount), accounts)
+
+            walletRepository.getOperations(
+                pageSize,
+                cursor,
+                filters,
+                mapAccountToWalletAccount(currentAccount)
+            )
         }
     }
 
@@ -137,7 +146,7 @@ class WalletInteractorImpl(
     override suspend fun performTransfer(
         transfer: Transfer,
         fee: BigDecimal,
-        maxAllowedLevel: TransferValidityLevel
+        maxAllowedLevel: TransferValidityLevel,
     ): Result<Unit> {
         val accountAddress = accountRepository.getSelectedAccount().address
         val validityStatus = walletRepository.checkTransferValidity(accountAddress, transfer)

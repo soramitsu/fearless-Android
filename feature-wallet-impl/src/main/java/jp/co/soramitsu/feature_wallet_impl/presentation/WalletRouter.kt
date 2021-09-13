@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation
 
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 
 interface WalletRouter {
@@ -11,6 +11,8 @@ interface WalletRouter {
 
     fun openChooseRecipient()
 
+    fun openFilter()
+
     fun openChooseAmount(recipientAddress: String)
 
     fun openConfirmTransfer(transferDraft: TransferDraft)
@@ -19,7 +21,11 @@ interface WalletRouter {
 
     fun openRepeatTransaction(recipientAddress: String)
 
-    fun openTransactionDetail(transaction: TransactionModel)
+    fun openTransferDetail(transaction: OperationParcelizeModel.Transfer)
+
+    fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.Extrinsic)
+
+    fun openRewardDetail(reward: OperationParcelizeModel.Reward)
 
     fun openAddAccount()
 
