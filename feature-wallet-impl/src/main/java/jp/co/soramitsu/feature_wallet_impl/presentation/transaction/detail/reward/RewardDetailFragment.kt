@@ -79,10 +79,8 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
             rewardDetailReward.setTextColorRes(amountColorRes(this))
 
             if (isReward) {
-                rewardDetailToolbar.setTitle(R.string.staking_reward_details_title)
                 rewardDetailRewardLabel.setText(R.string.staking_reward)
             } else {
-                rewardDetailToolbar.setTitle(R.string.staking_slash_details)
                 rewardDetailRewardLabel.setText(R.string.staking_slash)
             }
         }
@@ -124,7 +122,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
 
     private fun showExternalEventActions() {
         showExternalActionsSheet(
-            R.string.common_copy_event_id,
+            R.string.common_copy_id,
             viewModel.operation.eventId,
             viewModel::viewEventExternalClicked,
             forceForbid = setOf(ExternalAnalyzer.SUBSCAN)

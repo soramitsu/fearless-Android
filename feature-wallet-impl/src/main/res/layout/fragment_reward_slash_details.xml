@@ -16,7 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/staking_reward_details_title" />
+        app:titleText="@string/common_details" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 app:actionIcon="@drawable/ic_more_vertical"
-                app:label="@string/staking_rewards_event"
+                app:label="@string/common_event"
                 tools:message="123456-12"
                 app:layout_constraintEnd_toEndOf="@+id/rewardDetailDivider4"
                 app:layout_constraintStart_toStartOf="@+id/rewardDetailDivider4"

@@ -274,7 +274,7 @@ suspend fun mapOperationToOperationModel(
                     header = nameIdentifier.nameOrAddress(operationType.displayAddress),
                     statusAppearance = statusAppearance,
                     operationIcon = iconGenerator.createAddressIcon(operationType.displayAddress, AddressIconGenerator.SIZE_BIG),
-                    subHeader = resourceManager.getString(R.string.wallet_transfer),
+                    subHeader = resourceManager.getString(R.string.transfer_title),
                 )
             }
 
