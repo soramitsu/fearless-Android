@@ -373,19 +373,19 @@ class Navigator :
         navController?.navigate(R.id.openSelectAmount, bundle)
     }
 
-    override fun openTransferDetail(transaction: OperationParcelizeModel.TransferModel) {
+    override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer) {
         val bundle = TransferDetailFragment.getBundle(transaction)
 
         navController?.navigate(R.id.open_transfer_detail, bundle)
     }
 
-    override fun openRewardDetail(reward: OperationParcelizeModel.RewardModel) {
+    override fun openRewardDetail(reward: OperationParcelizeModel.Reward) {
         val bundle = RewardDetailFragment.getBundle(reward)
 
         navController?.navigate(R.id.open_reward_detail, bundle)
     }
 
-    override fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.ExtrinsicModel) {
+    override fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.Extrinsic) {
         val bundle = ExtrinsicDetailFragment.getBundle(extrinsic)
 
         navController?.navigate(R.id.open_extrinsic_detail, bundle)

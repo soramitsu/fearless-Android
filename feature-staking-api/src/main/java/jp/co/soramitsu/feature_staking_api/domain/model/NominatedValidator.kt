@@ -4,19 +4,25 @@ import java.math.BigInteger
 
 class NominatedValidator(
     val validator: Validator,
-    val nominationInPlanks: BigInteger?,
-    val status: Status
+    val status: Status,
 ) {
 
-    sealed class Status(val groupPosition: Int) {
-        companion object {
-            val COMPARATOR = Comparator.comparingInt<Status> { it.groupPosition }
+    sealed class Status {
+
+        class Active(val nomination: BigInteger, val willUserBeRewarded: Boolean) : Status()
+        object Elected : Status()
+        object Inactive : Status()
+        object WaitingForNextEra : Status()
+
+        sealed class Group(val numberOfValidators: Int, val position: Int) {
+            companion object {
+                val COMPARATOR = Comparator.comparingInt<Group> { it.position }
+            }
+
+            class Active(numberOfValidators: Int) : Group(numberOfValidators, 0)
+            class Elected(numberOfValidators: Int) : Group(numberOfValidators, 1)
+            class Inactive(numberOfValidators: Int) : Group(numberOfValidators, 2)
+            class WaitingForNextEra(val maxValidatorsPerNominator: Int, numberOfValidators: Int) : Group(numberOfValidators, 3)
         }
-
-        object Active : Status(0)
-        object Elected : Status(1)
-        object Inactive : Status(2)
-
-        class WaitingForNextEra(val maxValidatorsPerNominator: Int) : Status(3)
     }
 }

@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.data.network.subscan
 
 import jp.co.soramitsu.common.data.network.subquery.EraValidatorInfoQueryResponse
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
-import jp.co.soramitsu.common.data.network.subquery.SumRewardResponse
+import jp.co.soramitsu.common.data.network.subquery.TransactionHistoryRemote
 import jp.co.soramitsu.common.data.network.subscan.SubscanResponse
 import jp.co.soramitsu.feature_staking_impl.BuildConfig
 import jp.co.soramitsu.feature_staking_impl.data.network.subscan.request.ExtrinsicHistoryRequest
@@ -32,11 +32,11 @@ interface StakingApi {
         @Body body: StakingRewardRequest,
     ): SubscanResponse<StakingRewardHistory>
 
-    @POST("//api.subquery.network/sq/OnFinality-io/{path}")
+    @POST("//api.subquery.network/sq/ef1rspb/{path}")
     suspend fun getSumReward(
         @Path("path") path: String,
         @Body body: StakingSumRewardRequest
-    ): SubQueryResponse<SumRewardResponse>
+    ): SubQueryResponse<TransactionHistoryRemote>
 
     @POST("//api.subquery.network/sq/ef1rspb/{path}")
     suspend fun getValidatorsInfo(

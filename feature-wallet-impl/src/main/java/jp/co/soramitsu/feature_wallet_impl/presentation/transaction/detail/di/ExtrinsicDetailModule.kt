@@ -29,8 +29,8 @@ class ExtrinsicDetailModule {
         addressDisplayUseCase: AddressDisplayUseCase,
         addressIconGenerator: AddressIconGenerator,
         router: WalletRouter,
-        operation: OperationParcelizeModel.ExtrinsicModel,
-        ): ViewModel {
+        operation: OperationParcelizeModel.Extrinsic,
+    ): ViewModel {
         return ExtrinsicDetailViewModel(
             appLinksProvider,
             clipboardManager,

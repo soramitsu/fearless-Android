@@ -58,20 +58,7 @@ class UpdateDefaultNodesList(
     }
 }
 
-val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `total_reward` (
-                `accountAddress` TEXT NOT NULL, 
-                `totalReward` TEXT, 
-                 PRIMARY KEY(`accountAddress`))
-            """.trimIndent()
-        )
-    }
-}
-
-val AddOperationsTablesToDb_22_23 = object : Migration(22, 23) {
+val AddOperationsTablesToDb_23_24 = object : Migration(23, 24) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
             """
@@ -81,7 +68,56 @@ val AddOperationsTablesToDb_22_23 = object : Migration(22, 23) {
 
         database.execSQL(
             """
-               CREATE TABLE IF NOT EXISTS `operations` (`hash` TEXT NOT NULL, `address` TEXT NOT NULL, `time` INTEGER NOT NULL, `tokenType` INTEGER NOT NULL, `status` INTEGER NOT NULL, `source` INTEGER NOT NULL, `operationType` INTEGER NOT NULL, `type` TEXT, `call` TEXT, `amount` TEXT, `sender` TEXT, `receiver` TEXT, `fee` TEXT, `isReward` INTEGER, `era` INTEGER, `validator` TEXT, `success` INTEGER, PRIMARY KEY(`hash`, `address`))
+                CREATE TABLE IF NOT EXISTS `operations` (
+                `id` TEXT NOT NULL,
+                `address` TEXT NOT NULL,
+                `time` INTEGER NOT NULL,
+                `tokenType` INTEGER NOT NULL,
+                `status` INTEGER NOT NULL,
+                `source` INTEGER NOT NULL,
+                `operationType` INTEGER NOT NULL,
+                `module` TEXT,
+                `call` TEXT,
+                `amount` TEXT,
+                `sender` TEXT,
+                `receiver` TEXT,
+                `hash` TEXT,
+                `fee` TEXT,
+                `isReward` INTEGER,
+                `era` INTEGER,
+                `validator` TEXT,
+                PRIMARY KEY(`id`, `address`)
+            )
+            """.trimIndent()
+        )
+    }
+}
+
+val RemoveStakingRewardsTable_22_23 = object : Migration(22, 23) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE IF EXISTS `staking_rewards`")
+
+        // totalReward nullable -> not null
+        database.execSQL("DROP TABLE IF EXISTS `total_reward`")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `total_reward` (
+                `accountAddress` TEXT NOT NULL, 
+                `totalReward` TEXT  NOT NULL, 
+                 PRIMARY KEY(`accountAddress`))
+            """.trimIndent()
+        )
+    }
+}
+
+val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `total_reward` (
+                `accountAddress` TEXT NOT NULL, 
+                `totalReward` TEXT, 
+                 PRIMARY KEY(`accountAddress`))
             """.trimIndent()
         )
     }

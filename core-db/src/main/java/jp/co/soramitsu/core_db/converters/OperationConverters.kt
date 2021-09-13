@@ -17,8 +17,8 @@ class OperationConverters {
     fun toOperationStatus(ordinal: Int) = OperationLocal.Status.values()[ordinal]
 
     @TypeConverter
-    fun fromOperationType(type: OperationLocal.OperationType) = type.ordinal
+    fun fromOperationType(type: OperationLocal.Type) = type.ordinal
 
     @TypeConverter
-    fun toOperationType(ordinal: Int) = OperationLocal.OperationType.values()[ordinal]
+    fun toOperationType(ordinal: Int) = OperationLocal.Type.values()[ordinal]
 }

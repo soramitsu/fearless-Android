@@ -30,7 +30,7 @@ class ExtrinsicDetailViewModel(
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
-    val operation: OperationParcelizeModel.ExtrinsicModel,
+    val operation: OperationParcelizeModel.Extrinsic,
 ) : BaseViewModel(), Browserable {
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalExtrinsicActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
@@ -38,7 +38,7 @@ class ExtrinsicDetailViewModel(
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val fromAddressModelLiveData = liveData {
-        emit(getIcon(operation.address))
+        emit(getIcon(operation.originAddress))
     }
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(

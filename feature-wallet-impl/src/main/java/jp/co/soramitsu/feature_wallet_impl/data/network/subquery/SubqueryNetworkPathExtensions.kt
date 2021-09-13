@@ -1,10 +1,10 @@
-package jp.co.soramitsu.feature_wallet_impl.data.network.subscan
+package jp.co.soramitsu.feature_wallet_impl.data.network.subquery
 
 import jp.co.soramitsu.core.model.Node
 
 class WrongNetworkTypeForSubqueryRequest(message: String) : Exception(message)
 
-fun Node.NetworkType.getSubqueryPath() =
+fun Node.NetworkType.getSubQueryPath() =
     when (this) {
         Node.NetworkType.POLKADOT -> "fearless-wallet"
         Node.NetworkType.KUSAMA -> "fearless-wallet-ksm"

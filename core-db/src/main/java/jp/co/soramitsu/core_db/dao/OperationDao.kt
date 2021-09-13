@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import jp.co.soramitsu.core_db.model.OperationLocal
 import kotlinx.coroutines.flow.Flow
 
@@ -36,8 +37,15 @@ abstract class OperationDao {
     )
     abstract suspend fun getContacts(query: String, accountAddress: String): List<String>
 
-    suspend fun insertFromSubquery(accountAddress: String, operations: List<OperationLocal>) {
-        clear(accountAddress, OperationLocal.Source.SUBQUERY)
+    @Transaction
+    open suspend fun insertFromSubquery(accountAddress: String, operations: List<OperationLocal>) {
+        clearBySource(accountAddress, OperationLocal.Source.SUBQUERY)
+
+        val operationsWithHashes = operations.mapNotNullTo(mutableSetOf(), OperationLocal::hash)
+
+        if (operationsWithHashes.isNotEmpty()) {
+            val cleared = clearByHashes(accountAddress, operationsWithHashes)
+        }
 
         val oldest = operations.minByOrNull(OperationLocal::time)
         oldest?.let {
@@ -48,8 +56,11 @@ abstract class OperationDao {
     }
 
     @Query("DELETE FROM operations WHERE address = :accountAddress AND source = :source")
-    protected abstract suspend fun clear(accountAddress: String, source: OperationLocal.Source): Int
+    protected abstract suspend fun clearBySource(accountAddress: String, source: OperationLocal.Source): Int
 
     @Query("DELETE FROM operations WHERE time < :minTime AND address = :accountAddress")
     protected abstract suspend fun clearOld(accountAddress: String, minTime: Long): Int
+
+    @Query("DELETE FROM operations WHERE address = :accountAddress AND hash in (:hashes)")
+    protected abstract suspend fun clearByHashes(accountAddress: String, hashes: Set<String>): Int
 }

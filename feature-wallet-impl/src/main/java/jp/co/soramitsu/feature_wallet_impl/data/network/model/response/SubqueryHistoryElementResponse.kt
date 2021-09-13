@@ -1,13 +1,14 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.model.response
 
+import java.math.BigInteger
+
 class SubqueryHistoryElementResponse(val query: Query) {
     class Query(val historyElements: HistoryElements) {
 
         class HistoryElements(val nodes: Array<Node>, val pageInfo: PageInfo) {
             class PageInfo(
                 val startCursor: String,
-                val endCursor: String,
-                val hasNextPage: Boolean
+                val endCursor: String?
             )
 
             class Node(
@@ -20,25 +21,26 @@ class SubqueryHistoryElementResponse(val query: Query) {
             ) {
                 class Rewards(
                     val era: Int,
-                    val amount: String,
+                    val amount: BigInteger,
                     val isReward: Boolean,
-                    val validator: String
+                    val validator: String,
                 )
 
                 class Transfer(
-                    val amount: String,
+                    val amount: BigInteger,
                     val to: String,
                     val from: String,
-                    val fee: String,
+                    val fee: BigInteger,
                     val block: String,
-                    val extrinsicId: String
+                    val success: Boolean,
+                    val extrinsicHash: String? // nullable since not all transfers not hash hash on SubQuery
                 )
 
                 class Extrinsic(
                     val hash: String,
                     val module: String,
                     val call: String,
-                    val fee: String,
+                    val fee: BigInteger,
                     val success: Boolean
                 )
             }

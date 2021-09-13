@@ -22,7 +22,7 @@ interface TransactionDetailComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance operationModel: OperationParcelizeModel.TransferModel
+            @BindsInstance operation: OperationParcelizeModel.Transfer
         ): TransactionDetailComponent
     }
 
@@ -42,7 +42,7 @@ interface RewardDetailComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance operationModel: OperationParcelizeModel.RewardModel
+            @BindsInstance operation: OperationParcelizeModel.Reward
         ): RewardDetailComponent
     }
 
@@ -62,7 +62,7 @@ interface ExtrinsicDetailComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance extrinsicModel: OperationParcelizeModel.ExtrinsicModel
+            @BindsInstance extrinsic: OperationParcelizeModel.Extrinsic
         ): ExtrinsicDetailComponent
     }
 

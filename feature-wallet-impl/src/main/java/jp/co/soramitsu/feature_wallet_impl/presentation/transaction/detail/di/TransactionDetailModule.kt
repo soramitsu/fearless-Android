@@ -32,7 +32,7 @@ class TransactionDetailModule {
         clipboardManager: ClipboardManager,
         appLinksProvider: AppLinksProvider,
         addressDisplayUseCase: AddressDisplayUseCase,
-        operationModel: OperationParcelizeModel.TransferModel
+        operation: OperationParcelizeModel.Transfer
     ): ViewModel {
         return TransactionDetailViewModel(
             interactor,
@@ -42,7 +42,7 @@ class TransactionDetailModule {
             clipboardManager,
             appLinksProvider,
             addressDisplayUseCase,
-            operationModel
+            operation
         )
     }
 

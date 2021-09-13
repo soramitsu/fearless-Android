@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history
 
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
@@ -12,21 +11,24 @@ import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextColorRes
-import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationModelToParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.OperationHistoryElement
 import kotlinx.android.synthetic.main.item_day_header.view.itemDayHeader
-import kotlinx.android.synthetic.main.item_transaction.view.*
+import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAmount
+import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionHeader
+import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionIcon
+import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionStatus
+import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionSubHeader
+import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionTime
 
 class TransactionHistoryAdapter(
-    val handler: Handler
-) : GroupedListAdapter<DayHeader, OperationHistoryElement>(TransactionHistoryDiffCallback) {
+    private val handler: Handler
+) : GroupedListAdapter<DayHeader, OperationModel>(TransactionHistoryDiffCallback) {
 
     interface Handler {
-        fun transactionClicked(transactionModel: OperationParcelizeModel)
+        fun transactionClicked(transactionModel: OperationModel)
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
@@ -41,36 +43,35 @@ class TransactionHistoryAdapter(
         (holder as DayHolder).bind(group)
     }
 
-    override fun bindChild(holder: GroupedListHolder, child: OperationHistoryElement) {
+    override fun bindChild(holder: GroupedListHolder, child: OperationModel) {
         (holder as TransactionHolder).bind(child, handler)
     }
 }
 
 class TransactionHolder(view: View) : GroupedListHolder(view) {
-    fun bind(item: OperationHistoryElement, handler: TransactionHistoryAdapter.Handler) {
+    fun bind(item: OperationModel, handler: TransactionHistoryAdapter.Handler) {
         with(containerView) {
-            with(item.transactionModel) {
-                itemTransactionAddress.text = getOperationHeader()
+            with(item) {
+                itemTransactionHeader.text = header
 
                 itemTransactionAmount.setTextColorRes(amountColorRes)
-                itemTransactionAmount.text = formattedAmount
+                itemTransactionAmount.text = amount
 
                 itemTransactionTime.text = time.formatDateTime(context)
 
-                itemTransactionType.text = getElementDescription()
+                itemTransactionSubHeader.text = subHeader
 
-                if (transactionType.status != Operation.Status.COMPLETED) {
+                if (statusAppearance != OperationStatusAppearance.COMPLETED) {
                     itemTransactionStatus.makeVisible()
                     itemTransactionStatus.setImageResource(statusAppearance.icon)
                 } else {
                     itemTransactionStatus.makeGone()
                 }
 
-                setOnClickListener { handler.transactionClicked(mapOperationModelToParcelizeModel(this)) }
+                setOnClickListener { handler.transactionClicked(this) }
             }
 
-            val operationIcon = item.transactionModel.getOperationIcon()?.let { ContextCompat.getDrawable(context, it) }
-            itemTransactionIcon.setImageDrawable(operationIcon ?: item.displayAddressModel.image)
+            itemTransactionIcon.setImageDrawable(item.operationIcon)
         }
     }
 }
@@ -83,7 +84,7 @@ class DayHolder(view: View) : GroupedListHolder(view) {
     }
 }
 
-object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, OperationHistoryElement>(DayHeader::class.java) {
+object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, OperationModel>(DayHeader::class.java) {
     override fun areGroupItemsTheSame(oldItem: DayHeader, newItem: DayHeader): Boolean {
         return oldItem.daysSinceEpoch == oldItem.daysSinceEpoch
     }
@@ -92,11 +93,14 @@ object TransactionHistoryDiffCallback : BaseGroupedDiffCallback<DayHeader, Opera
         return true
     }
 
-    override fun areChildItemsTheSame(oldItem: OperationHistoryElement, newItem: OperationHistoryElement): Boolean {
-        return oldItem.transactionModel.hash == newItem.transactionModel.hash
+    override fun areChildItemsTheSame(oldItem: OperationModel, newItem: OperationModel): Boolean {
+        return oldItem.id == newItem.id
     }
 
-    override fun areChildContentsTheSame(oldItem: OperationHistoryElement, newItem: OperationHistoryElement): Boolean {
-        return oldItem.transactionModel == newItem.transactionModel
+    override fun areChildContentsTheSame(oldItem: OperationModel, newItem: OperationModel): Boolean {
+        return oldItem.statusAppearance == newItem.statusAppearance &&
+            oldItem.header == newItem.header &&
+            oldItem.subHeader == newItem.subHeader &&
+            oldItem.amount == newItem.amount
     }
 }

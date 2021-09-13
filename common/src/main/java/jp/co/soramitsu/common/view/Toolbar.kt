@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.dp
 import jp.co.soramitsu.common.utils.makeGone
@@ -81,6 +82,10 @@ class Toolbar @JvmOverloads constructor(
 
     fun setTitle(title: String) {
         titleTv.text = title
+    }
+
+    fun setTitle(@StringRes titleRes: Int) {
+        titleTv.setText(titleRes)
     }
 
     fun showHomeButton() {

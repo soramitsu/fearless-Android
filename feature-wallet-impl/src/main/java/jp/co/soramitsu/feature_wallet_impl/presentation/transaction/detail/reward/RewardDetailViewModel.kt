@@ -24,7 +24,7 @@ enum class ExternalActionsSource {
 }
 
 class RewardDetailViewModel(
-    val operation: OperationParcelizeModel.RewardModel,
+    val operation: OperationParcelizeModel.Reward,
     private val appLinksProvider: AppLinksProvider,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
@@ -39,7 +39,9 @@ class RewardDetailViewModel(
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val validatorAddressModelLiveData = liveData {
-        emit(getIcon(operation.validator))
+        val icon = operation.validator?.let { getIcon(it) }
+
+        emit(icon)
     }
 
     val eraLiveData = liveData {
@@ -48,10 +50,12 @@ class RewardDetailViewModel(
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))
 
-    fun viewTransactionExternalClicked(analyzer: ExternalAnalyzer, hash: String, networkType: Node.NetworkType) {
-        val url = appLinksProvider.getExternalTransactionUrl(analyzer, hash, networkType)
+    fun viewEventExternalClicked(analyzer: ExternalAnalyzer, hash: String, networkType: Node.NetworkType) {
+        val url = appLinksProvider.getExternalEventUrl(analyzer, hash, networkType)
 
-        openBrowserEvent.value = Event(url)
+        url?.let {
+            openBrowserEvent.value = Event(it)
+        }
     }
 
     fun viewAccountExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: Node.NetworkType) {

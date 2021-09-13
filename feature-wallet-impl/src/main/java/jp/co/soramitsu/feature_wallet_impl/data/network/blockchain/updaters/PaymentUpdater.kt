@@ -90,19 +90,16 @@ class PaymentUpdater(
         val senderAddress = extrinsic.senderId.toAddress(networkType)
         val recipientAddress = extrinsic.recipientId.toAddress(networkType)
 
-        return OperationLocal(
+        return OperationLocal.manualTransfer(
             hash = extrinsic.hash,
-            address = accountAddress,
-            time = System.currentTimeMillis(),
+            accountAddress = accountAddress,
             tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
-            call = Operation.TransactionType.Transfer.transferCall,
             amount = extrinsic.amountInPlanks,
-            sender = senderAddress,
-            receiver = recipientAddress,
+            senderAddress = senderAddress,
+            receiverAddress = recipientAddress,
             fee = fee,
             status = mapOperationStatusToOperationLocalStatus(status),
             source = OperationLocal.Source.BLOCKCHAIN,
-            operationType = OperationLocal.OperationType.TRANSFER
         )
     }
 }

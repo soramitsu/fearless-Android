@@ -17,18 +17,32 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccount
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
-import kotlinx.android.synthetic.main.fragment_transfer_details.*
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailAmount
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailDate
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailDivider4
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailDivider5
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailFee
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailFeeLabel
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailFrom
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailHash
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailRepeat
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailStatus
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailStatusIcon
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailTo
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailToolbar
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailTotal
+import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailTotalLabel
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
 
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     companion object {
-        fun getBundle(operation: OperationParcelizeModel.TransferModel) = Bundle().apply {
+        fun getBundle(operation: OperationParcelizeModel.Transfer) = Bundle().apply {
             putParcelable(KEY_TRANSACTION, operation)
         }
     }
@@ -60,7 +74,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<OperationParcelizeModel.TransferModel>(KEY_TRANSACTION)
+        val operation = argument<OperationParcelizeModel.Transfer>(KEY_TRANSACTION)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -71,31 +85,35 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
             .inject(this)
     }
 
-    private fun amountColorRes(operation: OperationParcelizeModel.TransferModel) = when {
-        operation.isFailed -> jp.co.soramitsu.feature_wallet_api.R.color.gray2
-        operation.isIncome -> jp.co.soramitsu.feature_wallet_api.R.color.green
-        else -> jp.co.soramitsu.feature_wallet_api.R.color.white
+    private fun amountColorRes(operation: OperationParcelizeModel.Transfer) = when {
+        operation.statusAppearance == OperationStatusAppearance.FAILED -> R.color.gray2
+        operation.isIncome -> R.color.green
+        else -> R.color.white
     }
 
     override fun subscribe(viewModel: TransactionDetailViewModel) {
         with(viewModel.operation) {
-            transactionDetailStatus.setText(messageId)
-            transactionDetailStatusIcon.setImageResource(iconId)
+            transactionDetailStatus.setText(statusAppearance.labelRes)
+            transactionDetailStatusIcon.setImageResource(statusAppearance.icon)
 
             transactionDetailDate.text = time.formatDateTime(requireContext())
 
             if (isIncome) {
-                hideViews()
+                hideOutgoingViews()
             } else {
-                showViews()
-                transactionDetailFee.text = formattedFee
-                transactionDetailTotal.text = (amount + fee).formatTokenAmount(tokenType)
+                showOutgoungViews()
+                transactionDetailFee.text = fee
+                transactionDetailTotal.text = total
             }
 
-            transactionDetailAmount.text = formattedAmount
+            transactionDetailAmount.text = amount
             transactionDetailAmount.setTextColorRes(amountColorRes(this))
 
-            transactionDetailHash.setMessage(hash)
+            if (hash != null) {
+                transactionDetailHash.setMessage(hash)
+            } else {
+                transactionDetailHash.makeGone()
+            }
         }
 
         viewModel.senderAddressModelLiveData.observe { addressModel ->
@@ -126,7 +144,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         viewModel.openBrowserEvent.observeEvent(::showBrowser)
     }
 
-    private fun hideViews() {
+    private fun hideOutgoingViews() {
         transactionDetailFee.makeGone()
         transactionDetailTotalLabel.makeGone()
         transactionDetailFeeLabel.makeGone()
@@ -135,7 +153,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         transactionDetailDivider5.makeInvisible()
     }
 
-    private fun showViews() {
+    private fun showOutgoungViews() {
         transactionDetailFee.makeVisible()
         transactionDetailTotalLabel.makeVisible()
         transactionDetailFeeLabel.makeVisible()
@@ -165,7 +183,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
     private fun showExternalTransactionActions() {
         showExternalActionsSheet(
             R.string.transaction_details_copy_hash,
-            viewModel.operation.hash,
+            viewModel.operation.hash!!,
             viewModel::viewTransactionExternalClicked
         )
     }

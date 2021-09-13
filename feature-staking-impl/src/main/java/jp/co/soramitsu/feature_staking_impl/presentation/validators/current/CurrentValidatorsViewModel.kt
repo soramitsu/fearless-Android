@@ -59,11 +59,8 @@ class CurrentValidatorsViewModel(
         .map { it.token }
         .share()
 
-    private val accountFlow = stakingInteractor.selectedAccountFlow()
-        .share()
-
     val currentValidatorModelsLiveData = groupedCurrentValidatorsFlow.combine(tokenFlow) { gropedList, token ->
-        gropedList.mapKeys { (status, validators) -> mapNominatedValidatorStatusToUiModel(status, validators.size) }
+        gropedList.mapKeys { (statusGroup, _) -> mapNominatedValidatorStatusToUiModel(statusGroup) }
             .mapValues { (_, nominatedValidators) -> nominatedValidators.map { mapNominatedValidatorToUiModel(it, token) } }
             .toListWithHeaders()
     }
@@ -71,16 +68,19 @@ class CurrentValidatorsViewModel(
         .inBackground()
         .asLiveData()
 
-    val oversubscribedValidatorsFlow = groupedCurrentValidatorsFlow.map {
-        it[NominatedValidator.Status.Active]?.any { it.validator?.electedInfo?.isOversubscribed ?: false } ?: false
-    }.inBackground()
+    val shouldShowOversubscribedNoRewardWarning = groupedCurrentValidatorsFlow.map { groupedList ->
+        val (_, validators) = groupedList.entries.first { (group, _) -> group is NominatedValidator.Status.Group.Active }
+
+        validators.any { (it.status as NominatedValidator.Status.Active).willUserBeRewarded.not() }
+    }
+        .inBackground()
         .share()
 
     private suspend fun mapNominatedValidatorToUiModel(nominatedValidator: NominatedValidator, token: Token): NominatedValidatorModel {
         val validator = nominatedValidator.validator
 
-        val nominationFormatted = nominatedValidator.nominationInPlanks?.let {
-            val amountFormatted = token.type.amountFromPlanks(it).formatTokenAmount(token.type)
+        val nominationFormatted = (nominatedValidator.status as? NominatedValidator.Status.Active)?.let { activeStatus ->
+            val amountFormatted = token.type.amountFromPlanks(activeStatus.nomination).formatTokenAmount(token.type)
 
             resourceManager.getString(R.string.staking_your_nominated_format, amountFormatted)
         }
@@ -95,31 +95,38 @@ class CurrentValidatorsViewModel(
         )
     }
 
-    private fun mapNominatedValidatorStatusToUiModel(status: NominatedValidator.Status, valuesSize: Int) = when (status) {
-        NominatedValidator.Status.Active -> NominatedValidatorStatusModel(
+    private fun mapNominatedValidatorStatusToUiModel(statusGroup: NominatedValidator.Status.Group) = when (statusGroup) {
+
+        is NominatedValidator.Status.Group.Active -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_your_elected_format, valuesSize),
+                resourceManager.getString(
+                    R.string.staking_your_elected_format, statusGroup.numberOfValidators
+                ),
                 R.color.green
             ),
             resourceManager.getString(R.string.staking_your_allocated_description)
         )
 
-        NominatedValidator.Status.Inactive -> NominatedValidatorStatusModel(
+        is NominatedValidator.Status.Group.Inactive -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_your_not_elected_format, valuesSize),
+                resourceManager.getString(R.string.staking_your_not_elected_format, statusGroup.numberOfValidators),
                 R.color.black1
             ),
             resourceManager.getString(R.string.staking_your_inactive_description)
         )
 
-        NominatedValidator.Status.Elected -> NominatedValidatorStatusModel(
+        is NominatedValidator.Status.Group.Elected -> NominatedValidatorStatusModel(
             null,
             resourceManager.getString(R.string.staking_your_not_allocated_description)
         )
 
-        is NominatedValidator.Status.WaitingForNextEra -> NominatedValidatorStatusModel(
+        is NominatedValidator.Status.Group.WaitingForNextEra -> NominatedValidatorStatusModel(
             TitleConfig(
-                resourceManager.getString(R.string.staking_custom_header_validators_title, valuesSize, status.maxValidatorsPerNominator),
+                resourceManager.getString(
+                    R.string.staking_custom_header_validators_title,
+                    statusGroup.numberOfValidators,
+                    statusGroup.maxValidatorsPerNominator
+                ),
                 R.color.black1
             ),
             resourceManager.getString(R.string.staking_your_validators_changing_title)
@@ -152,7 +159,7 @@ class CurrentValidatorsViewModel(
 
             val nominatedValidator = allValidators.first { it.validator.accountIdHex == accountId }
 
-            mapValidatorToValidatorDetailsWithStakeFlagParcelModel(nominatedValidator, accountFlow.first())
+            mapValidatorToValidatorDetailsWithStakeFlagParcelModel(nominatedValidator)
         }
 
         router.openValidatorDetails(payload)

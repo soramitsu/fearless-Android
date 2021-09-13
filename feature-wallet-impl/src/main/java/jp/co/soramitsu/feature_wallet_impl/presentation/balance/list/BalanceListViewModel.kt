@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
@@ -21,8 +20,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -41,9 +40,6 @@ class BalanceListViewModel(
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
 
-    private val _showAccountChooser = MutableLiveData<Event<Payload<AddressModel>>>()
-    val showAccountChooser: LiveData<Event<Payload<AddressModel>>> = _showAccountChooser
-
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
     val balanceLiveData = balanceFlow().asLiveData()
@@ -52,10 +48,6 @@ class BalanceListViewModel(
 
     val buyEnabledLiveData = primaryTokenLiveData.map(initial = false) {
         buyMixin.isBuyEnabled(it)
-    }
-
-    init {
-        transactionHistoryMixin.startObservingOperations(viewModelScope)
     }
 
     fun sync() {
@@ -74,8 +66,14 @@ class BalanceListViewModel(
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+
+        transactionHistoryMixin.cancel()
+    }
+
     fun transactionsScrolled(index: Int) {
-        transactionHistoryMixin.scrolled(viewModelScope, index)
+        transactionHistoryMixin.scrolled(index)
     }
 
     fun filterClicked() {
@@ -99,16 +97,6 @@ class BalanceListViewModel(
         val token = primaryTokenLiveData.value ?: return
 
         buyMixin.buyClicked(token, address)
-    }
-
-    fun accountSelected(addressModel: AddressModel) {
-        viewModelScope.launch {
-            interactor.selectAccount(addressModel.address)
-
-            val result = transactionHistoryMixin.syncFirstOperationsPage()
-
-            result.exceptionOrNull()?.let(::showError)
-        }
     }
 
     fun avatarClicked() {

@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.StringRes
-import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
+import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
@@ -17,14 +19,19 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
-import kotlinx.android.synthetic.main.fragment_reward_slash_details.*
+import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailDate
+import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailEra
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailHash
+import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailReward
+import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailRewardLabel
+import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailToolbar
+import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailValidator
 
 private const val KEY_REWARD = "KEY_REWARD"
 
 class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     companion object {
-        fun getBundle(operation: OperationParcelizeModel.RewardModel) = Bundle().apply {
+        fun getBundle(operation: OperationParcelizeModel.Reward) = Bundle().apply {
             putParcelable(KEY_REWARD, operation)
         }
     }
@@ -48,7 +55,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<OperationParcelizeModel.RewardModel>(KEY_REWARD)
+        val operation = argument<OperationParcelizeModel.Reward>(KEY_REWARD)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -59,20 +66,23 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
             .inject(this)
     }
 
-    private fun amountColorRes(operation: OperationParcelizeModel.RewardModel) = when {
-        operation.isFailed -> R.color.gray2
-        operation.isIncome -> R.color.green
+    private fun amountColorRes(operation: OperationParcelizeModel.Reward) = when {
+        operation.isReward -> R.color.green
         else -> R.color.white
     }
 
     override fun subscribe(viewModel: RewardDetailViewModel) {
         with(viewModel.operation) {
-            rewardDetailHash.setMessage(hash)
-            rewardDetailStatus.setText(messageId)
-            rewardDetailStatusIcon.setImageResource(iconId)
+            rewardDetailHash.setMessage(eventId)
             rewardDetailDate.text = time.formatDateTime(requireContext())
-            rewardDetailReward.text = formattedAmount
+            rewardDetailReward.text = amount
             rewardDetailReward.setTextColorRes(amountColorRes(this))
+
+            if (isReward) {
+                rewardDetailRewardLabel.setText(R.string.staking_reward)
+            } else {
+                rewardDetailRewardLabel.setText(R.string.staking_slash)
+            }
         }
 
         viewModel.showExternalRewardActionsEvent.observeEvent(::showExternalActions)
@@ -80,8 +90,12 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
         viewModel.openBrowserEvent.observeEvent(::showBrowser)
 
         viewModel.validatorAddressModelLiveData.observe { addressModel ->
-            rewardDetailValidator.setMessage(addressModel.nameOrAddress)
-            rewardDetailValidator.setTextIcon(addressModel.image)
+            if (addressModel != null) {
+                rewardDetailValidator.setMessage(addressModel.nameOrAddress)
+                rewardDetailValidator.setTextIcon(addressModel.image)
+            } else {
+                rewardDetailValidator.makeGone()
+            }
         }
 
         viewModel.eraLiveData.observe {
@@ -93,8 +107,8 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
         val transaction = viewModel.operation
 
         when (externalActionsSource) {
-            ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
-            ExternalActionsSource.VALIDATOR_ADDRESS -> showExternalAddressActions(transaction.validator)
+            ExternalActionsSource.TRANSACTION_HASH -> showExternalEventActions()
+            ExternalActionsSource.VALIDATOR_ADDRESS -> showExternalAddressActions(transaction.validator!!)
         }
     }
 
@@ -106,25 +120,28 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
         externalViewCallback = viewModel::viewAccountExternalClicked
     )
 
-    private fun showExternalTransactionActions() {
+    private fun showExternalEventActions() {
         showExternalActionsSheet(
-            R.string.transaction_details_copy_hash,
-            viewModel.operation.hash,
-            viewModel::viewTransactionExternalClicked
+            R.string.common_copy_id,
+            viewModel.operation.eventId,
+            viewModel::viewEventExternalClicked,
+            forceForbid = setOf(ExternalAnalyzer.SUBSCAN)
         )
     }
 
     private fun showExternalActionsSheet(
         @StringRes copyLabelRes: Int,
         value: String,
-        externalViewCallback: ExternalViewCallback
+        externalViewCallback: ExternalViewCallback,
+        forceForbid: Set<ExternalAnalyzer> = emptySet(),
     ) {
         val payload = ExternalActionsSheet.Payload(
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
                 networkType = viewModel.operation.address.networkType()
-            )
+            ),
+            forceForbid = forceForbid
         )
 
         ExternalActionsSheet(

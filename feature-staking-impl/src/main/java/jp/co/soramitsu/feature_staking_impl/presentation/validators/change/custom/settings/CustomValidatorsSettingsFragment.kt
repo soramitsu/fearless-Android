@@ -29,7 +29,6 @@ import kotlinx.android.synthetic.main.fragment_custom_validators_settings.custom
 import kotlinx.android.synthetic.main.fragment_custom_validators_settings.customValidatorSettingsSortOwnStake
 import kotlinx.android.synthetic.main.fragment_custom_validators_settings.customValidatorSettingsSortTotalStake
 import kotlinx.android.synthetic.main.fragment_custom_validators_settings.customValidatorSettingsToolbar
-import kotlinx.coroutines.flow.MutableStateFlow
 
 class CustomValidatorsSettingsFragment : BaseFragment<CustomValidatorsSettingsViewModel>() {
 

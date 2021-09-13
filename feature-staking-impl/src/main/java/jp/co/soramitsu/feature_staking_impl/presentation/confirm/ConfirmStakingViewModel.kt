@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.confirm
 
-import android.provider.Settings.Global.getString
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
@@ -234,7 +233,8 @@ class ConfirmStakingViewModel(
                 maxFee = fee,
                 controllerAddress = controllerAddressFlow.first(),
                 bondAmount = bondPayload?.amount,
-                asset = controllerAssetFlow.first()
+                asset = controllerAssetFlow.first(),
+                isAlreadyNominating = payload !is Payload.Full // not full flow => already nominating
             )
 
             validationExecutor.requireValid(

@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.showState
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetaiActions
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailAvailableAmount
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailBack
@@ -35,7 +36,6 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailToken
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTotal
 import kotlinx.android.synthetic.main.fragment_balance_detail.transfersContainer
-import kotlinx.android.synthetic.main.fragment_balance_list.*
 
 private const val KEY_TOKEN = "KEY_TOKEN"
 
@@ -108,7 +108,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun subscribe(viewModel: BalanceDetailViewModel) {
         viewModel.sync()
 
-        viewModel.transactionsLiveData.observe(transfersContainer::showTransactions)
+        viewModel.state.observe(transfersContainer::showState)
 
         setupBuyIntegration(viewModel)
 
