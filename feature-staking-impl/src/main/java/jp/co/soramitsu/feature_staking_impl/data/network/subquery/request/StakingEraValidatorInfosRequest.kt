@@ -18,7 +18,6 @@ class StakingEraValidatorInfosRequest(eraFrom: BigInteger, eraTo: BigInteger, ac
                         era
                         total
                         own
-                        others
                     }
                 }
             }
