@@ -57,7 +57,7 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideSubscanApi(networkApiCreator: NetworkApiCreator): SubQueryOperationsApi {
+    fun provideSubQueryApi(networkApiCreator: NetworkApiCreator): SubQueryOperationsApi {
         return networkApiCreator.create(SubQueryOperationsApi::class.java)
     }
 
