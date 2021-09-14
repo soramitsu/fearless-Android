@@ -29,10 +29,6 @@ private const val PREFS_PIN_CODE = "pin_code"
 
 private const val PREFS_SELECTED_ACCOUNT = "selected_address"
 
-private const val PREFS_SELECTED_NODE = "node"
-
-private const val MOVED_ACTIVE_NODE_TO_DB = "MOVED_ACTIVE_NODE_TO_DB"
-
 private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 
 class AccountDataSourceImpl(

@@ -8,14 +8,38 @@ import androidx.room.PrimaryKey
 import androidx.room.Relation
 import jp.co.soramitsu.core.model.CryptoType
 
-@Entity(tableName = "meta_accounts")
+@Entity(
+    tableName = MetaAccountLocal.TABLE_NAME,
+    indices = [
+        Index(value = ["substrateAccountId"]),
+        Index(value = ["ethereumAddress"])
+    ]
+)
 class MetaAccountLocal(
     val substratePublicKey: ByteArray,
     val substrateCryptoType: CryptoType,
+    val substrateAccountId: ByteArray,
     val ethereumPublicKey: ByteArray?,
+    val ethereumAddress: String?,
     val name: String,
     val isSelected: Boolean,
 ) {
+
+    companion object Table {
+        const val TABLE_NAME = "meta_accounts"
+
+        object Column {
+            const val SUBSTRATE_PUBKEY = "substratePublicKey"
+            const val SUBSTRATE_CRYPTO_TYPE = "substrateCryptoType"
+            const val SUBSTRATE_ACCOUNT_ID = "substrateAccountId"
+
+            const val ETHEREUM_PUBKEY = "ethereumPublicKey"
+            const val ETHEREUM_ADDRESS = "ethereumAddress"
+
+            const val NAME = "name"
+            const val IS_SELECTED = "isSelected"
+        }
+    }
 
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0

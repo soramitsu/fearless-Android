@@ -23,6 +23,8 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    implementation fearlessLibDep
+
     implementation project(":common")
     implementation gsonDep
 
