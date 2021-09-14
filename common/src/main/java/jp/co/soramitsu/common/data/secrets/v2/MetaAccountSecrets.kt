@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.data
+package jp.co.soramitsu.common.data.secrets.v2
 
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair

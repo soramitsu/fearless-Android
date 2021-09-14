@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -47,4 +48,6 @@ interface AccountFeatureDependencies {
     fun addressIconGenerator(): AddressIconGenerator
 
     fun random(): Random
+
+    fun secretStoreV1(): SecretStoreV1
 }

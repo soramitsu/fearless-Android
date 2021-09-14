@@ -1,14 +1,14 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import kotlinx.coroutines.flow.Flow
 
-interface AccountDataSource {
+interface AccountDataSource : SecretStoreV1 {
 
     suspend fun saveAuthType(authType: AuthType)
 
@@ -21,10 +21,6 @@ interface AccountDataSource {
     suspend fun saveSelectedNode(node: Node)
 
     suspend fun getSelectedNode(): Node?
-
-    suspend fun saveSecuritySource(accountAddress: String, source: SecuritySource)
-
-    suspend fun getSecuritySource(accountAddress: String): SecuritySource?
 
     suspend fun anyAccountSelected(): Boolean
 

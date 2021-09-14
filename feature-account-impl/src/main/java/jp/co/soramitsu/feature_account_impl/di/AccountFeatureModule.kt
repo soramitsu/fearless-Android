@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
@@ -115,9 +116,10 @@ class AccountFeatureModule {
         encryptedPreferences: EncryptedPreferences,
         jsonMapper: Gson,
         nodeDao: NodeDao,
+        secretStoreV1: SecretStoreV1,
         accountDataMigration: AccountDataMigration
     ): AccountDataSource {
-        return AccountDataSourceImpl(preferences, encryptedPreferences, nodeDao, jsonMapper, accountDataMigration)
+        return AccountDataSourceImpl(preferences, encryptedPreferences, nodeDao, jsonMapper, secretStoreV1, accountDataMigration)
     }
 
     @Provides

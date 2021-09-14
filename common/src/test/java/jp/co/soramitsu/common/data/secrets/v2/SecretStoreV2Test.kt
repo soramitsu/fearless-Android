@@ -1,10 +1,10 @@
-package jp.co.soramitsu.feature_account_impl.data
+package jp.co.soramitsu.common.data.secrets.v2
 
+import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema.PrivateKey
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets.SubstrateDerivationPath
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets.SubstrateKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.feature_account_impl.data.KeyPairSchema.PrivateKey
-import jp.co.soramitsu.feature_account_impl.data.MetaAccountSecrets.SubstrateDerivationPath
-import jp.co.soramitsu.feature_account_impl.data.MetaAccountSecrets.SubstrateKeypair
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -17,9 +17,9 @@ private const val META_ID = 1L
 private const val CHAIN_ID = "1"
 
 @RunWith(JUnit4::class)
-class SecretStoreTest {
+class SecretStoreV2Test {
 
-    private val secretStore = SecretStore(HashMapEncryptedPreferences())
+    private val secretStore = SecretStoreV2(HashMapEncryptedPreferences())
 
     @Test
     fun `should save and retrieve meta account secrets`() = runBlocking {

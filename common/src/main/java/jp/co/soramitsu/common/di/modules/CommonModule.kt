@@ -13,6 +13,9 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.FileProviderImpl
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1Impl
+import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -183,4 +186,16 @@ class CommonModule {
     ): ValidationExecutor {
         return ValidationExecutor(resourceManager)
     }
+
+    @Provides
+    @ApplicationScope
+    fun provideSecretStoreV1(
+        encryptedPreferences: EncryptedPreferences
+    ): SecretStoreV1 = SecretStoreV1Impl(encryptedPreferences)
+
+    @Provides
+    @ApplicationScope
+    fun provideSecretStoreV2(
+        encryptedPreferences: EncryptedPreferences
+    ) = SecretStoreV2(encryptedPreferences)
 }

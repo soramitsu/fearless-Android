@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.data
+package jp.co.soramitsu.common.data.secrets.v2
 
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 
 private const val ACCESS_SECRETS = "ACCESS_SECRETS"
 
-class SecretStore(
+class SecretStoreV2(
     private val encryptedPreferences: EncryptedPreferences,
 ) {
 
