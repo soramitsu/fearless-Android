@@ -69,7 +69,7 @@ class CurrentValidatorsViewModel(
         .asLiveData()
 
     val shouldShowOversubscribedNoRewardWarning = groupedCurrentValidatorsFlow.map { groupedList ->
-        val (_, validators) = groupedList.entries.first { (group, _) -> group is NominatedValidator.Status.Group.Active }
+        val (_, validators) = groupedList.entries.firstOrNull { (group, _) -> group is NominatedValidator.Status.Group.Active } ?: return@map false
 
         validators.any { (it.status as NominatedValidator.Status.Active).willUserBeRewarded.not() }
     }
