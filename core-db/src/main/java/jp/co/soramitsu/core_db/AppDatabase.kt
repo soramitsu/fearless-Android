@@ -19,13 +19,11 @@ import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
-import jp.co.soramitsu.core_db.dao.StakingRewardDao
-import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
-import jp.co.soramitsu.core_db.migrations.AddChainRegistryTables_22_23
+import jp.co.soramitsu.core_db.migrations.AddChainRegistryTables_25_26
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
 import jp.co.soramitsu.core_db.migrations.AddOperationsTablesToDb_23_24
 import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
@@ -45,14 +43,10 @@ import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.OperationLocal
-import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
-import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
-import jp.co.soramitsu.core_db.model.StakingRewardLocal
 import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
-import jp.co.soramitsu.core_db.model.TransactionLocal
 import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
@@ -123,7 +117,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AddTotalRewardsTableToDb_21_22, RemoveStakingRewardsTable_22_23)
                     .addMigrations(AddOperationsTablesToDb_23_24)
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 24))
-                    .addMigrations(AddChainRegistryTables_22_23)
+                    .addMigrations(AddChainRegistryTables_25_26)
                     .build()
             }
             return instance!!
