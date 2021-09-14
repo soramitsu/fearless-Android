@@ -56,7 +56,7 @@ abstract class ReferralContributeViewState(
     val bonusFlow = bonusPayloadFlow.map {
         val tokenName = customContributePayload.parachainMetadata.token
 
-        it.calculateBonus(customContributePayload.amount).formatTokenAmount(tokenName)
+        it.calculateBonus(customContributePayload.amount)?.formatTokenAmount(tokenName)
     }
 
     init {

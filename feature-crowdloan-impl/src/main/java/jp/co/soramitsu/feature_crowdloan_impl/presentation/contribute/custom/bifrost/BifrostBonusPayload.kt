@@ -11,10 +11,10 @@ val BIFROST_BONUS_MULTIPLIER = 0.05.toBigDecimal() // 5%
 class BifrostBonusPayload(
     override val referralCode: String,
     val parachainId: ParaId,
-    private val rewardRate: BigDecimal
+    private val rewardRate: BigDecimal?
 ) : ReferralCodePayload {
 
-    override fun calculateBonus(amount: BigDecimal): BigDecimal {
-        return amount * rewardRate * BIFROST_BONUS_MULTIPLIER
+    override fun calculateBonus(amount: BigDecimal): BigDecimal? {
+        return rewardRate?.let { amount * rewardRate * BIFROST_BONUS_MULTIPLIER }
     }
 }

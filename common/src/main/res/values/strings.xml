@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_event">Event</string>
+    <string name="common_copy_id">Copy id</string>
+    <string name="common_details">Details</string>
+    <string name="transfer_title">Transfer</string>
+
     <string name="staking_apy" translatable="false">%s APY</string>
     <string name="staking_apr" translatable="false">%s APR</string>
     <string name="choose_amount_initial" translatable="false">0</string>
@@ -253,7 +258,10 @@ Derivation path: %s</string>
     <string name="staking_reward_details_era">Era</string>
     <string name="staking_reward">Reward</string>
     <string name="staking_slash">Slash</string>
+    <string name="common_call">Call</string>
+    <string name="common_module">Module</string>
     <string name="wallet_asset_buy_with">Buy with</string>
+    <string name="wallet_filters_title">Filters</string>
     <string name="common_apply">Apply</string>
     <string name="common_reset">Reset</string>
     <string name="wallet_filters_transfers">Transfers</string>
@@ -285,6 +293,7 @@ Derivation path: %s</string>
     <string name="common_change">Change</string>
     <string name="staking_your_nominated_format">Nominated: %s</string>
     <string name="staking_your_validators_changing_title">Your validators will change in the next era.</string>
+    <string name="staking_max_format" formatted="false">%s (max %s)</string>
     <string name="staking_bonded_format">Bonded: %s</string>
     <string name="staking_unbonding_hint">Your tokens will be available to redeem after the unstaking period.</string>
     <string name="common_account">Account</string>
@@ -383,7 +392,6 @@ Derivation path: %s</string>
     <string name="staking_validator_total_stake_token">Total stake (%s)</string>
     <string name="staking_validator_apy_percent">Estimated reward (% APY)</string>
     <string name="staking_rewards_destination_title">Rewards destination</string>
-    <string name="staking_max_format" formatted="false">%d (max %d)</string>
     <string name="staking_your_oversubscribed_message">Your tokens are allocated to the oversubscribed validators. You will not receive rewards in this era.</string>
     <string name="staking_your_not_elected_format">Not elected (%s)</string>
     <string name="staking_your_elected_format">Elected (%s)</string>
@@ -440,4 +448,7 @@ to your account to avoid remaining stake.</string>
     </plurals>
     <string name="import_mnemonic_invalid_title">Your mnemonic is invalid</string>
     <string name="account_error_try_another_one">Please, try another one.</string>
+    <string name="wallet_extrinsic_details_title">Extrinsic details</string>
+    <string name="transaction_details_extrinsic_fee">Fee</string>
+    <string name="wallet_transfer_details_title">Transfer details</string>
 </resources>

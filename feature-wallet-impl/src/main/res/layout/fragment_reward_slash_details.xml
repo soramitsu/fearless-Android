@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/rewardDetailToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:homeButtonIcon="@drawable/ic_close"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleText="@string/common_details" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/rewardDetailHash"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:actionIcon="@drawable/ic_more_vertical"
+                app:label="@string/common_event"
+                tools:message="123456-12"
+                app:layout_constraintEnd_toEndOf="@+id/rewardDetailDivider4"
+                app:layout_constraintStart_toStartOf="@+id/rewardDetailDivider4"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/rewardDetailValidator"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
+                app:actionIcon="@drawable/ic_more_vertical"
+                app:label="@string/staking_reward_details_validator"
+                app:layout_constraintEnd_toEndOf="@+id/rewardDetailDivider4"
+                app:layout_constraintStart_toStartOf="@+id/rewardDetailDivider4"
+                app:layout_constraintTop_toBottomOf="@+id/rewardDetailHash"
+                tools:textIcon="@color/colorAccent" />
+
+            <TextView
+                android:id="@+id/rewardDetailStatusLabel"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="20dp"
+                android:text="@string/transaction_detail_status"
+                android:textColor="@color/gray1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/rewardDetailValidator" />
+
+            <TextView
+                android:id="@+id/rewardDetailStatus"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintBottom_toBottomOf="@+id/rewardDetailStatusIcon"
+                app:layout_constraintEnd_toStartOf="@+id/rewardDetailStatusIcon"
+                app:layout_constraintTop_toTopOf="@+id/rewardDetailStatusIcon"
+                android:text="@string/transaction_status_completed" />
+
+            <ImageView
+                android:id="@+id/rewardDetailStatusIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="16dp"
+                app:layout_constraintBottom_toBottomOf="@+id/rewardDetailStatusLabel"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/rewardDetailStatusLabel"
+                android:src="@drawable/ic_transaction_completed" />
+
+            <View
+                android:id="@+id/rewardDetailDivider1"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="14dp"
+                android:background="@color/gray3"
+                app:layout_constraintEnd_toEndOf="@+id/rewardDetailStatusIcon"
+                app:layout_constraintStart_toStartOf="@+id/rewardDetailStatusLabel"
+                app:layout_constraintTop_toBottomOf="@+id/rewardDetailStatusLabel" />
+
+            <TextView
+                android:id="@+id/rewardDetailDateLabel"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="15dp"
+                android:text="@string/common_date"
+                android:textColor="@color/gray1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/rewardDetailDivider1" />
+
+            <TextView
+                android:id="@+id/rewardDetailDate"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@+id/rewardDetailDateLabel"
+                app:layout_constraintEnd_toEndOf="@+id/rewardDetailDivider1"
+                app:layout_constraintTop_toTopOf="@+id/rewardDetailDateLabel"
+                tools:text="10 Apr 2020, 22:36:45" />
+
+            <View
+                android:id="@+id/rewardDetailDivider2"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="14dp"
+                android:background="@color/gray3"
+                app:layout_constraintEnd_toEndOf="@+id/rewardDetailStatusIcon"
+                app:layout_constraintStart_toStartOf="@+id/rewardDetailStatusLabel"
+                app:layout_constraintTop_toBottomOf="@+id/rewardDetailDateLabel" />
+
+            <TextView
+                android:id="@+id/rewardDetailEraLabel"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="15dp"
+                android:text="@string/staking_reward_details_era"
+                android:textColor="@color/gray1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/rewardDetailDivider2" />
+
+            <TextView
+                android:id="@+id/rewardDetailEra"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@+id/rewardDetailEraLabel"
+                app:layout_constraintEnd_toEndOf="@+id/rewardDetailDivider1"
+                app:layout_constraintTop_toTopOf="@+id/rewardDetailEraLabel"
+                tools:text="#1,940" />
+
+            <View
+                android:id="@+id/rewardDetailDivider3"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="14dp"
+                android:background="@color/gray3"
+                app:layout_constraintEnd_toEndOf="@+id/rewardDetailStatusIcon"
+                app:layout_constraintStart_toStartOf="@+id/rewardDetailStatusLabel"
+                app:layout_constraintTop_toBottomOf="@+id/rewardDetailEraLabel" />
+
+            <TextView
+                android:id="@+id/rewardDetailRewardLabel"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="14dp"
+                android:text="@string/staking_reward"
+                android:textColor="@color/gray1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/rewardDetailDivider3" />
+
+            <TextView
+                android:id="@+id/rewardDetailReward"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@+id/rewardDetailRewardLabel"
+                app:layout_constraintEnd_toEndOf="@+id/rewardDetailDivider1"
+                app:layout_constraintTop_toTopOf="@+id/rewardDetailRewardLabel"
+                tools:text="+0.0001 KSM"
+                tools:textColor="@color/green" />
+
+            <View
+                android:id="@+id/rewardDetailDivider4"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="15dp"
+                android:background="@color/gray3"
+                app:layout_constraintEnd_toEndOf="@+id/rewardDetailStatusIcon"
+                app:layout_constraintStart_toStartOf="@+id/rewardDetailStatusLabel"
+                app:layout_constraintTop_toBottomOf="@+id/rewardDetailRewardLabel" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+</LinearLayout>

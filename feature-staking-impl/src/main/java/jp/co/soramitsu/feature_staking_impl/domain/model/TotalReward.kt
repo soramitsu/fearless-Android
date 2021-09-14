@@ -1,5 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.domain.model
 
-import java.math.BigDecimal
+import java.math.BigInteger
 
-typealias TotalReward = BigDecimal
+typealias TotalReward = BigInteger

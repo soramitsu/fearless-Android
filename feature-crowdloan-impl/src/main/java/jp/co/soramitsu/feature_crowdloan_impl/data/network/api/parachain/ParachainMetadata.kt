@@ -8,7 +8,7 @@ fun mapParachainMetadataRemoteToParachainMetadata(parachainMetadata: ParachainMe
             iconLink = icon,
             name = name,
             description = description,
-            rewardRate = rewardRate.toBigDecimal(),
+            rewardRate = rewardRate?.toBigDecimal(),
             website = website,
             customFlow = customFlow,
             token = token

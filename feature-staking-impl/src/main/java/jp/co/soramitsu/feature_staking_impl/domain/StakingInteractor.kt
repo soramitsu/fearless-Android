@@ -7,6 +7,8 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
+import jp.co.soramitsu.feature_staking_api.domain.api.EraTimeCalculator
+import jp.co.soramitsu.feature_staking_api.domain.api.EraTimeCalculatorFactory
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
@@ -34,6 +36,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -45,8 +48,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 import kotlin.time.ExperimentalTime
-import kotlin.time.days
-import kotlin.time.milliseconds
 
 const val HOURS_IN_DAY = 24
 
@@ -57,6 +58,8 @@ class EraRelativeInfo(
     val erasPast: BigInteger,
 )
 
+val ERA_OFFSET = 1.toBigInteger()
+
 class StakingInteractor(
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
@@ -65,7 +68,11 @@ class StakingInteractor(
     private val stakingConstantsRepository: StakingConstantsRepository,
     private val identityRepository: IdentityRepository,
     private val payoutRepository: PayoutRepository,
+    private val factory: EraTimeCalculatorFactory,
 ) {
+    suspend fun getCalculator(): EraTimeCalculator {
+        return factory.create()
+    }
 
     @OptIn(ExperimentalTime::class)
     suspend fun calculatePendingPayouts(): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
@@ -82,21 +89,29 @@ class StakingInteractor(
             val allValidatorAddresses = payouts.map(Payout::validatorAddress).distinct()
             val identityMapping = identityRepository.getIdentitiesFromAddresses(allValidatorAddresses)
 
+            val calculator = getCalculator()
             val pendingPayouts = payouts.map {
                 val relativeInfo = eraRelativeInfo(it.era, activeEraIndex, historyDepth, erasPerDay)
 
-                val estimatedCreatedAt = System.currentTimeMillis().milliseconds - relativeInfo.daysPast.days
-
                 val closeToExpire = relativeInfo.erasLeft < historyDepth / 2.toBigInteger()
 
+                val leftTime = calculator.calculateTillEraSet(destinationEra = it.era + historyDepth + ERA_OFFSET).toLong()
+                val currentTimestamp = System.currentTimeMillis()
                 with(it) {
                     val validatorIdentity = identityMapping[validatorAddress]
 
                     val validatorInfo = PendingPayout.ValidatorInfo(validatorAddress, validatorIdentity?.display)
 
-                    PendingPayout(validatorInfo, era, amount, estimatedCreatedAt.toLongMilliseconds(), relativeInfo.daysLeft, closeToExpire)
+                    PendingPayout(
+                        validatorInfo = validatorInfo,
+                        era = era,
+                        amountInPlanks = amount,
+                        timeLeft = leftTime,
+                        createdAt = currentTimestamp,
+                        closeToExpire = closeToExpire
+                    )
                 }
-            }
+            }.sortedBy { it.era }
 
             PendingPayoutsStatistics(
                 payouts = pendingPayouts,
@@ -133,7 +148,10 @@ class StakingInteractor(
 
         when {
             isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
-            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting
+
+            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(
+                timeLeft = getCalculator().calculate(nominatorState.nominations.submittedInEra + ERA_OFFSET).toLong()
+            )
 
             else -> {
                 val inactiveReason = when {
@@ -220,26 +238,28 @@ class StakingInteractor(
 
     suspend fun maxValidatorsPerNominator(): Int = stakingConstantsRepository.maxValidatorsPerNominator()
 
+    suspend fun maxRewardedNominators(): Int = stakingConstantsRepository.maxRewardedNominatorPerValidator()
+
     fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
         return selectedAccountStakingStateFlow()
             .filterIsInstance<StakingState.Stash>()
             .flatMapLatest { stash ->
                 val networkType = stash.stashAddress.networkType()
+                val calculator = getCalculator()
 
                 combine(
                     stakingRepository.ledgerFlow(stash),
                     stakingRepository.observeActiveEraIndex(networkType)
                 ) { ledger, activeEraIndex ->
-                    val erasPerDay = networkType.runtimeConfiguration.erasPerDay
-                    val unbondingDuration = stakingConstantsRepository.lockupPeriodInEras()
-
                     ledger.unlocking
                         .filter { it.isUnbondingIn(activeEraIndex) }
                         .map {
-                            val createdAtEra = it.era - unbondingDuration
-                            val relativeInfo = eraRelativeInfo(createdAtEra, activeEraIndex, unbondingDuration, erasPerDay)
-
-                            Unbonding(it.amount, relativeInfo.daysLeft)
+                            val leftTime = calculator.calculate(destinationEra = it.era)
+                            Unbonding(
+                                amount = it.amount,
+                                timeLeft = leftTime.toLong(),
+                                calculatedAt = System.currentTimeMillis()
+                            )
                         }
                 }
             }
@@ -284,7 +304,7 @@ class StakingInteractor(
             StakeSummary(
                 status = status,
                 totalStaked = totalStaked,
-                totalRewards = totalReward,
+                totalReward = asset.token.amountFromPlanks(totalReward),
                 currentEra = activeEraIndex.toInt(),
             )
         }

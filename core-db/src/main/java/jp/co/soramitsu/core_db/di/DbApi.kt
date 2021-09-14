@@ -10,8 +10,8 @@ import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
 
 interface DbApi {
 
@@ -23,7 +23,7 @@ interface DbApi {
 
     fun provideAssetDao(): AssetDao
 
-    fun provideTransactionsDao(): TransactionDao
+    fun provideOperationDao(): OperationDao
 
     fun providePhishingAddressDao(): PhishingAddressDao
 
@@ -32,8 +32,6 @@ interface DbApi {
     fun tokenDao(): TokenDao
 
     fun accountStakingDao(): AccountStakingDao
-
-    fun stakingRewardDao(): StakingRewardDao
 
     fun stakingTotalRewardDao(): StakingTotalRewardDao
 

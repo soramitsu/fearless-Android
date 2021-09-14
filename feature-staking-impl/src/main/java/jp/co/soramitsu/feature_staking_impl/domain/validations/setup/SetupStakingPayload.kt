@@ -10,4 +10,5 @@ class SetupStakingPayload(
     val maxFee: BigDecimal,
     val asset: Asset,
     val controllerAddress: String,
+    val isAlreadyNominating: Boolean
 )

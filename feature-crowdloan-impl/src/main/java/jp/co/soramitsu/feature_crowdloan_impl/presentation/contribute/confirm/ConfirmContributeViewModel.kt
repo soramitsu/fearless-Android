@@ -102,7 +102,7 @@ class ConfirmContributeViewModel(
         val bonusDisplay = payload.bonusPayload?.let {
             val bonus = it.calculateBonus(payload.amount)
 
-            bonus.formatTokenAmount(payload.metadata!!.token)
+            bonus?.formatTokenAmount(payload.metadata!!.token)
         }
 
         emit(bonusDisplay)

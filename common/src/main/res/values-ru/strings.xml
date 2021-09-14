@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_details">Подробности</string>
     <string name="common_next">Далее</string>
     <string name="common_cancel">Отмена</string>
     <string name="common_skip">Пропустить</string>
@@ -249,7 +250,10 @@
     <string name="staking_reward_details_era">Эра</string>
     <string name="staking_reward">Вознаграждение</string>
     <string name="staking_slash">Слэш</string>
+    <string name="common_call">Вызов</string>
+    <string name="common_module">Модуль</string>
     <string name="wallet_asset_buy_with">Купить с</string>
+    <string name="wallet_filters_title">Фильтры</string>
     <string name="common_apply">Применять</string>
     <string name="common_reset">Сброс</string>
     <string name="wallet_filters_transfers">Переводы</string>
@@ -283,6 +287,7 @@
     <string name="common_change">Изменить</string>
     <string name="staking_your_nominated_format">Номинировано: %s</string>
     <string name="staking_your_validators_changing_title">Ваши валидаторы поменяются в следующую эру</string>
+    <string name="staking_max_format" formatted="false">%s (макс. %s )</string>
     <string name="staking_bonded_format">Застейкано: %s</string>
     <string name="staking_unbonding_hint">Ваши токены будут доступны после истечения периода вывода.</string>
     <string name="common_account">Счет</string>
@@ -381,7 +386,6 @@
     <string name="staking_validator_total_stake_token">Общий стейк (%s)</string>
     <string name="staking_validator_apy_percent">Примерное вознаграждение (% APY)</string>
     <string name="staking_rewards_destination_title">Назначение вознаграждений</string>
-    <string name="staking_max_format" formatted="false">%d (макс. %d)</string>
     <string name="staking_your_oversubscribed_message">Ваши токены попали к валидатору, превысившему лимит номинаторов. В этой эре вы не получите награду от этого валидатора. </string>
     <string name="staking_your_not_elected_format">Не избраны (%s)</string>
     <string name="staking_your_elected_format">Избраны (%s)</string>
@@ -440,4 +444,10 @@
     </plurals>
     <string name="import_mnemonic_invalid_title">Ваша мнемоника недействительна</string>
     <string name="account_error_try_another_one">Пожалуйста, попробуйте другой.</string>
+    <string name="wallet_extrinsic_details_title">Детали транзакции</string>
+    <string name="transaction_details_extrinsic_fee">Комиссия</string>
+    <string name="wallet_transfer_details_title">Детали перевода</string>
+    <string name="common_event">Событие</string>
+    <string name="common_copy_id">Копировать идентификатор</string>
+    <string name="transfer_title">Перевод</string>
 </resources>

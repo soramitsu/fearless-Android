@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
@@ -47,7 +48,8 @@ class SetupStakingValidationsModule {
         stakingRepository: StakingRepository
     ) = SetupStakingMaximumNominatorsValidation(
         stakingRepository = stakingRepository,
-        errorProducer = { SetupStakingValidationFailure.MaxNominatorsReached }
+        errorProducer = { SetupStakingValidationFailure.MaxNominatorsReached },
+        isAlreadyNominating = SetupStakingPayload::isAlreadyNominating
     )
 
     @Provides

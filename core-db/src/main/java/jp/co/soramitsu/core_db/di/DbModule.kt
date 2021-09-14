@@ -14,10 +14,11 @@ import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.StakingRewardDao
+import jp.co.soramitsu.core_db.dao.RuntimeDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 
 @Module
@@ -59,8 +60,8 @@ class DbModule {
 
     @Provides
     @ApplicationScope
-    fun provideTransactionDao(appDatabase: AppDatabase): TransactionDao {
-        return appDatabase.transactionsDao()
+    fun provideOperationHistoryDao(appDatabase: AppDatabase): OperationDao {
+        return appDatabase.operationDao()
     }
 
     @Provides
@@ -85,12 +86,6 @@ class DbModule {
     @ApplicationScope
     fun provideAccountStakingDao(appDatabase: AppDatabase): AccountStakingDao {
         return appDatabase.accountStakingDao()
-    }
-
-    @Provides
-    @ApplicationScope
-    fun provideStakingRewardDao(appDatabase: AppDatabase): StakingRewardDao {
-        return appDatabase.stakingRewardsDao()
     }
 
     @Provides

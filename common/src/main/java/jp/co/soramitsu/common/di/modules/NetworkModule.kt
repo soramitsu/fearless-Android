@@ -41,12 +41,14 @@ class NetworkModule {
         val externalAnalyzerTemplates = mapOf(
             ExternalAnalyzer.POLKASCAN to ExternalAnalyzerLinks(
                 transaction = BuildConfig.POLKSASCAN_TRANSACTION_TEMPLATE,
-                account = BuildConfig.POLKSASCAN_ACCOUNT_TEMPLATE
+                account = BuildConfig.POLKSASCAN_ACCOUNT_TEMPLATE,
+                event = BuildConfig.POLKSASCAN_EVENT_TEMPLATE
             ),
 
             ExternalAnalyzer.SUBSCAN to ExternalAnalyzerLinks(
                 transaction = BuildConfig.SUBSCAN_TRANSACTION_TEMPLATE,
-                account = BuildConfig.SUBSCAN_ACCOUNT_TEMPLATE
+                account = BuildConfig.SUBSCAN_ACCOUNT_TEMPLATE,
+                event = null
             )
         )
 
@@ -54,9 +56,6 @@ class NetworkModule {
             termsUrl = BuildConfig.TERMS_URL,
             privacyUrl = BuildConfig.PRIVACY_URL,
             externalAnalyzerTemplates = externalAnalyzerTemplates,
-            roadMapUrl = BuildConfig.ROADMAP_URL,
-            devStatusUrl = BuildConfig.DEV_STATUS_URL,
-            nominatorLearnMore = BuildConfig.NOMINATOR_LEARN_MORE,
             payoutsLearnMore = BuildConfig.PAYOUTS_LEARN_MORE,
             twitterAccountTemplate = BuildConfig.TWITTER_ACCOUNT_TEMPLATE,
             setControllerLearnMore = BuildConfig.SET_CONTROLLER_LEARN_MORE

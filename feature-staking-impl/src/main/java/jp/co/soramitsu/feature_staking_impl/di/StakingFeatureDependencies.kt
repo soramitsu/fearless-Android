@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
-import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
@@ -74,8 +73,6 @@ interface StakingFeatureDependencies {
     fun accountStakingDao(): AccountStakingDao
 
     fun accountUpdateScope(): AccountUpdateScope
-
-    fun stakingRewardsDao(): StakingRewardDao
 
     fun stakingTotalRewardsDao(): StakingTotalRewardDao
 

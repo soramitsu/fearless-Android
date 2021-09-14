@@ -8,7 +8,7 @@ class ParachainMetadataRemote(
     val name: String,
     val paraid: BigInteger,
     val token: String,
-    val rewardRate: Double,
+    val rewardRate: Double?,
     val customFlow: String?,
     val website: String
 )

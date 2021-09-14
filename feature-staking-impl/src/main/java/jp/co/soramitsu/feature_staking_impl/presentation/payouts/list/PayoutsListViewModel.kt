@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.common.utils.viewModelSharedFlow
+import jp.co.soramitsu.common.utils.singleReplaySharedFlow
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -37,7 +37,7 @@ class PayoutsListViewModel(
 
     override val retryEvent: MutableLiveData<Event<RetryPayload>> = MutableLiveData()
 
-    private val payoutsStatisticsFlow = viewModelSharedFlow<PendingPayoutsStatistics>()
+    private val payoutsStatisticsFlow = singleReplaySharedFlow<PendingPayoutsStatistics>()
 
     val payoutsStatisticsState = payoutsStatisticsFlow
         .map(::convertToUiModel)
@@ -118,7 +118,8 @@ class PayoutsListViewModel(
 
             PendingPayoutModel(
                 validatorTitle = validatorInfo.identityName ?: validatorInfo.address,
-                daysLeft = resourceManager.getQuantityString(R.plurals.staking_payouts_days_left, daysLeft, daysLeft),
+                timeLeft = timeLeft,
+                createdAt = createdAt,
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
                 amount = amount.formatTokenChange(token.type, isIncome = true),
                 amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
@@ -136,7 +137,7 @@ class PayoutsListViewModel(
                 era = era,
                 amountInPlanks = amountInPlanks,
                 createdAt = createdAt,
-                daysLeft = daysLeft,
+                timeLeft = timeLeft,
                 closeToExpire = closeToExpire
             )
         }

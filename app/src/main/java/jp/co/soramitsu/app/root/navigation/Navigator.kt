@@ -65,11 +65,13 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.Valid
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.TransactionDetailFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.flow.Flow
@@ -345,6 +347,10 @@ class Navigator :
         navController?.navigate(R.id.action_open_send)
     }
 
+    override fun openFilter() {
+        navController?.navigate(R.id.action_mainFragment_to_filterFragment)
+    }
+
     override fun openChooseAmount(recipientAddress: String) {
         val bundle = ChooseAmountFragment.getBundle(recipientAddress)
 
@@ -367,10 +373,22 @@ class Navigator :
         navController?.navigate(R.id.openSelectAmount, bundle)
     }
 
-    override fun openTransactionDetail(transaction: TransactionModel) {
-        val bundle = TransactionDetailFragment.getBundle(transaction)
+    override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer) {
+        val bundle = TransferDetailFragment.getBundle(transaction)
 
-        navController?.navigate(R.id.open_transaction_detail, bundle)
+        navController?.navigate(R.id.open_transfer_detail, bundle)
+    }
+
+    override fun openRewardDetail(reward: OperationParcelizeModel.Reward) {
+        val bundle = RewardDetailFragment.getBundle(reward)
+
+        navController?.navigate(R.id.open_reward_detail, bundle)
+    }
+
+    override fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.Extrinsic) {
+        val bundle = ExtrinsicDetailFragment.getBundle(extrinsic)
+
+        navController?.navigate(R.id.open_extrinsic_detail, bundle)
     }
 
     override fun openAccounts(accountChosenNavDirection: AccountChosenNavDirection) {
