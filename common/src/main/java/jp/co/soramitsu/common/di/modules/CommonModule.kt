@@ -32,11 +32,8 @@ import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
-import jp.co.soramitsu.fearless_utils.bip39.Bip39
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
-import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import java.security.SecureRandom
 import java.util.Random
@@ -89,24 +86,6 @@ class CommonModule {
         encryptionUtil: EncryptionUtil
     ): EncryptedPreferences {
         return EncryptedPreferencesImpl(preferences, encryptionUtil)
-    }
-
-    @Provides
-    @ApplicationScope
-    fun provideBip39(): Bip39 {
-        return Bip39()
-    }
-
-    @Provides
-    @ApplicationScope
-    fun provideKeypairFactory(): KeypairFactory {
-        return KeypairFactory()
-    }
-
-    @Provides
-    @ApplicationScope
-    fun provideJunctionDecoder(): JunctionDecoder {
-        return JunctionDecoder()
     }
 
     @Provides

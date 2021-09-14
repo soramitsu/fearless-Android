@@ -14,11 +14,8 @@ import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
-import jp.co.soramitsu.fearless_utils.bip39.Bip39
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
-import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
@@ -43,22 +40,7 @@ class AccountFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideBip39() = Bip39()
-
-    @Provides
-    @FeatureScope
-    fun provideJunctionDecoder() = JunctionDecoder()
-
-    @Provides
-    @FeatureScope
-    fun provideKeyFactory() = KeypairFactory()
-
-    @Provides
-    @FeatureScope
-    fun provideJsonDecoder(
-        keypairFactory: KeypairFactory,
-        jsonMapper: Gson
-    ) = JsonSeedDecoder(jsonMapper, keypairFactory)
+    fun provideJsonDecoder(jsonMapper: Gson) = JsonSeedDecoder(jsonMapper)
 
     @Provides
     @FeatureScope
@@ -76,9 +58,6 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideAccountRepository(
-        bip39: Bip39,
-        junctionDecoder: JunctionDecoder,
-        keypairFactory: KeypairFactory,
         accountDataSource: AccountDataSource,
         accountDao: AccountDao,
         nodeDao: NodeDao,
@@ -91,9 +70,6 @@ class AccountFeatureModule {
             accountDataSource,
             accountDao,
             nodeDao,
-            bip39,
-            junctionDecoder,
-            keypairFactory,
             jsonSeedDecoder,
             jsonSeedEncoder,
             languagesHolder,
@@ -136,10 +112,9 @@ class AccountFeatureModule {
     fun provideAccountDataMigration(
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
-        bip39: Bip39,
         accountDao: AccountDao
     ): AccountDataMigration {
-        return AccountDataMigration(preferences, encryptedPreferences, bip39, accountDao)
+        return AccountDataMigration(preferences, encryptedPreferences, accountDao)
     }
 
     @Provides

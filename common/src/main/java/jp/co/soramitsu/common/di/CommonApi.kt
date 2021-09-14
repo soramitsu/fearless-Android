@@ -26,11 +26,8 @@ import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
-import jp.co.soramitsu.fearless_utils.bip39.Bip39
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
-import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import java.util.Random
@@ -52,12 +49,6 @@ interface CommonApi {
     fun providePreferences(): Preferences
 
     fun provideEncryptedPreferences(): EncryptedPreferences
-
-    fun provideBip39(): Bip39
-
-    fun provideKeypairFactory(): KeypairFactory
-
-    fun provideJunctionDecoder(): JunctionDecoder
 
     fun provideIconGenerator(): IconGenerator
 

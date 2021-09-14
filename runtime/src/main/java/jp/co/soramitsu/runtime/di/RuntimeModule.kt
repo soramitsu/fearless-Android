@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.dao.StorageDao
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -56,12 +55,10 @@ class RuntimeModule {
         accountRepository: AccountRepository,
         rpcCalls: RpcCalls,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        keypairFactory: KeypairFactory,
         mortalityConstructor: MortalityConstructor,
     ) = ExtrinsicBuilderFactory(
         accountRepository,
         rpcCalls,
-        keypairFactory,
         runtimeProperty,
         mortalityConstructor
     )

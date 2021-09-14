@@ -1,7 +1,8 @@
 package jp.co.soramitsu.common.data.secrets.v2
 
 import jp.co.soramitsu.common.utils.invoke
-import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
@@ -48,7 +49,7 @@ fun MetaAccountSecrets(
     secrets[SubstrateKeypair] = KeyPairSchema { keypair ->
         keypair[PublicKey] = substrateKeyPair.publicKey
         keypair[PrivateKey] = substrateKeyPair.privateKey
-        keypair[Nonce] = substrateKeyPair.nonce
+        keypair[Nonce] = (substrateKeyPair as? Sr25519Keypair)?.nonce
     }
     secrets[SubstrateDerivationPath] = substrateDerivationPath
 
@@ -56,7 +57,7 @@ fun MetaAccountSecrets(
         KeyPairSchema { keypair ->
             keypair[PublicKey] = it.publicKey
             keypair[PrivateKey] = it.privateKey
-            keypair[Nonce] = it.nonce
+            keypair[Nonce] = null // ethereum does not support Sr25519 so nonce is always null
         }
     }
     secrets[EthereumDerivationPath] = ethereumDerivationPath
@@ -74,7 +75,7 @@ fun ChainAccountSecrets(
     secrets[Keypair] = KeyPairSchema { keypair ->
         keypair[PublicKey] = keyPair.publicKey
         keypair[PrivateKey] = keyPair.privateKey
-        keypair[Nonce] = keyPair.nonce
+        keypair[Nonce] = (keyPair as? Sr25519Keypair)?.nonce
     }
     secrets[DerivationPath] = derivationPath
 }

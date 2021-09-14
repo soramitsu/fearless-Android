@@ -3,8 +3,6 @@ package jp.co.soramitsu.feature_account_impl.data.repository
 import android.database.sqlite.SQLiteConstraintException
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
-import jp.co.soramitsu.common.data.mappers.mapKeyPairToSigningData
-import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
@@ -217,11 +215,9 @@ class AccountRepositoryImpl(
                 decodedDerivationPath?.junctions.orEmpty()
             )
 
-            val signingData = mapKeyPairToSigningData(keys)
-
             val address = keys.publicKey.toAddress(networkType)
 
-            val securitySource = SecuritySource.Specified.Seed(seedBytes, signingData, derivationPath)
+            val securitySource = SecuritySource.Specified.Seed(seedBytes, keys, derivationPath)
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
@@ -249,9 +245,7 @@ class AccountRepositoryImpl(
 
                 val cryptoType = mapEncryptionToCryptoType(encryptionType)
 
-                val signingData = mapKeyPairToSigningData(keypair)
-
-                val securitySource = SecuritySource.Specified.Json(seed, signingData)
+                val securitySource = SecuritySource.Specified.Json(seed, keypair)
 
                 val actualAddress = keypair.publicKey.toAddress(networkType)
 
@@ -356,13 +350,12 @@ class AccountRepositoryImpl(
             require(securitySource is WithJson)
 
             val seed = (securitySource.jsonFormer() as? JsonFormer.Seed)?.seed
-            val keypair = mapSigningDataToKeypair(securitySource.signingData)
 
             val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
             val runtimeConfiguration = account.network.type.runtimeConfiguration
 
             jsonSeedEncoder.generate(
-                keypair = keypair,
+                keypair = securitySource.keypair,
                 seed = seed,
                 password = password,
                 name = account.name.orEmpty(),
@@ -464,12 +457,10 @@ class AccountRepositoryImpl(
 
             val address = keys.publicKey.toAddress(networkType)
 
-            val signingData = mapKeyPairToSigningData(keys)
-
             val securitySource: SecuritySource.Specified = if (isImport) {
-                SecuritySource.Specified.Mnemonic(derivationResult.seed, signingData, derivationResult.mnemonic.words, derivationPathOrNull)
+                SecuritySource.Specified.Mnemonic(derivationResult.seed, keys, derivationResult.mnemonic.words, derivationPathOrNull)
             } else {
-                SecuritySource.Specified.Create(derivationResult.seed, signingData, derivationResult.mnemonic.words, derivationPathOrNull)
+                SecuritySource.Specified.Create(derivationResult.seed, keys, derivationResult.mnemonic.words, derivationPathOrNull)
             }
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)

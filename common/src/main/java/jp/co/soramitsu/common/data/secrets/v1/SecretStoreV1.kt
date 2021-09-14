@@ -3,10 +3,10 @@ package jp.co.soramitsu.common.data.secrets.v1
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.core.model.SecuritySource
-import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core.model.WithDerivationPath
 import jp.co.soramitsu.core.model.WithMnemonic
 import jp.co.soramitsu.core.model.WithSeed
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -27,7 +27,7 @@ internal class SecretStoreV1Impl(
     override suspend fun saveSecuritySource(accountAddress: String, source: SecuritySource) = withContext(Dispatchers.Default) {
         val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
-        val signingData = source.signingData
+        val keypair = source.keypair
         val seed = (source as? WithSeed)?.seed
         val mnemonic = (source as? WithMnemonic)?.mnemonic
         val derivationPath = (source as? WithDerivationPath)?.derivationPath
@@ -35,9 +35,9 @@ internal class SecretStoreV1Impl(
         val toSave = SourceInternal {
             it[Type] = getSourceType(source).name
 
-            it[PrivateKey] = signingData.privateKey
-            it[PublicKey] = signingData.publicKey
-            it[Nonce] = signingData.nonce
+            it[PrivateKey] = keypair.privateKey
+            it[PublicKey] = keypair.publicKey
+            it[Nonce] = (keypair as? Sr25519Keypair)?.nonce
 
             it[Seed] = seed
             it[Mnemonic] = mnemonic
@@ -55,7 +55,7 @@ internal class SecretStoreV1Impl(
         val raw = encryptedPreferences.getDecryptedString(key) ?: return@withContext null
         val internalSource = SourceInternal.read(raw)
 
-        val signingData = SigningData(
+        val keypair = Keypair(
             publicKey = internalSource[SourceInternal.PublicKey],
             privateKey = internalSource[SourceInternal.PrivateKey],
             nonce = internalSource[SourceInternal.Nonce]
@@ -66,11 +66,11 @@ internal class SecretStoreV1Impl(
         val derivationPath = internalSource[SourceInternal.DerivationPath]
 
         when (SourceType.valueOf(internalSource[SourceInternal.Type])) {
-            SourceType.CREATE -> SecuritySource.Specified.Create(seed, signingData, mnemonic!!, derivationPath)
-            SourceType.SEED -> SecuritySource.Specified.Seed(seed, signingData, derivationPath)
-            SourceType.JSON -> SecuritySource.Specified.Json(seed, signingData)
-            SourceType.MNEMONIC -> SecuritySource.Specified.Mnemonic(seed, signingData, mnemonic!!, derivationPath)
-            SourceType.UNSPECIFIED -> SecuritySource.Unspecified(signingData)
+            SourceType.CREATE -> SecuritySource.Specified.Create(seed, keypair, mnemonic!!, derivationPath)
+            SourceType.SEED -> SecuritySource.Specified.Seed(seed, keypair, derivationPath)
+            SourceType.JSON -> SecuritySource.Specified.Json(seed, keypair)
+            SourceType.MNEMONIC -> SecuritySource.Specified.Mnemonic(seed, keypair, mnemonic!!, derivationPath)
+            SourceType.UNSPECIFIED -> SecuritySource.Unspecified(keypair)
         }
     }
 
