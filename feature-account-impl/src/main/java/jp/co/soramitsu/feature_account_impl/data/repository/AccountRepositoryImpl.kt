@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.JsonFormer
@@ -20,15 +21,16 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
-import jp.co.soramitsu.fearless_utils.bip39.Bip39
-import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
+import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
@@ -52,9 +54,6 @@ class AccountRepositoryImpl(
     private val accountDataSource: AccountDataSource,
     private val accountDao: AccountDao,
     private val nodeDao: NodeDao,
-    private val bip39: Bip39,
-    private val junctionDecoder: JunctionDecoder,
-    private val keypairFactory: KeypairFactory,
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
@@ -207,10 +206,15 @@ class AccountRepositoryImpl(
         return withContext(Dispatchers.Default) {
             val seedBytes = Hex.decode(seed.removePrefix("0x"))
 
-            val keys = keypairFactory.generate(
+            val derivationPathOrNull = derivationPath.nullIfEmpty()
+            val decodedDerivationPath = derivationPathOrNull?.let {
+                SubstrateJunctionDecoder.decode(it)
+            }
+
+            val keys = SubstrateKeypairFactory.generate(
                 mapCryptoTypeToEncryption(selectedEncryptionType),
                 seedBytes,
-                derivationPath
+                decodedDerivationPath?.junctions.orEmpty()
             )
 
             val signingData = mapKeyPairToSigningData(keys)
@@ -276,9 +280,9 @@ class AccountRepositoryImpl(
 
     override suspend fun generateMnemonic(): List<String> {
         return withContext(Dispatchers.Default) {
-            val mnemonic = bip39.generateMnemonic(MnemonicLength.TWELVE)
+            val generationResult = MnemonicCreator.randomMnemonic(Mnemonic.Length.TWELVE)
 
-            mnemonic.split(" ")
+            generationResult.wordList
         }
     }
 
@@ -438,24 +442,34 @@ class AccountRepositoryImpl(
 
     private suspend fun saveFromMnemonic(
         accountName: String,
-        mnemonic: String,
+        mnemonicWords: String,
         derivationPath: String,
         cryptoType: CryptoType,
         networkType: Node.NetworkType,
         isImport: Boolean,
     ): Account {
         return withContext(Dispatchers.Default) {
-            val entropy = bip39.generateEntropy(mnemonic)
-            val password = junctionDecoder.getPassword(derivationPath)
-            val seed = bip39.generateSeed(entropy, password)
-            val keys = keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
+            val derivationPathOrNull = derivationPath.nullIfEmpty()
+            val decodedDerivationPath = derivationPathOrNull?.let {
+                SubstrateJunctionDecoder.decode(it)
+            }
+
+            val derivationResult = SubstrateSeedFactory.deriveSeed(mnemonicWords, decodedDerivationPath?.password)
+
+            val keys = SubstrateKeypairFactory.generate(
+                encryptionType = mapCryptoTypeToEncryption(cryptoType),
+                seed = derivationResult.seed,
+                decodedDerivationPath?.junctions.orEmpty()
+            )
+
             val address = keys.publicKey.toAddress(networkType)
+
             val signingData = mapKeyPairToSigningData(keys)
 
             val securitySource: SecuritySource.Specified = if (isImport) {
-                SecuritySource.Specified.Mnemonic(seed, signingData, mnemonic, derivationPath)
+                SecuritySource.Specified.Mnemonic(derivationResult.seed, signingData, derivationResult.mnemonic.words, derivationPathOrNull)
             } else {
-                SecuritySource.Specified.Create(seed, signingData, mnemonic, derivationPath)
+                SecuritySource.Specified.Create(derivationResult.seed, signingData, derivationResult.mnemonic.words, derivationPathOrNull)
             }
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
