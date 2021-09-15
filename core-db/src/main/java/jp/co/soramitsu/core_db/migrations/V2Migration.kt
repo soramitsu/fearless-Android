@@ -12,8 +12,8 @@ import jp.co.soramitsu.common.utils.ethereumAddress
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.model.WithDerivationPath
+import jp.co.soramitsu.core.model.WithMnemonic
 import jp.co.soramitsu.core.model.WithSeed
 import jp.co.soramitsu.core_db.converters.CryptoTypeConverters
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
@@ -49,7 +49,7 @@ class V2Migration(
 
             val keypair = secrets.keypair
 
-            val mnemonic = (secrets as? SecuritySource.Specified.Mnemonic)?.let {
+            val mnemonic = (secrets as? WithMnemonic)?.let {
                 MnemonicCreator.fromWords(secrets.mnemonic)
             }
 

@@ -96,6 +96,17 @@ class V2MigrationTest {
     }
 
     @Test
+    fun shouldMigrateWithCreate() = runBlocking {
+        performSingleAccountTest(
+            insertionType = Type.CREATE,
+            withEthereum = true,
+            withEntropy = true,
+            withSeed = true,
+            withDerivationPath = true
+        )
+    }
+
+    @Test
     fun shouldMigrateWithJson() = runBlocking {
         performSingleAccountTest(
             insertionType = Type.JSON,
@@ -247,6 +258,12 @@ class V2MigrationTest {
                 seed = null, // no seed for SR25519
                 keypair = SUBSTRATE_KEYPAIR
             )
+            Type.CREATE -> SecuritySource.Specified.Create(
+                seed = SUBSTRATE_SEED,
+                keypair = SUBSTRATE_KEYPAIR,
+                mnemonic = MNEMONIC_WORDS,
+                derivationPath = DERIVATION_PATH
+            )
         }
 
         saveSecuritySource(SUBSTRATE_KEYPAIR.publicKey.toAddress(Node.NetworkType.POLKADOT), securitySource)
@@ -266,6 +283,6 @@ class V2MigrationTest {
     }
 
     private enum class Type {
-        MNEMONIC, SEED, JSON, KEYPAIR
+        MNEMONIC, SEED, JSON, KEYPAIR, CREATE
     }
 }
