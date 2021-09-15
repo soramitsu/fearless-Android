@@ -4,6 +4,8 @@ import android.content.Context
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
+import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.AppDatabase
@@ -34,8 +36,10 @@ class DbModule {
     fun provideAppDatabase(
         context: Context,
         prefsToDbActiveNodeMigrator: PrefsToDbActiveNodeMigrator,
+        storeV1: SecretStoreV1,
+        storeV2: SecretStoreV2
     ): AppDatabase {
-        return AppDatabase.get(context, prefsToDbActiveNodeMigrator)
+        return AppDatabase.get(context, prefsToDbActiveNodeMigrator, storeV1, storeV2)
     }
 
     @Provides

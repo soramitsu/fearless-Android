@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.data.secrets.v2
+package jp.co.soramitsu.test_shared
 
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 

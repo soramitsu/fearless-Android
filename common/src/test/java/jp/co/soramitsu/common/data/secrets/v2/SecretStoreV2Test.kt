@@ -1,10 +1,11 @@
 package jp.co.soramitsu.common.data.secrets.v2
 
+import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema.PrivateKey
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets.SubstrateDerivationPath
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets.SubstrateKeypair
-import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.test_shared.HashMapEncryptedPreferences
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals

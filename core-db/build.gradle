@@ -10,6 +10,13 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation":
+                                      "$projectDir/schemas".toString()]
+            }
+        }
     }
 
     buildTypes {
@@ -17,6 +24,21 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+
+    kotlinOptions {
+        freeCompilerArgs = ["-Xallow-result-return-type"]
+
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
 }
 
@@ -42,4 +64,7 @@ dependencies {
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep
     androidTestImplementation androidJunitDep
+
+    androidTestImplementation roomTestsDep
+    androidTestImplementation project(':test-shared')
 }

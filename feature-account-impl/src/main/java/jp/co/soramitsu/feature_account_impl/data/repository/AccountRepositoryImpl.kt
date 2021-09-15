@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteConstraintException
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
 import jp.co.soramitsu.common.resources.LanguagesHolder
+import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.nullIfEmpty
@@ -447,7 +448,7 @@ class AccountRepositoryImpl(
                 SubstrateJunctionDecoder.decode(it)
             }
 
-            val derivationResult = SubstrateSeedFactory.deriveSeed(mnemonicWords, decodedDerivationPath?.password)
+            val derivationResult = SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
 
             val keys = SubstrateKeypairFactory.generate(
                 encryptionType = mapCryptoTypeToEncryption(cryptoType),

@@ -38,6 +38,7 @@ class MetaAccountLocal(
 
             const val NAME = "name"
             const val IS_SELECTED = "isSelected"
+            const val ID = "id"
         }
     }
 
@@ -61,14 +62,18 @@ class MetaAccountLocal(
         ),
     ],
     indices = [
-        Index(value = ["metaId", "chainId"], unique = true)
+        Index(value = ["metaId", "chainId"], unique = true),
+        Index(value = ["accountId"])
     ],
     primaryKeys = ["metaId", "chainId"]
 )
+
+// TOTO modify migrations for meta_accounts and chain_accounts
 class ChainAccountLocal(
     val metaId: Long,
     val chainId: String,
     val publicKey: ByteArray,
+    val accountId: ByteArray,
     val cryptoType: CryptoType,
 )
 

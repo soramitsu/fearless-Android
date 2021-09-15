@@ -19,8 +19,7 @@ interface SecretStoreV1 {
 
 private const val PREFS_SECURITY_SOURCE_MASK = "security_source_%s"
 
-
-internal class SecretStoreV1Impl(
+class SecretStoreV1Impl(
     private val encryptedPreferences: EncryptedPreferences
 ) : SecretStoreV1 {
 

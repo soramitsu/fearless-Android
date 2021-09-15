@@ -58,7 +58,6 @@ class UpdateDefaultNodesList(
     }
 }
 
-
 val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
@@ -118,30 +117,38 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
 
         database.execSQL("DROP TABLE IF EXISTS `runtimeCache`")
 
-        database.execSQL("""
+        database.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `meta_accounts` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             `substratePublicKey` BLOB NOT NULL,
             `substrateCryptoType` TEXT NOT NULL,
+            `substrateAccountId` BLOB NOT NULL,
             `ethereumPublicKey` BLOB,
+            `ethereumAddress` TEXT,
             `name` TEXT NOT NULL,
-            `isSelected` INTEGER NOT NULL)""".trimIndent()
+            `isSelected` INTEGER NOT NULL)
+            """.trimIndent()
         )
-        
-        database.execSQL("""
+        database.execSQL("""CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)""")
+        database.execSQL("""CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `meta_accounts` (`ethereumAddress`)""")
+        database.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `chain_accounts` (
             `metaId` INTEGER NOT NULL,
             `chainId` TEXT NOT NULL,
             `publicKey` BLOB NOT NULL,
+            `accountId` BLOB NOT NULL,
             `cryptoType` TEXT NOT NULL,
             PRIMARY KEY(`metaId`,
             `chainId`),
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION ,
-            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )""".trimIndent()
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """.trimIndent()
         )
-        
-        database.execSQL("""
-            CREATE UNIQUE INDEX IF NOT EXISTS `index_chain_accounts_metaId_chainId` ON `chain_accounts` (`metaId`, `chainId`)""".trimIndent())
+
+        database.execSQL("""CREATE UNIQUE INDEX IF NOT EXISTS `index_chain_accounts_metaId_chainId` ON `chain_accounts` (`metaId`,`chainId`)""")
+        database.execSQL("""CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)""")
     }
 }
 

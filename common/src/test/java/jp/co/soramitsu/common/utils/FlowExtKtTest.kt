@@ -16,7 +16,8 @@ class FlowExtKtTest {
                 second = listOf(1, 2, 3),
                 expectedDiff = ListDiff(
                     removed = emptyList(),
-                    addedOrModified = listOf(1, 2, 3)
+                    addedOrModified = listOf(1, 2, 3),
+                    all = listOf(1, 2, 3)
                 )
             )
 
@@ -25,7 +26,8 @@ class FlowExtKtTest {
                 second = listOf(1, 2, 3),
                 expectedDiff = ListDiff(
                     removed = emptyList(),
-                    addedOrModified = emptyList()
+                    addedOrModified = emptyList(),
+                    all = listOf(1, 2, 3)
                 )
             )
 
@@ -34,7 +36,8 @@ class FlowExtKtTest {
                 second = emptyList(),
                 expectedDiff = ListDiff(
                     removed = listOf(1, 2, 3),
-                    addedOrModified = emptyList()
+                    addedOrModified = emptyList(),
+                    all = emptyList()
                 )
             )
 
@@ -43,7 +46,8 @@ class FlowExtKtTest {
                 second =  listOf(2, 3),
                 expectedDiff = ListDiff(
                     removed = listOf(1),
-                    addedOrModified =  listOf(3)
+                    addedOrModified =  listOf(3),
+                    all = listOf(2, 3)
                 )
             )
         }
