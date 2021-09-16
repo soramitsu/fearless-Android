@@ -5,13 +5,14 @@ import java.math.BigDecimal
 class StakeSummary<S>(
     val status: S,
     val totalStaked: BigDecimal,
-    val totalRewards: BigDecimal,
+    val totalReward: BigDecimal,
     val currentEra: Int,
 )
 
 sealed class NominatorStatus {
     object Active : NominatorStatus()
-    object Waiting : NominatorStatus()
+
+    class Waiting(val timeLeft: Long) : NominatorStatus()
 
     class Inactive(val reason: Reason) : NominatorStatus() {
 

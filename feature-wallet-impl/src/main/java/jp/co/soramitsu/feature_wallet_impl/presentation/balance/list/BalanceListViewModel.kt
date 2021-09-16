@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
@@ -21,6 +20,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -40,9 +40,6 @@ class BalanceListViewModel(
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
 
-    private val _showAccountChooser = MutableLiveData<Event<Payload<AddressModel>>>()
-    val showAccountChooser: LiveData<Event<Payload<AddressModel>>> = _showAccountChooser
-
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
     val balanceLiveData = balanceFlow().asLiveData()
@@ -53,14 +50,10 @@ class BalanceListViewModel(
         buyMixin.isBuyEnabled(it)
     }
 
-    init {
-        transactionHistoryMixin.startObservingTransactions(viewModelScope)
-    }
-
     fun sync() {
         viewModelScope.launch {
             val deferredAssetSync = async(Dispatchers.Default) { interactor.syncAssetsRates() }
-            val deferredTransactionsSync = async(Dispatchers.Default) { transactionHistoryMixin.syncFirstTransactionsPage() }
+            val deferredTransactionsSync = async(Dispatchers.Default) { transactionHistoryMixin.syncFirstOperationsPage() }
 
             val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
 
@@ -73,8 +66,18 @@ class BalanceListViewModel(
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+
+        transactionHistoryMixin.cancel()
+    }
+
     fun transactionsScrolled(index: Int) {
-        transactionHistoryMixin.scrolled(viewModelScope, index)
+        transactionHistoryMixin.scrolled(index)
+    }
+
+    fun filterClicked() {
+        router.openFilter()
     }
 
     fun assetClicked(asset: AssetModel) {
@@ -94,16 +97,6 @@ class BalanceListViewModel(
         val token = primaryTokenLiveData.value ?: return
 
         buyMixin.buyClicked(token, address)
-    }
-
-    fun accountSelected(addressModel: AddressModel) {
-        viewModelScope.launch {
-            interactor.selectAccount(addressModel.address)
-
-            val result = transactionHistoryMixin.syncFirstTransactionsPage()
-
-            result.exceptionOrNull()?.let(::showError)
-        }
     }
 
     fun avatarClicked() {

@@ -1,151 +1,160 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
-import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.address.AddressModel
-import jp.co.soramitsu.common.utils.applyFilters
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
+import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionToTransactionModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToParcel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionStateMachine.Action
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionStateMachine.State
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.TransactionHistoryElement
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-private const val PAGE_SIZE = 20
-
-private const val SCROLL_OFFSET = PAGE_SIZE
 
 private const val ICON_SIZE_DP = 32
 
 class TransactionHistoryProvider(
     private val walletInteractor: WalletInteractor,
     private val iconGenerator: AddressIconGenerator,
-    private val router: WalletRouter
-) : TransactionHistoryMixin {
+    private val router: WalletRouter,
+    private val historyFiltersProvider: HistoryFiltersProvider,
+    private val resourceManager: ResourceManager,
+    private val addressDisplayUseCase: AddressDisplayUseCase,
+) : TransactionHistoryMixin, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
-    override val transactionsLiveData = MutableLiveData<List<Any>>()
+    private val domainState = MutableStateFlow<State>(
+        State.EmptyProgress(filters = historyFiltersProvider.currentFilters())
+    )
 
-    private var currentTransactions: List<TransactionHistoryElement> = emptyList()
+    override val state = domainState.map(::mapOperationHistoryStateToUi)
+        .inBackground()
+        .shareIn(this, started = SharingStarted.Eagerly, replay = 1)
 
-    private var currentPage: Int = 0
-    private var isLoading = false
-    private var lastPageLoaded = false
+    private val cachedPage = walletInteractor.operationsFirstPageFlow()
+        .distinctUntilChangedBy { it.cursorPage }
+        .onEach { performTransition(Action.CachePageArrived(it.cursorPage, it.accountChanged)) }
+        .map { it.cursorPage }
+        .inBackground()
+        .shareIn(this, SharingStarted.Eagerly, replay = 1)
 
-    private val filters: MutableList<TransactionFilter> = mutableListOf()
-
-    override fun startObservingTransactions(scope: CoroutineScope) {
-        currentPage = 0
-        isLoading = true
-
-        walletInteractor.transactionsFirstPageFlow(PAGE_SIZE)
-            .map { transformNewPage(it, true) }
-            .flowOn(Dispatchers.Default)
-            .onEach {
-                lastPageLoaded = false
-                isLoading = false
-                currentPage = 0
-
-                transactionsLiveData.value = it
-            }.launchIn(scope)
+    init {
+        historyFiltersProvider.filtersFlow()
+            .distinctUntilChanged()
+            .onEach { performTransition(Action.FiltersChanged(it)) }
+            .launchIn(this)
     }
 
-    override fun scrolled(scope: CoroutineScope, currentIndex: Int) {
-        val currentSize = transactionsLiveData.value?.size ?: return
-
-        if (currentIndex >= currentSize - SCROLL_OFFSET) {
-            maybeLoadNewPage(scope)
-        }
+    override fun scrolled(currentIndex: Int) {
+        launch { performTransition(Action.Scrolled(currentIndex)) }
     }
 
-    override fun addFilter(scope: CoroutineScope, filter: TransactionFilter) {
-        filters += filter
+    override suspend fun syncFirstOperationsPage(): Result<*> {
+        return walletInteractor.syncOperationsFirstPage(TransactionStateMachine.PAGE_SIZE, filters = historyFiltersProvider.allFilters)
+    }
 
-        scope.launch {
-            val filtered = withContext(Dispatchers.Default) {
-                currentTransactions.applyFilters(filters)
+    override fun transactionClicked(transactionModel: OperationModel) {
+        launch {
+            val operations = (domainState.first() as? State.WithData)?.data ?: return@launch
+
+            val clickedOperation = operations.first { it.id == transactionModel.id }
+
+            withContext(Dispatchers.Main) {
+                when (val payload = mapOperationToParcel(clickedOperation, resourceManager)) {
+                    is OperationParcelizeModel.Transfer -> {
+                        router.openTransferDetail(payload)
+                    }
+
+                    is OperationParcelizeModel.Extrinsic -> {
+                        router.openExtrinsicDetail(payload)
+                    }
+
+                    is OperationParcelizeModel.Reward -> {
+                        router.openRewardDetail(payload)
+                    }
+                }
             }
-
-            transactionsLiveData.value = filtered
         }
     }
 
-    override fun clear() {
-        filters.clear()
-    }
-
-    override suspend fun syncFirstTransactionsPage(): Result<Unit> {
-        return walletInteractor.syncTransactionsFirstPage(PAGE_SIZE)
-    }
-
-    override fun transactionClicked(transactionModel: TransactionModel) {
-        router.openTransactionDetail(transactionModel)
-    }
-
-    private fun maybeLoadNewPage(scope: CoroutineScope) {
-        if (isLoading || lastPageLoaded) return
-
-        currentPage++
-        isLoading = true
-
-        scope.launch {
-            val result = walletInteractor.getTransactionPage(PAGE_SIZE, currentPage)
-
-            if (result.isSuccess) {
-                val newPage = result.getOrThrow()
-
-                lastPageLoaded = newPage.isEmpty()
-
-                val combined = transformNewPage(newPage, false)
-
-                transactionsLiveData.value = combined
-            } else {
-                rollbackPageLoading()
+    private suspend fun performTransition(action: Action) = withContext(Dispatchers.Default) {
+        val newState = TransactionStateMachine.transition(action, domainState.value) { sideEffect ->
+            when (sideEffect) {
+                is TransactionStateMachine.SideEffect.ErrorEvent -> {
+                    // ignore errors here, they are bypassed to client of mixin
+                }
+                is TransactionStateMachine.SideEffect.LoadPage -> loadNewPage(sideEffect)
+                TransactionStateMachine.SideEffect.TriggerCache -> triggerCache()
             }
+        }
 
-            isLoading = false
+        domainState.value = newState
+    }
+
+    private fun triggerCache() {
+        val cached = cachedPage.replayCache.firstOrNull()
+
+        cached?.let {
+            launch { performTransition(Action.CachePageArrived(it, accountChanged = false)) }
         }
     }
 
-    private fun rollbackPageLoading() {
-        currentPage--
+    private fun loadNewPage(sideEffect: TransactionStateMachine.SideEffect.LoadPage) {
+        launch {
+            walletInteractor.getOperations(sideEffect.pageSize, sideEffect.nextCursor, sideEffect.filters)
+                .onFailure {
+                    performTransition(Action.PageError(error = it))
+                }.onSuccess {
+                    performTransition(Action.NewPage(newPage = it, loadedWith = sideEffect.filters))
+                }
+        }
     }
 
-    private suspend fun transformNewPage(page: List<Transaction>, reset: Boolean): List<Any> = withContext(Dispatchers.Default) {
-        val transactions = page.map(::mapTransactionToTransactionModel)
-
-        val filteredHistoryElements = transactions.map { transaction ->
-            val addressModel = createIcon(transaction.displayAddress, transaction.accountName)
-
-            TransactionHistoryElement(addressModel, transaction)
-        }.applyFilters(filters)
-
-        regroup(filteredHistoryElements, reset)
+    private suspend fun mapOperationHistoryStateToUi(state: State): TransactionHistoryUi.State {
+        return when (state) {
+            is State.Empty -> TransactionHistoryUi.State.Empty
+            is State.EmptyProgress -> TransactionHistoryUi.State.EmptyProgress
+            is State.Data -> TransactionHistoryUi.State.Data(transformData(state.data))
+            is State.FullData -> TransactionHistoryUi.State.Data(transformData(state.data))
+            is State.NewPageProgress -> TransactionHistoryUi.State.Data(transformData(state.data))
+        }
     }
 
-    private fun regroup(newPage: List<TransactionHistoryElement>, reset: Boolean): List<Any> {
-        val all = if (reset) newPage else currentTransactions + newPage
+    private suspend fun transformData(data: List<Operation>): List<Any> {
+        val accountIdentifier = addressDisplayUseCase.createIdentifier()
 
-        currentTransactions = all.distinctBy { it.transactionModel.hash }
+        val operations = data.map {
+            mapOperationToOperationModel(it, accountIdentifier, resourceManager, iconGenerator)
+        }
 
-        return currentTransactions.groupBy { it.transactionModel.date.daysFromMillis() }
+        return regroup(operations)
+    }
+
+    private fun regroup(operations: List<OperationModel>): List<Any> {
+
+        return operations.groupBy { it.time.daysFromMillis() }
             .map { (daysSinceEpoch, transactions) ->
                 val header = DayHeader(daysSinceEpoch)
 
                 listOf(header) + transactions
             }.flatten()
-    }
-
-    private suspend fun createIcon(address: String, accountName: String?): AddressModel {
-        return iconGenerator.createAddressModel(address, ICON_SIZE_DP, accountName)
     }
 }

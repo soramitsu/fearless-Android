@@ -4,15 +4,16 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -33,11 +34,13 @@ import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
+import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.subscan.SubscanNetworkApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
+import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.feature_wallet_impl.domain.AssetUseCaseImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.TokenUseCaseImpl
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
@@ -46,6 +49,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.mixin.FeeLoaderProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecksProvider
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
 @Module
@@ -53,8 +57,14 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideSubscanApi(networkApiCreator: NetworkApiCreator): SubscanNetworkApi {
-        return networkApiCreator.create(SubscanNetworkApi::class.java)
+    fun provideSubQueryApi(networkApiCreator: NetworkApiCreator): SubQueryOperationsApi {
+        return networkApiCreator.create(SubQueryOperationsApi::class.java)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideCoingeckoApi(networkApiCreator: NetworkApiCreator): CoingeckoApi {
+        return networkApiCreator.create(CoingeckoApi::class.java)
     }
 
     @Provides
@@ -71,14 +81,18 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideHistoryFiltersProvider() = HistoryFiltersProvider()
+
+    @Provides
+    @FeatureScope
     fun provideSubstrateSource(
         socketService: SocketService,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        substrateCalls: SubstrateCalls,
+        rpcCalls: RpcCalls,
     ): SubstrateRemoteSource = WssSubstrateSource(
         socketService,
-        substrateCalls,
+        rpcCalls,
         runtimeProperty,
         extrinsicBuilderFactory,
     )
@@ -93,24 +107,32 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideCursorStorage(preferences: Preferences) = TransferCursorStorage(preferences)
+
+    @Provides
+    @FeatureScope
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
-        transactionDao: TransactionDao,
-        subscanNetworkApi: SubscanNetworkApi,
+        operationsDao: OperationDao,
+        subQueryOperationsApi: SubQueryOperationsApi,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingAddressDao: PhishingAddressDao,
         walletConstants: WalletConstants,
         assetCache: AssetCache,
+        coingeckoApi: CoingeckoApi,
+        cursorStorage: TransferCursorStorage,
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
-        transactionDao,
-        subscanNetworkApi,
+        operationsDao,
+        subQueryOperationsApi,
         httpExceptionHandler,
         phishingApi,
         assetCache,
         walletConstants,
-        phishingAddressDao
+        phishingAddressDao,
+        cursorStorage,
+        coingeckoApi
     )
 
     @Provides
@@ -146,14 +168,14 @@ class WalletFeatureModule {
     fun providePaymentUpdater(
         remoteSource: SubstrateRemoteSource,
         assetCache: AssetCache,
-        transactionDao: TransactionDao,
+        operationDao: OperationDao,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         accountUpdateScope: AccountUpdateScope,
     ): PaymentUpdater {
         return PaymentUpdater(
             remoteSource,
             assetCache,
-            transactionDao,
+            operationDao,
             runtimeProperty,
             accountUpdateScope
         )

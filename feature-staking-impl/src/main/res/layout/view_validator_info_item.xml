@@ -17,7 +17,6 @@
         android:drawablePadding="6dp"
         android:includeFontPadding="false"
         android:textColor="@color/gray1"
-        app:layout_constraintBottom_toTopOf="@id/divider"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Title" />
@@ -28,17 +27,15 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
         android:drawablePadding="10dp"
         android:ellipsize="middle"
-        android:gravity="end"
+        android:gravity="end|center"
         android:includeFontPadding="false"
         android:singleLine="true"
-        app:layout_constraintBottom_toTopOf="@id/validatorIdentityExtra"
+        app:layout_constraintBottom_toBottomOf="@id/validatorIdentityTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/validatorIdentityTitle"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_goneMarginBottom="8dp"
+        app:layout_constraintTop_toTopOf="@id/validatorIdentityTitle"
         tools:text="Body"
         tools:textColor="@color/white" />
 
@@ -56,6 +53,19 @@
         app:layout_constraintTop_toBottomOf="@id/validatorIdentityBody"
         tools:text="Extra" />
 
+    <TextView
+        android:id="@+id/validatorsIdentityDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:drawablePadding="9dp"
+        android:text="Validator is slashed for misbehaves (e.g. goes offline, attacks the network, or runs modified software) in the network."
+        android:visibility="gone"
+        app:drawableStartCompat="@drawable/ic_status_error_16"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/validatorIdentityBody" />
+
     <View
         android:id="@+id/divider"
         android:layout_width="0dp"
@@ -63,6 +73,9 @@
         android:background="@color/gray3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/validatorsIdentityDescription"
+        android:layout_marginTop="8dp"
+        app:layout_goneMarginTop="8dp"/>
 
 </merge>

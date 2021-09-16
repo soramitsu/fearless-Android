@@ -18,8 +18,8 @@ val LATEST_DEFAULT_NODES = listOf(
         true
     ),
     NodeLocal(
-        "Kusama Patract  Node",
-        "wss://kusama.elara.patract.io",
+        "Kusama Patract Node",
+        "wss://pub.elara.patract.io/kusama",
         Node.NetworkType.KUSAMA.ordinal,
         true
     ),
@@ -38,7 +38,7 @@ val LATEST_DEFAULT_NODES = listOf(
     ),
     NodeLocal(
         "Polkadot Patract Node",
-        "wss://polkadot.elara.patract.io",
+        "wss://pub.elara.patract.io/polkadot",
         Node.NetworkType.POLKADOT.ordinal,
         true
     ),

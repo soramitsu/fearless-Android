@@ -2,12 +2,13 @@ package jp.co.soramitsu.feature_staking_impl.domain.validators.current
 
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.list.emptyGroupedList
-import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
+import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator
+import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator.Status
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.common.isWaiting
@@ -16,6 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlin.reflect.KClass
 
 class CurrentValidatorsInteractor(
     private val stakingRepository: StakingRepository,
@@ -25,7 +27,7 @@ class CurrentValidatorsInteractor(
 
     suspend fun nominatedValidatorsFlow(
         nominatorState: StakingState.Stash,
-    ): Flow<GroupedList<NominatedValidator.Status, NominatedValidator>> {
+    ): Flow<GroupedList<Status.Group, NominatedValidator>> {
         if (nominatorState !is StakingState.Stash.Nominator) {
             return flowOf(emptyGroupedList())
         }
@@ -36,35 +38,67 @@ class CurrentValidatorsInteractor(
             val stashId = nominatorState.stashId
 
             val exposures = stakingRepository.getActiveElectedValidatorsExposures()
-            val activeNominations = exposures.mapValuesNotNull { (_, exposure) ->
+            val activeNominations = exposures.mapValues { (_, exposure) ->
                 exposure.others.firstOrNull { it.who.contentEquals(stashId) }
             }
 
             val nominatedValidatorIds = nominatorState.nominations.targets.mapTo(mutableSetOf(), ByteArray::toHexString)
 
-            val allValidators = activeNominations.keys + nominatedValidatorIds
-
             val isWaitingForNextEra = nominatorState.nominations.isWaiting(activeEra)
-            val waitingForNextEraStatus = NominatedValidator.Status.WaitingForNextEra(stakingConstantsRepository.maxValidatorsPerNominator())
 
-            validatorProvider.getValidators(
-                ValidatorSource.Custom(allValidators.toList()),
+            val maxRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator()
+
+            val groupedByStatusClass = validatorProvider.getValidators(
+                ValidatorSource.Custom(nominatedValidatorIds.toList()),
                 cachedExposures = exposures
             )
-                .map {
-                    val nominationInPlanks = activeNominations[it.accountIdHex]?.value
+                .map { validator ->
+                    val userIndividualExposure = activeNominations[validator.accountIdHex]
 
                     val status = when {
-                        nominationInPlanks != null -> NominatedValidator.Status.Active
-                        isWaitingForNextEra -> waitingForNextEraStatus
-                        exposures[it.accountIdHex] != null -> NominatedValidator.Status.Elected
-                        else -> NominatedValidator.Status.Inactive
+                        userIndividualExposure != null -> {
+                            // safe to !! here since non null nomination means that validator is elected
+                            val userNominationIndex = validator.electedInfo!!.nominatorStakes
+                                .sortedByDescending(IndividualExposure::value)
+                                .indexOfFirst { it.who.contentEquals(stashId) }
+
+                            val userNominationRank = userNominationIndex + 1
+
+                            val willBeRewarded = userNominationRank < maxRewardedNominators
+
+                            Status.Active(nomination = userIndividualExposure.value, willUserBeRewarded = willBeRewarded)
+                        }
+                        isWaitingForNextEra -> Status.WaitingForNextEra
+                        exposures[validator.accountIdHex] != null -> Status.Elected
+                        else -> Status.Inactive
                     }
 
-                    NominatedValidator(it, nominationInPlanks, status)
+                    NominatedValidator(validator, status)
                 }
-                .groupBy(NominatedValidator::status)
-                .toSortedMap(NominatedValidator.Status.COMPARATOR)
+                .groupBy { it.status::class }
+
+            val totalElectiveCount = with(groupedByStatusClass) { groupSize(Status.Active::class) + groupSize(Status.Elected::class) }
+            val electedGroup = Status.Group.Active(totalElectiveCount)
+
+            val waitingForNextEraGroup = Status.Group.WaitingForNextEra(
+                maxValidatorsPerNominator = stakingConstantsRepository.maxValidatorsPerNominator(),
+                numberOfValidators = groupedByStatusClass.groupSize(Status.WaitingForNextEra::class)
+            )
+
+            groupedByStatusClass.mapKeys { (statusClass, validators) ->
+                when (statusClass) {
+                    Status.Active::class -> electedGroup
+                    Status.Elected::class -> Status.Group.Elected(validators.size)
+                    Status.Inactive::class -> Status.Group.Inactive(validators.size)
+                    Status.WaitingForNextEra::class -> waitingForNextEraGroup
+                    else -> throw IllegalArgumentException("Unknown status class: $statusClass")
+                }
+            }
+                .toSortedMap(Status.Group.COMPARATOR)
         }
+    }
+
+    private fun Map<KClass<out Status>, List<NominatedValidator>>.groupSize(statusClass: KClass<out Status>): Int {
+        return get(statusClass)?.size ?: 0
     }
 }

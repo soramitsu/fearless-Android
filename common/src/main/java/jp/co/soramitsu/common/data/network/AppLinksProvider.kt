@@ -9,36 +9,38 @@ class AppLinksProvider(
 
     private val externalAnalyzerTemplates: Map<ExternalAnalyzer, ExternalAnalyzerLinks>,
 
-    val roadMapUrl: String,
-    val devStatusUrl: String,
-
-    val nominatorLearnMore: String,
     val payoutsLearnMore: String,
     val twitterAccountTemplate: String,
     val setControllerLearnMore: String
 ) {
 
+    fun getExternalEventUrl(
+        analyzer: ExternalAnalyzer,
+        eventId: String,
+        networkType: Node.NetworkType
+    ) = getExternalUrl(analyzer, eventId, networkType, ExternalAnalyzerLinks::event)
+
     fun getExternalTransactionUrl(
         analyzer: ExternalAnalyzer,
         hash: String,
         networkType: Node.NetworkType
-    ) = getExternalUrl(analyzer, hashWithPrefix(hash), networkType, ExternalAnalyzerLinks::transaction)
+    ) = getExternalUrl(analyzer, hashWithPrefix(hash), networkType, ExternalAnalyzerLinks::transaction)!!
 
     fun getExternalAddressUrl(
         analyzer: ExternalAnalyzer,
         address: String,
         networkType: Node.NetworkType
-    ) = getExternalUrl(analyzer, address, networkType, ExternalAnalyzerLinks::account)
+    ) = getExternalUrl(analyzer, address, networkType, ExternalAnalyzerLinks::account)!!
 
     private fun getExternalUrl(
         analyzer: ExternalAnalyzer,
         value: String,
         networkType: Node.NetworkType,
-        extractor: (ExternalAnalyzerLinks) -> String
-    ): String {
+        extractor: (ExternalAnalyzerLinks) -> String?
+    ): String? {
         val template = externalAnalyzerTemplates[analyzer] ?: error("No template for $analyzer")
 
-        return extractor(template).format(networkPathSegment(networkType), value)
+        return extractor(template)?.format(networkPathSegment(networkType), value)
     }
 
     fun getTwitterAccountUrl(
@@ -46,7 +48,7 @@ class AppLinksProvider(
     ): String = twitterAccountTemplate.format(accountName)
 }
 
-class ExternalAnalyzerLinks(val transaction: String, val account: String)
+class ExternalAnalyzerLinks(val transaction: String, val account: String, val event: String?)
 
 enum class ExternalAnalyzer(val supportedNetworks: List<Node.NetworkType>) {
     SUBSCAN(

@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -16,8 +16,8 @@ import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
@@ -26,6 +26,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
@@ -49,7 +50,7 @@ interface WalletFeatureDependencies {
 
     fun tokenDao(): TokenDao
 
-    fun transactionsDao(): TransactionDao
+    fun operationDao(): OperationDao
 
     fun networkCreator(): NetworkApiCreator
 
@@ -79,9 +80,11 @@ interface WalletFeatureDependencies {
 
     fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
 
-    fun substrateCalls(): SubstrateCalls
+    fun substrateCalls(): RpcCalls
 
     fun accountUpdateScope(): AccountUpdateScope
 
     fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
+
+    fun addressDisplayUseCase(): AddressDisplayUseCase
 }

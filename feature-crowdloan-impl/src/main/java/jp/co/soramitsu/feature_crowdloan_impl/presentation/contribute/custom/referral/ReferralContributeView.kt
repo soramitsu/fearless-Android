@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.common.utils.observe
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
@@ -63,8 +64,10 @@ class ReferralContributeView @JvmOverloads constructor(
             referralFearlessBonusApply.setText(applyBonusButtonText)
         }
 
-        viewState.bonusFlow.observe(scope) {
-            referralBonus.showValue(it)
+        viewState.bonusFlow.observe(scope) { bonus ->
+            referralBonus.setVisible(bonus != null)
+
+            bonus?.let { referralBonus.showValue(bonus) }
         }
 
         with(viewState.learnBonusesTitle) {

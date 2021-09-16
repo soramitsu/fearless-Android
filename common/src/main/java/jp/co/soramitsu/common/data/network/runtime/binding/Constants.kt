@@ -9,8 +9,14 @@ import java.math.BigInteger
 fun bindNumberConstant(
     constant: Constant,
     runtime: RuntimeSnapshot
-): BigInteger {
+): BigInteger = bindNullableNumberConstant(constant, runtime) ?: incompatible()
+
+@HelperBinding
+fun bindNullableNumberConstant(
+    constant: Constant,
+    runtime: RuntimeSnapshot
+): BigInteger? {
     val decoded = constant.type?.fromByteArrayOrNull(runtime, constant.value) ?: incompatible()
 
-    return decoded as? BigInteger ?: incompatible()
+    return decoded as BigInteger?
 }

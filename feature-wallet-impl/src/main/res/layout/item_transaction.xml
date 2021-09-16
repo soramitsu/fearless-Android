@@ -9,16 +9,16 @@
 
     <ImageView
         android:id="@+id/itemTransactionIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginStart="16dp"
         app:layout_constraintBottom_toBottomOf="@+id/itemTransactionTime"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/itemTransactionAddress"
+        app:layout_constraintTop_toTopOf="@+id/itemTransactionHeader"
         tools:src="@drawable/ic_token_ksm" />
 
     <TextView
-        android:id="@+id/itemTransactionAddress"
+        android:id="@+id/itemTransactionHeader"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -37,25 +37,37 @@
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
         android:layout_marginBottom="8dp"
         android:textColor="@color/colorGreyText"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/itemTransactionAddress"
-        app:layout_constraintTop_toBottomOf="@+id/itemTransactionAddress"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/itemTransactionAmount"
         tools:text="10/04/20, 22:36:45" />
+
+    <TextView
+        android:id="@+id/itemTransactionSubHeader"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textColor="@color/colorGreyText"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/itemTransactionHeader"
+        app:layout_constraintTop_toBottomOf="@+id/itemTransactionAmount"
+        tools:text="Transfer" />
 
     <TextView
         android:id="@+id/itemTransactionAmount"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_goneMarginEnd="12dp"
         android:layout_marginEnd="8dp"
         android:ellipsize="middle"
         android:singleLine="true"
-        app:layout_constraintBottom_toBottomOf="@+id/itemTransactionTime"
         app:layout_constraintEnd_toStartOf="@+id/itemTransactionStatus"
-        app:layout_constraintTop_toTopOf="@+id/itemTransactionAddress"
+        app:layout_constraintTop_toTopOf="@+id/itemTransactionHeader"
+        app:layout_goneMarginEnd="12dp"
         tools:text="4.01 KSM" />
 
     <ImageView

@@ -9,13 +9,11 @@ import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setTextOrHide
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel
-import kotlinx.android.synthetic.main.item_current_validator.view.itemCurrentValidatorIcon
-import kotlinx.android.synthetic.main.item_current_validator.view.itemCurrentValidatorInfo
-import kotlinx.android.synthetic.main.item_current_validator.view.itemCurrentValidatorName
-import kotlinx.android.synthetic.main.item_current_validator.view.itemCurrentValidatorNominated
+import kotlinx.android.synthetic.main.item_current_validator.view.*
 import kotlinx.android.synthetic.main.item_current_validator_group.view.itemCurrentValidatorGroupDescription
 import kotlinx.android.synthetic.main.item_current_validator_group.view.itemCurrentValidatorGroupStatus
 
@@ -68,6 +66,9 @@ private class CurrentValidatorsChildHolder(view: View) : GroupedListHolder(view)
         itemCurrentValidatorNominated.setTextOrHide(child.nominated)
 
         itemCurrentValidatorInfo.setOnClickListener { handler.infoClicked(child) }
+
+        itemCurrentValidatorBadge.setVisible(child.isOversubscribed)
+        currentValidatorSlashedIcon.setVisible(child.isSlashed)
     }
 }
 

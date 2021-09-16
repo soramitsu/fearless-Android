@@ -10,5 +10,6 @@ import java.math.BigInteger
 
 @UseCaseBinding
 fun bindTotalValidatorEraReward(scale: String?, runtime: RuntimeSnapshot, type: Type<*>): BigInteger {
-    return scale?.let { bindNumber(type.fromHexOrIncompatible(it, runtime)) } ?: incompatible()
+    val result = scale?.let { bindNumber(type.fromHexOrIncompatible(it, runtime)) }
+    return result ?: incompatible()
 }

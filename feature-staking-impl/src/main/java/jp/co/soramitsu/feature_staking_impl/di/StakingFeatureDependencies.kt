@@ -7,13 +7,12 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.data.network.runtime.calls.SubstrateCalls
+import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
-import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
@@ -63,7 +62,7 @@ interface StakingFeatureDependencies {
 
     fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
 
-    fun substrateCalls(): SubstrateCalls
+    fun substrateCalls(): RpcCalls
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
 
@@ -74,8 +73,6 @@ interface StakingFeatureDependencies {
     fun accountStakingDao(): AccountStakingDao
 
     fun accountUpdateScope(): AccountUpdateScope
-
-    fun stakingRewardsDao(): StakingRewardDao
 
     fun stakingTotalRewardsDao(): StakingTotalRewardDao
 

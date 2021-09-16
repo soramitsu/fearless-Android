@@ -10,11 +10,14 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailViewModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 
@@ -27,8 +30,11 @@ class BalanceDetailModule {
         walletInteractor: WalletInteractor,
         addressIconGenerator: AddressIconGenerator,
         walletRouter: WalletRouter,
+        historyFiltersProvider: HistoryFiltersProvider,
+        resourceManager: ResourceManager,
+        addressDisplayUseCase: AddressDisplayUseCase,
     ): TransactionHistoryMixin {
-        return TransactionHistoryProvider(walletInteractor, addressIconGenerator, walletRouter)
+        return TransactionHistoryProvider(walletInteractor, addressIconGenerator, walletRouter, historyFiltersProvider, resourceManager, addressDisplayUseCase)
     }
 
     @Provides

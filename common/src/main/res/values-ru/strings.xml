@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_details">Подробности</string>
     <string name="common_next">Далее</string>
     <string name="common_cancel">Отмена</string>
     <string name="common_skip">Пропустить</string>
@@ -30,7 +31,7 @@
     <string name="connection_management_title">Сети</string>
     <string name="onboarding_create_account">Создать аккаунт</string>
     <string name="username_setup_choose_title">Имя</string>
-    <string name="username_setup_hint">Имя для этого аккаунта будет отображаться вместе с вашим адресом. Оно может стать доступно в сети вместе с другими контактами.</string>
+    <string name="username_setup_hint">Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
     <string name="common_no_screenshot_title">Не делайте скриншоты</string>
     <string name="common_no_screenshot_message">Не делайте скриншоты, которые могут быть собраны сторонними вредоносными программами</string>
     <string name="common_ok">OK</string>
@@ -215,9 +216,9 @@
     <string name="staking_validator_nominators">Номинаторы</string>
     <string name="staking_validator_estimated_reward">Примерное вознаграждение</string>
     <string name="identity_title">Персонализация</string>
-    <string name="identity_legal_name_title">Юридическое название</string>
+    <string name="identity_legal_name_title">Официальное имя</string>
     <string name="identity_email_title">Почта</string>
-    <string name="identity_web_title">Сеть</string>
+    <string name="identity_web_title">Сайт</string>
     <string name="identity_riot_name_title">Имя в Element</string>
     <string name="validator_not_elected_description">Эта учетная запись не выбрана сетью для участия в текущей эпохе</string>
     <string name="staking_main_network_title">Сеть %s</string>
@@ -248,14 +249,23 @@
     <string name="staking_reward_details_title">Детали награды</string>
     <string name="staking_reward_details_era">Эра</string>
     <string name="staking_reward">Вознаграждение</string>
+    <string name="staking_slash">Слэш</string>
+    <string name="common_call">Вызов</string>
+    <string name="common_module">Модуль</string>
     <string name="wallet_asset_buy_with">Купить с</string>
+    <string name="wallet_filters_title">Фильтры</string>
     <string name="common_apply">Применять</string>
     <string name="common_reset">Сброс</string>
+    <string name="wallet_filters_transfers">Переводы</string>
+    <string name="wallet_filters_rewards_and_slashes">Вознаграждения и слэши</string>
+    <string name="wallet_filters_extrinsics">Прочие транзакции</string>
     <string name="wallet_filters_header">Показывать</string>
     <string name="common_available_format">Доступно: %s</string>
     <string name="staking_rewards_learn_more">Подробнее о вознаграждениях</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
         <item quantity="other">%d дней</item>
     </plurals>
     <string name="staking_reward_payouts_empty_rewards">Прекрасно! Все вознаграждения выплачены.</string>
@@ -277,6 +287,7 @@
     <string name="common_change">Изменить</string>
     <string name="staking_your_nominated_format">Номинировано: %s</string>
     <string name="staking_your_validators_changing_title">Ваши валидаторы поменяются в следующую эру</string>
+    <string name="staking_max_format" formatted="false">%s (макс. %s )</string>
     <string name="staking_bonded_format">Застейкано: %s</string>
     <string name="staking_unbonding_hint">Ваши токены будут доступны после истечения периода вывода.</string>
     <string name="common_account">Счет</string>
@@ -306,7 +317,7 @@
     <string name="staking_controller_account_zero_balance">Мы обнаружили, что на этом аккаунте нет свободных токенов. Вы уверены, что хотите сменить контроллер?</string>
     <string name="wallet_send_balance_minimal">Минимальный баланс</string>
     <string name="staking_your_allocated_description">Ваш стейк распределяется между этими валидаторами.</string>
-    <string name="staking_your_not_allocated_description">Другие, которые активны без распределения вашей доли.</string>
+    <string name="staking_your_not_allocated_description">Другие, которые активны без вашего стейка.</string>
     <string name="staking_your_inactive_description">Валидаторы, которые не были избраны в этой эре.</string>
     <string name="crowdloan_crowdloan">Краудлоуны</string>
     <string name="crowdloan_main_description">Выберите парачейны для внесения своего вклада %s. Вы получите вознаграждение, если парачейн приобретет слот до конца аукциона.</string>
@@ -341,7 +352,7 @@
     <string name="staking_add_controller">Чтобы выполнить это действие, добавьте контроллер аккаунт %s в приложение</string>
     <string name="crowdloan_empty_bonus_title">Получите специальный бонус</string>
     <string name="staking_start_change_validators_recommended_title">Стейкинг с рекоммендованными валидаторами</string>
-    <string name="staking_start_change_validators_custom_title">Стейкинг со знакомыми валидаторами</string>
+    <string name="staking_start_change_validators_custom_title">Стейкинг с выбранными валидаторами</string>
     <string name="common_applied">Применено</string>
     <string name="crowdloan_referral_code_invalid">Реферальный код недействителен. Пожалуйста, попробуйте другой.</string>
     <string name="staking_start_change_validators_custom_subtitle">Вы должны доверять своим валидаторам, чтобы они действовали грамотно и честно. Принятие решения исключительно на основе их текущей прибыльности может привести к снижению прибыли или даже потере средств.</string>
@@ -375,9 +386,12 @@
     <string name="staking_validator_total_stake_token">Общий стейк (%s)</string>
     <string name="staking_validator_apy_percent">Примерное вознаграждение (% APY)</string>
     <string name="staking_rewards_destination_title">Назначение вознаграждений</string>
-    <string name="staking_max_format" formatted="false">%d (макс. %d)</string>
+    <string name="staking_your_oversubscribed_message">Ваши токены попали к валидатору, превысившему лимит номинаторов. В этой эре вы не получите награду от этого валидатора. </string>
     <string name="staking_your_not_elected_format">Не избраны (%s)</string>
+    <string name="staking_your_elected_format">Избраны (%s)</string>
     <string name="staking_rewards_apy">Вознаграждение (APY)</string>
+    <string name="staking_validator_slashed_desc">Валидатор наказан за неправильные действия в сети (например, был оффлайн, атаковал сеть, работал с модифицированным ПО).</string>
+    <string name="staking_payout_expired">Срок выплаты истёк</string>
     <string name="wallet_balance_unbonding_v1_9_0">В процессе вывода</string>
     <string name="staking_unbonding_period_v1_9_0">Время вывода</string>
     <string name="wallet_balance_bonded">Застейкано</string>
@@ -386,11 +400,20 @@
     <string name="staking_bond_more_v1_9_0">Застейкать ещё</string>
     <string name="staking_unbond_v1_9_0">Вывод из стейка</string>
     <string name="staking_unbonding_empty_list_v1_9_0">Операции по выводу из стейка появятся здесь</string>
+    <string name="staking_validator_my_oversubscribed_message">Превышен лимит номинаторов для валидатора. В этой эре вы не получите награду от этого валидатора.</string>
+    <string name="staking_validator_other_oversubscribed_message">Превышен лимит номинаторов для валидатора. Только номинаторы с наибольшим стейком получат награду.</string>
     <string name="history_v1.9.0">История</string>
     <string name="staking_estimate_earning_title_v1.9.0">Расчёт доходности</string>
     <string name="staking_main_stake_balance_staked">Застейкано</string>
     <string name="staking_pending_rewards_info">Валидаторы выплачивают вознаграждения каждые 2–5 дней. Однако, вы можете инициировать выплату самостоятельно, особенно, если срок вознаграждения истекает. В этом случае придётся заплатить комиссию.</string>
     <string name="staking_custom_validators_update_list">Обновить свой список</string>
+    <string name="staking_hint_rewards_format">Застейканые токены приносят награду каждую эру (%s).</string>
+    <string name="staking_hint_unstake_format">Для вывода токенов из стейкинга потребуется %s.</string>
+    <string name="staking_hint_no_rewards">Во время вывода токены не приносят наград.</string>
+    <string name="staking_hint_redeem">После вывода токенов из стейкинга не забудьте их забрать.</string>
+    <string name="staking_hint_reward_bond_more">Ваши вознаграждения увеличатся со следующей эры.</string>
+    <string name="staking_hint_unbond_kills_stash">Fearless wallet изменит назначение вознаграждений
+на ваш аккаунт, чтобы избежать остатка в стейкинге.</string>
     <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APY)</string>
     <string name="common_options_title">Выберите опцию</string>
     <string name="invoice_scan_error_no_info">Не удается декодировать QR</string>
@@ -398,22 +421,33 @@
     <string name="invoice_scan_upload">Из галереи</string>
     <string name="contacts_scan">Сканировать QR-код</string>
     <string name="staking_story_staking_title">Что такое стейкинг?</string>
-    <string name="staking_story_staking_page_1">Стейкинг — это одна из разновидностей пассивного дохода с помощью удержания ваших токенов в сети. Вознаграждения за стейкинг выпускаются каждую эру (6 часов в Kusama и 24 часа в Polkadot). Вы можете стейкать неограниченное количество времени, и для вывода из стейкинга вам нужно будет подождать период вывода, после которого вы можете забрать свои токены.</string>
-    <string name="staking_story_staking_page_2">Стейкинг играет ключевую роль в безопасности и надежности сети. Любой может поднять собственную ноду валидатора Polkadot и Kusama, но только те, кто наберет необходимое количество токенов в стейкинге, будет избран сетью для создания новых блоков и получения награды. Часто валидаторы не имеют необходимого количества токенов, поэтому номинаторы помогают им с помощью своих токенов.</string>
-    <string name="staking_story_nominator_title">Кто такой Номинатор?</string>
-    <string name="staking_story_nominator_page_1">Номинаторы получают пассивный доход за удержание своих токенов для безопасности сети. Для этого Номинатор должен выбрать Валидаторов с которыми он будут стейкать. Нужно быть осторожным — если выбранный Валидатор не будет поддерживать свою ноду в рабочем состоянии или будет пытаться атаковать сеть, то ему будет назначен штраф в виде слэшинга определенной части стейкинга.</string>
-    <string name="staking_story_nominator_page_2">Fearless Wallet помогает Номинаторам в выборе Валидаторов. Приложение получает данные из сети и составляет список доступных для номинирования Валидаторов, имеющих максимальный доход, персонализацию и контакты для связи, а также не имеющих слэшей.
-Fearless Wallet также заботится о децентрализации, поэтому если один человек или компания запустили несколько нод Валидатора, то только 2 из них от этого человека или компании будут присутствовать в списке рекомендованных валидаторов.</string>
-    <string name="staking_story_validator_title">Кто такой Валидатор?</string>
-    <string name="staking_story_validator_page_1">Валидаторы обеспечивают работу ноды блокчейна 24/7, а также обязаны иметь необходимое количество стейка (суммированный от самого Валидатора и всех Номинаторов) чтобы быть избранным сетью. Валидаторы должны поддерживать свои ноды чтобы достичь лучшего быстродействия и надежности, которые влияют на размер награды от сети. Валидатор - это полноценная работа, и существуют профильные компании которые специализируются на валидировании в блокчейн сетях.</string>
-    <string name="staking_story_validator_page_2">Любой может стать Валидатором и запустить ноду блокчейна, однако это требует определенных технических знаний и ответственности. Сети Polkadot и Kusama запустили программу Thousand Validators Programme (Программа Тысячи Валидаторов) чтобы помочь начинающим. Сеть всегда будет стремиться награждать тех Валидаторов, чем суммарный стейк меньше (но достаточен чтобы быть избранными в сети), для поддержки децентрализации.</string>
+    <string name="staking_story_staking_page_1">Стейкинг — это один из способов пассивного дохода с помощью удержания токенов в сети. Вознаграждения за стейкинг выпускаются каждую эру (6 часов в Kusama и 24 часа в Polkadot). Вы можете стейкать неограниченное количество времени, и для вывода из стейкинга вам нужно будет подождать период вывода, после которого вы сможете забрать свои токены.</string>
+    <string name="staking_story_staking_page_2">Стейкинг играет ключевую роль в безопасности и надежности сети. Любой может запустить собственную ноду, но только тот, кто наберёт необходимое количество токенов в стейкинге, будет избран сетью для создания новых блоков и получения наград. Часто валидаторы не имеют необходимого количества токенов, поэтому номинаторы помогают им с помощью своих токенов.</string>
+    <string name="staking_story_nominator_title">Кто такой номинатор?</string>
+    <string name="staking_story_nominator_page_1">Номинатор получает пассивный доход за удержание своих токенов для безопасности сети. Для этого номинатор должен выбрать валидаторов, с которыми он будет стейкать. Номинатору нужно осторожно подходить к выбору валидаторов. Если выбранный валидатор не будет поддерживать свою ноду в рабочем состоянии или будет пытаться атаковать сеть, то им обоим будет назначен штраф в виде слэша определенной части стейкинга в зависимости от масштаба причиненного ущерба.</string>
+    <string name="staking_story_nominator_page_2">Fearless Wallet помогает номинаторам в выборе валидаторов. Приложение получает данные из сети и составляет список доступных для номинирования валидаторов, имеющих максимальный доход, персонализацию и контакты для связи, а также не имеющих слэшей. Fearless Wallet также заботится о децентрализации, поэтому если один человек или компания запустили несколько валидирующих нод, то только 2 из них будут присутствовать в списке рекомендованных.</string>
+    <string name="staking_story_validator_title">Кто такой валидатор?</string>
+    <string name="staking_story_validator_page_1">Валидатор обеспечивает работу ноды блокчейна 24/7 и обязан иметь необходимое количество стейка (общий стейк самого валидатора и его номинаторов), чтобы быть избранным сетью. Валидаторы должны поддерживать производительность и надежность своих нод, за что они получают вознаграждения. Валидатор — это полноценная работа, существуют профильные компании, которые специализируются на валидировании в блокчейн сетях.</string>
+    <string name="staking_story_validator_page_2">Любой может стать валидатором и запустить ноду блокчейна, однако это требует определённых технических знаний и ответственности. Сети Polkadot и Kusama запустили программу Thousand Validators Programme (Программа Тысячи Валидаторов), чтобы помочь начинающим. Более того, сеть всегда будет стремиться вознаграждать тех валидаторов, чей суммарный стейк меньше (но достаточен чтобы быть избранным в сети), для поддержки децентрализации.</string>
     <string name="staking_story_reward_title">Получение наград</string>
-    <string name="staking_story_reward_page_1">Вознаграждения за стейкинг доступны для получения в конце каждой эры (6 часов в Kusama и 24 часа в Polkadot). Они доступны для получения в течение следующих 84 эр, и в большинстве случаев Валидаторы сами выплачивают всем награды. Однако, Валидаторы могут забыть это сделать или с ними может что-то случиться, поэтому Номинаторы могут выплатить свои награды сами.</string>
-    <string name="staking_story_reward_page_2">Несмотря на то, что вознаграждения обычно выплачиваются Валидаторами, Fearless Wallet помогает Номинаторам с помощью уведомлений о вознаграждениях, у которых срок близок к истечению. Номинаторы увидят предупреждение об этом и других важных событиях на главном экране Стейкинга.</string>
+    <string name="staking_story_reward_page_1">Вознаграждения за стейкинг доступны для выплаты в конце каждой эры (6 часов в Kusama и 24 часа в Polkadot). Сеть хранит ожидаемые вознаграждения в течении 84 эр и в большинстве случаев валидаторы сами выплачивают всем награды. Однако, валидаторы могут забыть это сделать или с ними может что-то случиться, поэтому номинаторы могут выплатить свои награды самостоятельно.</string>
+    <string name="staking_story_reward_page_2">Несмотря на то, что обычно вознаграждения выплачиваются валидаторами, Fearless Wallet помогает узнать о вознаграждениях, срок выплаты которых близок к истечению, с помощью предупреждений. Предупреждения об этом и других важных событиях появятся на главном экране стейкинга.</string>
     <string name="staking_selected_validators_mask">Валидаторы (%d)</string>
     <string name="staking_controller_change_success">Контроллер изменен</string>
     <string name="staking_already_controller_title">Уже контроллер</string>
     <string name="staking_unbond_crossed_existential">В результате этой операции все токены будут выведены из стейкинга.</string>
+    <plurals name="common_hours_format">
+        <item quantity="one">%d час</item>
+        <item quantity="few">%d часа</item>
+        <item quantity="many">%d часов</item>
+        <item quantity="other">%d час</item>
+    </plurals>
     <string name="import_mnemonic_invalid_title">Ваша мнемоника недействительна</string>
     <string name="account_error_try_another_one">Пожалуйста, попробуйте другой.</string>
+    <string name="wallet_extrinsic_details_title">Детали транзакции</string>
+    <string name="transaction_details_extrinsic_fee">Комиссия</string>
+    <string name="wallet_transfer_details_title">Детали перевода</string>
+    <string name="common_event">Событие</string>
+    <string name="common_copy_id">Копировать идентификатор</string>
+    <string name="transfer_title">Перевод</string>
 </resources>

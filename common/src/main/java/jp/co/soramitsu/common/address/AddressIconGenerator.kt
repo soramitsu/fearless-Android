@@ -15,6 +15,7 @@ class AddressIconGenerator(
     companion object {
         const val SIZE_SMALL = 18
         const val SIZE_MEDIUM = 24
+        const val SIZE_BIG = 32
     }
 
     @Throws(AddressFormatException::class)

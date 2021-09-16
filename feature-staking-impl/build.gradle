@@ -13,16 +13,12 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
-        buildConfigField "String", "SUBSCAN_API_KEY", readSecret("SUBSCAN_API_KEY")
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-
-            buildConfigField "String", "SUBSCAN_API_KEY", readSecret("SUBSCAN_API_KEY")
         }
     }
 

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="common_event">Event</string>
+    <string name="common_copy_id">Copy id</string>
+    <string name="common_details">Details</string>
+    <string name="transfer_title">Transfer</string>
+
     <string name="staking_apy" translatable="false">%s APY</string>
     <string name="staking_apr" translatable="false">%s APR</string>
     <string name="choose_amount_initial" translatable="false">0</string>
@@ -36,7 +41,7 @@ transfers will appear here</string>
     <string name="connection_management_title">Networks</string>
     <string name="onboarding_create_account">Create account</string>
     <string name="username_setup_choose_title">Name</string>
-    <string name="username_setup_hint">The name for this account will appear with your address. With an on-chain identity, it would be available in the network with other contacts.</string>
+    <string name="username_setup_hint">This name will be displayed only for you and stored locally on your mobile device.</string>
     <string name="common_no_screenshot_title">Do not take screenshots</string>
     <string name="common_no_screenshot_message">Do not take screenshots, which may be collected by third-party malware</string>
     <string name="common_ok">OK</string>
@@ -252,9 +257,16 @@ Derivation path: %s</string>
     <string name="staking_reward_details_title">Reward details</string>
     <string name="staking_reward_details_era">Era</string>
     <string name="staking_reward">Reward</string>
+    <string name="staking_slash">Slash</string>
+    <string name="common_call">Call</string>
+    <string name="common_module">Module</string>
     <string name="wallet_asset_buy_with">Buy with</string>
+    <string name="wallet_filters_title">Filters</string>
     <string name="common_apply">Apply</string>
     <string name="common_reset">Reset</string>
+    <string name="wallet_filters_transfers">Transfers</string>
+    <string name="wallet_filters_rewards_and_slashes">Rewards and Slashes</string>
+    <string name="wallet_filters_extrinsics">Other transactions</string>
     <string name="wallet_filters_header">Show</string>
     <string name="common_available_format">Available: %s</string>
     <string name="staking_rewards_learn_more">Learn more about rewards</string>
@@ -281,6 +293,7 @@ Derivation path: %s</string>
     <string name="common_change">Change</string>
     <string name="staking_your_nominated_format">Nominated: %s</string>
     <string name="staking_your_validators_changing_title">Your validators will change in the next era.</string>
+    <string name="staking_max_format" formatted="false">%s (max %s)</string>
     <string name="staking_bonded_format">Bonded: %s</string>
     <string name="staking_unbonding_hint">Your tokens will be available to redeem after the unstaking period.</string>
     <string name="common_account">Account</string>
@@ -379,9 +392,12 @@ Derivation path: %s</string>
     <string name="staking_validator_total_stake_token">Total stake (%s)</string>
     <string name="staking_validator_apy_percent">Estimated reward (% APY)</string>
     <string name="staking_rewards_destination_title">Rewards destination</string>
-    <string name="staking_max_format" formatted="false">%d (max %d)</string>
+    <string name="staking_your_oversubscribed_message">Your tokens are allocated to the oversubscribed validators. You will not receive rewards in this era.</string>
     <string name="staking_your_not_elected_format">Not elected (%s)</string>
+    <string name="staking_your_elected_format">Elected (%s)</string>
     <string name="staking_rewards_apy">Rewards (APY)</string>
+    <string name="staking_validator_slashed_desc">Validator is slashed for misbehaves (e.g. goes offline, attacks the network, or runs modified software) in the network.</string>
+    <string name="staking_payout_expired">Payout expired</string>
     <string name="wallet_balance_unbonding_v1_9_0">Unstaking</string>
     <string name="staking_unbonding_period_v1_9_0">Unstaking period</string>
     <string name="wallet_balance_bonded">Staked</string>
@@ -390,33 +406,49 @@ Derivation path: %s</string>
     <string name="staking_bond_more_v1_9_0">Stake more</string>
     <string name="staking_unbond_v1_9_0">Unstake</string>
     <string name="staking_unbonding_empty_list_v1_9_0">Unstaking transactions will appear here</string>
+    <string name="staking_validator_my_oversubscribed_message">Oversubscribed. You will not receive rewards from the validator in this era.</string>
+    <string name="staking_validator_other_oversubscribed_message">Oversubscribed. Only the top staked nominators are paid rewards.</string>
     <string name="history_v1.9.0">History</string>
     <string name="staking_estimate_earning_title_v1.9.0">Estimated earnings</string>
     <string name="staking_main_stake_balance_staked">Staked</string>
     <string name="staking_pending_rewards_info">Validators payout the rewards every 2–5 days. However, you can payout them by yourself, especially if rewards are close to expiring, but you will pay the fee.</string>
     <string name="staking_custom_validators_update_list">Update your list</string>
+    <string name="staking_hint_rewards_format">Staked tokens generate rewards each era (%s).</string>
+    <string name="staking_hint_unstake_format">If you want to unstake tokens, you will have to wait for the unstaking period (%s).</string>
+    <string name="staking_hint_no_rewards">Tokens in unstaking period generate no rewards.</string>
+    <string name="staking_hint_redeem">After unstaking period you will need to redeem your tokens.</string>
+    <string name="staking_hint_reward_bond_more">Your rewards will be increased starting from the next era.</string>
+    <string name="staking_hint_unbond_kills_stash">Fearless wallet will change rewards destination
+to your account to avoid remaining stake.</string>
     <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
     <string name="common_options_title">Select an option</string>
     <string name="invoice_scan_error_no_info">QR can\'t be decoded</string>
     <string name="invoice_scan_qr_code_title">QR code</string>
     <string name="invoice_scan_upload">Upload from gallery</string>
     <string name="contacts_scan">Scan QR code</string>
-    <string name="staking_story_staking_title">What is Staking?</string>
-    <string name="staking_story_staking_page_1">Staking is an option to earn passive income by locking your tokens in the network. Rewards for staking are paid every 6 hours on Kusama and 24 hours on Polkadot. You can stake as long as you wish, and for unlocking your tokens you need to wait for the unlocking period to end, making your tokens available to be redeemed.</string>
-    <string name="staking_story_staking_page_2">Staking is an important part of the network security and reliability. Anyone can run Polkadot &amp; Kusama validator nodes, but only those who have enough tokens staked will be selected by the network to participate in composing new blocks and receive the rewards. Validators oftently do not have enough tokens by themselves, so Nominators are helping them by locking their tokens for them to achieve the required amount of stake.</string>
-    <string name="staking_story_nominator_title">Who is a Nominator?</string>
-    <string name="staking_story_nominator_page_1">Nominators are those who want to earn passive income by locking their tokens for securing the network. To achieve that, Nominators should select a number of Validators to support. Nominators should be careful - if selected Validators won’t behave properly, slashing penalties would be applied to both Validators and Nominators, based on severity of incident.</string>
-    <string name="staking_story_nominator_page_2">Fearless Wallet provides support for Nominators by helping to select Validators. Mobile app fetches data from the blockchain and composes a list of Validators which have most profits, identity with contact info available, not slashed before and available to receive nominations. Fearless Wallet also cares about decentralization, so if one person or a company runs several validator nodes, only up to 2 nodes will be chosen from that person or a company in the recommended list.</string>
-    <string name="staking_story_validator_title">Who is a Validator?</string>
-    <string name="staking_story_validator_page_1">Validators are those who run a blockchain node for 24/7 and require to have enough stake locked (both owned and provided by nominators) to be elected by the network. Validators should maintain their nodes to achieve the best performance and reliability, which will be rewarded. Being a validator is almost a full time job, there are companies exist which are focused to be validators on the blockchain networks</string>
-    <string name="staking_story_validator_page_2">Everyone can be a validator and run a blockchain node, but that requires a certain level of technical skills and responsibility. Polkadot &amp; Kusama network has a program, named Thousand Validators Programme, to provide support for beginners. The network itself always will reward more Validators who have less stake (but enough to be elected) to improve decentralization.</string>
-    <string name="staking_story_reward_title">Claiming Rewards</string>
-    <string name="staking_story_reward_page_1">Rewards for staking are available for claiming at the end of each Era (6 hours in Kusama and 24 hours in Polkadot). They are available for claiming for next 84 Eras, and in most cases Validators are paying out the rewards for everyone. However, Validators might forget or something might happen with them, so Nominators can claim the rewards by themselves.</string>
-    <string name="staking_story_reward_page_2">Although usually Rewards are distributed by Validators, Fearless Wallet helps Nominators by alerting them if there are some Rewards available and they are close to expiration. You will receive Alert about this and other activities on your Staking screen.</string>
+    <string name="staking_story_staking_title">What is staking?</string>
+    <string name="staking_story_staking_page_1">Staking is an option to earn passive income by locking your tokens in the network. Staking rewards are allocated every era (6 hours on Kusama and 24 hours on Polkadot). You can stake as long as you wish, and for unstaking your tokens you need to wait for the unstacking period to end, making your tokens available to be redeemed.</string>
+    <string name="staking_story_staking_page_2">Staking is an important part of network security and reliability. Anyone can run validator nodes, but only those who have enough tokens staked will be elected by the network to participate in composing new blocks and receive the rewards. Validators often do not have enough tokens by themselves, so nominators are helping them by locking their tokens for them to achieve the required amount of stake.</string>
+    <string name="staking_story_nominator_title">Who is a nominator?</string>
+    <string name="staking_story_nominator_page_1">Nominator earns passive income by locking his tokens for securing the network. To achieve that, the nominator should select a number of validators to support. The nominator should be careful when selecting validators. If selected validator won’t behave properly, slashing penalties would be applied to both of them, based on the severity of the incident.</string>
+    <string name="staking_story_nominator_page_2">Fearless Wallet provides a support for nominators by helping them to select validators. The mobile app fetches data from the blockchain and composes a list of validators, which have: most profits, identity with contact info, not slashed and available to receive nominations. Fearless Wallet also cares about decentralization, so if one person or a company runs several validator nodes, only up to 2 nodes from them will be shown in the recommended list.</string>
+    <string name="staking_story_validator_title">Who is a validator?</string>
+    <string name="staking_story_validator_page_1">The validator runs a blockchain node 24/7 and is required to have enough stake locked (both owned and provided by nominators) to be elected by the network. Validators should maintain their nodes\' performance and reliability to be rewarded. Being a validator is almost a full-time job, there are companies that are focused to be validators on the blockchain networks.</string>
+    <string name="staking_story_validator_page_2">Everyone can be a validator and run a blockchain node, but that requires a certain level of technical skills and responsibility. Polkadot and Kusama networks have a program, named Thousand Validators Programme, to provide support for beginners. Moreover, the network itself will always reward more validators, who have less stake (but enough to be elected) to improve decentralization.</string>
+    <string name="staking_story_reward_title">Receiving rewards</string>
+    <string name="staking_story_reward_page_1">Rewards for staking are available to payout at the end of each era (6 hours in Kusama and 24 hours in Polkadot). Network stores pending rewards during 84 eras and in most cases validators are paying out the rewards for everyone. However, validators might forget or something might happen with them, so nominators can payout their rewards by themselves.</string>
+    <string name="staking_story_reward_page_2">Although rewards are usually distributed by validators, Fearless Wallet helps by alerting if there are any pending rewards that are close to expiring. You will receive alerts about this and other activities on the staking screen.</string>
     <string name="staking_selected_validators_mask">Validators (%d)</string>
     <string name="staking_controller_change_success">Controller is changed</string>
     <string name="staking_already_controller_title">Already controller</string>
     <string name="staking_unbond_crossed_existential">After operation the resulting bonded balance will be less than minimal balance. It will cause the whole bonded balance to be unbonded.</string>
+    <plurals name="common_hours_format">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
     <string name="import_mnemonic_invalid_title">Your mnemonic is invalid</string>
     <string name="account_error_try_another_one">Please, try another one.</string>
+    <string name="wallet_extrinsic_details_title">Extrinsic details</string>
+    <string name="transaction_details_extrinsic_fee">Fee</string>
+    <string name="wallet_transfer_details_title">Transfer details</string>
 </resources>

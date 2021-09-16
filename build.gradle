@@ -1,8 +1,8 @@
 buildscript {
     ext {
         // App version
-        versionName = '1.9.0'
-        versionCode = 20
+        versionName = '1.9.4'
+        versionCode = 24
 
         // SDK and tools
         compileSdkVersion = 29
@@ -42,7 +42,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.75'
+        fearlessLibVersion = '1.0.77'
 
         gifVersion = '1.2.19'
 

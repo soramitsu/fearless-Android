@@ -34,6 +34,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,7 +65,7 @@ class StakeSummaryModel<S>(
     val totalStakedFiat: String?,
     val totalRewards: String,
     val totalRewardsFiat: String?,
-    val currentEraDisplay: String,
+    val currentEraDisplay: String
 )
 
 typealias NominatorSummaryModel = StakeSummaryModel<NominatorStatus>
@@ -137,6 +138,7 @@ sealed class StakeViewState<S>(
         }
     }
 
+    @ExperimentalCoroutinesApi
     private suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
         return combine(
             summaryFlowProvider(stakeState),
@@ -149,8 +151,8 @@ sealed class StakeViewState<S>(
                 status = summary.status,
                 totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
-                totalRewards = summary.totalRewards.formatTokenAmount(tokenType),
-                totalRewardsFiat = token.fiatAmount(summary.totalRewards)?.formatAsCurrency(),
+                totalRewards = summary.totalReward.formatTokenAmount(tokenType),
+                totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatAsCurrency(),
                 currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
             )
         }

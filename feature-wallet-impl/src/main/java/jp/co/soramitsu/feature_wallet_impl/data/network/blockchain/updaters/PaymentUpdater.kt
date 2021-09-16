@@ -8,8 +8,8 @@ import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
-import jp.co.soramitsu.core_db.dao.TransactionDao
-import jp.co.soramitsu.core_db.model.TransactionLocal
+import jp.co.soramitsu.core_db.dao.OperationDao
+import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
@@ -19,10 +19,9 @@ import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.feature_wallet_api.data.cache.updateAsset
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
+import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.Transaction
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapTransactionStatusToTransactionStatusLocal
+import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationStatusToOperationLocalStatus
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.TransferExtrinsic
 import kotlinx.coroutines.Dispatchers
@@ -33,9 +32,9 @@ import kotlinx.coroutines.flow.onEach
 class PaymentUpdater(
     private val substrateSource: SubstrateRemoteSource,
     private val assetCache: AssetCache,
-    private val transactionsDao: TransactionDao,
+    private val operationDao: OperationDao,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    override val scope: AccountUpdateScope,
+    override val scope: AccountUpdateScope
 ) : Updater {
 
     override val requiredModules: List<String> = listOf(Modules.SYSTEM)
@@ -65,25 +64,25 @@ class PaymentUpdater(
 
         val local = blockTransfers.map {
             val localStatus = when (it.statusEvent) {
-                ExtrinsicStatusEvent.SUCCESS -> Transaction.Status.COMPLETED
-                ExtrinsicStatusEvent.FAILURE -> Transaction.Status.FAILED
-                null -> Transaction.Status.PENDING
+                ExtrinsicStatusEvent.SUCCESS -> Operation.Status.COMPLETED
+                ExtrinsicStatusEvent.FAILURE -> Operation.Status.FAILED
+                null -> Operation.Status.PENDING
             }
 
-            createTransactionLocal(it.extrinsic, localStatus, address)
+            createTransferOperationLocal(it.extrinsic, localStatus, address)
         }
 
-        transactionsDao.insert(local)
+        operationDao.insertAll(local)
     }
 
-    private suspend fun createTransactionLocal(
+    private suspend fun createTransferOperationLocal(
         extrinsic: TransferExtrinsic,
-        status: Transaction.Status,
+        status: Operation.Status,
         accountAddress: String,
-    ): TransactionLocal {
-        val localCopy = transactionsDao.getTransaction(extrinsic.hash)
+    ): OperationLocal {
+        val localCopy = operationDao.getOperation(extrinsic.hash)
 
-        val fee = localCopy?.feeInPlanks
+        val fee = localCopy?.fee
 
         val networkType = accountAddress.networkType()
         val tokenType = Token.Type.fromNetworkType(networkType)
@@ -91,18 +90,16 @@ class PaymentUpdater(
         val senderAddress = extrinsic.senderId.toAddress(networkType)
         val recipientAddress = extrinsic.recipientId.toAddress(networkType)
 
-        return TransactionLocal(
+        return OperationLocal.manualTransfer(
             hash = extrinsic.hash,
             accountAddress = accountAddress,
+            tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
+            amount = extrinsic.amountInPlanks,
             senderAddress = senderAddress,
-            recipientAddress = recipientAddress,
-            source = TransactionLocal.Source.BLOCKCHAIN,
-            status = mapTransactionStatusToTransactionStatusLocal(status),
-            feeInPlanks = fee,
-            token = mapTokenTypeToTokenTypeLocal(tokenType),
-            amount = tokenType.amountFromPlanks(extrinsic.amountInPlanks),
-            date = System.currentTimeMillis(),
-            networkType = networkType
+            receiverAddress = recipientAddress,
+            fee = fee,
+            status = mapOperationStatusToOperationLocalStatus(status),
+            source = OperationLocal.Source.BLOCKCHAIN,
         )
     }
 }

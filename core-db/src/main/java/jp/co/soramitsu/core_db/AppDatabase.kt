@@ -8,21 +8,21 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.core_db.converters.LongMathConverters
 import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
+import jp.co.soramitsu.core_db.converters.OperationConverters
 import jp.co.soramitsu.core_db.converters.TokenConverters
-import jp.co.soramitsu.core_db.converters.TransactionConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.NodeDao
+import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.RuntimeDao
-import jp.co.soramitsu.core_db.dao.StakingRewardDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
-import jp.co.soramitsu.core_db.dao.TransactionDao
 import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
+import jp.co.soramitsu.core_db.migrations.AddOperationsTablesToDb_23_24
 import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
 import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_11_12
 import jp.co.soramitsu.core_db.migrations.AddStakingRewardsTable_15_16
@@ -33,43 +33,43 @@ import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
 import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
+import jp.co.soramitsu.core_db.migrations.RemoveStakingRewardsTable_22_23
 import jp.co.soramitsu.core_db.migrations.UpdateDefaultNodesList
-import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.core_db.model.TransactionLocal
-import jp.co.soramitsu.core_db.model.AssetLocal
-import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
-import jp.co.soramitsu.core_db.model.TokenLocal
-import jp.co.soramitsu.core_db.model.PhishingAddressLocal
-import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
-import jp.co.soramitsu.core_db.model.StakingRewardLocal
+import jp.co.soramitsu.core_db.model.AssetLocal
+import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core_db.model.OperationLocal
+import jp.co.soramitsu.core_db.model.PhishingAddressLocal
+import jp.co.soramitsu.core_db.model.RuntimeCacheEntry
+import jp.co.soramitsu.core_db.model.StorageEntryLocal
+import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
 @Database(
-    version = 22,
+    version = 25,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
-        TransactionLocal::class,
         AssetLocal::class,
         TokenLocal::class,
         RuntimeCacheEntry::class,
         PhishingAddressLocal::class,
         StorageEntryLocal::class,
         AccountStakingLocal::class,
-        StakingRewardLocal::class,
-        TotalRewardLocal::class
+        TotalRewardLocal::class,
+        OperationLocal::class
     ]
 )
 @TypeConverters(
     LongMathConverters::class,
     NetworkTypeConverters::class,
-    TransactionConverters::class,
-    TokenConverters::class
+    TokenConverters::class,
+    OperationConverters::class
 )
+
 abstract class AppDatabase : RoomDatabase() {
 
     companion object {
@@ -99,7 +99,9 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(MoveActiveNodeTrackingToDb_18_19(prefsToDbActiveNodeMigrator))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 19))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 20))
-                    .addMigrations(AddTotalRewardsTableToDb_21_22)
+                    .addMigrations(AddTotalRewardsTableToDb_21_22, RemoveStakingRewardsTable_22_23)
+                    .addMigrations(AddOperationsTablesToDb_23_24)
+                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 24))
                     .build()
             }
             return instance!!
@@ -112,7 +114,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun assetDao(): AssetDao
 
-    abstract fun transactionsDao(): TransactionDao
+    abstract fun operationDao(): OperationDao
 
     abstract fun runtimeDao(): RuntimeDao
 
@@ -123,8 +125,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun tokenDao(): TokenDao
 
     abstract fun accountStakingDao(): AccountStakingDao
-
-    abstract fun stakingRewardsDao(): StakingRewardDao
 
     abstract fun stakingTotalRewardDao(): StakingTotalRewardDao
 }

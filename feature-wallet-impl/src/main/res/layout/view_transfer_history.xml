@@ -69,9 +69,29 @@
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/placeholder"
-        android:visibility="visible"
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:constraint_referenced_ids="placeholderIcon,placeholderText" />
 
+    <ImageView
+        android:id="@+id/transactionHistoryFilter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_filter_list_24" />
+
+    <ProgressBar
+        android:id="@+id/transactionHistoryProgress"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        app:layout_constraintTop_toBottomOf="@id/transactionHistoryTitle"
+        android:indeterminate="true"
+        android:layout_marginTop="16dp"
+        android:indeterminateTint="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </merge>
