@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.utils.deriveSeed32
-import jp.co.soramitsu.common.utils.ethereumAddress
+import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.common.utils.toAddress
@@ -178,7 +178,7 @@ class V2MigrationTest {
 
         if (withEthereum) {
             assertArrayEquals(ETHEREUM_KEYPAIR.publicKey, ethereumPublicKey)
-            assertEquals(ETHEREUM_KEYPAIR.publicKey.ethereumAddress(), ethereumAddress)
+            assertEquals(ETHEREUM_KEYPAIR.publicKey.ethereumAddressFromPublicKey(), ethereumAddress)
         } else {
             assertNull(ethereumAddress)
             assertNull(ethereumPublicKey)

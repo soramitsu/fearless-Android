@@ -1,9 +1,10 @@
 package jp.co.soramitsu.common.utils
 
 import android.util.Base64
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ECDSAUtils
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
-import org.bouncycastle.jcajce.provider.digest.SHA3
+import org.bouncycastle.jcajce.provider.digest.Keccak
 import java.security.MessageDigest
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -16,8 +17,14 @@ fun String.hmacSHA256(secret: String): ByteArray {
     return chiper.doFinal(this.toByteArray())
 }
 
-fun ByteArray.ethereumAddress(): String {
-    return copyOf(newSize = 20).sha3().toHexString(withPrefix = true)
+fun ByteArray.ethereumAddressFromPublicKey(): String {
+    val decompressed = if (size == 64) {
+        this
+    } else {
+        ECDSAUtils.decompressed(this)
+    }
+
+    return decompressed.keccak256().copyLast(20).toHexString(withPrefix = false)
 }
 
 fun ByteArray.substrateAccountId(): ByteArray {
@@ -28,10 +35,10 @@ fun ByteArray.substrateAccountId(): ByteArray {
     }
 }
 
-fun String.sha3(): ByteArray = encodeToByteArray().sha3()
+fun ByteArray.copyLast(n: Int) = copyOfRange(fromIndex = size - n, size)
 
-fun ByteArray.sha3(): ByteArray {
-    val digest = SHA3.Digest256()
+fun ByteArray.keccak256(): ByteArray {
+    val digest = Keccak.Digest256()
 
     return digest.digest(this)
 }

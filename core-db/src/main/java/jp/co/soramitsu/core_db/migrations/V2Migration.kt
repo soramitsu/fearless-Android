@@ -8,7 +8,7 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.utils.deriveSeed32
-import jp.co.soramitsu.common.utils.ethereumAddress
+import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.model.CryptoType
@@ -78,7 +78,7 @@ class V2Migration(
                 substrateAccountId = keypair.publicKey.substrateAccountId(),
                 substrateCryptoType = account.cryptoType,
                 ethereumPublicKey = ethereumKeypair?.publicKey,
-                ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddress(),
+                ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 name = account.name,
                 isSelected = isSelected
             )

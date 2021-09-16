@@ -23,7 +23,7 @@ class RuntimeUpdater(
 
     fun sync() {
         GlobalScope.launch {
-            chainRegistry.currentChains.first { it.isNotEmpty() } // wait until chains loads
+            chainRegistry.currentChains.first { it.isNotEmpty() } // wait until chains load
 
             accountRepository.selectedNetworkTypeFlow()
                 .onEach { runtimeProperty.invalidate() }
