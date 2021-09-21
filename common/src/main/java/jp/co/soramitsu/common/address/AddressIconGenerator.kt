@@ -7,6 +7,7 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+// TODO ethereum address icon generation
 class AddressIconGenerator(
     private val iconGenerator: IconGenerator,
     private val resourceManager: ResourceManager

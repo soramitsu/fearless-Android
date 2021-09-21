@@ -97,7 +97,7 @@ class ConfirmBondMoreViewModel(
             stashAddress = payload.stashAddress,
             fee = payload.fee,
             amount = payload.amount,
-            tokenType = assetFlow.first().token.type
+            tokenType = assetFlow.first().token.configuration
         )
 
         validationExecutor.requireValid(

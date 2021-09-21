@@ -3,12 +3,12 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.main
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.getContributions
+import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import kotlinx.coroutines.flow.Flow
@@ -54,6 +54,7 @@ typealias GroupedCrowdloans = GroupedList<KClass<out Crowdloan.State>, Crowdloan
 class CrowdloanInteractor(
     private val accountRepository: AccountRepository,
     private val crowdloanRepository: CrowdloanRepository,
+    private val crowdloanSharedState: CrowdloanSharedState,
     private val chainStateRepository: ChainStateRepository,
 ) {
 
@@ -68,9 +69,10 @@ class CrowdloanInteractor(
                 crowdloanRepository.getParachainMetadata()
             }.getOrDefault(emptyMap())
 
+            val chain = cr
+
             val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis()
             val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod()
-            val networkType = accountRepository.currentNetworkType()
             val accountId = accountRepository.getSelectedAccount().address.toAccountId()
 
             val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(networkType).map { currentBlockNumber ->

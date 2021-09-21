@@ -1,13 +1,12 @@
 package jp.co.soramitsu.feature_wallet_api.data.cache
 
-import jp.co.soramitsu.common.utils.networkType
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.AssetReadOnlyCache
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
-import jp.co.soramitsu.feature_wallet_api.data.mappers.tokenTypeLocalFromNetworkType
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -21,17 +20,15 @@ class AssetCache(
     private val assetUpdateMutex = Mutex()
 
     suspend fun updateAsset(
-        address: String,
+        accountId: AccountId,
+        chainAsset: Chain.Asset,
         builder: (local: AssetLocal) -> AssetLocal
     ) = withContext(Dispatchers.IO) {
+        val symbol = chainAsset.symbol
+        val chainId = chainAsset.chainId
+
         assetUpdateMutex.withLock {
-            val tokenType = tokenTypeLocalFromNetworkType(address.networkType())
-
-            if (!tokenDao.isTokenExists(tokenType)) {
-                tokenDao.insertToken(TokenLocal.createEmpty(tokenType))
-            }
-
-            val cachedAsset = assetDao.getAsset(address, tokenType)?.asset ?: AssetLocal.createEmpty(tokenType, address)
+            val cachedAsset = assetDao.getAsset(accountId, chainId, symbol)?.asset ?: AssetLocal.createEmpty(accountId, symbol, chainId)
 
             val newAsset = builder.invoke(cachedAsset)
 
@@ -40,13 +37,11 @@ class AssetCache(
     }
 
     suspend fun updateToken(
-        networkType: Node.NetworkType,
+        symbol: String,
         builder: (local: TokenLocal) -> TokenLocal
     ) = withContext(Dispatchers.IO) {
         assetUpdateMutex.withLock {
-            val tokenOrdinal = tokenTypeLocalFromNetworkType(networkType)
-
-            val tokenLocal = tokenDao.getToken(tokenOrdinal) ?: TokenLocal.createEmpty(tokenOrdinal)
+            val tokenLocal = tokenDao.getToken(symbol) ?: TokenLocal.createEmpty(symbol)
 
             val newToken = builder.invoke(tokenLocal)
 

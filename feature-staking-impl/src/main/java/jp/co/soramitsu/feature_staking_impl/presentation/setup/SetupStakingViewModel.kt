@@ -108,7 +108,7 @@ class SetupStakingViewModel(
             feeConstructor = { asset ->
                 val address = interactor.getSelectedAccount().address
 
-                setupStakingInteractor.estimateMaxSetupStakingFee(asset.token.type, address)
+                setupStakingInteractor.estimateMaxSetupStakingFee(asset.token.configuration, address)
             },
             onRetryCancelled = ::backClicked
         )
@@ -119,7 +119,7 @@ class SetupStakingViewModel(
             val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelFlow.first()
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationModel)
             val amount = parsedAmountFlow.first()
-            val tokenType = assetFlow.first().token.type
+            val tokenType = assetFlow.first().token.configuration
             val currentAccountAddress = interactor.getSelectedAccount().address
 
             val payload = SetupStakingPayload(

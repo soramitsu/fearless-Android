@@ -138,7 +138,7 @@ class SelectUnbondViewModel(
                 asset = asset,
                 fee = fee,
                 amount = parsedAmountFlow.first(),
-                tokenType = asset.token.type
+                chainAsset = asset.token.configuration
             )
 
             validationExecutor.requireValid(

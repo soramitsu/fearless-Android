@@ -58,6 +58,24 @@ class UpdateDefaultNodesList(
     }
 }
 
+val MigrateStorageCacheToChainId_27_28 = object : Migration(27, 28) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE storage")
+
+        database.execSQL(
+            """
+            CREATE TABLE `storage` (
+                `storageKey` TEXT NOT NULL,
+                `networkType` INTEGER NOT NULL,
+                `content` TEXT,
+                `runtimeVersion` INTEGER NOT NULL,
+                PRIMARY KEY(`storageKey`, `networkType`)
+            )
+        """
+        )
+    }
+}
+
 val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(

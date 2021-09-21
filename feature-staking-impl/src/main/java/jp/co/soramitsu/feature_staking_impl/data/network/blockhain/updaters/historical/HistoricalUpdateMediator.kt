@@ -2,16 +2,14 @@ package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.his
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.utils.Modules
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.GlobalScopeUpdater
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.fetchValuesToCache
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.observeActiveEraIndex
 import kotlinx.coroutines.flow.Flow
@@ -27,31 +25,29 @@ interface HistoricalUpdater {
 
 class HistoricalUpdateMediator(
     private val historicalUpdaters: List<HistoricalUpdater>,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    private val stakingSharedState: StakingSharedState,
     private val bulkRetriever: BulkRetriever,
     private val stakingRepository: StakingRepository,
-    private val accountRepository: AccountRepository,
     private val storageCache: StorageCache,
 ) : GlobalScopeUpdater {
 
     override val requiredModules: List<String> = listOf(Modules.STAKING)
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
-        val runtime = runtimeProperty.get()
+        val chainId = stakingSharedState.chainId()
+        val runtime = stakingSharedState.runtime()
 
-        val networkType = accountRepository.currentNetworkType()
-
-        return storageCache.observeActiveEraIndex(runtime, networkType)
+        return storageCache.observeActiveEraIndex(runtime, chainId)
             .map {
                 val allKeysNeeded = constructHistoricalKeys(runtime)
-                val keysInDataBase = storageCache.filterKeysInCache(allKeysNeeded).toSet()
+                val keysInDataBase = storageCache.filterKeysInCache(allKeysNeeded, chainId).toSet()
 
                 val missingKeys = allKeysNeeded.filter { it !in keysInDataBase }
 
                 missingKeys
             }.filter { it.isNotEmpty() }
             .onEach {
-                bulkRetriever.fetchValuesToCache(it, storageCache)
+                bulkRetriever.fetchValuesToCache(storageSubscriptionBuilder.socketService, it, storageCache, chainId)
             }
             .noSideAffects()
     }

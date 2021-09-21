@@ -6,20 +6,19 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.AssetWithToken
-import jp.co.soramitsu.core_db.model.TokenLocal
 import kotlinx.coroutines.flow.Flow
 
 private const val RETRIEVE_ASSET_SQL = """
-           select * from assets as a inner join tokens as t where a.token = t.type
-            and a.accountAddress = :accountAddress and a.token = :type
+           select * from assets as a inner join tokens as t where a.symbol = t.symbol
+            and a.accountId = :accountId and a.chainId = :chainId AND a.symbol = :symbol
 """
 
 interface AssetReadOnlyCache {
-    fun observeAssets(accountAddress: String): Flow<List<AssetWithToken>>
+    fun observeAssets(accountId: ByteArray): Flow<List<AssetWithToken>>
 
-    fun observeAsset(accountAddress: String, type: TokenLocal.Type): Flow<AssetWithToken>
+    fun observeAsset(accountId: ByteArray, chainId: String, symbol: String): Flow<AssetWithToken>
 
-    suspend fun getAsset(accountAddress: String, type: TokenLocal.Type): AssetWithToken?
+    suspend fun getAsset(accountId: ByteArray, chainId: String, symbol: String): AssetWithToken?
 }
 
 @Dao
@@ -27,17 +26,17 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Query(
         """
-        select * from assets as a inner join tokens as t where a.token = t.type
-        and a.accountAddress = :accountAddress
+       select * from assets as a inner join tokens as t where a.symbol = t.symbol
+            and a.accountId = :accountId
     """
     )
-    abstract override fun observeAssets(accountAddress: String): Flow<List<AssetWithToken>>
+    abstract override fun observeAssets(accountId: ByteArray): Flow<List<AssetWithToken>>
 
     @Query(RETRIEVE_ASSET_SQL)
-    abstract override fun observeAsset(accountAddress: String, type: TokenLocal.Type): Flow<AssetWithToken>
+    abstract override fun observeAsset(accountId: ByteArray, chainId: String, symbol: String): Flow<AssetWithToken>
 
     @Query(RETRIEVE_ASSET_SQL)
-    abstract override suspend fun getAsset(accountAddress: String, type: TokenLocal.Type): AssetWithToken?
+    abstract override suspend fun getAsset(accountId: ByteArray, chainId: String, symbol: String): AssetWithToken?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAsset(asset: AssetLocal)

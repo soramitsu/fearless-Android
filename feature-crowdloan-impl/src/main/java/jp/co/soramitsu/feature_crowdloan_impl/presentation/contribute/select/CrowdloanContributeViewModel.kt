@@ -141,7 +141,7 @@ class CrowdloanContributeViewModel(
         .share()
 
     val unlockHintFlow = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.type.displayName)
+        resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.displayName)
     }
         .inBackground()
         .share()
@@ -179,7 +179,7 @@ class CrowdloanContributeViewModel(
         val token = asset.token
 
         val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
-        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.type)
+        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.configuration)
 
         val timeLeft = when (val state = crowdloan.state) {
             Crowdloan.State.Finished -> resourceManager.getString(R.string.transaction_status_completed)

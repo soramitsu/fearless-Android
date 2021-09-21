@@ -51,7 +51,7 @@ class WalletInteractorImpl(
     override suspend fun syncAssetRates(type: Token.Type): Result<Unit> {
         return kotlin.runCatching {
             val account = mapAccountToWalletAccount(accountRepository.getSelectedAccount())
-            walletRepository.syncAsset(account, type)
+            walletRepository.syncAssetRates(account, type)
         }
     }
 
@@ -134,7 +134,7 @@ class WalletInteractorImpl(
     }
 
     override suspend fun isAddressFromPhishingList(address: String): Boolean {
-        return walletRepository.isAddressFromPhishingList(address)
+        return walletRepository.isAccountIdFromPhishingList(address)
     }
 
     override suspend fun getTransferFee(transfer: Transfer): Fee {

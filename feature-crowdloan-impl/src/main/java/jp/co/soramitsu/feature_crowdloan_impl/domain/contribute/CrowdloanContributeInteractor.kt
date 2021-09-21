@@ -2,18 +2,18 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.hasWonAuction
+import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.contribute
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
-import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -29,20 +29,21 @@ class CrowdloanContributeInteractor(
     private val feeEstimator: FeeEstimator,
     private val accountRepository: AccountRepository,
     private val chainStateRepository: ChainStateRepository,
+    private val crowdloanSharedState: CrowdloanSharedState,
     private val crowdloanRepository: CrowdloanRepository
 ) {
 
     fun crowdloanStateFlow(
         parachainId: ParaId,
         parachainMetadata: ParachainMetadata? = null
-    ): Flow<Crowdloan> = accountRepository.selectedNetworkTypeFlow().flatMapLatest {
+    ): Flow<Crowdloan> = crowdloanSharedState.selectedAsset.flatMapLatest { (chain, _) ->
         val accountAddress = accountRepository.getSelectedAccount().address
 
         val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis()
         val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod()
 
         combine(
-            crowdloanRepository.fundInfoFlow(parachainId, it),
+            crowdloanRepository.fundInfoFlow(parachainId, chain.id),
             chainStateRepository.currentBlockNumberFlow(it)
         ) { fundInfo, blockNumber ->
             val contribution = crowdloanRepository.getContribution(accountAddress.toAccountId(), parachainId, fundInfo.trieIndex)

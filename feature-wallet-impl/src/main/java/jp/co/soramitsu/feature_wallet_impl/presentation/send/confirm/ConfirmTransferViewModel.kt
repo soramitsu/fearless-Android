@@ -74,7 +74,8 @@ class ConfirmTransferViewModel(
         val assetModel = assetLiveData.value ?: return
 
         launch {
-            val existentialDeposit = assetModel.token.type.amountFromPlanks(walletConstants.existentialDeposit())
+            val amountInPlanks = walletConstants.existentialDeposit(assetModel.token.configuration.chainId)
+            val existentialDeposit = assetModel.token.configuration.amountFromPlanks(amountInPlanks)
 
             _showBalanceDetailsEvent.value = Event(BalanceDetailsBottomSheet.Payload(assetModel, transferDraft, existentialDeposit))
         }
@@ -132,7 +133,7 @@ class ConfirmTransferViewModel(
             Transfer(
                 recipient = recipientAddress,
                 amount = amount,
-                tokenType = type
+                chainAsset = type
             )
         }
     }

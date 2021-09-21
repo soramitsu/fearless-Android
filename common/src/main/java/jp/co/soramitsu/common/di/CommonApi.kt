@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
-import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -30,6 +29,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
+import jp.co.soramitsu.runtime.rpc.RpcCalls
 import java.util.Random
 
 interface CommonApi {
@@ -86,7 +86,7 @@ interface CommonApi {
 
     fun httpExceptionHandler(): HttpExceptionHandler
 
-    fun provideSubstrateCalls(): RpcCalls
+    fun provideSubstrateCalls(): jp.co.soramitsu.runtime.rpc.RpcCalls
 
     fun defaultPagedKeysRetriever(): BulkRetriever
 

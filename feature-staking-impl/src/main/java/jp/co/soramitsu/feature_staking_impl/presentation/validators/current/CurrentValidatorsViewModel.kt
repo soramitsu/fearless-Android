@@ -80,12 +80,12 @@ class CurrentValidatorsViewModel(
         val validator = nominatedValidator.validator
 
         val nominationFormatted = (nominatedValidator.status as? NominatedValidator.Status.Active)?.let { activeStatus ->
-            val amountFormatted = token.type.amountFromPlanks(activeStatus.nomination).formatTokenAmount(token.type)
+            val amountFormatted = token.configuration.amountFromPlanks(activeStatus.nomination).formatTokenAmount(token.configuration)
 
             resourceManager.getString(R.string.staking_your_nominated_format, amountFormatted)
         }
 
-        val validatorAddress = validator.accountIdHex.fromHex().toAddress(token.type.networkType)
+        val validatorAddress = validator.accountIdHex.fromHex().toAddress(token.configuration.networkType)
 
         return NominatedValidatorModel(
             addressModel = iconGenerator.createAddressModel(validatorAddress, AddressIconGenerator.SIZE_MEDIUM, validator.identity?.display),

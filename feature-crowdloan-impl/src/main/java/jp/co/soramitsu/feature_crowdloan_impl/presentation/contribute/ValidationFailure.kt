@@ -32,7 +32,7 @@ fun contributeValidationFailure(
 
         is ContributeValidationFailure.CapExceeded.FromAmount -> {
             val formattedAmount = with(reason) {
-                maxAllowedContribution.formatTokenAmount(token.type)
+                maxAllowedContribution.formatTokenAmount(token.configuration)
             }
 
             resourceManager.getString(R.string.crowdloan_cap_reached_title) to
@@ -41,7 +41,7 @@ fun contributeValidationFailure(
 
         is ContributeValidationFailure.LessThanMinContribution -> {
             val formattedAmount = with(reason) {
-                minContribution.formatTokenAmount(token.type)
+                minContribution.formatTokenAmount(token.configuration)
             }
 
             resourceManager.getString(R.string.crowdloan_too_small_contribution_title) to

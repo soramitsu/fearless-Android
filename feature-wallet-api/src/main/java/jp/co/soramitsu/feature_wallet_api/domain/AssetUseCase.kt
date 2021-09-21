@@ -6,6 +6,4 @@ import kotlinx.coroutines.flow.Flow
 interface AssetUseCase {
 
     fun currentAssetFlow(): Flow<Asset>
-
-    fun assetFlow(accountAddress: String): Flow<Asset>
 }

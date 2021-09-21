@@ -76,8 +76,8 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
     }
 
     fun bind(asset: AssetModel, itemHandler: BalanceListAdapter.ItemAssetHandler) = with(containerView) {
-        itemAssetImage.setImageResource(asset.token.type.icon)
-        itemAssetNetwork.text = asset.token.type.networkType.readableName
+        itemAssetImage.setImageResource(asset.token.configuration.icon)
+        itemAssetNetwork.text = asset.token.configuration.networkType.readableName
 
         bindDollarInfo(asset)
 
@@ -85,7 +85,7 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
 
         bindTotal(asset)
 
-        itemAssetToken.text = asset.token.type.displayName
+        itemAssetToken.text = asset.token.configuration.displayName
 
         setOnClickListener { itemHandler.assetClicked(asset) }
     }
@@ -116,7 +116,7 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
 private object AssetDiffCallback : DiffUtil.ItemCallback<AssetModel>() {
 
     override fun areItemsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {
-        return oldItem.token.type == newItem.token.type
+        return oldItem.token.configuration == newItem.token.configuration
     }
 
     override fun areContentsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {

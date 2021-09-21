@@ -113,8 +113,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         setupBuyIntegration(viewModel)
 
         viewModel.assetLiveData.observe { asset ->
-            balanceDetailTokenIcon.setImageResource(asset.token.type.icon)
-            balanceDetailTokenName.text = asset.token.type.networkType.readableName
+            balanceDetailTokenIcon.setImageResource(asset.token.configuration.icon)
+            balanceDetailTokenName.text = asset.token.configuration.networkType.readableName
 
             asset.token.dollarRate?.let {
                 balanceDetailDollarGroup.visibility = View.VISIBLE
@@ -129,7 +129,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
             asset.dollarAmount?.let { balanceDetailDollarAmount.text = it.formatAsCurrency() }
 
-            balanceDetailTotal.text = asset.total.formatTokenAmount(asset.token.type)
+            balanceDetailTotal.text = asset.total.formatTokenAmount(asset.token.configuration)
 
             balanceDetailFrozenAmount.text = asset.frozen.format()
             balanceDetailAvailableAmount.text = asset.available.format()

@@ -1,40 +1,49 @@
 package jp.co.soramitsu.feature_staking_api.domain.model
 
-import jp.co.soramitsu.common.utils.networkType
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
-sealed class StakingState(val accountAddress: String) {
+sealed class StakingState(
+    val chain: Chain,
+    val accountId: AccountId
+) {
 
-    class NonStash(accountAddress: String) : StakingState(accountAddress)
+    val accountAddress: String = chain.addressOf(accountId)
+
+    class NonStash(chain: Chain, accountId: AccountId) : StakingState(chain, accountId)
 
     sealed class Stash(
-        accountAddress: String,
+        chain: Chain,
+        accountId: AccountId,
         val controllerId: AccountId,
         val stashId: AccountId,
-    ) : StakingState(accountAddress) {
+    ) : StakingState(chain, accountId) {
 
-        val stashAddress = stashId.toAddress(accountAddress.networkType())
-        val controllerAddress = controllerId.toAddress(accountAddress.networkType())
+        val stashAddress = chain.addressOf(stashId)
+        val controllerAddress = chain.addressOf(controllerId)
 
         class None(
-            accountAddress: String,
+            chain: Chain,
+            accountId: AccountId,
             controllerId: AccountId,
             stashId: AccountId,
-        ) : Stash(accountAddress, controllerId, stashId)
+        ) : Stash(chain, accountId, controllerId, stashId)
 
         class Validator(
-            accountAddress: String,
+            chain: Chain,
+            accountId: AccountId,
             controllerId: AccountId,
             stashId: AccountId,
             val prefs: ValidatorPrefs,
-        ) : Stash(accountAddress, controllerId, stashId)
+        ) : Stash(chain, accountId, controllerId, stashId)
 
         class Nominator(
-            accountAddress: String,
+            chain: Chain,
+            accountId: AccountId,
             controllerId: AccountId,
             stashId: AccountId,
             val nominations: Nominations,
-        ) : Stash(accountAddress, controllerId, stashId)
+        ) : Stash(chain, accountId, controllerId, stashId)
     }
 }

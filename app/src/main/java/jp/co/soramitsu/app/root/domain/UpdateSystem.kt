@@ -32,7 +32,7 @@ class UpdateSystem(
             scope.invalidationFlow().flatMapLatest {
                 val runtimeMetadata = runtimeProperty.get().metadata
 
-                val subscriptionBuilder = StorageSubscriptionBuilder.create()
+                val subscriptionBuilder = StorageSubscriptionBuilder.create(socket)
 
                 val updatersFlow = scopeUpdaters
                     .filter { it.requiredModules.all(runtimeMetadata::hasModule) }

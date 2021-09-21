@@ -80,16 +80,16 @@ class ValidatorDetailsViewModel(
         require(validatorStake is ValidatorStakeParcelModel.Active)
 
         val ownStake = asset.token.amountFromPlanks(validatorStake.ownStake)
-        val ownStakeFormatted = ownStake.formatTokenAmount(asset.token.type)
+        val ownStakeFormatted = ownStake.formatTokenAmount(asset.token.configuration)
         val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency()
 
         val nominatorsStakeValue = validatorStake.nominators.sumByBigInteger(NominatorParcelModel::value)
         val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
-        val nominatorsStakeFormatted = nominatorsStake.formatTokenAmount(asset.token.type)
+        val nominatorsStakeFormatted = nominatorsStake.formatTokenAmount(asset.token.configuration)
         val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatAsCurrency()
 
         val totalStake = asset.token.amountFromPlanks(validatorStake.totalStake)
-        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.type)
+        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
         val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
 
         ValidatorStakeBottomSheet.Payload(

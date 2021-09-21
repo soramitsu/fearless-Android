@@ -3,15 +3,25 @@ package jp.co.soramitsu.feature_account_impl.data.mappers
 import android.graphics.drawable.PictureDrawable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.Network
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.Node.NetworkType
 import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
+import jp.co.soramitsu.core_db.model.chain.JoinedMetaAccountInfo
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.addressIn
+import jp.co.soramitsu.feature_account_api.domain.model.hexAccountIdIn
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 fun mapNetworkTypeToNetworkModel(networkType: NetworkType): NetworkModel {
     val type = when (networkType) {
@@ -46,7 +56,14 @@ fun mapCryptoTypeToCryptoTypeModel(
 
 fun mapAccountModelToAccount(accountModel: AccountModel, position: Int = accountModel.position): Account {
     return with(accountModel) {
-        Account(address, name, publicKey, cryptoTypeModel.cryptoType, position, network)
+        Account(
+            address,
+            name,
+            accountIdHex,
+            cryptoTypeModel.cryptoType,
+            position,
+            network,
+        )
     }
 }
 
@@ -60,7 +77,7 @@ fun mapAccountToAccountModel(
             address = address,
             name = name,
             image = accountIcon,
-            publicKey = publicKey,
+            accountIdHex = accountIdHex,
             position = position,
             cryptoTypeModel = mapCryptoTypeToCryptoTypeModel(resourceManager, cryptoType),
             network = network
@@ -94,4 +111,70 @@ fun mapNodeLocalToNode(nodeLocal: NodeLocal): Node {
             isDefault = isDefault
         )
     }
+}
+
+fun mapMetaAccountLocalToMetaAccount(
+    chainsById: Map<ChainId, Chain>,
+    joinedMetaAccountInfo: JoinedMetaAccountInfo
+): MetaAccount {
+
+    val chainAccounts = joinedMetaAccountInfo.chainAccounts.associateBy(
+        keySelector = ChainAccountLocal::chainId,
+        valueTransform = {
+            MetaAccount.ChainAccount(
+                metaId = joinedMetaAccountInfo.metaAccount.id,
+                chain = chainsById.getValue(it.chainId),
+                publicKey = it.publicKey,
+                accountId = it.accountId,
+                cryptoType = it.cryptoType
+            )
+        }
+    )
+
+    return with(joinedMetaAccountInfo.metaAccount) {
+        MetaAccount(
+            id = id,
+            chainAccounts = chainAccounts,
+            substratePublicKey = substratePublicKey,
+            substrateCryptoType = substrateCryptoType,
+            substrateAccountId = substrateAccountId,
+            ethereumAddress = ethereumAddress,
+            ethereumPublicKey = ethereumPublicKey,
+            isSelected = isSelected,
+            name = name
+        )
+    }
+}
+
+private fun stubNetwork(chainId: ChainId): Network {
+    val networkType = Node.NetworkType.findByGenesis(chainId) ?: Node.NetworkType.POLKADOT
+
+    return Network(networkType)
+}
+
+fun mapMetaAccountToAccount(chain: Chain, metaAccount: MetaAccount): Account {
+    return Account(
+        address = metaAccount.addressIn(chain)!!, // TODO in case of ethereum chain may be null,
+        name = metaAccount.name,
+        accountIdHex = metaAccount.hexAccountIdIn(chain)!!, // TODO in case of ethereum chain may be null,
+        cryptoType = metaAccount.substrateCryptoType,
+        position = 0,
+        network = stubNetwork(chain.id),
+    )
+}
+
+fun mapChainAccountToAccount(
+    parent: MetaAccount,
+    chainAccount: MetaAccount.ChainAccount,
+): Account {
+    val chain = chainAccount.chain
+
+    return Account(
+        address = chain.addressOf(chainAccount.accountId),
+        name = parent.name,
+        accountIdHex = chainAccount.accountId.toHexString(),
+        cryptoType = chainAccount.cryptoType,
+        position = 0,
+        network = stubNetwork(chain.id),
+    )
 }

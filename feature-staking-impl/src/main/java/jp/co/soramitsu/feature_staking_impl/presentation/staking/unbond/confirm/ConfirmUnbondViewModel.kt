@@ -114,7 +114,6 @@ class ConfirmUnbondViewModel(
             stash = accountStakingFlow.first(),
             fee = payload.fee,
             amount = payload.amount,
-            tokenType = asset.token.type
         )
 
         validationExecutor.requireValid(
@@ -129,7 +128,7 @@ class ConfirmUnbondViewModel(
     }
 
     private fun sendTransaction(validPayload: UnbondValidationPayload) = launch {
-        val amountInPlanks = validPayload.tokenType.planksFromAmount(payload.amount)
+        val amountInPlanks = validPayload.asset.token.configuration.planksFromAmount(payload.amount)
 
         val result = unbondInteractor.unbond(validPayload.stash, validPayload.asset.bondedInPlanks, amountInPlanks)
 

@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.core.storage.StorageCache
@@ -15,6 +14,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.StorageEntry
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
@@ -29,6 +29,11 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindTotalValidatorEraReward
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.SubQueryValidatorSetFetcher
+import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.getService
 import java.math.BigInteger
 
 typealias HistoricalMapping<T> = Map<BigInteger, T> // EraIndex -> T
@@ -55,14 +60,15 @@ private class RewardCalculationContext(
 class PayoutRepository(
     private val stakingRepository: StakingRepository,
     private val bulkRetriever: BulkRetriever,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val validatorSetFetcher: SubQueryValidatorSetFetcher,
     private val storageCache: StorageCache,
+    private val chainRegistry: ChainRegistry,
 ) {
 
     suspend fun calculateUnpaidPayouts(stakingState: StakingState.Stash): List<Payout> {
         return when (stakingState) {
             is StakingState.Stash.Nominator -> calculateUnpaidPayouts(
+                chain = stakingState.chain,
                 retrieveValidatorAddresses = {
                     validatorSetFetcher.fetchAllValidators(stakingState.stashAddress)
                 },
@@ -71,6 +77,7 @@ class PayoutRepository(
                 }
             )
             is StakingState.Stash.Validator -> calculateUnpaidPayouts(
+                chain = stakingState.chain,
                 retrieveValidatorAddresses = { listOf(stakingState.stashAddress) },
                 calculatePayoutReward = ::calculateValidatorReward
             )
@@ -79,19 +86,23 @@ class PayoutRepository(
     }
 
     private suspend fun calculateUnpaidPayouts(
+        chain: Chain,
         retrieveValidatorAddresses: suspend () -> List<String>,
         calculatePayoutReward: (RewardCalculationContext) -> BigInteger?
     ): List<Payout> {
-        val runtime = runtimeProperty.get()
+        val chainId = chain.id
+
+        val (runtimeProvider, connection) = chainRegistry.getService(chainId)
+        val runtime = runtimeProvider.get()
 
         val validatorAddresses = retrieveValidatorAddresses()
 
-        val historicalRange = stakingRepository.historicalEras()
-        val validatorStats = getValidatorHistoricalStats(runtime, historicalRange, validatorAddresses)
+        val historicalRange = stakingRepository.historicalEras(chainId)
+        val validatorStats = getValidatorHistoricalStats(runtime, connection.socketService, historicalRange, validatorAddresses)
         val historicalRangeSet = historicalRange.toSet()
 
-        val historicalTotalEraRewards = retrieveTotalEraReward(runtime, historicalRange)
-        val historicalRewardDistribution = retrieveEraPointsDistribution(runtime, historicalRange)
+        val historicalTotalEraRewards = retrieveTotalEraReward(chainId, runtime, historicalRange)
+        val historicalRewardDistribution = retrieveEraPointsDistribution(chainId, runtime, historicalRange)
 
         return validatorStats.map { stats ->
             val claimedRewardsHoles = historicalRangeSet - stats.ledger.claimedRewards.toSet()
@@ -100,7 +111,7 @@ class PayoutRepository(
             claimedRewardsHoles.mapNotNull { holeEra ->
                 val rewardCalculationContext = RewardCalculationContext(
                     validatorEraStats = stats.infoHistory[holeEra] ?: return@mapNotNull null,
-                    validatorAccountId = validatorAddress.toAccountId(),
+                    validatorAccountId = chain.accountIdOf(validatorAddress),
                     totalEraReward = historicalTotalEraRewards[holeEra]!!,
                     eraValidatorPointsDistribution = historicalRewardDistribution[holeEra]!!
                 )
@@ -168,10 +179,10 @@ class PayoutRepository(
 
     private suspend fun getValidatorHistoricalStats(
         runtime: RuntimeSnapshot,
+        socketService: SocketService,
         historicalRange: List<BigInteger>,
         validatorAddresses: List<String>,
     ): List<ValidatorHistoricalStats> {
-
         val stakingModule = runtime.metadata.staking()
 
         val exposureClippedStorage = stakingModule.storage("ErasStakersClipped")
@@ -197,14 +208,14 @@ class PayoutRepository(
         val prefsKeys = prefsKeyMapping.values.map(Map<BigInteger, String>::values).flatten()
         val ledgerKeys = controllerMapping.values.toList()
 
-        val allResults = bulkRetriever.queryKeys(exposureClippedKeys + prefsKeys + ledgerKeys)
+        val allResults = bulkRetriever.queryKeys(socketService,exposureClippedKeys + prefsKeys + ledgerKeys)
 
         val ledgerStorage = stakingModule.storage("Ledger")
         val ledgerKeysMapping = controllerMapping.mapValuesNotNull { (_, key) ->
             allResults[key]?.fromHex()?.let { ledgerStorage.storageKey(runtime, it) }
         }
 
-        val ledgerResults = bulkRetriever.queryKeys(ledgerKeysMapping.values.toList())
+        val ledgerResults = bulkRetriever.queryKeys(socketService, ledgerKeysMapping.values.toList())
 
         return validatorAddresses.mapNotNull { validatorAddress ->
             val ledger = ledgerResults[ledgerKeysMapping[validatorAddress]]?.let { bindStakingLedger(it, runtime) } ?: return@mapNotNull null
@@ -228,24 +239,27 @@ class PayoutRepository(
     }
 
     private suspend fun retrieveEraPointsDistribution(
+        chainId: ChainId,
         runtime: RuntimeSnapshot,
         historicalRange: List<BigInteger>,
     ): HistoricalMapping<EraRewardPoints> {
         val storage = runtime.metadata.staking().storage("ErasRewardPoints")
 
-        return retrieveHistoricalInfo(runtime, historicalRange, storage, ::bindEraRewardPoints)
+        return retrieveHistoricalInfo(chainId, runtime, historicalRange, storage, ::bindEraRewardPoints)
     }
 
     private suspend fun retrieveTotalEraReward(
+        chainId: ChainId,
         runtime: RuntimeSnapshot,
         historicalRange: List<BigInteger>,
     ): HistoricalMapping<BigInteger> {
         val storage = runtime.metadata.staking().storage("ErasValidatorReward")
 
-        return retrieveHistoricalInfo(runtime, historicalRange, storage, ::bindTotalValidatorEraReward)
+        return retrieveHistoricalInfo(chainId, runtime, historicalRange, storage, ::bindTotalValidatorEraReward)
     }
 
     private suspend fun <T> retrieveHistoricalInfo(
+        chainId: ChainId,
         runtime: RuntimeSnapshot,
         historicalRange: List<BigInteger>,
         storage: StorageEntry,
@@ -254,7 +268,7 @@ class PayoutRepository(
         val historicalKeysMapping = historicalRange.associateBy { storage.storageKey(runtime, it) }
         val storageReturnType = storage.returnType()
 
-        return storageCache.getEntries(historicalKeysMapping.keys.toList())
+        return storageCache.getEntries(historicalKeysMapping.keys.toList(), chainId)
             .associate {
                 historicalKeysMapping[it.storageKey]!! to binder(it.content, runtime, storageReturnType)
             }

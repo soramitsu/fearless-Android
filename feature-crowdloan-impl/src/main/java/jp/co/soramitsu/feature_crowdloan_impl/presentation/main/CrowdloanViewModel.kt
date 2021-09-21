@@ -43,7 +43,7 @@ class CrowdloanViewModel(
         .share()
 
     val mainDescription = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_main_description, it.token.type.displayName)
+        resourceManager.getString(R.string.crowdloan_main_description, it.token.configuration.displayName)
     }
 
     private val groupedCrowdloansFlow = interactor.crowdloansFlow()
@@ -83,9 +83,9 @@ class CrowdloanViewModel(
         val token = asset.token
 
         val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
-        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.type)
+        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.configuration)
 
-        val depositorAddress = crowdloan.fundInfo.depositor.toAddress(token.type.networkType)
+        val depositorAddress = crowdloan.fundInfo.depositor.toAddress(token.configuration.networkType)
 
         val icon = if (crowdloan.parachainMetadata != null) {
             CrowdloanModel.Icon.FromLink(crowdloan.parachainMetadata.iconLink)
@@ -104,7 +104,7 @@ class CrowdloanViewModel(
         }
 
         val myContributionDisplay = crowdloan.myContribution?.let {
-            val myContributionFormatted = token.amountFromPlanks(it.amount).formatTokenAmount(token.type)
+            val myContributionFormatted = token.amountFromPlanks(it.amount).formatTokenAmount(token.configuration)
 
             resourceManager.getString(R.string.crowdloan_contribution_format, myContributionFormatted)
         }

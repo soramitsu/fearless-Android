@@ -4,8 +4,11 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
 interface AccountDataSource : SecretStoreV1 {
@@ -30,11 +33,19 @@ interface AccountDataSource : SecretStoreV1 {
 
     suspend fun getSelectedAccount(): Account
 
+    // TODO for compatibility only
+    val selectedAccountMapping: Flow<Map<ChainId, Account>>
+
+    suspend fun getSelectedMetaAccount(): MetaAccount
+    fun selectedMetaAccountFlow(): Flow<MetaAccount>
+    suspend fun findMetaAccount(accountId: ByteArray): MetaAccount?
+
     suspend fun getPreferredCryptoType(): CryptoType
 
     fun selectedNodeFlow(): Flow<Node>
 
     suspend fun getSelectedLanguage(): Language
-
     suspend fun changeSelectedLanguage(language: Language)
+
+    suspend fun accountExists(accountId: AccountId): Boolean
 }

@@ -27,7 +27,7 @@ fun mapPeriodReturnsToRewardEstimation(
     val gainWithSuffix = rewardSuffix.suffixResourceId?.let { resourceManager.getString(it, gainFormatted) } ?: gainFormatted
 
     return RewardEstimation(
-        amount = periodReturns.gainAmount.formatTokenAmount(token.type),
+        amount = periodReturns.gainAmount.formatTokenAmount(token.configuration),
         fiatAmount = token.fiatAmount(periodReturns.gainAmount)?.formatAsCurrency(),
         gain = gainWithSuffix
     )

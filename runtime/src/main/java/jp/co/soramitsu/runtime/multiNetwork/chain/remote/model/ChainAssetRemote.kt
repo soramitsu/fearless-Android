@@ -4,5 +4,6 @@ class ChainAssetRemote(
     val assetId: Int,
     val symbol: String,
     val precision: Int,
+    val priceId: String?,
     val name: String
 )

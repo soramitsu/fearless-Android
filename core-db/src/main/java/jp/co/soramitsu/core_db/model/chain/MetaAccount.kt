@@ -77,10 +77,25 @@ class ChainAccountLocal(
     val cryptoType: CryptoType,
 )
 
-class JoinedMetaAccountInfo(
+interface JoinedMetaAccountInfo {
+
+    val metaAccount: MetaAccountLocal
+
+    val chainAccounts: List<ChainAccountLocal>
+}
+
+class RelationJoinedMetaAccountInfo(
     @Embedded
-    val metaAccount: MetaAccountLocal,
+    override val metaAccount: MetaAccountLocal,
 
     @Relation(parentColumn = "id", entityColumn = "metaId", entity = ChainAccountLocal::class)
-    val chainAccounts: List<ChainAccountLocal>,
-)
+    override val chainAccounts: List<ChainAccountLocal>,
+) : JoinedMetaAccountInfo
+
+class EmbeddedJoinedMetaAccountInfo(
+    @Embedded
+    override val metaAccount: MetaAccountLocal,
+
+    @Embedded
+    override val chainAccounts: List<ChainAccountLocal>,
+): JoinedMetaAccountInfo

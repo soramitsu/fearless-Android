@@ -5,14 +5,11 @@ import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
-import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -51,14 +48,14 @@ class SetupStakingInteractor(
     }
 
     suspend fun setupStaking(
-        tokenType: Token.Type,
+        chainAsset: Token.Type,
         controllerAddress: String,
         validatorAccountIds: List<String>,
         bondPayload: BondPayload?
     ) = withContext(Dispatchers.Default) {
         runCatching {
             extrinsicService.submitExtrinsic(controllerAddress) {
-                formExtrinsic(tokenType, controllerAddress, validatorAccountIds, bondPayload)
+                formExtrinsic(chainAsset, controllerAddress, validatorAccountIds, bondPayload)
             }
         }
     }

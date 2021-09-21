@@ -91,10 +91,10 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.assetLiveData.observe {
-            chooseAmountBalance.text = it.available.formatTokenAmount(it.token.type)
+            chooseAmountBalance.text = it.available.formatTokenAmount(it.token.configuration)
 
-            chooseAmountToken.setTextIcon(it.token.type.icon)
-            chooseAmountToken.setMessage(it.token.type.displayName)
+            chooseAmountToken.setTextIcon(it.token.configuration.icon)
+            chooseAmountToken.setMessage(it.token.configuration.displayName)
         }
 
         viewModel.feeErrorLiveData.observeEvent {

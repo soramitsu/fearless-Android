@@ -25,6 +25,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.networkType
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
@@ -97,7 +98,7 @@ class ChooseAmountViewModel(
     }
 
     private val minimumPossibleAmountLiveData = assetLiveData.map {
-        it.token.type.amountFromPlanks(BigInteger.ONE)
+        it.token.configuration.amountFromPlanks(BigInteger.ONE)
     }
 
     val continueButtonStateLiveData = combine(
@@ -138,7 +139,7 @@ class ChooseAmountViewModel(
 
     fun recipientAddressClicked() {
         val recipientAddress = recipientModelLiveData.value?.address ?: return
-        val networkType = assetLiveData.value?.token?.type?.networkType ?: return
+        val networkType = assetLiveData.value?.token?.configuration?.networkType ?: return
 
         externalAccountActions.showExternalActions(ExternalAccountActions.Payload(recipientAddress, networkType))
     }
@@ -148,7 +149,8 @@ class ChooseAmountViewModel(
         val assetModel = assetLiveData.value ?: return
 
         launch {
-            val existentialDeposit = assetModel.token.type.amountFromPlanks(walletConstants.existentialDeposit())
+            val amountInPlanks = walletConstants.existentialDeposit(assetModel.token.configuration.chainId)
+            val existentialDeposit = assetModel.token.configuration.amountFromPlanks(amountInPlanks)
 
             _showBalanceDetailsEvent.value = Event(BalanceDetailsBottomSheet.Payload(assetModel, transferDraft, existentialDeposit))
         }
@@ -176,7 +178,7 @@ class ChooseAmountViewModel(
         .onEach { _feeLoadingLiveData.postValue(true) }
         .mapLatest<BigDecimal, Fee?> { amount ->
             val asset = interactor.getCurrentAsset()
-            val transfer = Transfer(recipientAddress, amount, asset.token.type)
+            val transfer = Transfer(recipientAddress, amount, asset.token.configuration)
 
             interactor.getTransferFee(transfer)
         }
@@ -200,7 +202,7 @@ class ChooseAmountViewModel(
 
         viewModelScope.launch {
             val asset = interactor.getCurrentAsset()
-            val transfer = Transfer(recipientAddress, fee.transferAmount, asset.token.type)
+            val transfer = Transfer(recipientAddress, fee.transferAmount, asset.token.configuration)
 
             val result = interactor.checkTransferValidityStatus(transfer)
 
@@ -232,7 +234,7 @@ class ChooseAmountViewModel(
         val fee = feeLiveData.value ?: return null
         val asset = assetLiveData.value ?: return null
 
-        return TransferDraft(fee.transferAmount, fee.feeAmount, asset.token.type, recipientAddress)
+        return TransferDraft(fee.transferAmount, fee.feeAmount, asset.token.configuration, recipientAddress)
     }
 
     private fun retryLoadFee() {

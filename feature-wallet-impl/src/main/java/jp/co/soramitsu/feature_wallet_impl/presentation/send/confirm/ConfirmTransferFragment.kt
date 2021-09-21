@@ -11,7 +11,6 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
@@ -80,7 +79,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         observeTransferChecks(viewModel, viewModel::warningConfirmed, viewModel::errorAcknowledged)
 
         viewModel.assetLiveData.observe {
-            confirmTransferBalance.text = it.available.formatTokenAmount(it.token.type)
+            confirmTransferBalance.text = it.available.formatTokenAmount(it.token.configuration)
         }
 
         with(viewModel.transferDraft) {

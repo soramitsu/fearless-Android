@@ -16,6 +16,7 @@ import jp.co.soramitsu.core.model.Network
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.model.WithJson
+import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
@@ -30,6 +31,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
@@ -37,13 +39,15 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -113,12 +117,32 @@ class AccountRepositoryImpl(
         }
     }
 
+    // TODO remove
     override fun selectedAccountFlow(): Flow<Account> {
-        return accountDataSource.selectedAccountFlow()
+        return accountDataSource.selectedAccountMapping.map {
+            it.getValue(Node.NetworkType.POLKADOT.chainId)
+        }
     }
 
+    // TODO remove
     override suspend fun getSelectedAccount(): Account {
-        return accountDataSource.getSelectedAccount()
+        return getSelectedAccount(Node.NetworkType.POLKADOT.chainId)
+    }
+
+    override suspend fun getSelectedAccount(chainId: String): Account {
+        return accountDataSource.selectedAccountMapping.first().getValue(chainId)
+    }
+
+    override suspend fun getSelectedMetaAccount(): MetaAccount {
+        return accountDataSource.getSelectedMetaAccount()
+    }
+
+    override fun selectedMetaAccountFlow(): Flow<MetaAccount> {
+        return accountDataSource.selectedMetaAccountFlow()
+    }
+
+    override suspend fun findMetaAccount(accountId: ByteArray): MetaAccount? {
+        return accountDataSource.findMetaAccount(accountId)
     }
 
     override suspend fun getPreferredCryptoType(): CryptoType {
@@ -335,12 +359,6 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getCurrentSecuritySource(): SecuritySource {
-        val account = getSelectedAccount()
-
-        return accountDataSource.getSecuritySource(account.address)!!
-    }
-
     override suspend fun getSecuritySource(accountAddress: String): SecuritySource {
         return accountDataSource.getSecuritySource(accountAddress)!!
     }
@@ -367,8 +385,8 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun isAccountExists(accountAddress: String): Boolean {
-        return accountDao.accountExists(accountAddress)
+    override suspend fun isAccountExists(accountId: AccountId): Boolean {
+        return accountDataSource.accountExists(accountId)
     }
 
     override fun nodesFlow(): Flow<List<Node>> {
@@ -378,13 +396,9 @@ class AccountRepositoryImpl(
             .flowOn(Dispatchers.Default)
     }
 
-    override fun selectedNodeFlow(): Flow<Node> {
-        return accountDataSource.selectedNodeFlow()
-    }
-
+    // TODO compatibility stub
     override fun selectedNetworkTypeFlow(): Flow<Node.NetworkType> {
-        return selectedAccountFlow().map { it.network.type }
-            .distinctUntilChanged()
+        return flowOf(Node.NetworkType.POLKADOT)
     }
 
     override fun getLanguages(): List<Language> {
@@ -429,7 +443,7 @@ class AccountRepositoryImpl(
     }
 
     override fun createQrAccountContent(account: Account): String {
-        val payload = QrSharing.Payload(account.address, account.publicKey.fromHex(), account.name)
+        val payload = QrSharing.Payload(account.address, account.accountIdHex.fromHex(), account.name)
 
         return QrSharing.encode(payload)
     }
@@ -488,7 +502,7 @@ class AccountRepositoryImpl(
             Account(
                 address = address,
                 name = username,
-                publicKey = publicKey,
+                accountIdHex = publicKey,
                 cryptoType = CryptoType.values()[accountLocal.cryptoType],
                 network = network,
                 position = position
@@ -505,7 +519,7 @@ class AccountRepositoryImpl(
                 username = nameLocal,
                 cryptoType = cryptoType.ordinal,
                 networkType = network.type,
-                publicKey = publicKey,
+                publicKey = accountIdHex,
                 position = position
             )
         }

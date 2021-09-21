@@ -1,15 +1,16 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigDecimal
 import java.math.BigInteger
 
 class Transfer(
     val recipient: String,
     val amount: BigDecimal,
-    val tokenType: Token.Type
+    val chainAsset: Chain.Asset
 ) {
 
-    val amountInPlanks: BigInteger = tokenType.planksFromAmount(amount)
+    val amountInPlanks: BigInteger = chainAsset.planksFromAmount(amount)
 
     fun validityStatus(
         senderTransferable: BigDecimal,

@@ -7,7 +7,7 @@ data class Operation(
     val address: String,
     val type: Type,
     val time: Long,
-    val tokenType: Token.Type,
+    val chainAsset: Token.Type,
 ) {
 
     sealed class Type {

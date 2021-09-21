@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.updaters
 
-import jp.co.soramitsu.common.data.network.updaters.SingleStorageKeyUpdater
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.system
@@ -9,6 +8,7 @@ import jp.co.soramitsu.core.updater.GlobalScope
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.runtime.network.updaters.SingleStorageKeyUpdater
 
 class BlockNumberUpdater(
     runtimeProperty: SuspendableProperty<RuntimeSnapshot>,

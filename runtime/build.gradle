@@ -36,7 +36,6 @@ dependencies {
 
     implementation project(":common")
     implementation project(":core-db")
-    implementation project(":feature-account-api")
 
     implementation project(":core-api")
 

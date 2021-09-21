@@ -1,10 +1,13 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
+typealias ChainId = String
+
 data class Chain(
-    val id: String,
+    val id: ChainId,
     val name: String,
     val assets: List<Asset>,
     val nodes: List<Node>,
+    val externalApi: ExternalApi?,
     val icon: String,
     val addressPrefix: Int,
     val types: Types?,
@@ -13,6 +16,8 @@ data class Chain(
     val parentId: String?,
 ) {
 
+    val assetsBySymbol = assets.associateBy(Asset::symbol)
+
     data class Types(
         val url: String,
         val overridesCommon: Boolean,
@@ -20,6 +25,8 @@ data class Chain(
 
     data class Asset(
         val id: Int,
+        val priceId: String?,
+        val chainId: ChainId,
         val symbol: String,
         val precision: Int,
         val name: String?,
@@ -29,15 +36,19 @@ data class Chain(
         val url: String,
         val name: String,
     )
+
+    data class ExternalApi(
+        val staking: Section?,
+        val history: Section?
+    ) {
+        class Section(val type: Type, val url: String) {
+            enum class Type {
+                SUBQUERY, UNKNOWN
+            }
+        }
+    }
 }
 
 enum class TypesUsage {
     BASE, OWN, BOTH,
 }
-
-val Chain.typesUsage: TypesUsage
-    get() = when {
-        types == null -> TypesUsage.BASE
-        types.overridesCommon -> TypesUsage.OWN
-        else -> TypesUsage.BOTH
-    }

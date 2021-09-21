@@ -124,7 +124,7 @@ class SelectBondMoreViewModel(
                 stashAddress = stashAddress(),
                 fee = fee,
                 amount = parsedAmountFlow.first(),
-                tokenType = assetFlow.first().token.type
+                tokenType = assetFlow.first().token.configuration
             )
 
             validationExecutor.requireValid(

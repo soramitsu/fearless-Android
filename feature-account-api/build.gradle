@@ -26,6 +26,7 @@ android {
 
 dependencies {
     implementation coroutinesDep
+    implementation project(':runtime')
     implementation project(":common")
 
     implementation liveDataKtxDep

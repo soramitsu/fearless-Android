@@ -1,19 +1,15 @@
 package jp.co.soramitsu.feature_crowdloan_impl.data.repository
 
 import jp.co.soramitsu.common.utils.Modules
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.crowdloan
 import jp.co.soramitsu.common.utils.hasModule
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.slots
 import jp.co.soramitsu.common.utils.storageKeys
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
-import jp.co.soramitsu.common.utils.useValue
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.bytes
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.u32
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.toByteArray
@@ -33,6 +29,9 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.mapParachainMetadataRemoteToParachainMetadata
 import jp.co.soramitsu.runtime.ext.runtimeCacheName
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -44,27 +43,27 @@ private const val CONTRIBUTIONS_CHILD_SUFFIX = "crowdloan"
 class CrowdloanRepositoryImpl(
     private val remoteStorage: StorageDataSource,
     private val accountRepository: AccountRepository,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    private val chainRegistry: ChainRegistry,
     private val parachainMetadataApi: ParachainMetadataApi
 ) : CrowdloanRepository {
 
-    override suspend fun isCrowdloansAvailable(): Boolean {
-        return runtimeProperty.useValue {
-            it.metadata.hasModule(Modules.CROWDLOAN)
-        }
+    override suspend fun isCrowdloansAvailable(chainId: ChainId): Boolean {
+        return runtimeFor(chainId).metadata.hasModule(Modules.CROWDLOAN)
     }
 
-    override suspend fun allFundInfos(): Map<ParaId, FundInfo> {
+    override suspend fun allFundInfos(chainId: ChainId): Map<ParaId, FundInfo> {
         return remoteStorage.queryByPrefix(
             prefixKeyBuilder = { it.metadata.crowdloan().storage("Funds").storageKey() },
-            keyExtractor = { it.u32ArgumentFromStorageKey() }
+            keyExtractor = { it.u32ArgumentFromStorageKey() },
+            chainId = chainId
         ) { scale, runtime, paraId -> bindFundInfo(scale!!, runtime, paraId) }
     }
 
-    override suspend fun getWinnerInfo(funds: Map<ParaId, FundInfo>): Map<ParaId, Boolean> {
+    override suspend fun getWinnerInfo(chainId: ChainId, funds: Map<ParaId, FundInfo>): Map<ParaId, Boolean> {
         return remoteStorage.queryKeys(
             keysBuilder = { it.metadata.slots().storage("Leases").storageKeys(it, funds.keys) },
-            binding = { scale, runtimeSnapshot -> scale?.let { bindLeases(it, runtimeSnapshot) } }
+            binding = { scale, runtimeSnapshot -> scale?.let { bindLeases(it, runtimeSnapshot) } },
+            chainId = chainId
         ).mapValues { (paraId, leases) ->
             val fund = funds.getValue(paraId)
 
@@ -86,23 +85,28 @@ class CrowdloanRepositoryImpl(
         }
     }
 
-    override suspend fun blocksPerLeasePeriod(): BigInteger = runtimeProperty.useValue { runtime ->
-        runtime.metadata.slots().numberConstant("LeasePeriod", runtime)
+    override suspend fun blocksPerLeasePeriod(chainId: ChainId): BigInteger {
+        val runtime = runtimeFor(chainId)
+
+        return runtime.metadata.slots().numberConstant("LeasePeriod", runtime)
     }
 
-    override fun fundInfoFlow(parachainId: ParaId, networkType: Node.NetworkType): Flow<FundInfo> {
+    override fun fundInfoFlow(chainId: ChainId, parachainId: ParaId): Flow<FundInfo> {
         return remoteStorage.observe(
             keyBuilder = { it.metadata.crowdloan().storage("Funds").storageKey(it, parachainId) },
             binder = { scale, runtime -> bindFundInfo(scale!!, runtime, parachainId) },
-            networkType = networkType
+            chainId = chainId
         )
     }
 
-    override suspend fun minContribution(): BigInteger = runtimeProperty.useValue { runtime ->
-        runtime.metadata.crowdloan().numberConstant("MinContribution", runtime)
+    override suspend fun minContribution(chainId: ChainId): BigInteger {
+        val runtime = runtimeFor(chainId)
+
+        return runtime.metadata.crowdloan().numberConstant("MinContribution", runtime)
     }
 
     override suspend fun getContribution(
+        chainId: ChainId,
         accountId: AccountId,
         paraId: ParaId,
         trieIndex: BigInteger
@@ -115,7 +119,10 @@ class CrowdloanRepositoryImpl(
 
                 write(suffix)
             },
-            binder = { scale, runtime -> scale?.let { bindContribution(it, runtime) } }
+            binder = { scale, runtime -> scale?.let { bindContribution(it, runtime) } },
+            chainId = chainId
         )
     }
+
+    private suspend fun runtimeFor(chainId: String) = chainRegistry.getRuntime(chainId)
 }

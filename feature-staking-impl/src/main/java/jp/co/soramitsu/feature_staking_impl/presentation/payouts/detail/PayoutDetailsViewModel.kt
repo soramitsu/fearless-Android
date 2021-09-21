@@ -50,7 +50,7 @@ class PayoutDetailsViewModel(
     }
 
     private suspend fun mapPayoutParcelableToPayoutDetailsModel(asset: Asset): PayoutDetailsModel {
-        val tokenType = asset.token.type
+        val tokenType = asset.token.configuration
         val rewardAmount = asset.token.amountFromPlanks(payout.amountInPlanks)
 
         val addressModel = with(payout.validatorInfo) {

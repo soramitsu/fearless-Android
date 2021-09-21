@@ -12,12 +12,22 @@ class ChainLocal(
     val icon: String,
     @Embedded
     val types: TypesConfig?,
+    @Embedded
+    val externalApi: ExternalApi?,
     val prefix: Int,
     val isEthereumBased: Boolean,
     val isTestNet: Boolean,
 ) {
     class TypesConfig(
         val url: String,
-        val overridesCommon: Boolean
+        val overridesCommon: Boolean,
     )
+
+    class ExternalApi(
+        val staking: Section?,
+        val history: Section?,
+    ) {
+
+        class Section(val url: String, val type: String)
+    }
 }

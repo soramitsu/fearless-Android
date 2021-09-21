@@ -10,6 +10,14 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 private const val ETHEREUM_OPTION = "ethereumBased"
 private const val TESTNET_OPTION = "testnet"
 
+private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) {
+    "subquery" -> Chain.ExternalApi.Section.Type.SUBQUERY
+    else -> Chain.ExternalApi.Section.Type.UNKNOWN
+}
+
+private fun mapSectionTypeToSectionTypeLocal(sectionType: Chain.ExternalApi.Section.Type) : String = sectionType.name
+private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = enumValueOf(sectionType)
+
 fun mapChainRemoteToChain(
     chainRemote: ChainRemote,
 ): Chain {
@@ -22,10 +30,12 @@ fun mapChainRemoteToChain(
 
     val assets = chainRemote.assets.map {
         Chain.Asset(
+            chainId = chainRemote.chainId,
             id = it.assetId,
             symbol = it.symbol,
             precision = it.precision,
-            name = it.name
+            name = it.name,
+            priceId = it.priceId
         )
     }
 
@@ -33,6 +43,23 @@ fun mapChainRemoteToChain(
         Chain.Types(
             url = it.url,
             overridesCommon = it.overridesCommon
+        )
+    }
+
+    val externalApi = chainRemote.externalApi?.let { externalApi ->
+        Chain.ExternalApi(
+            history = externalApi.history?.let { section ->
+                Chain.ExternalApi.Section(
+                    type = mapSectionTypeRemoteToSectionType(section.type),
+                    url = section.url
+                )
+            },
+            staking = externalApi.staking?.let { section ->
+                Chain.ExternalApi.Section(
+                    type = mapSectionTypeRemoteToSectionType(section.type),
+                    url = section.url
+                )
+            }
         )
     }
 
@@ -47,6 +74,7 @@ fun mapChainRemoteToChain(
             types = types,
             nodes = nodes,
             icon = icon,
+            externalApi = externalApi,
             addressPrefix = addressPrefix,
             isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty,
             isTestNet = TESTNET_OPTION in optionsOrEmpty
@@ -67,7 +95,9 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             id = it.id,
             symbol = it.symbol,
             precision = it.precision,
-            name = it.name
+            name = it.name,
+            chainId = it.chainId,
+            priceId = it.priceId
         )
     }
 
@@ -75,6 +105,23 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
         Chain.Types(
             url = it.url,
             overridesCommon = it.overridesCommon
+        )
+    }
+
+    val externalApi = chainLocal.chain.externalApi?.let { externalApi ->
+        Chain.ExternalApi(
+            staking = externalApi.staking?.let { section ->
+                Chain.ExternalApi.Section(
+                    type = mapSectionTypeLocalToSectionType(section.type),
+                    url = section.url
+                )
+            },
+            history = externalApi.history?.let { section ->
+                Chain.ExternalApi.Section(
+                    type = mapSectionTypeLocalToSectionType(section.type),
+                    url = section.url
+                )
+            }
         )
     }
 
@@ -87,6 +134,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             types = types,
             nodes = nodes,
             icon = icon,
+            externalApi = externalApi,
             addressPrefix = prefix,
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet
@@ -109,7 +157,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             symbol = it.symbol,
             precision = it.precision,
             chainId = chain.id,
-            name = it.name
+            name = it.name,
+            priceId = it.priceId
         )
     }
 
@@ -117,6 +166,23 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
         ChainLocal.TypesConfig(
             url = it.url,
             overridesCommon = it.overridesCommon
+        )
+    }
+
+    val externalApi = chain.externalApi?.let { externalApi ->
+        ChainLocal.ExternalApi(
+            staking = externalApi.staking?.let { section ->
+                ChainLocal.ExternalApi.Section(
+                    type = mapSectionTypeToSectionTypeLocal(section.type),
+                    url = section.url
+                )
+            },
+            history = externalApi.history?.let { section ->
+                ChainLocal.ExternalApi.Section(
+                    type = mapSectionTypeToSectionTypeLocal(section.type),
+                    url = section.url
+                )
+            }
         )
     }
 
@@ -128,6 +194,7 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             types = types,
             icon = icon,
             prefix = addressPrefix,
+            externalApi = externalApi,
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet
         )

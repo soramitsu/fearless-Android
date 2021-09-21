@@ -44,7 +44,7 @@ class BalanceListViewModel(
 
     val balanceLiveData = balanceFlow().asLiveData()
 
-    private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token.type }
+    private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token.configuration }
 
     val buyEnabledLiveData = primaryTokenLiveData.map(initial = false) {
         buyMixin.isBuyEnabled(it)
@@ -81,7 +81,7 @@ class BalanceListViewModel(
     }
 
     fun assetClicked(asset: AssetModel) {
-        router.openAssetDetails(asset.token.type)
+        router.openAssetDetails(asset.token.configuration)
     }
 
     fun sendClicked() {

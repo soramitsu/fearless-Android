@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.R
@@ -77,10 +76,13 @@ class StakingViewModel(
         .inBackground()
         .share()
 
-    val networkInfoStateLiveData = interactor.selectedNetworkTypeFLow()
+    private val selectedChain = interactor.selectedChainFlow()
+        .share()
+
+    val networkInfoStateLiveData = selectedChain
         .distinctUntilChanged()
-        .withLoading { networkType ->
-            interactor.observeNetworkInfoState(networkType).combine(currentAssetFlow) { networkInfo, asset ->
+        .withLoading { chain ->
+            interactor.observeNetworkInfoState(chain.id).combine(currentAssetFlow) { networkInfo, asset ->
                 transformNetworkInfo(asset, networkInfo)
             }
         }
@@ -97,9 +99,9 @@ class StakingViewModel(
         router.openChangeAccountFromStaking()
     }
 
-    val networkInfoTitle = currentAssetFlow
-        .map { mapAssetToNetworkInfoTitle(it) }
-        .asLiveData()
+    val networkInfoTitle = selectedChain
+        .map { it.name }
+        .share()
 
     fun storyClicked(story: StakingStoryModel) {
         if (story.elements.isNotEmpty()) {
@@ -158,7 +160,7 @@ class StakingViewModel(
 
     private fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {
         val formattedFiat = token.fiatAmount(amount)?.formatAsCurrency()
-        val formattedAmount = amount.formatTokenAmount(token.type)
+        val formattedAmount = amount.formatTokenAmount(token.configuration)
 
         return buildString {
             append(formattedAmount)
@@ -223,12 +225,12 @@ class StakingViewModel(
 
     private fun transformNetworkInfo(asset: Asset, networkInfo: NetworkInfo): StakingNetworkInfoModel {
         val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
-        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.type)
+        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
 
         val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
 
         val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-        val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.type)
+        val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.configuration)
 
         val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency()
 
@@ -247,16 +249,14 @@ class StakingViewModel(
         }
     }
 
-    private fun mapAssetToNetworkInfoTitle(asset: Asset): String {
-        return resourceManager.getString(R.string.staking_main_network_title, asset.token.type.networkType.readableName)
-    }
-
     private fun currentAddressModelFlow(): Flow<AddressModel> {
-        return interactor.selectedAccountFlow()
-            .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
+        return combine(
+            selectedChain,
+            stakingState
+        ) {
+            addressIconGenerator.createAddressModel(selectedChain.a, sizeInDp, account.name)        }
+            .map {  }
     }
 
-    private suspend fun generateAddressModel(account: StakingAccount, sizeInDp: Int): AddressModel {
-        return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
-    }
+
 }

@@ -74,7 +74,7 @@ class ReceiveViewModel(
 
                 file.write(qrBitmap)
 
-                val message = generateMessage(asset.token.type, address)
+                val message = generateMessage(asset.token.configuration, address)
 
                 _shareEvent.value = Event(QrSharingPayload(file, message))
             } else {
