@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -56,6 +57,16 @@ fun Chain.addressFromPublicKey(publicKey: ByteArray): String {
     } else {
         publicKey.toAddress(addressPrefix.toByte())
     }
+}
+
+fun Chain.isValidAddress(address: String): Boolean {
+    return runCatching {
+        if (isEthereumBased) {
+            address.fromHex().size == 20
+        } else {
+            address.addressByte() == addressPrefix.toByte()
+        }
+    }.getOrDefault(false)
 }
 
 fun Chain.multiAddressOf(address: String): MultiAddress = multiAddressOf(accountIdOf(address))

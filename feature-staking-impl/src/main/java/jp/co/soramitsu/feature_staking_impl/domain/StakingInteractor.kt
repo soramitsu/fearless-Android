@@ -39,6 +39,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.state.chain
+import jp.co.soramitsu.runtime.state.chainAsset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -213,12 +215,12 @@ class StakingInteractor(
         )
     }
 
-    // TODO not only in current network
-    suspend fun getAccountsInCurrentNetwork() = withContext(Dispatchers.Default) {
-        val account = accountRepository.getSelectedAccount()
+    suspend fun getAccountProjectionsInSelectedChains() = withContext(Dispatchers.Default) {
+        val chain = stakingSharedState.chain()
 
-        accountRepository.getAccountsByNetworkType(account.network.type)
-            .map(::mapAccountToStakingAccount)
+        accountRepository.allMetaAccounts().map {
+            mapAccountToStakingAccount(chain, it)
+        }
     }
 
     fun currentAssetFlow() = assetUseCase.currentAssetFlow()
@@ -236,14 +238,25 @@ class StakingInteractor(
         }
     }
 
-    fun selectedMetaAccountFlow(): Flow<StakingAccount> {
-        return accountRepository.selectedMetaAccountFlow()
-            .map { mapAccountToStakingAccount(it) }
+    fun selectedAccountProjectionFlow(): Flow<StakingAccount> {
+        return combine(
+            stakingSharedState.selectedAsset,
+            accountRepository.selectedMetaAccountFlow()
+        ) { (chain, _), account ->
+            mapAccountToStakingAccount(chain, account)
+        }
     }
 
-    suspend fun getAccount(address: String) = mapAccountToStakingAccount(accountRepository.findMetaAccount(address))
+    suspend fun getProjectedAccount(address: String): StakingAccount {
+        val chain = stakingSharedState.chain()
+        val accountId = chain.accountIdOf(address)
 
-    suspend fun getSelectedAccount(): StakingAccount = withContext(Dispatchers.Default) {
+        val metaAccount = accountRepository.findMetaAccount(accountId)!!
+
+        return mapAccountToStakingAccount(chain, metaAccount)
+    }
+
+    suspend fun getSelectedAccountProjection(): StakingAccount = withContext(Dispatchers.Default) {
         val account = accountRepository.getSelectedAccount(stakingSharedState.chainId())
 
         mapAccountToStakingAccount(account)
@@ -304,11 +317,12 @@ class StakingInteractor(
         state: StakingState.Stash,
         statusResolver: suspend (StatusResolutionContext) -> S,
     ): Flow<StakeSummary<S>> = withContext(Dispatchers.Default) {
-        val chainId = state.chain.id
+        val chainAsset = stakingSharedState.chainAsset()
+        val chainId = chainAsset.chainId
 
         combine(
             stakingRepository.observeActiveEraIndex(chainId),
-            walletRepository.assetFlow(),
+            walletRepository.assetFlow(state.accountId, chainAsset),
             stakingRewardsRepository.totalRewardFlow(state.stashAddress)
         ) { activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded

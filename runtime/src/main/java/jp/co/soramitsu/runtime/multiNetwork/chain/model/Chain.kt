@@ -17,6 +17,7 @@ data class Chain(
 ) {
 
     val assetsBySymbol = assets.associateBy(Asset::symbol)
+    val assetsById = assets.associateBy(Asset::id)
 
     data class Types(
         val url: String,

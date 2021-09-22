@@ -10,14 +10,13 @@ import kotlinx.coroutines.withContext
 import java.math.BigInteger
 
 class RedeemInteractor(
-    private val feeEstimator: FeeEstimator,
     private val extrinsicService: ExtrinsicService,
     private val stakingRepository: StakingRepository,
 ) {
 
     suspend fun estimateFee(stakingState: StakingState.Stash): BigInteger {
         return withContext(Dispatchers.IO) {
-            feeEstimator.estimateFee(stakingState.controllerAddress) {
+            extrinsicService.estimateFee(stakingState.chain) {
                 withdrawUnbonded(getSlashingSpansNumber(stakingState))
             }
         }
@@ -25,9 +24,7 @@ class RedeemInteractor(
 
     suspend fun redeem(stakingState: StakingState.Stash, asset: Asset): Result<RedeemConsequences> {
         return withContext(Dispatchers.IO) {
-            val controllerAddress = stakingState.controllerAddress
-
-            extrinsicService.submitExtrinsic(controllerAddress) {
+            extrinsicService.submitExtrinsic(stakingState.chain, stakingState.controllerId) {
                 withdrawUnbonded(getSlashingSpansNumber(stakingState))
             }.map {
                 RedeemConsequences(
@@ -38,7 +35,7 @@ class RedeemInteractor(
     }
 
     private suspend fun getSlashingSpansNumber(stakingState: StakingState.Stash): BigInteger {
-        val slashingSpans = stakingRepository.getSlashingSpan(stakingState.stashId)
+        val slashingSpans = stakingRepository.getSlashingSpan(stakingState.chain.id, stakingState.stashId)
 
         return slashingSpans?.let {
             val totalSpans = it.prior.size + 1 //  all from prior + one for lastNonZeroSlash

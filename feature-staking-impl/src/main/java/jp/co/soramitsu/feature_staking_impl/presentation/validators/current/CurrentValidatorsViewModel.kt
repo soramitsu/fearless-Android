@@ -23,9 +23,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel.TitleConfig
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance

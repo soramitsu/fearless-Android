@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
@@ -21,10 +20,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.C
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutsStatisticsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenChange
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -122,7 +119,7 @@ class PayoutsListViewModel(
                 createdAt = createdAt,
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
                 amount = amount.formatTokenChange(token.configuration, isIncome = true),
-                amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
+                amountFiat = token.fiatAmount(amount).formatAsCurrency()
             )
         }
     }

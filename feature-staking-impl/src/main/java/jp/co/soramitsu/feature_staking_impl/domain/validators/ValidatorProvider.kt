@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 sealed class ValidatorSource {
 
@@ -30,11 +31,12 @@ class ValidatorProvider(
 ) {
 
     suspend fun getValidators(
+        chainId: ChainId,
         source: ValidatorSource,
         cachedExposures: AccountIdMap<Exposure>? = null,
     ): List<Validator> {
         val networkType = accountRepository.currentNetworkType()
-        val electedValidatorExposures = cachedExposures ?: stakingRepository.getActiveElectedValidatorsExposures()
+        val electedValidatorExposures = cachedExposures ?: stakingRepository.getActiveElectedValidatorsExposures(chainId)
 
         val requestedValidatorIds = when (source) {
             ValidatorSource.Elected -> electedValidatorExposures.keys.toList()
@@ -43,13 +45,13 @@ class ValidatorProvider(
 
         val validatorIdsToQueryPrefs = electedValidatorExposures.keys + requestedValidatorIds
 
-        val validatorPrefs = stakingRepository.getValidatorPrefs(validatorIdsToQueryPrefs.toList())
+        val validatorPrefs = stakingRepository.getValidatorPrefs(chainId, validatorIdsToQueryPrefs.toList())
 
-        val identities = identityRepository.getIdentitiesFromIds(requestedValidatorIds)
-        val slashes = stakingRepository.getSlashes(requestedValidatorIds)
+        val identities = identityRepository.getIdentitiesFromIds(chainId, requestedValidatorIds)
+        val slashes = stakingRepository.getSlashes(chainId, requestedValidatorIds)
 
         val rewardCalculator = rewardCalculatorFactory.create(electedValidatorExposures, validatorPrefs)
-        val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator()
+        val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
 
         return requestedValidatorIds.map { accountIdHex ->
             val prefs = validatorPrefs[accountIdHex]
@@ -75,15 +77,15 @@ class ValidatorProvider(
         }
     }
 
-    suspend fun getValidatorWithoutElectedInfo(address: String): Validator {
+    suspend fun getValidatorWithoutElectedInfo(chainId: ChainId, address: String): Validator {
         val accountId = address.toHexAccountId()
 
         val accountIdBridged = listOf(accountId)
 
-        val prefs = stakingRepository.getValidatorPrefs(accountIdBridged)[accountId]
-        val identity = identityRepository.getIdentitiesFromIds(accountIdBridged)[accountId]
+        val prefs = stakingRepository.getValidatorPrefs(chainId, accountIdBridged)[accountId]
+        val identity = identityRepository.getIdentitiesFromIds(chainId, accountIdBridged)[accountId]
 
-        val slashes = stakingRepository.getSlashes(accountIdBridged)
+        val slashes = stakingRepository.getSlashes(chainId, accountIdBridged)
 
         return Validator(
             slashed = slashes.getOrDefault(accountId, false),

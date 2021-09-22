@@ -5,7 +5,6 @@ import android.content.Context
 import android.net.Uri
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.R
 
 private const val RAMP_APP_NAME = "Fearless Wallet"

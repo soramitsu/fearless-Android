@@ -6,6 +6,7 @@ import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -14,6 +15,7 @@ import kotlinx.coroutines.withContext
 
 class AssetCache(
     private val tokenDao: TokenDao,
+    private val accountRepository: AccountRepository,
     private val assetDao: AssetDao
 ) : AssetReadOnlyCache by assetDao {
 
@@ -24,15 +26,17 @@ class AssetCache(
         chainAsset: Chain.Asset,
         builder: (local: AssetLocal) -> AssetLocal
     ) = withContext(Dispatchers.IO) {
-        val symbol = chainAsset.symbol
-        val chainId = chainAsset.chainId
+        accountRepository.findMetaAccount(accountId)?.let {
+            val symbol = chainAsset.symbol
+            val chainId = chainAsset.chainId
 
-        assetUpdateMutex.withLock {
-            val cachedAsset = assetDao.getAsset(accountId, chainId, symbol)?.asset ?: AssetLocal.createEmpty(accountId, symbol, chainId)
+            assetUpdateMutex.withLock {
+                val cachedAsset = assetDao.getAsset(accountId, chainId, symbol)?.asset ?: AssetLocal.createEmpty(accountId, symbol, chainId, metaId = it.id)
 
-            val newAsset = builder.invoke(cachedAsset)
+                val newAsset = builder.invoke(cachedAsset)
 
-            assetDao.insertAsset(newAsset)
+                assetDao.insertAsset(newAsset)
+            }
         }
     }
 

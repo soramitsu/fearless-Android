@@ -15,7 +15,7 @@ import java.math.BigInteger
 
 interface WalletRepository {
 
-    fun assetsFlow(accountId: AccountId): Flow<List<Asset>>
+    fun assetsFlow(metaId: Long): Flow<List<Asset>>
 
     suspend fun syncAssetsRates()
 

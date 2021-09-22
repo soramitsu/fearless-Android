@@ -3,10 +3,11 @@ package jp.co.soramitsu.feature_wallet_api.presentation.mixin
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.presentation.model.FeeModel
 import kotlinx.coroutines.CoroutineScope
 import java.math.BigDecimal
+import java.math.BigInteger
 
 sealed class FeeStatus {
     object Loading : FeeStatus()
@@ -24,7 +25,7 @@ interface FeeLoaderMixin : Retriable {
 
         fun loadFee(
             coroutineScope: CoroutineScope,
-            feeConstructor: suspend (Asset) -> BigDecimal,
+            feeConstructor: suspend (Token) -> BigInteger,
             onRetryCancelled: () -> Unit
         )
 

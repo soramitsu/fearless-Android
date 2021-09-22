@@ -105,10 +105,10 @@ class SetupStakingViewModel(
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
-                val address = interactor.getSelectedAccount().address
+            feeConstructor = {
+                val address = interactor.getSelectedAccountProjection().address
 
-                setupStakingInteractor.estimateMaxSetupStakingFee(asset.token.configuration, address)
+                setupStakingInteractor.estimateMaxSetupStakingFee(address)
             },
             onRetryCancelled = ::backClicked
         )
@@ -119,11 +119,9 @@ class SetupStakingViewModel(
             val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelFlow.first()
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationModel)
             val amount = parsedAmountFlow.first()
-            val tokenType = assetFlow.first().token.configuration
-            val currentAccountAddress = interactor.getSelectedAccount().address
+            val currentAccountAddress = interactor.getSelectedAccountProjection().address
 
             val payload = SetupStakingPayload(
-                tokenType = tokenType,
                 bondAmount = amount,
                 controllerAddress = currentAccountAddress,
                 maxFee = fee,

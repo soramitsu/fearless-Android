@@ -18,7 +18,7 @@ abstract class AccountStakingDao {
     abstract suspend fun get(chainId: String, accountId: ByteArray): AccountStakingLocal
 
     @Query(SELECT_QUERY)
-    abstract fun observeInternal(chainId: String, accountId: ByteArray): Flow<AccountStakingLocal>
+    protected abstract fun observeInternal(chainId: String, accountId: ByteArray): Flow<AccountStakingLocal>
 
     fun observeDistinct(chainId: String, accountId: ByteArray) = observeInternal(chainId, accountId)
         .filterNotNull()

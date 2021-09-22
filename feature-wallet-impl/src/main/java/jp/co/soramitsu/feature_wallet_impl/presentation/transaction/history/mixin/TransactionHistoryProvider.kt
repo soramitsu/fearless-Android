@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.Histo
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionStateMachine.Action
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionStateMachine.State
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +40,8 @@ class TransactionHistoryProvider(
     private val historyFiltersProvider: HistoryFiltersProvider,
     private val resourceManager: ResourceManager,
     private val addressDisplayUseCase: AddressDisplayUseCase,
+    private val chainId: ChainId,
+    private val assetId: Int
 ) : TransactionHistoryMixin, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     private val domainState = MutableStateFlow<State>(
@@ -49,7 +52,7 @@ class TransactionHistoryProvider(
         .inBackground()
         .shareIn(this, started = SharingStarted.Eagerly, replay = 1)
 
-    private val cachedPage = walletInteractor.operationsFirstPageFlow()
+    private val cachedPage = walletInteractor.operationsFirstPageFlow(chainId, assetId)
         .distinctUntilChangedBy { it.cursorPage }
         .onEach { performTransition(Action.CachePageArrived(it.cursorPage, it.accountChanged)) }
         .map { it.cursorPage }

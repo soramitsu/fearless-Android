@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_wallet_impl.data.mappers
 import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.TokenModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain

@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.domain
 
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.state.chainAsset
 import kotlinx.coroutines.flow.Flow

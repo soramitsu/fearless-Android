@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.domain.alerts
 
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import java.math.BigDecimal
 
 sealed class Alert {

@@ -3,13 +3,13 @@ package jp.co.soramitsu.feature_account_impl.data.mappers
 import android.graphics.drawable.PictureDrawable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.core.model.Network
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.Node.NetworkType
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedMetaAccountInfo
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.feature_account_api.data.mappers.stubNetwork
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.addressIn
@@ -144,12 +144,6 @@ fun mapMetaAccountLocalToMetaAccount(
             name = name
         )
     }
-}
-
-private fun stubNetwork(chainId: ChainId): Network {
-    val networkType = Node.NetworkType.findByGenesis(chainId) ?: Node.NetworkType.POLKADOT
-
-    return Network(networkType)
 }
 
 fun mapMetaAccountToAccount(chain: Chain, metaAccount: MetaAccount): Account {

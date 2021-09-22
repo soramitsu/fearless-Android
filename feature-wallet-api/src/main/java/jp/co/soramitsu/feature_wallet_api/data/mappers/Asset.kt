@@ -20,7 +20,7 @@ fun mapAssetToAssetModel(
     return with(asset) {
         AssetModel(
             token.configuration.icon,
-            token.configuration.displayName,
+            token.configuration.symbol,
             resourceManager.getString(patternId, amount)
         )
     }

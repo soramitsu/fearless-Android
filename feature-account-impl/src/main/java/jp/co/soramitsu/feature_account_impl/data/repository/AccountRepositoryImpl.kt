@@ -32,8 +32,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -145,6 +143,10 @@ class AccountRepositoryImpl(
         return accountDataSource.findMetaAccount(accountId)
     }
 
+    override suspend fun allMetaAccounts(): List<MetaAccount> {
+        return accountDataSource.allMetaAccounts()
+    }
+
     override suspend fun getPreferredCryptoType(): CryptoType {
         return accountDataSource.getPreferredCryptoType()
     }
@@ -192,12 +194,14 @@ class AccountRepositoryImpl(
         return accountDao.getAccount(address)?.let { mapAccountLocalToAccount(it) }
     }
 
-    override suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<Account> {
-        return withContext(Dispatchers.Default) {
-            accountDao.getAccounts(query, networkType)
-                .map { mapAccountLocalToAccount(it) }
-                .toSet()
-        }
+    override suspend fun getMyAccounts(query: String, chainId: String): Set<Account> {
+//        return withContext(Dispatchers.Default) {
+//            accountDao.getAccounts(query, networkType)
+//                .map { mapAccountLocalToAccount(it) }
+//                .toSet()
+//        }
+
+        return emptySet() // TODO wallet
     }
 
     override suspend fun importFromMnemonic(
@@ -302,21 +306,6 @@ class AccountRepositoryImpl(
             val generationResult = MnemonicCreator.randomMnemonic(Mnemonic.Length.TWELVE)
 
             generationResult.wordList
-        }
-    }
-
-    override suspend fun isInCurrentNetwork(address: String): Boolean {
-        val currentAccount = getSelectedAccount()
-
-        return try {
-            val otherAddressByte = address.addressByte()
-            val currentAddressByte = currentAccount.address.addressByte()
-
-            address.toAccountId() // decoded without exception
-
-            otherAddressByte == currentAddressByte
-        } catch (_: Exception) {
-            false
         }
     }
 

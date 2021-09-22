@@ -27,7 +27,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentIndex
@@ -73,7 +72,6 @@ class StakingRepositoryImpl(
     private val walletConstants: WalletConstants,
     private val chainRegistry: ChainRegistry,
     private val stakingStoriesDataSource: StakingStoriesDataSource,
-    private val stakingSharedState: StakingSharedState,
 ) : StakingRepository {
 
     override suspend fun sessionLength(chainId: ChainId): BigInteger {

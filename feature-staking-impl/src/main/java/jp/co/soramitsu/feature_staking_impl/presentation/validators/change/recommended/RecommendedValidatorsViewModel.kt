@@ -21,7 +21,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setRecommendedValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map

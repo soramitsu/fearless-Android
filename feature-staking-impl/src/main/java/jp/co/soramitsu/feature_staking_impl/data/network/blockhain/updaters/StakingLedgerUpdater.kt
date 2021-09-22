@@ -159,10 +159,10 @@ class StakingLedgerUpdater(
     }
 
     private suspend fun updateAssetStakingForEmptyLedger(
-        accountId: AccountId,
+        metaId: Long,
         chainAsset: Chain.Asset,
         ) {
-        return assetCache.updateAsset(accountId, chainAsset) { cached ->
+        return assetCache.updateAsset(metaId, chainAsset) { cached ->
             cached.copy(
                 redeemableInPlanks = BigInteger.ZERO,
                 unbondingInPlanks = BigInteger.ZERO,

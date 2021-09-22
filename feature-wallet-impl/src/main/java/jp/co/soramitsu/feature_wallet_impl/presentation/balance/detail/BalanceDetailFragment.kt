@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent

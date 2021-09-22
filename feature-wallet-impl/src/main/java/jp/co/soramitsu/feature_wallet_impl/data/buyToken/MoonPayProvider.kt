@@ -7,7 +7,6 @@ import jp.co.soramitsu.common.utils.toBase64
 import jp.co.soramitsu.common.utils.toHexColor
 import jp.co.soramitsu.common.utils.urlEncoded
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.R
 
 class MoonPayProvider(

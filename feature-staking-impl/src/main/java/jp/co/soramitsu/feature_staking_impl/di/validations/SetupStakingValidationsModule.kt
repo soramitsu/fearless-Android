@@ -29,7 +29,7 @@ class SetupStakingValidationsModule {
             availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
                 walletRepository,
                 originAddressExtractor = { it.controllerAddress },
-                tokenTypeExtractor = { it.tokenType }
+                tokenTypeExtractor = { it.chainAsset }
             ),
             errorProducer = { SetupStakingValidationFailure.CannotPayFee },
             extraAmountExtractor = { it.bondAmount ?: BigDecimal.ZERO }

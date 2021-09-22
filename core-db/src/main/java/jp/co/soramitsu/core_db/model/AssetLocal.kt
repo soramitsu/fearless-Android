@@ -1,5 +1,6 @@
 package jp.co.soramitsu.core_db.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import java.math.BigInteger
@@ -12,6 +13,7 @@ data class AssetLocal(
     val symbol: String,
     val chainId: String,
     val accountId: AccountId,
+    @ColumnInfo(index = true) val metaId: Long,
     val freeInPlanks: BigInteger,
     val reservedInPlanks: BigInteger,
     val miscFrozenInPlanks: BigInteger,
@@ -25,10 +27,12 @@ data class AssetLocal(
             accountId: AccountId,
             symbol: String,
             chainId: String,
+            metaId: Long
         ) = AssetLocal(
-            symbol,
-            chainId,
-            accountId,
+            symbol = symbol,
+            chainId = chainId,
+            accountId = accountId,
+            metaId = metaId,
             freeInPlanks = BigInteger.ZERO,
             reservedInPlanks = BigInteger.ZERO,
             miscFrozenInPlanks = BigInteger.ZERO,

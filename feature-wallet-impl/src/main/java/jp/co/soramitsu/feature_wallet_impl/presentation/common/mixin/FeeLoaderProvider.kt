@@ -5,20 +5,24 @@ import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.state.SingleAssetSharedState
+import jp.co.soramitsu.runtime.state.chainAsset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class FeeLoaderProvider(
-    private val interactor: WalletInteractor,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val tokenRepository: TokenRepository,
+    private val singleAssetSharedState: SingleAssetSharedState,
 ) : FeeLoaderMixin.Presentation {
 
     override val feeLiveData = MutableLiveData<FeeStatus>()
@@ -27,21 +31,23 @@ class FeeLoaderProvider(
 
     override fun loadFee(
         coroutineScope: CoroutineScope,
-        feeConstructor: suspend (Asset) -> BigDecimal,
+        feeConstructor: suspend (Token) -> BigInteger,
         onRetryCancelled: () -> Unit
     ) {
         feeLiveData.value = FeeStatus.Loading
 
         coroutineScope.launch(Dispatchers.Default) {
-            val asset = interactor.currentAssetFlow().first()
-            val token = asset.token
+            val chainAsset = singleAssetSharedState.chainAsset()
+            val token = tokenRepository.getToken(chainAsset)
 
             val feeResult = runCatching {
-                feeConstructor(asset)
+                feeConstructor(token)
             }
 
             val value = if (feeResult.isSuccess) {
-                val feeModel = mapFeeToFeeModel(feeResult.getOrThrow(), token)
+                val feeInPlanks = feeResult.getOrThrow()
+                val fee = token.amountFromPlanks(feeInPlanks)
+                val feeModel = mapFeeToFeeModel(fee, token)
 
                 FeeStatus.Loaded(feeModel)
             } else {

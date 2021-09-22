@@ -11,8 +11,6 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithAccount
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.karura.KaruraApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.karura.VerifyKaruraParticipationRequest
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import java.math.BigDecimal
 
 class KaruraContributeInteractor(

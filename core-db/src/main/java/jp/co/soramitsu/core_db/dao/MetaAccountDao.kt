@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.EmbeddedJoinedMetaAccountInfo
+import jp.co.soramitsu.core_db.model.chain.JoinedMetaAccountInfo
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.core_db.model.chain.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -12,7 +13,7 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
 private const val FIND_BY_ADDRESS_QUERY = """
-        SELECT * FROM meta_accounts AS m INNER JOIN chain_accounts as c ON m.id = c.chainId
+        SELECT * FROM meta_accounts AS m INNER JOIN chain_accounts as c ON m.id = c.metaId
             WHERE m.ethereumAddress == :ethereumAddress OR m.substrateAccountId = :accountId OR c.accountId = :accountId
         """
 
@@ -27,6 +28,9 @@ interface MetaAccountDao {
 
     @Query("SELECT * FROM meta_accounts")
     fun getMetaAccounts(): List<MetaAccountLocal>
+
+    @Query("SELECT * FROM meta_accounts")
+    fun getJoinedMetaAccountsInfo(): List<JoinedMetaAccountInfo>
 
     @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
     suspend fun getJoinedMetaAccountInfo(metaId: Long): RelationJoinedMetaAccountInfo

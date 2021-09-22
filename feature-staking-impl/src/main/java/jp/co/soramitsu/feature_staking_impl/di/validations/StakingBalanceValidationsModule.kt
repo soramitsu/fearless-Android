@@ -28,7 +28,7 @@ class StakingBalanceValidationsModule {
         accountRepository: AccountRepository
     ) = BalanceAccountRequiredValidation(
         accountRepository,
-        accountAddressExtractor = { it.stashState.controllerAddress },
+        accountIdExtractor = { it.stashState.controllerAddress },
         errorProducer = ManageStakingValidationFailure::ControllerRequired
     )
 
@@ -39,7 +39,7 @@ class StakingBalanceValidationsModule {
         accountRepository: AccountRepository
     ) = BalanceAccountRequiredValidation(
         accountRepository,
-        accountAddressExtractor = { it.stashState.stashAddress },
+        accountIdExtractor = { it.stashState.stashAddress },
         errorProducer = ManageStakingValidationFailure::StashRequired
     )
 

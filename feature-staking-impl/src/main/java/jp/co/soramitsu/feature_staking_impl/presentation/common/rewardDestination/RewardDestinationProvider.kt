@@ -53,7 +53,7 @@ class RewardDestinationProvider(
 
     override fun payoutClicked(scope: CoroutineScope) {
         scope.launch {
-            val currentAccount = interactor.getSelectedAccount()
+            val currentAccount = interactor.getSelectedAccountProjection()
 
             rewardDestinationModelFlow.value = RewardDestinationModel.Payout(generateDestinationModel(currentAccount))
         }
@@ -112,7 +112,7 @@ class RewardDestinationProvider(
     }
 
     private suspend fun accountsInCurrentNetwork(): List<AddressModel> {
-        return interactor.getAccountsInCurrentNetwork()
+        return interactor.getAccountProjectionsInSelectedChains()
             .map { generateDestinationModel(it) }
     }
 

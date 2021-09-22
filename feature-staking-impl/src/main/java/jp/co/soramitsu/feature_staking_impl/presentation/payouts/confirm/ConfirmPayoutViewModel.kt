@@ -159,12 +159,12 @@ class ConfirmPayoutViewModel(
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             viewModelScope,
-            feeConstructor = { asset ->
+            feeConstructor = { token ->
                 val address = stakingStateFlow.first().accountAddress
 
                 val feeInPlanks = payoutInteractor.estimatePayoutFee(address, payouts)
 
-                asset.token.amountFromPlanks(feeInPlanks)
+                token.amountFromPlanks(feeInPlanks)
             },
             onRetryCancelled = ::backClicked
         )

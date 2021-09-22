@@ -81,7 +81,7 @@ class ConfirmUnbondViewModel(
 
     val originAddressModelLiveData = accountStakingFlow.map {
         val address = it.controllerAddress
-        val account = interactor.getAccount(address)
+        val account = interactor.getProjectedAccount(address)
 
         val addressModel = iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
 

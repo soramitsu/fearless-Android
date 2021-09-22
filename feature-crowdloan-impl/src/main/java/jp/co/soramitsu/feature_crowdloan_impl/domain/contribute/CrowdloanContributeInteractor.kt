@@ -11,9 +11,6 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.hasWonAuction
 import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.contribute
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

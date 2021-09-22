@@ -15,10 +15,12 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.write
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.networkType
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.model.QrSharingPayload
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -32,6 +34,8 @@ class ReceiveViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val chainId: ChainId,
+    private val chainAssetId: Int,
     private val router: WalletRouter
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
@@ -84,14 +88,15 @@ class ReceiveViewModel(
     }
 
     private fun accountIconFlow(): Flow<AddressModel> {
-        return interactor.selectedAccountFlow()
+        return interactor.selectedAccountFlow(chainId)
             .map { addressIconGenerator.createAddressModel(it.address, AVATAR_SIZE_DP) }
     }
 
-    private fun generateMessage(tokenType: Token.Type, address: String): String {
+    // TODO pass chain to screen
+    private fun generateMessage(tokenType: Chain.Asset, address: String): String {
         return resourceManager.getString(R.string.wallet_receive_share_message).format(
-            tokenType.networkType.readableName,
-            tokenType.displayName
+            tokenType.networkType?.readableName,
+            tokenType.symbol
         ) + " " + address
     }
 }

@@ -62,7 +62,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.
 import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel

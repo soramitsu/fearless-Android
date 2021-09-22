@@ -25,7 +25,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.Valid
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel.Active.NominatorInfo
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import java.math.BigInteger
@@ -97,7 +96,7 @@ private fun stakeToScoring(stakeInPlanks: BigInteger?, token: Token): ValidatorM
 
     return ValidatorModel.Scoring.TwoFields(
         primary = stake.formatTokenAmount(token.configuration),
-        secondary = token.fiatAmount(stake)?.formatAsCurrency()
+        secondary = token.fiatAmount(stake).formatAsCurrency()
     )
 }
 

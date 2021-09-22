@@ -27,7 +27,7 @@ class RewardDestinationValidationsModule {
         accountRepository: AccountRepository,
     ) = RewardDestinationControllerRequiredValidation(
         accountRepository = accountRepository,
-        accountAddressExtractor = { it.stashState.controllerAddress },
+        accountIdExtractor = { it.stashState.controllerAddress },
         errorProducer = RewardDestinationValidationFailure::MissingController
     )
 

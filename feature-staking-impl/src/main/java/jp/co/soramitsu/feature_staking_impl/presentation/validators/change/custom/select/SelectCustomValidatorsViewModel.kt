@@ -27,7 +27,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.Valid
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll

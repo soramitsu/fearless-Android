@@ -27,7 +27,7 @@ class BondMoreValidationsModule {
             availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
                 walletRepository,
                 originAddressExtractor = { it.stashAddress },
-                tokenTypeExtractor = { it.tokenType },
+                tokenTypeExtractor = { it.chainAsset },
             ),
             errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },
             extraAmountExtractor = { it.amount }

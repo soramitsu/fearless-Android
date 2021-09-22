@@ -71,7 +71,7 @@ class ConfirmBondMoreViewModel(
 
     val originAddressModelLiveData = liveData {
         val address = payload.stashAddress
-        val account = interactor.getAccount(address)
+        val account = interactor.getProjectedAccount(address)
 
         val addressModel = iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
 
@@ -97,7 +97,7 @@ class ConfirmBondMoreViewModel(
             stashAddress = payload.stashAddress,
             fee = payload.fee,
             amount = payload.amount,
-            tokenType = assetFlow.first().token.configuration
+            chainAsset = assetFlow.first().token.configuration
         )
 
         validationExecutor.requireValid(

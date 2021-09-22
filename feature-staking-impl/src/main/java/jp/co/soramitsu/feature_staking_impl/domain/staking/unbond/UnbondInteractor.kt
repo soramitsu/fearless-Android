@@ -13,7 +13,6 @@ import kotlinx.coroutines.withContext
 import java.math.BigInteger
 
 class UnbondInteractor(
-    private val feeEstimator: FeeEstimator,
     private val extrinsicService: ExtrinsicService,
     private val stakingRepository: StakingRepository
 ) {
@@ -24,7 +23,7 @@ class UnbondInteractor(
         amount: BigInteger
     ): BigInteger {
         return withContext(Dispatchers.IO) {
-            feeEstimator.estimateFee(stashState.controllerAddress) {
+            extrinsicService.estimateFee(stashState.chain) {
                 constructUnbondExtrinsic(stashState, currentBondedBalance, amount)
             }
         }
@@ -36,7 +35,7 @@ class UnbondInteractor(
         amount: BigInteger
     ): Result<String> {
         return withContext(Dispatchers.IO) {
-            extrinsicService.submitExtrinsic(stashState.controllerAddress) {
+            extrinsicService.submitExtrinsic(stashState.chain, stashState.controllerId) {
                 constructUnbondExtrinsic(stashState, currentBondedBalance, amount)
             }
         }
@@ -52,7 +51,7 @@ class UnbondInteractor(
             // if account is nominating
             stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond
-            currentBondedBalance - unbondAmount < stakingRepository.minimumNominatorBond()
+            currentBondedBalance - unbondAmount < stakingRepository.minimumNominatorBond(stashState.chain.id)
         ) {
             chill()
         }

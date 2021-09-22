@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_api.data.mappers
 
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.model.TokenLocal
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 
 fun mapTokenTypeToTokenTypeLocal(type: Token.Type): TokenLocal.Type {
     return when (type) {

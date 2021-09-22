@@ -39,6 +39,8 @@ interface AccountRepository {
 
     suspend fun findMetaAccount(accountId: ByteArray): MetaAccount?
 
+    suspend fun allMetaAccounts(): List<MetaAccount>
+
     suspend fun getPreferredCryptoType(): CryptoType
 
     suspend fun isAccountSelected(): Boolean
@@ -59,7 +61,7 @@ interface AccountRepository {
 
     suspend fun getAccountOrNull(address: String): Account?
 
-    suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<Account>
+    suspend fun getMyAccounts(query: String, chainId: String): Set<Account>
 
     suspend fun importFromMnemonic(
         keyString: String,
@@ -91,8 +93,6 @@ interface AccountRepository {
     suspend fun getPinCode(): String?
 
     suspend fun generateMnemonic(): List<String>
-
-    suspend fun isInCurrentNetwork(address: String): Boolean
 
     suspend fun isBiometricEnabled(): Boolean
 

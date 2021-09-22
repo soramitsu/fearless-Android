@@ -23,12 +23,12 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.rewardDestination.Cha
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
-import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.RewardDestinationParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.select.rewardDestinationValidationFailure
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -60,7 +60,7 @@ class ConfirmRewardDestinationViewModel(
         .share()
 
     val originAccountModelLiveData = stashFlow.map {
-        generateDestinationModel(interactor.getAccount(it.controllerAddress))
+        generateDestinationModel(interactor.getProjectedAccount(it.controllerAddress))
     }.asLiveData()
 
     val rewardDestinationLiveData = flowOf(payload)

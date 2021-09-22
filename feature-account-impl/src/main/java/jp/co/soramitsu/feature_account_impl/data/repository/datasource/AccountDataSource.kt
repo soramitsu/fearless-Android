@@ -40,6 +40,8 @@ interface AccountDataSource : SecretStoreV1 {
     fun selectedMetaAccountFlow(): Flow<MetaAccount>
     suspend fun findMetaAccount(accountId: ByteArray): MetaAccount?
 
+    suspend fun allMetaAccounts(): List<MetaAccount>
+
     suspend fun getPreferredCryptoType(): CryptoType
 
     fun selectedNodeFlow(): Flow<Node>

@@ -32,6 +32,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChe
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -64,6 +65,8 @@ class ChooseAmountViewModel(
     private val transferValidityChecks: TransferValidityChecks.Presentation,
     private val walletConstants: WalletConstants,
     private val recipientAddress: String,
+    private val chainId: ChainId,
+    private val chainAssetId: Int,
     private val phishingAddress: PhishingWarningMixin
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,

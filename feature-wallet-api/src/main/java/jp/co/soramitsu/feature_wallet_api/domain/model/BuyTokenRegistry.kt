@@ -1,24 +1,25 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
 import androidx.annotation.DrawableRes
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 class BuyTokenRegistry(val availableProviders: List<Provider<*>>) {
 
-    fun availableProviders(type: Token.Type) = availableProviders.filter { it.isTokenSupported(type) }
+    fun availableProviders(chainAsset: Chain.Asset) = availableProviders.filter { it.isTokenSupported(chainAsset) }
 
     interface Provider<I : Integrator<*>> {
         class UnsupportedTokenException : Exception()
 
-        val supportedTokens: Set<Token.Type>
+        val supportedTokens: Set<Chain.Asset>
 
         val name: String
 
         @get:DrawableRes
         val icon: Int
 
-        fun isTokenSupported(type: Token.Type): Boolean = type in supportedTokens
+        fun isTokenSupported(chainAsset: Chain.Asset): Boolean = chainAsset in supportedTokens
 
-        fun createIntegrator(tokenType: Token.Type, address: String): I
+        fun createIntegrator(chainAsset: Chain.Asset, address: String): I
     }
 
     interface Integrator<T> {

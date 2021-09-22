@@ -83,8 +83,8 @@ class AccountDataSourceImpl(
      */
     override val selectedAccountMapping = selectedMetaAccountFlow.map { metaAccount ->
         val mapping = metaAccount.chainAccounts.mapValuesTo(mutableMapOf()) { (_, chainAccount) ->
-                mapChainAccountToAccount(metaAccount, chainAccount)
-            }
+            mapChainAccountToAccount(metaAccount, chainAccount)
+        }
 
         val chains = chainRegistry.chainsById.first()
 
@@ -168,6 +168,14 @@ class AccountDataSourceImpl(
     override suspend fun findMetaAccount(accountId: ByteArray): MetaAccount? {
         return metaAccountDao.getMetaAccountInfo(accountId)?.let {
             mapMetaAccountLocalToMetaAccount(chainRegistry.chainsById.first(), it)
+        }
+    }
+
+    override suspend fun allMetaAccounts(): List<MetaAccount> {
+        val chainsById = chainRegistry.chainsById.first()
+
+        return metaAccountDao.getJoinedMetaAccountsInfo().map {
+            mapMetaAccountLocalToMetaAccount(chainsById, it)
         }
     }
 

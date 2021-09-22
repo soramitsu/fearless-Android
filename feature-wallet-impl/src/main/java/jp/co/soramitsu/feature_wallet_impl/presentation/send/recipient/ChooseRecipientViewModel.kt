@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
@@ -45,7 +46,8 @@ class ChooseRecipientViewModel(
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val qrBitmapDecoder: QrBitmapDecoder,
-    private val phishingWarning: PhishingWarningMixin
+    private val payload: AssetPayload,
+    private val phishingWarning: PhishingWarningMixin,
 ) : BaseViewModel(),
     PhishingWarningMixin by phishingWarning,
     PhishingWarningPresentation {
@@ -100,12 +102,12 @@ class ChooseRecipientViewModel(
     }
 
     fun enterClicked() {
-        val amount = searchEvents.value
+        val input = searchEvents.value
 
         viewModelScope.launch {
-            val valid = interactor.validateSendAddress(amount)
+            val valid = interactor.validateSendAddress(payload.chainId, input)
 
-            if (valid) recipientSelected(amount)
+            if (valid) recipientSelected(input)
         }
     }
 
@@ -145,8 +147,8 @@ class ChooseRecipientViewModel(
     }
 
     private suspend fun formSearchResults(address: String): List<Any> = withContext(Dispatchers.Default) {
-        val isValidAddress = interactor.validateSendAddress(address)
-        val searchResult = interactor.getRecipients(address)
+        val isValidAddress = interactor.validateSendAddress(address, payload.chainId)
+        val searchResult = interactor.getRecipients(address, payload.chainId)
 
         val resultWithHeader = maybeAppendResultHeader(isValidAddress, address)
         val myAccountsWithHeader = generateAccountModelsWithHeader(R.string.search_header_my_accounts, searchResult.myAccounts)

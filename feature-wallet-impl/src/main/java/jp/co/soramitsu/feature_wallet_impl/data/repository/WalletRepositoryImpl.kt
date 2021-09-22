@@ -62,10 +62,10 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
 ) : WalletRepository {
 
-    override fun assetsFlow(accountId: AccountId): Flow<List<Asset>> {
+    override fun assetsFlow(metaId: Long): Flow<List<Asset>> {
         return combine(
             chainRegistry.chainsById,
-            assetCache.observeAssets(accountId)
+            assetCache.observeAssets(metaId)
         ) { chainsById, assetsLocal ->
             assetsLocal.map { asset ->
                 val chainAsset = chainsById.getValue(asset.asset.chainId).assetsBySymbol.getValue(asset.token.symbol)
@@ -214,6 +214,7 @@ class WalletRepositoryImpl(
         return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance, existentialDeposit)
     }
 
+    // TODO adapt for ethereum chains
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
         val accountIds = phishingApi.getPhishingAddresses().values.flatten()
             .map { it.toAccountId().toHexString(withPrefix = true) }
@@ -224,6 +225,7 @@ class WalletRepositoryImpl(
         phishingAddressDao.insert(phishingAddressesLocal)
     }
 
+    // TODO adapt for ethereum chains
     override suspend fun isAccountIdFromPhishingList(accountId: AccountId) = withContext(Dispatchers.Default) {
         val phishingAddresses = phishingAddressDao.getAllAddresses()
 

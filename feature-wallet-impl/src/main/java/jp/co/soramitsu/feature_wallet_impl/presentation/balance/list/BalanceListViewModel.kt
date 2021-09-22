@@ -8,6 +8,8 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
@@ -104,7 +106,7 @@ class BalanceListViewModel(
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {
-        return interactor.selectedAccountFlow()
+        return interactor.selectedAccountFlow(Node.NetworkType.POLKADOT.chainId) //  TODO stub
             .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
     }
 

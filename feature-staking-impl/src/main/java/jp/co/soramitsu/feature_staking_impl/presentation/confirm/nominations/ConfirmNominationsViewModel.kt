@@ -13,10 +13,9 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProc
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.findSelectedValidator
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.findSelectedValidator
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

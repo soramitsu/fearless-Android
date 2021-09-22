@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations
 
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import java.math.BigDecimal
 
 sealed class ContributeValidationFailure {

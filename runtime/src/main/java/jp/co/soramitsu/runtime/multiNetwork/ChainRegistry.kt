@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
@@ -82,6 +83,12 @@ class ChainRegistry(
     fun getRuntimeProvider(chainId: String) = runtimeProviderPool.getRuntimeProvider(chainId)
 
     suspend fun getChain(chainId: String) = chainsById.first().getValue(chainId)
+}
+
+suspend fun ChainRegistry.chainWithAsset(chainId: String, assetId: Int) : Pair<Chain, Chain.Asset> {
+    val chain = chainsById.first().getValue(chainId)
+
+    return chain to chain.assetsById.getValue(assetId)
 }
 
 suspend fun ChainRegistry.getRuntime(chainId: String) = getRuntimeProvider(chainId).get()
