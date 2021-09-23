@@ -20,7 +20,7 @@ class AssetUseCaseImpl(
     ) { selectedMetaAccount, (chain, chainAsset) ->
         emitAll(
             walletRepository.assetFlow(
-                accountId= selectedMetaAccount.accountIdIn(chain)!!,
+                accountId = selectedMetaAccount.accountIdIn(chain)!!,
                 chainAsset = chainAsset
             )
         )

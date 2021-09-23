@@ -51,6 +51,5 @@ class UpdateSystem(
         }
 
         emitAll(scopeFlows.merge())
-
     }.flowOn(Dispatchers.Default)
 }

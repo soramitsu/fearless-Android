@@ -16,7 +16,7 @@ class MoonPayProvider(
     private val publicKey: String,
 ) : ExternalProvider {
 
-    override val supportedTokens= emptySet<Chain.Asset>() // TODO wallet - buy
+    override val supportedTokens = emptySet<Chain.Asset>() // TODO wallet - buy
 
     override val name: String = "Moonpay"
 

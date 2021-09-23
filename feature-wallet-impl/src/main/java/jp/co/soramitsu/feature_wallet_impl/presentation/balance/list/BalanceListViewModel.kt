@@ -85,7 +85,7 @@ class BalanceListViewModel(
 
     fun assetClicked(asset: AssetModel) {
         val payload = AssetPayload(
-            chainId =  asset.token.configuration.chainId,
+            chainId = asset.token.configuration.chainId,
             chainAssetId = asset.token.configuration.id
         )
 

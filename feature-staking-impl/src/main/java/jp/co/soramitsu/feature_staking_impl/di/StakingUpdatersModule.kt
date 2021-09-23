@@ -184,7 +184,7 @@ class StakingUpdatersModule {
             HistoricalTotalValidatorRewardUpdater(),
             HistoricalValidatorRewardPointsUpdater(),
         ),
-        stakingSharedState= sharedState,
+        stakingSharedState = sharedState,
         chainRegistry = chainRegistry,
         bulkRetriever = bulkRetriever,
         stakingRepository = stakingRepository,

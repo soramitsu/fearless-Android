@@ -33,7 +33,7 @@ class RampProvider(
     class RampIntegrator(
         private val host: String,
         private val apiToken: String,
-        private val chainAsset:  Chain.Asset,
+        private val chainAsset: Chain.Asset,
         private val address: String
     ) : BuyTokenRegistry.Integrator<Context> {
 

@@ -41,7 +41,6 @@ class RuntimeModule {
         storageDao: StorageDao,
     ): StorageCache = DbStorageCache(storageDao)
 
-
     @Provides
     @Named(LOCAL_STORAGE_SOURCE)
     @ApplicationScope
