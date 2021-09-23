@@ -10,13 +10,13 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
 private const val RETRIEVE_ASSET_SQL_META_ID = """
-           select * from assets as a inner join tokens as t ON a.symbol = t.symbol WHERE
-            a.metaId = :metaId and a.chainId = :chainId AND a.symbol = :symbol
+           select * from assets as a inner join tokens as t ON a.tokenSymbol = t.symbol WHERE
+            a.metaId = :metaId and a.chainId = :chainId AND a.tokenSymbol = :symbol
 """
 
 private const val RETRIEVE_ASSET_SQL_ACCOUNT_ID = """
-           select * from assets as a inner join tokens as t ON a.symbol = t.symbol WHERE 
-            a.accountId = :accountId and a.chainId = :chainId AND a.symbol = :symbol
+           select * from assets as a inner join tokens as t ON a.tokenSymbol = t.symbol WHERE 
+            a.accountId = :accountId and a.chainId = :chainId AND a.tokenSymbol = :symbol
 """
 
 interface AssetReadOnlyCache {
@@ -34,7 +34,7 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Query(
         """
-       select * from assets as a inner join tokens as t on a.symbol = t.symbol WHERE a.metaId = :metaId
+       select * from assets as a inner join tokens as t on a.tokenSymbol = t.symbol WHERE a.metaId = :metaId
     """
     )
     abstract override fun observeAssets(metaId: Long): Flow<List<AssetWithToken>>
@@ -45,7 +45,7 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
     abstract override fun observeAsset(accountId: AccountId, chainId: String, symbol: String): Flow<AssetWithToken>
 
-    @Query(RETRIEVE_ASSET_SQL_META_ID)
+    @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
     abstract override suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String): AssetWithToken?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -6,14 +6,15 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingEraValidatorInfosRequest
 import jp.co.soramitsu.feature_staking_impl.data.repository.subqueryFearlessApiPath
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 class SubQueryValidatorSetFetcher(
     private val stakingApi: StakingApi,
     private val stakingRepository: StakingRepository,
 ) {
 
-    suspend fun fetchAllValidators(stashAccountAddress: String): List<String> {
-        val historicalRange = stakingRepository.historicalEras()
+    suspend fun fetchAllValidators(chainId: ChainId, stashAccountAddress: String): List<String> {
+        val historicalRange = stakingRepository.historicalEras(chainId)
         val subqueryPath = stashAccountAddress.networkType().subqueryFearlessApiPath()
 
         val validatorsInfos = stakingApi.getValidatorsInfo(

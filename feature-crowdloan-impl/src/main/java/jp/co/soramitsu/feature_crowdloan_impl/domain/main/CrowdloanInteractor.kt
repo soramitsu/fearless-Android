@@ -85,7 +85,7 @@ class CrowdloanInteractor(
 
                 val contributionKeys = fundInfos.mapValues { (_, fundInfo) -> fundInfo.trieIndex }
 
-                val contributions = crowdloanRepository.getContributions(accountId, contributionKeys)
+                val contributions = crowdloanRepository.getContributions(chainId, accountId, contributionKeys)
                 val winnerInfo = crowdloanRepository.getWinnerInfo(chainId, fundInfos)
 
                 fundInfos.values

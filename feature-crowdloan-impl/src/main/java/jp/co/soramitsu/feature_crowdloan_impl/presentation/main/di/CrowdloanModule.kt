@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.CrowdloanViewModel
@@ -26,6 +27,7 @@ class CrowdloanModule {
         assetUseCase: AssetUseCase,
         resourceManager: ResourceManager,
         iconGenerator: AddressIconGenerator,
+        crowdloanSharedState: CrowdloanSharedState,
         router: CrowdloanRouter
     ): ViewModel {
         return CrowdloanViewModel(
@@ -33,6 +35,7 @@ class CrowdloanModule {
             assetUseCase,
             iconGenerator,
             resourceManager,
+            crowdloanSharedState,
             router
         )
     }

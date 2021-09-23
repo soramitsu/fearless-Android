@@ -7,10 +7,10 @@ import java.math.BigInteger
 
 @Entity(
     tableName = "assets",
-    primaryKeys = ["symbol", "chainId", "accountId"],
+    primaryKeys = ["tokenSymbol", "chainId", "accountId"],
 )
 data class AssetLocal(
-    val symbol: String,
+    val tokenSymbol: String,
     val chainId: String,
     val accountId: AccountId,
     @ColumnInfo(index = true) val metaId: Long,
@@ -29,7 +29,7 @@ data class AssetLocal(
             chainId: String,
             metaId: Long
         ) = AssetLocal(
-            symbol = symbol,
+            tokenSymbol = symbol,
             chainId = chainId,
             accountId = accountId,
             metaId = metaId,

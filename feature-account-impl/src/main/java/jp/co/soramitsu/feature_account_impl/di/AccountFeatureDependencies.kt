@@ -17,7 +17,9 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import java.util.Random
 
 interface AccountFeatureDependencies {
@@ -59,4 +61,8 @@ interface AccountFeatureDependencies {
     fun metaAccountDao(): MetaAccountDao
 
     fun chainRegistry(): ChainRegistry
+
+    fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
+
+    fun rpcCalls(): RpcCalls
 }

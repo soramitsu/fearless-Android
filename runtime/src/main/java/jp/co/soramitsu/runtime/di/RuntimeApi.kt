@@ -5,6 +5,7 @@ import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
+import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,4 +30,6 @@ interface RuntimeApi {
     fun chainStateRepository(): ChainStateRepository
 
     fun chainRegistry(): ChainRegistry
+
+    fun rpcCalls(): RpcCalls
 }

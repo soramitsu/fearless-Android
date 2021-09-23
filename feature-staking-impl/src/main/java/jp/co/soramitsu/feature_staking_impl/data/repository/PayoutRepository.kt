@@ -70,7 +70,7 @@ class PayoutRepository(
             is StakingState.Stash.Nominator -> calculateUnpaidPayouts(
                 chain = stakingState.chain,
                 retrieveValidatorAddresses = {
-                    validatorSetFetcher.fetchAllValidators(stakingState.stashAddress)
+                    validatorSetFetcher.fetchAllValidators(stakingState.chain.id, stakingState.stashAddress)
                 },
                 calculatePayoutReward = {
                     calculateNominatorReward(stakingState.stashId, it)

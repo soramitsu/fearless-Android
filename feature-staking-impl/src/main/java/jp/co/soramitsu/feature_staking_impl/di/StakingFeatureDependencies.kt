@@ -24,6 +24,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
@@ -81,4 +82,6 @@ interface StakingFeatureDependencies {
 
     @Named(LOCAL_STORAGE_SOURCE)
     fun localStorageSource(): StorageDataSource
+
+    fun chainRegistry(): ChainRegistry
 }

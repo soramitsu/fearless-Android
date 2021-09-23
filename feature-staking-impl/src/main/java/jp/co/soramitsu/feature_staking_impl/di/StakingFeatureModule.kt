@@ -101,6 +101,13 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideStakingSharedState(
+        accountRepository: AccountRepository,
+        chainRegistry: ChainRegistry
+    ) = StakingSharedState(accountRepository, chainRegistry)
+
+    @Provides
+    @FeatureScope
     fun provideStakingStoriesDataSource(): StakingStoriesDataSource = StakingStoriesDataSourceImpl()
 
     @Provides

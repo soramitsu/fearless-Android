@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
-import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -46,7 +45,7 @@ import java.util.Random
 class AccountFeatureModule {
 
     @Provides
-    @ApplicationScope
+    @FeatureScope
     fun provideExtrinsicService(
         accountRepository: AccountRepository,
         secretStoreV2: SecretStoreV2,

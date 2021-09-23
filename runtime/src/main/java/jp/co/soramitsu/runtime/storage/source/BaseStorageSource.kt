@@ -47,8 +47,8 @@ abstract class BaseStorageSource(
     override suspend fun <K, T> queryKeys(
         chainId: String,
         keysBuilder: (RuntimeSnapshot) -> Map<StorageKey, K>,
+        at: BlockHash?,
         binding: Binder<T>,
-        at: BlockHash?
     ): Map<K, T> = withContext(Dispatchers.Default) {
         val runtime = chainRegistry.getRuntime(chainId)
 
@@ -63,8 +63,8 @@ abstract class BaseStorageSource(
     override suspend fun <T> query(
         chainId: String,
         keyBuilder: (RuntimeSnapshot) -> String,
+        at: BlockHash?,
         binding: Binder<T>,
-        at: BlockHash?
     ) = withContext(Dispatchers.Default) {
         val runtime = chainRegistry.getRuntime(chainId)
 

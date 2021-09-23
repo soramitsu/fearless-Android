@@ -1,9 +1,9 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.runtime.ext.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -3,9 +3,8 @@ package jp.co.soramitsu.core_db.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
-import jp.co.soramitsu.core_db.model.chain.EmbeddedJoinedMetaAccountInfo
-import jp.co.soramitsu.core_db.model.chain.JoinedMetaAccountInfo
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.core_db.model.chain.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -30,19 +29,22 @@ interface MetaAccountDao {
     fun getMetaAccounts(): List<MetaAccountLocal>
 
     @Query("SELECT * FROM meta_accounts")
-    fun getJoinedMetaAccountsInfo(): List<JoinedMetaAccountInfo>
+    @Transaction
+    fun getJoinedMetaAccountsInfo(): List<RelationJoinedMetaAccountInfo>
 
     @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
+    @Transaction
     suspend fun getJoinedMetaAccountInfo(metaId: Long): RelationJoinedMetaAccountInfo
 
     @Query("SELECT * FROM meta_accounts WHERE isSelected = 1")
+    @Transaction
     fun selectedMetaAccountInfoFlow(): Flow<RelationJoinedMetaAccountInfo?>
 
     @Query(FIND_BY_ADDRESS_QUERY)
     fun getMetaAccountInfo(
         accountId: AccountId,
         ethereumAddress: String = accountId.toHexString()
-    ): EmbeddedJoinedMetaAccountInfo?
+    ): RelationJoinedMetaAccountInfo?
 
     @Query("SELECT EXISTS ($FIND_BY_ADDRESS_QUERY)")
     fun isMetaAccountExists(

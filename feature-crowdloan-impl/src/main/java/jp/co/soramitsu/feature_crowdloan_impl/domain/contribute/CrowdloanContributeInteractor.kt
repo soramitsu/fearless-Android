@@ -46,7 +46,7 @@ class CrowdloanContributeInteractor(
             chainStateRepository.currentBlockNumberFlow(chain.id)
         ) { fundInfo, blockNumber ->
             val contribution = crowdloanRepository.getContribution(chain.id, accountId, parachainId, fundInfo.trieIndex)
-            val hasWonAuction = crowdloanRepository.hasWonAuction(fundInfo)
+            val hasWonAuction = crowdloanRepository.hasWonAuction(chain.id, fundInfo)
 
             mapFundInfoToCrowdloan(
                 fundInfo = fundInfo,

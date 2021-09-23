@@ -23,6 +23,3 @@ class TokenModel(
 // TODO - wallet compatibility
 val Chain.Asset.networkType
     get() = Node.NetworkType.findByGenesis(chainId)
-
-val Chain.Asset.icon: Int
-    get() = R.drawable.ic_token_dot // TODO wallet - token icon

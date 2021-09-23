@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
@@ -13,6 +14,14 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.repository.CrowdloanRepositor
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeModule
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.implementations.AssetUseCaseImpl
+import jp.co.soramitsu.feature_wallet_api.domain.implementations.TokenUseCaseImpl
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderProvider
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
@@ -25,6 +34,45 @@ import javax.inject.Named
     ]
 )
 class CrowdloanFeatureModule {
+
+    @Provides
+    @FeatureScope
+    fun provideAssetUseCase(
+        walletRepository: WalletRepository,
+        accountRepository: AccountRepository,
+        sharedState: CrowdloanSharedState,
+    ): AssetUseCase = AssetUseCaseImpl(
+        walletRepository,
+        accountRepository,
+        sharedState
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideTokenUseCase(
+        tokenRepository: TokenRepository,
+        sharedState: CrowdloanSharedState,
+    ): TokenUseCase = TokenUseCaseImpl(
+        tokenRepository,
+        sharedState
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideFeeLoaderMixin(
+        resourceManager: ResourceManager,
+        tokenUseCase: TokenUseCase,
+    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(
+        resourceManager,
+        tokenUseCase
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideStakingSharedState(
+        accountRepository: AccountRepository,
+        chainRegistry: ChainRegistry
+    ) = CrowdloanSharedState(accountRepository, chainRegistry)
 
     @Provides
     @FeatureScope
