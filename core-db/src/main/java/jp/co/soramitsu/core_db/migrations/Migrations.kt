@@ -58,29 +58,101 @@ class UpdateDefaultNodesList(
     }
 }
 
-val MigrateStorageCacheToChainId_27_28 = object : Migration(27, 28) {
+val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE storage")
 
-        // TODO migrations
+        // assets
+        database.execSQL("DROP TABLE assets")
         database.execSQL(
             """
-            CREATE TABLE `storage` (
-                `storageKey` TEXT NOT NULL,
-                `networkType` INTEGER NOT NULL,
-                `content` TEXT,
-                `runtimeVersion` INTEGER NOT NULL,
-                PRIMARY KEY(`storageKey`, `networkType`)
+            CREATE TABLE IF NOT EXISTS `assets` (
+            `tokenSymbol` TEXT NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `accountId` BLOB NOT NULL,
+            `metaId` INTEGER NOT NULL,
+            `freeInPlanks` TEXT NOT NULL,
+            `reservedInPlanks` TEXT NOT NULL,
+            `miscFrozenInPlanks` TEXT NOT NULL,
+            `feeFrozenInPlanks` TEXT NOT NULL,
+            `bondedInPlanks` TEXT NOT NULL,
+            `redeemableInPlanks` TEXT NOT NULL,
+            `unbondingInPlanks` TEXT NOT NULL,
+            PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`)
             )
-        """
+            """.trimIndent()
         )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+
+        // storage
+        database.execSQL("DROP TABLE storage")
+        database.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `storage` (
+                `storageKey` TEXT NOT NULL,
+                `content` TEXT,
+                `chainId` TEXT NOT NULL,
+                PRIMARY KEY(`chainId`, `storageKey`)
+                )
+            """.trimIndent()
+        )
+
+        // tokens
+        database.execSQL("DROP TABLE tokens")
+        database.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `tokens` (
+                `symbol` TEXT NOT NULL,
+                `dollarRate` TEXT,
+                `recentRateChange` TEXT,
+                PRIMARY KEY(`symbol`)
+                )
+            """.trimIndent()
+        )
+
+        // staking state
+        database.execSQL("DROP TABLE account_staking_accesses")
+        database.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `account_staking_accesses` (
+                `chainId` TEXT NOT NULL,
+                `accountId` BLOB NOT NULL,
+                `stashId` BLOB,
+                `controllerId` BLOB,
+                PRIMARY KEY(`chainId`, `accountId`)
+                )
+            """.trimIndent()
+        )
+
+        // operationsMi
+        database.execSQL("DROP TABLE operations")
+        database.execSQL("""
+            CREATE TABLE IF NOT EXISTS `operations` (`id` TEXT NOT NULL,
+            `address` TEXT NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `chainAssetId` INTEGER NOT NULL,
+            `time` INTEGER NOT NULL,
+            `status` INTEGER NOT NULL,
+            `source` INTEGER NOT NULL,
+            `operationType` INTEGER NOT NULL,
+            `module` TEXT,
+            `call` TEXT,
+            `amount` TEXT,
+            `sender` TEXT,
+            `receiver` TEXT,
+            `hash` TEXT,
+            `fee` TEXT,
+            `isReward` INTEGER,
+            `era` INTEGER,
+            `validator` TEXT,
+            PRIMARY KEY(`id`, `address`, `chainId`, `chainAssetId`)
+            )
+        """.trimIndent())
     }
 }
 
 val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
-            """
+        database.execSQL("""
             CREATE TABLE IF NOT EXISTS `chains` (
             `id` TEXT NOT NULL,
             `parentId` TEXT,
@@ -91,9 +163,13 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `isTestNet` INTEGER NOT NULL,
             `url` TEXT,
             `overridesCommon` INTEGER,
-            PRIMARY KEY(`id`))
-            """.trimIndent()
+            `staking_url` TEXT,
+            `staking_type` TEXT,
+            `history_url` TEXT,
+            `history_type` TEXT,
+            PRIMARY KEY(`id`))""".trimIndent()
         )
+
 
         database.execSQL(
             """
@@ -116,6 +192,7 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `name` TEXT,
             `symbol` TEXT NOT NULL,
             `precision` INTEGER NOT NULL,
+            `priceId` TEXT,
             PRIMARY KEY(`chainId`, `id`),
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
@@ -149,8 +226,9 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `isSelected` INTEGER NOT NULL)
             """.trimIndent()
         )
-        database.execSQL("""CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)""")
-        database.execSQL("""CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `meta_accounts` (`ethereumAddress`)""")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `meta_accounts` (`ethereumAddress`)")
+
         database.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_accounts` (
@@ -166,8 +244,9 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             """.trimIndent()
         )
 
-        database.execSQL("""CREATE UNIQUE INDEX IF NOT EXISTS `index_chain_accounts_metaId_chainId` ON `chain_accounts` (`metaId`,`chainId`)""")
-        database.execSQL("""CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)""")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
     }
 }
 

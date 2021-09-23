@@ -35,6 +35,7 @@ import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_21_22
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
+import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_27_28
 import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
@@ -60,7 +61,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
 @Database(
-    version = 27,
+    version = 28,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
@@ -122,8 +123,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AddTotalRewardsTableToDb_21_22, RemoveStakingRewardsTable_22_23)
                     .addMigrations(AddOperationsTablesToDb_23_24)
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 24))
-                    .addMigrations(AddChainRegistryTables_25_26)
-                    .addMigrations(V2Migration(storeV1, storeV2))
+                    .addMigrations(AddChainRegistryTables_25_26, V2Migration(storeV1, storeV2), MigrateTablesToV2_27_28)
                     .build()
             }
             return instance!!
