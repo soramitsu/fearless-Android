@@ -89,9 +89,7 @@ class RuntimeUpdater(
         runtimeProperty.set(runtime)
 
         RuntimePreparationStatus.Ok
-    } catch (e: Exception) {
-        e.printStackTrace()
-
+    } catch (_: Exception) {
         errorStatus()
     }
 
