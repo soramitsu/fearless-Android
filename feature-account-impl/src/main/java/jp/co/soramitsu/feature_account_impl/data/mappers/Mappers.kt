@@ -13,13 +13,13 @@ import jp.co.soramitsu.feature_account_api.data.mappers.stubNetwork
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.addressIn
-import jp.co.soramitsu.feature_account_api.domain.model.hexAccountIdIn
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.ext.hexAccountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
@@ -117,7 +117,6 @@ fun mapMetaAccountLocalToMetaAccount(
     chainsById: Map<ChainId, Chain>,
     joinedMetaAccountInfo: JoinedMetaAccountInfo
 ): MetaAccount {
-
     val chainAccounts = joinedMetaAccountInfo.chainAccounts.associateBy(
         keySelector = ChainAccountLocal::chainId,
         valueTransform = {
@@ -146,15 +145,20 @@ fun mapMetaAccountLocalToMetaAccount(
     }
 }
 
-fun mapMetaAccountToAccount(chain: Chain, metaAccount: MetaAccount): Account {
-    return Account(
-        address = metaAccount.addressIn(chain)!!, // TODO in case of ethereum chain may be null,
-        name = metaAccount.name,
-        accountIdHex = metaAccount.hexAccountIdIn(chain)!!, // TODO in case of ethereum chain may be null,
-        cryptoType = metaAccount.substrateCryptoType,
-        position = 0,
-        network = stubNetwork(chain.id),
-    )
+fun mapMetaAccountToAccount(chain: Chain, metaAccount: MetaAccount): Account? {
+    return metaAccount.addressIn(chain)?.let { address ->
+
+        val accountId = chain.hexAccountIdOf(address)
+
+        Account(
+            address = address,
+            name = metaAccount.name,
+            accountIdHex = accountId,
+            cryptoType = metaAccount.substrateCryptoType,
+            position = 0,
+            network = stubNetwork(chain.id),
+        )
+    }
 }
 
 fun mapChainAccountToAccount(

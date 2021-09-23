@@ -1,8 +1,8 @@
 package jp.co.soramitsu.core.updater
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.transform
 
 /**
  * We do not want this extension to be visible outside of update system
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.flowOf
  */
 interface SideEffectScope {
 
-    fun <T> Flow<T>.noSideAffects(): Flow<Updater.SideEffect> = emptyFlow()
+    fun <T> Flow<T>.noSideAffects(): Flow<Updater.SideEffect> = transform {  }
 }
 
 interface UpdateScope {

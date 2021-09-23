@@ -43,7 +43,9 @@ class UpdateSystem(
                 if (updatersFlow.isNotEmpty()) {
                     val cancellable = socket.subscribeUsing(subscriptionBuilder.proxy.build())
 
-                    updatersFlow.merge().onCompletion { cancellable.cancel() }
+                    updatersFlow.merge().onCompletion {
+                        cancellable.cancel()
+                    }
                 } else {
                     emptyFlow()
                 }

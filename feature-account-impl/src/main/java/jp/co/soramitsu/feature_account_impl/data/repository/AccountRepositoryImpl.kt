@@ -118,7 +118,7 @@ class AccountRepositoryImpl(
     // TODO remove
     override fun selectedAccountFlow(): Flow<Account> {
         return accountDataSource.selectedAccountMapping.map {
-            it.getValue(Node.NetworkType.POLKADOT.chainId)
+            it.getValue(Node.NetworkType.POLKADOT.chainId)!!
         }
     }
 
@@ -128,7 +128,7 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun getSelectedAccount(chainId: String): Account {
-        return accountDataSource.selectedAccountMapping.first().getValue(chainId)
+        return accountDataSource.selectedAccountMapping.first().getValue(chainId)!!
     }
 
     override suspend fun getSelectedMetaAccount(): MetaAccount {

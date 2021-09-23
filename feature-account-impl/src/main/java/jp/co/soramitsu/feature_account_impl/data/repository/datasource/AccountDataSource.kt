@@ -34,7 +34,7 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun getSelectedAccount(): Account
 
     // TODO for compatibility only
-    val selectedAccountMapping: Flow<Map<ChainId, Account>>
+    val selectedAccountMapping: Flow<Map<ChainId, Account?>>
 
     suspend fun getSelectedMetaAccount(): MetaAccount
     fun selectedMetaAccountFlow(): Flow<MetaAccount>

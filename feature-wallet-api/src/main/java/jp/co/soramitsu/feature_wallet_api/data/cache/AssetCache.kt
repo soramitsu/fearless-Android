@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.data.cache
 
+import android.util.Log
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.AssetReadOnlyCache
 import jp.co.soramitsu.core_db.dao.TokenDao
@@ -26,7 +27,12 @@ class AssetCache(
         chainAsset: Chain.Asset,
         builder: (local: AssetLocal) -> AssetLocal
     ) = withContext(Dispatchers.IO) {
-        accountRepository.findMetaAccount(accountId)?.let {
+        Log.d("RX", "Fetching meta account")
+        val findMetaAccount = accountRepository.findMetaAccount(accountId)
+        Log.d("RX", "Fetched meta account: ${findMetaAccount?.id}")
+
+        findMetaAccount?.let {
+            Log.d("RX", "Found meta account")
             val symbol = chainAsset.symbol
             val chainId = chainAsset.chainId
 

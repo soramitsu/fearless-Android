@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
+import android.util.Log
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.ext.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -33,7 +34,11 @@ class RuntimeProvider(
 
     private var currentConstructionJob: Job? = null
 
-    suspend fun get(): RuntimeSnapshot = runtimeFlow.first().runtime
+    suspend fun get(): RuntimeSnapshot {
+        val runtime =  runtimeFlow.first()
+
+        return runtime.runtime
+    }
 
     fun observe(): Flow<RuntimeSnapshot> = runtimeFlow.map { it.runtime }
 
@@ -68,29 +73,43 @@ class RuntimeProvider(
     }
 
     private fun considerReconstructingRuntime(runtimeSyncResult: SyncResult) {
-        val currentVersion = runtimeFlow.replayCache.firstOrNull()
+        launch {
+            currentConstructionJob?.join()
 
-        if (
-            currentVersion == null ||
-            currentVersion.metadataHash != runtimeSyncResult.metadataHash ||
-            currentVersion.ownTypesHash != runtimeSyncResult.typesHash
-        ) {
-            constructNewRuntime(typesUsage)
+            val currentVersion = runtimeFlow.replayCache.firstOrNull()
+
+            if (
+                currentVersion == null ||
+                // metadata was synced and new hash is different from current one
+                (runtimeSyncResult.metadataHash != null && currentVersion.metadataHash != runtimeSyncResult.metadataHash) ||
+                // types were synced and new hash is different from current one
+                (runtimeSyncResult.typesHash != null &&  currentVersion.ownTypesHash != runtimeSyncResult.typesHash)
+            ) {
+                Log.d("RX", "currentVersion == null: ${currentVersion == null}, " +
+                    "metadata hashes not equal: ${currentVersion?.metadataHash != runtimeSyncResult.metadataHash} " +
+                    "own types not equal: ${ currentVersion?.ownTypesHash != runtimeSyncResult.typesHash} " +
+                    "for chain: $chainId")
+                constructNewRuntime(typesUsage)
+            }
         }
     }
 
     private fun considerReconstructingRuntime(newBaseTypesHash: String) {
-        val currentVersion = runtimeFlow.replayCache.firstOrNull()
+        launch {
+            currentConstructionJob?.join()
 
-        if (typesUsage == TypesUsage.OWN) {
-            return
-        }
+            val currentVersion = runtimeFlow.replayCache.firstOrNull()
 
-        if (
-            currentVersion == null ||
-            currentVersion.baseTypesHash != newBaseTypesHash
-        ) {
-            constructNewRuntime(typesUsage)
+            if (typesUsage == TypesUsage.OWN) {
+                return@launch
+            }
+
+            if (
+                currentVersion == null ||
+                currentVersion.baseTypesHash != newBaseTypesHash
+            ) {
+                constructNewRuntime(typesUsage)
+            }
         }
     }
 
@@ -101,10 +120,16 @@ class RuntimeProvider(
             invalidateRuntime()
 
             runCatching {
+                Log.d("RX", "Constructing runtime for $chainId")
+
                 runtimeFactory.constructRuntime(chainId, typesUsage)?.also {
+                    Log.d("RX", "Constructed runtime for $chainId")
+
                     runtimeFlow.emit(it)
                 }
             }.onFailure {
+                Log.d("RX", "Error constructing runtime for $chainId ($it)")
+
                 when (it) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)
                     BaseTypesNotInCacheException -> baseTypeSynchronizer.cacheNotFound()

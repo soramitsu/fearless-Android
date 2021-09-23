@@ -82,7 +82,7 @@ class AccountDataSourceImpl(
      * Fast lookup table for accessing account based on accountId
      */
     override val selectedAccountMapping = selectedMetaAccountFlow.map { metaAccount ->
-        val mapping = metaAccount.chainAccounts.mapValuesTo(mutableMapOf()) { (_, chainAccount) ->
+        val mapping = metaAccount.chainAccounts.mapValuesTo(mutableMapOf<String, Account?>()) { (_, chainAccount) ->
             mapChainAccountToAccount(metaAccount, chainAccount)
         }
 

@@ -42,7 +42,7 @@ data class Chain(
         val staking: Section?,
         val history: Section?
     ) {
-        class Section(val type: Type, val url: String) {
+        data class Section(val type: Type, val url: String) {
             enum class Type {
                 SUBQUERY, UNKNOWN
             }

@@ -92,6 +92,13 @@ class RelationJoinedMetaAccountInfo(
     override val chainAccounts: List<ChainAccountLocal>,
 ) : JoinedMetaAccountInfo
 
+class ChainAccountWithParent(
+    @Embedded
+    val metaAccount: MetaAccountLocal,
+    @Embedded
+    val chainAccount: ChainAccountLocal
+)
+
 class EmbeddedJoinedMetaAccountInfo(
     @Embedded
     override val metaAccount: MetaAccountLocal,
