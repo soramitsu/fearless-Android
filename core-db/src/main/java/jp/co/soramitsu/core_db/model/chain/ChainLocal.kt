@@ -18,13 +18,17 @@ class ChainLocal(
     val isEthereumBased: Boolean,
     val isTestNet: Boolean,
 ) {
+
     class TypesConfig(
         val url: String,
         val overridesCommon: Boolean,
     )
 
     class ExternalApi(
+        @Embedded(prefix = "staking_")
         val staking: Section?,
+
+        @Embedded(prefix = "history_")
         val history: Section?,
     ) {
 

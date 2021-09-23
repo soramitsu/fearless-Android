@@ -46,6 +46,7 @@ class MetaAccountLocal(
     var id: Long = 0
 }
 
+// TOTO modify migrations for meta_accounts and chain_accounts
 @Entity(
     tableName = "chain_accounts",
     foreignKeys = [
@@ -62,13 +63,12 @@ class MetaAccountLocal(
         ),
     ],
     indices = [
-        Index(value = ["metaId", "chainId"], unique = true),
-        Index(value = ["accountId"])
+        Index(value = ["chainId"]),
+        Index(value = ["metaId"]),
+        Index(value = ["accountId"]),
     ],
     primaryKeys = ["metaId", "chainId"]
 )
-
-// TOTO modify migrations for meta_accounts and chain_accounts
 class ChainAccountLocal(
     val metaId: Long,
     val chainId: String,

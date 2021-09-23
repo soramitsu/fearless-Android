@@ -3,9 +3,9 @@ package jp.co.soramitsu.core_db.model
 import androidx.room.Embedded
 
 class AssetWithToken(
-    @Embedded
+    @Embedded(prefix = "asset_")
     val asset: AssetLocal,
 
-    @Embedded
+    @Embedded(prefix = "token_")
     val token: TokenLocal
 )
